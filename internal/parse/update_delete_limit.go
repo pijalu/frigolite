@@ -46,60 +46,96 @@ func updateDeleteLimitError(input string) string {
 	return ""
 }
 
+// rawSplitState tracks the string/bracket/comment lexer state of the
+// raw-statement splitter.
+type rawSplitState struct {
+	inS, inD, inBracket, inLine, inBlock bool
+}
+
 // splitRawStatements splits on semicolons outside strings/comments.
 func splitRawStatements(input string) []string {
 	var out []string
 	var cur strings.Builder
-	inS, inD, inBracket, inLine, inBlock := false, false, false, false, false
+	st := rawSplitState{}
 	for i := 0; i < len(input); i++ {
-		c := input[i]
-		switch {
-		case inLine:
-			if c == '\n' {
-				inLine = false
-				cur.WriteByte(c)
-			}
-		case inBlock:
-			if c == '*' && i+1 < len(input) && input[i+1] == '/' {
-				inBlock = false
-				i++
-			}
-		case !inS && !inD && !inBracket && c == '-' && i+1 < len(input) && input[i+1] == '-':
-			inLine = true
-		case !inS && !inD && !inBracket && c == '/' && i+1 < len(input) && input[i+1] == '*':
-			inBlock = true
-			i++
-		case inS:
-			if c == '\'' {
-				inS = false
-			}
-		case inD:
-			if c == '"' {
-				inD = false
-			}
-		case inBracket:
-			if c == ']' {
-				inBracket = false
-			}
-		case c == '\'':
-			inS = true
-		case c == '"':
-			inD = true
-		case c == '[':
-			inBracket = true
-		case c == ';':
-			if strings.TrimSpace(cur.String()) != "" {
-				out = append(out, cur.String())
-			}
-			cur.Reset()
-		default:
+		i = splitRawStep(&cur, &out, input, i, &st)
+	}
+	flushRawStatement(&cur, &out)
+	return out
+}
+
+// splitRawStep consumes input[i] for the raw-statement splitter, updating the
+// splitter state and returning the index to continue from (the caller's loop
+// adds its own step).
+func splitRawStep(cur *strings.Builder, out *[]string, input string, i int, st *rawSplitState) int {
+	c := input[i]
+	switch {
+	case st.inLine:
+		if c == '\n' {
+			st.inLine = false
 			cur.WriteByte(c)
 		}
+	case st.inBlock:
+		if endsBlockComment(input, i) {
+			st.inBlock = false
+			return i + 1
+		}
+	case st.inS:
+		if c == '\'' {
+			st.inS = false
+		}
+	case st.inD:
+		if c == '"' {
+			st.inD = false
+		}
+	case st.inBracket:
+		if c == ']' {
+			st.inBracket = false
+		}
+	default:
+		return splitRawPlainStep(cur, out, input, i, st)
 	}
+	return i
+}
+
+// splitRawPlainStep consumes input[i] while no string/bracket/comment state is
+// active, detecting comment starts, quote/bracket openers, and the statement
+// separator. Returns the index to continue from.
+func splitRawPlainStep(cur *strings.Builder, out *[]string, input string, i int, st *rawSplitState) int {
+	c := input[i]
+	switch {
+	case c == '-' && i+1 < len(input) && input[i+1] == '-':
+		st.inLine = true
+	case c == '/' && i+1 < len(input) && input[i+1] == '*':
+		st.inBlock = true
+		return i + 1
+	case c == '\'':
+		st.inS = true
+	case c == '"':
+		st.inD = true
+	case c == '[':
+		st.inBracket = true
+	case c == ';':
+		flushRawStatement(cur, out)
+	default:
+		cur.WriteByte(c)
+	}
+	return i
+}
+
+// endsBlockComment reports whether the /* comment being scanned ends at i
+// (a "*/" terminator starts there).
+func endsBlockComment(input string, i int) bool {
+	return input[i] == '*' && i+1 < len(input) && input[i+1] == '/'
+}
+
+// flushRawStatement appends the pending statement when non-blank and resets
+// the buffer.
+func flushRawStatement(cur *strings.Builder, out *[]string) {
 	if strings.TrimSpace(cur.String()) != "" {
-		out = append(out, cur.String())
+		*out = append(*out, cur.String())
 	}
-	return out
+	cur.Reset()
 }
 
 // topLevelKeyword finds the first keyword token at paren-depth 0.
@@ -122,16 +158,10 @@ func topLevelKeyword(s string, keywords []string) int {
 			}
 		case ' ', '\t', '\n', '\r', ',':
 		default:
-			if (c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z') || c == '_' {
-				j := i
-				for j < len(s) && (s[j] == '_' || (s[j] >= 'A' && s[j] <= 'Z') || (s[j] >= 'a' && s[j] <= 'z') || (s[j] >= '0' && s[j] <= '9')) {
-					j++
-				}
-				word := s[i:j]
-				for _, kw := range keywords {
-					if depth == 0 && strings.EqualFold(word, kw) {
-						return i
-					}
+			if isIdentStart(c) {
+				j := scanIdentifierEnd(s, i)
+				if keywordMatches(s[i:j], depth, keywords) {
+					return i
 				}
 				i = j
 				continue
@@ -142,48 +172,74 @@ func topLevelKeyword(s string, keywords []string) int {
 	return -1
 }
 
+// keywordMatches reports whether word equals any of keywords at paren-depth 0.
+func keywordMatches(word string, depth int, keywords []string) bool {
+	if depth != 0 {
+		return false
+	}
+	for _, kw := range keywords {
+		if strings.EqualFold(word, kw) {
+			return true
+		}
+	}
+	return false
+}
+
 // skipLexeme skips a string/bracket/comment starting at i; returns i when the
 // byte does not start one.
 func skipLexeme(s string, i int) int {
 	switch s[i] {
 	case '\'':
-		for j := i + 1; j < len(s); j++ {
-			if s[j] == '\'' {
-				return j + 1
-			}
-		}
+		return scanQuoteEnd(s, i, '\'')
 	case '"':
-		for j := i + 1; j < len(s); j++ {
-			if s[j] == '"' {
-				return j + 1
-			}
-		}
+		return scanQuoteEnd(s, i, '"')
 	case '[':
-		for j := i + 1; j < len(s); j++ {
-			if s[j] == ']' {
-				return j + 1
-			}
-		}
+		return scanQuoteEnd(s, i, ']')
 	case '-':
-		if i+1 < len(s) && s[i+1] == '-' {
-			for j := i + 2; j < len(s); j++ {
-				if s[j] == '\n' {
-					return j + 1
-				}
-			}
-			return len(s)
-		}
+		return skipDashLexeme(s, i)
 	case '/':
-		if i+1 < len(s) && s[i+1] == '*' {
-			for j := i + 2; j+1 < len(s); j++ {
-				if s[j] == '*' && s[j+1] == '/' {
-					return j + 2
-				}
-			}
-			return len(s)
+		return skipSlashLexeme(s, i)
+	}
+	return i
+}
+
+// scanQuoteEnd returns the index just after the closing quote/bracket that
+// terminates the lexeme starting at i, or i when unterminated.
+func scanQuoteEnd(s string, i int, close byte) int {
+	for j := i + 1; j < len(s); j++ {
+		if s[j] == close {
+			return j + 1
 		}
 	}
 	return i
+}
+
+// skipDashLexeme returns the index just after the -- comment's terminating
+// newline (or len(s) at EOF); i when s[i] does not start a -- comment.
+func skipDashLexeme(s string, i int) int {
+	if !(i+1 < len(s) && s[i+1] == '-') {
+		return i
+	}
+	for j := i + 2; j < len(s); j++ {
+		if s[j] == '\n' {
+			return j + 1
+		}
+	}
+	return len(s)
+}
+
+// skipSlashLexeme returns the index just after the /* comment's terminator
+// (or len(s) at EOF); i when s[i] does not start a /* comment.
+func skipSlashLexeme(s string, i int) int {
+	if !(i+1 < len(s) && s[i+1] == '*') {
+		return i
+	}
+	for j := i + 2; j+1 < len(s); j++ {
+		if s[j] == '*' && s[j+1] == '/' {
+			return j + 2
+		}
+	}
+	return len(s)
 }
 
 // topLevelOrderBy returns the byte offset of a depth-0 ORDER BY in s, or -1.

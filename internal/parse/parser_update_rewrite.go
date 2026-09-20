@@ -62,60 +62,74 @@ func rewriteSpan(sb *strings.Builder, input string, toks []sql.Token, sp stmtSpa
 	}
 	cur := last
 	for _, setIdx := range setIdxs {
-		// setIdx may be the SET keyword token (SET (c,d)=...), the LParen, or
-		// the closing RParen (SET b=8, (c,d)=...). Normalize to (lp, closeParen).
-		lp, closeParen := parenSetBounds(toks, setIdx, sp)
-		if lp < 0 || closeParen < 0 {
-			continue
-		}
-		eqIdx := findSetEq(toks, closeParen, sp)
-		if eqIdx < 0 {
-			continue
-		}
-		cols := extractSetCols(toks, lp, closeParen)
-		if len(cols) == 0 {
-			continue
-		}
-		// Find the RHS expression end (next depth-0 COMMA or statement end).
-		rhsStart := toks[eqIdx].Pos + 1
-		rhsEnd := findSetRhsEnd(toks, eqIdx, sp, spEndBytes)
-		rhs := strings.TrimSpace(input[rhsStart:rhsEnd])
-		assigns, err := buildSetAssigns(cols, rhs)
+		var err error
+		cur, err = rewriteOneParenSet(sb, input, toks, sp, spEndBytes, setIdx, cur, spans, lenient)
 		if err != nil {
-			if !lenient {
-				return 0, err
-			}
-			// CREATE TRIGGER body: SQLite accepts an arity-mismatched
-			// row-value assignment at CREATE time and only reports the
-			// mismatch when the trigger fires. Duplicate the RHS per column
-			// so the body parses; the original text is restored for RawSQL.
-			assigns = make([]string, len(cols))
-			for i := range cols {
-				assigns[i] = fmt.Sprintf("%s = %s", cols[i], rhs)
-			}
+			return 0, err
 		}
-		// beforeText already ends with "SET " (SET (c,d)=...) or ", "
-		// (SET b=8, (c,d)=...), so the replacement continues the setlist
-		// without adding another SET keyword.
-		sb.WriteString(input[cur:toks[lp].Pos])
-		outStart := sb.Len()
-		joined := strings.Join(assigns, ", ")
-		// Preserve the whitespace between the RHS and its terminator
-		// (rowvalue7-1.x: "SET (c) = 99 WHERE" must not become "99WHERE").
-		rhsRaw := input[rhsStart:rhsEnd]
-		joined += rhsRaw[len(strings.TrimRight(rhsRaw, " \t\n\r\f")):]
-		sb.WriteString(joined)
-		// Record the span so RawSQL capture can restore the original
-		// paren-set text (SQLite stores DDL text verbatim).
-		*spans = append(*spans, parenRewriteSpan{
-			outStart: outStart,
-			outEnd:   outStart + len(joined),
-			origText: input[toks[lp].Pos:rhsEnd],
-		})
-		cur = rhsEnd
 	}
 	sb.WriteString(input[cur:spEndBytes])
 	return spEndBytes, nil
+}
+
+// rewriteOneParenSet rewrites the paren-set occurrence recorded at toks[setIdx],
+// appending the literal text before it and the per-column replacement to sb,
+// recording the restore span, and returning the new cursor. When the token is
+// not a rewritable paren-set (bounds/EQ/column checks fail) the cursor is
+// returned unchanged. lenient (CREATE TRIGGER body spans) duplicates the RHS
+// instead of failing on an arity mismatch.
+func rewriteOneParenSet(sb *strings.Builder, input string, toks []sql.Token, sp stmtSpan, spEndBytes, setIdx, cur int, spans *[]parenRewriteSpan, lenient bool) (int, error) {
+	// setIdx may be the SET keyword token (SET (c,d)=...), the LParen, or
+	// the closing RParen (SET b=8, (c,d)=...). Normalize to (lp, closeParen).
+	lp, closeParen := parenSetBounds(toks, setIdx, sp)
+	if lp < 0 || closeParen < 0 {
+		return cur, nil
+	}
+	eqIdx := findSetEq(toks, closeParen, sp)
+	if eqIdx < 0 {
+		return cur, nil
+	}
+	cols := extractSetCols(toks, lp, closeParen)
+	if len(cols) == 0 {
+		return cur, nil
+	}
+	// Find the RHS expression end (next depth-0 COMMA or statement end).
+	rhsStart := toks[eqIdx].Pos + 1
+	rhsEnd := findSetRhsEnd(toks, eqIdx, sp, spEndBytes)
+	rhs := strings.TrimSpace(input[rhsStart:rhsEnd])
+	assigns, err := buildSetAssigns(cols, rhs)
+	if err != nil {
+		if !lenient {
+			return cur, err
+		}
+		// CREATE TRIGGER body: SQLite accepts an arity-mismatched
+		// row-value assignment at CREATE time and only reports the
+		// mismatch when the trigger fires. Duplicate the RHS per column
+		// so the body parses; the original text is restored for RawSQL.
+		assigns = make([]string, len(cols))
+		for i := range cols {
+			assigns[i] = fmt.Sprintf("%s = %s", cols[i], rhs)
+		}
+	}
+	// beforeText already ends with "SET " (SET (c,d)=...) or ", "
+	// (SET b=8, (c,d)=...), so the replacement continues the setlist
+	// without adding another SET keyword.
+	sb.WriteString(input[cur:toks[lp].Pos])
+	outStart := sb.Len()
+	joined := strings.Join(assigns, ", ")
+	// Preserve the whitespace between the RHS and its terminator
+	// (rowvalue7-1.x: "SET (c) = 99 WHERE" must not become "99WHERE").
+	rhsRaw := input[rhsStart:rhsEnd]
+	joined += rhsRaw[len(strings.TrimRight(rhsRaw, " \t\n\r\f")):]
+	sb.WriteString(joined)
+	// Record the span so RawSQL capture can restore the original
+	// paren-set text (SQLite stores DDL text verbatim).
+	*spans = append(*spans, parenRewriteSpan{
+		outStart: outStart,
+		outEnd:   outStart + len(joined),
+		origText: input[toks[lp].Pos:rhsEnd],
+	})
+	return rhsEnd, nil
 }
 
 // rewriteParenSet rewrites UPDATE ... SET (c1, c2) = (expr) — SQLite's
@@ -413,34 +427,50 @@ func findSetRhsEnd(toks []sql.Token, eqIdx int, sp stmtSpan, spEndBytes int) int
 func buildSetAssigns(cols []string, rhs string) ([]string, error) {
 	var assigns []string
 	if len(rhs) >= 2 && rhs[0] == '(' && rhs[len(rhs)-1] == ')' {
-		inner := strings.TrimSpace(rhs[1 : len(rhs)-1])
-		if strings.HasPrefix(strings.ToUpper(inner), "SELECT") {
-			if sqlParts, ok := splitSelectList(inner, len(cols)); ok {
-				for i, col := range cols {
-					assigns = append(assigns, fmt.Sprintf("%s = (%s)", col, sqlParts[i]))
-				}
-				return assigns, nil
-			}
-			// Arity mismatch: SQLite reports "N columns assigned M
-			// values" at prepare time.
-			m := len(splitTopLevelComma(strings.TrimSpace(strings.TrimPrefix(inner, "SELECT "))))
-			return nil, fmt.Errorf("%d columns assigned %d values", len(cols), m)
-		}
-		// A parenthesized value list: SET (c,a) = ('four', 4) assigns each
-		// value to its column positionally.
-		parts := splitTopLevelComma(inner)
-		if len(parts) != len(cols) {
-			return nil, fmt.Errorf("%d columns assigned %d values", len(cols), len(parts))
-		}
-		for i, col := range cols {
-			assigns = append(assigns, fmt.Sprintf("%s = %s", col, strings.TrimSpace(parts[i])))
-		}
-		return assigns, nil
+		return buildParenSetAssigns(cols, strings.TrimSpace(rhs[1:len(rhs)-1]))
 	}
 	for _, col := range cols {
 		assigns = append(assigns, fmt.Sprintf("%s = %s", col, rhs))
 	}
 	return assigns, nil
+}
+
+// buildParenSetAssigns builds assignments for a parenthesized RHS: a SELECT
+// subquery is split per column (arity mismatch is a prepare-time error); any
+// other parenthesized list assigns each value to its column positionally
+// (SET (c,a) = ('four', 4)).
+func buildParenSetAssigns(cols []string, inner string) ([]string, error) {
+	if strings.HasPrefix(strings.ToUpper(inner), "SELECT") {
+		return buildSelectParenSetAssigns(cols, inner)
+	}
+	// A parenthesized value list: SET (c,a) = ('four', 4) assigns each
+	// value to its column positionally.
+	parts := splitTopLevelComma(inner)
+	if len(parts) != len(cols) {
+		return nil, fmt.Errorf("%d columns assigned %d values", len(cols), len(parts))
+	}
+	assigns := make([]string, 0, len(cols))
+	for i, col := range cols {
+		assigns = append(assigns, fmt.Sprintf("%s = %s", col, strings.TrimSpace(parts[i])))
+	}
+	return assigns, nil
+}
+
+// buildSelectParenSetAssigns splits a SELECT-subquery RHS into one subquery
+// per column; an arity mismatch reports SQLite's "N columns assigned M values".
+func buildSelectParenSetAssigns(cols []string, inner string) ([]string, error) {
+	sqlParts, ok := splitSelectList(inner, len(cols))
+	if ok {
+		assigns := make([]string, 0, len(cols))
+		for i, col := range cols {
+			assigns = append(assigns, fmt.Sprintf("%s = (%s)", col, sqlParts[i]))
+		}
+		return assigns, nil
+	}
+	// Arity mismatch: SQLite reports "N columns assigned M
+	// values" at prepare time.
+	m := len(splitTopLevelComma(strings.TrimSpace(strings.TrimPrefix(inner, "SELECT "))))
+	return nil, fmt.Errorf("%d columns assigned %d values", len(cols), m)
 }
 
 // findTopLevelKeyword finds a keyword at paren depth 0 (or returns -1).

@@ -189,87 +189,14 @@ func rewriteOneTriggerWhen(stmt string) string {
 	}
 	// The WHEN keyword must be at paren depth 0 (top level of the trigger
 	// declaration, not inside the body or a string).
-	depth := 0
-	kwIdx := -1
-	for i := 0; i < len(stmt); {
-		c := stmt[i]
-		if (c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z') || c == '_' {
-			j := i
-			for j < len(stmt) && ((stmt[j] >= 'A' && stmt[j] <= 'Z') || (stmt[j] >= 'a' && stmt[j] <= 'z') || stmt[j] == '_' || (stmt[j] >= '0' && stmt[j] <= '9')) {
-				j++
-			}
-			word := strings.ToUpper(stmt[i:j])
-			if depth == 0 && word == "WHEN" {
-				kwIdx = i
-				break
-			}
-			i = j
-			continue
-		}
-		switch c {
-		case '(':
-			depth++
-		case ')':
-			depth--
-		case '\'', '"', '`':
-			i = splitStringLiteral(stmt, i)
-			continue
-		case '-':
-			if i+1 < len(stmt) && stmt[i+1] == '-' {
-				i = skipLineComment(stmt, i)
-				continue
-			}
-		case '/':
-			if i+1 < len(stmt) && stmt[i+1] == '*' {
-				i = skipBlockComment(stmt, i)
-				continue
-			}
-		}
-		i++
-	}
+	kwIdx := scanTriggerKeyword(stmt, 0, "WHEN")
 	if kwIdx < 0 {
 		return stmt
 	}
 	// Find the top-level BEGIN that starts the trigger body after the WHEN
 	// expression.
 	exprStart := kwIdx + len("WHEN")
-	depth = 0
-	beginIdx := -1
-	for i := exprStart; i < len(stmt); {
-		c := stmt[i]
-		if (c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z') || c == '_' {
-			j := i
-			for j < len(stmt) && ((stmt[j] >= 'A' && stmt[j] <= 'Z') || (stmt[j] >= 'a' && stmt[j] <= 'z') || stmt[j] == '_' || (stmt[j] >= '0' && stmt[j] <= '9')) {
-				j++
-			}
-			if depth == 0 && strings.ToUpper(stmt[i:j]) == "BEGIN" {
-				beginIdx = i
-				break
-			}
-			i = j
-			continue
-		}
-		switch c {
-		case '(':
-			depth++
-		case ')':
-			depth--
-		case '\'', '"', '`':
-			i = splitStringLiteral(stmt, i)
-			continue
-		case '-':
-			if i+1 < len(stmt) && stmt[i+1] == '-' {
-				i = skipLineComment(stmt, i)
-				continue
-			}
-		case '/':
-			if i+1 < len(stmt) && stmt[i+1] == '*' {
-				i = skipBlockComment(stmt, i)
-				continue
-			}
-		}
-		i++
-	}
+	beginIdx := scanTriggerKeyword(stmt, exprStart, "BEGIN")
 	if beginIdx < 0 {
 		return stmt
 	}
@@ -283,6 +210,61 @@ func rewriteOneTriggerWhen(stmt string) string {
 		return stmt
 	}
 	return stmt[:exprStart] + " (" + trimmed + ") " + stmt[beginIdx:]
+}
+
+// scanIdentifierEnd returns the index just past the identifier starting at i.
+func scanIdentifierEnd(stmt string, i int) int {
+	j := i
+	for j < len(stmt) && isIdentChar(stmt[j]) {
+		j++
+	}
+	return j
+}
+
+// skipTrailingComment advances past a -- or /* comment starting at i, or
+// returns -1 when no comment starts there.
+func skipTrailingComment(stmt string, i int) int {
+	if i+1 < len(stmt) && stmt[i+1] == '-' && stmt[i] == '-' {
+		return skipLineComment(stmt, i)
+	}
+	if i+1 < len(stmt) && stmt[i+1] == '*' && stmt[i] == '/' {
+		return skipBlockComment(stmt, i)
+	}
+	return -1
+}
+
+// scanTriggerKeyword scans stmt from start for the given keyword (WHEN or
+// BEGIN) at parenthesis depth 0, skipping strings and comments, and returns
+// its index (-1 when absent).
+func scanTriggerKeyword(stmt string, start int, keyword string) int {
+	depth := 0
+	for i := start; i < len(stmt); {
+		c := stmt[i]
+		if isIdentStart(c) {
+			j := scanIdentifierEnd(stmt, i)
+			if depth == 0 && strings.ToUpper(stmt[i:j]) == keyword {
+				return i
+			}
+			i = j
+			continue
+		}
+		switch c {
+		case '(':
+			depth++
+		case ')':
+			depth--
+		case '\'', '"', '`':
+			i = splitStringLiteral(stmt, i)
+			continue
+		case '-', '/':
+			if next := skipTrailingComment(stmt, i); next >= 0 {
+				i = next
+				continue
+			}
+		}
+		i++
+	}
+	return -1
 }
 
 // isCreateTriggerStmt reports whether a statement begins with CREATE TRIGGER
@@ -313,32 +295,31 @@ func hasTopLevelEq(span string) bool {
 			i++
 			continue
 		}
-		switch c {
-		case '(':
-			depth++
-			i++
-		case ')':
-			depth--
-			i++
-		case '\'', '"', '`':
-			i = splitStringLiteral(span, i)
-		case '-':
-			if i+1 < len(span) && span[i+1] == '-' {
-				i = skipLineComment(span, i)
-			} else {
-				i++
-			}
-		case '/':
-			if i+1 < len(span) && span[i+1] == '*' {
-				i = skipBlockComment(span, i)
-			} else {
-				i++
-			}
-		default:
-			i++
-		}
+		var next int
+		next, depth = eqScanStep(span, i, depth)
+		i = next
 	}
 	return false
+}
+
+// eqScanStep classifies span[i] during the top-level '=' scan, returning the
+// next scanner index and updated parenthesis depth.
+func eqScanStep(span string, i, depth int) (int, int) {
+	switch span[i] {
+	case '(':
+		return i + 1, depth + 1
+	case ')':
+		return i + 1, depth - 1
+	case '\'', '"', '`':
+		return splitStringLiteral(span, i), depth
+	case '-', '/':
+		if next := skipTrailingComment(span, i); next >= 0 {
+			return next, depth
+		}
+		return i + 1, depth
+	default:
+		return i + 1, depth
+	}
 }
 
 // savepointOp parses the leading SAVEPOINT / RELEASE / ROLLBACK TO keyword

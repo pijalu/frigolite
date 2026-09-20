@@ -365,14 +365,7 @@ func feedParserTokens(parser *Parser, input string, origLen int) error {
 		tok := lexer.Next()
 		code := tokenCode(int(tok.Type), tok.Value)
 		if code < 0 {
-			// The engine appends "\n;" after the original input
-			// (ensureTrailingSemicolon). An EOF-spanning illegal token must
-			// not quote that appended terminator: clamp the token text to the
-			// original input, matching SQLite (which tokenizes to NUL).
-			if tok.Pos < origLen && tok.Pos+len(tok.Value) > origLen {
-				tok.Value = input[tok.Pos:origLen]
-			}
-			return lexErrorToken(tok)
+			return lexErrorClamped(tok, input, origLen)
 		}
 		// OVER and WINDOW are context-sensitive in SQLite: they are keywords
 		// only in window-function/window-clause positions, and identifiers
@@ -386,75 +379,130 @@ func feedParserTokens(parser *Parser, input string, origLen int) error {
 		// OVER/WINDOW/FILTER context rules apply to KEYWORD tokens only;
 		// a quoted string such as 'filter' must stay TK_STRING (its value
 		// matching a keyword must not turn the literal into an identifier).
-		if tok.Type == sql.TokenKeyword {
-			if strings.EqualFold(tok.Value, "OVER") {
-				if !(prevCode == TK_RP && windowOverNextIsIdentOrLP(lexer)) {
-					code = TK_ID
-				}
-			} else if strings.EqualFold(tok.Value, "WINDOW") {
-				if !windowKeywordFollowedByIdentAS(lexer) {
-					code = TK_ID
-				}
-			} else if strings.EqualFold(tok.Value, "FILTER") {
-				// tokenize.c analyzeFilterKeyword: FILTER is a keyword only after
-				// a closing paren and before an opening one (aggregate FILTER
-				// clause); otherwise it is an ordinary identifier.
-				if !(prevCode == TK_RP && lexer.Peek().Type == sql.TokenLParen) {
-					code = TK_ID
-				}
-			}
-		}
-		// REPLACE is both INSERT syntax and a scalar function name. Inside
-		// expression-call position, feed it as an identifier.
-		if strings.EqualFold(tok.Value, "REPLACE") && lexer.Peek().Type == sql.TokenLParen {
-			code = TK_ID
-		}
-		// Drop "GENERATED ALWAYS" when they precede AS and the trailing
-		// VIRTUAL/STORED storage clause — see comment above. The lexer may
-		// classify these as identifiers (TK_ID) or keywords, so we match by
-		// uppercased token value for robustness. STORED/VIRTUAL is ignored
-		// by this engine (all generated columns are virtual).
-		if strings.EqualFold(tok.Value, "GENERATED") {
-			peek := lexer.Peek()
-			if strings.EqualFold(peek.Value, "ALWAYS") {
-				skipAlways = true
-				continue
-			}
-		}
-		if skipAlways {
-			skipAlways = false
-			continue // drop the ALWAYS token
-		}
-		if strings.EqualFold(tok.Value, "VIRTUAL") || strings.EqualFold(tok.Value, "STORED") {
-			// Only drop VIRTUAL/STORED when it follows a generated column
-			// definition "... AS (expr) VIRTUAL/STORED". The previous token
-			// would have been ')' closing the generated expression. For
-			// CREATE VIRTUAL TABLE, VIRTUAL is a real keyword (TK_VIRTUAL)
-			// and must not be dropped — but that VIRTUAL appears as
-			// "CREATE VIRTUAL TABLE" with previous token CREATE/TABLE, not ")".
-			if prevCode == TK_RP {
-				continue // drop VIRTUAL/STORED storage clause
-			}
+		code = contextTokenCode(lexer, tok, code, prevCode)
+		if skipGeneratedTokens(lexer, tok, prevCode, &skipAlways) {
+			continue
 		}
 		restoreKeywordCase(input, code, &tok)
 
 		result := parser.Parse(code, tok)
 		if result == ParseError {
-			if code == 0 || (origLen > 0 && tok.Pos >= origLen) {
-				// SQLite reports "incomplete input" when a statement ends
-				// mid-parse at EOF (with2 6.6: "DELETE FROM t2 WHERE" with
-				// no terminator). The engine appends a trailing ";" so the
-				// LALR grammar sees a terminator; an error on that appended
-				// token means the input itself was incomplete.
-				return fmt.Errorf("incomplete input")
-			}
-			return fmt.Errorf("near %q: syntax error", tok.Value)
+			return parseErrorResult(code, tok, origLen)
 		}
 		if result == ParseAccept && code == 0 { // EOF
 			return nil
 		}
 		prevCode = code
 	}
+}
+
+// lexErrorClamped reports a lexer error, clamping an EOF-spanning token's text
+// to the original input first: the engine appends "\n;" after the original
+// input (ensureTrailingSemicolon), and an illegal token spanning EOF must not
+// quote that appended terminator, matching SQLite (which tokenizes to NUL).
+func lexErrorClamped(tok sql.Token, input string, origLen int) error {
+	if tok.Pos < origLen && tok.Pos+len(tok.Value) > origLen {
+		tok.Value = input[tok.Pos:origLen]
+	}
+	return lexErrorToken(tok)
+}
+
+// parseErrorResult builds the parse error for a ParseError result, matching
+// SQLite's "incomplete input" vs "near ...: syntax error" distinction.
+func parseErrorResult(code int, tok sql.Token, origLen int) error {
+	if code == 0 || (origLen > 0 && tok.Pos >= origLen) {
+		// SQLite reports "incomplete input" when a statement ends
+		// mid-parse at EOF (with2 6.6: "DELETE FROM t2 WHERE" with
+		// no terminator). The engine appends a trailing ";" so the
+		// LALR grammar sees a terminator; an error on that appended
+		// token means the input itself was incomplete.
+		return fmt.Errorf("incomplete input")
+	}
+	return fmt.Errorf("near %q: syntax error", tok.Value)
+}
+
+// contextTokenCode applies SQLite's context-sensitive keyword classification
+// (analyzeOverKeyword / analyzeWindowKeyword / analyzeFilterKeyword and the
+// REPLACE function-call rule) to the token, returning the effective code.
+func contextTokenCode(lexer *sql.Tokenizer, tok sql.Token, code, prevCode int) int {
+	if tok.Type == sql.TokenKeyword {
+		switch {
+		case strings.EqualFold(tok.Value, "OVER"):
+			code = adjustOverKeyword(lexer, code, prevCode)
+		case strings.EqualFold(tok.Value, "WINDOW"):
+			code = adjustWindowKeyword(lexer, code)
+		case strings.EqualFold(tok.Value, "FILTER"):
+			code = adjustFilterKeyword(lexer, code, prevCode)
+		}
+	}
+	// REPLACE is both INSERT syntax and a scalar function name. Inside
+	// expression-call position, feed it as an identifier.
+	if strings.EqualFold(tok.Value, "REPLACE") && lexer.Peek().Type == sql.TokenLParen {
+		code = TK_ID
+	}
+	return code
+}
+
+// adjustOverKeyword implements SQLite's analyzeOverKeyword: OVER is a keyword
+// iff the previous token was ')' and the next is '(' or an identifier.
+func adjustOverKeyword(lexer *sql.Tokenizer, code, prevCode int) int {
+	if !(prevCode == TK_RP && windowOverNextIsIdentOrLP(lexer)) {
+		return TK_ID
+	}
+	return code
+}
+
+// adjustWindowKeyword implements SQLite's analyzeWindowKeyword: WINDOW is a
+// keyword iff the next token is an identifier followed by AS.
+func adjustWindowKeyword(lexer *sql.Tokenizer, code int) int {
+	if !windowKeywordFollowedByIdentAS(lexer) {
+		return TK_ID
+	}
+	return code
+}
+
+// adjustFilterKeyword implements tokenize.c analyzeFilterKeyword: FILTER is a
+// keyword only after a closing paren and before an opening one (aggregate
+// FILTER clause); otherwise it is an ordinary identifier.
+func adjustFilterKeyword(lexer *sql.Tokenizer, code, prevCode int) int {
+	if !(prevCode == TK_RP && lexer.Peek().Type == sql.TokenLParen) {
+		return TK_ID
+	}
+	return code
+}
+
+// skipGeneratedTokens reports whether the token must be dropped from the
+// stream as part of a "GENERATED ALWAYS ... VIRTUAL/STORED" sequence, and
+// carries the always-skip state across tokens via skipAlways.
+func skipGeneratedTokens(lexer *sql.Tokenizer, tok sql.Token, prevCode int, skipAlways *bool) bool {
+	// Drop "GENERATED ALWAYS" when they precede AS and the trailing
+	// VIRTUAL/STORED storage clause — see the feedParserTokens comment. The
+	// lexer may classify these as identifiers (TK_ID) or keywords, so we
+	// match by uppercased token value for robustness. STORED/VIRTUAL is
+	// ignored by this engine (all generated columns are virtual).
+	if strings.EqualFold(tok.Value, "GENERATED") {
+		peek := lexer.Peek()
+		if strings.EqualFold(peek.Value, "ALWAYS") {
+			*skipAlways = true
+			return true
+		}
+	}
+	if *skipAlways {
+		*skipAlways = false
+		return true // drop the ALWAYS token
+	}
+	if strings.EqualFold(tok.Value, "VIRTUAL") || strings.EqualFold(tok.Value, "STORED") {
+		// Only drop VIRTUAL/STORED when it follows a generated column
+		// definition "... AS (expr) VIRTUAL/STORED". The previous token
+		// would have been ')' closing the generated expression. For
+		// CREATE VIRTUAL TABLE, VIRTUAL is a real keyword (TK_VIRTUAL)
+		// and must not be dropped — but that VIRTUAL appears as
+		// "CREATE VIRTUAL TABLE" with previous token CREATE/TABLE, not ")".
+		if prevCode == TK_RP {
+			return true // drop VIRTUAL/STORED storage clause
+		}
+	}
+	return false
 }
 
 // windowOverNextIsIdentOrLP reports whether the token after an OVER keyword
@@ -590,30 +638,45 @@ func fixupDMLTableAlias(stmts []sql.Stmt) {
 	for _, stmt := range stmts {
 		switch s := stmt.(type) {
 		case *sql.InsertStmt:
-			if s.RawSQL == "" {
-				continue
-			}
-			if tbl, alias := extractTargetAlias(s.RawSQL, "INSERT INTO", "ON CONFLICT"); tbl != "" {
-				s.Table = tbl
-				s.Alias = alias
-			}
+			fixInsertTarget(s)
 		case *sql.UpdateStmt:
-			if s.RawSQL == "" {
-				continue
-			}
-			if tbl, alias := extractTargetAlias(stripUpdateOrClause(s.RawSQL), "UPDATE", "SET"); tbl != "" {
-				s.Table = tbl
-				s.Alias = alias
-			}
+			fixUpdateTarget(s)
 		case *sql.DeleteStmt:
-			if s.RawSQL == "" {
-				continue
-			}
-			if tbl, alias := extractTargetAlias(s.RawSQL, "DELETE FROM", "WHERE"); tbl != "" {
-				s.Table = tbl
-				s.Alias = alias
-			}
+			fixDeleteTarget(s)
 		}
+	}
+}
+
+// fixInsertTarget recovers the INSERT target table and alias from raw SQL.
+func fixInsertTarget(s *sql.InsertStmt) {
+	if s.RawSQL == "" {
+		return
+	}
+	if tbl, alias := extractTargetAlias(s.RawSQL, "INSERT INTO", "ON CONFLICT"); tbl != "" {
+		s.Table = tbl
+		s.Alias = alias
+	}
+}
+
+// fixUpdateTarget recovers the UPDATE target table and alias from raw SQL.
+func fixUpdateTarget(s *sql.UpdateStmt) {
+	if s.RawSQL == "" {
+		return
+	}
+	if tbl, alias := extractTargetAlias(stripUpdateOrClause(s.RawSQL), "UPDATE", "SET"); tbl != "" {
+		s.Table = tbl
+		s.Alias = alias
+	}
+}
+
+// fixDeleteTarget recovers the DELETE target table and alias from raw SQL.
+func fixDeleteTarget(s *sql.DeleteStmt) {
+	if s.RawSQL == "" {
+		return
+	}
+	if tbl, alias := extractTargetAlias(s.RawSQL, "DELETE FROM", "WHERE"); tbl != "" {
+		s.Table = tbl
+		s.Alias = alias
 	}
 }
 
