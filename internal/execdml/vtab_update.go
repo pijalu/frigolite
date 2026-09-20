@@ -93,89 +93,141 @@ func (e *DMLExecutor) execVTabUpdate(s *sql.UpdateStmt) (*Result, bool) {
 	}
 	var changes int64
 	for cur.Next() {
-		oldRowid := int64(0)
-		if ridCur != nil {
-			oldRowid = ridCur.Rowid()
-		}
-		row := make([]interface{}, len(colDefs))
-		for i := range row {
-			v, err := cur.Column(i)
-			if err != nil {
-				break
-			}
-			row[i] = v
-		}
-		rm := vtabRowMap(colDefs, row, oldRowid, ridCur != nil)
-		pass, err := e.ctx.RowPassesWhere(s.Where, rm, nil)
-		if err != nil {
-			return &Result{Error: err}, true
-		}
-		if !pass {
-			continue
-		}
-		newValues := append([]interface{}(nil), row...)
-		newRowid := oldRowid
-		for _, a := range s.Assignments {
-			if strings.EqualFold(a.Column, "rowid") && rowidCapable {
-				v, err := e.ctx.EvalExpr(a.Value, rm)
-				if err != nil {
-					return &Result{Error: err}, true
-				}
-				if n, ok := util.UnwrapColumnValue(v).(int64); ok {
-					newRowid = n
-				}
-				continue
-			}
-			idx := -1
-			for i, cd := range colDefs {
-				if cd.Name == a.Column {
-					idx = i
-					break
-				}
-			}
-			if idx < 0 {
-				return &Result{Error: fmt.Errorf("no such column: %s", a.Column)}, true
-			}
-			v, err := e.ctx.EvalExpr(a.Value, rm)
-			if err != nil {
-				return &Result{Error: err}, true
-			}
-			uv := util.UnwrapColumnValue(v)
-			if uv == nil {
-				// Preserve "explicitly assigned NULL" semantics for vtabs
-				// (zipfile: SET data=NULL makes the entry a directory).
-				uv = vtab.ExplicitNull{}
-			}
-			newValues[idx] = uv
-		}
-		updater := vt.(vtab.RowUpdater)
-		if rowidCapable {
-			// Advance oldRowid BEFORE applying (Next() runs after this
-			// body); the cursor's current position defines the row.
-			applied, keepPrior, uerr := rowidWriter.UpdateRowWithRowid(row, oldRowid, newValues, newRowid, vtabStatementResolve(s.OnConflict, false))
-			if uerr != nil {
-				r := &Result{Error: uerr}
-				if keepPrior {
-					r.SetKeepPriorRowsOnError()
-				}
-				return r, true
-			}
-			if !applied {
-				continue
-			}
-			changes++
-			continue
-		}
-		skipped, res := applyVTabUpdateAction(s, row, newValues, updater)
+		applied, res := e.vtabUpdateRow(s, cur, vt, colDefs, rowidWriter, rowidCapable, ridCur)
 		if res != nil {
 			return res, true
 		}
-		if skipped {
-			continue
+		if applied {
+			changes++
 		}
-		changes++
 	}
 	return &Result{Changes: changes}, true
+}
+
+// vtabUpdateRow processes the cursor's current row: the WHERE filter gates
+// the SET application and the xUpdate write. applied=false skips the row
+// (filter mismatch or conflict-skip); a non-nil Result carries the error.
+func (e *DMLExecutor) vtabUpdateRow(s *sql.UpdateStmt, cur vtab.Cursor, vt vtab.VirtualTable, colDefs []sql.ColumnDef, rowidWriter RowidConflictWriter, rowidCapable bool, ridCur vtab.RowidCursor) (bool, *Result) {
+	oldRowid := int64(0)
+	if ridCur != nil {
+		oldRowid = ridCur.Rowid()
+	}
+	row := vtabCursorRow(cur, len(colDefs))
+	rm := vtabRowMap(colDefs, row, oldRowid, ridCur != nil)
+	pass, err := e.ctx.RowPassesWhere(s.Where, rm, nil)
+	if err != nil {
+		return false, &Result{Error: err}
+	}
+	if !pass {
+		return false, nil
+	}
+	newValues, newRowid, res := e.vtabApplyAssignments(s, colDefs, row, rm, rowidCapable, oldRowid)
+	if res != nil {
+		return false, res
+	}
+	updater := vt.(vtab.RowUpdater)
+	if rowidCapable {
+		r, applied := vtabApplyRowidUpdate(rowidWriter, row, newValues, oldRowid, newRowid, vtabStatementResolve(s.OnConflict, false))
+		if r != nil {
+			return false, r
+		}
+		return applied, nil
+	}
+	skipped, res := applyVTabUpdateAction(s, row, newValues, updater)
+	if res != nil {
+		return false, res
+	}
+	return !skipped, nil
+}
+
+// vtabCursorRow materializes the cursor's current row; a Column error
+// truncates the row (matching the cursor's short read).
+func vtabCursorRow(cur vtab.Cursor, n int) []interface{} {
+	row := make([]interface{}, n)
+	for i := range row {
+		v, err := cur.Column(i)
+		if err != nil {
+			break
+		}
+		row[i] = v
+	}
+	return row
+}
+
+// vtabApplyAssignments evaluates the UPDATE's SET assignments against the
+// current row: a rowid assignment (rowid-capable tables) changes newRowid; a
+// column assignment writes the evaluated slot, preserving "explicitly
+// assigned NULL" semantics for vtabs via vtab.ExplicitNull (zipfile:
+// SET data=NULL makes the entry a directory).
+func (e *DMLExecutor) vtabApplyAssignments(s *sql.UpdateStmt, colDefs []sql.ColumnDef, row []interface{}, rm execquery.RowMap, rowidCapable bool, oldRowid int64) (newValues []interface{}, newRowid int64, res *Result) {
+	newValues = append([]interface{}(nil), row...)
+	newRowid = oldRowid
+	for _, a := range s.Assignments {
+		if strings.EqualFold(a.Column, "rowid") && rowidCapable {
+			if res := e.vtabSetRowid(a, rm, &newRowid); res != nil {
+				return nil, 0, res
+			}
+			continue
+		}
+		if res := e.vtabSetColumn(colDefs, a, rm, newValues); res != nil {
+			return nil, 0, res
+		}
+	}
+	return newValues, newRowid, nil
+}
+
+// vtabSetRowid evaluates a SET rowid assignment.
+func (e *DMLExecutor) vtabSetRowid(a sql.Assignment, rm execquery.RowMap, newRowid *int64) *Result {
+	v, err := e.ctx.EvalExpr(a.Value, rm)
+	if err != nil {
+		return &Result{Error: err}
+	}
+	if n, ok := util.UnwrapColumnValue(v).(int64); ok {
+		*newRowid = n
+	}
+	return nil
+}
+
+// vtabSetColumn evaluates one SET column assignment into the new row's slot.
+func (e *DMLExecutor) vtabSetColumn(colDefs []sql.ColumnDef, a sql.Assignment, rm execquery.RowMap, newValues []interface{}) *Result {
+	idx := -1
+	for i, cd := range colDefs {
+		if cd.Name == a.Column {
+			idx = i
+			break
+		}
+	}
+	if idx < 0 {
+		return &Result{Error: fmt.Errorf("no such column: %s", a.Column)}
+	}
+	v, err := e.ctx.EvalExpr(a.Value, rm)
+	if err != nil {
+		return &Result{Error: err}
+	}
+	uv := util.UnwrapColumnValue(v)
+	if uv == nil {
+		uv = vtab.ExplicitNull{}
+	}
+	newValues[idx] = uv
+	return nil
+}
+
+// vtabApplyRowidUpdate routes one UPDATE row through the rowid-aware write.
+// applied=false means the row was skipped under the statement's resolution;
+// a non-nil Result carries the error (with keep-prior-rows set under the
+// OR FAIL keep-prior-rows error contract).
+func vtabApplyRowidUpdate(w RowidConflictWriter, row, newValues []interface{}, oldRowid, newRowid int64, resolve string) (*Result, bool) {
+	// oldRowid is read BEFORE applying (Next() runs after this body); the
+	// cursor's current position defines the row.
+	applied, keepPrior, uerr := w.UpdateRowWithRowid(row, oldRowid, newValues, newRowid, resolve)
+	if uerr != nil {
+		r := &Result{Error: uerr}
+		if keepPrior {
+			r.SetKeepPriorRowsOnError()
+		}
+		return r, false
+	}
+	return nil, applied
 }
 
 // execVTabInsert runs an INSERT ... VALUES against an updatable virtual
@@ -183,102 +235,156 @@ func (e *DMLExecutor) execVTabUpdate(s *sql.UpdateStmt) (*Result, bool) {
 // InsertRow). handled is false when the target is not a virtual table.
 func (e *DMLExecutor) execVTabInsert(s *sql.InsertStmt) (*Result, bool) {
 	if len(s.Values) == 0 && s.Select == nil {
-		// INSERT ... DEFAULT VALUES: one row of all NULLs through xUpdate
-		// (zipfile.test 15.x: INSERT INTO t1 DEFAULT VALUES).
-		vt0, colDefs0, res0, handled0 := e.resolveVTabUpdater(s.Table)
-		if !handled0 || res0 != nil {
-			return res0, handled0
-		}
-		updater0 := vt0.(vtab.RowUpdater)
-		nulls := make([]interface{}, len(colDefs0))
-		for i := range nulls {
-			nulls[i] = nil
-		}
-		if _, err := e.insertVTabRow(updater0, nulls, s.OrConflict); err != nil {
-			return &Result{Error: err}, true
-		}
-		return &Result{Changes: 1}, true
+		return e.execVTabInsertDefault(s)
 	}
 	if s.Select != nil {
-		// INSERT INTO <vtab> SELECT ... : materialize the source rows and
-		// feed each through xUpdate (zipfile.test 13.10 REPLACE INTO t1
-		// SELECT * FROM t0).
-		if len(s.CTEs) > 0 {
-			e.ctx.PushCTEScope(s.CTEs)
-		}
-		selectResult := e.ctx.ExecSelect(s.Select)
-		if len(s.CTEs) > 0 {
-			e.ctx.PopCTEScope()
-		}
-		if selectResult.Error != nil {
-			return &Result{Error: selectResult.Error}, true
-		}
-		vt2, colDefs2, res2, handled2 := e.resolveVTabUpdater(s.Table)
-		if !handled2 || res2 != nil {
-			return res2, handled2
-		}
-		updater2 := vt2.(vtab.RowUpdater)
-		rowidWriter2, rowidCapable2 := vt2.(RowidConflictWriter)
-		resolve2 := vtabStatementResolve(s.OrConflict, s.IsReplace)
-		rowidColIdx := -1
-		for i, c := range s.Columns {
-			if strings.EqualFold(c, "rowid") && rowidCapable2 {
-				rowidColIdx = i
-				break
-			}
-		}
-		var changes int64
-		for _, row := range selectResult.Rows {
-			values := make([]interface{}, len(colDefs2))
-			for i := range values {
-				values[i] = nil
-			}
-			var explicitRowid int64
-			for i, v := range row {
-				colIdx := -1
-				if i < len(s.Columns) {
-					if i == rowidColIdx {
-						if n, ok := util.UnwrapColumnValue(v).(int64); ok {
-							explicitRowid = n
-						}
-						continue
-					}
-					for j, cd := range colDefs2 {
-						if cd.Name == s.Columns[i] {
-							colIdx = j
-							break
-						}
-					}
-				} else if i < len(values) {
-					colIdx = i
-				}
-				if colIdx < 0 {
-					continue
-				}
-				values[colIdx] = util.UnwrapColumnValue(v)
-			}
-			var applied, keepPrior bool
-			var err error
-			var id int64
-			if rowidColIdx >= 0 {
-				id, applied, keepPrior, err = insertVTabRowWithRowid(rowidWriter2, values, explicitRowid, resolve2)
-			} else {
-				id, applied, keepPrior, err = e.insertVTabConflictAction(resolve2, updater2, values)
-			}
-			if err != nil {
-				r := &Result{Error: err, Changes: changes}
-				if keepPrior {
-					r.SetKeepPriorRowsOnError()
-				}
-				return r, true
-			}
-			if applied {
-				changes++
-				_ = id
-			}
-		}
-		return &Result{Changes: changes}, true
+		return e.execVTabInsertSelect(s)
 	}
+	return e.execVTabInsertValues(s)
+}
+
+// execVTabInsertDefault runs INSERT ... DEFAULT VALUES: one row of all NULLs
+// through xUpdate (zipfile.test 15.x: INSERT INTO t1 DEFAULT VALUES).
+func (e *DMLExecutor) execVTabInsertDefault(s *sql.InsertStmt) (*Result, bool) {
+	vt, colDefs, res, handled := e.resolveVTabUpdater(s.Table)
+	if !handled || res != nil {
+		return res, handled
+	}
+	updater := vt.(vtab.RowUpdater)
+	nulls := make([]interface{}, len(colDefs))
+	for i := range nulls {
+		nulls[i] = nil
+	}
+	if _, err := e.insertVTabRow(updater, nulls, s.OrConflict); err != nil {
+		return &Result{Error: err}, true
+	}
+	return &Result{Changes: 1}, true
+}
+
+// execVTabInsertSelect runs INSERT INTO <vtab> SELECT ...: materialize the
+// source rows and feed each through xUpdate (zipfile.test 13.10 REPLACE INTO
+// t1 SELECT * FROM t0).
+func (e *DMLExecutor) execVTabInsertSelect(s *sql.InsertStmt) (*Result, bool) {
+	if len(s.CTEs) > 0 {
+		e.ctx.PushCTEScope(s.CTEs)
+	}
+	selectResult := e.ctx.ExecSelect(s.Select)
+	if len(s.CTEs) > 0 {
+		e.ctx.PopCTEScope()
+	}
+	if selectResult.Error != nil {
+		return &Result{Error: selectResult.Error}, true
+	}
+	vt, colDefs, res, handled := e.resolveVTabUpdater(s.Table)
+	if !handled || res != nil {
+		return res, handled
+	}
+	updater := vt.(vtab.RowUpdater)
+	rowidWriter, rowidCapable := vt.(RowidConflictWriter)
+	resolve := vtabStatementResolve(s.OrConflict, s.IsReplace)
+	rowidColIdx := vtabRowidColumnIndex(s.Columns, rowidCapable)
+	var changes int64
+	for _, row := range selectResult.Rows {
+		values, explicitRowid := vtabSelectRowValues(s, row, colDefs, rowidColIdx)
+		rowid, applied, res := e.vtabInsertSelectRow(rowidWriter, updater, values, explicitRowid, resolve, rowidColIdx >= 0, changes)
+		if res != nil {
+			return res, true
+		}
+		if applied {
+			changes++
+			_ = rowid
+		}
+	}
+	return &Result{Changes: changes}, true
+}
+
+// vtabInsertSelectRow writes one INSERT ... SELECT source row through the
+// rowid-aware or conflict-action path. A non-nil Result carries the error
+// with the rows written so far (keepPrior marks the OR FAIL contract).
+func (e *DMLExecutor) vtabInsertSelectRow(rowidWriter RowidConflictWriter, updater vtab.RowUpdater, values []interface{}, explicitRowid int64, resolve string, useRowid bool, changes int64) (int64, bool, *Result) {
+	var id int64
+	var applied, keepPrior bool
+	var err error
+	if useRowid {
+		id, applied, keepPrior, err = insertVTabRowWithRowid(rowidWriter, values, explicitRowid, resolve)
+	} else {
+		id, applied, keepPrior, err = e.insertVTabConflictAction(resolve, updater, values)
+	}
+	if err != nil {
+		r := &Result{Error: err, Changes: changes}
+		if keepPrior {
+			r.SetKeepPriorRowsOnError()
+		}
+		return 0, false, r
+	}
+	return id, applied, nil
+}
+
+// vtabRowidColumnIndex finds the explicit-rowid column in the INSERT column
+// list (rowid writes require a RowidConflictWriter table), or -1.
+func vtabRowidColumnIndex(columns []string, rowidCapable bool) int {
+	for i, c := range columns {
+		if strings.EqualFold(c, "rowid") && rowidCapable {
+			return i
+		}
+	}
+	return -1
+}
+
+// vtabSelectRowValues maps one INSERT ... SELECT source row onto the vtab's
+// column slots (unlisted columns insert NULL); an explicit-rowid column's
+// value is captured separately.
+func vtabSelectRowValues(s *sql.InsertStmt, row []interface{}, colDefs []sql.ColumnDef, rowidColIdx int) ([]interface{}, int64) {
+	values := make([]interface{}, len(colDefs))
+	for i := range values {
+		values[i] = nil
+	}
+	var explicitRowid int64
+	for i, v := range row {
+		colIdx, isRowid := vtabSelectColumnIndex(s.Columns, colDefs, len(values), i, rowidColIdx)
+		if isRowid {
+			if n, ok := util.UnwrapColumnValue(v).(int64); ok {
+				explicitRowid = n
+			}
+			continue
+		}
+		if colIdx < 0 {
+			continue
+		}
+		values[colIdx] = util.UnwrapColumnValue(v)
+	}
+	return values, explicitRowid
+}
+
+// vtabSelectColumnIndex resolves source column i's target slot: the rowid
+// marker, the named column's slot, or positional i past the column list.
+// (-1, true) marks the explicit-rowid slot; (-1, false) skips the value.
+func vtabSelectColumnIndex(columns []string, colDefs []sql.ColumnDef, nValues, i, rowidColIdx int) (int, bool) {
+	if i >= len(columns) {
+		if i < nValues {
+			return i, false
+		}
+		return -1, false
+	}
+	if i == rowidColIdx {
+		return -1, true
+	}
+	return columnIndexByName(columns[i], colDefs), false
+}
+
+// columnIndexByName resolves a column name's slot in a vtab column list.
+func columnIndexByName(name string, colDefs []sql.ColumnDef) int {
+	for j, cd := range colDefs {
+		if cd.Name == name {
+			return j
+		}
+	}
+	return -1
+}
+
+// execVTabInsertValues runs INSERT INTO <vtab> VALUES ...: each tuple is
+// mapped onto the column slots and written through xUpdate.
+func (e *DMLExecutor) execVTabInsertValues(s *sql.InsertStmt) (*Result, bool) {
 	vt, colDefs, res, handled := e.resolveVTabUpdater(s.Table)
 	if !handled {
 		return nil, false
@@ -293,69 +399,9 @@ func (e *DMLExecutor) execVTabInsert(s *sql.InsertStmt) (*Result, bool) {
 	var changes int64
 	var lastID int64
 	for _, tuple := range s.Values {
-		values := make([]interface{}, len(colDefs))
-		for i := range values {
-			values[i] = nil
-		}
-		explicitRowid := int64(0)
-		hasRowid := false
-		rowidTupleIdx := -1
-		for i, expr := range tuple {
-			colIdx := i
-			if i < len(s.Columns) {
-				colIdx = -1
-				if strings.EqualFold(s.Columns[i], "rowid") {
-					// spellfix1: INSERT INTO t(rowid, word) routes the
-					// rowid through xUpdate's argv[1] analog.
-					if rowidCapable {
-						hasRowid = true
-						rowidTupleIdx = i
-						continue
-					}
-					return &Result{Error: fmt.Errorf("table %s has no column named %s", s.Table, s.Columns[i])}, true
-				}
-				for j, cd := range colDefs {
-					if cd.Name == s.Columns[i] {
-						colIdx = j
-						break
-					}
-				}
-			}
-			if colIdx < 0 {
-				return &Result{Error: fmt.Errorf("table %s has no column named %s", s.Table, s.Columns[i])}, true
-			}
-			if colIdx >= len(values) {
-				return &Result{Error: fmt.Errorf("table %s has %d values-supplying columns but column index %d is out of range",
-					s.Table, len(values), colIdx)}, true
-			}
-			v, err := e.ctx.EvalExpr(expr, empty)
-			if err != nil {
-				return &Result{Error: err}, true
-			}
-			values[colIdx] = util.UnwrapColumnValue(v)
-		}
-		var rowid int64
-		var applied, keepPrior bool
-		var err error
-		switch {
-		case hasRowid:
-			v, verr := e.ctx.EvalExpr(tuple[rowidTupleIdx], empty)
-			if verr != nil {
-				return &Result{Error: verr}, true
-			}
-			if n, ok := util.UnwrapColumnValue(v).(int64); ok {
-				explicitRowid = n
-			}
-			rowid, applied, keepPrior, err = insertVTabRowWithRowid(rowidWriter, values, explicitRowid, resolve)
-		default:
-			rowid, applied, keepPrior, err = e.insertVTabConflictAction(resolve, updater, values)
-		}
-		if err != nil {
-			r := &Result{Error: err}
-			if keepPrior {
-				r.SetKeepPriorRowsOnError()
-			}
-			return r, true
+		rowid, applied, res := e.vtabInsertTuple(s, tuple, colDefs, empty, rowidCapable, rowidWriter, updater, resolve)
+		if res != nil {
+			return res, true
 		}
 		if applied {
 			changes++
@@ -366,6 +412,103 @@ func (e *DMLExecutor) execVTabInsert(s *sql.InsertStmt) (*Result, bool) {
 	r.LastInsertRowID = lastID
 	e.ctx.SetLastRowID(lastID)
 	return r, true
+}
+
+// vtabInsertTuple maps one VALUES tuple onto the column slots and writes it:
+// the explicit-rowid form routes through the rowid-aware path, the default
+// through the statement's conflict action.
+func (e *DMLExecutor) vtabInsertTuple(s *sql.InsertStmt, tuple []sql.Expr, colDefs []sql.ColumnDef, empty execquery.RowMap, rowidCapable bool, rowidWriter RowidConflictWriter, updater vtab.RowUpdater, resolve string) (int64, bool, *Result) {
+	values, hasRowid, rowidTupleIdx, res := e.vtabTupleValues(s, tuple, colDefs, empty, rowidCapable)
+	if res != nil {
+		return 0, false, res
+	}
+	if hasRowid {
+		explicitRowid, rerr := e.vtabTupleRowid(tuple[rowidTupleIdx], empty)
+		if rerr != nil {
+			return 0, false, rerr
+		}
+		rowid, applied, keepPrior, err := insertVTabRowWithRowid(rowidWriter, values, explicitRowid, resolve)
+		return vtabInsertOutcome(rowid, applied, keepPrior, err)
+	}
+	rowid, applied, keepPrior, err := e.insertVTabConflictAction(resolve, updater, values)
+	return vtabInsertOutcome(rowid, applied, keepPrior, err)
+}
+
+// vtabInsertOutcome converts one write attempt's outcome: keepPrior marks
+// the OR FAIL keep-prior-rows error contract.
+func vtabInsertOutcome(rowid int64, applied, keepPrior bool, err error) (int64, bool, *Result) {
+	if err != nil {
+		r := &Result{Error: err}
+		if keepPrior {
+			r.SetKeepPriorRowsOnError()
+		}
+		return 0, false, r
+	}
+	return rowid, applied, nil
+}
+
+// vtabTupleValues maps one VALUES tuple onto the vtab's column slots
+// (unlisted columns insert NULL). An unresolvable column name or an
+// out-of-range slot is an error Result. (isRowid, rowidTupleIdx) marks the
+// explicit-rowid entry, evaluated by the caller.
+func (e *DMLExecutor) vtabTupleValues(s *sql.InsertStmt, tuple []sql.Expr, colDefs []sql.ColumnDef, empty execquery.RowMap, rowidCapable bool) (values []interface{}, hasRowid bool, rowidTupleIdx int, res *Result) {
+	values = make([]interface{}, len(colDefs))
+	for i := range values {
+		values[i] = nil
+	}
+	for i, expr := range tuple {
+		colIdx, isRowid, cres := e.vtabTupleColumnIndex(s, i, colDefs, rowidCapable)
+		if cres != nil {
+			return nil, false, -1, cres
+		}
+		if isRowid {
+			hasRowid = true
+			rowidTupleIdx = i
+			continue
+		}
+		if colIdx < 0 {
+			return nil, false, -1, &Result{Error: fmt.Errorf("table %s has no column named %s", s.Table, s.Columns[i])}
+		}
+		if colIdx >= len(values) {
+			return nil, false, -1, &Result{Error: fmt.Errorf("table %s has %d values-supplying columns but column index %d is out of range",
+				s.Table, len(values), colIdx)}
+		}
+		v, err := e.ctx.EvalExpr(expr, empty)
+		if err != nil {
+			return nil, false, -1, &Result{Error: err}
+		}
+		values[colIdx] = util.UnwrapColumnValue(v)
+	}
+	return values, hasRowid, rowidTupleIdx, nil
+}
+
+// vtabTupleColumnIndex resolves VALUES tuple element i's target slot.
+// Unlisted elements map positionally; (isRowid) marks the explicit-rowid
+// entry (spellfix1: INSERT INTO t(rowid, word) routes the rowid through
+// xUpdate's argv[1] analog, rowid-capable tables only).
+func (e *DMLExecutor) vtabTupleColumnIndex(s *sql.InsertStmt, i int, colDefs []sql.ColumnDef, rowidCapable bool) (colIdx int, isRowid bool, res *Result) {
+	if i >= len(s.Columns) {
+		return i, false, nil
+	}
+	if strings.EqualFold(s.Columns[i], "rowid") {
+		if !rowidCapable {
+			return -1, false, &Result{Error: fmt.Errorf("table %s has no column named %s", s.Table, s.Columns[i])}
+		}
+		return -1, true, nil
+	}
+	return columnIndexByName(s.Columns[i], colDefs), false, nil
+}
+
+// vtabTupleRowid evaluates an explicit-rowid VALUES entry.
+func (e *DMLExecutor) vtabTupleRowid(expr sql.Expr, row execquery.RowMap) (int64, *Result) {
+	v, err := e.ctx.EvalExpr(expr, row)
+	if err != nil {
+		return 0, &Result{Error: err}
+	}
+	if n, ok := util.UnwrapColumnValue(v).(int64); ok {
+		return n, nil
+	}
+	return 0, nil
 }
 
 // execVTabDelete runs a DELETE whose target is an updatable virtual table:
@@ -384,39 +527,13 @@ func (e *DMLExecutor) execVTabDelete(s *sql.DeleteStmt) (*Result, bool) {
 		return &Result{Error: err}, true
 	}
 	defer cur.Close()
-	var changes int64
-	type pending struct {
-		oldValues []interface{}
-		rowid     int64
-	}
-	var doomed []pending
-	for cur.Next() {
-		row := make([]interface{}, len(colDefs))
-		for i := range row {
-			v, err := cur.Column(i)
-			if err != nil {
-				break
-			}
-			row[i] = v
-		}
-		var rowid int64
-		hasRowid := false
-		if rc, ok := cur.(vtab.RowidCursor); ok {
-			rowid = rc.Rowid()
-			hasRowid = true
-		}
-		rm := vtabRowMap(colDefs, row, rowid, hasRowid)
-		pass, err := e.ctx.RowPassesWhere(s.Where, rm, nil)
-		if err != nil {
-			return &Result{Error: err}, true
-		}
-		if !pass {
-			continue
-		}
-		doomed = append(doomed, pending{oldValues: row, rowid: rowid})
+	doomed, res := e.collectVTabDeleteCandidates(s, cur, colDefs)
+	if res != nil {
+		return res, true
 	}
 	updater := vt.(vtab.RowUpdater)
 	rowidWriter, rowidCapable := vt.(RowidConflictWriter)
+	var changes int64
 	for _, d := range doomed {
 		var err error
 		if rowidCapable {
@@ -430,6 +547,38 @@ func (e *DMLExecutor) execVTabDelete(s *sql.DeleteStmt) (*Result, bool) {
 		changes++
 	}
 	return &Result{Changes: changes}, true
+}
+
+// vtabDeleteCandidate is one row queued for deletion; rows are collected
+// during the scan and deleted after it completes.
+type vtabDeleteCandidate struct {
+	oldValues []interface{}
+	rowid     int64
+}
+
+// collectVTabDeleteCandidates scans the cursor for rows passing the DELETE's
+// WHERE filter.
+func (e *DMLExecutor) collectVTabDeleteCandidates(s *sql.DeleteStmt, cur vtab.Cursor, colDefs []sql.ColumnDef) ([]vtabDeleteCandidate, *Result) {
+	var doomed []vtabDeleteCandidate
+	for cur.Next() {
+		row := vtabCursorRow(cur, len(colDefs))
+		var rowid int64
+		hasRowid := false
+		if rc, ok := cur.(vtab.RowidCursor); ok {
+			rowid = rc.Rowid()
+			hasRowid = true
+		}
+		rm := vtabRowMap(colDefs, row, rowid, hasRowid)
+		pass, err := e.ctx.RowPassesWhere(s.Where, rm, nil)
+		if err != nil {
+			return nil, &Result{Error: err}
+		}
+		if !pass {
+			continue
+		}
+		doomed = append(doomed, vtabDeleteCandidate{oldValues: row, rowid: rowid})
+	}
+	return doomed, nil
 }
 
 // ConflictAwareInserter is implemented by virtual tables whose xUpdate
@@ -579,12 +728,17 @@ func isVtabConstraintSkipped(err error) bool {
 func applyVTabUpdateAction(s *sql.UpdateStmt, oldValues, newValues []interface{}, updater vtab.RowUpdater) (bool, *Result) {
 	resolve := strings.ToUpper(vtabStatementResolve(s.OnConflict, false))
 	if cu, ok := updater.(ConflictAwareUpdater); ok && resolve != "" {
-		err := cu.UpdateRowConflict(oldValues, newValues, resolve)
-		if err == nil {
-			return false, nil
+		if err := cu.UpdateRowConflict(oldValues, newValues, resolve); err != nil {
+			return false, &Result{Error: err}
 		}
-		return false, &Result{Error: err}
+		return false, nil
 	}
+	return applyPlainVTabUpdateAction(resolve, updater, oldValues, newValues)
+}
+
+// applyPlainVTabUpdateAction is the conflict resolution for a plain
+// vtab.RowUpdater (rtree family semantics, see applyVTabConflictAction).
+func applyPlainVTabUpdateAction(resolve string, updater vtab.RowUpdater, oldValues, newValues []interface{}) (bool, *Result) {
 	err := updater.UpdateRow(oldValues, newValues)
 	if err == nil {
 		return false, nil
