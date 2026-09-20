@@ -51,52 +51,62 @@ func (e *SelectEngine) validateAggregateStarArgs(s *sql.SelectStmt) error {
 	for _, ob := range s.OrderBy {
 		clauses = append(clauses, ob.Expr)
 	}
-	var firstErr error
 	for _, expr := range clauses {
 		if expr == nil {
 			continue
 		}
-		WalkExprFull(expr, func(n sql.Expr) {
-			if firstErr != nil {
-				return
-			}
-			v, ok := n.(*sql.FuncCall)
-			if !ok {
-				return
-			}
-			reg, found := e.ctx.Functions().Find(v.Name)
-			if !found || reg.Type != function.TypeAggregate {
-				return
-			}
-			// Star argument: SQLite's grammar (parse.y `expr ::= idj LP STAR
-			// RP` → sqlite3ExprFunction(pParse, 0, ...)) turns f(*) into a
-			// ZERO-argument call. count is registered with both 0- and
-			// 1-arg overloads (func.c WAGGREGATE count,0 / count,1), so
-			// count(*) is legal, and the TCL fixture aggregate x_count is
-			// registered with nArg 0 and 1 (test1.c test_create_aggregate)
-			// so x_count(*) is legal too (aggerror-1.1). Any aggregate whose
-			// registered MINIMUM arity is > 0 errors — min(*)/max(*)/sum(*)
-			// keep "wrong number of arguments to function X()"
-			// (select1-2.6/2.9/2.14).
-			star := 0
-			for _, a := range v.Args {
-				if ref, ok := sql.UnwrapParenExpr(a).(*sql.ColumnRef); ok && ref.Name == "*" && ref.Table == "" {
-					star++
-				}
-			}
-			if star > 0 {
-				if reg.MinArgs > 0 {
-					firstErr = fmt.Errorf("wrong number of arguments to function %s()", v.Name)
-				}
-				return
-			}
-			if len(v.Args) < reg.MinArgs || (reg.MaxArgs >= 0 && len(v.Args) > reg.MaxArgs) {
-				firstErr = fmt.Errorf("wrong number of arguments to function %s()", v.Name)
-			}
-		})
-		if firstErr != nil {
-			return firstErr
+		if err := e.validateAggregateStarArgsExpr(expr); err != nil {
+			return err
 		}
+	}
+	return nil
+}
+
+// validateAggregateStarArgsExpr walks one clause checking every aggregate
+// call's arity against its registered bounds.
+func (e *SelectEngine) validateAggregateStarArgsExpr(expr sql.Expr) error {
+	var firstErr error
+	WalkExprFull(expr, func(n sql.Expr) {
+		if firstErr != nil {
+			return
+		}
+		v, ok := n.(*sql.FuncCall)
+		if !ok {
+			return
+		}
+		reg, found := e.ctx.Functions().Find(v.Name)
+		if !found || reg.Type != function.TypeAggregate {
+			return
+		}
+		firstErr = aggregateStarArityError(v, reg)
+	})
+	return firstErr
+}
+
+// aggregateStarArityError validates one aggregate call's arity. Star
+// argument: SQLite's grammar (parse.y `expr ::= idj LP STAR RP` →
+// sqlite3ExprFunction(pParse, 0, ...)) turns f(*) into a ZERO-argument call.
+// count is registered with both 0- and 1-arg overloads (func.c WAGGREGATE
+// count,0 / count,1), so count(*) is legal, and the TCL fixture aggregate
+// x_count is registered with nArg 0 and 1 (test1.c test_create_aggregate) so
+// x_count(*) is legal too (aggerror-1.1). Any aggregate whose registered
+// MINIMUM arity is > 0 errors — min(*)/max(*)/sum(*) keep "wrong number of
+// arguments to function X()" (select1-2.6/2.9/2.14).
+func aggregateStarArityError(v *sql.FuncCall, reg *function.Func) error {
+	star := 0
+	for _, a := range v.Args {
+		if ref, ok := sql.UnwrapParenExpr(a).(*sql.ColumnRef); ok && ref.Name == "*" && ref.Table == "" {
+			star++
+		}
+	}
+	if star > 0 {
+		if reg.MinArgs > 0 {
+			return fmt.Errorf("wrong number of arguments to function %s()", v.Name)
+		}
+		return nil
+	}
+	if len(v.Args) < reg.MinArgs || (reg.MaxArgs >= 0 && len(v.Args) > reg.MaxArgs) {
+		return fmt.Errorf("wrong number of arguments to function %s()", v.Name)
 	}
 	return nil
 }
@@ -130,34 +140,43 @@ func havingAggregateReferencesAlias(expr sql.Expr, alias string, fns *function.R
 	if expr == nil {
 		return false
 	}
-	found := false
-	var walk func(n sql.Expr, insideAgg bool)
-	walk = func(n sql.Expr, insideAgg bool) {
-		if found {
-			return
-		}
-		switch v := n.(type) {
-		case *sql.Subquery, *sql.ExistsExpr:
-			return
-		case *sql.FuncCall:
-			reg, isAggFn := fns.Find(v.Name)
-			aggHere := insideAgg || (isAggFn && reg.Type == function.TypeAggregate)
-			for _, a := range v.Args {
-				walk(a, aggHere)
-			}
-			return
-		case *sql.ColumnRef:
-			if insideAgg && v.Table == "" && strings.EqualFold(v.Name, alias) {
-				found = true
-			}
-			return
-		}
-		for _, child := range aggValidateChildExprs(n) {
-			walk(child, insideAgg)
+	return havingAggRefAliasWalk(expr, alias, fns, false)
+}
+
+// havingAggRefAliasInCall descends a call's args with the updated aggregate
+// context (inside the call when it is an aggregate).
+func havingAggRefAliasInCall(v *sql.FuncCall, alias string, fns *function.Registry, insideAgg bool) bool {
+	reg, isAggFn := fns.Find(v.Name)
+	aggHere := insideAgg || (isAggFn && reg.Type == function.TypeAggregate)
+	for _, a := range v.Args {
+		if havingAggRefAliasWalk(a, alias, fns, aggHere) {
+			return true
 		}
 	}
-	walk(expr, false)
-	return found
+	return false
+}
+
+// havingAggRefAliasWalk is the stateful walk behind
+// havingAggregateReferencesAlias: insideAgg tracks whether the current
+// position sits inside an aggregate call's arguments.
+func havingAggRefAliasWalk(n sql.Expr, alias string, fns *function.Registry, insideAgg bool) bool {
+	if n == nil {
+		return false
+	}
+	switch v := n.(type) {
+	case *sql.Subquery, *sql.ExistsExpr:
+		return false
+	case *sql.FuncCall:
+		return havingAggRefAliasInCall(v, alias, fns, insideAgg)
+	case *sql.ColumnRef:
+		return insideAgg && v.Table == "" && strings.EqualFold(v.Name, alias)
+	}
+	for _, child := range aggValidateChildExprs(n) {
+		if havingAggRefAliasWalk(child, alias, fns, insideAgg) {
+			return true
+		}
+	}
+	return false
 }
 
 // validateClauseFunctions rejects GROUP BY/HAVING terms that call an unknown
@@ -171,22 +190,28 @@ func (e *SelectEngine) validateClauseFunctions(clauses []sql.Expr) error {
 		if expr == nil {
 			continue
 		}
-		unknown := ""
-		WalkExprFull(expr, func(n sql.Expr) {
-			if unknown != "" {
-				return
-			}
-			if fn, ok := n.(*sql.FuncCall); ok && fn.Over == nil {
-				if _, found := e.ctx.Functions().Find(fn.Name); !found {
-					unknown = fn.Name
-				}
-			}
-		})
-		if unknown != "" {
+		if unknown := clauseUnknownFunction(expr, e.ctx.Functions()); unknown != "" {
 			return fmt.Errorf("no such function: %s", unknown)
 		}
 	}
 	return nil
+}
+
+// clauseUnknownFunction returns the first non-window function name in expr
+// that is not registered, or "".
+func clauseUnknownFunction(expr sql.Expr, fns *function.Registry) string {
+	unknown := ""
+	WalkExprFull(expr, func(n sql.Expr) {
+		if unknown != "" {
+			return
+		}
+		if fn, ok := n.(*sql.FuncCall); ok && fn.Over == nil {
+			if _, found := fns.Find(fn.Name); !found {
+				unknown = fn.Name
+			}
+		}
+	})
+	return unknown
 }
 
 // checkOrderByAggMisuse rejects aggregate functions in ORDER BY when the SELECT
