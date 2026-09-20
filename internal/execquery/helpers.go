@@ -382,17 +382,7 @@ func splitVTabArgs(argsStr string) []string {
 		c := argsStr[i]
 		switch {
 		case quote != 0:
-			cur.WriteByte(c)
-			if c == quote {
-				// Doubled quote is an escaped quote inside the string; only
-				// close when not doubled (SQLite quote rules).
-				if i+1 < len(argsStr) && argsStr[i+1] == quote {
-					cur.WriteByte(argsStr[i+1])
-					i++
-				} else {
-					quote = 0
-				}
-			}
+			i = scanQuotedArg(argsStr, i, &cur, &quote)
 		case c == '\'' || c == '"' || c == '`':
 			quote = c
 			cur.WriteByte(c)
@@ -406,25 +396,41 @@ func splitVTabArgs(argsStr string) []string {
 			depth--
 			if depth < 0 {
 				// Past the final close paren: stop.
-				if s := strings.TrimSpace(cur.String()); s != "" {
-					args = append(args, s)
-				}
-				return args
+				return appendArg(args, cur.String())
 			}
 			cur.WriteByte(c)
 		case c == ',' && depth == 0:
-			if s := strings.TrimSpace(cur.String()); s != "" {
-				args = append(args, s)
-			}
+			args = appendArg(args, cur.String())
 			cur.Reset()
 		default:
 			cur.WriteByte(c)
 		}
 	}
-	if s := strings.TrimSpace(cur.String()); s != "" {
+	return appendArg(args, cur.String())
+}
+
+// appendArg appends a trimmed, non-empty argument to the list.
+func appendArg(args []string, raw string) []string {
+	if s := strings.TrimSpace(raw); s != "" {
 		args = append(args, s)
 	}
 	return args
+}
+
+// scanQuotedArg consumes one character inside a quoted argument segment and
+// returns the next scan index. A doubled quote is an escaped quote inside
+// the string; only a lone quote closes it (SQLite quote rules).
+func scanQuotedArg(argsStr string, i int, cur *strings.Builder, quote *byte) int {
+	c := argsStr[i]
+	cur.WriteByte(c)
+	if c == *quote {
+		if i+1 < len(argsStr) && argsStr[i+1] == *quote {
+			cur.WriteByte(argsStr[i+1])
+			return i + 1
+		}
+		*quote = 0
+	}
+	return i
 }
 
 // buildColumnIndex builds a case-insensitive column-name→position index for

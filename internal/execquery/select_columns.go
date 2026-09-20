@@ -378,15 +378,51 @@ func (e *SelectEngine) resolveColumnRefName(ref *sql.ColumnRef, colDefs []sql.Co
 	// Qualified reference with full_column_names=OFF: strip the
 	// table qualifier unless the column conflicts (join colDefs
 	// store conflicting columns as table.col — keep those).
+	if qualifiedColDefExists(colDefs, ref.Name) {
+		return ref.Name
+	}
+	return ref.Name
+}
+
+// qualifiedColDefExists reports whether colDefs carries a conflicting
+// "table.col" entry for ref.Name.
+func qualifiedColDefExists(colDefs []sql.ColumnDef, refName string) bool {
 	for _, cd := range colDefs {
 		if cd.Dropped {
 			continue
 		}
-		if dot := strings.Index(cd.Name, "."); dot >= 0 && strings.EqualFold(cd.Name[dot+1:], ref.Name) {
-			return ref.Name
+		if dot := strings.Index(cd.Name, "."); dot >= 0 && strings.EqualFold(cd.Name[dot+1:], refName) {
+			return true
 		}
 	}
-	return ref.Name
+	return false
+}
+
+// colOwnerOperand is one FROM/JOIN operand: its reference key (alias when
+// aliased) and resolved table name.
+type colOwnerOperand struct{ ref, table string }
+
+// fromOperands lists the statement's FROM/JOIN operands in appearance order.
+func fromOperands(sel *sql.SelectStmt) []colOwnerOperand {
+	operands := []colOwnerOperand{}
+	if sel.From.Name != "" {
+		operands = append(operands, colOwnerOperand{ref: sel.From.As, table: aliasOrTable(sel.From.Name, sel.From.As)})
+	}
+	for _, j := range sel.Joins {
+		if j.Table.Name == "" {
+			continue
+		}
+		operands = append(operands, colOwnerOperand{ref: j.Table.As, table: aliasOrTable(j.Table.Name, j.Table.As)})
+	}
+	return operands
+}
+
+// aliasOrTable returns the alias when set, else the table name.
+func aliasOrTable(name, alias string) string {
+	if alias != "" {
+		return alias
+	}
+	return name
 }
 
 // columnOwnerOperand finds the FROM/JOIN operand (alias when aliased, else
@@ -396,26 +432,7 @@ func (e *SelectEngine) columnOwnerOperand(sel *sql.SelectStmt, ref *sql.ColumnRe
 	if sel == nil {
 		return ""
 	}
-	type operand struct{ ref, table string }
-	operands := []operand{}
-	if sel.From.Name != "" {
-		t := sel.From.Name
-		if sel.From.As != "" {
-			t = sel.From.As
-		}
-		operands = append(operands, operand{ref: sel.From.As, table: t})
-	}
-	for _, j := range sel.Joins {
-		if j.Table.Name == "" {
-			continue
-		}
-		t := j.Table.Name
-		if j.Table.As != "" {
-			t = j.Table.As
-		}
-		operands = append(operands, operand{ref: j.Table.As, table: t})
-	}
-	for _, op := range operands {
+	for _, op := range fromOperands(sel) {
 		cols, err := e.tableColumnNames(op.table)
 		if err != nil {
 			continue
@@ -430,12 +447,21 @@ func (e *SelectEngine) columnOwnerOperand(sel *sql.SelectStmt, ref *sql.ColumnRe
 		}
 	}
 	// Fall back to a conflicted colDef ("table.col") whose column matches.
-	for _, cd := range colDefs {
-		if dot := strings.Index(cd.Name, "."); dot >= 0 && strings.EqualFold(cd.Name[dot+1:], ref.Name) {
-			return cd.Name[:dot]
-		}
+	if qualifier, ok := conflictedColDefOwner(colDefs, ref.Name); ok {
+		return qualifier
 	}
 	return ""
+}
+
+// conflictedColDefOwner returns the owning table of a conflicted
+// "table.col"-shaped colDef matching colName.
+func conflictedColDefOwner(colDefs []sql.ColumnDef, colName string) (string, bool) {
+	for _, cd := range colDefs {
+		if dot := strings.Index(cd.Name, "."); dot >= 0 && strings.EqualFold(cd.Name[dot+1:], colName) {
+			return cd.Name[:dot], true
+		}
+	}
+	return "", false
 }
 
 // orderQualifiedNamesByDefs reorders qualified star names to match the
@@ -585,6 +611,21 @@ func (e *SelectEngine) compareOrderByTerm(ob sql.OrderByTerm, rowMaps []RowMap, 
 	return e.compareOrderByValues(left, right, ob)
 }
 
+// orderByAliasColumnName resolves an ORDER BY name that is a SELECT-list
+// alias to the aliased expression's column name; the second result reports
+// whether the name is an alias at all.
+func (e *SelectEngine) orderByAliasColumnName(name string) (string, bool) {
+	if _, isAlias := e.aliasStackTop(name); !isAlias {
+		return "", false
+	}
+	if aliasExpr, ok := e.resolveAliasRef(name); ok {
+		if aliasRef, ok2 := stripCollate(aliasExpr).(*sql.ColumnRef); ok2 && aliasRef.Table == "" {
+			return aliasRef.Name, true
+		}
+	}
+	return "", true
+}
+
 // resolveOrderByRowValues overrides the output-row values for an unqualified
 // column-reference ORDER BY term with the row-map values (which carry the
 // column's declared collation), resolving a SELECT-list alias to the aliased
@@ -593,15 +634,7 @@ func (e *SelectEngine) resolveOrderByRowValues(name string, obExpr sql.Expr, row
 	// A SELECT-list alias in ORDER BY shadows a same-named real column
 	// (SQLite: "SELECT z AS x, x AS z FROM d1 ORDER BY z" sorts by the
 	// aliased x value, not the real z column).
-	resolvedName := ""
-	_, isAlias := e.aliasStackTop(name)
-	if isAlias {
-		if aliasExpr, ok := e.resolveAliasRef(name); ok {
-			if aliasRef, ok2 := stripCollate(aliasExpr).(*sql.ColumnRef); ok2 && aliasRef.Table == "" {
-				resolvedName = aliasRef.Name
-			}
-		}
-	}
+	resolvedName, isAlias := e.orderByAliasColumnName(name)
 	// A plain unqualified column reference carries its declared collation on
 	// the row-map value (a CollatedValue marker); the output-row value loses
 	// it. Prefer the row map so ORDER BY honors the column's collation
