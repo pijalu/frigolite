@@ -16,7 +16,9 @@ import (
 	"strings"
 
 	"github.com/pijalu/frigolite/internal/btree"
+	"github.com/pijalu/frigolite/internal/pager"
 	"github.com/pijalu/frigolite/internal/schema"
+	"github.com/pijalu/frigolite/internal/sql"
 	"github.com/pijalu/frigolite/internal/storage"
 )
 
@@ -68,15 +70,7 @@ func (db *DB) OpenBlob(schemaName, table, column string, rowID int64, write bool
 		// SQLite reports the schema-qualified name for a missing table.
 		return nil, fmt.Errorf("no such table: %s", full)
 	}
-	colDefs := db.engine.ParseColumnDefs(entry.Name, entry.SQL)
-	colIndex := -1
-	var defs []sqlColumnDef
-	for i, cd := range colDefs {
-		defs = append(defs, sqlColumnDef{Name: cd.Name, Type: cd.Type})
-		if cd.Name == column {
-			colIndex = i
-		}
-	}
+	defs, colIndex := blobColumnDefs(db.engine.ParseColumnDefs(entry.Name, entry.SQL), column)
 	if colIndex < 0 {
 		return nil, fmt.Errorf("no such column: %q", column)
 	}
@@ -85,8 +79,61 @@ func (db *DB) OpenBlob(schemaName, table, column string, rowID int64, write bool
 	if !isRowidTable(entry.SQL) {
 		return nil, fmt.Errorf("cannot open table without rowid: %s", entry.Name)
 	}
-	// Read the current cell and fingerprint.
-	tree := db.engine.TableBTreePg(ctx.Pager, entry.Name, entry.RootPage, true)
+	// Read the current cell and fingerprint (decoding the record validates
+	// the column type).
+	payload, err := db.openBlobPayload(ctx.Pager, entry, rowID, colIndex)
+	if err != nil {
+		return nil, err
+	}
+	// Read/write access restrictions on indexed / FK columns are enforced by
+	// the caller-visible tests via sqlite3_blob_open; the engine keeps the
+	// check minimal here (write-open on an indexed column is rejected below
+	// by the generic validation, matching SQLite's "cannot open indexed
+	// column for writing").
+	b := &Blob{
+		db:          db,
+		schema:      schemaName,
+		table:       table,
+		column:      column,
+		rowID:       rowID,
+		write:       write,
+		colIndex:    colIndex,
+		colDefs:     defs,
+		entry:       entry,
+		fingerprint: payload,
+	}
+	// The handle keeps its connection from being closed while open, and holds
+	// a lock on its schema (read-only → shared, read-write → reserved) for
+	// PRAGMA lock_status.
+	db.activeBlobs++
+	ctxName := "main"
+	if ctx != nil && ctx.Name != "" {
+		ctxName = ctx.Name
+	}
+	db.engine.AddBlobLock(ctxName, write)
+	db.engine.AddBlobTableLock(entry.Name)
+	return b, nil
+}
+
+// blobColumnDefs converts the engine's column definitions to the blob view
+// and finds the handle's column index (-1 when the column does not exist).
+func blobColumnDefs(colDefs []sql.ColumnDef, column string) ([]sqlColumnDef, int) {
+	colIndex := -1
+	var defs []sqlColumnDef
+	for i, cd := range colDefs {
+		defs = append(defs, sqlColumnDef{Name: cd.Name, Type: cd.Type})
+		if cd.Name == column {
+			colIndex = i
+		}
+	}
+	return defs, colIndex
+}
+
+// openBlobPayload reads the row's cell and returns a copy of its payload
+// (the handle's fingerprint) after validating that the column holds a
+// TEXT/BLOB value (SQLite's sqlite3_blob_open type checks).
+func (db *DB) openBlobPayload(pg *pager.Pager, entry *schema.Entry, rowID int64, colIndex int) ([]byte, error) {
+	tree := db.engine.TableBTreePg(pg, entry.Name, entry.RootPage, true)
 	cell, err := db.engine.ReadCellByRowID(tree, rowID)
 	if err != nil {
 		return nil, err
@@ -110,34 +157,7 @@ func (db *DB) OpenBlob(schemaName, table, column string, rowID int64, write bool
 		}
 		return nil, fmt.Errorf("cannot open value of type %s", sqliteTypeName(rec.Values[colIndex]))
 	}
-	// Read/write access restrictions on indexed / FK columns are enforced by
-	// the caller-visible tests via sqlite3_blob_open; the engine keeps the
-	// check minimal here (write-open on an indexed column is rejected below
-	// by the generic validation, matching SQLite's "cannot open indexed
-	// column for writing").
-	b := &Blob{
-		db:          db,
-		schema:      schemaName,
-		table:       table,
-		column:      column,
-		rowID:       rowID,
-		write:       write,
-		colIndex:    colIndex,
-		colDefs:     defs,
-		entry:       entry,
-		fingerprint: append([]byte(nil), cell.Payload...),
-	}
-	// The handle keeps its connection from being closed while open, and holds
-	// a lock on its schema (read-only → shared, read-write → reserved) for
-	// PRAGMA lock_status.
-	db.activeBlobs++
-	ctxName := "main"
-	if ctx != nil && ctx.Name != "" {
-		ctxName = ctx.Name
-	}
-	db.engine.AddBlobLock(ctxName, write)
-	db.engine.AddBlobTableLock(entry.Name)
-	return b, nil
+	return append([]byte(nil), cell.Payload...), nil
 }
 
 // Bytes returns the size of the BLOB in bytes.
@@ -172,23 +192,9 @@ func (b *Blob) Read(offset, n int) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	if offset < 0 {
-		offset = 0
-	}
-	if offset > len(data) {
-		offset = len(data)
-	}
-	if n < 0 {
-		n = 0
-	}
-	end := offset + n
-	if end > len(data) {
-		end = len(data)
-	}
+	offset, end := clampBlobRange(offset, n, len(data))
 	// A successful read clears the connection's last error.
-	if b != nil && b.db != nil && b.db.engine != nil {
-		b.db.engine.SetLastErr("not an error", "SQLITE_OK")
-	}
+	b.setOK()
 	return append([]byte(nil), data[offset:end]...), nil
 }
 
@@ -219,9 +225,6 @@ func (b *Blob) Write(offset int, data []byte, n int) error {
 	if err != nil {
 		return b.fail("SQLITE_ERROR", err.Error())
 	}
-	if offset < 0 {
-		return b.fail("SQLITE_ERROR", "SQLITE_ERROR")
-	}
 	if n > len(data) {
 		n = len(data)
 	}
@@ -231,23 +234,28 @@ func (b *Blob) Write(offset int, data []byte, n int) error {
 		// SQLITE_ERROR / SQLITE_READONLY for out-of-range writes).
 		return b.fail("SQLITE_ERROR", "SQLITE_ERROR")
 	}
-	if offset < end {
-		newVal := make([]byte, len(cur))
-		copy(newVal, cur)
-		copy(newVal[offset:end], data[:end-offset])
-		rec.Values[b.colIndex] = newVal
-		if err := b.persistRecord(rec); err != nil {
-			return b.fail("SQLITE_ERROR", err.Error())
-		}
+	if err := b.applyBlobWrite(rec, cur, offset, end, data); err != nil {
+		return b.fail("SQLITE_ERROR", err.Error())
 	}
 	// Refresh the fingerprint so the write itself does not expire the handle.
 	b.refreshFingerprint()
 	// A successful call clears the connection's last error (SQLite sets
 	// errcode to SQLITE_OK on success).
-	if b != nil && b.db != nil && b.db.engine != nil {
-		b.db.engine.SetLastErr("not an error", "SQLITE_OK")
-	}
+	b.setOK()
 	return nil
+}
+
+// applyBlobWrite splices data into the stored record over [offset, end) and
+// persists it. A zero-width range writes nothing.
+func (b *Blob) applyBlobWrite(rec *storage.Record, cur []byte, offset, end int, data []byte) error {
+	if offset >= end {
+		return nil
+	}
+	newVal := make([]byte, len(cur))
+	copy(newVal, cur)
+	copy(newVal[offset:end], data[:end-offset])
+	rec.Values[b.colIndex] = newVal
+	return b.persistRecord(rec)
 }
 
 // fail records a blob-API error on the connection and returns it as an error.
@@ -256,6 +264,34 @@ func (b *Blob) fail(code, msg string) error {
 		b.db.engine.SetLastErr(msg, code)
 	}
 	return fmt.Errorf("%s", msg)
+}
+
+// setOK records a successful blob-API call on the connection (SQLite sets
+// errcode to SQLITE_OK — and errmsg to "not an error" — on success).
+func (b *Blob) setOK() {
+	if b != nil && b.db != nil && b.db.engine != nil {
+		b.db.engine.SetLastErr("not an error", "SQLITE_OK")
+	}
+}
+
+// clampBlobRange clamps an [offset, offset+n) byte range to the value's size
+// the way sqlite3_blob_read does: a negative offset/length and an overshooting
+// end collapse into the value's bounds.
+func clampBlobRange(offset, n, size int) (int, int) {
+	if offset < 0 {
+		offset = 0
+	}
+	if offset > size {
+		offset = size
+	}
+	if n < 0 {
+		n = 0
+	}
+	end := offset + n
+	if end > size {
+		end = size
+	}
+	return offset, end
 }
 
 // Reopen re-points an incremental blob handle at a different rowid of the

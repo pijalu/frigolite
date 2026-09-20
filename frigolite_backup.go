@@ -95,145 +95,6 @@ func (db *DB) NewBackup(dst *DB, dstSchema, srcSchema string) (*Backup, error) {
 	return b, nil
 }
 
-// Step advances the backup by nPages pages (nPages < 0 copies the whole
-// database, nPages == 0 copies nothing). It returns the SQLite result code
-// string: "SQLITE_DONE" when the backup has completed, "SQLITE_OK" when
-// pages remain, "SQLITE_BUSY" when the source or destination is locked, and
-// "SQLITE_READONLY" for a populated in-memory destination with a mismatched
-// page size. An empty in-memory destination adopts the source page size on its
-// first step, matching SQLite's backup.c setDestPgsz behavior.
-func (b *Backup) Step(nPages int) string {
-	if b == nil {
-		return "SQLITE_ERROR"
-	}
-	if b.finished {
-		return b.rc
-	}
-	if b.done {
-		b.rc = "SQLITE_DONE"
-		return b.rc
-	}
-
-	// SQLite's backup.c calls setDestPgsz on the first step. An empty
-	// destination (memory or file) adopts the source page size before any
-	// page is written; an in-memory destination cannot be resized once it
-	// holds pages and a mismatch fails with SQLITE_READONLY. A populated
-	// file-backed destination proceeds: frigolite rebuilds it logically,
-	// so the destination page size adapts through the copy itself.
-	// A FullImageReplace destination (the VACUUM copy-back) mirrors backup.c's
-	// whole-image overwrite: the destination is reset EMPTY first (at the
-	// pending page size when KeepDestPageSize is set — vacuumRebuild has
-	// already applied it — otherwise at the source's), so free pages are
-	// reclaimed and the rebuilt image is compact.
-	if b.FullImageReplace && b.copied == 0 && !b.done {
-		srcCtx := b.src.engine.GetDB(b.srcSchema)
-		dstCtx := b.dst.engine.GetDB(b.dstSchema)
-		if srcCtx == nil || dstCtx == nil {
-			b.rc = "SQLITE_ERROR"
-			b.lastErr = "unknown database"
-			return b.rc
-		}
-		if !b.KeepDestPageSize {
-			dstCtx.Pager.ResetToEmpty(srcCtx.Pager.PageSize())
-			if !dstCtx.IsMemory {
-				_ = dstCtx.Pager.Flush()
-			}
-			dstCtx.Schema.InvalidateCache()
-		}
-	} else if b.dstPageMismatch() {
-		srcCtx := b.src.engine.GetDB(b.srcSchema)
-		dstCtx := b.dst.engine.GetDB(b.dstSchema)
-		if srcCtx == nil || dstCtx == nil {
-			b.rc = "SQLITE_ERROR"
-			b.lastErr = "unknown database"
-			return b.rc
-		}
-		if dstCtx.IsMemory {
-			if dstCtx.Pager.NumPages() > 1 {
-				b.rc = "SQLITE_READONLY"
-				b.lastErr = "attempt to write a readonly database"
-				return b.rc
-			}
-			if !b.KeepDestPageSize {
-				dstCtx.Pager.ResetToEmpty(srcCtx.Pager.PageSize())
-			}
-			dstCtx.Schema.InvalidateCache()
-		} else if !b.KeepDestPageSize && (dstCtx.Pager.OpenedEmpty() || dstCtx.Pager.NumPages() == 0) {
-			// setDestPgsz for a file destination never written to:
-			// re-create it at the source page size. ResetToEmpty +
-			// immediate Flush keeps the on-disk image self-consistent
-			// (canonical header inside page 1) so the per-statement file
-			// checks never observe a truncated/zeroed image.
-			dstCtx.Pager.ResetToEmpty(srcCtx.Pager.PageSize())
-			_ = dstCtx.Pager.Flush()
-			dstCtx.Schema.InvalidateCache()
-		}
-	}
-
-	// Lock checks: an open write transaction on the source, an exclusive lock
-	// on the source by another connection, or a write transaction on the
-	// destination by another connection all return SQLITE_BUSY. A missing
-	// destination schema (detached mid-backup, backup5-3.3) returns
-	// SQLITE_ERROR with "unknown database <name>" on the destination.
-	if b.dst.engine.GetDB(b.dstSchema) == nil {
-		b.rc = "SQLITE_ERROR"
-		b.lastErr = "unknown database " + b.dstSchema
-		b.dst.engine.SetLastErr(b.lastErr, "SQLITE_ERROR")
-		return b.rc
-	}
-	if rc := b.checkBusy(); rc != "" {
-		b.rc = rc
-		return b.rc
-	}
-
-	// A source modified since the backup started (or since the last restart)
-	// restarts the backup for in-memory sources; file-backed sources continue
-	// (their previously copied pages remain valid snapshots).
-	if b.hasChange {
-		if srcCtx := b.src.engine.GetDB(b.srcSchema); srcCtx != nil {
-			if cc, ok := srcCtx.Pager.FileChangeCounter(); ok && cc != b.initChange {
-				if srcCtx.IsMemory {
-					b.copied = 0
-					b.initChange = cc
-				}
-			}
-		}
-	}
-
-	// step(0) copies nothing: SQLITE_OK unless already complete.
-	if nPages == 0 {
-		if b.copied >= b.currentPagecount() {
-			b.done = true
-			b.rc = "SQLITE_DONE"
-			return b.rc
-		}
-		b.rc = "SQLITE_OK"
-		return b.rc
-	}
-
-	// nPages < 0 copies the whole database.
-	if nPages < 0 {
-		nPages = b.currentPagecount()
-	}
-
-	total := b.currentPagecount()
-	b.copied += nPages
-	if b.copied >= total {
-		b.copied = total
-		b.done = true
-		b.rc = "SQLITE_DONE"
-		if err := b.copyLocked(); err != nil {
-			b.lastErr = err.Error()
-			b.rc = "SQLITE_ERROR"
-		} else if b.sourceEmpty() {
-			b.resetEmptyDestination()
-		}
-		return b.rc
-	}
-	b.rc = "SQLITE_OK"
-	return b.rc
-}
-
 // Finish completes the backup, copying any remaining pages, and releases the
 // backup locks. It returns "SQLITE_OK" on success (or the last error code).
 func (b *Backup) Finish() string {
@@ -402,30 +263,9 @@ func (b *Backup) copyLocked() error {
 	}
 
 	// Drop destination objects: triggers and views first (they may reference
-	// tables), then tables (DROP TABLE removes its indexes). For a non-main
-	// destination schema, qualify the DROP so the correct schema's object is
-	// removed (an unqualified DROP VIEW removes the main-schema object).
-	dropQual := schemaQualifier(b.dstSchema)
-	for _, e := range dstEntries {
-		if e.Type == schema.TypeTrigger {
-			if r := b.dst.Exec("DROP TRIGGER " + dropQual + quotedTableName(e.Name)); r.Error != nil {
-				return r.Error
-			}
-		}
-	}
-	for _, e := range dstEntries {
-		if e.Type == schema.TypeView {
-			if r := b.dst.Exec("DROP VIEW " + dropQual + quotedTableName(e.Name)); r.Error != nil {
-				return r.Error
-			}
-		}
-	}
-	for _, e := range dstEntries {
-		if e.Type == schema.TypeTable && !isSystemSchemaTable(e.Name) {
-			if r := b.dst.Exec("DROP TABLE " + dropQual + quotedTableName(e.Name)); r.Error != nil {
-				return r.Error
-			}
-		}
+	// tables), then tables (DROP TABLE removes its indexes).
+	if err := b.dropDestObjects(dstEntries); err != nil {
+		return err
 	}
 
 	// Create objects in the source's sqlite_master order (by rowid) so the
@@ -439,33 +279,93 @@ func (b *Backup) copyLocked() error {
 	// loop (rootpage>0) includes it — so an AUTOINCREMENT counter survives a
 	// backup/VACUUM unchanged.
 	sort.Slice(srcEntries, func(i, j int) bool { return srcEntries[i].RowID < srcEntries[j].RowID })
-	for _, e := range srcEntries {
-		switch e.Type {
-		case schema.TypeTable:
-			if strings.EqualFold(e.Name, "sqlite_sequence") {
-				if err := b.copySequenceTable(e); err != nil {
-					return err
-				}
-				continue
-			}
-			if isSystemSchemaTable(e.Name) {
-				continue
-			}
-			if err := b.copyTable(e); err != nil {
-				return err
-			}
-		case schema.TypeIndex, schema.TypeView, schema.TypeTrigger:
-			sql := e.SQL
-			if q := schemaQualifier(b.dstSchema); q != "" {
-				sql = qualifyCreateObjectSQL(sql, q, string(e.Type))
-			}
-			if r := b.dst.Exec(sql); r.Error != nil {
-				return r.Error
-			}
-		}
+	if err := b.createSourceObjects(srcEntries); err != nil {
+		return err
 	}
 	// Copy the sqlite_statN ANALYZE tables (their CREATE TABLE DDL is
 	// reserved, so create them via the engine's stat-table path).
+	return b.copyStatTables(srcEntries)
+}
+
+// dropDestObjects drops the destination's triggers, views and tables so the
+// rebuild starts from an empty schema. Triggers and views go first (they may
+// reference tables), then tables (DROP TABLE removes its indexes). For a
+// non-main destination schema, the DROP is qualified so the correct schema's
+// object is removed (an unqualified DROP VIEW removes the main-schema object).
+func (b *Backup) dropDestObjects(dstEntries []*schema.Entry) error {
+	for _, typ := range []schema.SchemaType{schema.TypeTrigger, schema.TypeView, schema.TypeTable} {
+		if err := b.dropDestObjectsOfType(dstEntries, typ); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// dropDestObjectsOfType drops every destination object of one schema type.
+// System tables (sqlite_schema, sqlite_sequence, sqlite_statN) are skipped.
+func (b *Backup) dropDestObjectsOfType(dstEntries []*schema.Entry, typ schema.SchemaType) error {
+	dropQual := schemaQualifier(b.dstSchema)
+	drop := "DROP " + strings.ToUpper(string(typ)) + " "
+	for _, e := range dstEntries {
+		if e.Type != typ {
+			continue
+		}
+		if typ == schema.TypeTable && isSystemSchemaTable(e.Name) {
+			continue
+		}
+		if r := b.dst.Exec(drop + dropQual + quotedTableName(e.Name)); r.Error != nil {
+			return r.Error
+		}
+	}
+	return nil
+}
+
+// createSourceObjects recreates the source's schema objects in the
+// destination in sqlite_master order and copies each table's rows right
+// after its CREATE.
+func (b *Backup) createSourceObjects(srcEntries []*schema.Entry) error {
+	for _, e := range srcEntries {
+		if err := b.createSourceObject(e); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// createSourceObject recreates one source schema object in the destination:
+// tables take the data-copy path (sqlite_sequence its counter-row path,
+// system tables are skipped), indexes/views/triggers are created from their
+// stored DDL (qualified for non-main destination schemas).
+func (b *Backup) createSourceObject(e *schema.Entry) error {
+	switch e.Type {
+	case schema.TypeTable:
+		return b.copySourceTableEntry(e)
+	case schema.TypeIndex, schema.TypeView, schema.TypeTrigger:
+		sql := e.SQL
+		if q := schemaQualifier(b.dstSchema); q != "" {
+			sql = qualifyCreateObjectSQL(sql, q, string(e.Type))
+		}
+		if r := b.dst.Exec(sql); r.Error != nil {
+			return r.Error
+		}
+	}
+	return nil
+}
+
+// copySourceTableEntry copies one table-type source entry into the
+// destination.
+func (b *Backup) copySourceTableEntry(e *schema.Entry) error {
+	if strings.EqualFold(e.Name, "sqlite_sequence") {
+		return b.copySequenceTable(e)
+	}
+	if isSystemSchemaTable(e.Name) {
+		return nil
+	}
+	return b.copyTable(e)
+}
+
+// copyStatTables copies the sqlite_statN ANALYZE tables of the source.
+func (b *Backup) copyStatTables(srcEntries []*schema.Entry) error {
 	for _, e := range srcEntries {
 		if e.Type != schema.TypeTable || !strings.HasPrefix(strings.ToLower(e.Name), "sqlite_stat") {
 			continue
@@ -597,32 +497,15 @@ func (b *Backup) copyTable(e *schema.Entry) error {
 	// copy no rows — the shadow entries later in sqlite_master order are real
 	// tables and take the shadow path below.
 	if isVirtualTableEntry(e) {
-		sql := e.SQL
-		if qual != "" {
-			sql = qualifyCreateVirtualTableSQL(sql, qual)
-		}
-		if r := b.dst.Exec(sql); r.Error != nil {
-			return r.Error
-		}
-		return nil
+		return b.copyVtabEntry(e, qual)
 	}
 	// Vtab shadow tables already exist in the destination (xCreate made them
 	// when the CREATE VIRTUAL TABLE entry was copied moments ago): replace
 	// rows instead of re-creating — a second CREATE would fail with
 	// "table already exists".
 	shadow := b.destTableExists(e.Name)
-	if !shadow {
-		sql := e.SQL
-		if qual != "" {
-			sql = qualifyCreateTableSQL(sql, qual)
-		}
-		if r := b.dst.Exec(sql); r.Error != nil {
-			return r.Error
-		}
-	} else {
-		if r := b.dst.Exec("DELETE FROM " + qualifiedTableRef(qual, e.Name)); r.Error != nil {
-			return r.Error
-		}
+	if err := b.createOrClearDestTable(e, qual, shadow); err != nil {
+		return err
 	}
 	// Read rows from the source and insert into the destination. WITHOUT
 	// ROWID tables have no rowid column; detect from the DDL. Tables whose
@@ -638,39 +521,85 @@ func (b *Backup) copyTable(e *schema.Entry) error {
 	withoutRowid := strings.Contains(strings.ToUpper(e.SQL), "WITHOUT ROWID")
 	defs := b.src.engine.ParseColumnDefs(e.Name, e.SQL)
 	alias := ipkRowidAliasColumnName(defs)
-	srcQual := schemaQualifier(b.srcSchema)
-	tableRef := qualifiedTableRef(srcQual, e.Name)
-	var srcQuery string
-	if withoutRowid || alias != "" {
-		srcQuery = "SELECT * FROM " + tableRef
-	} else {
-		srcQuery = "SELECT " + quoteIdent(rowidProbeName(defs)) + ", * FROM " + tableRef
-	}
-	r := b.src.Query(srcQuery)
+	r := b.src.Query(srcSelectQuery(defs, qualifiedTableRef(schemaQualifier(b.srcSchema), e.Name), withoutRowid, alias))
 	if r.Error != nil {
 		return r.Error
 	}
 	// Column list for the INSERT: for the rowid-probe form the first SELECT
 	// column is the rowid probe (insert as "rowid"); the rest are the table's
 	// columns. For SELECT * forms the columns arrive in declared order.
-	var colNames []string
-	if !withoutRowid && alias == "" {
-		colNames = append(colNames, "rowid")
-		for i, c := range r.Columns {
-			if i == 0 {
-				continue // the probe itself
-			}
-			if c == "rowid" {
-				// A plain-rowid table may still DECLARE a column named
-				// "rowid"; `SELECT probe, *` then yields the same name
-				// twice and only the probe maps to the implicit rowid.
-				continue
-			}
-			colNames = append(colNames, c)
-		}
-	} else {
-		colNames = append(colNames, r.Columns...)
+	colNames := insertColumnList(r.Columns, withoutRowid, alias)
+	return b.copyRowsToDest(e, qual, r, colNames)
+}
+
+// copyVtabEntry creates the virtual table in the destination (its shadow
+// tables materialize at xCreate); no rows are copied.
+func (b *Backup) copyVtabEntry(e *schema.Entry, qual string) error {
+	sql := e.SQL
+	if qual != "" {
+		sql = qualifyCreateVirtualTableSQL(sql, qual)
 	}
+	if r := b.dst.Exec(sql); r.Error != nil {
+		return r.Error
+	}
+	return nil
+}
+
+// createOrClearDestTable creates the destination table from its stored DDL
+// (qualified for non-main schemas), or — when the table already exists (a
+// vtab shadow materialized by xCreate moments ago) — clears its rows.
+func (b *Backup) createOrClearDestTable(e *schema.Entry, qual string, exists bool) error {
+	if !exists {
+		sql := e.SQL
+		if qual != "" {
+			sql = qualifyCreateTableSQL(sql, qual)
+		}
+		if r := b.dst.Exec(sql); r.Error != nil {
+			return r.Error
+		}
+		return nil
+	}
+	if r := b.dst.Exec("DELETE FROM " + qualifiedTableRef(qual, e.Name)); r.Error != nil {
+		return r.Error
+	}
+	return nil
+}
+
+// srcSelectQuery builds the backup SELECT for one table: SELECT * forms keep
+// the declared column order (WITHOUT ROWID / IPK-aliased rowid tables), the
+// plain rowid form probes the rowid under a non-shadowed alias name.
+func srcSelectQuery(defs []sql.ColumnDef, tableRef string, withoutRowid bool, alias string) string {
+	if withoutRowid || alias != "" {
+		return "SELECT * FROM " + tableRef
+	}
+	return "SELECT " + quoteIdent(rowidProbeName(defs)) + ", * FROM " + tableRef
+}
+
+// insertColumnList maps the SELECT's result columns to the INSERT's column
+// list: for the rowid-probe form the first column is the probe (insert as
+// "rowid"; a table may still DECLARE a column named "rowid" — `SELECT probe, *`
+// then yields the same name twice and only the probe maps to the implicit
+// rowid), the rest arrive in declared order.
+func insertColumnList(columns []string, withoutRowid bool, alias string) []string {
+	if withoutRowid || alias != "" {
+		return columns
+	}
+	colNames := []string{"rowid"}
+	for i, c := range columns {
+		if i == 0 {
+			continue // the probe itself
+		}
+		if c == "rowid" {
+			continue
+		}
+		colNames = append(colNames, c)
+	}
+	return colNames
+}
+
+// copyRowsToDest inserts the SELECT's rows into the destination table with
+// the exact column list, preserving exact rowids (a page-level backup does).
+func (b *Backup) copyRowsToDest(e *schema.Entry, qual string, r *Result, colNames []string) error {
 	colList := ""
 	if len(colNames) > 0 {
 		var q []string

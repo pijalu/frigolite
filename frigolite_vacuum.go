@@ -39,26 +39,9 @@ func (db *DB) execVacuumStmt(vs *sql.VacuumStmt) *exec.Result {
 	// t1.nosuchcol", "no such function: target2"); a non-TEXT result
 	// reports "non-text filename".
 	if vs.IntoExpr != nil {
-		v, err := db.engine.EvalExpr(vs.IntoExpr, nil)
-		if err != nil {
-			return &exec.Result{Error: err}
-		}
-		if cv, ok := v.(*util.ColumnValue); ok {
-			v = util.UnwrapColumnValue(cv)
-		}
-		target, ok := v.(string)
-		if !ok {
-			// SQLite resolves column references at PREPARE time: an unknown
-			// column reports "no such column" (with the written qualifier),
-			// everything else that is not text reports "non-text filename".
-			if cr, isCol := vs.IntoExpr.(*sql.ColumnRef); isCol {
-				name := cr.Name
-				if cr.Table != "" {
-					name = cr.Table + "." + cr.Name
-				}
-				return &exec.Result{Error: fmt.Errorf("no such column: %s", name)}
-			}
-			return &exec.Result{Error: fmt.Errorf("non-text filename")}
+		target, res := db.vacuumIntoTarget(vs)
+		if res != nil {
+			return res
 		}
 		return db.vacuumInto(schema, target)
 	}
@@ -71,6 +54,34 @@ func (db *DB) execVacuumStmt(vs *sql.VacuumStmt) *exec.Result {
 	end := db.engine.BeginInternalWrites()
 	defer end()
 	return db.vacuumRebuild(schema)
+}
+
+// vacuumIntoTarget evaluates the VACUUM INTO target expression (vacuum.c:
+// the target is an expression evaluated before the vacuum runs). It returns
+// the target string, or a non-nil result carrying the resolution error: an
+// unresolvable column reference reports "no such column" (with the written
+// qualifier, matching SQLite's PREPARE-time resolution), any other non-text
+// value reports "non-text filename".
+func (db *DB) vacuumIntoTarget(vs *sql.VacuumStmt) (string, *exec.Result) {
+	v, err := db.engine.EvalExpr(vs.IntoExpr, nil)
+	if err != nil {
+		return "", &exec.Result{Error: err}
+	}
+	if cv, ok := v.(*util.ColumnValue); ok {
+		v = util.UnwrapColumnValue(cv)
+	}
+	target, ok := v.(string)
+	if ok {
+		return target, nil
+	}
+	if cr, isCol := vs.IntoExpr.(*sql.ColumnRef); isCol {
+		name := cr.Name
+		if cr.Table != "" {
+			name = cr.Table + "." + cr.Name
+		}
+		return "", &exec.Result{Error: fmt.Errorf("no such column: %s", name)}
+	}
+	return "", &exec.Result{Error: fmt.Errorf("non-text filename")}
 }
 
 // vacuumInto implements VACUUM INTO: back up the database into a brand-new
@@ -108,36 +119,16 @@ func (db *DB) vacuumRebuild(schema string) *exec.Result {
 	pending := readPendingPageSize(db, schema)
 	// vacuum.c nRes: a requested reserve (SQLITE_FCNTL_RESERVE_BYTES) is
 	// materialized in the rebuilt image, like a pending page size.
-	curReserve, reqReserve := uint32(0), uint32(0)
-	if ctx := db.engine.GetDB(schema); ctx != nil && ctx.Pager != nil {
-		curReserve = ctx.Pager.ReservedBytes()
-		reqReserve = ctx.Pager.RequestedReserve()
-	}
-	reset := pending != 0 || (reqReserve != 0 && reqReserve != curReserve)
-	if reset {
-		if ctx := db.engine.GetDB(schema); ctx != nil && ctx.Pager != nil {
-			size := pending
-			if size == 0 {
-				size = ctx.Pager.PageSize()
-			}
-			ctx.Pager.ResetToEmpty(size)
-			if reqReserve != 0 {
-				ctx.Pager.ApplyReservedBytes(reqReserve)
-			}
-			if err := ctx.Pager.Flush(); err != nil {
-				return &exec.Result{Error: err}
-			}
-			ctx.Schema.InvalidateCache()
-		}
+	curReserve, reqReserve := db.pagerReserves(schema)
+	reset, err := db.vacuumResetDest(schema, pending, reqReserve, curReserve)
+	if err != nil {
+		return &exec.Result{Error: err}
 	}
 	// vacuum.c: the rebuild commits the main database exactly ONCE (the
 	// copy-back via sqlite3BtreeCopyFile), so the file change counter moves
 	// forward by exactly one — the copy's internal statements must not leave
 	// their own per-statement bumps in the final image.
-	preCC := uint32(0)
-	if ctx := db.engine.GetDB(schema); ctx != nil && ctx.Pager != nil {
-		preCC, _ = ctx.Pager.FileChangeCounter()
-	}
+	preCC := db.fileChangeCounter(schema)
 	if err := copyViaBackup(tmp, "main", db, schema, reset); err != nil {
 		// The rebuild failed (e.g. an auto_vacuum shape the logical copy
 		// does not yet handle): restore the pre-VACUUM image from the temp
@@ -154,6 +145,57 @@ func (db *DB) vacuumRebuild(schema string) *exec.Result {
 		ctx.Schema.InvalidateCache()
 	}
 	return &exec.Result{}
+}
+
+// pagerReserves returns the schema's current and requested reserved-bytes
+// values (0 when the pager is unavailable).
+func (db *DB) pagerReserves(schema string) (uint32, uint32) {
+	if ctx := db.engine.GetDB(schema); ctx != nil && ctx.Pager != nil {
+		return ctx.Pager.ReservedBytes(), ctx.Pager.RequestedReserve()
+	}
+	return 0, 0
+}
+
+// fileChangeCounter returns the schema's file change counter (0 when the
+// pager is unavailable).
+func (db *DB) fileChangeCounter(schema string) uint32 {
+	if ctx := db.engine.GetDB(schema); ctx != nil && ctx.Pager != nil {
+		cc, _ := ctx.Pager.FileChangeCounter()
+		return cc
+	}
+	return 0
+}
+
+// vacuumResetDest resets the rebuild target EMPTY — adopting a pending page
+// size when one is pending (pragma.c pNextPagesize) — and materializes a
+// requested reserve, so free pages are reclaimed and the rebuilt image is
+// compact. It reports whether the destination was reset (the copy-back then
+// runs as a full-image replace).
+func (db *DB) vacuumResetDest(schema string, pending, reqReserve, curReserve uint32) (bool, error) {
+	reset := pending != 0 || (reqReserve != 0 && reqReserve != curReserve)
+	if !reset {
+		return false, nil
+	}
+	ctx := db.engine.GetDB(schema)
+	if ctx == nil || ctx.Pager == nil {
+		// Reset requested but no pager to apply it to: the original inline
+		// code skipped the reset silently and kept the reset flag for the
+		// copy-back; mirror that exactly.
+		return true, nil
+	}
+	size := pending
+	if size == 0 {
+		size = ctx.Pager.PageSize()
+	}
+	ctx.Pager.ResetToEmpty(size)
+	if reqReserve != 0 {
+		ctx.Pager.ApplyReservedBytes(reqReserve)
+	}
+	if err := ctx.Pager.Flush(); err != nil {
+		return false, err
+	}
+	ctx.Schema.InvalidateCache()
+	return true, nil
 }
 
 // pinChangeCounter sets the schema's file change counter and flushes the

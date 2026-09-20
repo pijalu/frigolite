@@ -141,19 +141,8 @@ func splitTableName(rest string) (name, after string) {
 	if rest == "" {
 		return "", ""
 	}
-	if rest[0] == '"' || rest[0] == '`' || rest[0] == '[' {
-		quote := rest[0]
-		closer := `"`
-		if quote == '`' {
-			closer = "`"
-		} else if quote == '[' {
-			closer = "]"
-		}
-		end := strings.Index(rest[1:], closer)
-		if end < 0 {
-			return rest, ""
-		}
-		return rest[:end+2], rest[end+2:]
+	if q := rest[0]; q == '"' || q == '`' || q == '[' {
+		return splitQuotedTableName(rest)
 	}
 	for i := 0; i < len(rest); i++ {
 		if rest[i] == ' ' || rest[i] == '(' || rest[i] == '\t' || rest[i] == '\n' {
@@ -161,6 +150,25 @@ func splitTableName(rest string) (name, after string) {
 		}
 	}
 	return rest, ""
+}
+
+// splitQuotedTableName splits a quoted identifier ("x", `x`, [x]) from the
+// rest of the statement: the name includes the surrounding quotes, "after"
+// starts at the character following the closing quote ("" when the quote is
+// unterminated).
+func splitQuotedTableName(rest string) (name, after string) {
+	closer := `"`
+	switch rest[0] {
+	case '`':
+		closer = "`"
+	case '[':
+		closer = "]"
+	}
+	end := strings.Index(rest[1:], closer)
+	if end < 0 {
+		return rest, ""
+	}
+	return rest[:end+2], rest[end+2:]
 }
 
 // sqlLiteral renders a Go value as a SQL literal for INSERT statements.
