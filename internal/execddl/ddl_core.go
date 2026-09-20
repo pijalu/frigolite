@@ -12,7 +12,6 @@ import (
 	"fmt"
 	"github.com/pijalu/frigolite/internal/execdml"
 	"sort"
-	"strconv"
 	"strings"
 
 	"github.com/pijalu/frigolite/internal/auth"
@@ -49,20 +48,8 @@ func (e *DDLExecutor) execAttach(s *sql.AttachStmt) *Result {
 		return res
 	}
 	schemaUpper := strings.ToUpper(s.Schema)
-
-	// Check reserved names: "main", "temp", "temporary" are always in use
-	if schemaUpper == "MAIN" || schemaUpper == "TEMP" || schemaUpper == "TEMPORARY" {
-		return &Result{Error: fmt.Errorf("database %s is already in use", s.Schema)}
-	}
-	// Check for duplicate attachment
-	if _, ok := e.ctx.Databases()[schemaUpper]; ok {
-		return &Result{Error: fmt.Errorf("database %s is already in use", s.Schema)}
-	}
-	if e.attachedDBCount() >= MaxAttachedDatabases {
-		return &Result{Error: fmt.Errorf("too many attached databases - max %d", MaxAttachedDatabases)}
-	}
-	if schemaUpper == "SQLITE_MASTER" || schemaUpper == "SQLITE_SCHEMA" {
-		return &Result{Error: fmt.Errorf("reserved schema name: %s", s.Schema)}
+	if res := e.attachNameGuard(s, schemaUpper); res != nil {
+		return res
 	}
 
 	path, isMemory := resolveAttachPath(e, s)
@@ -77,55 +64,18 @@ func (e *DDLExecutor) execAttach(s *sql.AttachStmt) *Result {
 		}
 	}
 
-	// Same FILE under a second schema name (attach-9.1: one file as aux1
-	// and aux2): share the existing schema's pager and schema manager so
-	// both names see the same data. Writes to both names in one
-	// transaction raise "database is locked" via the same-file write
-	// tracker (CheckSameFileWriteConflict); the shared pager is closed
-	// only by the connection's Close.
+	// Same FILE under a second schema name (attach-9.1) shares the existing
+	// schema's pager and schema manager (see attachSharedPager).
 	if !isMemory {
-		if mainPath := e.ctx.MainDB().FilePath; mainPath == path {
-			ctx := &DatabaseContext{Name: s.Schema, Pager: e.ctx.MainDB().Pager,
-				Schema: e.ctx.MainDB().Schema, FilePath: path, SharedPager: true}
-			e.ctx.Databases()[schemaUpper] = ctx
-			e.ctx.AppendDBList(ctx)
-			return &Result{}
-		}
-		for _, other := range e.ctx.Databases() {
-			if other != nil && other.FilePath == path {
-				ctx := &DatabaseContext{Name: s.Schema, Pager: other.Pager,
-					Schema: other.Schema, FilePath: path, SharedPager: true}
-				e.ctx.Databases()[schemaUpper] = ctx
-				e.ctx.AppendDBList(ctx)
-				return &Result{}
-			}
+		if attached, res := e.attachSharedPager(s, path, schemaUpper); attached {
+			return res
 		}
 	}
 
-	pg, res := openAttachPager(path, isMemory)
+	sch, pg, res := openAttachSchema(path, isMemory)
 	if res != nil {
 		return res
 	}
-	// Initialize schema for the attached database
-	sch := schema.NewManager(pg)
-	if err := sch.Init(); err != nil {
-		pg.Close()
-		return &Result{Error: fmt.Errorf("cannot initialize schema for attached database: %w", err)}
-	}
-	// Read the schema eagerly (src/attach.c ATTACH runs sqlite3InitOne on the
-	// new database): a corrupt attached image must fail the ATTACH itself
-	// ("file is not a database", attach-8.1) and leave nothing registered.
-	// Deferred validation would register a dead attachment whose first later
-	// read fails mid-statement and poisons every following statement.
-	if _, err := sch.GetEntries(schema.TypeTable); err != nil {
-		pg.Close()
-		return &Result{Error: err}
-	}
-	// Record the file state at attach time so later external writes (from
-	// another connection) are detected and the schema re-read.
-	sch.SetTrackExternalMod(true)
-	sch.CaptureFileStamp()
-
 	// Check text encoding compatibility
 	if res := e.checkAttachEncoding(pg); res != nil {
 		pg.Close()
@@ -552,54 +502,21 @@ func (e *DDLExecutor) execFTSDelete(tableName string, ftsTable *fts.FTS3Table, c
 
 	// Apply the WHERE filter first, then DELETE ... ORDER BY ... LIMIT (the
 	// SQLite extension applies to the filtered rowid set).
-	if s.Where == nil && s.Limit == nil && len(s.OrderBy) == 0 {
-		// DELETE FROM <fts> (no WHERE/LIMIT/ORDER BY) clears the whole table
-		// — SQLite's fts3DeleteAll drops the segment directory and resets the
-		// in-memory index instead of deleting each document's postings one by
-		// one (per-doc removal is O(total postings), making the automerge
-		// test's between-scenario cleanup ~seconds for 500 40KB documents).
-		// For a content=<table> table SQLite does NOT use fts3DeleteAll: the
-		// DELETE goes through the per-doc xUpdate path, which skips docids
-		// whose content row is missing (the delete terms cannot be computed)
-		// — so a docid inserted into the index without a content row survives
-		// (fts4content 3.1.4: DELETE FROM ft3 leaves docid 21 MATCH-able).
-		if ftsTable.ContentTable() == "" && !ftsTable.Contentless() {
-			changed := ftsTable.DocCount()
-			ftsTable.Clear()
-			e.clearFTSShadowIndex(tableName)
-			e.clearFTSContent(tableName)
-			e.writeFTSStat(tableName, ftsTable)
-			return &Result{Changes: int64(changed)}
-		}
+	if handled, res := e.ftsDeleteAllHandled(tableName, ftsTable, s); handled {
+		return res
 	}
 	matched := e.collectFTSMatched(ftsTable, colDefs, s)
 	matched = e.applyFTSOrderLimit(matched, s)
 
 	deleted := int64(0)
 	for _, docID := range matched {
-		// An FTS4 content=<table> table's xDelete computes the delete terms
-		// from the content row; a docid whose content row is missing cannot
-		// be deleted and is skipped (fts3.c fts3DeleteTerms; fts4content
-		// 3.1.4: DELETE FROM ft3 leaves docid 21 indexed until its content
-		// row exists).
-		if ct := ftsTable.ContentTable(); ct != "" && !e.ctx.ContentRowExists(ct, docID) {
-			continue
+		ok, res := e.deleteFTSDoc(tableName, ftsTable, docID)
+		if res != nil {
+			return res
 		}
-		// C's fts3PendingTermsDocid (bDelete=1) runs per deleted document: a
-		// docid that restarts the pending sequence flushes the pending batch
-		// BEFORE this document's delete terms pend (fts4onepass-4.0).
-		if ftsTable.PendingDocidRestart(docID, true, ftsTable.DocLangID(docID)) && ftsTable.HasPendingOps() {
-			if res := e.flushFTSPendingFlagged(tableName); res != nil {
-				return res
-			}
+		if ok {
+			deleted++
 		}
-		ftsTable.Delete(docID)
-		// Remove the document row from the %_content shadow table so SELECT
-		// FROM <name>_content reflects the deletion (fts3comp1 1.9: DELETE
-		// FROM t1 WHERE docid=1 leaves only docids 3 and 4).
-		e.deleteFTSContentRow(tableName, docID)
-		e.deleteFTSDocsizeRow(tableName, docID)
-		deleted++
 	}
 	if deleted > 0 {
 		// The FTS4 %_stat aggregate (id=1) tracks the current document set;
@@ -657,37 +574,13 @@ func ftsRowIDEqConstraint(where sql.Expr) (int64, bool) {
 	if !ok || bop.Operator != "=" {
 		return 0, false
 	}
-	isRowIDRef := func(e sql.Expr) bool {
-		ref, ok := e.(*sql.ColumnRef)
-		if !ok || ref.Table != "" {
-			return false
-		}
-		return execquery.IsRowIDName(ref.Name) || strings.EqualFold(ref.Name, "docid")
-	}
-	constInt := func(e sql.Expr) (int64, bool) {
-		if n, ok := e.(*sql.NumericLit); ok {
-			iv, err := strconv.ParseInt(strings.TrimSpace(strings.TrimSuffix(n.Value, ".0")), 10, 64)
-			if err == nil {
-				return iv, true
-			}
-		}
-		if u, ok := e.(*sql.UnaryOp); ok && u.Operator == "-" {
-			if n, ok := u.Operand.(*sql.NumericLit); ok {
-				iv, err := strconv.ParseInt(strings.TrimSpace(strings.TrimSuffix(n.Value, ".0")), 10, 64)
-				if err == nil {
-					return -iv, true
-				}
-			}
-		}
-		return 0, false
-	}
-	if isRowIDRef(bop.Left) {
-		if v, ok := constInt(bop.Right); ok {
+	if ftsRowIDRef(bop.Left) {
+		if v, ok := ftsConstIntLit(bop.Right); ok {
 			return v, true
 		}
 	}
-	if isRowIDRef(bop.Right) {
-		if v, ok := constInt(bop.Left); ok {
+	if ftsRowIDRef(bop.Right) {
+		if v, ok := ftsConstIntLit(bop.Left); ok {
 			return v, true
 		}
 	}
@@ -867,35 +760,13 @@ func (e *DDLExecutor) collectFTSUpdateMatched(ftsTable *fts.FTS3Table, colDefs [
 	}
 	var matched []int64
 	for _, docID := range ftsTable.AllRowsMap() {
-		shouldUpdate := true
-		if s.Where != nil {
-			rowMap, matchedRow, jerr := e.ftsUpdateJoinedRowMap(ftsTable, colDefs, s, docID)
-			if jerr != nil {
-				// A missing FROM table fails the whole statement (fts4upfrom
-				// 1.x: UPDATE ft SET c=v FROM changes → "no such table:
-				// changes").
-				return nil, &Result{Error: jerr}
-			}
-			if !matchedRow {
-				shouldUpdate = false
-			} else {
-				match, err := e.ctx.EvalBool(s.Where, rowMap)
-				if err != nil || !match {
-					shouldUpdate = false
-				}
-			}
+		ok, jerr := e.ftsUpdateRowMatched(ftsTable, colDefs, s, docID)
+		if jerr != nil {
+			return nil, &Result{Error: jerr}
 		}
-		if !shouldUpdate {
-			continue
+		if ok {
+			matched = append(matched, docID)
 		}
-		// A content=<table> table's xUpdate computes the delete terms from
-		// the content row; a docid whose content row is missing cannot be
-		// updated and is skipped (fts3.c fts3DeleteTerms; fts4content 3.1.4
-		// / 3.3.x).
-		if ct := ftsTable.ContentTable(); ct != "" && !e.ctx.ContentRowExists(ct, docID) {
-			continue
-		}
-		matched = append(matched, docID)
 	}
 	return matched, nil
 }
