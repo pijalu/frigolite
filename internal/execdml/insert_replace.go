@@ -187,46 +187,8 @@ func (e *DMLExecutor) findNextReplaceConflict(pg *pager.Pager, tableEntry *schem
 		uniqueCols = dropIPKProbeCoveredCol(uniqueCols, colDefs, values, replaceRowID)
 	}
 	if len(uniqueCols) > 0 {
-		tree := e.uniqueScanTree(tableEntry.Name, tableEntry.RootPage)
-		cursor, err := tree.OpenCursor()
-		if err == nil {
-			foundCols := make(map[int]bool, len(uniqueCols))
-			for {
-				cell, cerr := cursor.ReadCell()
-				if cerr != nil || cell == nil {
-					break
-				}
-				rec, derr := storage.DecodeRecord(cell.Payload)
-				if derr != nil || rec == nil {
-					break
-				}
-				// WITHOUT ROWID cells are PK-first storage order; the scan
-				// compares declared positions, so remap first. Rowid tables
-				// skip the call: the remap is a no-op whose DDL sniff would
-				// otherwise re-parse the CREATE per cell.
-				if keyer.wr {
-					e.ctx.RemapWRRecordToDeclared(rec, tableEntry.SQL, colDefs)
-				}
-				for _, idx := range uniqueCols {
-					if foundCols[idx] || seen[keyer.key(cell.RowID, rec.Values)] {
-						continue
-					}
-					if idx >= len(rec.Values) || idx >= len(values) {
-						continue
-					}
-					if rec.Values[idx] == nil || values[idx] == nil {
-						continue
-					}
-					if util.CompareValues(rec.Values[idx], values[idx]) == 0 {
-						foundCols[idx] = true
-						return cell.RowID, rec.Values, true
-					}
-				}
-				hasNext, nerr := cursor.Next()
-				if nerr != nil || !hasNext {
-					break
-				}
-			}
+		if rid, rv, ok := e.findReplaceColumnConflict(tableEntry, colDefs, values, uniqueCols, seen, keyer); ok {
+			return rid, rv, true
 		}
 	}
 	// Composite PRIMARY KEY / UNIQUE groups (e.g. PRIMARY KEY(b,c)): scan
@@ -240,6 +202,73 @@ func (e *DMLExecutor) findNextReplaceConflict(pg *pager.Pager, tableEntry *schem
 		}
 	}
 	return 0, nil, false
+}
+
+// findReplaceColumnConflict scans the table once for the first row whose
+// value on any not-yet-seen UNIQUE/PK column matches the new values.
+// scanAllUniqueConflicts uses the DML target's context pager
+// (dmlTableBTree); this explicit-tree variant reuses the same scan tree so
+// an ATTACHed table (currentDMLCtx pager) is scanned.
+func (e *DMLExecutor) findReplaceColumnConflict(tableEntry *schema.Entry, colDefs []sql.ColumnDef, values []interface{}, uniqueCols []int, seen map[string]bool, keyer conflictKeyer) (int64, []interface{}, bool) {
+	tree := e.uniqueScanTree(tableEntry.Name, tableEntry.RootPage)
+	cursor, err := tree.OpenCursor()
+	if err != nil {
+		return 0, nil, false
+	}
+	for {
+		cell, rec, ok := e.replaceScanCell(tableEntry, colDefs, cursor, keyer.wr)
+		if !ok {
+			return 0, nil, false
+		}
+		if replaceCellColumnConflict(cell, rec, values, uniqueCols, seen, keyer) {
+			return cell.RowID, rec.Values, true
+		}
+		hasNext, nerr := cursor.Next()
+		if nerr != nil || !hasNext {
+			return 0, nil, false
+		}
+	}
+}
+
+// replaceScanCell reads and decodes the cursor's next cell. WITHOUT ROWID
+// cells are PK-first storage order; the scan compares declared positions, so
+// remap first. Rowid tables skip the call: the remap is a no-op whose DDL
+// sniff would otherwise re-parse the CREATE per cell.
+func (e *DMLExecutor) replaceScanCell(tableEntry *schema.Entry, colDefs []sql.ColumnDef, cursor *btree.Cursor, wr bool) (*storage.Cell, *storage.Record, bool) {
+	cell, cerr := cursor.ReadCell()
+	if cerr != nil || cell == nil {
+		return nil, nil, false
+	}
+	rec, derr := storage.DecodeRecord(cell.Payload)
+	if derr != nil || rec == nil {
+		return nil, nil, false
+	}
+	if wr {
+		e.ctx.RemapWRRecordToDeclared(rec, tableEntry.SQL, colDefs)
+	}
+	return cell, rec, true
+}
+
+// replaceCellColumnConflict reports whether the cell's value matches the new
+// values on any not-yet-seen UNIQUE column (UNIQUE columns are checked
+// PER-COLUMN: INSERT OR REPLACE INTO t(a UNIQUE, b UNIQUE) VALUES('one',
+// 'two') must delete BOTH the row with a='one' and the row with b='two').
+func replaceCellColumnConflict(cell *storage.Cell, rec *storage.Record, values []interface{}, uniqueCols []int, seen map[string]bool, keyer conflictKeyer) bool {
+	for _, idx := range uniqueCols {
+		if seen[keyer.key(cell.RowID, rec.Values)] {
+			continue
+		}
+		if idx >= len(rec.Values) || idx >= len(values) {
+			continue
+		}
+		if rec.Values[idx] == nil || values[idx] == nil {
+			continue
+		}
+		if util.CompareValues(rec.Values[idx], values[idx]) == 0 {
+			return true
+		}
+	}
+	return false
 }
 
 // conflictKeyer precomputes a REPLACE pass's WITHOUT-ROWID classification
