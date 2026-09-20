@@ -18,7 +18,6 @@
 package exec
 
 import (
-	"fmt"
 	"path/filepath"
 	"testing"
 
@@ -44,7 +43,7 @@ func TestVacuumDoesNotCorruptBTree(t *testing.T) {
 	mustExec(t, e, "PRAGMA auto_vacuum=INCREMENTAL")
 	mustExec(t, e, "CREATE TABLE t1(x)")
 	for i := 0; i < 20; i++ {
-		mustExec(t, e, fmt.Sprintf("INSERT INTO t1 VALUES(randomblob(400))"))
+		mustExec(t, e, "INSERT INTO t1 VALUES(randomblob(400))")
 	}
 	mustExec(t, e, "COMMIT")
 

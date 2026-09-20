@@ -159,31 +159,49 @@ func (ev *Evaluator) evalUnqualifiedColumnRef(v *sql.ColumnRef, row Row) (interf
 	if val, ok := ev.rowLookupUnqualified(v.Name, row); ok {
 		return val, nil
 	}
-	// The unquoted keywords TRUE/FALSE are boolean literals (TK_TRUEFALSE,
-	// SQLite 3.23+). The expression grammar leaves them as bare ColumnRefs,
-	// so resolve them here when no column of that name exists
-	// (index.test 23.1: INSERT ... VALUES (FALSE)).
-	if !v.Quoted && isBooleanLiteralName(v.Name) {
-		if strings.EqualFold(v.Name, "TRUE") {
-			return int64(1), nil
+	if !v.Quoted {
+		if val, done, err := ev.evalUnqualifiedKeywordOrAlias(v, row); done {
+			return val, err
 		}
-		return int64(0), nil
+	}
+	if val, done, err := ev.evalUnqualifiedStrictOrDQS(v, row); done {
+		return val, err
+	}
+	return nil, nil
+}
+
+// evalUnqualifiedKeywordOrAlias resolves the boolean-literal keywords
+// TRUE/FALSE (TK_TRUEFALSE, SQLite 3.23+ — the grammar leaves them as bare
+// ColumnRefs, so they are resolved here when no column of that name exists;
+// index.test 23.1: INSERT ... VALUES (FALSE)) and the SELECT-list alias
+// expression for an unquoted unqualified reference. done=false continues to
+// the strict/DQS stages.
+func (ev *Evaluator) evalUnqualifiedKeywordOrAlias(v *sql.ColumnRef, row Row) (interface{}, bool, error) {
+	if isBooleanLiteralName(v.Name) {
+		if strings.EqualFold(v.Name, "TRUE") {
+			return int64(1), true, nil
+		}
+		return int64(0), true, nil
 	}
 	// Output-column aliases: when the name is not a table column, SQLite
 	// resolves an unqualified reference to the SELECT-list alias expression
 	// (e.g. "SELECT a AS x ... WHERE x>3" → WHERE evaluates the expression a).
-	if !v.Quoted {
-		if val, ok, err := ev.evalAliasRef(v.Name, row); ok || err != nil {
-			return val, err
-		}
+	if val, ok, err := ev.evalAliasRef(v.Name, row); ok || err != nil {
+		return val, true, err
 	}
+	return nil, false, nil
+}
+
+// evalUnqualifiedStrictOrDQS applies the RETURNING strict-resolution and
+// DQS string-literal fallbacks. done=false leaves the reference unresolved.
+func (ev *Evaluator) evalUnqualifiedStrictOrDQS(v *sql.ColumnRef, row Row) (interface{}, bool, error) {
 	// RETURNING strict resolution: an unqualified reference must name a column
 	// of the modified table (or rowid/oid/_rowid_). Unknown columns are errors.
 	if ev.ctx.ReturningStrict() && ev.ctx.CurrentScanTable() == "" {
 		if val, ok := ev.strictReturningUnqualified(v.Name, row); ok {
-			return val, nil
+			return val, true, nil
 		}
-		return nil, fmt.Errorf("no such column: %s", v.Name)
+		return nil, true, fmt.Errorf("no such column: %s", v.Name)
 	}
 	// SQLite double-quoted-string (DQS) resolution: if an unqualified
 	// double-quoted identifier does not match any column, and DQS is enabled
@@ -191,11 +209,11 @@ func (ev *Evaluator) evalUnqualifiedColumnRef(v *sql.ColumnRef, row Row) (interf
 	// unresolved reference is an error.
 	if v.Quoted {
 		if ev.ctx.DQS_DML() {
-			return v.Name, nil
+			return v.Name, true, nil
 		}
-		return nil, fmt.Errorf("no such column: \"%s\" - should this be a string literal in single-quotes?", v.Name)
+		return nil, true, fmt.Errorf("no such column: \"%s\" - should this be a string literal in single-quotes?", v.Name)
 	}
-	return nil, nil
+	return nil, false, nil
 }
 
 // isBooleanLiteralName reports whether a bare identifier is one of the
@@ -273,13 +291,10 @@ func (ev *Evaluator) evalFuncCall(f *sql.FuncCall, row Row) (interface{}, error)
 
 	// Nested aggregate inside a wrapper expression of an aggregate query
 	// (e.g. round(avg(x),2)): evaluate over the aggregate row set rather
-	// than the single per-row context. MIN/MAX with two or more arguments
-	// are scalar functions even in an aggregate context (SQLite evaluates
-	// group_concat(substr(...,1+min(iter/7,4),1)) per row — with1
-	// 8.1-mandelbrot), so they take the scalar path below.
+	// than the single per-row context.
 	if fn.Type == function.TypeAggregate && ev.ctx.AggRowMaps() != nil {
-		if !(len(f.Args) >= 2 && (strings.EqualFold(f.Name, "MIN") || strings.EqualFold(f.Name, "MAX"))) {
-			return ev.ctx.EvalAggFuncCall(f, ev.ctx.AggRowMaps())
+		if val, handled, err := ev.evalAggWrapperCall(f); handled {
+			return val, err
 		}
 	}
 
@@ -289,47 +304,80 @@ func (ev *Evaluator) evalFuncCall(f *sql.FuncCall, row Row) (interface{}, error)
 	}
 
 	// COALESCE/IFNULL short-circuit (sqlite3ExprCodeTarget codes them with
-	// jumps): arguments after the first non-NULL are NEVER evaluated. This
-	// matters for side-effectful arguments — eval('ROLLBACK; ...') inside
-	// coalesce(b, eval(...)) must not run while b is non-NULL (misc8-1.4).
-	if fn.Type == function.TypeScalar && (upper == "COALESCE" || upper == "IFNULL") && f.OrderBy == nil {
-		if len(f.Args) < fn.MinArgs || (fn.MaxArgs > 0 && len(f.Args) > fn.MaxArgs) {
-			return nil, fmt.Errorf("wrong number of arguments to function %s()", f.Name)
-		}
-		return ev.evalCoalesceLazy(f.Args, row)
+	// jumps): arguments after the first non-NULL are NEVER evaluated.
+	if val, handled, err := ev.evalCoalesceCall(fn, f, row); handled {
+		return val, err
 	}
-	// Aggregate arguments evaluate inside an aggregate-argument marker (C
-	// resolves them to TK_AGG_COLUMN, which the fts5 aux overload rewrite
-	// does not match — aux calls inside aggregate arguments fail with the
-	// placeholder error).
-	var restoreAggArg func()
-	if fn.Type == function.TypeAggregate {
-		restoreAggArg = ev.ctx.EnterAuxAggArg()
-	}
-	// f(*) — SQLite's grammar (parse.y `expr ::= idj LP STAR RP`) builds a
-	// function call with ZERO arguments (sqlite3ExprFunction(pParse, 0, ...)):
-	// the star is not an argument expression. COUNT() is registered for 0..1
-	// arguments so count(*) keeps working; any other function now fails arity
-	// validation exactly like SQLite ("wrong number of arguments to function
-	// length()", func-1.1), instead of evaluating "*" as a string.
-	var args []interface{}
-	if isStarArgList(f.Args) {
-		args = []interface{}{}
-	} else {
-		var err error
-		args, err = ev.evalFuncArgs(f, row)
-		if err != nil {
-			return nil, err
-		}
-	}
-	if restoreAggArg != nil {
-		restoreAggArg()
+
+	args, err := ev.evalCallArgs(fn, f, row)
+	if err != nil {
+		return nil, err
 	}
 	if err := validateFuncArgs(fn, f, args); err != nil {
 		return nil, err
 	}
 
 	return ev.evalFuncCallDispatched(fn, f, upper, args)
+}
+
+// evalAggWrapperCall evaluates a nested aggregate inside a wrapper expression
+// of an aggregate query over the aggregate row set. MIN/MAX with two or more
+// arguments are scalar functions even in an aggregate context (SQLite
+// evaluates group_concat(substr(...,1+min(iter/7,4),1)) per row — with1
+// 8.1-mandelbrot), so they return handled=false and take the scalar path.
+func (ev *Evaluator) evalAggWrapperCall(f *sql.FuncCall) (interface{}, bool, error) {
+	if len(f.Args) >= 2 && (strings.EqualFold(f.Name, "MIN") || strings.EqualFold(f.Name, "MAX")) {
+		return nil, false, nil
+	}
+	val, err := ev.ctx.EvalAggFuncCall(f, ev.ctx.AggRowMaps())
+	return val, true, err
+}
+
+// evalCoalesceCall handles the COALESCE/IFNULL lazy short-circuit. It matters
+// for side-effectful arguments — eval('ROLLBACK; ...') inside
+// coalesce(b, eval(...)) must not run while b is non-NULL (misc8-1.4).
+// handled=false takes the ordinary argument-evaluation path.
+func (ev *Evaluator) evalCoalesceCall(fn *function.Func, f *sql.FuncCall, row Row) (interface{}, bool, error) {
+	if fn.Type != function.TypeScalar || f.OrderBy != nil ||
+		(!strings.EqualFold(f.Name, "COALESCE") && !strings.EqualFold(f.Name, "IFNULL")) {
+		return nil, false, nil
+	}
+	if len(f.Args) < fn.MinArgs || (fn.MaxArgs > 0 && len(f.Args) > fn.MaxArgs) {
+		return nil, true, fmt.Errorf("wrong number of arguments to function %s()", f.Name)
+	}
+	val, err := ev.evalCoalesceLazy(f.Args, row)
+	return val, true, err
+}
+
+// evalCallArgs evaluates the call's argument list. Aggregate arguments
+// evaluate inside an aggregate-argument marker (C resolves them to
+// TK_AGG_COLUMN, which the fts5 aux overload rewrite does not match — aux
+// calls inside aggregate arguments fail with the placeholder error).
+// f(*) — SQLite's grammar (parse.y `expr ::= idj LP STAR RP`) builds a
+// function call with ZERO arguments (sqlite3ExprFunction(pParse, 0, ...)):
+// the star is not an argument expression. COUNT() is registered for 0..1
+// arguments so count(*) keeps working; any other function now fails arity
+// validation exactly like SQLite ("wrong number of arguments to function
+// length()", func-1.1), instead of evaluating "*" as a string.
+func (ev *Evaluator) evalCallArgs(fn *function.Func, f *sql.FuncCall, row Row) ([]interface{}, error) {
+	var restoreAggArg func()
+	if fn.Type == function.TypeAggregate {
+		restoreAggArg = ev.ctx.EnterAuxAggArg()
+	}
+	if isStarArgList(f.Args) {
+		if restoreAggArg != nil {
+			restoreAggArg()
+		}
+		return []interface{}{}, nil
+	}
+	args, err := ev.evalFuncArgs(f, row)
+	if err != nil {
+		return nil, err
+	}
+	if restoreAggArg != nil {
+		restoreAggArg()
+	}
+	return args, nil
 }
 
 // evalCoalesceLazy evaluates COALESCE/IFNULL arguments one at a time,
@@ -365,93 +413,7 @@ func isStarArgList(args []sql.Expr) bool {
 // scalar functions, scalar MIN/MAX, and aggregate step/final.
 func (ev *Evaluator) evalFuncCallDispatched(fn *function.Func, f *sql.FuncCall, upper string, args []interface{}) (interface{}, error) {
 	if fn.Type == function.TypeScalar {
-		// sqlite_rename_quotefix needs schema access (it resolves double-quoted
-		// tokens against table columns); route it through the engine.
-		if strings.EqualFold(f.Name, "sqlite_rename_quotefix") && len(args) >= 2 {
-			return ev.evalRenameQuotefix(args)
-		}
-		// LIKE/GLOB/REGEXP as function calls (e.g. LIKE('a%', x)) evaluate
-		// through the operator implementations, which honor the engine's
-		// case-sensitivity setting and the optional ESCAPE argument.
-		if strings.EqualFold(f.Name, "LIKE") && (len(args) == 2 || len(args) == 3) {
-			return ev.evalLikeFunction(args)
-		}
-		if strings.EqualFold(f.Name, "GLOB") && len(args) == 2 {
-			bumpLikeCallCount()
-			return boolToInt(globValues(args[0], args[1])), nil
-		}
-		if strings.EqualFold(f.Name, "REGEXP") && len(args) == 2 {
-			// The FUNCTION form is regexp(P,X) — X matches pattern P — the
-			// reverse of the operator form X REGEXP P that evalRegexpOp
-			// implements (regexp1-1.3.2: regexp('by|christ',y)).
-			return ev.evalRegexpOp(args[1], args[0], false)
-		}
-		// base64/base85 enforce SQLITE_LIMIT_LENGTH on their output ("blob
-		// expanded to base64/base85 too big", basexx.c base64()/base85()).
-		// Route them through the engine context for the current limit.
-		if strings.EqualFold(f.Name, "BASE64") {
-			return ev.evalBaseX("base64", args)
-		}
-		if strings.EqualFold(f.Name, "BASE85") {
-			return ev.evalBaseX("base85", args)
-		}
-		// RANDOMBLOB/ZEROBLOB enforce SQLITE_LIMIT_LENGTH on their output
-		// (func.c contextMalloc / zeroblob64 → "string or blob too big").
-		// sqllimits1-5.x sets LENGTH=100000 and expects the 2^31-1
-		// allocations to fail without allocating. NOTE: QUOTE is NOT
-		// pre-checked here — quote(zeroblob(99999)) succeeds because
-		// zeroblob passes (99999<100000) and the MEM_Zero result
-		// materializes lazily (length() of it succeeds too); only the
-		// nested randomblob literal needs the quote-output estimate,
-		// handled by quoteOutputLen below.
-		if strings.EqualFold(f.Name, "RANDOMBLOB") || strings.EqualFold(f.Name, "ZEROBLOB") {
-			if len(args) == 1 {
-				if n, ok := evalLengthArg(args[0]); ok && n > int64(ev.ctx.LengthLimit()) {
-					return nil, fmt.Errorf("string or blob too big")
-				}
-			}
-		}
-		// QUOTE() enforces the limit on its ~2N+2 output (quoteFunc's
-		// StrAccum with mxAlloc=LENGTH): quote(randomblob(99999)) with
-		// LENGTH=100000 fails since 2*99999+2 > 100000. NOTE: this
-		// pre-check inspects the UNEVALUATED AST (f.Args[0]) because
-		// args[0] is already the materialized blob by dispatch time.
-		// The zeroblob literal case over-fires vs SQLite (which expands
-		// MEM_Zero lazily and lets the StrAccum growth succeed), but
-		// sqllimits1-5.5 EXPECTS quote(zeroblob(99999)) to fail with
-		// LENGTH=100000 — matching the suite oracle takes precedence.
-		if strings.EqualFold(f.Name, "QUOTE") {
-			if len(f.Args) == 1 {
-				if fc, ok := f.Args[0].(*sql.FuncCall); ok {
-					if qn := quoteOutputLen(fc); qn > int64(ev.ctx.LengthLimit()) {
-						return nil, fmt.Errorf("string or blob too big")
-					}
-				}
-			}
-		}
-		// eval(SQL[,SEP]) runs SQL text recursively (ext/misc/eval.c); route
-		// through the engine for statement execution.
-		if strings.EqualFold(f.Name, "EVAL") {
-			return ev.evalSQLFunc(args)
-		}
-		// strftime builds its output in a StrAccum whose max is
-		// db->aLimit[SQLITE_LIMIT_LENGTH] (date.c strftimeFunc,
-		// sqlite3StrAccumInit); util.c StrAccumAppend rejects an append
-		// when nChar+N+1 would exceed nMax (the NUL terminator is
-		// reserved), so an output of exactly LIMIT bytes fails too
-		// (sqllimits1-5.20 succeeds at LIMIT-11 output, 5.21 fails at
-		// exactly LIMIT) — "string or blob too big".
-		if strings.EqualFold(f.Name, "STRFTIME") {
-			out, err := fn.ScalarFn(args)
-			if err != nil {
-				return nil, err
-			}
-			if s, ok := out.(string); ok && int64(len(s))+1 > int64(ev.ctx.LengthLimit()) {
-				return nil, fmt.Errorf("string or blob too big")
-			}
-			return out, nil
-		}
-		return fn.ScalarFn(args)
+		return ev.evalScalarFuncCall(fn, f, args)
 	}
 	// Scalar min/max: with two or more arguments, MIN()/MAX() are scalar
 	// functions. SQLite semantics: if any argument is NULL the result is
@@ -466,6 +428,166 @@ func (ev *Evaluator) evalFuncCallDispatched(fn *function.Func, f *sql.FuncCall, 
 	return nil, fmt.Errorf("aggregate function %s not supported in this context", f.Name)
 }
 
+// evalScalarFuncCall evaluates a registered scalar function. A handful of
+// names route through the engine (schema access, LIKE settings, statement
+// execution) or enforce SQLITE_LIMIT_LENGTH on their output first.
+func (ev *Evaluator) evalScalarFuncCall(fn *function.Func, f *sql.FuncCall, args []interface{}) (interface{}, error) {
+	if res, handled, err := ev.evalScalarSpecial(f, args); handled {
+		return res, err
+	}
+	if err := ev.checkScalarOutputLimit(f, args); err != nil {
+		return nil, err
+	}
+	// strftime builds its output in a StrAccum whose max is
+	// db->aLimit[SQLITE_LIMIT_LENGTH] (date.c strftimeFunc,
+	// sqlite3StrAccumInit); util.c StrAccumAppend rejects an append
+	// when nChar+N+1 would exceed nMax (the NUL terminator is
+	// reserved), so an output of exactly LIMIT bytes fails too
+	// (sqllimits1-5.20 succeeds at LIMIT-11 output, 5.21 fails at
+	// exactly LIMIT) — "string or blob too big".
+	if strings.EqualFold(f.Name, "STRFTIME") {
+		out, err := fn.ScalarFn(args)
+		if err != nil {
+			return nil, err
+		}
+		if s, ok := out.(string); ok && int64(len(s))+1 > int64(ev.ctx.LengthLimit()) {
+			return nil, fmt.Errorf("string or blob too big")
+		}
+		return out, nil
+	}
+	return fn.ScalarFn(args)
+}
+
+// scalarSpecialImpl evaluates one engine-routed scalar function; handled=false
+// falls through to the registry scalar.
+type scalarSpecialImpl func(ev *Evaluator, f *sql.FuncCall, args []interface{}) (interface{}, bool, error)
+
+// scalarSpecialDispatch maps the engine-routed scalar function names to their
+// implementations. Populated in init() to avoid an initialization cycle.
+var scalarSpecialDispatch map[string]scalarSpecialImpl
+
+func init() {
+	scalarSpecialDispatch = map[string]scalarSpecialImpl{
+		"SQLITE_RENAME_QUOTEFIX": (*Evaluator).scalarRenameQuotefix,
+		"LIKE":                   (*Evaluator).scalarLikeFunc,
+		"GLOB":                   (*Evaluator).scalarGlobFunc,
+		"REGEXP":                 (*Evaluator).scalarRegexpFunc,
+		"BASE64":                 (*Evaluator).scalarBase64,
+		"BASE85":                 (*Evaluator).scalarBase85,
+		"EVAL":                   (*Evaluator).scalarEvalFunc,
+	}
+}
+
+// evalScalarSpecial dispatches the scalar functions that route through the
+// engine: sqlite_rename_quotefix (schema access — it resolves double-quoted
+// tokens against table columns), LIKE/GLOB/REGEXP as function calls (the
+// operator implementations honor the engine's case-sensitivity setting and
+// the optional ESCAPE argument), BASE64/BASE85 (engine limit) and EVAL
+// (ext/misc/eval.c — recursive SQL execution).
+func (ev *Evaluator) evalScalarSpecial(f *sql.FuncCall, args []interface{}) (interface{}, bool, error) {
+	if impl, ok := scalarSpecialDispatch[strings.ToUpper(f.Name)]; ok {
+		return impl(ev, f, args)
+	}
+	return nil, false, nil
+}
+
+// scalarRenameQuotefix handles sqlite_rename_quotefix with its (obj, sql)
+// arguments; a shorter argument list takes the registry scalar.
+func (ev *Evaluator) scalarRenameQuotefix(f *sql.FuncCall, args []interface{}) (interface{}, bool, error) {
+	if len(args) < 2 {
+		return nil, false, nil
+	}
+	res, err := ev.evalRenameQuotefix(args)
+	return res, true, err
+}
+
+// scalarLikeFunc handles LIKE('a%', x) through the operator implementation.
+func (ev *Evaluator) scalarLikeFunc(f *sql.FuncCall, args []interface{}) (interface{}, bool, error) {
+	if len(args) != 2 && len(args) != 3 {
+		return nil, false, nil
+	}
+	res, err := ev.evalLikeFunction(args)
+	return res, true, err
+}
+
+// scalarGlobFunc handles GLOB(pattern, x) through the operator implementation.
+func (ev *Evaluator) scalarGlobFunc(f *sql.FuncCall, args []interface{}) (interface{}, bool, error) {
+	if len(args) != 2 {
+		return nil, false, nil
+	}
+	bumpLikeCallCount()
+	return boolToInt(globValues(args[0], args[1])), true, nil
+}
+
+// scalarRegexpFunc handles the FUNCTION form regexp(P,X) — X matches pattern
+// P — the reverse of the operator form X REGEXP P that evalRegexpOp
+// implements (regexp1-1.3.2: regexp('by|christ',y)).
+func (ev *Evaluator) scalarRegexpFunc(f *sql.FuncCall, args []interface{}) (interface{}, bool, error) {
+	if len(args) != 2 {
+		return nil, false, nil
+	}
+	res, err := ev.evalRegexpOp(args[1], args[0], false)
+	return res, true, err
+}
+
+// scalarBase64 handles base64(X), enforcing SQLITE_LIMIT_LENGTH on its output
+// ("blob expanded to base64 too big", basexx.c base64()).
+func (ev *Evaluator) scalarBase64(f *sql.FuncCall, args []interface{}) (interface{}, bool, error) {
+	res, err := ev.evalBaseX("base64", args)
+	return res, true, err
+}
+
+// scalarBase85 handles base85(X), enforcing SQLITE_LIMIT_LENGTH on its output
+// ("blob expanded to base85 too big", basexx.c base85()).
+func (ev *Evaluator) scalarBase85(f *sql.FuncCall, args []interface{}) (interface{}, bool, error) {
+	res, err := ev.evalBaseX("base85", args)
+	return res, true, err
+}
+
+// scalarEvalFunc handles eval(SQL[,SEP]), which runs SQL text recursively
+// (ext/misc/eval.c) through the engine.
+func (ev *Evaluator) scalarEvalFunc(f *sql.FuncCall, args []interface{}) (interface{}, bool, error) {
+	res, err := ev.evalSQLFunc(args)
+	return res, true, err
+}
+
+// checkScalarOutputLimit enforces SQLITE_LIMIT_LENGTH on the scalar functions
+// whose output can exceed it. A passing check falls through to the scalar
+// itself.
+func (ev *Evaluator) checkScalarOutputLimit(f *sql.FuncCall, args []interface{}) error {
+	// RANDOMBLOB/ZEROBLOB enforce SQLITE_LIMIT_LENGTH on their output
+	// (func.c contextMalloc / zeroblob64 → "string or blob too big").
+	// sqllimits1-5.x sets LENGTH=100000 and expects the 2^31-1
+	// allocations to fail without allocating. NOTE: QUOTE is NOT
+	// pre-checked here — quote(zeroblob(99999)) succeeds because
+	// zeroblob passes (99999<100000) and the MEM_Zero result
+	// materializes lazily (length() of it succeeds too); only the
+	// nested randomblob literal needs the quote-output estimate,
+	// handled by quoteOutputLen below.
+	if (strings.EqualFold(f.Name, "RANDOMBLOB") || strings.EqualFold(f.Name, "ZEROBLOB")) && len(args) == 1 {
+		if n, ok := evalLengthArg(args[0]); ok && n > int64(ev.ctx.LengthLimit()) {
+			return fmt.Errorf("string or blob too big")
+		}
+	}
+	// QUOTE() enforces the limit on its ~2N+2 output (quoteFunc's
+	// StrAccum with mxAlloc=LENGTH): quote(randomblob(99999)) with
+	// LENGTH=100000 fails since 2*99999+2 > 100000. NOTE: this
+	// pre-check inspects the UNEVALUATED AST (f.Args[0]) because
+	// args[0] is already the materialized blob by dispatch time.
+	// The zeroblob literal case over-fires vs SQLite (which expands
+	// MEM_Zero lazily and lets the StrAccum growth succeed), but
+	// sqllimits1-5.5 EXPECTS quote(zeroblob(99999)) to fail with
+	// LENGTH=100000 — matching the suite oracle takes precedence.
+	if strings.EqualFold(f.Name, "QUOTE") && len(f.Args) == 1 {
+		if fc, ok := f.Args[0].(*sql.FuncCall); ok {
+			if qn := quoteOutputLen(fc); qn > int64(ev.ctx.LengthLimit()) {
+				return fmt.Errorf("string or blob too big")
+			}
+		}
+	}
+	return nil
+}
+
 // evalAggregateFunc runs an aggregate function's step/final sequence over the
 // argument values.
 func evalAggregateFunc(fn *function.Func, args []interface{}) (interface{}, error) {
@@ -476,121 +598,42 @@ func evalAggregateFunc(fn *function.Func, args []interface{}) (interface{}, erro
 	return agg.Final()
 }
 
-// evalEngineFunc evaluates engine-state functions (CHANGES,
-// LAST_INSERT_ROWID, RAISE, AFFINITY, COUNTER, NONDETER). Returns whether the
+// engineFuncImpl evaluates one engine-state function.
+type engineFuncImpl func(ev *Evaluator, f *sql.FuncCall, row Row) (interface{}, error)
+
+// engineFuncDispatch maps the engine-state functions (CHANGES,
+// LAST_INSERT_ROWID, RAISE, AFFINITY, COUNTER, NONDETER, ...) to their
+// implementations. Populated in init(): a literal map here forms an
+// initialization cycle (the implementations reach back to evalEngineFunc
+// through the evaluator's dispatch chain).
+var engineFuncDispatch map[string]engineFuncImpl
+
+func init() {
+	engineFuncDispatch = map[string]engineFuncImpl{
+		"CHANGES":           (*Evaluator).engineChanges,
+		"TOTAL_CHANGES":     (*Evaluator).engineTotalChanges,
+		"LAST_INSERT_ROWID": (*Evaluator).engineLastInsertRowid,
+		"RAISE":             (*Evaluator).engineRaise,
+		"AFFINITY":          (*Evaluator).engineAffinity,
+		"COUNTER":           (*Evaluator).engineCounter,
+		"NONDETER":          (*Evaluator).engineNondeter,
+		"STMTRAND":          (*Evaluator).engineStmtrand,
+		"FTS3_TOKENIZER":    (*Evaluator).engineFTS3Tokenizer,
+		"MATCHINFO":         (*Evaluator).engineFTSAux,
+		"OFFSETS":           (*Evaluator).engineFTSAux,
+		"SNIPPET":           (*Evaluator).engineFTSAux,
+		"OPTIMIZE":          (*Evaluator).engineFTSAux,
+		"BM25":              (*Evaluator).engineFTSAux,
+		"HIGHLIGHT":         (*Evaluator).engineFTSAux,
+		"FTS5_GET_LOCALE":   (*Evaluator).engineFTSAux,
+	}
+}
+
+// evalEngineFunc evaluates engine-state functions. Returns whether the
 // call was handled.
 func (ev *Evaluator) evalEngineFunc(f *sql.FuncCall, row Row) (interface{}, bool, error) {
-	switch strings.ToUpper(f.Name) {
-	case "CHANGES":
-		return ev.ctx.LastChanges(), true, nil
-	case "TOTAL_CHANGES":
-		return ev.ctx.TotalChanges(), true, nil
-	case "LAST_INSERT_ROWID":
-		return ev.ctx.LastRowID(), true, nil
-	case "RAISE":
-		val, err := ev.evalRaiseFuncCall(f, row)
-		return val, true, err
-	case "AFFINITY":
-		// Test-only affinity(X): reports the affinity of the column X refers
-		// to (SQLite's column-affinity reports). The ColumnValue wrapper
-		// carries the declared column affinity; evaluate WITHOUT unwrapping so
-		// the function can see it. A non-column argument falls back to the
-		// value's storage class.
-		if len(f.Args) == 1 {
-			v, err := ev.evalExpr(f.Args[0], row)
-			if err != nil {
-				return nil, true, err
-			}
-			return affinityOfValue(v), true, nil
-		}
-		return nil, true, fmt.Errorf("function affinity expects 1 argument, got %d", len(f.Args))
-	case "COUNTER":
-		// Test-only counter(N) function (SQLite test1.c selectH_counter):
-		// increments the engine counter by N and returns the new value.
-		// The counter resets at the start of each statement (see Exec).
-		amt := int64(1)
-		if len(f.Args) > 0 {
-			if v, err := ev.evalExpr(f.Args[0], row); err == nil {
-				amt = ToIntValue(util.UnwrapColumnValue(v))
-			}
-		}
-		ev.ctx.SetCounterVal(ev.ctx.CounterVal() + amt)
-		return ev.ctx.CounterVal(), true, nil
-	case "NONDETER":
-		// Test-only nondeter() function (SQLite having.test): a non-
-		// deterministic function that increments a counter per call and
-		// returns counter%2. The counter resets at statement start so each
-		// query begins from 0, matching the TCL harness's
-		// `set ::nondeter_ret 0` before each query.
-		ev.ctx.SetNondeterVal(ev.ctx.NondeterVal() + 1)
-		return ev.ctx.NondeterVal() % 2, true, nil
-	case "STMTRAND":
-		// stmtrand([SEED]) test function (ext/misc/stmtrand.c): a
-		// statement-scoped LCG. The seed is used by the first call in the
-		// statement only and ignored for subsequent calls (sqlite3 auxdata
-		// stands in for the C statement auxdata here); each new statement
-		// restarts the sequence (Engine.Exec resets the auxdata).
-		const stmtrandKey = "stmtrand"
-		st, _ := ev.AuxData(stmtrandKey).(*function.StmtrandState)
-		if st == nil {
-			var seed uint32
-			if len(f.Args) >= 1 {
-				v, err := ev.evalExpr(f.Args[0], row)
-				if err != nil {
-					return nil, true, err
-				}
-				seed = uint32(ToIntValue(util.UnwrapColumnValue(v)))
-			}
-			st = function.NewStmtrandState(seed)
-			ev.SetAuxData(stmtrandKey, st)
-		}
-		return function.StmtrandStep(st), true, nil
-	case "FTS3_TOKENIZER":
-		// fts3_tokenizer(name [, module]) — the tokenizer registry interface
-		// (fts3_tokenizer.c). One argument resolves the name (error "unknown
-		// tokenizer" when unregistered); two arguments register name → a
-		// Go mirror of the fts3_test.c test tokenizer under that name and
-		// return the module value non-NULL. A NULL second argument deletes
-		// the registration.
-		if len(f.Args) < 1 || len(f.Args) > 2 {
-			return nil, true, fmt.Errorf("wrong number of arguments to function fts3_tokenizer()")
-		}
-		nameVal, err := ev.evalExpr(f.Args[0], row)
-		if err != nil {
-			return nil, true, err
-		}
-		name, _ := util.UnwrapColumnValue(nameVal).(string)
-		if len(f.Args) == 1 {
-			if !fts.HasTokenizer(name) {
-				return nil, true, fmt.Errorf("unknown tokenizer: %s", name)
-			}
-			return []byte(name), true, nil
-		}
-		modVal, err := ev.evalExpr(f.Args[1], row)
-		if err != nil {
-			return nil, true, err
-		}
-		mod := util.UnwrapColumnValue(modVal)
-		if mod == nil {
-			fts.UnregisterCustomTokenizer(name)
-			return nil, true, nil
-		}
-		fts.RegisterCustomTokenizer(strings.ToLower(name), func() fts.Tokenizer { return fts.NewTestTokenizer() })
-		return mod, true, nil
-	case "MATCHINFO", "OFFSETS", "SNIPPET", "OPTIMIZE", "BM25", "HIGHLIGHT", "FTS5_GET_LOCALE":
-		// fts5 auxiliary functions first: bm25()/highlight()/fts5_get_locale()
-		// are fts5-only; snippet() exists on both FTS3/4 and fts5 and the fts5
-		// dispatch yields when the statement's context is an FTS3 table
-		// (fts5_aux.c / fts3_snippet.c via xFindFunction).
-		if val, handled, err := ev.evalFTS5Aux(f.Name, f, row); handled {
-			return val, true, err
-		}
-		// FTS3 auxiliary functions: matchinfo(TABLE[, fmt]) returns a blob of
-		// per-row match statistics; offsets(TABLE) returns the byte spans of
-		// query-token occurrences; snippet(TABLE, ...) extracts a text
-		// fragment around the matches; optimize(TABLE) merges segments
-		// (fts3_snippet.c / fts3.c fts3OptimizeFunc).
-		val, err := ev.evalFTSAux(f.Name, f, row)
+	if impl, ok := engineFuncDispatch[strings.ToUpper(f.Name)]; ok {
+		val, err := impl(ev, f, row)
 		return val, true, err
 	}
 	// The fts5 test-support family (fts5_aux_test_functions and the
@@ -603,469 +646,135 @@ func (ev *Evaluator) evalEngineFunc(f *sql.FuncCall, row Row) (interface{}, bool
 	return nil, false, nil
 }
 
-// evalFTSAux dispatches the FTS3 auxiliary functions by name.
-func (ev *Evaluator) evalFTSAux(name string, f *sql.FuncCall, row Row) (interface{}, error) {
-	// fts3.c fts3FunctionArg L3690-3699: argv[0] must be the hidden fts3
-	// cursor of the CURRENTLY MATCHING fts table; anything else fails with
-	// "illegal first argument to <func>". Arity violations use SQLite's
-	// generic wrong-num-args text (snippet >6 has its own message,
-	// fts3.c L3724-3727).
-	if err := ev.validateFTSAuxArgs(name, f); err != nil {
-		return nil, err
-	}
-	switch strings.ToUpper(name) {
-	case "MATCHINFO":
-		return ev.evalMatchinfoFunc(f, row)
-	case "OFFSETS":
-		return ev.evalFTSSnippetAux("offsets", f, row)
-	case "SNIPPET":
-		return ev.evalFTSSnippetAux("snippet", f, row)
-	case "OPTIMIZE":
-		return ev.evalFTSOptimize(f)
-	}
-	return nil, nil
+// engineChanges is CHANGES().
+func (ev *Evaluator) engineChanges(f *sql.FuncCall, row Row) (interface{}, error) {
+	return ev.ctx.LastChanges(), nil
 }
 
-// validateFTSAuxArgs reproduces the argument checks SQLite applies before an
-// FTS3 auxiliary function runs: arity limits and the first-argument-must-be-
-// the-matching-fts-table rule.
-func (ev *Evaluator) validateFTSAuxArgs(name string, f *sql.FuncCall) error {
-	lower := strings.ToLower(name)
-	switch strings.ToUpper(name) {
-	case "MATCHINFO":
-		if len(f.Args) < 1 || len(f.Args) > 2 {
-			return fmt.Errorf("wrong number of arguments to function %s()", lower)
-		}
-	case "SNIPPET":
-		if len(f.Args) > 6 {
-			return fmt.Errorf("wrong number of arguments to function snippet()")
-		}
-		if len(f.Args) == 0 {
-			// fts3.c fts3SnippetFunc checks argc<1 before it can identify a
-			// table argument, so zero args report the missing cursor context
-			// rather than an arity error (oracle-verified; e_fts3 2.1.7).
-			return fmt.Errorf("unable to use function snippet in the requested context")
-		}
-	case "OFFSETS":
-		if len(f.Args) != 1 {
-			return fmt.Errorf("wrong number of arguments to function %s()", lower)
-		}
-	}
-	// OPTIMIZE (and any other aux function reaching the first-argument
-	// check) with no args at all reports the arity error.
-	if len(f.Args) == 0 {
-		return fmt.Errorf("wrong number of arguments to function %s()", lower)
-	}
-	colRef, ok := f.Args[0].(*sql.ColumnRef)
-	if !ok || colRef.Name == "" {
-		return fmt.Errorf("illegal first argument to %s", lower)
-	}
-	current := ev.ctx.CurrentFTSMatch()
-	if current == "" {
-		// No active MATCH-cursor context (JOIN/derived-table queries): the
-		// legacy fallback resolves the first argument as an FTS table name;
-		// unknown tables stay illegal.
-		if _, ok := ev.ctx.FTSTables()[colRef.Name]; ok {
-			return nil
-		}
-		return fmt.Errorf("illegal first argument to %s", lower)
-	}
-	if !strings.EqualFold(colRef.Name, current) {
-		return fmt.Errorf("illegal first argument to %s", lower)
-	}
-	if _, ok := ev.ctx.FTSTables()[current]; !ok {
-		return fmt.Errorf("illegal first argument to %s", lower)
-	}
-	return nil
+// engineTotalChanges is TOTAL_CHANGES().
+func (ev *Evaluator) engineTotalChanges(f *sql.FuncCall, row Row) (interface{}, error) {
+	return ev.ctx.TotalChanges(), nil
 }
 
-// evalMatchinfoFunc implements the FTS3 matchinfo() function (fts3_snippet.c
-// fts3GetMatchinfo / fts3MatchinfoValues): it returns a blob of little-endian
-// uint32 values in format-string order. The format letters are:
-//
-//	'p' number of phrases in the MATCH query (1 value)
-//	'c' number of columns (1 value)
-//	'n' number of documents (1 value, FTS4 only)
-//	'a' average token count per column (nCol values, FTS4 only)
-//	'l' per-column token count of the current row (nCol values, docsize)
-//	'x' per phrase and column: local hits, global occurrences, global rows
-//	'y' per phrase and column: local hit counts
-//	'b' per phrase: bitmask of columns with local hits
-//
-// The phrase structure comes from the current FTS SELECT's MATCH constraint
-// (SetFTSMatchInfo); without a MATCH the function returns an empty blob.
-func (ev *Evaluator) evalMatchinfoFunc(f *sql.FuncCall, row Row) (interface{}, error) {
-	tableName := ev.ctx.CurrentFTSMatch()
-	if tableName == "" {
-		// matchinfo(TABLE) — the first argument names the FTS table.
-		if len(f.Args) > 0 {
-			if colRef, ok := f.Args[0].(*sql.ColumnRef); ok && colRef.Name != "" {
-				tableName = colRef.Name
-			}
-		}
-	}
-	ftsTable, ok := ev.ctx.FTSTables()[tableName]
-	if !ok || ftsTable == nil {
-		return []byte{}, nil
-	}
-	format := "pcx"
-	if len(f.Args) > 1 {
-		v, err := ev.evalExpr(f.Args[1], row)
-		if err != nil {
-			return nil, err
-		}
-		if s, ok := util.UnwrapColumnValue(v).(string); ok {
-			format = s
-		}
-	}
-	// Validate the format string against the table's capabilities
-	// (fts3_snippet.c fts3MatchinfoCheck): 'p'/'c' are always recognized;
-	// 'n' and 'a' require an FTS4 table; 'l' requires the %_docsize table
-	// (absent for FTS3 and for FTS4 created with matchinfo=fts3).
-	if err := validateMatchinfoFormat(ftsTable, format); err != nil {
-		return nil, err
-	}
-
-	// The matchinfo query context: the FTS table's MATCH phrases (set by
-	// execFTSSelect). Without a MATCH constraint the blob is empty
-	// (fts3matchinfo 7.2/7.3: typeof=blob, length=0).
-	ctxTable, hasMatch, phrases := ev.ctx.FTSMatchInfo()
-	if !strings.EqualFold(ctxTable, tableName) || !hasMatch {
-		return []byte{}, nil
-	}
-
-	// Current row's docid (the FTS row map stores it under "rowid").
-	docID := rowDocID(row)
-
-	nCol := int64(len(ftsTable.ColumnNames()))
-	nPhrase := int64(len(phrases))
-	var out []byte
-	if err := ev.writeMatchinfoFormat(ftsTable, format, phrases, docID, nCol, nPhrase, func(v uint32) {
-		out = append(out, byte(v), byte(v>>8), byte(v>>16), byte(v>>24))
-	}); err != nil {
-		return nil, err
-	}
-	return out, nil
+// engineLastInsertRowid is LAST_INSERT_ROWID().
+func (ev *Evaluator) engineLastInsertRowid(f *sql.FuncCall, row Row) (interface{}, error) {
+	return ev.ctx.LastRowID(), nil
 }
 
-// validateMatchinfoFormat rejects format letters the table does not support
-// (fts3_snippet.c fts3MatchinfoCheck): 'n'/'a' need an FTS4 table, 'l' needs
-// the %_docsize table.
-func validateMatchinfoFormat(ftsTable *fts.FTS3Table, format string) error {
-	hasDocsize := ftsTable.IsFTS4() && !ftsTable.NoDocsize()
-	for i := 0; i < len(format); i++ {
-		switch format[i] {
-		case 'p', 'c', 'x', 'y', 'b':
-			// always recognized
-		case 'n', 'a':
-			if !ftsTable.IsFTS4() {
-				return fmt.Errorf("unrecognized matchinfo request: %c", format[i])
-			}
-		case 'l':
-			if !hasDocsize {
-				return fmt.Errorf("unrecognized matchinfo request: l")
-			}
-		default:
-			// fts3_snippet.c fts3MatchinfoCheck L1005: any other letter
-			// fails the statement ("unrecognized matchinfo request: d").
-			return fmt.Errorf("unrecognized matchinfo request: %c", format[i])
-		}
-	}
-	return nil
+// engineRaise is RAISE().
+func (ev *Evaluator) engineRaise(f *sql.FuncCall, row Row) (interface{}, error) {
+	return ev.evalRaiseFuncCall(f, row)
 }
 
-// rowDocID returns the FTS row map's docid (the row map stores it under
-// "rowid").
-func rowDocID(row Row) int64 {
-	var docID int64
-	if rv, ok := row.Get("rowid"); ok {
-		if dv, ok := util.UnwrapColumnValue(rv).(int64); ok {
-			docID = dv
-		}
+// engineAffinity is the test-only affinity(X): it reports the affinity of the
+// column X refers to (SQLite's column-affinity reports). The ColumnValue
+// wrapper carries the declared column affinity; the argument evaluates
+// WITHOUT unwrapping so the function can see it. A non-column argument falls
+// back to the value's storage class.
+func (ev *Evaluator) engineAffinity(f *sql.FuncCall, row Row) (interface{}, error) {
+	if len(f.Args) != 1 {
+		return nil, fmt.Errorf("function affinity expects 1 argument, got %d", len(f.Args))
 	}
-	return docID
-}
-
-// writeMatchinfoFormat appends the matchinfo values for one format string to
-// the output via writeU32 (fts3_snippet.c fts3MatchinfoValues). The 'n' and
-// 'a' formats read the FTS4 %_stat doctotal blob and 'l' reads the %_docsize
-// blob for the current row (sqlite3Fts3SelectDoctotal / fts3SelectDocsize); a
-// corrupt or missing blob errors "database disk image is malformed"
-// (FTS_CORRUPT_VTAB).
-func (ev *Evaluator) writeMatchinfoFormat(ftsTable *fts.FTS3Table, format string, phrases []fts.MatchPhrase, docID int64, nCol, nPhrase int64, writeU32 func(uint32)) error {
-	for i := 0; i < len(format); i++ {
-		switch format[i] {
-		case 'p':
-			writeU32(uint32(nPhrase))
-		case 'c':
-			writeU32(uint32(nCol))
-		case 'n':
-			n, err := ev.matchinfoDoctotal(ftsTable, nCol)
-			if err != nil {
-				return err
-			}
-			writeU32(uint32(n))
-		case 'a':
-			vals, err := ev.matchinfoAverages(ftsTable, nCol)
-			if err != nil {
-				return err
-			}
-			for _, v := range vals {
-				writeU32(v)
-			}
-		case 'l':
-			vals, err := ev.matchinfoLengths(ftsTable, nCol, docID)
-			if err != nil {
-				return err
-			}
-			for _, v := range vals {
-				writeU32(v)
-			}
-		case 'x':
-			writeMatchinfoHits(ftsTable, phrases, docID, func(mp fts.MatchPhrase) []uint32 {
-				return ftsTable.MatchInfoX(mp.Node, mp.Scope, mp.Side, mp.Gate, docID)
-			}, writeU32)
-		case 'y':
-			writeMatchinfoHits(ftsTable, phrases, docID, func(mp fts.MatchPhrase) []uint32 {
-				return ftsTable.MatchInfoY(mp.Node, mp.Scope, mp.Side, mp.Gate, docID)
-			}, writeU32)
-		case 'b':
-			// nPhrase * ceil(nCol/32) values: per phrase, a bitmask of
-			// columns with at least one local hit.
-			bmWords := (nCol + 31) / 32
-			for _, mp := range phrases {
-				y := ftsTable.MatchInfoY(mp.Node, mp.Scope, mp.Side, mp.Gate, docID)
-				for w := int64(0); w < bmWords; w++ {
-					writeU32(matchinfoBitmask(y, nCol, w))
-				}
-			}
-		default:
-			// Unrecognized flags are ignored by SQLite's matchinfo
-			// (fts3MatchinfoCheck errors, but the engine's compat suite
-			// does not exercise error paths here).
-		}
-	}
-	return nil
-}
-
-// matchinfoDoctotal reads the FTS4 %_stat doctotal blob and returns its first
-// varint, the document count (fts3_snippet.c fts3MatchinfoSelectDoctotal:
-// the first varint is nDoc; nDoc<=0 or an overrun is FTS_CORRUPT_VTAB).
-func (ev *Evaluator) matchinfoDoctotal(ftsTable *fts.FTS3Table, nCol int64) (uint32, error) {
-	blob, err := ev.ctx.FTSShadowBlob(ftsTable.Name(), "doctotal", 0)
-	if err != nil {
-		return 0, err
-	}
-	nDoc, consumed := fts.GetFTS3Varint(blob)
-	if consumed == 0 || nDoc <= 0 {
-		return 0, fmt.Errorf("database disk image is malformed")
-	}
-	return uint32(nDoc), nil
-}
-
-// matchinfoAverages computes the 'a' average-token-count values
-// ((total + nDoc/2) / nDoc) from the %_stat doctotal blob (fts3_snippet.c
-// FTS3_MATCHINFO_AVGLENGTH: the blob is nDoc followed by one per-column
-// token-total varint; an overrun is FTS_CORRUPT_VTAB).
-func (ev *Evaluator) matchinfoAverages(ftsTable *fts.FTS3Table, nCol int64) ([]uint32, error) {
-	blob, err := ev.ctx.FTSShadowBlob(ftsTable.Name(), "doctotal", 0)
+	v, err := ev.evalExpr(f.Args[0], row)
 	if err != nil {
 		return nil, err
 	}
-	nDoc, consumed := fts.GetFTS3Varint(blob)
-	if consumed == 0 || nDoc <= 0 {
-		return nil, fmt.Errorf("database disk image is malformed")
-	}
-	pos := consumed
-	out := make([]uint32, nCol)
-	for i := int64(0); i < nCol; i++ {
-		total, n := fts.GetFTS3Varint(blob[pos:])
-		if n == 0 || pos+n > len(blob) {
-			return nil, fmt.Errorf("database disk image is malformed")
-		}
-		pos += n
-		out[i] = uint32((uint64(total) + nDoc/2) / nDoc)
-	}
-	return out, nil
+	return affinityOfValue(v), nil
 }
 
-// matchinfoLengths reads the %_docsize blob for the current row and decodes
-// nCol per-column token-count varints (fts3_snippet.c FTS3_MATCHINFO_LENGTH:
-// the blob is one FTS3 varint per column; an overrun is FTS_CORRUPT_VTAB).
-func (ev *Evaluator) matchinfoLengths(ftsTable *fts.FTS3Table, nCol int64, docID int64) ([]uint32, error) {
-	blob, err := ev.ctx.FTSShadowBlob(ftsTable.Name(), "docsize", docID)
+// engineCounter is the test-only counter(N) function (SQLite test1.c
+// selectH_counter): it increments the engine counter by N and returns the new
+// value. The counter resets at the start of each statement (see Exec).
+func (ev *Evaluator) engineCounter(f *sql.FuncCall, row Row) (interface{}, error) {
+	amt := int64(1)
+	if len(f.Args) > 0 {
+		if v, err := ev.evalExpr(f.Args[0], row); err == nil {
+			amt = ToIntValue(util.UnwrapColumnValue(v))
+		}
+	}
+	ev.ctx.SetCounterVal(ev.ctx.CounterVal() + amt)
+	return ev.ctx.CounterVal(), nil
+}
+
+// engineNondeter is the test-only nondeter() function (SQLite having.test): a
+// non-deterministic function that increments a counter per call and returns
+// counter%2. The counter resets at statement start so each query begins from
+// 0, matching the TCL harness's `set ::nondeter_ret 0` before each query.
+func (ev *Evaluator) engineNondeter(f *sql.FuncCall, row Row) (interface{}, error) {
+	ev.ctx.SetNondeterVal(ev.ctx.NondeterVal() + 1)
+	return ev.ctx.NondeterVal() % 2, nil
+}
+
+// engineStmtrand is the stmtrand([SEED]) test function
+// (ext/misc/stmtrand.c): a statement-scoped LCG. The seed is used by the
+// first call in the statement only and ignored for subsequent calls
+// (sqlite3 auxdata stands in for the C statement auxdata here); each new
+// statement restarts the sequence (Engine.Exec resets the auxdata).
+func (ev *Evaluator) engineStmtrand(f *sql.FuncCall, row Row) (interface{}, error) {
+	const stmtrandKey = "stmtrand"
+	st, _ := ev.AuxData(stmtrandKey).(*function.StmtrandState)
+	if st == nil {
+		var seed uint32
+		if len(f.Args) >= 1 {
+			v, err := ev.evalExpr(f.Args[0], row)
+			if err != nil {
+				return nil, err
+			}
+			seed = uint32(ToIntValue(util.UnwrapColumnValue(v)))
+		}
+		st = function.NewStmtrandState(seed)
+		ev.SetAuxData(stmtrandKey, st)
+	}
+	return function.StmtrandStep(st), nil
+}
+
+// engineFTS3Tokenizer is fts3_tokenizer(name [, module]) — the tokenizer
+// registry interface (fts3_tokenizer.c). One argument resolves the name
+// (error "unknown tokenizer" when unregistered); two arguments register name
+// → a Go mirror of the fts3_test.c test tokenizer under that name and return
+// the module value non-NULL. A NULL second argument deletes the registration.
+func (ev *Evaluator) engineFTS3Tokenizer(f *sql.FuncCall, row Row) (interface{}, error) {
+	if len(f.Args) < 1 || len(f.Args) > 2 {
+		return nil, fmt.Errorf("wrong number of arguments to function fts3_tokenizer()")
+	}
+	nameVal, err := ev.evalExpr(f.Args[0], row)
 	if err != nil {
 		return nil, err
 	}
-	pos := 0
-	out := make([]uint32, nCol)
-	for i := int64(0); i < nCol; i++ {
-		v, n := fts.GetFTS3Varint(blob[pos:])
-		if n == 0 || pos+n > len(blob) {
-			return nil, fmt.Errorf("database disk image is malformed")
+	name, _ := util.UnwrapColumnValue(nameVal).(string)
+	if len(f.Args) == 1 {
+		if !fts.HasTokenizer(name) {
+			return nil, fmt.Errorf("unknown tokenizer: %s", name)
 		}
-		pos += n
-		out[i] = uint32(v)
+		return []byte(name), nil
 	}
-	return out, nil
+	modVal, err := ev.evalExpr(f.Args[1], row)
+	if err != nil {
+		return nil, err
+	}
+	mod := util.UnwrapColumnValue(modVal)
+	if mod == nil {
+		fts.UnregisterCustomTokenizer(name)
+		return nil, nil
+	}
+	fts.RegisterCustomTokenizer(strings.ToLower(name), func() fts.Tokenizer { return fts.NewTestTokenizer() })
+	return mod, nil
 }
 
-// writeMatchinfoHits writes one phrase's per-column values for the 'x' and
-// 'y' formats (per phrase, per column, in phrase order).
-func writeMatchinfoHits(ftsTable *fts.FTS3Table, phrases []fts.MatchPhrase, docID int64, values func(fts.MatchPhrase) []uint32, writeU32 func(uint32)) {
-	for _, mp := range phrases {
-		for _, v := range values(mp) {
-			writeU32(v)
-		}
+// engineFTSAux evaluates the FTS auxiliary functions: the fts5 dispatch runs
+// first — bm25()/highlight()/fts5_get_locale() are fts5-only; snippet() exists
+// on both FTS3/4 and fts5 and the fts5 dispatch yields when the statement's
+// context is an FTS3 table (fts5_aux.c / fts3_snippet.c via xFindFunction).
+// FTS3 fallback: matchinfo(TABLE[, fmt]) returns a blob of per-row match
+// statistics; offsets(TABLE) returns the byte spans of query-token
+// occurrences; snippet(TABLE, ...) extracts a text fragment around the
+// matches; optimize(TABLE) merges segments (fts3_snippet.c / fts3.c
+// fts3OptimizeFunc).
+func (ev *Evaluator) engineFTSAux(f *sql.FuncCall, row Row) (interface{}, error) {
+	if val, handled, err := ev.evalFTS5Aux(f.Name, f, row); handled {
+		return val, err
 	}
-}
-
-// matchinfoBitmask computes one 32-bit word of the 'b' format bitmap for a
-// phrase's per-column hit counts: word w holds bits for columns w*32..w*32+31
-// that have at least one local hit (fts3_snippet.c fts3ExprLHits).
-func matchinfoBitmask(y []uint32, nCol, w int64) uint32 {
-	var mask uint32
-	for c := int64(0); c < 32; c++ {
-		col := w*32 + c
-		if col < nCol && y[col] > 0 {
-			mask |= 1 << uint(c)
-		}
-	}
-	return mask
-}
-
-// evalFTSSnippetAux evaluates the FTS3 offsets() and snippet() auxiliary
-// functions. Both need the current FTS SELECT's MATCH phrases (from the
-// matchinfo context) and the current row's docid; without a MATCH they
-// return an empty string (fts3_snippet.c: pCsr->pExpr NULL → "").
-func (ev *Evaluator) evalFTSSnippetAux(name string, f *sql.FuncCall, row Row) (interface{}, error) {
-	tableName := ev.ctx.CurrentFTSMatch()
-	if tableName == "" && len(f.Args) > 0 {
-		if colRef, ok := f.Args[0].(*sql.ColumnRef); ok && colRef.Name != "" {
-			tableName = colRef.Name
-		}
-	}
-	ftsTable, ok := ev.ctx.FTSTables()[tableName]
-	if !ok || ftsTable == nil {
-		return "", nil
-	}
-	ctxTable, hasMatch, phrases := ev.ctx.FTSMatchInfo()
-	if !strings.EqualFold(ctxTable, tableName) || !hasMatch {
-		return "", nil
-	}
-	var docID int64
-	if rv, ok := row.Get("rowid"); ok {
-		if dv, ok := util.UnwrapColumnValue(rv).(int64); ok {
-			docID = dv
-		}
-	}
-	if name == "offsets" {
-		s, err := ftsTable.Offsets(docID, phrases, ev.ftsContentOverride(ftsTable, row))
-		if err != nil {
-			return "", err
-		}
-		return s, nil
-	}
-	zStart, zEnd, zEllipsis, iCol, nToken := ev.snippetArgs(f, row)
-	return ftsTable.Snippet(docID, phrases, zStart, zEnd, zEllipsis, iCol, nToken, ev.ftsContentOverride(ftsTable, row)), nil
-}
-
-// ftsContentOverride returns the content-row column values for an FTS4
-// content=<table> table from the current row map (keyed by column name), or
-// nil for a normal FTS table. SQLite reads the content table for
-// offsets()/snippet() column text (fts3_snippet.c reads the row via the
-// content table); the row map built by ftsContentTableRowMapsForDocIDs
-// carries those values, so a document whose content row was updated after
-// indexing shows the NEW text (fts4content 2.4.3/2.5.x).
-func (ev *Evaluator) ftsContentOverride(ftsTable *fts.FTS3Table, row Row) []interface{} {
-	if ftsTable.ContentTable() == "" {
-		return nil
-	}
-	names := ftsTable.ColumnNames()
-	out := make([]interface{}, len(names))
-	for i, cn := range names {
-		if v, ok := row.Get(cn); ok {
-			out[i] = util.UnwrapColumnValue(v)
-		}
-	}
-	return out
-}
-
-// snippetArgs evaluates the optional snippet(TABLE, zStart, zEnd, zEllipsis,
-// iCol, nToken) arguments, returning the defaults when absent.
-func (ev *Evaluator) snippetArgs(f *sql.FuncCall, row Row) (zStart, zEnd, zEllipsis string, iCol, nToken int) {
-	zStart, zEnd, zEllipsis = "<b>", "</b>", "<b>...</b>"
-	iCol, nToken = -1, 15
-	if len(f.Args) > 1 {
-		if v, err := ev.evalExpr(f.Args[1], row); err == nil {
-			if s, ok := util.UnwrapColumnValue(v).(string); ok {
-				zStart = s
-			}
-		}
-	}
-	if len(f.Args) > 2 {
-		if v, err := ev.evalExpr(f.Args[2], row); err == nil {
-			if s, ok := util.UnwrapColumnValue(v).(string); ok {
-				zEnd = s
-			}
-		}
-	}
-	if len(f.Args) > 3 {
-		if v, err := ev.evalExpr(f.Args[3], row); err == nil {
-			if s, ok := util.UnwrapColumnValue(v).(string); ok {
-				zEllipsis = s
-			}
-		}
-	}
-	if len(f.Args) > 4 {
-		if v, err := ev.evalExpr(f.Args[4], row); err == nil {
-			iCol = int(ToIntValue(util.UnwrapColumnValue(v)))
-		}
-	}
-	if len(f.Args) > 5 {
-		if v, err := ev.evalExpr(f.Args[5], row); err == nil {
-			nToken = int(ToIntValue(util.UnwrapColumnValue(v)))
-		}
-	}
-	return zStart, zEnd, zEllipsis, iCol, nToken
-}
-
-// evalFTSOptimize implements the FTS3 optimize(TABLE) auxiliary function
-// (fts3.c fts3OptimizeFunc): it merges the table's segments and returns
-// "Index optimized" (or "Index already optimal" when no merge was needed).
-func (ev *Evaluator) evalFTSOptimize(f *sql.FuncCall) (interface{}, error) {
-	tableName := ev.ctx.CurrentFTSMatch()
-	if tableName == "" && len(f.Args) > 0 {
-		if colRef, ok := f.Args[0].(*sql.ColumnRef); ok && colRef.Name != "" {
-			tableName = colRef.Name
-		}
-	}
-	ftsTable, ok := ev.ctx.FTSTables()[tableName]
-	if !ok || ftsTable == nil {
-		return "", nil
-	}
-	_ = ftsTable
-	// fts3.c fts3DoOptimize: flush the pending terms FIRST (an unflushed
-	// batch becomes its own segment), then merge. SQLITE_DONE ("Index
-	// already optimal") is returned only when the post-flush index is a
-	// single segment — i.e. nothing needed merging (fts3f 1.3: the first
-	// optimize() flushes the open transaction's pending docs, creating a
-	// second segment, so it reports "Index optimized"; every later call
-	// sees one segment and reports "Index already optimal").
-	before, cerr := ev.ctx.EvalExecSQL("SELECT count(*) FROM "+tableName+"_segdir", "")
-	hasPending := false
-	if t, ok := ev.ctx.FTSTables()[tableName]; ok && t != nil {
-		hasPending = len(t.PendingSnapshot()) > 0
-	}
-	if cerr == nil {
-		if n, perr := strconv.Atoi(strings.TrimSpace(before)); perr == nil && n <= 1 && !hasPending {
-			return "Index already optimal", nil
-		}
-	}
-	if _, exErr := ev.ctx.EvalExecSQL("INSERT INTO "+tableName+"("+tableName+") VALUES('optimize')", ""); exErr != nil {
-		return nil, exErr
-	}
-	return "Index optimized", nil
+	return ev.evalFTSAux(f.Name, f, row)
 }
 
 // evalFuncArgs evaluates a function call's argument expressions, unwrapping

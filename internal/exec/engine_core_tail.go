@@ -706,3 +706,26 @@ func (e *Engine) stmtWritesDatabase(stmt sql.Stmt) bool {
 	}
 	return false
 }
+// execAfterWrite performs Exec's post-commit work for a successful DML
+// statement: reload the in-memory FTS index when the statement wrote an FTS
+// table's SHADOW tables directly (outside the FTS flush) — SQLite always
+// reads the index from the segments, so a hand-edited segment root must be
+// reflected on the next MATCH/SELECT (fts4record 1.x). Corruption errors are
+// normalized on the way out.
+func (e *Engine) execAfterWrite(stmt sql.Stmt, res *Result, isDML bool) *Result {
+	// execDepth is still 1 here for an outermost statement (the deferred
+	// execDepthLeave runs after Exec returns) — equivalent to the original
+	// post-leave depth==0 check.
+	if isDML && res != nil && res.Error == nil && !e.tx.inFTSFlush && e.tx.execDepth == 1 {
+		if owner := e.stmtFTSShadowOwner(stmt); owner != "" {
+			e.ReloadFTSIndex(owner)
+		}
+	}
+	return e.normalizeCorruptionError(res)
+}
+
+// normalizeCorruptionError maps low-level btree/storage corruption errors to
+// SQLite's "database disk image is malformed" message. The btree surfaces
+// structural damage (an unknown page type, an out-of-range cell offset) as
+// internal errors; SQLite reports all of them as SQLITE_CORRUPT (fts3corrupt4
+// 27.2: a crash-written page with type 0x00 during a huge recursive INSERT).

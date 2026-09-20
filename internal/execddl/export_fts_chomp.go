@@ -491,10 +491,3 @@ func (h mergeHeap) peekTerm() string {
 	}
 	return h[0].term
 }
-
-func min(a, b int) int {
-	if a < b {
-		return a
-	}
-	return b
-}

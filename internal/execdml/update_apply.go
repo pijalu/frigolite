@@ -248,16 +248,10 @@ func (e *DMLExecutor) updateRowConflictValues(tree *btree.BTree, ch updateChange
 	}
 }
 
-// cellConflicts reports whether one table cell's values conflict with a
+// cellConflictValues reports whether one table cell's values conflict with a
 // change's new values; stop is true when the scan should end (the record
-// could not be decoded).
-func (e *DMLExecutor) cellConflicts(cell *storage.Cell, ch updateChange, colDefs []sql.ColumnDef, colIndex map[string]int, uniqueCols []int, idxColsList []uniqueIndexDef) (conflict, stop bool) {
-	conflict, stop, _ = e.cellConflictValues(cell, ch, colDefs, colIndex, uniqueCols, idxColsList)
-	return conflict, stop
-}
-
-// cellConflictValues is cellConflicts also returning the conflicting
-// cell's decoded record values (nil when no conflict).
+// could not be decoded). vals carries the conflicting cell's decoded record
+// values (nil when no conflict).
 func (e *DMLExecutor) cellConflictValues(cell *storage.Cell, ch updateChange, colDefs []sql.ColumnDef, colIndex map[string]int, uniqueCols []int, idxColsList []uniqueIndexDef) (conflict, stop bool, vals []interface{}) {
 	rec, err := storage.DecodeRecord(cell.Payload)
 	if err != nil || rec == nil {

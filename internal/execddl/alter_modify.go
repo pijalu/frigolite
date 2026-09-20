@@ -361,6 +361,7 @@ func (e *DDLExecutor) execAlterTableAdd(s *sql.AlterTableStmt) *Result {
 		// ALTER TABLE resolves views (sqlite3LocateTableItem); ADD COLUMN on
 		// one reports the dedicated alter.c message.
 		if _, _, vErr := e.ctx.FindView(tableName); vErr == nil {
+			//lint:ignore ST1005 message text matches the SQLite oracle verbatim
 			return &Result{Error: fmt.Errorf("Cannot add a column to a view")}
 		}
 		return &Result{Error: err}

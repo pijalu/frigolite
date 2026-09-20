@@ -124,35 +124,6 @@ func (e *DDLExecutor) createAutoIndexes(ctx *DatabaseContext, tableName string, 
 	return &Result{}
 }
 
-// pkConstraintCols returns the column list of the first PRIMARY KEY
-// constraint among the unique definitions (used to merge duplicate
-// UNIQUE constraints on WITHOUT ROWID tables into the clustered key).
-func pkConstraintCols(uniq []uniqDef) []string {
-	for _, u := range uniq {
-		if u.IsPK {
-			return u.Cols
-		}
-	}
-	return nil
-}
-
-// needsAutoIndex reports whether a UNIQUE/PK constraint gets its own
-// auto-index (and consumes a sqlite_autoindex slot):
-//   - An INTEGER PRIMARY KEY (not DESC) is a rowid alias: no autoindex
-//     exists at all and no sequence slot is consumed. INTEGER PRIMARY KEY
-//     DESC is an ordinary column and DOES get an autoindex.
-//   - On WITHOUT ROWID, a UNIQUE constraint duplicating the PRIMARY KEY
-//     is merged into the clustered key: no autoindex, no slot consumed.
-func needsAutoIndex(s *sql.CreateTableStmt, u uniqDef, pkCols []string, colType func(string) string, colPKDesc func(string) bool) bool {
-	if u.IsPK && len(u.Cols) == 1 && execdml.IsIPKRowidAliasCol(sql.ColumnDef{PrimaryKey: true, Type: colType(u.Cols[0]), PKDesc: colPKDesc(u.Cols[0])}) {
-		return false
-	}
-	if s.WithoutRowid && !u.IsPK && sameColumnNames(u.Cols, pkCols) {
-		return false
-	}
-	return true
-}
-
 // collectUniqueDefs gathers UNIQUE and PRIMARY KEY constraints (column-level
 // and table-level) in creation order.
 func collectUniqueDefs(s *sql.CreateTableStmt) []uniqDef {
@@ -181,20 +152,6 @@ func collectUniqueDefs(s *sql.CreateTableStmt) []uniqDef {
 		uniq = append(uniq, uniqDef{Cols: cols, IsPK: tc.Type == sql.ConstraintPrimaryKey})
 	}
 	return uniq
-}
-
-// sameColumnNames reports whether two column lists are identical in order
-// (case-insensitively).
-func sameColumnNames(a, b []string) bool {
-	if len(a) != len(b) {
-		return false
-	}
-	for i := range a {
-		if !strings.EqualFold(a[i], b[i]) {
-			return false
-		}
-	}
-	return true
 }
 
 // columnTypeLookup returns a lookup function for a column's declared type.

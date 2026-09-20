@@ -126,7 +126,7 @@ func (e *Engine) execCommit() *Result {
 	multiDB := false
 	nonNilPagers := 0
 	for _, dbCtx := range e.dbList {
-		if dbCtx != nil && dbCtx.Pager != nil && dbCtx.Pager.IsMemory() == false && dbCtx.Pager.HasDirtyPages() {
+		if dbCtx != nil && dbCtx.Pager != nil && !dbCtx.Pager.IsMemory() && dbCtx.Pager.HasDirtyPages() {
 			nonNilPagers++
 		}
 	}

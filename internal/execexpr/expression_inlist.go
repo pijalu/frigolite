@@ -277,36 +277,43 @@ func (ev *Evaluator) subqueryRowMatch(subq *sql.Subquery, opRow, subRow []interf
 	equal := true
 	sawRowNull := false
 	for i := range opRow {
-		l, lColl := extractValue(opRow[i])
-		if util.UnwrapColumnValue(l) == nil || util.UnwrapColumnValue(subRow[i]) == nil {
+		eq, isNull := ev.subqueryElementMatch(subq, i, opRow[i], subRow[i])
+		if isNull {
 			sawRowNull = true
 			continue
 		}
-		// SQLite collation resolution for IN (subquery): an explicit COLLATE
-		// or a column collation on the LHS element wins; otherwise a non-column
-		// LHS falls back to the subquery column's collation (expr.c
-		// sqlite3ExprCollSeq via the IN comparison). E.g. (NULL,'two','three')
-		// IN (SELECT a,b,c FROM t) with c COLLATE nocase compares 'three' vs
-		// the stored 'THREE' case-insensitively (nulls2 2.x.1).
-		coll := lColl
-		if coll == "" && !isColumnValue(opRow[i]) {
-			coll = ev.subqueryOutputCollation(subq.Select, i)
-		}
-		if coll != "" {
-			if ev.ctx.CompareValuesCollate(util.UnwrapColumnValue(l), util.UnwrapColumnValue(subRow[i]), coll) != 0 {
-				equal = false
-				break
-			}
-		} else {
-			lhsAff := util.ColumnAffinity(opRow[i])
-			subqAff := ev.subqueryOutputAffinity(subq.Select, i)
-			if compareWithAffinity(util.UnwrapColumnValue(l), util.UnwrapColumnValue(subRow[i]), mergeINAffinity(subqAff, lhsAff)) != 0 {
-				equal = false
-				break
-			}
+		if !eq {
+			equal = false
+			break
 		}
 	}
 	return equal && !sawRowNull, equal && sawRowNull
+}
+
+// subqueryElementMatch compares one operand element against one subquery row
+// element with IN affinity rules. isNull is true when either element is NULL
+// (the comparison is unknown, not decisive); eq reports the element equality
+// otherwise. SQLite collation resolution for IN (subquery): an explicit
+// COLLATE or a column collation on the LHS element wins; otherwise a
+// non-column LHS falls back to the subquery column's collation (expr.c
+// sqlite3ExprCollSeq via the IN comparison). E.g. (NULL,'two','three')
+// IN (SELECT a,b,c FROM t) with c COLLATE nocase compares 'three' vs
+// the stored 'THREE' case-insensitively (nulls2 2.x.1).
+func (ev *Evaluator) subqueryElementMatch(subq *sql.Subquery, i int, opElem, subElem interface{}) (eq, isNull bool) {
+	l, lColl := extractValue(opElem)
+	if util.UnwrapColumnValue(l) == nil || util.UnwrapColumnValue(subElem) == nil {
+		return false, true
+	}
+	coll := lColl
+	if coll == "" && !isColumnValue(opElem) {
+		coll = ev.subqueryOutputCollation(subq.Select, i)
+	}
+	if coll != "" {
+		return ev.ctx.CompareValuesCollate(util.UnwrapColumnValue(l), util.UnwrapColumnValue(subElem), coll) == 0, false
+	}
+	lhsAff := util.ColumnAffinity(opElem)
+	subqAff := ev.subqueryOutputAffinity(subq.Select, i)
+	return compareWithAffinity(util.UnwrapColumnValue(l), util.UnwrapColumnValue(subElem), mergeINAffinity(subqAff, lhsAff)) == 0, false
 }
 
 // subqueryScalarMatch compares a scalar operand against one subquery result

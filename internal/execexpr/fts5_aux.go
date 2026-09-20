@@ -2,7 +2,6 @@ package execexpr
 
 import (
 	"fmt"
-	"sort"
 	"strconv"
 	"strings"
 
@@ -115,6 +114,13 @@ func (ev *Evaluator) evalFTS5Aux(name string, f *sql.FuncCall, row Row) (interfa
 		// "unable to use function ... in the requested context".
 		return nil, true, unusable
 	}
+	return ev.evalFTS5AuxResolved(lower, ref, isRef, f, row)
+}
+
+// evalFTS5AuxResolved resolves the aux call's target table against the
+// statement's scanned fts5 table and evaluates the call.
+func (ev *Evaluator) evalFTS5AuxResolved(lower string, ref *sql.ColumnRef, isRef bool, f *sql.FuncCall, row Row) (interface{}, bool, error) {
+	unusable := fmt.Errorf("unable to use function %s in the requested context", lower)
 	ctxTable, aq := ev.ctx.FTS5Aux()
 	tableName := ctxTable
 	if ref.Name != "" {
@@ -127,27 +133,14 @@ func (ev *Evaluator) evalFTS5Aux(name string, f *sql.FuncCall, row Row) (interfa
 	}
 	t5, known := ev.ctx.FTS5Tables()[tableName]
 	if !known || (ctxTable != "" && !strings.EqualFold(ctxTable, tableName)) {
-		// The referenced fts5 table is not the one being scanned: the first
-		// argument resolves in the row scope like any column reference (a
-		// missing hidden column fails with "no such column: ..."), then the
-		// overload placeholder fires.
-		if isRef {
-			if _, err := ev.evalExpr(f.Args[0], row); err != nil {
-				return nil, true, err
-			}
-		}
-		return nil, true, unusable
+		return ev.fts5AuxForeignTable(lower, ref, isRef, f, row)
 	}
 	// A first argument that is an ORDINARY column of the scanned table is
 	// not the cursor reference: C's callback reads its value as a cursor id
 	// and fails with "no such cursor: <int64(value)>" (fts5_main.c
 	// fts5ApiCallback; fts5aux.test 6.1/6.2).
 	if isRef && t5.ColumnIndex(ref.Name) >= 0 {
-		v, err := ev.evalExpr(f.Args[0], row)
-		if err != nil {
-			return nil, true, err
-		}
-		return nil, true, fmt.Errorf("no such cursor: %d", ToIntValue(util.UnwrapColumnValue(v)))
+		return ev.fts5AuxOrdinaryColumn(ref, f, row)
 	}
 	if aq == nil {
 		aq = t5.NewScanAux()
@@ -161,6 +154,31 @@ func (ev *Evaluator) evalFTS5Aux(name string, f *sql.FuncCall, row Row) (interfa
 	}
 	val, err := ev.evalFTS5AuxFunc(lower, t5, aq, f, row)
 	return val, true, err
+}
+
+// fts5AuxForeignTable handles an aux call whose first argument names an fts5
+// table that is not the one being scanned: the argument resolves in the row
+// scope like any column reference (a missing hidden column fails with
+// "no such column: ..."), then the overload placeholder fires.
+func (ev *Evaluator) fts5AuxForeignTable(lower string, ref *sql.ColumnRef, isRef bool, f *sql.FuncCall, row Row) (interface{}, bool, error) {
+	if isRef {
+		if _, err := ev.evalExpr(f.Args[0], row); err != nil {
+			return nil, true, err
+		}
+	}
+	return nil, true, fmt.Errorf("unable to use function %s in the requested context", lower)
+}
+
+// fts5AuxOrdinaryColumn handles an aux call whose first argument is an
+// ordinary column of the scanned table: C's callback reads its value as a
+// cursor id and fails with "no such cursor: <int64(value)>" (fts5_main.c
+// fts5ApiCallback; fts5aux.test 6.1/6.2).
+func (ev *Evaluator) fts5AuxOrdinaryColumn(ref *sql.ColumnRef, f *sql.FuncCall, row Row) (interface{}, bool, error) {
+	v, err := ev.evalExpr(f.Args[0], row)
+	if err != nil {
+		return nil, true, err
+	}
+	return nil, true, fmt.Errorf("no such cursor: %d", ToIntValue(util.UnwrapColumnValue(v)))
 }
 
 // snippetBelongsToFTS3 reports whether the current statement's FTS context is
@@ -186,303 +204,75 @@ func (ev *Evaluator) evalFTS5AuxFunc(lower string, t5 *fts5.Table, aq *fts5.AuxQ
 	args := f.Args[1:]
 	switch lower {
 	case "bm25":
-		weights := make([]float64, len(args))
-		for i, a := range args {
-			v, err := ev.evalExpr(a, row)
-			if err != nil {
-				return nil, err
-			}
-			weights[i] = fts5Double(util.UnwrapColumnValue(v))
-		}
-		return aq.Bm25(ev.auxRowid(row), weights), nil
+		return ev.fts5Bm25(aq, args, row)
 	case "highlight":
-		if len(args) != 3 {
-			return nil, fmt.Errorf("wrong number of arguments to function highlight()")
-		}
-		vals, err := ev.evalExprs(args, row)
-		if err != nil {
-			return nil, err
-		}
-		return aq.Highlight(ev.auxRowid(row), int(ToIntValue(vals[0])),
-			valueTextOf(vals[1]), valueTextOf(vals[2]))
+		return ev.fts5Highlight(aq, args, row)
 	case "snippet":
-		if len(args) != 5 {
-			return nil, fmt.Errorf("wrong number of arguments to function snippet()")
-		}
-		vals, err := ev.evalExprs(args, row)
-		if err != nil {
-			return nil, err
-		}
-		return aq.Snippet(ev.auxRowid(row), int(ToIntValue(vals[0])),
-			valueTextOf(vals[1]), valueTextOf(vals[2]), valueTextOf(vals[3]),
-			int(ToIntValue(vals[4])))
+		return ev.fts5Snippet(aq, args, row)
 	case "fts5_get_locale":
-		if len(args) != 1 {
-			return nil, fmt.Errorf("wrong number of arguments to function fts5_get_locale()")
-		}
-		v, err := ev.evalExpr(args[0], row)
-		if err != nil {
-			return nil, err
-		}
-		if !fts5IsIntLike(v) {
-			return nil, fmt.Errorf("non-integer argument passed to function fts5_get_locale()")
-		}
-		iCol := int(ToIntValue(util.UnwrapColumnValue(v)))
-		if iCol < 0 || iCol >= len(t5.ColumnNames()) {
-			return nil, &fts5.ColumnRangeError{}
-		}
-		return nil, nil // no locale= support: NULL
+		return ev.fts5GetLocale(t5, args, row)
 	}
 	return ev.evalFTS5TestFunc(lower, t5, aq, args, row)
 }
 
-// evalFTS5TestFunc evaluates one test-support auxiliary function (the
-// fts5_aux_test_functions family and the fts5aux.test registrations).
-func (ev *Evaluator) evalFTS5TestFunc(lower string, t5 *fts5.Table, aq *fts5.AuxQuery, args []sql.Expr, row Row) (interface{}, error) {
-	rowid := ev.auxRowid(row)
-	argInt := func(i int) (int, error) {
-		if i >= len(args) {
-			return 0, nil
-		}
-		v, err := ev.evalExpr(args[i], row)
+// fts5Bm25 evaluates bm25(weight, ...).
+func (ev *Evaluator) fts5Bm25(aq *fts5.AuxQuery, args []sql.Expr, row Row) (interface{}, error) {
+	weights := make([]float64, len(args))
+	for i, a := range args {
+		v, err := ev.evalExpr(a, row)
 		if err != nil {
-			return 0, err
+			return nil, err
 		}
-		return int(ToIntValue(util.UnwrapColumnValue(v))), nil
+		weights[i] = fts5Double(util.UnwrapColumnValue(v))
 	}
-	argText := func(i int) (string, error) {
-		if i >= len(args) {
-			return "", nil
-		}
-		v, err := ev.evalExpr(args[i], row)
-		if err != nil {
-			return "", err
-		}
-		return valueTextOf(util.UnwrapColumnValue(v)), nil
+	return aq.Bm25(ev.auxRowid(row), weights), nil
+}
+
+// fts5Highlight evaluates highlight(iCol, open, close).
+func (ev *Evaluator) fts5Highlight(aq *fts5.AuxQuery, args []sql.Expr, row Row) (interface{}, error) {
+	if len(args) != 3 {
+		return nil, fmt.Errorf("wrong number of arguments to function highlight()")
 	}
-	switch lower {
-	case "inst": // fts5aux.test's inst(): xInst(i) → "ip ic io"
-		i, err := argInt(0)
-		if err != nil {
-			return nil, err
-		}
-		inst, err := aq.Inst(rowid, i)
-		if err != nil {
-			return nil, err
-		}
-		return fmt.Sprintf("%d %d %d", inst.Phrase, inst.Col, inst.Offset), nil
-	case "colsize": // xColumnSize(i)
-		i, err := argInt(0)
-		if err != nil {
-			return nil, err
-		}
-		return aq.ColumnSize(rowid, i)
-	case "matchinfo": // fts5_test_mi.c's matchinfo(t, zArg)
-		flag := ""
-		if len(args) > 0 {
-			v, err := ev.evalExpr(args[0], row)
-			if err != nil {
-				return nil, err
-			}
-			flag = valueTextOf(util.UnwrapColumnValue(v))
-		}
-		return aq.Matchinfo(rowid, flag)
-	case "totalsize": // xColumnTotalSize(i)
-		i, err := argInt(0)
-		if err != nil {
-			return nil, err
-		}
-		return aq.ColumnTotalSize(i)
-	case "fts5_test_columnsize": // per-column xColumnSize list
-		out := make([]string, len(t5.ColumnNames()))
-		for i := range out {
-			n, err := aq.ColumnSize(rowid, i)
-			if err != nil {
-				return nil, err
-			}
-			out[i] = strconv.FormatInt(n, 10)
-		}
-		return strings.Join(out, " "), nil
-	case "fts5_test_columntotalsize": // per-column xColumnTotalSize list
-		out := make([]string, len(t5.ColumnNames()))
-		for i := range out {
-			n, err := aq.ColumnTotalSize(i)
-			if err != nil {
-				return nil, err
-			}
-			out[i] = strconv.FormatInt(n, 10)
-		}
-		return strings.Join(out, " "), nil
-	case "fts5_columntext": // xColumnText(i)
-		i, err := argInt(0)
-		if err != nil {
-			return nil, err
-		}
-		return aq.ColumnText(rowid, i)
-	case "fts5_test_columntext": // per-column xColumnText TCL list
-		out := make([]string, len(t5.ColumnNames()))
-		for i := range out {
-			text, err := aq.ColumnText(rowid, i)
-			if err != nil {
-				return nil, err
-			}
-			out[i] = text
-		}
-		return renderTclList(out), nil
-	case "fts5_columnlocale", "fts5_test_columnlocale", "fts5_test_insttoken":
-		// xColumnLocale / xInstToken: no locale= or tokendata support — a
-		// NULL result (the C test builds render no locale as no result).
-		if lower == "fts5_columnlocale" || lower == "fts5_test_columnlocale" {
-			if _, err := argInt(0); err != nil {
-				return nil, err
-			}
-		}
-		return nil, nil
-	case "fts5_test_poslist": // "ip.ic.io" per instance
-		insts := aq.RowInstances(rowid)
-		out := make([]string, len(insts))
-		for i, in := range insts {
-			out[i] = fmt.Sprintf("%d.%d.%d", in.Phrase, in.Col, in.Offset)
-		}
-		return strings.Join(out, " "), nil
-	case "fts5_test_poslist2": // sorted "i.c.o" per instance
-		insts := aq.RowInstances(rowid)
-		sort.Slice(insts, func(a, b int) bool {
-			x, y := insts[a], insts[b]
-			if x.Phrase != y.Phrase {
-				return x.Phrase < y.Phrase
-			}
-			if x.Col != y.Col {
-				return x.Col < y.Col
-			}
-			return x.Offset < y.Offset
-		})
-		out := make([]string, len(insts))
-		for i, in := range insts {
-			out[i] = fmt.Sprintf("%d.%d.%d", in.Phrase, in.Col, in.Offset)
-		}
-		return strings.Join(out, " "), nil
-	case "fts5_test_collist": // "i.c" per phrase column
-		var out []string
-		for i := range aq.PhraseCount() {
-			cols, err := aq.PhraseCollist(rowid, i)
-			if err != nil {
-				return nil, err
-			}
-			for _, c := range cols {
-				out = append(out, fmt.Sprintf("%d.%d", i, c))
-			}
-		}
-		return strings.Join(out, " "), nil
-	case "fts5_collist": // distinct columns of one phrase
-		i, err := argInt(0)
-		if err != nil {
-			return nil, err
-		}
-		cols, err := aq.PhraseCollist(rowid, i)
-		if err != nil {
-			return nil, err
-		}
-		out := make([]string, len(cols))
-		for j, c := range cols {
-			out[j] = strconv.Itoa(c)
-		}
-		return strings.Join(out, " "), nil
-	case "fts5_test_tokenize": // per-column token-term TCL list
-		out := make([]string, len(t5.ColumnNames()))
-		for i := range out {
-			text, err := aq.ColumnText(rowid, i)
-			if err != nil {
-				return nil, err
-			}
-			out[i] = renderTclList(aq.TokenizeText(text))
-		}
-		return strings.Join(out, " "), nil
-	case "tokenize": // fts5tokenizer.test 6.x: tokens of column 0
-		text, err := aq.ColumnText(rowid, 0)
-		if err != nil {
-			return nil, err
-		}
-		toks := aq.TokenizeText(text)
-		// The TCL callback (test_token_cb) returns SQLITE_DONE once three
-		// tokens are collected, so xTokenize stops there.
-		if len(toks) > 3 {
-			toks = toks[:3]
-		}
-		return renderTclList(toks), nil
-	case "fts5_test_rowcount":
-		return aq.RowCount(), nil
-	case "fts5_test_rowid", "my_rowid":
-		return rowid, nil
-	case "fts5_test_phrasecount":
-		return int64(aq.PhraseCount()), nil
-	case "my_phrasesize": // xPhraseSize(i); out of range returns 0
-		i, err := argInt(0)
-		if err != nil {
-			return nil, err
-		}
-		return int64(aq.PhraseSize(i)), nil
-	case "fts5_test_queryphrase": // per-phrase per-column hit lists
-		var out []string
-		for i := range aq.PhraseCount() {
-			hits, err := aq.QueryPhraseColumnHits(i)
-			if err != nil {
-				return nil, err
-			}
-			parts := make([]string, len(hits))
-			for j, h := range hits {
-				parts[j] = strconv.FormatInt(h, 10)
-			}
-			out = append(out, renderTclList(parts))
-		}
-		return strings.Join(out, " "), nil
-	case "fts5_queryphrase": // per-column hit counts of one phrase
-		i, err := argInt(0)
-		if err != nil {
-			return nil, err
-		}
-		hits, err := aq.QueryPhraseColumnHits(i)
-		if err != nil {
-			return nil, err
-		}
-		parts := make([]string, len(hits))
-		for j, h := range hits {
-			parts[j] = strconv.FormatInt(h, 10)
-		}
-		return strings.Join(parts, " "), nil
-	case "fts5_hitcount": // total instances of phrase 0 (xQueryPhrase sum)
-		n, err := aq.PhraseHitCount(0)
-		if err != nil {
-			return nil, err
-		}
-		return int64(n), nil
-	case "phrasequery": // xQueryPhrase(1) with the TCL stop-code protocol
-		code, err := argText(0)
-		if err != nil {
-			return nil, err
-		}
-		rowids, err := aq.QueryPhraseRowids(1, code, rowid)
-		if err != nil {
-			return nil, err
-		}
-		parts := make([]string, len(rowids))
-		for i, r := range rowids {
-			parts[i] = strconv.FormatInt(r, 10)
-		}
-		return strings.Join(parts, " "), nil
-	case "prevrowid", "prevrowid1": // xGetAuxdataInt/xSetAuxdataInt round trip
-		prev := aq.AuxDataInt(lower)
-		aq.AuxDataSetInt(lower, rowid)
-		if lower == "prevrowid1" {
-			return prev + 1, nil
-		}
-		return prev, nil
-	case "firstcol": // xColumnText(0)
-		return aq.ColumnText(rowid, 0)
-	case "fts5_test_all": // the flattened test summary
-		return aq.TestAll(rowid)
+	vals, err := ev.evalExprs(args, row)
+	if err != nil {
+		return nil, err
 	}
-	return nil, fmt.Errorf("unable to use function %s in the requested context", lower)
+	return aq.Highlight(ev.auxRowid(row), int(ToIntValue(vals[0])),
+		valueTextOf(vals[1]), valueTextOf(vals[2]))
+}
+
+// fts5Snippet evaluates snippet(iCol, open, close, ellipses, nToken).
+func (ev *Evaluator) fts5Snippet(aq *fts5.AuxQuery, args []sql.Expr, row Row) (interface{}, error) {
+	if len(args) != 5 {
+		return nil, fmt.Errorf("wrong number of arguments to function snippet()")
+	}
+	vals, err := ev.evalExprs(args, row)
+	if err != nil {
+		return nil, err
+	}
+	return aq.Snippet(ev.auxRowid(row), int(ToIntValue(vals[0])),
+		valueTextOf(vals[1]), valueTextOf(vals[2]), valueTextOf(vals[3]),
+		int(ToIntValue(vals[4])))
+}
+
+// fts5GetLocale evaluates fts5_get_locale(iCol): no locale= support — NULL,
+// with the column-range check the C implementation performs.
+func (ev *Evaluator) fts5GetLocale(t5 *fts5.Table, args []sql.Expr, row Row) (interface{}, error) {
+	if len(args) != 1 {
+		return nil, fmt.Errorf("wrong number of arguments to function fts5_get_locale()")
+	}
+	v, err := ev.evalExpr(args[0], row)
+	if err != nil {
+		return nil, err
+	}
+	if !fts5IsIntLike(v) {
+		return nil, fmt.Errorf("non-integer argument passed to function fts5_get_locale()")
+	}
+	iCol := int(ToIntValue(util.UnwrapColumnValue(v)))
+	if iCol < 0 || iCol >= len(t5.ColumnNames()) {
+		return nil, &fts5.ColumnRangeError{}
+	}
+	return nil, nil // no locale= support: NULL
 }
 
 // renderTclList renders a string list in TCL list form: elements containing

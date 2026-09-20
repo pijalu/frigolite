@@ -151,22 +151,8 @@ func (e *DMLExecutor) insertFTS5Row(t5 *fts5.Table, tableEntry *schema.Entry, va
 	cmdVal, _ := fts5HiddenValues(t5, values)
 	// A non-NULL table-name hidden column is a special insert directive
 	// (INSERT INTO t1(t1, rank) VALUES('delete-all', ...) — fts5UpdateMethod).
-	if cmdVal != nil {
-		cmd := util.UnwrapColumnValue(cmdVal)
-		if s, ok := cmd.(string); ok {
-			cmdArgs := fts5SpecialCommandArgs(s, userVals, rankValue(t5, values), fixedRowID)
-			handled, err := t5.SpecialCommand(s, cmdArgs)
-			if err != nil {
-				return &Result{Error: err}
-			}
-			if handled {
-				e.ctx.SetLastRowID(0)
-				return &Result{Changes: 0, LastInsertRowID: 0}
-			}
-			// An unknown directive reaches fts5ConfigSetValue's badkey path:
-			// C's generic SQLITE_ERROR.
-			return &Result{Error: fmt.Errorf("SQL logic error")}
-		}
+	if res := e.fts5SpecialInsert(t5, cmdVal, userVals, values, fixedRowID); res != nil {
+		return res
 	}
 	// It is an error to write an fts5_locale() value to a table without the
 	// locale=1 option (fts5_main.c:2005-2020, SQLITE_MISMATCH).
@@ -177,40 +163,82 @@ func (e *DMLExecutor) insertFTS5Row(t5 *fts5.Table, tableEntry *schema.Entry, va
 			}
 		}
 	}
-	// Resolve the rowid: explicit, or auto-allocated (max existing + 1).
-	var rowid int64
-	if fixedRowID != nil {
-		rowid = *fixedRowID
-	} else if t5.Config().EContent != fts5.ContentNormal &&
-		t5.Config().EContent != fts5.ContentUnindexed && !t5.Config().ColumnSize {
-		// A NONE/EXTERNAL content table without columnsize has no backing
-		// store to allocate a rowid from: fts5StorageNewRowid returns
-		// SQLITE_MISMATCH and the user must provide the rowid explicitly
-		// (fts5columnsize 2.1: content='' inserts).
-		return &Result{Error: fmt.Errorf("datatype mismatch")}
-	} else {
-		rowid = t5.NextRowid()
+	rowid, res := e.fts5InsertRowid(t5, fixedRowID)
+	if res != nil {
+		return res
 	}
-	// The rowid is a PRIMARY KEY: an existing document conflicts unless the
-	// statement resolved with OR REPLACE/IGNORE (fts5UpdateMethod through the
-	// generic vtab conflict handling).
-	if t5.HasDoc(rowid) {
-		switch strings.ToUpper(orConflict) {
-		case "REPLACE":
-			if _, err := t5.Delete(rowid); err != nil {
-				return &Result{Error: err}
-			}
-		case "IGNORE":
-			return &Result{Changes: 0}
-		default:
-			return &Result{Error: fmt.Errorf("constraint failed")}
-		}
+	if res := e.fts5RowidConflict(t5, rowid, orConflict); res != nil {
+		return res
 	}
 	if err := t5.Insert(rowid, userVals); err != nil {
 		return &Result{Error: err}
 	}
 	e.ctx.SetLastRowID(rowid)
 	return &Result{Changes: 1, LastInsertRowID: rowid}
+}
+
+// fts5SpecialInsert dispatches a special insert directive ('delete-all', ...)
+// carried by the table-name hidden column. A nil result means the values are
+// an ordinary row insert (the directive was not a string or was unknown —
+// unknown directives reach fts5ConfigSetValue's badkey path: C's generic
+// SQLITE_ERROR).
+func (e *DMLExecutor) fts5SpecialInsert(t5 *fts5.Table, cmdVal interface{}, userVals []interface{}, values []interface{}, fixedRowID *int64) *Result {
+	if cmdVal == nil {
+		return nil
+	}
+	s, ok := util.UnwrapColumnValue(cmdVal).(string)
+	if !ok {
+		return nil
+	}
+	cmdArgs := fts5SpecialCommandArgs(s, userVals, rankValue(t5, values), fixedRowID)
+	handled, err := t5.SpecialCommand(s, cmdArgs)
+	if err != nil {
+		return &Result{Error: err}
+	}
+	if handled {
+		e.ctx.SetLastRowID(0)
+		return &Result{Changes: 0, LastInsertRowID: 0}
+	}
+	return &Result{Error: fmt.Errorf("SQL logic error")}
+}
+
+// fts5InsertRowid resolves the insert's rowid: explicit, or auto-allocated
+// (max existing + 1). A NONE/EXTERNAL content table without columnsize has
+// no backing store to allocate a rowid from: fts5StorageNewRowid returns
+// SQLITE_MISMATCH and the user must provide the rowid explicitly
+// (fts5columnsize 2.1: content='' inserts).
+func (e *DMLExecutor) fts5InsertRowid(t5 *fts5.Table, fixedRowID *int64) (int64, *Result) {
+	if fixedRowID != nil {
+		return *fixedRowID, nil
+	}
+	cfg := t5.Config()
+	if cfg.EContent != fts5.ContentNormal &&
+		cfg.EContent != fts5.ContentUnindexed && !cfg.ColumnSize {
+		return 0, &Result{Error: fmt.Errorf("datatype mismatch")}
+	}
+	return t5.NextRowid(), nil
+}
+
+// fts5RowidConflict resolves an insert whose rowid is a PRIMARY KEY already
+// present: the statement's OR REPLACE deletes the conflicting document, OR
+// IGNORE skips the row, anything else is a constraint failure (fts5UpdateMethod
+// through the generic vtab conflict handling). A nil result means the insert
+// proceeds.
+func (e *DMLExecutor) fts5RowidConflict(t5 *fts5.Table, rowid int64, orConflict string) *Result {
+	if !t5.HasDoc(rowid) {
+		return nil
+	}
+	switch strings.ToUpper(orConflict) {
+	case "REPLACE":
+		if _, err := t5.Delete(rowid); err != nil {
+			return &Result{Error: err}
+		}
+	case "IGNORE":
+		return &Result{Changes: 0}
+	default:
+		return &Result{Error: fmt.Errorf("constraint failed")}
+	}
+	return nil
 }
 
 // execFTS5Delete implements DELETE on an fts5 table.
@@ -252,169 +280,32 @@ func (e *DMLExecutor) execFTS5Delete(t5 *fts5.Table, colDefs []sql.ColumnDef, s 
 func (e *DMLExecutor) execFTS5Update(t5 *fts5.Table, colDefs []sql.ColumnDef, s *sql.UpdateStmt) *Result {
 	cfg := t5.Config()
 	fromJoin := s.From.Name != "" || s.From.Subquery != nil || len(s.From.Args) > 0
-	if fromJoin {
-		// SQLite resolves the UPDATE ... FROM sources at prepare time: a
-		// missing FROM table errors even when no target row matches
-		// (fts4upfrom 1.x.4 "no such table: changes").
-		if _, jerr := e.JoinUpdateFromRows(s, nil); jerr != nil {
-			return &Result{Error: jerr}
-		}
+	if res := e.fts5PrepareFromSources(s, fromJoin); res != nil {
+		return res
 	}
 	if cfg.Contentless() {
-		// fts5ContentlessUpdate (fts5_main.c:1847): only unindexed columns
-		// may change on a contentless table; with contentless_delete=1 every
-		// indexed column must be assigned at once (not a subset).
-		assigned := make(map[string]bool)
-		for _, a := range s.Assignments {
-			assigned[strings.ToLower(a.Column)] = true
+		res, handled := e.execFTS5ContentlessUpdate(t5, colDefs, s, fromJoin)
+		if handled {
+			return res
 		}
-		if cfg.ContentlessDelete {
-			missing := false
-			for i, col := range t5.ColumnNames() {
-				if !cfg.Unindexed[i] && !assigned[strings.ToLower(col)] {
-					missing = true
-					break
-				}
-			}
-			if missing {
-				return &Result{Error: fmt.Errorf("cannot UPDATE a subset of columns on fts5 contentless-delete table: %s", t5.Name())}
-			}
-		} else {
-			indexedAssigned := false
-			for i, col := range t5.ColumnNames() {
-				if !cfg.Unindexed[i] && assigned[strings.ToLower(col)] {
-					indexedAssigned = true
-					break
-				}
-			}
-			if indexedAssigned {
-				return &Result{Error: fmt.Errorf("cannot UPDATE contentless fts5 table: %s", t5.Name())}
-			}
-			// Only unindexed columns changed: the index is untouched. A
-			// contentless_unindexed table rewrites the stored (UNINDEXED)
-			// columns of each affected row — fts5UpdateMethod's bContent
-			// branch (sqlite3Fts5StorageContentInsert with bContent=1).
-			if fromJoin {
-				n, err := e.fts5FromMatchedCount(t5, s)
-				if err != nil {
-					return &Result{Error: err}
-				}
-				return &Result{Changes: n}
-			}
-			rowMaps, rowids, err := e.fts5MatchedRows(t5, colDefs, s.Where, nil, nil)
-			if err != nil {
-				return &Result{Error: err}
-			}
-			if t5.Config().EContent == fts5.ContentUnindexed {
-				for i, rowid := range rowids {
-					newVals := make([]interface{}, len(t5.ColumnNames()))
-					copy(newVals, fts5RowValues(t5, rowMaps[i]))
-					for _, a := range s.Assignments {
-						idx := t5.ColumnIndex(a.Column)
-						if idx < 0 {
-							return &Result{Error: fmt.Errorf("no such column: %s", a.Column)}
-						}
-						v, verr := e.ctx.EvalExpr(a.Value, rowMaps[i])
-						if verr != nil {
-							return &Result{Error: verr}
-						}
-						newVals[idx] = v
-					}
-					if uerr := t5.UpdateUnindexedContent(rowid, newVals); uerr != nil {
-						return &Result{Error: uerr}
-					}
-				}
-				if ferr := e.flushFTS5Shadow(t5); ferr != nil {
-					return &Result{Error: ferr}
-				}
-			}
-			return &Result{Changes: int64(len(rowids))}
-		}
+		// A contentless_delete table with every indexed column assigned
+		// falls through to the ordinary update path.
 	}
-	var rowMaps []RowMap
-	var rowids []int64
-	var err error
-	if fromJoin {
-		// No pre-filtering by WHERE: its FROM-column terms can only be
-		// evaluated per (target, FROM) pair below.
-		rowMaps, rowids, err = e.fts5UniverseRows(t5, s.Where)
-	} else {
-		rowMaps, rowids, err = e.fts5MatchedRows(t5, colDefs, s.Where, nil, nil)
-	}
+	rowMaps, rowids, err := e.fts5UpdateSourceRows(t5, colDefs, s, fromJoin)
 	if err != nil {
 		return &Result{Error: err}
 	}
 	updated := int64(0)
 	for i, rowid := range rowids {
-		evalMap := rowMaps[i]
-		if fromJoin {
-			joined, ok, jerr := e.fts5JoinedEvalMap(s, rowMaps[i])
-			if jerr != nil {
-				return &Result{Error: jerr}
-			}
-			if !ok {
-				continue
-			}
-			evalMap = joined
+		evalMap, res := e.fts5UpdateEvalMap(s, rowMaps, i, fromJoin)
+		if res != nil {
+			return res
 		}
-		newRowid := rowid
-		newVals := make([]interface{}, len(t5.ColumnNames()))
-		copy(newVals, fts5RowValues(t5, rowMaps[i]))
-		changed := false
-		for _, a := range s.Assignments {
-			lower := strings.ToLower(a.Column)
-			if lower == "rowid" || lower == "_rowid_" || lower == "oid" {
-				v, verr := e.ctx.EvalExpr(a.Value, evalMap)
-				if verr != nil {
-					return &Result{Error: verr}
-				}
-				if n, ok := util.UnwrapColumnValue(v).(int64); ok {
-					newRowid = n
-					changed = true
-				}
-				continue
-			}
-			idx := t5.ColumnIndex(a.Column)
-			if idx < 0 {
-				return &Result{Error: fmt.Errorf("no such column: %s", a.Column)}
-			}
-			v, verr := e.ctx.EvalExpr(a.Value, evalMap)
-			if verr != nil {
-				return &Result{Error: verr}
-			}
-			// Writing an fts5_locale() value to a locale-less table is an
-			// error (fts5_main.c:2005-2020; the check spans UPDATE values).
-			if !t5.Config().Locale && fts5.IsLocaleValue(util.UnwrapColumnValue(v)) {
-				return &Result{Error: fmt.Errorf("fts5_locale() requires locale=1")}
-			}
-			// Store the scalar: an expression that resolves to a joined row
-			// cell (UPDATE ... FROM: SET b=o.c) yields the cell's affinity
-			// wrapper, which the content write would stringify as Go source
-			// ("&{apple 0}") — C binds the plain value (fts4upfrom 1.x).
-			newVals[idx] = util.UnwrapColumnValue(v)
-			changed = true
-		}
-		if !changed {
+		if evalMap == nil {
 			continue
 		}
-		// A changed rowid colliding with another document is resolved per
-		// the statement's OR action (fts5_main.c fts5UpdateMethod: REPLACE
-		// deletes the conflicting document first, IGNORE skips the row).
-		if newRowid != rowid && t5.HasDoc(newRowid) {
-			switch strings.ToUpper(s.OnConflict) {
-			case "REPLACE":
-				if _, rerr := t5.Delete(newRowid); rerr != nil {
-					return &Result{Error: rerr}
-				}
-			case "IGNORE":
-				continue
-			}
-		}
-		if _, derr := t5.Delete(rowid); derr != nil {
-			return &Result{Error: derr}
-		}
-		if err := t5.Insert(newRowid, newVals); err != nil {
-			return &Result{Error: err}
+		if res := e.fts5ApplyUpdateRow(t5, s, rowid, rowMaps[i], evalMap); res != nil {
+			return res
 		}
 		updated++
 	}
@@ -422,6 +313,210 @@ func (e *DMLExecutor) execFTS5Update(t5 *fts5.Table, colDefs []sql.ColumnDef, s 
 		return &Result{Error: ferr}
 	}
 	return &Result{Changes: updated}
+}
+
+// fts5PrepareFromSources validates the UPDATE ... FROM sources at prepare
+// time: a missing FROM table errors even when no target row matches
+// (fts4upfrom 1.x.4 "no such table: changes").
+func (e *DMLExecutor) fts5PrepareFromSources(s *sql.UpdateStmt, fromJoin bool) *Result {
+	if !fromJoin {
+		return nil
+	}
+	if _, jerr := e.JoinUpdateFromRows(s, nil); jerr != nil {
+		return &Result{Error: jerr}
+	}
+	return nil
+}
+
+// fts5UpdateSourceRows collects the UPDATE's target rows: the full universe
+// when FROM sources join against each row, the WHERE-matched rows otherwise.
+// No pre-filtering by WHERE in the FROM case: its FROM-column terms can only
+// be evaluated per (target, FROM) pair.
+func (e *DMLExecutor) fts5UpdateSourceRows(t5 *fts5.Table, colDefs []sql.ColumnDef, s *sql.UpdateStmt, fromJoin bool) ([]RowMap, []int64, error) {
+	if fromJoin {
+		return e.fts5UniverseRows(t5, s.Where)
+	}
+	return e.fts5MatchedRows(t5, colDefs, s.Where, nil, nil)
+}
+
+// fts5UpdateEvalMap resolves the evaluation row map for one target row: the
+// merged (target, first-matching-FROM) map for UPDATE ... FROM, the row's own
+// map otherwise. (nil, nil) means the row is skipped (no FROM row matched).
+func (e *DMLExecutor) fts5UpdateEvalMap(s *sql.UpdateStmt, rowMaps []RowMap, i int, fromJoin bool) (RowMap, *Result) {
+	if !fromJoin {
+		return rowMaps[i], nil
+	}
+	joined, ok, jerr := e.fts5JoinedEvalMap(s, rowMaps[i])
+	if jerr != nil {
+		return nil, &Result{Error: jerr}
+	}
+	if !ok {
+		return nil, nil
+	}
+	return joined, nil
+}
+
+// fts5ApplyUpdateRow applies one row's SET assignments and rewrites the
+// document (delete + insert; a changed rowid colliding with another document
+// is resolved per the statement's OR action — fts5_main.c fts5UpdateMethod:
+// REPLACE deletes the conflicting document first, IGNORE skips the row).
+// A nil Result means the row was written (or skipped as unchanged / IGNOREd).
+func (e *DMLExecutor) fts5ApplyUpdateRow(t5 *fts5.Table, s *sql.UpdateStmt, rowid int64, rowMap, evalMap RowMap) *Result {
+	newRowid, newVals, changed, res := e.fts5EvalAssignments(t5, s, rowid, rowMap, evalMap)
+	if res != nil {
+		return res
+	}
+	if !changed {
+		return nil
+	}
+	if newRowid != rowid && t5.HasDoc(newRowid) {
+		switch strings.ToUpper(s.OnConflict) {
+		case "REPLACE":
+			if _, rerr := t5.Delete(newRowid); rerr != nil {
+				return &Result{Error: rerr}
+			}
+		case "IGNORE":
+			return nil
+		}
+	}
+	if _, derr := t5.Delete(rowid); derr != nil {
+		return &Result{Error: derr}
+	}
+	if err := t5.Insert(newRowid, newVals); err != nil {
+		return &Result{Error: err}
+	}
+	return nil
+}
+
+// fts5EvalAssignments evaluates one row's SET assignments onto the row's
+// current values, tracking rowid re-keying and whether anything changed.
+func (e *DMLExecutor) fts5EvalAssignments(t5 *fts5.Table, s *sql.UpdateStmt, rowid int64, rowMap, evalMap RowMap) (newRowid int64, newVals []interface{}, changed bool, res *Result) {
+	newRowid = rowid
+	newVals = make([]interface{}, len(t5.ColumnNames()))
+	copy(newVals, fts5RowValues(t5, rowMap))
+	for _, a := range s.Assignments {
+		lower := strings.ToLower(a.Column)
+		if lower == "rowid" || lower == "_rowid_" || lower == "oid" {
+			v, verr := e.ctx.EvalExpr(a.Value, evalMap)
+			if verr != nil {
+				return 0, nil, false, &Result{Error: verr}
+			}
+			if n, ok := util.UnwrapColumnValue(v).(int64); ok {
+				newRowid = n
+				changed = true
+			}
+			continue
+		}
+		if res := e.fts5EvalColumnAssign(t5, a, evalMap, newVals); res != nil {
+			return 0, nil, false, res
+		}
+		changed = true
+	}
+	return newRowid, newVals, changed, nil
+}
+
+// fts5EvalColumnAssign evaluates one column SET assignment into the row's
+// new values. Writing an fts5_locale() value to a locale-less table is an
+// error (fts5_main.c:2005-2020; the check spans UPDATE values). The scalar
+// is stored unwrapped: an expression resolving to a joined row cell
+// (UPDATE ... FROM: SET b=o.c) yields the cell's affinity wrapper, which the
+// content write would stringify as Go source ("&{apple 0}") — C binds the
+// plain value (fts4upfrom 1.x).
+func (e *DMLExecutor) fts5EvalColumnAssign(t5 *fts5.Table, a sql.Assignment, evalMap RowMap, newVals []interface{}) *Result {
+	idx := t5.ColumnIndex(a.Column)
+	if idx < 0 {
+		return &Result{Error: fmt.Errorf("no such column: %s", a.Column)}
+	}
+	v, verr := e.ctx.EvalExpr(a.Value, evalMap)
+	if verr != nil {
+		return &Result{Error: verr}
+	}
+	if !t5.Config().Locale && fts5.IsLocaleValue(util.UnwrapColumnValue(v)) {
+		return &Result{Error: fmt.Errorf("fts5_locale() requires locale=1")}
+	}
+	newVals[idx] = util.UnwrapColumnValue(v)
+	return nil
+}
+
+// execFTS5ContentlessUpdate implements UPDATE on a contentless fts5 table
+// (fts5ContentlessUpdate, fts5_main.c:1847): only unindexed columns may
+// change, and with contentless_delete=1 every indexed column must be
+// assigned at once (not a subset). handled=false means the statement is a
+// complete contentless-delete assignment and falls through to the ordinary
+// update path.
+func (e *DMLExecutor) execFTS5ContentlessUpdate(t5 *fts5.Table, colDefs []sql.ColumnDef, s *sql.UpdateStmt, fromJoin bool) (res *Result, handled bool) {
+	cfg := t5.Config()
+	assigned := make(map[string]bool)
+	for _, a := range s.Assignments {
+		assigned[strings.ToLower(a.Column)] = true
+	}
+	if cfg.ContentlessDelete {
+		for i, col := range t5.ColumnNames() {
+			if !cfg.Unindexed[i] && !assigned[strings.ToLower(col)] {
+				return &Result{Error: fmt.Errorf("cannot UPDATE a subset of columns on fts5 contentless-delete table: %s", t5.Name())}, true
+			}
+		}
+		return nil, false
+	}
+	for i, col := range t5.ColumnNames() {
+		if !cfg.Unindexed[i] && assigned[strings.ToLower(col)] {
+			return &Result{Error: fmt.Errorf("cannot UPDATE contentless fts5 table: %s", t5.Name())}, true
+		}
+	}
+	// Only unindexed columns changed: the index is untouched. A
+	// contentless_unindexed table rewrites the stored (UNINDEXED)
+	// columns of each affected row — fts5UpdateMethod's bContent
+	// branch (sqlite3Fts5StorageContentInsert with bContent=1).
+	return e.execFTS5UnindexedOnlyUpdate(t5, colDefs, s, fromJoin), true
+}
+
+// execFTS5UnindexedOnlyUpdate applies an unindexed-only UPDATE: plain
+// contentless tables count the matched rows (nothing to rewrite);
+// contentless_unindexed tables rewrite each affected row's stored columns.
+func (e *DMLExecutor) execFTS5UnindexedOnlyUpdate(t5 *fts5.Table, colDefs []sql.ColumnDef, s *sql.UpdateStmt, fromJoin bool) *Result {
+	if fromJoin {
+		n, err := e.fts5FromMatchedCount(t5, s)
+		if err != nil {
+			return &Result{Error: err}
+		}
+		return &Result{Changes: n}
+	}
+	rowMaps, rowids, err := e.fts5MatchedRows(t5, colDefs, s.Where, nil, nil)
+	if err != nil {
+		return &Result{Error: err}
+	}
+	if t5.Config().EContent == fts5.ContentUnindexed {
+		for i, rowid := range rowids {
+			if res := e.fts5RewriteUnindexedRow(t5, s, rowid, rowMaps[i]); res != nil {
+				return res
+			}
+		}
+		if ferr := e.flushFTS5Shadow(t5); ferr != nil {
+			return &Result{Error: ferr}
+		}
+	}
+	return &Result{Changes: int64(len(rowids))}
+}
+
+// fts5RewriteUnindexedRow rewrites one row's stored (UNINDEXED) columns.
+func (e *DMLExecutor) fts5RewriteUnindexedRow(t5 *fts5.Table, s *sql.UpdateStmt, rowid int64, rowMap RowMap) *Result {
+	newVals := make([]interface{}, len(t5.ColumnNames()))
+	copy(newVals, fts5RowValues(t5, rowMap))
+	for _, a := range s.Assignments {
+		idx := t5.ColumnIndex(a.Column)
+		if idx < 0 {
+			return &Result{Error: fmt.Errorf("no such column: %s", a.Column)}
+		}
+		v, verr := e.ctx.EvalExpr(a.Value, rowMap)
+		if verr != nil {
+			return &Result{Error: verr}
+		}
+		newVals[idx] = v
+	}
+	if uerr := t5.UpdateUnindexedContent(rowid, newVals); uerr != nil {
+		return &Result{Error: uerr}
+	}
+	return nil
 }
 
 // fts5JoinedEvalMap builds the evaluation row map for one target document in
