@@ -95,6 +95,33 @@ func normalizeExpectedWord(w tcl.RawWord) (tcl.RawWord, bool) {
 		// string would never match (update.test 5.5.3, fkey2 15.x).
 		return tcl.RawWord{Text: "{}", Braced: true}, false
 	}
+	// TCL list content: w.Text is the LIST STRING — the TCL parser already
+	// stripped the script-level word braces — so parse it into elements and
+	// render each the way flatten() renders a query-result cell
+	// (tclRenderCell/tclQuoteListElem): a braced element is verbatim data, a
+	// quoted element is unescaped by the parse, a bare element gets TCL
+	// list-escape resolution, an empty element renders "{}" and a
+	// brace-bearing balanced element gains one TCL list-quoting level. The
+	// rendered form is symmetric with flatten(r) by construction, whatever
+	// the element quoting in the test source:
+	//
+	//   {{"a":1}}       → braced element "a":1 data  → render {{"a":1}} (json101-2.1)
+	//   {{"abc\"xyz"}}  → braced element "abc\"xyz" (no braces) → render
+	//                     "abc\"xyz" verbatim (json101-9.1: the \\" is data)
+	//   {{AND -- {a}}}  → braced element AND -- {a} (data braces) → render
+	//                     {AND -- {a}} (fts5ac 2.1)
+	//   {0 c\"1 {}}     → bare c\"1 resolves to c"1 → render 0 c"1 {} (e_fts3 8.2.2)
+	//
+	// This must run before the structural-preservation checks below, which
+	// would otherwise keep the raw braces for lists containing '=' (e.g. a
+	// row value like CHECK (c!="null")). Only brace-delimited lists are
+	// rendered — bare multi-field words (e.g. "1 4 9") keep their existing
+	// handling to minimize churn.
+	if strings.Contains(text, "{") {
+		if flat, ok := renderExpectedList(text); ok {
+			return tcl.RawWord{Text: flat, Braced: true}, true
+		}
+	}
 	// Unwrap TCL list-rendering braces for a single-element list. A `{}` with
 	// empty inner content is NOT rendering braces: it is how TCL db eval
 	// renders a one-element list containing NULL/"" (and flatten() renders
@@ -108,30 +135,6 @@ func normalizeExpectedWord(w tcl.RawWord) (tcl.RawWord, bool) {
 	// branch that would keep the braced word.
 	if strings.HasPrefix(text, "/1") && strings.HasSuffix(text, "/") {
 		return tcl.RawWord{Text: text, Braced: true}, false
-	}
-	// Multi-element TCL list: db eval renders each result row as a braced
-	// element, so a multi-row expected value is a list of braced strings.
-	// flatten() produces the space-joined unbraced form, so split the list
-	// (respecting nested braces) and join the elements with single spaces.
-	// This must run before the structural-preservation checks below, which
-	// would otherwise keep the raw braces for lists containing '=' (e.g. a
-	// row value like CHECK (c!="null")). Only brace-delimited lists are
-	// flattened — bare multi-field words (e.g. "1 4 9") keep their existing
-	// handling to minimize churn.
-	//
-	// EXCEPT when unwrapSingleBraceGroup already unwrapped a spanning
-	// single-element list: the content is then the verbatim cell value and
-	// its inner braces are DATA quoting TCL preserves (fts5ac 2.1's
-	// `{{AND [nearset -- {a}] [nearset -- {b}]}}` — the value really does
-	// contain `{a}`). Flattening here would strip those data braces one
-	// level too many; emit the unwrapped content pre-flattened (verbatim).
-	if strings.Contains(text, "{") {
-		if unwrapped {
-			return tcl.RawWord{Text: text, Braced: true}, true
-		}
-		if flat, ok := flattenBraceList(text); ok {
-			return tcl.RawWord{Text: flat, Braced: true}, true
-		}
 	}
 	// Preserve structural content.
 	if hasStructuralContent(text) {
@@ -475,18 +478,25 @@ func isSingleBracedStructuredLiteral(expr string) bool {
 // would strip the data braces a second time).
 func (tp *transpiler) expectLiteral(w tcl.RawWord) string {
 	nw, flat := normalizeExpectedWord(w)
-	// Resolve TCL backslash escapes the way TCL list parsing does when the
-	// word is consumed as a list: inside a braced literal the escapes stay
-	// verbatim, but the list comparison resolves them (e_fts3 8.2.2: a
-	// column named c\"1 — the want element compares as c"1).
-	nw = tcl.RawWord{Text: resolveTCLListEscapes(nw.Text), Braced: nw.Braced}
+	if !flat {
+		// Resolve TCL backslash escapes the way TCL parsing does for bare
+		// words (the word is consumed as a list / command argument):
+		// backslash-newline folds to a space, \n \t \r resolve, \uXXXX and
+		// \xXX decode to their characters, and backslash + arbitrary char
+		// yields that char (e_fts3 8.2.2: a column named c\"1 — the want
+		// element compares as c"1). Pre-flattened words were already
+		// element-resolved by renderExpectedList; resolving again would
+		// corrupt a literal backslash that the first pass produced.
+		nw = tcl.RawWord{Text: resolveTCLListEscapes(nw.Text), Braced: nw.Braced}
+	}
 	tp.expectPreFlattened = flat
 	return tp.goStringLiteral(nw)
 }
 
-// resolveTCLListEscapes resolves the TCL backslash substitutions a list
-// element parser applies: \n \t \r, and backslash followed by an arbitrary
-// character yields that character (Tcl(n) backslash substitution). A
+// resolveTCLListEscapes resolves the TCL backslash substitutions a bare-word
+// parser applies: backslash-newline (and \r\n) folds to a single space, \n
+// \t \r resolve, \uXXXX / \UXXXXXXXX / \xXX decode to their characters, and
+// backslash followed by an arbitrary character yields that character. A
 // trailing lone backslash stays verbatim.
 func resolveTCLListEscapes(s string) string {
 	if !strings.Contains(s, "\\") {
@@ -502,15 +512,170 @@ func resolveTCLListEscapes(s string) string {
 		}
 		i++
 		switch s[i] {
+		case '\n':
+			// TCL backslash-newline folds to a single space, consuming
+			// following spaces/tabs (Tcl(n) backslash substitution) — the
+			// list/command argument continues on the next line
+			// (types-2.1.8's [list ... \<newline> 9000000000000000000 ...]).
+			for i+1 < len(s) && (s[i+1] == ' ' || s[i+1] == '\t') {
+				i++
+			}
+			sb.WriteByte(' ')
+		case '\r':
+			if i+1 < len(s) && s[i+1] == '\n' {
+				i++
+			}
+			for i+1 < len(s) && (s[i+1] == ' ' || s[i+1] == '\t') {
+				i++
+			}
+			sb.WriteByte(' ')
 		case 'n':
 			sb.WriteByte('\n')
 		case 't':
 			sb.WriteByte('\t')
 		case 'r':
 			sb.WriteByte('\r')
+		case 'u':
+			// \uXXXX — exactly four hexadecimal digits (Tcl 8.6).
+			if n := tclHexDigits(s, i+1, 4); n > 0 {
+				sb.WriteRune(rune(tclHexValue(s[i+1 : i+1+n])))
+				i += n
+			} else {
+				sb.WriteByte('u')
+			}
+		case 'U':
+			// \UXXXXXXXX — exactly eight hexadecimal digits, ≤ 0x10FFFF.
+			if n := tclHexDigits(s, i+1, 8); n == 8 {
+				if v := tclHexValue(s[i+1 : i+1+n]); v <= 0x10FFFF {
+					sb.WriteRune(rune(v))
+					i += n
+				} else {
+					sb.WriteByte('U')
+				}
+			} else {
+				sb.WriteByte('U')
+			}
+		case 'x':
+			// \xHH — one or two hexadecimal digits (Tcl 8.6).
+			if n := tclHexDigits(s, i+1, 2); n > 0 {
+				sb.WriteRune(rune(tclHexValue(s[i+1 : i+1+n])))
+				i += n
+			} else {
+				sb.WriteByte('x')
+			}
 		default:
 			sb.WriteByte(s[i])
 		}
 	}
 	return sb.String()
+}
+
+// tclHexDigits counts the hexadecimal digits starting at s[pos], up to max.
+func tclHexDigits(s string, pos, max int) int {
+	n := 0
+	for n < max && pos+n < len(s) && isHexDigit(s[pos+n]) {
+		n++
+	}
+	return n
+}
+
+// tclHexValue parses a non-empty hex digit string.
+func tclHexValue(s string) int64 {
+	v := int64(0)
+	for i := 0; i < len(s); i++ {
+		v = v*16 + int64(hexVal(s[i]))
+	}
+	return v
+}
+
+// renderExpectedList parses a TCL list string into its elements and renders
+// each the way flatten() renders a query-result cell. Braced elements are
+// verbatim data (their braces are TCL element quoting, stripped by the
+// parse), quoted elements are unescaped by the parse, and bare elements get
+// TCL list-escape resolution (\uXXXX, \" ...). The rendered form is symmetric
+// with flatten(r): an empty element renders "{}" and a brace-bearing balanced
+// element gains one quoting level. Returns ok=false when the text parses to
+// no elements at all.
+func renderExpectedList(text string) (string, bool) {
+	// TCL catchsql regex expected values (`{/1 <pattern>/}` — basexx1 118-119,
+	// with2 6.7-6.9) must survive to the catchsql regex-form detection in
+	// emitCatchSQLComparison: decline so the legacy /1-form path keeps them.
+	t := strings.TrimSpace(text)
+	if inner, unwrapped := unwrapSingleBraceGroup(t); unwrapped {
+		t = inner
+	}
+	if strings.HasPrefix(t, "/1") && strings.HasSuffix(t, "/") {
+		return "", false
+	}
+	var parts []string
+	pos := 0
+	for pos < len(text) {
+		pos = skipListSpace(text, pos)
+		// A backslash-newline is a TCL line continuation (semantically a
+		// single space): consume it so elements split correctly.
+		if pos < len(text) && text[pos] == '\\' && pos+1 < len(text) && (text[pos+1] == '\n' || text[pos+1] == '\r') {
+			pos++
+			continue
+		}
+		if pos >= len(text) {
+			break
+		}
+		var elem string
+		switch text[pos] {
+		case '{':
+			el, next := splitListBraced(text, pos)
+			elem = el // braced element: verbatim value (quoting stripped)
+			pos = next
+		case '"':
+			el, next := splitListQuoted(text, pos)
+			elem = el // quoted element: escapes already resolved by the parse
+			pos = next
+		default:
+			start := pos
+			for pos < len(text) && !isListSpace(text[pos]) {
+				pos++
+			}
+			elem = resolveTCLListEscapes(text[start:pos])
+		}
+		parts = append(parts, renderTCLCells(elem))
+	}
+	if len(parts) == 0 {
+		return "", false
+	}
+	return strings.Join(parts, " "), true
+}
+
+// renderTCLCells mirrors the harness's runtime TCL cell rendering
+// (tclRenderCell + tclQuoteListElem in the generated helpers): an empty cell
+// renders as the empty-brace element {} and a cell containing balanced braces
+// (and no newline) gains one TCL list-quoting level. Keeping the generator's
+// rendering in lockstep with the runtime helpers is what makes the emitted
+// want symmetric with flatten(r).
+func renderTCLCells(x string) string {
+	if x == "" {
+		return "{}"
+	}
+	if strings.ContainsAny(x, "{}") && !strings.ContainsAny(x, "\n") && tclBracesBalancedGen(x) {
+		return "{" + x + "}"
+	}
+	return x
+}
+
+// tclBracesBalancedGen reports whether s's braces are balanced (every { is
+// closed by a }, never closing below depth 0) — the generator-side mirror of
+// the helpers template's tclBracesBalanced.
+func tclBracesBalancedGen(s string) bool {
+	depth := 0
+	for i := 0; i < len(s); i++ {
+		switch s[i] {
+		case '{':
+			depth++
+		case '}':
+			depth--
+			if depth < 0 {
+				return false
+			}
+		}
+	}
+	return depth == 0
 }

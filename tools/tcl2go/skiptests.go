@@ -747,6 +747,16 @@ var skipTests = map[string]string{
 	"e_select-4.3.5": "C-API sqlite3_column_count on prepared statement N-A",
 	"e_select-4.3.6": "C-API sqlite3_column_count on prepared statement N-A",
 	"e_select-4.3.7": "C-API sqlite3_column_count on prepared statement N-A",
+	// misc1-19.11/19.12: sqlite3_test_control_fault_install is a C-core
+	// test-control API (test1.c), not SQL surface; the fault-callback counter
+	// cannot exist in a pure-Go engine, so the do_test (whose body is the
+	// untranspiled install call plus a bare variable read) must be skipped,
+	// not emitted as a failing var-vs-literal comparison
+	// (FULL-SUITE-DRIFT.T26-misc; NA_EVIDENCE misc1). The T26 corpus carried
+	// this as a hand edit to testgen/misc1; emitter-side entries make the
+	// skip survive regeneration.
+	"misc1-19.11": "FULL-SUITE-DRIFT.T26-misc N-A sqlite3_test_control_fault_install is a C-core test-control API (test1.c), not SQL surface; the callback counter cannot exist in a pure-Go engine (NA_EVIDENCE misc1)",
+	"misc1-19.12": "FULL-SUITE-DRIFT.T26-misc N-A sqlite3_test_control_fault_install is a C-core test-control API (test1.c), not SQL surface; the callback counter cannot exist in a pure-Go engine (NA_EVIDENCE misc1)",
 }
 
 // skipTestReason looks up a test name in the skipTests data. The map is split

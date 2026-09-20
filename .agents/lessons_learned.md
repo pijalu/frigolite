@@ -7558,3 +7558,34 @@ regenerated; suite net −2274 fails vs pre-tranche baseline (7230 → ~4950).
 - **gofmt drift exists outside the fenced areas** (internal/util/compare.go,
   internal/storage/ptrmap.go at base d142af13b) — leave other agents' files alone
   and report the drift instead of reformatting across cluster boundaries.
+
+## §5d.tcl2go1-fix (2026-09-20) — tcl2go emission-identity fix after full testgen regen
+
+- **Verify "landed" merges by parent count, not by message**: 0b4fd93fd "Merge branch
+  'fleet/q5-tcl2go1' into main" is a SINGLE-PARENT commit whose tree delta is only
+  `.agents/lessons_learned.md` — the whole tcl2go1 emitter refactor (fleet/q5-tcl2go1 @
+  000f8cd40, 20 split files) never landed. `git cat-file -p <merge>` + `git diff A B --
+  <dir>` settles it in seconds.
+- **A hand-edited generated file is a landmine**: T26-misc fixed misc1-19.11/12 by editing
+  testgen/misc1/misc1_test.go directly (skip markers), not the emitter. The first
+  regeneration silently reverted it. Fix the EMITTER (skipTests entries) so the skip
+  survives regen; corpus edits are ephemeral.
+- **The want must be rendered with the same function as the got**: the harness's flatten()
+  renders each cell via tclRenderCell/tclQuoteListElem (empty → {}, brace-bearing balanced
+  value → one extra bracing level). Emitted `want` literals built by unwrapping TCL
+  list-quoting from the expected literal compared UNEQUALLY against that rendering
+  (json101's `{{"a":1}}` vs want `{"a":1}`). The fix models normalizeExpectedWord's braced
+  path as: w.Text IS the list string (the TCL parser already stripped the word braces) →
+  parse elements with provenance (braced = verbatim, quoted = pre-unescaped, bare =
+  resolve escapes) → render each element with a generator-side mirror of tclQuoteListElem.
+  Want/got symmetry by construction beats case-by-case brace bookkeeping.
+- **TCL escape resolution is per quoting form**: braced elements keep backslashes verbatim
+  (json101-9.1's `\"` is JSON data); bare elements resolve them (`c\"1` → `c"1`, e_fts3
+  8.2.2); `\uXXXX`/`\xXX` decode to characters (alter.test's index name `\u1234`);
+  backslash-newline folds to ONE SPACE inside `[list ...]` — resolving it to a bare
+  newline made tcl.ParseCommands split the command and silently DROP the tail elements
+  (types-2.1.8 lost `[list ... \<newline> 9000000000000000000 -9000000000000000000]`).
+- **Baseline-compare regen fixes with a worktree, not memory**: `git worktree add /tmp/base
+  HEAD` + rsync the pre-fix regen in, run the changed-package set on both, diff pass/fail
+  BY PACKAGE NAME (comm on `FAIL\tspam` lines fails — durations differ every run). The
+  73-body-changed set went 34 → 22 failing, 0 new failures.
