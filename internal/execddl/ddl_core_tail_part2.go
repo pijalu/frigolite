@@ -76,18 +76,29 @@ func (e *DDLExecutor) createAutoIndexes(ctx *DatabaseContext, tableName string, 
 	if len(uniq) == 0 {
 		return &Result{}
 	}
+	created := assignAutoIndexSlots(s, uniq)
+	seqs := make([]int, 0, len(created))
+	for _, sq := range created {
+		seqs = append(seqs, sq)
+	}
+	sort.Ints(seqs)
+	for _, sq := range seqs {
+		if err := addAutoIndexEntry(ctx, tableName, sq); err != nil {
+			return &Result{Error: err}
+		}
+	}
+	return &Result{}
+}
+
+// assignAutoIndexSlots walks the table's UNIQUE/PK constraints in creation
+// order and assigns each index-owning constraint the next sqlite_autoindex
+// sequence slot, returning the surviving constraint key → slot map.
+func assignAutoIndexSlots(s *sql.CreateTableStmt, uniq []uniqDef) map[string]int {
 	colType := columnTypeLookup(s)
 	colPKDesc := columnPKDescLookup(s)
 	seen := map[string]bool{} // column-sets covered by an index or the clustered PK
 	created := map[string]int{}
 	seq := 0
-	lowerKey := func(cols []string) string {
-		lowered := make([]string, len(cols))
-		for i, c := range cols {
-			lowered[i] = strings.ToLower(c)
-		}
-		return strings.Join(lowered, ",")
-	}
 	for _, u := range uniq {
 		// A rowid table's INTEGER PRIMARY KEY alias gets no index and
 		// consumes no slot. On WITHOUT ROWID the PK is the clustered key
@@ -96,7 +107,7 @@ func (e *DDLExecutor) createAutoIndexes(ctx *DatabaseContext, tableName string, 
 		if !s.WithoutRowid && u.IsPK && len(u.Cols) == 1 && execdml.IsIPKRowidAliasCol(sql.ColumnDef{PrimaryKey: true, Type: colType(u.Cols[0]), PKDesc: colPKDesc(u.Cols[0])}) {
 			continue
 		}
-		key := lowerKey(u.Cols)
+		key := joinedLowerCols(u.Cols)
 		if u.IsPK && s.WithoutRowid {
 			// The clustered PRIMARY KEY: no entry of its own; absorb an
 			// equivalent index created earlier in the constraint list.
@@ -111,17 +122,17 @@ func (e *DDLExecutor) createAutoIndexes(ctx *DatabaseContext, tableName string, 
 		seen[key] = true
 		created[key] = seq
 	}
-	seqs := make([]int, 0, len(created))
-	for _, sq := range created {
-		seqs = append(seqs, sq)
+	return created
+}
+
+// joinedLowerCols builds the duplicate-detection key for a constraint's
+// column list: a comma join of the lowercased column names.
+func joinedLowerCols(cols []string) string {
+	lowered := make([]string, len(cols))
+	for i, c := range cols {
+		lowered[i] = strings.ToLower(c)
 	}
-	sort.Ints(seqs)
-	for _, sq := range seqs {
-		if err := addAutoIndexEntry(ctx, tableName, sq); err != nil {
-			return &Result{Error: err}
-		}
-	}
-	return &Result{}
+	return strings.Join(lowered, ",")
 }
 
 // collectUniqueDefs gathers UNIQUE and PRIMARY KEY constraints (column-level
@@ -676,34 +687,55 @@ func (e *DDLExecutor) dropTableSequenceEntries(entry *schema.Entry, ctx *Databas
 	}
 	if strings.Contains(strings.ToUpper(seqEntry.SQL), "WITHOUT ROWID") {
 		// Index-leaf cells share synthetic RowID 0: match by decoded name.
-		cursor, err := tree.OpenCursor()
-		if err != nil {
-			return
-		}
-		var toDelete []string
-		for {
-			cell, err := cursor.ReadCell()
-			if err != nil || cell == nil {
-				break
-			}
-			rec, err := storage.DecodeRecord(cell.Payload)
-			if err == nil && rec != nil && len(rec.Values) > 0 {
-				if name, ok := rec.Values[0].(string); ok && strings.EqualFold(name, entry.Name) {
-					toDelete = append(toDelete, string(cell.Payload))
-				}
-			}
-			ok, err := cursor.Next()
-			if err != nil || !ok {
-				break
-			}
-		}
-		for _, payload := range toDelete {
-			_, _ = tree.DeleteCellsWhere(func(c *storage.Cell) bool {
-				return string(c.Payload) == payload
-			})
-		}
+		e.deleteSequenceCellsByName(entry.Name, tree)
 		return
 	}
+	e.deleteSequenceRowsByName(entry.Name, tree)
+}
+
+// deleteSequenceCellsByName removes sqlite_sequence rows from a WITHOUT ROWID
+// sqlite_sequence (planted via writable_schema): cells are matched by decoded
+// name and deleted by payload identity.
+func (e *DDLExecutor) deleteSequenceCellsByName(name string, tree *btree.BTree) {
+	cursor, err := tree.OpenCursor()
+	if err != nil {
+		return
+	}
+	var toDelete []string
+	for {
+		cell, err := cursor.ReadCell()
+		if err != nil || cell == nil {
+			break
+		}
+		if sequenceCellNameMatches(cell.Payload, name) {
+			toDelete = append(toDelete, string(cell.Payload))
+		}
+		if !advanceSequenceCursor(cursor) {
+			break
+		}
+	}
+	for _, payload := range toDelete {
+		_, _ = tree.DeleteCellsWhere(func(c *storage.Cell) bool {
+			return string(c.Payload) == payload
+		})
+	}
+}
+
+// sequenceCellNameMatches decodes a sequence cell's name column and matches
+// it case-insensitively; undecodable cells never match.
+func sequenceCellNameMatches(payload []byte, name string) bool {
+	rec, err := storage.DecodeRecord(payload)
+	if err == nil && rec != nil && len(rec.Values) > 0 {
+		if cellName, ok := rec.Values[0].(string); ok {
+			return strings.EqualFold(cellName, name)
+		}
+	}
+	return false
+}
+
+// deleteSequenceRowsByName removes the named rows from a rowid
+// sqlite_sequence by rowid.
+func (e *DDLExecutor) deleteSequenceRowsByName(name string, tree *btree.BTree) {
 	cursor, err := tree.OpenCursor()
 	if err != nil {
 		return
@@ -714,7 +746,7 @@ func (e *DDLExecutor) dropTableSequenceEntries(entry *schema.Entry, ctx *Databas
 		if !ok {
 			break
 		}
-		if sequenceRowNameMatches(rec, entry.Name) {
+		if sequenceRowNameMatches(rec, name) {
 			toDelete = append(toDelete, cell.RowID)
 		}
 		if !advanceSequenceCursor(cursor) {
