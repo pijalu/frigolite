@@ -228,19 +228,7 @@ func fts5FlatRow(t5 *fts5.Table, rowid int64, values []interface{}, rankFn func(
 // fts5CursorParseRank). Returns handled=false when ref does not name an fts5
 // table.
 func (e *SelectEngine) execFTS5TableFunc(ref sql.TableRef, s *sql.SelectStmt) (*Result, bool) {
-	t5, ok := e.ctx.FTS5Tables()[ref.Name]
-	if !ok {
-		// A fresh connection rehydrates fts5 instances lazily on the first
-		// table lookup (xConnect parity, execddl EnsureFTS5ForTable). The
-		// TVF path consults the instance map before any such lookup runs,
-		// so force the table resolution first — otherwise FROM ft('query')
-		// on a reopened database misses and falls through to "'ft' is not
-		// a function" (fts5connect).
-		entry, _, ferr := e.ctx.FindTable(ref.Name)
-		if ferr == nil && entry != nil {
-			t5, ok = e.ctx.FTS5Tables()[ref.Name]
-		}
-	}
+	t5, ok := e.resolveFTS5Table(ref.Name)
 	if !ok {
 		return nil, false
 	}
@@ -250,55 +238,14 @@ func (e *SelectEngine) execFTS5TableFunc(ref sql.TableRef, s *sql.SelectStmt) (*
 	if len(ref.Args) > 2 {
 		return &Result{Error: fmt.Errorf("too many arguments on %s() - max 2", t5.Name())}, true
 	}
-	matched := make(map[int64]bool)
-	var firstQuery string
-	var rankOverride *fts5.RankSpec
-	for i, arg := range ref.Args {
-		v, err := e.ctx.EvalExpr(arg, nil)
-		if err != nil {
-			return &Result{Error: err}, true
-		}
-		switch i {
-		case 0:
-			// The table-name hidden column: the argument's text form is the
-			// MATCH query (xFilter's fts5ExtractExprText renders the value
-			// with sqlite3_value_text; NULL becomes "").
-			q := fts5TVFArgText(v)
-			set, merr := t5.MatchRowids(q, -1)
-			if merr != nil {
-				return &Result{Error: merr}, true
-			}
-			firstQuery = q
-			for rowid := range set {
-				matched[rowid] = true
-			}
-		case 1:
-			// The rank hidden column: the per-cursor rank function spec.
-			spec, rerr := fts5TVFRankSpec(v)
-			if rerr != nil {
-				return &Result{Error: rerr}, true
-			}
-			rankOverride = spec
-		}
+	matched, firstQuery, rankOverride, err := e.applyFTS5TVFArgs(t5, ref.Args)
+	if err != nil {
+		return &Result{Error: err}, true
 	}
 	hasArgs := len(ref.Args) > 0
-	aq := t5.NewScanAux()
-	if firstQuery != "" && strings.HasPrefix(firstQuery, "*") {
-		// A special query ('*id'/'*reads'): xFilter never parses an
-		// expression for it and the cursor is FTS5_PLAN_SPECIAL, so every
-		// aux call fails with "no such cursor" (fts5misc 2.x). The cursor
-		// carries the special value ('*id' -> its own id).
-		sv, serr := t5.SpecialCursorValue(firstQuery, csrID)
-		if serr != nil {
-			return &Result{Error: serr}, true
-		}
-		aq = t5.NewSpecialAux(sv)
-	} else if firstQuery != "" {
-		prepared, perr := t5.PrepareAux(firstQuery, -1)
-		if perr != nil {
-			return &Result{Error: perr}, true
-		}
-		aq = prepared
+	aq, aerr := e.fts5TVFAux(t5, firstQuery, csrID)
+	if aerr != nil {
+		return &Result{Error: aerr}, true
 	}
 	// A WHERE rank override applies to the TVF form too ("FROM tt('a') WHERE
 	// rank = 'bm25()'"); the TVF's own rank argument wins when both exist.
@@ -311,36 +258,16 @@ func (e *SelectEngine) execFTS5TableFunc(ref sql.TableRef, s *sql.SelectStmt) (*
 			rankOverride = whereOverride
 		}
 	}
-	var rankFn func(int64) (interface{}, error)
-	if firstQuery != "" && statementReadsFTS5Rank(s, t5.Name()) {
-		spec := &t5.Config().Rank
-		if rankOverride != nil {
-			spec = rankOverride
-		}
-		rankFn = func(rowid int64) (interface{}, error) {
-			return t5.RankValue(spec, aq, rowid)
-		}
-	}
+	rankFn := e.fts5TVFRankFn(t5, aq, firstQuery, rankOverride, s)
 	e.ctx.SetFTS5Aux(t5.Name(), aq)
 	defer e.ctx.ClearFTS5Aux()
 	colDefs := fts5ColDefs(t5)
 	if hasArgs {
 		// Index-driven universe: the TVF's MATCH arguments select the
 		// documents (external-content index-only rows included).
-		rowids := t5.SortedMatchRowids(matched)
-		var outIDs []int64
-		var rows [][]interface{}
-		for _, rowid := range rowids {
-			vals, verr := t5.DocValues(rowid)
-			if verr != nil {
-				return &Result{Error: verr}, true
-			}
-			flat, rerr := fts5FlatRow(t5, rowid, vals, rankFn)
-			if rerr != nil {
-				return &Result{Error: rerr}, true
-			}
-			outIDs = append(outIDs, rowid)
-			rows = append(rows, flat)
+		outIDs, rows, rerr := fts5TVFMatchedRows(t5, matched, rankFn)
+		if rerr != nil {
+			return &Result{Error: rerr}, true
 		}
 		return e.execSelectOverMaterializedRowids(s, colDefs, rows, outIDs), true
 	}
@@ -349,6 +276,116 @@ func (e *SelectEngine) execFTS5TableFunc(ref sql.TableRef, s *sql.SelectStmt) (*
 		return &Result{Error: err}, true
 	}
 	return e.execSelectOverMaterializedRowids(s, colDefs, rows, rowids), true
+}
+
+// resolveFTS5Table resolves an fts5 table by name. A fresh connection
+// rehydrates fts5 instances lazily on the first table lookup (xConnect parity,
+// execddl EnsureFTS5ForTable). The TVF path consults the instance map before
+// any such lookup runs, so the table resolution is forced first — otherwise
+// FROM ft('query') on a reopened database misses and falls through to "'ft'
+// is not a function" (fts5connect).
+func (e *SelectEngine) resolveFTS5Table(name string) (*fts5.Table, bool) {
+	t5, ok := e.ctx.FTS5Tables()[name]
+	if ok {
+		return t5, true
+	}
+	entry, _, ferr := e.ctx.FindTable(name)
+	if ferr == nil && entry != nil {
+		t5, ok = e.ctx.FTS5Tables()[name]
+	}
+	return t5, ok
+}
+
+// applyFTS5TVFArgs evaluates the TVF's hidden-column arguments: argument 0 is
+// the MATCH query (its rowid set seeds the document universe), argument 1 the
+// per-cursor rank function specification.
+func (e *SelectEngine) applyFTS5TVFArgs(t5 *fts5.Table, args []sql.Expr) (map[int64]bool, string, *fts5.RankSpec, error) {
+	matched := make(map[int64]bool)
+	var firstQuery string
+	var rankOverride *fts5.RankSpec
+	for i, arg := range args {
+		v, err := e.ctx.EvalExpr(arg, nil)
+		if err != nil {
+			return nil, "", nil, err
+		}
+		switch i {
+		case 0:
+			// The table-name hidden column: the argument's text form is the
+			// MATCH query (xFilter's fts5ExtractExprText renders the value
+			// with sqlite3_value_text; NULL becomes "").
+			q := fts5TVFArgText(v)
+			set, merr := t5.MatchRowids(q, -1)
+			if merr != nil {
+				return nil, "", nil, merr
+			}
+			firstQuery = q
+			for rowid := range set {
+				matched[rowid] = true
+			}
+		case 1:
+			// The rank hidden column: the per-cursor rank function spec.
+			spec, rerr := fts5TVFRankSpec(v)
+			if rerr != nil {
+				return nil, "", nil, rerr
+			}
+			rankOverride = spec
+		}
+	}
+	return matched, firstQuery, rankOverride, nil
+}
+
+// fts5TVFAux prepares the scan's aux-data handle: a special-query cursor for
+// '*id'/'*reads' queries, a prepared expression otherwise. A special query
+// ('*id'/'*reads') never parses an expression in xFilter and the cursor is
+// FTS5_PLAN_SPECIAL, so every aux call fails with "no such cursor" (fts5misc
+// 2.x); the cursor carries the special value ('*id' -> its own id).
+func (e *SelectEngine) fts5TVFAux(t5 *fts5.Table, firstQuery string, csrID int64) (*fts5.AuxQuery, error) {
+	if firstQuery != "" && strings.HasPrefix(firstQuery, "*") {
+		sv, serr := t5.SpecialCursorValue(firstQuery, csrID)
+		if serr != nil {
+			return nil, serr
+		}
+		return t5.NewSpecialAux(sv), nil
+	}
+	if firstQuery != "" {
+		return t5.PrepareAux(firstQuery, -1)
+	}
+	return t5.NewScanAux(), nil
+}
+
+// fts5TVFRankFn builds the rank pseudo-column callback when the statement
+// reads rank and a MATCH query exists; nil otherwise.
+func (e *SelectEngine) fts5TVFRankFn(t5 *fts5.Table, aq *fts5.AuxQuery, firstQuery string, rankOverride *fts5.RankSpec, s *sql.SelectStmt) func(int64) (interface{}, error) {
+	if firstQuery == "" || !statementReadsFTS5Rank(s, t5.Name()) {
+		return nil
+	}
+	spec := &t5.Config().Rank
+	if rankOverride != nil {
+		spec = rankOverride
+	}
+	return func(rowid int64) (interface{}, error) {
+		return t5.RankValue(spec, aq, rowid)
+	}
+}
+
+// fts5TVFMatchedRows materializes the MATCH-selected documents in rowid order.
+func fts5TVFMatchedRows(t5 *fts5.Table, matched map[int64]bool, rankFn func(int64) (interface{}, error)) ([]int64, [][]interface{}, error) {
+	rowids := t5.SortedMatchRowids(matched)
+	var outIDs []int64
+	var rows [][]interface{}
+	for _, rowid := range rowids {
+		vals, verr := t5.DocValues(rowid)
+		if verr != nil {
+			return nil, nil, verr
+		}
+		flat, rerr := fts5FlatRow(t5, rowid, vals, rankFn)
+		if rerr != nil {
+			return nil, nil, rerr
+		}
+		outIDs = append(outIDs, rowid)
+		rows = append(rows, flat)
+	}
+	return outIDs, rows, nil
 }
 
 // fts5TVFArgText renders a TVF argument value the way xFilter's
@@ -486,17 +523,8 @@ func walkForFTS5Match(expr sql.Expr, t5 *fts5.Table) bool {
 	}
 	switch n := expr.(type) {
 	case *sql.BinaryOp:
-		if n.Operator == "MATCH" {
-			if ref, ok := n.Left.(*sql.ColumnRef); ok {
-				if strings.EqualFold(ref.Name, t5.Name()) || strings.EqualFold(ref.Table, t5.Name()) {
-					return true
-				}
-				// A column-restricted MATCH (a MATCH 'x') is a table
-				// constraint too (fts5MatchConstraintColumn's col resolution).
-				if t5.ColumnIndex(ref.Name) >= 0 {
-					return true
-				}
-			}
+		if n.Operator == "MATCH" && matchRefMatchesTable(n.Left, t5) {
+			return true
 		}
 		if walkForFTS5Match(n.Left, t5) || walkForFTS5Match(n.Right, t5) {
 			return true
@@ -505,4 +533,16 @@ func walkForFTS5Match(expr sql.Expr, t5 *fts5.Table) bool {
 		return walkForFTS5Match(n.Operand, t5)
 	}
 	return false
+}
+
+// matchRefMatchesTable reports whether a MATCH op's left operand references
+// the table: bare or qualified table name, or one of its user columns (a
+// column-restricted MATCH 'x' is a table constraint too —
+// fts5MatchConstraintColumn's col resolution).
+func matchRefMatchesTable(left sql.Expr, t5 *fts5.Table) bool {
+	ref, ok := left.(*sql.ColumnRef)
+	if !ok {
+		return false
+	}
+	return strings.EqualFold(ref.Name, t5.Name()) || strings.EqualFold(ref.Table, t5.Name()) || t5.ColumnIndex(ref.Name) >= 0
 }
