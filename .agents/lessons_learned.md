@@ -7493,3 +7493,39 @@ regenerated; suite net −2274 fails vs pre-tranche baseline (7230 → ~4950).
   balanceCoversSingleSurvivor's free loop vs balanceAllEmptyWindow's re-free).
 - **Pre-existing ≠ fixed**: fts4merge (4.1/4.2 datatype-mismatch/mismatch) was already
   adjudicated pre-existing at the T27 census — do not absorb it into a btree fix.
+
+## §5d.funcjson (2026-09-19) — quality-closure refactoring of internal/function (JSON1/JSONB) + sql
+
+- **Package-local tests are NOT enough for pure-refactor confidence**: the function
+  package's own tests stayed green while a refactored `fnJSON_TYPE` nil-path
+  regressed (jsonTypeName(nil) SIGSEGV) that only testgen/json102 caught, and a
+  refactored `globMatchClass` flipped `a GLOB '[^'` from false to true that only a
+  differential test caught. For any nontrivial extraction, run (a) the coupled
+  testgen suites immediately, and (b) a differential test: compile the ORIGINAL
+  function (from `git show <base>:<file>`, renamed with sed) next to the new one
+  and fuzz both. The glob differential (500k random class patterns) found the
+  unterminated-inverted-class verdict bug in one run; the harness never hits it.
+- **Differential-test recipe that worked**: extract the old body by awk from the
+  base commit (`index($0,pat)==1` start, stop at a bare `}` line), rename the
+  symbol with sed (`s/func X/func oldX/`), prepend `package function` + the imports
+  the old body used, and fuzz old-vs-new with a seeded rng. Do it BEFORE committing,
+  not after.
+- **Extracting a helper that appends to a []byte MUST return the updated slice**:
+  `appendText5Hex2(sb, …) (int, error)` dropped the returned sb, so the `\xHH`
+  bytes vanished whenever append did not realloc in place. staticcheck SA4006
+  ("value of sb is never used") catches exactly this — run staticcheck after every
+  extraction batch, not just at the end.
+- **Table-driving a big switch**: gocyclo counts each case clause (+1) plus every
+  `&&`/`||`; a 12-case switch over element types still lands at 13-15. Split
+  scalar/container dispatch first (`t <= 10 → scalar; t == 11 → array; else
+  object`), move fixed byte-sequence lookups into `map[[3]byte]int` tables, and
+  hoist range predicates into tiny helpers — each piece then lands ≤ 12.
+- **State-machine closures → explicit (value, nextIndex) helpers**: rewriting
+  closure-based scanners (globMatchClass's `next()`/`at()`) as helpers returning
+  `(rune, int)` is mechanical ONLY if you keep the termination semantics inside
+  the helper; hoisting a "seen/invert" verdict to the caller changed behavior for
+  the unterminated case because the caller re-evaluated it. Return the VERDICT,
+  not the raw state.
+- **gofmt drift exists outside the fenced areas** (internal/util/compare.go,
+  internal/storage/ptrmap.go at base d142af13b) — leave other agents' files alone
+  and report the drift instead of reformatting across cluster boundaries.
