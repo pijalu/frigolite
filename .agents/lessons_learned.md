@@ -7589,3 +7589,44 @@ regenerated; suite net −2274 fails vs pre-tranche baseline (7230 → ~4950).
   HEAD` + rsync the pre-fix regen in, run the changed-package set on both, diff pass/fail
   BY PACKAGE NAME (comm on `FAIL\tspam` lines fails — durations differ every run). The
   73-body-changed set went 34 → 22 failing, 0 new failures.
+
+## FULL-SUITE-DRIFT.T29-engine4 discoveries (2026-09-20, fleet agent ENGINE4)
+
+- **Trigger firing is pTabSchema-scoped, not name-scoped (trigger.c
+  sqlite3TriggerList)**: a trigger is bound to the table AND schema named in
+  its ON clause; the TEMP schema stores triggers ON main.t4/temp.t4/aux.t4
+  side by side under one TblName, so `FindTriggersForTable(name)` on the
+  temp schema over-fires (trigger1-10.4: INSERT INTO temp.t4 fired all three
+  temp triggers). Fix: filter own-schema trigger lookups by the ON-table
+  schema qualifier (execdml.TriggerTargetsSchema / TriggerOnTableSchema).
+  DROP TABLE's trigger cascade must apply the SAME resolution in REVERSE
+  (build.c sqlite3CodeDropTable drops sqlite3TriggerList — including TEMP
+  triggers ON the dropped table — each from its OWNING schema; alter-3.3.8).
+- **func.c sumStep classifies inputs with sqlite3_value_numeric_type**
+  (vdbe.c applyNumericAffinity, bTryForInt=0): numeric TEXT becomes INTEGER
+  (integer-looking, lossless) or REAL (decimal/exponent/over-range text);
+  sumFinalize returns int64 unless approx. TEXT columns holding numeric text
+  must sum to INTEGER (misc1-2.2: `8` not `8.0`). BLOB/non-numeric text are
+  COUNTED as 0.0 (sqlite3_value_double) — sum over x'4142' is 0.0 real and
+  avg's denominator includes them (oracle-verified); they are NOT skipped.
+  sum/total/avg share sumStep — fix all three Steps at once (KBN rErr folds
+  in totalFinalize/avgFinalize).
+- **Row-map collation wrappers poison delete-identity keys**: the DELETE
+  scan wraps row values as *execexpr.CollatedValue{*util.ColumnValue{...}};
+  util.UnwrapColumnValue peels only the inner layer, so WITHOUT ROWID PK-key
+  matching (WRCellMatchesPKKeys/wrValuesEqual) compared a wrapper against a
+  raw string and NEVER matched — `DELETE FROM t` reported changes=N but
+  deleted nothing (without_rowid3-12.2.4's t1 = NOCASE PK WR table; the
+  AFTER trigger's repair-inserts then landed as duplicates → [A,A,B,B]).
+  Fix: unwrapDMLValue (execdml delete.go) peeling both layers, mirroring
+  execconstraint.unwrapRowValue (e_fkey-52.x). Symptom signature: DELETE
+  err=nil, changes>0, rows persist after REOPEN (write lost = match never
+  matched, NOT a pager fault). Debug trap: multi-row t.Logf output gets
+  silently truncated by grep filters — join rows with "," before logging.
+- **Known adjacent defect (NOT fixed here, out of scope)**: `CREATE TABLE
+  aux.t4` after `CREATE TABLE temp.t4` fails with "table t4 already exists"
+  in the root-package environment (aux exists-check resolves the temp
+  shadow). Pre-existing at 3fcb5cea4 (verified via stash). The trigger1
+  testgen harness passes the same sequence, so the tcl2go environment masks
+  it; repro is frigolite_engine4-style: Open, ATTACH test2.db AS aux,
+  CREATE TABLE temp.t4, then CREATE TABLE aux.t4.
