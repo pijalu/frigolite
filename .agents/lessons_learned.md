@@ -7763,3 +7763,63 @@ regenerated; suite net −2274 fails vs pre-tranche baseline (7230 → ~4950).
 - **fts4merge 5.x datatype-mismatch and fts4growth 4.1/4.2 diverges are
   pre-existing on main** (adjudicated at the T27 census) — do not absorb them
   into a refactor.
+
+## §5d.exec3b — exec core + parse + tclconvert sweep (2026-09-21, branch q5-exec3b)
+- **fireTriggers returns a NON-NIL Result with a NIL Error on success** (also
+  execInsertOnConflict's trigger paths). Any extracted helper that funnels a
+  trigger result into "res != nil means abort" silently stops loops after the
+  first row — caught only because testgen/insert + without_rowid3 went red
+  (bulk DELETE stopped after row 1). The original monolith's
+  `if trigResult.Error != nil` check is load-bearing; preserve the
+  `.Error != nil` test at every extraction boundary.
+- **Defers pin the frame they are declared in.** execInsertInner/execUpdateInner
+  interleave five defers (CTE pop, outer-conflict restore, DML-ctx restore,
+  ResetAutoIncSeq, pushUpdateSetColumns). Moving a `defer` into an extracted
+  helper fires it at HELPER return — the ResetAutoIncSeq defer almost moved
+  this way. Patterns that work: (a) keep the defer registration inline and
+  extract only the closure BODY into a method taking `ret **Result`
+  (flushInsertFTS5Shadow, writeAutoIncSeqOnSuccess); (b) return the cleanup
+  closure from a setup helper (`defer e.autoIncStatementSetup(...)()` /
+  withInsertReplaceSnapshot's existing pattern), which also removes the nil
+  check by returning a no-op func.
+- **gocognit -d -json shows per-construct increments** — use it instead of
+  guessing where the weight is (nesting doubles ifs inside loops; a 5-case
+  state machine switch costs ~20). For flat guard chains, merging sequential
+  `if res != nil; return` pairs into one precheck helper and moving
+  validations into predicates (`shouldPublishOuterConflict`) is what actually
+  moves the number. 15 is a hard wall: a helper that still owns >4 nested
+  ifs needs another split.
+- **Directory args don't work with gocognit/gocyclo (no /...), and zsh does
+  not word-split $(find)** — count with bash and an explicit file list, and
+  EXCLUDE _test.go: the protocol counts (49/51 etc.) are non-test files only;
+  counting with test files inflates parse/tclconvert numbers (15/9 vs 10/7).
+- **Step-classifier extraction pattern** (bareWordStep style) fits scanners:
+  loop keeps only the cursor walk; a helper classifies one position and
+  returns (nextIndex, newState..., stop). Tri-state needed when one early-exit
+  is a BREAK and another is a CONTINUE (deleteScanRow's stop vs row==nil —
+  first attempt made decode-error continue scanning; regression).
+- **The 10-minute default `go test .` timeout panics mid-suite** on this
+  machine — always run the root suite with `-timeout 45m`. HEAD-baseline
+  runs must come from a scratch worktree, but generated fixtures
+  (tools/orafixture, testdata/walconformance/*.db) are untracked and
+  worktree-local, so 4-5 root failures are environment artifacts
+  (TestNativeBtreeDivider/WalCheckpointFixture, TestWALConformanceReadParity,
+  TestBackupConformance) — adjudicate per-test, not by failure count.
+- **Pre-existing at HEAD 754fd919e (45m run, scratch worktree)**:
+  TestBackupConformance, TestSQLiteSuite, TestP5AnalyzeReindex,
+  TestNativeBtreeDividerFixtureReference, TestNativeWalCheckpointPassiveFixture
+  Reference, TestWALConformanceReadParity, TestWindowCGroupConcatBlobUTF16;
+  testgen bind Test_bind (bind_test.go:832/:921 result mismatches).
+- **This tranche's verified-done vs remaining**: tclconvert 4/4→0/0 (+interp.go
+  split, corpus regen byte-identical); parse 10/7→0/0 (+3 rule files split);
+  execdml 52/38→34/25 (+insert_conflict_scan 1009→674/199/160,
+  insert_exec 1114→760/366). REMAINING: execdml update family
+  (execUpdateInner 45 needs a defer-frame-preserving phase split,
+  runPlainUpdatePerRow 39, resolveUpdateNotNullConflicts 33, wr_order trio,
+  update.go quintet, insert.go quintet, or.go, update_apply.go set),
+  and internal/exec untouched at 49/51 (62 distinct functions, catalog in
+  /tmp/q5exec3b/gnt_internal_exec.txt + gcy_internal_exec.txt).
+- **tclconvert zero-behavior proof**: build HEAD binary in a scratch worktree
+  (NOT stash — stash without -u leaves untracked new files behind and the
+  failed build chain skips the pop), regenerate ori/sqlite/test corpus with
+  both binaries into separate outdirs, diff -rq. Byte-identical = safe.
