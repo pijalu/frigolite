@@ -48,8 +48,8 @@ type fileEntry struct {
 	deleteOnClose bool
 	// stdio state (db files leave these zero)
 	pos     int64
-	rawSize int64   // true on-disk size (after flush)
-	buf     []byte  // pending write buffer
+	rawSize int64    // true on-disk size (after flush)
+	buf     []byte   // pending write buffer
 	f       *os.File // backing file for stdio entries
 }
 
@@ -199,135 +199,198 @@ func findGroupLocked(name string) *group {
 // ']', '*', '?'), a '/' in the pattern matches either '/' or '\\' in the
 // name, and '\\' escapes the next pattern character.
 func Strglob(zGlob, z string) bool {
-	var c, c2, cx byte
-	var invert, seen bool
 	for len(zGlob) > 0 {
-		c = zGlob[0]
+		c := zGlob[0]
 		zGlob = zGlob[1:]
-		if c == '*' {
-			// Consume consecutive '*' and '?'; '?' consumes one name char.
-			c = 0
-			for len(zGlob) > 0 {
-				c = zGlob[0]
-				zGlob = zGlob[1:]
-				if c != '*' && c != '?' {
-					break
-				}
-				if c == '?' {
-					if len(z) == 0 {
-						return false
-					}
-					z = z[1:]
-				}
-				c = 0
+		switch {
+		case c == '*':
+			return strglobStar(zGlob, z)
+		case c == '?':
+			var ok bool
+			z, ok = strglobQuestion(z)
+			if !ok {
+				return false
 			}
-			if c == 0 {
-				return true
+		case c == '[':
+			var ok bool
+			zGlob, z, ok = strglobClass(zGlob, z)
+			if !ok {
+				return false
 			}
-			if c == '[' {
-				// C: quotaStrglob(zGlob-1, z) — the recursive call
-				// re-processes the '[' class at each position.
-				for len(z) > 0 && !Strglob("["+zGlob, z) {
-					z = z[1:]
-				}
-				return len(z) > 0
+		default:
+			var ok bool
+			z, ok = strglobLiteral(c, z)
+			if !ok {
+				return false
 			}
-			// cx: the alternate character a '/' pattern char matches.
-			if c == '/' {
-				cx = '\\'
-			} else {
-				cx = c
-			}
-			for {
-				for len(z) > 0 && z[0] != c && z[0] != cx {
-					z = z[1:]
-				}
-				if len(z) == 0 {
-					return false
-				}
-				if Strglob(zGlob, z[1:]) {
-					return true
-				}
-				z = z[1:]
-			}
-		} else if c == '?' {
+		}
+	}
+	return len(z) == 0
+}
+
+// strglobQuestion consumes one name char for a '?' atom ('/' included, as in
+// C); ok=false when the name is exhausted.
+func strglobQuestion(z string) (string, bool) {
+	if len(z) == 0 {
+		return z, false
+	}
+	return z[1:], true
+}
+
+// strglobLiteral matches one literal pattern char; a '/' in the pattern
+// matches either '/' or '\\' in the name. ok=false on mismatch.
+func strglobLiteral(c byte, z string) (string, bool) {
+	if len(z) == 0 {
+		return z, false
+	}
+	if c == '/' {
+		if z[0] == '/' || z[0] == '\\' {
+			return z[1:], true
+		}
+		return z, false
+	}
+	if z[0] != c {
+		return z, false
+	}
+	return z[1:], true
+}
+
+// strglobStar handles one '*' pattern atom: consecutive '*'/'?' are
+// consumed ('?' eats one name char), then the remainder must match some
+// suffix of z (quotaStrglob's star branch).
+func strglobStar(zGlob, z string) bool {
+	for len(zGlob) > 0 {
+		c := zGlob[0]
+		zGlob = zGlob[1:]
+		if c != '*' && c != '?' {
+			return strglobStarTail(c, zGlob, z)
+		}
+		if c == '?' {
 			if len(z) == 0 {
-				return false
-			}
-			z = z[1:]
-		} else if c == '[' {
-			priorC := byte(0)
-			seen = false
-			invert = false
-			if len(z) == 0 {
-				return false
-			}
-			c = z[0]
-			z = z[1:]
-			if len(zGlob) == 0 {
-				return false
-			}
-			c2 = zGlob[0]
-			zGlob = zGlob[1:]
-			if c2 == '^' {
-				invert = true
-				if len(zGlob) == 0 {
-					return false
-				}
-				c2 = zGlob[0]
-				zGlob = zGlob[1:]
-			}
-			if c2 == ']' {
-				if c == ']' {
-					seen = true
-				}
-				if len(zGlob) == 0 {
-					return false
-				}
-				c2 = zGlob[0]
-				zGlob = zGlob[1:]
-			}
-			for c2 != 0 && c2 != ']' {
-				if c2 == '-' && len(zGlob) > 0 && zGlob[0] != ']' && priorC > 0 {
-					if len(zGlob) == 0 {
-						return false
-					}
-					c2 = zGlob[0]
-					zGlob = zGlob[1:]
-					if c >= priorC && c <= c2 {
-						seen = true
-					}
-					priorC = 0
-				} else {
-					if c == c2 {
-						seen = true
-					}
-					priorC = c2
-				}
-				if len(zGlob) == 0 {
-					c2 = 0
-					break
-				}
-				c2 = zGlob[0]
-				zGlob = zGlob[1:]
-			}
-			// C: (seen ^ invert)==0 → fail.
-			if c2 == 0 || seen == invert {
-				return false
-			}
-		} else if c == '/' {
-			if len(z) == 0 || (z[0] != '/' && z[0] != '\\') {
-				return false
-			}
-			z = z[1:]
-		} else {
-			if len(z) == 0 || z[0] != c {
 				return false
 			}
 			z = z[1:]
 		}
 	}
-	return len(z) == 0
+	return true
+}
+
+// strglobStarTail matches the atom following a star run against every suffix
+// of z; see strglobStar.
+func strglobStarTail(c byte, zGlob, z string) bool {
+	if c == '[' {
+		// C: quotaStrglob(zGlob-1, z) — the recursive call
+		// re-processes the '[' class at each position.
+		for len(z) > 0 && !Strglob("["+zGlob, z) {
+			z = z[1:]
+		}
+		return len(z) > 0
+	}
+	// cx: the alternate character a '/' pattern char matches.
+	cx := c
+	if c == '/' {
+		cx = '\\'
+	}
+	for {
+		for len(z) > 0 && z[0] != c && z[0] != cx {
+			z = z[1:]
+		}
+		if len(z) == 0 {
+			return false
+		}
+		if Strglob(zGlob, z[1:]) {
+			return true
+		}
+		z = z[1:]
+	}
+}
+
+// strglobClassOpen consumes the class opener: the compared name char, an
+// optional '^' negation marker, and a literal ']' first member. Returns the
+// compared char c, the first member atom c2, the remaining pattern/name, the
+// invert flag, the initial seen verdict, and ok=false when the pattern or
+// name truncates mid-class.
+func strglobClassOpen(zGlob, z string) (c, c2 byte, ng, nz string, invert, seen bool, ok bool) {
+	if len(z) == 0 {
+		return 0, 0, zGlob, z, false, false, false
+	}
+	c = z[0]
+	nz = z[1:]
+	if len(zGlob) == 0 {
+		return 0, 0, zGlob, nz, false, false, false
+	}
+	c2 = zGlob[0]
+	ng = zGlob[1:]
+	if c2 == '^' {
+		invert = true
+		if len(ng) == 0 {
+			return 0, 0, zGlob, nz, false, false, false
+		}
+		c2 = ng[0]
+		ng = ng[1:]
+	}
+	if c2 == ']' {
+		if c == ']' {
+			seen = true
+		}
+		if len(ng) == 0 {
+			return 0, 0, zGlob, nz, invert, seen, false
+		}
+		c2 = ng[0]
+		ng = ng[1:]
+	}
+	return c, c2, ng, nz, invert, seen, true
+}
+
+// strglobClass matches one "[...]" character class ('^' negation, ranges,
+// a literal ']' first member) and returns the remaining pattern/name plus
+// whether the class matched; see Strglob.
+func strglobClass(zGlob, z string) (string, string, bool) {
+	c, c2, zGlob, z, invert, seen, ok := strglobClassOpen(zGlob, z)
+	if !ok {
+		return zGlob, z, false
+	}
+	priorC := byte(0)
+	for c2 != 0 && c2 != ']' {
+		var ok bool
+		zGlob, ok = strglobClassMember(zGlob, c, c2, &priorC, &seen)
+		if !ok {
+			return zGlob, z, false
+		}
+		if len(zGlob) == 0 {
+			c2 = 0
+			break
+		}
+		c2 = zGlob[0]
+		zGlob = zGlob[1:]
+	}
+	// C: (seen ^ invert)==0 → fail.
+	if c2 == 0 || seen == invert {
+		return zGlob, z, false
+	}
+	return zGlob, z, true
+}
+
+// strglobClassMember tests one class member (or range) against c and returns
+// the advanced pattern plus whether to keep scanning; see strglobClass.
+func strglobClassMember(zGlob string, c, c2 byte, priorC *byte, seen *bool) (string, bool) {
+	if c2 == '-' && len(zGlob) > 0 && zGlob[0] != ']' && *priorC > 0 {
+		if len(zGlob) == 0 {
+			return zGlob, false
+		}
+		c2 = zGlob[0]
+		zGlob = zGlob[1:]
+		if c >= *priorC && c <= c2 {
+			*seen = true
+		}
+		*priorC = 0
+		return zGlob, true
+	}
+	if c == c2 {
+		*seen = true
+	}
+	*priorC = c2
+	return zGlob, true
 }
 
 // RegisterDBFile records a database file opened by the pager (test_quota.c

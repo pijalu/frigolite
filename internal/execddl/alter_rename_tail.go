@@ -285,7 +285,7 @@ func sqlQuoteIdentifier(name string) string {
 }
 
 // quotedSpansOf returns the [start, end) byte offsets of every quoted span in
-// sql: single-quoted string literals ('' escape), double-quoted identifiers
+// sql: single-quoted string literals (” escape), double-quoted identifiers
 // ("" escape), backtick-quoted and bracket-quoted identifiers. Callers use it
 // to keep string-replacement passes out of quoted text (a bare old-name match
 // inside a quoted identifier or literal must never be rewritten).

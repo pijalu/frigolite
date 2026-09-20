@@ -6,6 +6,7 @@ package execddl
 
 import (
 	"fmt"
+	"github.com/pijalu/frigolite/internal/btree"
 
 	"sort"
 	"strconv"
@@ -38,6 +39,15 @@ type segReader struct {
 // each row is first re-staged at (level=-1, idx=0..N-1) in (level DESC, idx
 // ASC) order, then all staged rows become level=outLevel. Rows are rewritten
 // in place under their own rowid (btree replace).
+// ftsPromotionRow mirrors one %_segdir row during segment promotion.
+type ftsPromotionRow struct {
+	rowid  int64
+	level  int
+	idx    int
+	size   int64
+	values []interface{}
+}
+
 func (e *DDLExecutor) promoteFTSSegments(tableName string, ftsTable *fts.FTS3Table, outLevel, nLeafData int) {
 	if nLeafData <= 0 {
 		return
@@ -52,14 +62,35 @@ func (e *DDLExecutor) promoteFTSSegments(tableName string, ftsTable *fts.FTS3Tab
 	if cerr != nil {
 		return
 	}
-	type promoRow struct {
-		rowid  int64
-		level  int
-		idx    int
-		size   int64
-		values []interface{}
+	candidates := e.collectPromotionCandidates(cursor, outLevel)
+	if len(candidates) == 0 {
+		return
 	}
-	var candidates []promoRow
+	limit := (int64(nLeafData) * 3) / 2
+	if !promotionAllowed(candidates, outLevel, limit) {
+		return
+	}
+	// (level DESC, idx ASC) — SQL_SELECT_LEVEL_RANGE2's order; the oldest
+	// segment becomes idx 0 at the promoted level.
+	sort.SliceStable(candidates, func(i, j int) bool {
+		if candidates[i].level != candidates[j].level {
+			return candidates[i].level > candidates[j].level
+		}
+		return candidates[i].idx < candidates[j].idx
+	})
+	rewritePromotedRows(tree, candidates, outLevel)
+	// Promoted levels' writer state is stale: drop it so the next merge at
+	// outLevel starts fresh outputs instead of appending to moved segments.
+	ftsTable.InvalidateSegmentCacheKeepMergeCtx()
+	for _, c := range candidates {
+		ftsTable.ClearMergeCtx(c.level)
+	}
+}
+
+// collectPromotionCandidates scans the %_segdir rows eligible for promotion
+// (the outLevel band, same index only); see promoteFTSSegments.
+func (e *DDLExecutor) collectPromotionCandidates(cursor *btree.Cursor, outLevel int) []ftsPromotionRow {
+	var candidates []ftsPromotionRow
 	for {
 		cell, rerr := cursor.ReadCell()
 		if rerr != nil || cell == nil {
@@ -74,65 +105,72 @@ func (e *DDLExecutor) promoteFTSSegments(tableName string, ftsTable *fts.FTS3Tab
 		if !lvOK || !ixOK {
 			continue
 		}
-		// Same index only: absolute levels within this group's 1024-level
-		// band (fts3PromoteSegments binds SQL_SELECT_LEVEL_RANGE2 with
-		// iLast = next index's base - 1). Levels >= outLevel are all
-		// renumbered — SQLite's fts3PromoteSegments renumbers EVERY row
-		// from iAbsLevel up (SQL_SELECT_LEVEL_RANGE2 WHERE level BETWEEN
-		// iAbsLevel AND iLast), not just the higher ones, so the promoted
-		// rows and the output level's existing rows share one sequential
-		// idx sequence (otherwise the staged idx 0.. collides with the
-		// output level's own rows — duplicate (level, idx), fts4merge4
-		// tx19: L1 = [i0 i1 i0 i2]).
-		promoBase := (outLevel / 1024) * 1024
-		if int(lv) < outLevel || int(lv) >= promoBase+1024 {
-			if ok, nerr := cursor.Next(); nerr != nil || !ok {
-				break
-			}
-			continue
-		}
-		// Segment size from end_block's "<end> <size>" text suffix
-		// (fts3ReadEndBlockField). Missing/zero blocks the whole promotion.
-		// Only HIGHER levels are size-checked (the output level's rows stay).
-		var size int64
-		if int(lv) > outLevel {
-			switch eb := rec.Values[4].(type) {
-			case string:
-				fields := strings.Fields(eb)
-				if len(fields) >= 2 {
-					size, _ = strconv.ParseInt(fields[1], 10, 64)
-				}
-			case []byte:
-				fields := strings.Fields(string(eb))
-				if len(fields) >= 2 {
-					size, _ = strconv.ParseInt(fields[1], 10, 64)
-				}
-			}
-		}
-		candidates = append(candidates, promoRow{rowid: cell.RowID, level: int(lv), idx: int(ix), size: size, values: rec.Values})
+		appendPromotionCandidate(&candidates, rec, cell.RowID, int(lv), int(ix), outLevel)
 		if ok, nerr := cursor.Next(); nerr != nil || !ok {
 			break
 		}
 	}
-	if len(candidates) == 0 {
+	return candidates
+}
+
+// appendPromotionCandidate collects a %_segdir row into the promotion set
+// when it is inside the outLevel band. Same index only: absolute levels
+// within this group's 1024-level band (fts3PromoteSegments binds
+// SQL_SELECT_LEVEL_RANGE2 with iLast = next index's base - 1). Levels >=
+// outLevel are all renumbered — SQLite's fts3PromoteSegments renumbers EVERY
+// row from iAbsLevel up (SQL_SELECT_LEVEL_RANGE2 WHERE level BETWEEN
+// iAbsLevel AND iLast), not just the higher ones, so the promoted rows and
+// the output level's existing rows share one sequential idx sequence
+// (otherwise the staged idx 0.. collides with the output level's own rows —
+// duplicate (level, idx), fts4merge4 tx19: L1 = [i0 i1 i0 i2]).
+func appendPromotionCandidate(candidates *[]ftsPromotionRow, rec *storage.Record, rowid int64, lv, ix, outLevel int) {
+	promoBase := (outLevel / 1024) * 1024
+	if lv < outLevel || lv >= promoBase+1024 {
 		return
 	}
-	limit := (int64(nLeafData) * 3) / 2
+	// Segment size from end_block's "<end> <size>" text suffix
+	// (fts3ReadEndBlockField). Missing/zero blocks the whole promotion.
+	// Only HIGHER levels are size-checked (the output level's rows stay).
+	var size int64
+	if lv > outLevel {
+		size = segdirEndBlockSize(rec)
+	}
+	*candidates = append(*candidates, ftsPromotionRow{rowid: rowid, level: lv, idx: ix, size: size, values: rec.Values})
+}
 
-	for _, c := range candidates {
-		if c.level > outLevel && (c.size <= 0 || c.size > limit) {
-			return // any oversized/unknown segment blocks promotion entirely
+// segdirEndBlockSize decodes end_block's "<end> <size>" size suffix.
+func segdirEndBlockSize(rec *storage.Record) int64 {
+	var size int64
+	switch eb := rec.Values[4].(type) {
+	case string:
+		fields := strings.Fields(eb)
+		if len(fields) >= 2 {
+			size, _ = strconv.ParseInt(fields[1], 10, 64)
+		}
+	case []byte:
+		fields := strings.Fields(string(eb))
+		if len(fields) >= 2 {
+			size, _ = strconv.ParseInt(fields[1], 10, 64)
 		}
 	}
-	// (level DESC, idx ASC) — SQL_SELECT_LEVEL_RANGE2's order; the oldest
-	// segment becomes idx 0 at the promoted level.
-	sort.SliceStable(candidates, func(i, j int) bool {
-		if candidates[i].level != candidates[j].level {
-			return candidates[i].level > candidates[j].level
+	return size
+}
+
+// promotionAllowed applies the 3/2 rule: any higher-level segment that is
+// oversized or has an unknown size blocks the promotion entirely.
+func promotionAllowed(candidates []ftsPromotionRow, outLevel int, limit int64) bool {
+	for _, c := range candidates {
+		if c.level > outLevel && (c.size <= 0 || c.size > limit) {
+			return false
 		}
-		return candidates[i].idx < candidates[j].idx
-	})
-	// Phase 1: stage at level=-1 with sequential idx.
+	}
+	return true
+}
+
+// rewritePromotedRows re-stages the candidates at level=-1 with sequential
+// idx (phase 1), then moves them all to outLevel (phase 2); rows are
+// rewritten in place under their own rowid (btree replace).
+func rewritePromotedRows(tree *btree.BTree, candidates []ftsPromotionRow, outLevel int) {
 	for i := range candidates {
 		candidates[i].values[0] = int64(-1)
 		candidates[i].values[1] = int64(i)
@@ -140,18 +178,11 @@ func (e *DDLExecutor) promoteFTSSegments(tableName string, ftsTable *fts.FTS3Tab
 			_ = tree.InsertCell(&storage.Cell{Type: storage.CellTableLeaf, RowID: candidates[i].rowid, Payload: payload})
 		}
 	}
-	// Phase 2: move the staged rows to outLevel (sequential rewrite).
 	for i := range candidates {
 		candidates[i].values[0] = int64(outLevel)
 		if payload, perr := storage.EncodeRecord(candidates[i].values); perr == nil {
 			_ = tree.InsertCell(&storage.Cell{Type: storage.CellTableLeaf, RowID: candidates[i].rowid, Payload: payload})
 		}
-	}
-	// Promoted levels' writer state is stale: drop it so the next merge at
-	// outLevel starts fresh outputs instead of appending to moved segments.
-	ftsTable.InvalidateSegmentCacheKeepMergeCtx()
-	for _, c := range candidates {
-		ftsTable.ClearMergeCtx(c.level)
 	}
 }
 
@@ -217,59 +248,68 @@ func (e *DDLExecutor) chompFTSMerge(tableName string, level int, readers []segRe
 			deleted++
 			continue
 		}
-		// The reader's current term is SQLite's pSeg->zTerm chomp bound.
-		zTerm, _, _ := sr.reader.Current()
-
-		oldStart := segdirRowStart(sr.row)
-		oldLeavesEnd := int(e.segdirRowLeavesEnd(sr.row.leavesEndBlock))
-		rootBlob := fts.RootBlobBytes(sr.row.root)
-
-		// SQLite's fts3TruncateSegment: trim the root, then descend into the
-		// child reported by each truncation, rewriting every trimmed block IN
-		// PLACE under its own block id. iNewStart ends up holding the first
-		// valid leaf (0 for a root-only segment).
-		newRoot, iBlock := fts.TruncateNode(rootBlob, zTerm)
-		if newRoot == nil {
-			// Corrupt root: SQLite's fts3TruncateNode returns
-			// FTS_CORRUPT_VTAB and the merge aborts.
-			return deleted, truncated, fmt.Errorf("database disk image is malformed (chomp root)")
+		n, cerr := e.chompPartialSegment(tableName, sr)
+		if cerr != nil {
+			return deleted, truncated, cerr
 		}
-		iNewStart := int64(0)
-		for iBlock != 0 {
-			iNewStart = iBlock
-			blk, res := e.readFTSBlock(tableName, int(iBlock))
-			if res != nil || blk == nil {
-				return deleted, truncated, fmt.Errorf("database disk image is malformed (chomp block %d)", iBlock)
-			}
-			nb, next := fts.TruncateNode(blk, zTerm)
-			if nb == nil {
-				return deleted, truncated, fmt.Errorf("database disk image is malformed (chomp node %d)", iBlock)
-			}
-			if ures := e.ctx.Exec(&sql.UpdateStmt{
-				Table: tableName + "_segments",
-				Assignments: []sql.Assignment{{
-					Column: "block",
-					Value:  &sql.BlobLit{Value: nb},
-				}},
-				Where: &sql.BinaryOp{
-					Operator: "=",
-					Left:     &sql.ColumnRef{Name: "blockid"},
-					Right:    &sql.NumericLit{Value: fmt.Sprintf("%d", iNewStart)},
-				},
-			}); ures != nil && ures.Error != nil {
-				return deleted, truncated, ures.Error
-			}
-			iBlock = next
-		}
-		// Delete the leading dead run; SQL_CHOMP_SEGDIR keeps leaves_end_block.
-		if iNewStart > 0 {
-			e.deleteFTSBlocks(tableName, oldStart, int(iNewStart)-1)
-		}
-		e.updateFTSShadowRowRangeKeepEndBlock(tableName, sr.row.level, sr.row.idx, int(iNewStart), oldLeavesEnd, newRoot)
-		truncated++
+		truncated += n
 	}
 	e.repackFTSSegdirLevel(tableName, level)
 	return deleted, truncated, nil
+}
+
+// chompPartialSegment truncates one partially-consumed source segment to its
+// unmerged terms (SQLite's fts3TruncateSegment): trim the root, then descend
+// into the child reported by each truncation, rewriting every trimmed block
+// IN PLACE under its own block id. iNewStart ends up holding the first valid
+// leaf (0 for a root-only segment).
+func (e *DDLExecutor) chompPartialSegment(tableName string, sr segReader) (int, error) {
+	// The reader's current term is SQLite's pSeg->zTerm chomp bound.
+	zTerm, _, _ := sr.reader.Current()
+
+	oldStart := segdirRowStart(sr.row)
+	oldLeavesEnd := int(e.segdirRowLeavesEnd(sr.row.leavesEndBlock))
+	rootBlob := fts.RootBlobBytes(sr.row.root)
+
+	newRoot, iBlock := fts.TruncateNode(rootBlob, zTerm)
+	if newRoot == nil {
+		// Corrupt root: SQLite's fts3TruncateNode returns
+		// FTS_CORRUPT_VTAB and the merge aborts.
+		return 0, fmt.Errorf("database disk image is malformed (chomp root)")
+	}
+	iNewStart := int64(0)
+	for iBlock != 0 {
+		iNewStart = iBlock
+		blk, res := e.readFTSBlock(tableName, int(iBlock))
+		if res != nil || blk == nil {
+			return 0, fmt.Errorf("database disk image is malformed (chomp block %d)", iBlock)
+		}
+		nb, next := fts.TruncateNode(blk, zTerm)
+		if nb == nil {
+			return 0, fmt.Errorf("database disk image is malformed (chomp node %d)", iBlock)
+		}
+		if ures := e.ctx.Exec(&sql.UpdateStmt{
+			Table: tableName + "_segments",
+			Assignments: []sql.Assignment{{
+				Column: "block",
+				Value:  &sql.BlobLit{Value: nb},
+			}},
+			Where: &sql.BinaryOp{
+				Operator: "=",
+				Left:     &sql.ColumnRef{Name: "blockid"},
+				Right:    &sql.NumericLit{Value: fmt.Sprintf("%d", iNewStart)},
+			},
+		}); ures != nil && ures.Error != nil {
+			return 0, ures.Error
+		}
+		iBlock = next
+	}
+	// Delete the leading dead run; SQL_CHOMP_SEGDIR keeps leaves_end_block.
+	if iNewStart > 0 {
+		e.deleteFTSBlocks(tableName, oldStart, int(iNewStart)-1)
+	}
+	e.updateFTSShadowRowRangeKeepEndBlock(tableName, sr.row.level, sr.row.idx, int(iNewStart), oldLeavesEnd, newRoot)
+	return 1, nil
 }
 
 // deleteFTSSegdirIdx deletes one %_segdir row at (level, idx).
@@ -306,30 +346,7 @@ func (e *DDLExecutor) repackFTSSegdirLevel(tableName string, level int) {
 	if cerr != nil {
 		return
 	}
-	type segRow struct {
-		rowid  int64
-		idx    int
-		values []interface{}
-	}
-	var rows []segRow
-	for {
-		cell, rerr := cursor.ReadCell()
-		if rerr != nil || cell == nil {
-			break
-		}
-		rec, derr := storage.DecodeRecord(cell.Payload)
-		if derr != nil || rec == nil || len(rec.Values) < 2 {
-			break
-		}
-		lv, lvOK := rec.Values[0].(int64)
-		ix, ixOK := rec.Values[1].(int64)
-		if lvOK && ixOK && int(lv) == level {
-			rows = append(rows, segRow{rowid: cell.RowID, idx: int(ix), values: rec.Values})
-		}
-		if ok, nerr := cursor.Next(); nerr != nil || !ok {
-			break
-		}
-	}
+	rows := collectSegdirLevelRows(cursor, level)
 	sort.Slice(rows, func(i, j int) bool { return rows[i].idx < rows[j].idx })
 	needRepack := false
 	for i := range rows {
@@ -347,6 +364,51 @@ func (e *DDLExecutor) repackFTSSegdirLevel(tableName string, level int) {
 		e.ctx.InvalidateRowIDCache(e.ctx.TablePager(segdir), segEntry.RootPage)
 		return
 	}
+	rewriteRepackedRows(tree, rows)
+	// The in-place rewrites go through the btree directly, bypassing the DML
+	// rowid-allocator bookkeeping; a subsequent flush INSERT with an implicit
+	// rowid would reuse the stale cached max and REPLACE a live row (a
+	// duplicate rowid reappearing as i0/r26 twice). Drop the cache so the
+	// next allocation rescans the true max (SQLite recomputes max(rowid)
+	// after every write too).
+	e.ctx.InvalidateRowIDCache(e.ctx.TablePager(segdir), segEntry.RootPage)
+}
+
+// ftsSegdirLevelRow is one same-level %_segdir row collected for a repack.
+type ftsSegdirLevelRow struct {
+	rowid  int64
+	idx    int
+	values []interface{}
+}
+
+// collectSegdirLevelRows reads all %_segdir rows at one level; see
+// repackFTSSegdirLevel.
+func collectSegdirLevelRows(cursor *btree.Cursor, level int) []ftsSegdirLevelRow {
+	var rows []ftsSegdirLevelRow
+	for {
+		cell, rerr := cursor.ReadCell()
+		if rerr != nil || cell == nil {
+			break
+		}
+		rec, derr := storage.DecodeRecord(cell.Payload)
+		if derr != nil || rec == nil || len(rec.Values) < 2 {
+			break
+		}
+		lv, lvOK := rec.Values[0].(int64)
+		ix, ixOK := rec.Values[1].(int64)
+		if lvOK && ixOK && int(lv) == level {
+			rows = append(rows, ftsSegdirLevelRow{rowid: cell.RowID, idx: int(ix), values: rec.Values})
+		}
+		if ok, nerr := cursor.Next(); nerr != nil || !ok {
+			break
+		}
+	}
+	return rows
+}
+
+// rewriteRepackedRows renumbers the shifted rows 0..n-1 in place under their
+// own rowid; see repackFTSSegdirLevel.
+func rewriteRepackedRows(tree *btree.BTree, rows []ftsSegdirLevelRow) {
 	for i := range rows {
 		if rows[i].idx == i {
 			continue
@@ -364,13 +426,6 @@ func (e *DDLExecutor) repackFTSSegdirLevel(tableName string, level int) {
 			return
 		}
 	}
-	// The in-place rewrites go through the btree directly, bypassing the DML
-	// rowid-allocator bookkeeping; a subsequent flush INSERT with an implicit
-	// rowid would reuse the stale cached max and REPLACE a live row (a
-	// duplicate rowid reappearing as i0/r26 twice). Drop the cache so the
-	// next allocation rescans the true max (SQLite recomputes max(rowid)
-	// after every write too).
-	e.ctx.InvalidateRowIDCache(e.ctx.TablePager(segdir), segEntry.RootPage)
 }
 
 // deleteFTSBlocks deletes one %_segments block range (SQLite fts3DeleteSegment

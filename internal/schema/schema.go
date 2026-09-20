@@ -535,26 +535,36 @@ func (m *Manager) FindTable(name string) (*Entry, error) {
 		if entry, ok := m.systemTableEntry(name, searchUpper); ok {
 			return entry, nil
 		}
-
-		// Search in B-tree
-		entries, err := m.GetEntries(TypeTable)
-		if err != nil {
-			// A corrupt database must report the corruption, not "no such
-			// table" (altercorrupt: the header advertises a freelist/root
-			// page beyond the file).
-			if strings.Contains(err.Error(), "database disk image is malformed") {
-				return nil, err
-			}
-			continue
-		}
-		for _, e := range entries {
-			if strings.ToUpper(e.Name) == searchUpper || strings.ToUpper(e.TblName) == searchUpper {
-				return e, nil
-			}
+		if entry, err := m.findBtreeTable(searchUpper); err == nil || isCorruption(err) {
+			return entry, err
 		}
 	}
 
 	return nil, fmt.Errorf("no such table: %s", name)
+}
+
+// findBtreeTable searches the schema btree's table entries for searchUpper.
+// A corrupt database must report the corruption, not "no such table"
+// (altercorrupt: the header advertises a freelist/root page beyond the file).
+func (m *Manager) findBtreeTable(searchUpper string) (*Entry, error) {
+	entries, err := m.GetEntries(TypeTable)
+	if err != nil {
+		if isCorruption(err) {
+			return nil, err
+		}
+		return nil, err
+	}
+	for _, e := range entries {
+		if strings.ToUpper(e.Name) == searchUpper || strings.ToUpper(e.TblName) == searchUpper {
+			return e, nil
+		}
+	}
+	return nil, fmt.Errorf("no such table")
+}
+
+// isCorruption reports whether err is a database-file corruption error.
+func isCorruption(err error) bool {
+	return err != nil && strings.Contains(err.Error(), "database disk image is malformed")
 }
 
 // systemTableEntry returns a synthetic Entry for the SQLite system tables

@@ -188,43 +188,15 @@ func (m *Manager) walkRootPage(rootPage uint32) error {
 		ptype := pg.Data[coff]
 		switch ptype {
 		case storage.PageTypeInteriorTable:
-			right := binary.BigEndian.Uint32(pg.Data[coff+8 : coff+12])
-			if right > 0 {
-				stack = append(stack, right)
-			}
-			ncell := int(binary.BigEndian.Uint16(pg.Data[coff+3 : coff+5]))
-			for i := 0; i < ncell; i++ {
-				if coff+8+2*i+2 > len(pg.Data) {
-					return fmt.Errorf("database disk image is malformed")
-				}
-				cellOff := int(binary.BigEndian.Uint16(pg.Data[coff+8+2*i : coff+10+2*i]))
-				// Skip corrupt interior cells whose child pointer is out of
-				// range (SQLite's findCell masks the pointer; a garbage cell
-				// offset is tolerated, not fatal — fts3corrupt4 10.2: an
-				// interior cell at offset 0 yields an out-of-range child).
-				if cellOff >= 8 && cellOff+4 <= len(pg.Data) {
-					child := binary.BigEndian.Uint32(pg.Data[cellOff : cellOff+4])
-					if child > 0 && child <= m.pager.NumPages() {
-						stack = append(stack, child)
-					}
-				}
-			}
+			stack = m.appendCheckedInteriorChildren(stack, pg.Data, coff)
 		case storage.PageTypeLeafTable:
 			// Validate the RAW cell pointers (unmasked): a pointer at/beyond
 			// the page end is genuine corruption. Normal reads mask the
 			// pointer (SQLite findCell), but the corruption walk must detect
 			// it (fts3corrupt4 24.1: t2's 4310 pointer on a 4096 page fails
 			// an INSERT that grows the file).
-			ncell := int(binary.BigEndian.Uint16(pg.Data[coff+3 : coff+5]))
-			ps := int(m.pager.PageSize())
-			for i := 0; i < ncell; i++ {
-				if coff+8+2*i+2 > len(pg.Data) {
-					return fmt.Errorf("database disk image is malformed")
-				}
-				cp := int(binary.BigEndian.Uint16(pg.Data[coff+8+2*i : coff+10+2*i]))
-				if cp >= ps {
-					return fmt.Errorf("database disk image is malformed")
-				}
+			if err := checkLeafCellPointers(pg.Data, coff, int(m.pager.PageSize())); err != nil {
+				return err
 			}
 		case 0x00:
 			// A type-0x00 page is an empty/unused page; SQLite tolerates it
@@ -234,6 +206,51 @@ func (m *Manager) walkRootPage(rootPage uint32) error {
 		}
 		if _, perr := storage.ParsePage(pg.Data, int(m.pager.PageSize()), coff); perr != nil {
 			return perr
+		}
+	}
+	return nil
+}
+
+// appendCheckedInteriorChildren pushes an interior table page's rightmost
+// pointer and its in-range cell children; out-of-range cell offsets are
+// tolerated (SQLite's findCell masks the pointer; a garbage cell offset is
+// not fatal — fts3corrupt4 10.2: an interior cell at offset 0 yields an
+// out-of-range child), and children are bounded by the page count.
+func (m *Manager) appendCheckedInteriorChildren(stack []uint32, data []byte, coff int) []uint32 {
+	right := binary.BigEndian.Uint32(data[coff+8 : coff+12])
+	if right > 0 {
+		stack = append(stack, right)
+	}
+	ncell := int(binary.BigEndian.Uint16(data[coff+3 : coff+5]))
+	for i := 0; i < ncell; i++ {
+		if coff+8+2*i+2 > len(data) {
+			continue
+		}
+		cellOff := int(binary.BigEndian.Uint16(data[coff+8+2*i : coff+10+2*i]))
+		if cellOff >= 8 && cellOff+4 <= len(data) {
+			child := binary.BigEndian.Uint32(data[cellOff : cellOff+4])
+			if child > 0 && child <= m.pager.NumPages() {
+				stack = append(stack, child)
+			}
+		}
+	}
+	return stack
+}
+
+// checkLeafCellPointers validates a leaf page's RAW cell pointers (unmasked):
+// a pointer at/beyond the page end is genuine corruption. Normal reads mask
+// the pointer (SQLite findCell), but the corruption walk must detect it
+// (fts3corrupt4 24.1: t2's 4310 pointer on a 4096 page fails an INSERT that
+// grows the file).
+func checkLeafCellPointers(data []byte, coff, ps int) error {
+	ncell := int(binary.BigEndian.Uint16(data[coff+3 : coff+5]))
+	for i := 0; i < ncell; i++ {
+		if coff+8+2*i+2 > len(data) {
+			return fmt.Errorf("database disk image is malformed")
+		}
+		cp := int(binary.BigEndian.Uint16(data[coff+8+2*i : coff+10+2*i]))
+		if cp >= ps {
+			return fmt.Errorf("database disk image is malformed")
 		}
 	}
 	return nil
@@ -255,52 +272,69 @@ func (m *Manager) EstimateFreeSpace() int64 {
 			continue
 		}
 		seen[ent.RootPage] = true
-		stack := []uint32{ent.RootPage}
-		for len(stack) > 0 {
-			pageNum := stack[len(stack)-1]
-			stack = stack[:len(stack)-1]
-			pg, err := m.pager.ReadPage(pageNum)
-			if err != nil {
+		free += m.freeSpaceWalk(ent.RootPage, seen)
+	}
+	return free
+}
+
+// freeSpaceWalk walks one btree (cycle-safe via seen) summing the
+// cell-content-area gaps of its leaf pages; unused pages count as fully
+// free. See EstimateFreeSpace.
+func (m *Manager) freeSpaceWalk(rootPage uint32, seen map[uint32]bool) int64 {
+	var free int64
+	stack := []uint32{rootPage}
+	for len(stack) > 0 {
+		pageNum := stack[len(stack)-1]
+		stack = stack[:len(stack)-1]
+		pg, err := m.pager.ReadPage(pageNum)
+		if err != nil {
+			continue
+		}
+		coff := contentOffset(pageNum)
+		if len(pg.Data) < coff+8 {
+			continue
+		}
+		switch pg.Data[coff] {
+		case storage.PageTypeInteriorTable:
+			if len(pg.Data) < coff+12 {
 				continue
 			}
-			coff := contentOffset(pageNum)
-			if len(pg.Data) < coff+8 {
-				continue
+			stack = appendInteriorChildren(stack, pg.Data, coff)
+		case storage.PageTypeLeafTable, storage.PageTypeLeafIndex:
+			ncell := int(binary.BigEndian.Uint16(pg.Data[coff+3 : coff+5]))
+			cc := int(binary.BigEndian.Uint16(pg.Data[coff+5 : coff+7]))
+			cpe := coff + 8 + 2*ncell
+			if cc >= cpe && cc <= int(m.pager.PageSize()) {
+				free += int64(cc - cpe)
 			}
-			ptype := pg.Data[coff]
-			switch ptype {
-			case storage.PageTypeInteriorTable:
-				if len(pg.Data) < coff+12 {
-					continue
-				}
-				right := binary.BigEndian.Uint32(pg.Data[coff+8 : coff+12])
-				if right > 0 {
-					stack = append(stack, right)
-				}
-				ncell := int(binary.BigEndian.Uint16(pg.Data[coff+3 : coff+5]))
-				for i := 0; i < ncell; i++ {
-					if coff+8+2*i+2 > len(pg.Data) {
-						continue
-					}
-					cellOff := int(binary.BigEndian.Uint16(pg.Data[coff+8+2*i : coff+10+2*i]))
-					if cellOff >= 0 && cellOff+4 <= len(pg.Data) {
-						child := binary.BigEndian.Uint32(pg.Data[cellOff : cellOff+4])
-						if child > 0 {
-							stack = append(stack, child)
-						}
-					}
-				}
-			case storage.PageTypeLeafTable, storage.PageTypeLeafIndex:
-				ncell := int(binary.BigEndian.Uint16(pg.Data[coff+3 : coff+5]))
-				cc := int(binary.BigEndian.Uint16(pg.Data[coff+5 : coff+7]))
-				cpe := coff + 8 + 2*ncell
-				if cc >= cpe && cc <= int(m.pager.PageSize()) {
-					free += int64(cc - cpe)
-				}
-			case 0x00:
-				free += int64(m.pager.PageSize())
-			}
+		case 0x00:
+			free += int64(m.pager.PageSize())
 		}
 	}
 	return free
+}
+
+// appendInteriorChildren pushes an interior table page's rightmost pointer
+// and every in-range cell child onto the walk stack; see freeSpaceWalk and
+// walkRootPage.
+func appendInteriorChildren(stack []uint32, data []byte, coff int) []uint32 {
+	right := binary.BigEndian.Uint32(data[coff+8 : coff+12])
+	if right > 0 {
+		stack = append(stack, right)
+	}
+	ncell := int(binary.BigEndian.Uint16(data[coff+3 : coff+5]))
+	ps := len(data)
+	for i := 0; i < ncell; i++ {
+		if coff+8+2*i+2 > len(data) {
+			continue
+		}
+		cellOff := int(binary.BigEndian.Uint16(data[coff+8+2*i : coff+10+2*i]))
+		if cellOff >= 0 && cellOff+4 <= ps {
+			child := binary.BigEndian.Uint32(data[cellOff : cellOff+4])
+			if child > 0 {
+				stack = append(stack, child)
+			}
+		}
+	}
+	return stack
 }

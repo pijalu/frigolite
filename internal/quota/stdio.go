@@ -60,19 +60,32 @@ func fopenFlags(mode string) (create, truncate, appendMode, readonly bool, ok bo
 	return false, false, false, false, false
 }
 
-// FOpen mirrors sqlite3_quota_fopen: open (or create) name under the
-// matching group. A file with no matching group is still openable — it is
-// simply not size-tracked (quota2-2.x: quota2c has no rule). Returns nil
-// when a read-only mode names a missing file.
-func FOpen(name, mode string) *File {
-	create, truncate, appendMode, readonly, ok := fopenFlags(mode)
-	if !ok {
-		return nil
+// capOverLimitWrite offers an over-limit write to the group's callback and
+// caps it to the whole elements that fit below the limit (quota_fwrite:
+// nmemb = (iEnd - iOfst)/size). Returns the (possibly reduced) write end.
+func capOverLimitWrite(g *group, e *fileEntry, size, nmemb int, iOfst, iEnd int64) int64 {
+	szNew := groupSizeLocked(g) - e.size + iEnd
+	if szNew > g.limit && g.limit > 0 {
+		if g.callback != nil {
+			g.callback(e.name, &g.limit, szNew)
+		}
+		if szNew > g.limit && g.limit > 0 {
+			allowed := g.limit - groupSizeLocked(g) + e.size
+			if allowed < iOfst {
+				allowed = iOfst
+			}
+			n := int((allowed - iOfst) / int64(size))
+			if n > nmemb {
+				n = nmemb
+			}
+			iEnd = iOfst + int64(n*size)
+		}
 	}
-	abs, err := filepath.Abs(name)
-	if err != nil {
-		return nil
-	}
+	return iEnd
+}
+
+// fopenOFlags translates the parsed fopen mode into os.OpenFile flags.
+func fopenOFlags(create, truncate, appendMode, readonly bool) int {
 	flags := os.O_RDWR
 	if readonly {
 		flags = os.O_RDONLY
@@ -86,7 +99,23 @@ func FOpen(name, mode string) *File {
 	if appendMode {
 		flags |= os.O_APPEND
 	}
-	f, err := os.OpenFile(abs, flags, 0o644)
+	return flags
+}
+
+// FOpen mirrors sqlite3_quota_fopen: open (or create) name under the
+// matching group. A file with no matching group is still openable — it is
+// simply not size-tracked (quota2-2.x: quota2c has no rule). Returns nil
+// when a read-only mode names a missing file.
+func FOpen(name, mode string) *File {
+	create, truncate, appendMode, readonly, ok := fopenFlags(mode)
+	if !ok {
+		return nil
+	}
+	abs, err := filepath.Abs(name)
+	if err != nil {
+		return nil
+	}
+	f, err := os.OpenFile(abs, fopenOFlags(create, truncate, appendMode, readonly), 0o644)
 	if err != nil {
 		return nil
 	}
@@ -140,26 +169,7 @@ func FWrite(f *File, size, nmemb int, buf []byte) int {
 	iOfst := e.pos
 	iEnd := iOfst + int64(len(buf))
 	if e.size < iEnd && f.group != nil {
-		g := f.group
-		szNew := groupSizeLocked(g) - e.size + iEnd
-		if szNew > g.limit && g.limit > 0 {
-			if g.callback != nil {
-				g.callback(e.name, &g.limit, szNew)
-			}
-			if szNew > g.limit && g.limit > 0 {
-				// Cap the write to the whole elements that fit
-				// (quota_fwrite: nmemb = (iEnd - iOfst)/size).
-				allowed := g.limit - groupSizeLocked(g) + e.size
-				if allowed < iOfst {
-					allowed = iOfst
-				}
-				n := int((allowed - iOfst) / int64(size))
-				if n > nmemb {
-					n = nmemb
-				}
-				iEnd = iOfst + int64(n*size)
-			}
-		}
+		iEnd = capOverLimitWrite(f.group, e, size, nmemb, iOfst, iEnd)
 		e.size = iEnd
 		if int64(len(buf)) > iEnd-iOfst {
 			buf = buf[:iEnd-iOfst]

@@ -7725,3 +7725,41 @@ regenerated; suite net −2274 fails vs pre-tranche baseline (7230 → ~4950).
   testgen harness passes the same sequence, so the tcl2go environment masks
   it; repro is frigolite_engine4-style: Open, ATTACH test2.db AS aux,
   CREATE TABLE temp.t4, then CREATE TABLE aux.t4.
+## §5d.exec2 — exec-family quality closure (2026-09-20, fleet branch q5-exec2)
+- **NEVER `git checkout -- <file>` / `git stash push` on refactor WIP**: twice this
+  session uncommitted decompositions (ddl_core_tail.go, then flush+trigger_tail)
+  were wiped mid-refactor and had to be re-authored. Commit per verified cluster
+  (or branch); treat the working tree as precious.
+- **`git stash` traps during bisect**: stashing ONE file to bisect implicitly
+  tests "everything else" — the fts4opt hunt concluded "trigger-only fails"
+  while flush (the real culprit) was still in the tree. Name every file you
+  stash, and re-derive the matrix (chomp-only / flush-only / trigger-only)
+  before believing a verdict.
+- **Extraction order MUST mirror the original's mutation order**: the MergeFTS
+  decomposition broke three ways — (1) setupWriter ran before checkAppendOrder
+  (the append-order verdict flips replacingOut which the writer ctor reads),
+  (2) mergeRetry was mapped to "stop" instead of "continue", (3) nMin was never
+  wired into the extracted run-state struct (effMin=0 broke the hint cap).
+  Gocognit/gocyclo can't catch these; only the merge-coupled suites
+  (fts4growth 7.5/1.x, fts4opt 2.x) did.
+- **Dropping a guard clause while "simplifying" a call site is a regression**:
+  the flush marker write passed dmStart straight to a writeSegmentBlocks
+  helper without the `if nextBlock == 0 { cache/scan fallback }` the inline
+  original had — root-only marker segments wrote blocks at ids 0..n, clobbering
+  live blocks (fts4opt 2.x integrity-check T25/SEG6). Any time a block becomes
+  a helper, thread EVERY caller's guard through it.
+- **Reordering a length guard before an index is a panic**: auxFirstArgValidIn
+  hoisted `fc.Args[0].(*sql.ColumnRef)` above `len(fc.Args)==0` — the zero-arg
+  snippet() pin test (TestPinFTS3SnippetZeroArgContextError) panicked. Pin
+  tests that guard error paths are exactly what catches "equivalent" swaps.
+- **gocognit counts NESTING, not statements**: an extracted helper can still
+  blow the threshold because inner ifs score nesting*2/3. Budget: a loop with
+  3-4 guarded ifs inside already lands at 12-16 — split loop bodies into
+  per-row helpers returning (value, ok/stop) before you write the loop.
+- **fts4merge4 takes ~9 minutes** (and fts4merge ~2.5 min) — budget verification
+  runs accordingly; the pre-existing TestVacuumDoesNotCorruptBTree,
+  TestSegviewOracleX6InteriorNodes (internal/fts/exec), TestRecoverConformance
+  and TestBackupConformance failures are fixture gaps present on main.
+- **fts4merge 5.x datatype-mismatch and fts4growth 4.1/4.2 diverges are
+  pre-existing on main** (adjudicated at the T27 census) — do not absorb them
+  into a refactor.

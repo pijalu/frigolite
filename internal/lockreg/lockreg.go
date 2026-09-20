@@ -214,38 +214,31 @@ func (r *Registry) ReadTxByOther(path string, self int64) bool {
 func (r *Registry) ClearConn(connID int64) {
 	r.mu.Lock()
 	defer r.mu.Unlock()
-	for path, holder := range r.exclusive {
+	dropExclusiveHolder(r.exclusive, connID)
+	dropExclusiveHolder(r.pending, connID)
+	dropConnFromSets(r.writeTx, connID)
+	dropConnFromSets(r.readTx, connID)
+	dropConnFromSets(r.sharedTx, connID)
+	dropConnFromSets(r.persistentShared, connID)
+}
+
+// dropExclusiveHolder removes a single-holder map entry held by connID; see
+// ClearConn.
+func dropExclusiveHolder(m map[string]int64, connID int64) {
+	for path, holder := range m {
 		if holder == connID {
-			delete(r.exclusive, path)
+			delete(m, path)
 		}
 	}
-	for path, set := range r.writeTx {
+}
+
+// dropConnFromSets removes connID from every per-path holder set, deleting
+// sets that become empty; see ClearConn.
+func dropConnFromSets[K comparable, V any](m map[string]map[K]V, connID K) {
+	for path, set := range m {
 		delete(set, connID)
 		if len(set) == 0 {
-			delete(r.writeTx, path)
-		}
-	}
-	for path, set := range r.readTx {
-		delete(set, connID)
-		if len(set) == 0 {
-			delete(r.readTx, path)
-		}
-	}
-	for path, set := range r.sharedTx {
-		delete(set, connID)
-		if len(set) == 0 {
-			delete(r.sharedTx, path)
-		}
-	}
-	for path, set := range r.persistentShared {
-		delete(set, connID)
-		if len(set) == 0 {
-			delete(r.persistentShared, path)
-		}
-	}
-	for path, holder := range r.pending {
-		if holder == connID {
-			delete(r.pending, path)
+			delete(m, path)
 		}
 	}
 }
