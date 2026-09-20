@@ -5,6 +5,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/pijalu/frigolite/internal/schema"
 	"github.com/pijalu/frigolite/internal/sql"
 	"github.com/pijalu/frigolite/internal/util"
 )
@@ -31,22 +32,27 @@ func (e *SelectEngine) promoteCorrelatedTVFFrom(s *sql.SelectStmt) (*sql.SelectS
 		return nil, false
 	}
 	j := s.Joins[0]
-	t := j.Table
 	// Only a plain comma/cross-joined table can become the outer loop; ON/
 	// USING forms and derived or function operands keep their existing path.
-	headOK := t.Name != "" && t.Subquery == nil && len(t.Args) == 0 &&
-		j.On == nil && len(j.Using) == 0 &&
-		(j.CommaJoin || j.JoinType == "" || strings.EqualFold(j.JoinType, "CROSS"))
-	if !headOK {
+	if !crossJoinHeadOK(j) {
 		return nil, false
 	}
 	ns := *s
-	ns.From = t
+	ns.From = j.Table
 	joins := make([]sql.JoinClause, 0, len(s.Joins))
 	joins = append(joins, sql.JoinClause{JoinType: ",", CommaJoin: true, Table: s.From})
 	joins = append(joins, s.Joins[1:]...)
 	ns.Joins = joins
 	return &ns, true
+}
+
+// crossJoinHeadOK reports whether a join operand is a plain comma/cross-joined
+// table candidate for the outer loop position.
+func crossJoinHeadOK(j sql.JoinClause) bool {
+	t := j.Table
+	return t.Name != "" && t.Subquery == nil && len(t.Args) == 0 &&
+		j.On == nil && len(j.Using) == 0 &&
+		(j.CommaJoin || j.JoinType == "" || strings.EqualFold(j.JoinType, "CROSS"))
 }
 
 // joinTypeHas reports whether a join type string includes the given type
@@ -60,11 +66,6 @@ func joinTypeHas(joinType, typ string) bool {
 // real table. Returns the row maps, column defs, the (possibly aliased) table
 // name, and — for correlated pragmas — the per-left-row right-row index map.
 func (e *SelectEngine) materializeJoinRight(s *sql.SelectStmt, join sql.JoinClause, currentMaps []RowMap) ([]RowMap, []sql.ColumnDef, string, []int, error) {
-	var rightMaps []RowMap
-	var rightDefs []sql.ColumnDef
-	var corrLeftIdx []int
-	var tableName string
-
 	// Handle derived table (subquery) in JOIN: JOIN (SELECT ...) AS t
 	if join.Table.Subquery != nil {
 		return e.materializeSubqueryJoin(join)
@@ -77,76 +78,30 @@ func (e *SelectEngine) materializeJoinRight(s *sql.SelectStmt, join sql.JoinClau
 	// left row with that row as evaluation context.
 	if join.Table.Args != nil && pragmaArgsCorrelated(join.Table) {
 		if _, isModule := e.ctx.VTables().Find(strings.ToLower(join.Table.Name)); isModule {
-			var merr error
-			rightDefs, rightMaps, corrLeftIdx, merr = e.ctx.MaterializeCorrelatedVTabFunc(join.Table, currentMaps, s.Where)
-			if merr != nil {
-				return nil, nil, "", nil, merr
-			}
-			tableName = join.Table.Name
-			if join.Table.As != "" {
-				tableName = join.Table.As
-			}
-			return rightMaps, rightDefs, tableName, corrLeftIdx, nil
+			return e.materializeCorrelatedVTabFuncJoin(join, currentMaps, s.Where)
 		}
 	}
 	// Function-call syntax on an ordinary relation: SQLite resolve.c's
 	// "'%s' is not a function" (tabfunc01-1.25: FROM t0(55)). Genuine
 	// table-valued modules and pragma functions were handled above.
-	if join.Table.IsTabFunc && !isPragmaTableFunc(join.Table.Name) {
-		if _, isModule := e.ctx.VTables().Find(strings.ToLower(join.Table.Name)); !isModule {
-			if _, _, terr := e.ctx.FindTable(join.Table.Name); terr == nil {
-				return nil, nil, "", nil, fmt.Errorf("'%s' is not a function", join.Table.Name)
-			}
-			if _, _, verr := e.ctx.FindView(join.Table.Name); verr == nil {
-				return nil, nil, "", nil, fmt.Errorf("'%s' is not a function", join.Table.Name)
-			}
-			// Unknown name: fall through for the normal "no such table".
-		}
+	if _, err, handled := e.joinNotAFunctionError(join); handled {
+		return nil, nil, "", nil, err
 	}
 	// Eponymous / table-valued vtab module operand that schema lookup cannot
 	// resolve (FROM t1, carray WHERE carray.pointer = t1.x; tabfunc01-700:
 	// FROM t600, carray(inttoptr(...),5)). Materialize via the module
 	// registry with WHERE pushdown; non-correlated args concatenate rows.
 	if _, isModule := e.ctx.VTables().Find(strings.ToLower(join.Table.Name)); isModule && !isPragmaTableFunc(join.Table.Name) {
-		defs, rows, rowids, err := e.ctx.MaterializeVtabTableFunc(join.Table, e.vtabScanOptions(s))
-		if err != nil {
-			return nil, nil, "", nil, err
-		}
-		tableName = join.Table.Name
-		if join.Table.As != "" {
-			tableName = join.Table.As
-		}
-		// Hidden columns stay out of the row map (never projected by t.*),
-		// while native rowids back aa.rowid references (tabfunc01-751:
-		// ON aa.rowid=bb.rowid over two carray instances).
-		for i, row := range rows {
-			m := make(RowMap)
-			for j, val := range row {
-				if j < len(defs) && !defs[j].Hidden {
-					m[defs[j].Name] = val
-				}
-			}
-			if i < len(rowids) {
-				m["rowid"] = rowids[i]
-			}
-			rightMaps = append(rightMaps, m)
-		}
-		return rightMaps, defs, tableName, nil, nil
+		return e.materializeVtabModuleJoin(s, join)
 	}
+	return e.materializeJoinNamedOperand(s, join, currentMaps)
+}
+
+// materializeJoinNamedOperand resolves a join operand that names a CTE, view,
+// or (virtual) table: materialize its right-side rows.
+func (e *SelectEngine) materializeJoinNamedOperand(s *sql.SelectStmt, join sql.JoinClause, currentMaps []RowMap) ([]RowMap, []sql.ColumnDef, string, []int, error) {
 	if cteDef, ok := e.findCTE(s, join.Table.Name); ok {
-		if join.Table.IsTabFunc {
-			return nil, nil, "", nil, fmt.Errorf("'%s' is not a function", join.Table.Name)
-		}
-		var merr error
-		rightDefs, rightMaps, merr = e.materializeCTEForJoin(&cteDef)
-		if merr != nil {
-			return nil, nil, "", nil, merr
-		}
-		tableName = join.Table.Name
-		if join.Table.As != "" {
-			tableName = join.Table.As
-		}
-		return rightMaps, rightDefs, tableName, corrLeftIdx, nil
+		return e.materializeCTEJoin(join, cteDef)
 	}
 	tableEntry, _, tableErr := e.ctx.FindTable(join.Table.Name)
 	if tableErr != nil {
@@ -156,16 +111,8 @@ func (e *SelectEngine) materializeJoinRight(s *sql.SelectStmt, join sql.JoinClau
 	// constraint in the WHERE (`input = <left.col>`) is materialized per left
 	// row (fts3tokenize in a join — fts3tok1 1.13.2).
 	if tableEntry.RootPage == 0 && s.Where != nil {
-		if col, ok := vtabCorrelatedInput(s.Where); ok {
-			defs, maps, leftIdx, merr := e.ctx.MaterializeCorrelatedVTab(tableEntry, col, currentMaps)
-			if merr != nil {
-				return nil, nil, "", nil, merr
-			}
-			tableName := join.Table.Name
-			if join.Table.As != "" {
-				tableName = join.Table.As
-			}
-			return maps, defs, tableName, leftIdx, nil
+		if maps, defs, name, idx, merr, ok := e.materializeCorrelatedVTabJoin(join, tableEntry, s.Where, currentMaps); ok {
+			return maps, defs, name, idx, merr
 		}
 	}
 	// A virtual table operand bound to already-materialized outer aliases by
@@ -181,6 +128,88 @@ func (e *SelectEngine) materializeJoinRight(s *sql.SelectStmt, join sql.JoinClau
 	// Real table: parse column defs and scan rows (or materialize a virtual
 	// table with RootPage == 0).
 	return e.materializeTableJoin(s, join, tableEntry)
+}
+
+// materializeCorrelatedVTabFuncJoin materializes a correlated table-valued
+// vtab function per left row.
+func (e *SelectEngine) materializeCorrelatedVTabFuncJoin(join sql.JoinClause, currentMaps []RowMap, where sql.Expr) ([]RowMap, []sql.ColumnDef, string, []int, error) {
+	rightDefs, rightMaps, corrLeftIdx, merr := e.ctx.MaterializeCorrelatedVTabFunc(join.Table, currentMaps, where)
+	if merr != nil {
+		return nil, nil, "", nil, merr
+	}
+	return rightMaps, rightDefs, joinTableName(join), corrLeftIdx, nil
+}
+
+// joinNotAFunctionError reports resolve.c's "'%s' is not a function" when a
+// TVF-form join operand names an existing table or view. handled=false means
+// the name is unknown (fall through for the normal "no such table").
+func (e *SelectEngine) joinNotAFunctionError(join sql.JoinClause) (res *Result, err error, handled bool) {
+	if !join.Table.IsTabFunc || isPragmaTableFunc(join.Table.Name) {
+		return nil, nil, false
+	}
+	if _, isModule := e.ctx.VTables().Find(strings.ToLower(join.Table.Name)); isModule {
+		return nil, nil, false
+	}
+	if _, _, terr := e.ctx.FindTable(join.Table.Name); terr == nil {
+		return nil, fmt.Errorf("'%s' is not a function", join.Table.Name), true
+	}
+	if _, _, verr := e.ctx.FindView(join.Table.Name); verr == nil {
+		return nil, fmt.Errorf("'%s' is not a function", join.Table.Name), true
+	}
+	return nil, nil, false
+}
+
+// materializeVtabModuleJoin materializes a vtab module join operand: hidden
+// columns stay out of the row map (never projected by t.*), while native
+// rowids back aa.rowid references (tabfunc01-751: ON aa.rowid=bb.rowid over
+// two carray instances).
+func (e *SelectEngine) materializeVtabModuleJoin(s *sql.SelectStmt, join sql.JoinClause) ([]RowMap, []sql.ColumnDef, string, []int, error) {
+	defs, rows, rowids, err := e.ctx.MaterializeVtabTableFunc(join.Table, e.vtabScanOptions(s))
+	if err != nil {
+		return nil, nil, "", nil, err
+	}
+	rightMaps := make([]RowMap, 0, len(rows))
+	for i, row := range rows {
+		m := make(RowMap)
+		for j, val := range row {
+			if j < len(defs) && !defs[j].Hidden {
+				m[defs[j].Name] = val
+			}
+		}
+		if i < len(rowids) {
+			m["rowid"] = rowids[i]
+		}
+		rightMaps = append(rightMaps, m)
+	}
+	return rightMaps, defs, joinTableName(join), nil, nil
+}
+
+// materializeCTEJoin materializes a CTE join operand (rejecting TVF syntax on
+// a CTE name).
+func (e *SelectEngine) materializeCTEJoin(join sql.JoinClause, cteDef sql.CTEDef) ([]RowMap, []sql.ColumnDef, string, []int, error) {
+	if join.Table.IsTabFunc {
+		return nil, nil, "", nil, fmt.Errorf("'%s' is not a function", join.Table.Name)
+	}
+	rightDefs, rightMaps, merr := e.materializeCTEForJoin(&cteDef)
+	if merr != nil {
+		return nil, nil, "", nil, merr
+	}
+	return rightMaps, rightDefs, joinTableName(join), nil, nil
+}
+
+// materializeCorrelatedVTabJoin materializes a vtable join operand per left
+// row when the WHERE carries a correlated first-column input equality.
+// ok=false when the shape does not apply.
+func (e *SelectEngine) materializeCorrelatedVTabJoin(join sql.JoinClause, tableEntry *schema.Entry, where sql.Expr, currentMaps []RowMap) ([]RowMap, []sql.ColumnDef, string, []int, error, bool) {
+	col, ok := vtabCorrelatedInput(where)
+	if !ok {
+		return nil, nil, "", nil, nil, false
+	}
+	defs, maps, leftIdx, merr := e.ctx.MaterializeCorrelatedVTab(tableEntry, col, currentMaps)
+	if merr != nil {
+		return nil, nil, "", nil, merr, true
+	}
+	return maps, defs, joinTableName(join), leftIdx, nil, true
 }
 
 // materializePragmaJoin builds the right-side row maps for a table-valued
