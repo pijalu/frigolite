@@ -33,10 +33,10 @@ func (e *DDLExecutor) DetachAll() {
 	e.ctx.ResetDBList()
 }
 
-// Close closes every database pager (attached databases first, then main),
-// flushing buffered writes to disk so a later connection on an attached file
-// sees the committed schema/data.
-func (e *DDLExecutor) Close() error {
+// closeAttachedPagers closes every attached database's pager (main/temp
+// excluded), deduplicating same-file aliases so a shared pager closes exactly
+// once, and returns the first close error.
+func (e *DDLExecutor) closeAttachedPagers() error {
 	var firstErr error
 	closed := make(map[*pager.Pager]bool)
 	for name, ctx := range e.ctx.Databases() {
@@ -55,6 +55,14 @@ func (e *DDLExecutor) Close() error {
 			}
 		}
 	}
+	return firstErr
+}
+
+// Close closes every database pager (attached databases first, then main),
+// flushing buffered writes to disk so a later connection on an attached file
+// sees the committed schema/data.
+func (e *DDLExecutor) Close() error {
+	firstErr := e.closeAttachedPagers()
 	if e.ctx.Pager() != nil {
 		if err := e.ctx.Pager().Close(); err != nil && firstErr == nil {
 			firstErr = err
@@ -67,34 +75,15 @@ func (e *DDLExecutor) Close() error {
 
 func (e *DDLExecutor) execCreateTable(s *sql.CreateTableStmt) *Result {
 	e.ctx.InvalidateTableCaches()
-	// CREATE TEMP TABLE with a schema-qualified name is an error when the
-	// prefix is not the temp schema itself: "CREATE TEMP TABLE main.t1" and
-	// "CREATE TEMP TABLE aux.t1" fail with "temporary table name must be
-	// unqualified". "CREATE TEMP TABLE temp.t1" is allowed (the prefix
-	// redundantly names the same temp schema).
-	if s.Temporary && strings.Contains(s.Name, ".") {
-		prefix := strings.ToUpper(s.Name[:strings.Index(s.Name, ".")])
-		if prefix != "TEMP" && prefix != "TEMPORARY" {
-			return &Result{Error: fmt.Errorf("temporary table name must be unqualified")}
-		}
+	if res := tempQualifiedNameError(s); res != nil {
+		return res
 	}
 	ctx, tableName, res := e.resolveCreateTableSchema(s)
 	if res != nil {
 		return res
 	}
-	// build.c sqlite3StartTable: a table (or column) name longer than
-	// SQLITE_LIMIT_LENGTH fails SQLITE_TOOBIG, "string or blob too big"
-	// (sqllimits1-17.x builds a >100000-char table name under
-	// LENGTH=100000).
-	if lim := e.ctx.LengthLimit(); lim > 0 {
-		if len(tableName) >= lim {
-			return &Result{Error: fmt.Errorf("string or blob too big")}
-		}
-		for _, cd := range s.Columns {
-			if len(cd.Name) >= lim {
-				return &Result{Error: fmt.Errorf("string or blob too big")}
-			}
-		}
+	if res := e.tableNameTooBigError(s, tableName); res != nil {
+		return res
 	}
 	if res := e.runCreateTableValidations(ctx, s, tableName); res != nil {
 		return res
@@ -113,17 +102,100 @@ func (e *DDLExecutor) execCreateTable(s *sql.CreateTableStmt) *Result {
 		}
 	}
 
+	pg, res := e.initTableRootPage(ctx, s)
+	if res != nil {
+		return res
+	}
+
+	entry := &schema.Entry{
+		Type:     schema.TypeTable,
+		Name:     tableName,
+		TblName:  tableName,
+		RootPage: pg.PageNum,
+		SQL:      e.createTableSQL(s),
+	}
+
+	if err := ctx.Schema.AddEntry(entry); err != nil {
+		return &Result{Error: err}
+	}
+
+	// SQLite lazily creates a real sqlite_sequence(name,seq) table when the
+	// first AUTOINCREMENT table is created (build.c:2922-2931). The engine
+	// mirrors this: a real schema entry lets SELECT/UPDATE/DELETE on
+	// sqlite_sequence use the normal table machinery.
+	if res := e.ensureAutoIncrementSequence(ctx, s); res != nil {
+		return res
+	}
+
+	// Create UNIQUE autoindex entries for column-level and table-level
+	// UNIQUE constraints (deduplicated; redundant with the PK on WITHOUT
+	// ROWID tables are dropped), matching SQLite's sqlite_autoindex_* names.
+	if res := e.createAutoIndexes(ctx, tableName, s, entry); res.Error != nil {
+		return res
+	}
+
+	// Handle CREATE TABLE ... AS SELECT
+	if s.AsSelect != nil {
+		// The schema prefix is resolved above (ctx/tableName); the AS SELECT
+		// path must register the table under the unqualified name in the
+		// target schema (SQLite stores "CREATE TABLE t1(...)", never
+		// "CREATE TABLE aux.t1(...)").
+		return e.execCreateTableAsSelect(s, ctx, tableName, ctasResult)
+	}
+
+	return &Result{Changes: 0}
+}
+
+// tempQualifiedNameError rejects CREATE TEMP TABLE with a schema-qualified
+// name whose prefix is not the temp schema itself: "CREATE TEMP TABLE
+// main.t1" and "CREATE TEMP TABLE aux.t1" fail with "temporary table name
+// must be unqualified". "CREATE TEMP TABLE temp.t1" is allowed (the prefix
+// redundantly names the same temp schema).
+func tempQualifiedNameError(s *sql.CreateTableStmt) *Result {
+	if !s.Temporary || !strings.Contains(s.Name, ".") {
+		return nil
+	}
+	prefix := strings.ToUpper(s.Name[:strings.Index(s.Name, ".")])
+	if prefix != "TEMP" && prefix != "TEMPORARY" {
+		return &Result{Error: fmt.Errorf("temporary table name must be unqualified")}
+	}
+	return nil
+}
+
+// tableNameTooBigError applies build.c sqlite3StartTable's
+// SQLITE_LIMIT_LENGTH check: a table (or column) name longer than the limit
+// fails SQLITE_TOOBIG, "string or blob too big" (sqllimits1-17.x builds a
+// >100000-char table name under LENGTH=100000).
+func (e *DDLExecutor) tableNameTooBigError(s *sql.CreateTableStmt, tableName string) *Result {
+	lim := e.ctx.LengthLimit()
+	if lim <= 0 {
+		return nil
+	}
+	if len(tableName) >= lim {
+		return &Result{Error: fmt.Errorf("string or blob too big")}
+	}
+	for _, cd := range s.Columns {
+		if len(cd.Name) >= lim {
+			return &Result{Error: fmt.Errorf("string or blob too big")}
+		}
+	}
+	return nil
+}
+
+// initTableRootPage allocates the new table's root page, clears any previous
+// table's cached rowid sequence, initializes a fresh empty leaf, and writes
+// the page back. A reused page (from a dropped table) must not carry the
+// previous table's stale cells, so the page is zeroed and given a valid
+// header. WITHOUT ROWID tables live in an index btree (SQLite build.c: the
+// table root is created with BTREE_WRDATA / index-leaf pages).
+func (e *DDLExecutor) initTableRootPage(ctx *DatabaseContext, s *sql.CreateTableStmt) (*pager.Page, *Result) {
 	pg, perr := allocateRootPage(ctx.Pager)
 	if perr != nil {
-		return &Result{Error: perr}
+		return nil, &Result{Error: perr}
 	}
 	// A reused page (from a dropped table) must not carry the previous
 	// table's cached rowid sequence; a fresh table starts at rowid 1.
 	e.ctx.ClearRowIDState(ctx.Pager, pg.PageNum)
-	// Initialize a fresh empty leaf: zero the page and set a valid header so
-	// a reused page (from a dropped table) does not retain stale cells.
-	// WITHOUT ROWID tables live in an index btree (SQLite build.c: the
-	// table root is created with BTREE_WRDATA / index-leaf pages).
 	for i := range pg.Data {
 		pg.Data[i] = 0
 	}
@@ -145,48 +217,22 @@ func (e *DDLExecutor) execCreateTable(s *sql.CreateTableStmt) *Result {
 	binary.BigEndian.PutUint16(pg.Data[coff+3:coff+5], 0)
 	binary.BigEndian.PutUint16(pg.Data[coff+5:coff+7], uint16(ctx.Pager.UsableSize()))
 	if err := ctx.Pager.WritePage(pg); err != nil {
+		return nil, &Result{Error: err}
+	}
+	return pg, nil
+}
+
+// ensureAutoIncrementSequence lazily creates the real sqlite_sequence table
+// when the CREATE declares an AUTOINCREMENT column (see
+// ensureSQLiteSequenceTable).
+func (e *DDLExecutor) ensureAutoIncrementSequence(ctx *DatabaseContext, s *sql.CreateTableStmt) *Result {
+	if !hasAutoIncrementColumn(s) {
+		return nil
+	}
+	if err := e.ensureSQLiteSequenceTable(ctx); err != nil {
 		return &Result{Error: err}
 	}
-
-	entry := &schema.Entry{
-		Type:     schema.TypeTable,
-		Name:     tableName,
-		TblName:  tableName,
-		RootPage: pg.PageNum,
-		SQL:      e.createTableSQL(s),
-	}
-
-	if err := ctx.Schema.AddEntry(entry); err != nil {
-		return &Result{Error: err}
-	}
-
-	// SQLite lazily creates a real sqlite_sequence(name,seq) table when the
-	// first AUTOINCREMENT table is created (build.c:2922-2931). The engine
-	// mirrors this: a real schema entry lets SELECT/UPDATE/DELETE on
-	// sqlite_sequence use the normal table machinery.
-	if hasAutoIncrementColumn(s) {
-		if err := e.ensureSQLiteSequenceTable(ctx); err != nil {
-			return &Result{Error: err}
-		}
-	}
-
-	// Create UNIQUE autoindex entries for column-level and table-level
-	// UNIQUE constraints (deduplicated; redundant with the PK on WITHOUT
-	// ROWID tables are dropped), matching SQLite's sqlite_autoindex_* names.
-	if res := e.createAutoIndexes(ctx, tableName, s, entry); res.Error != nil {
-		return res
-	}
-
-	// Handle CREATE TABLE ... AS SELECT
-	if s.AsSelect != nil {
-		// The schema prefix is resolved above (ctx/tableName); the AS SELECT
-		// path must register the table under the unqualified name in the
-		// target schema (SQLite stores "CREATE TABLE t1(...)", never
-		// "CREATE TABLE aux.t1(...)").
-		return e.execCreateTableAsSelect(s, ctx, tableName, ctasResult)
-	}
-
-	return &Result{Changes: 0}
+	return nil
 }
 
 // isSyntheticSystemEntry reports whether entry is the schema manager's
@@ -505,6 +551,18 @@ func stripTriggerTempKeyword(sqlStr string) string {
 // reports "no such column: q"; check-5.1/5.2 report "parameters prohibited
 // in CHECK constraints".
 func (e *DDLExecutor) validateCheckExprColumns(s *sql.CreateTableStmt) *Result {
+	for _, expr := range createTableChecks(s) {
+		if res := e.validateCheckExprNodes(s, expr); res != nil {
+			return res
+		}
+	}
+	return nil
+}
+
+// createTableChecks collects the CHECK expressions of a CREATE TABLE
+// statement: column-level checks in column order, then table-level
+// ConstraintCheck entries in list order.
+func createTableChecks(s *sql.CreateTableStmt) []sql.Expr {
 	checks := []sql.Expr{}
 	for i := range s.Columns {
 		if s.Columns[i].Check != nil {
@@ -516,31 +574,33 @@ func (e *DDLExecutor) validateCheckExprColumns(s *sql.CreateTableStmt) *Result {
 			checks = append(checks, s.Constraints[i].Expr)
 		}
 	}
-	for _, expr := range checks {
-		var res *Result
-		execquery.WalkExprFull(expr, func(n sql.Expr) {
-			if res != nil {
-				return
-			}
-			switch v := n.(type) {
-			case *sql.ParameterExpr:
-				res = &Result{Error: fmt.Errorf("parameters prohibited in CHECK constraints")}
-			case *sql.ColumnRef:
-				// Double-quoted tokens keep the DQS string fallback inside
-				// CHECK expressions ("integer" in check-2.1), so only bare
-				// identifiers must resolve (check-3.3's bare q). A
-				// foreign-qualified reference (t2.x inside t3's CHECK)
-				// reports the qualified spelling (check-3.5).
-				if !v.Quoted && !createTableRefResolves(s, tableNameOf(s), v) {
-					res = &Result{Error: fmt.Errorf("no such column: %s", checkRefText(v))}
-				}
-			}
-		})
+	return checks
+}
+
+// validateCheckExprNodes walks one CHECK expression and reports the first
+// prohibited construct: bound parameters ("parameters prohibited in CHECK
+// constraints") and unresolvable bare column references ("no such column").
+func (e *DDLExecutor) validateCheckExprNodes(s *sql.CreateTableStmt, expr sql.Expr) *Result {
+	var res *Result
+	execquery.WalkExprFull(expr, func(n sql.Expr) {
 		if res != nil {
-			return res
+			return
 		}
-	}
-	return nil
+		switch v := n.(type) {
+		case *sql.ParameterExpr:
+			res = &Result{Error: fmt.Errorf("parameters prohibited in CHECK constraints")}
+		case *sql.ColumnRef:
+			// Double-quoted tokens keep the DQS string fallback inside
+			// CHECK expressions ("integer" in check-2.1), so only bare
+			// identifiers must resolve (check-3.3's bare q). A
+			// foreign-qualified reference (t2.x inside t3's CHECK)
+			// reports the qualified spelling (check-3.5).
+			if !v.Quoted && !createTableRefResolves(s, tableNameOf(s), v) {
+				res = &Result{Error: fmt.Errorf("no such column: %s", checkRefText(v))}
+			}
+		}
+	})
+	return res
 }
 
 // createTableRefResolves reports whether a column reference inside a CHECK
