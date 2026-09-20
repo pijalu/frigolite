@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/pijalu/frigolite/internal/btree"
 	"github.com/pijalu/frigolite/internal/execquery"
 	"github.com/pijalu/frigolite/internal/pager"
 	"github.com/pijalu/frigolite/internal/schema"
@@ -79,8 +80,9 @@ func (e *DMLExecutor) checkEchoTupleRowid(columns []string, tuple []sql.Expr) *R
 // wrapper above re-routes its errors).
 func (e *DMLExecutor) execInsertInner(s *sql.InsertStmt) (ret *Result) {
 	// Generic updatable virtual tables (sqlite_dbpage etc.): INSERT routes to
-	// the module's InsertRow (xUpdate parity).
-	if res, handled := e.execVTabInsert(s); handled {
+	// the module's InsertRow (xUpdate parity); prepareInsertStmt then
+	// validates the statement shape.
+	if res := e.execInsertPrecheck(s); res != nil {
 		return res
 	}
 	// Publish the statement's ON CONFLICT policy for trigger-body steps
@@ -95,48 +97,26 @@ func (e *DMLExecutor) execInsertInner(s *sql.InsertStmt) (ret *Result) {
 	// at depth 0 via Engine.Exec). A trigger body step that fires its own
 	// triggers must not clobber the outer firing policy with its own weaker
 	// one: only publish when no outer policy is active.
-	outerSet := e.ctx.TriggerDepth() == 0 && outerPrev == ""
-	if outerSet {
-		if s.OrConflict != "" {
-			e.ctx.SetOuterOrConflict(s.OrConflict)
-		} else if s.IsReplace {
-			e.ctx.SetOuterOrConflict("REPLACE")
-		} else {
-			e.ctx.SetOuterOrConflict("")
-		}
+	if e.shouldPublishOuterConflict(outerPrev) {
+		e.publishOuterInsertConflict(s)
 		defer e.ctx.SetOuterOrConflict(outerPrev)
 	}
-	if res := e.prepareInsertStmt(s); res != nil {
+	tableEntry, dbCtx, res := e.resolveInsertTarget(s)
+	if res != nil {
 		return res
-	}
-	tableEntry, dbCtx, err := e.ctx.FindTable(s.Table)
-	if err != nil {
-		// Not a table — fall back to INSTEAD-OF-trigger view insert support.
-		viewEntry, _, viewErr := e.ctx.FindView(s.Table)
-		if viewErr != nil {
-			return &Result{Error: err}
-		}
-		return e.execInsertView(s, viewEntry)
 	}
 	// fts5 INSERTs persist the index blob once, at the statement boundary
 	// (sqlite3Fts5StorageSync's statement-end flush): the per-row writes only
 	// mark the table dirty and the pending blob flushes here.
 	if _, isFTS5 := e.ctx.FTS5Tables()[tableEntry.Name]; isFTS5 {
 		defer func() {
-			if t5, ok := e.ctx.FTS5Tables()[tableEntry.Name]; ok && t5 != nil {
-				if ferr := e.flushFTS5Shadow(t5); ferr != nil && (ret == nil || ret.Error == nil) {
-					ret = &Result{Error: ferr}
-				}
-			}
+			e.flushInsertFTS5Shadow(tableEntry, &ret)
 		}()
 	}
 	// build.c sqlite3AddColumnToList: every name in the INSERT column list
 	// must be a real table column ("table t has no column named z").
-	if len(s.Columns) > 0 {
-		colDefs := e.ctx.ParseColumnDefs(tableEntry.Name, tableEntry.SQL)
-		if res := validateInsertColumnList(tableEntry.Name, s.Columns, colDefs); res != nil {
-			return res
-		}
+	if res := e.checkInsertColumnList(tableEntry, s); res != nil {
+		return res
 	}
 
 	// The statement's ON CONFLICT policy was published at the top of
@@ -170,17 +150,11 @@ func (e *DMLExecutor) execInsertInner(s *sql.InsertStmt) (ret *Result) {
 	// read on the index; SQLite aborts the conflicting write with
 	// SQLITE_ABORT). The engine materializes the source scan up front, so
 	// the conflict is detected from the statement's source references.
-	if t5, ok := e.ctx.FTS5Tables()[tableEntry.Name]; ok && t5 != nil && s.Select != nil {
-		if insertSourceIsVocabOver(e.ctx, s.Select, tableEntry.Name) {
-			return &Result{Error: fmt.Errorf("query aborted")}
-		}
-	}
-
-	// The statement maintains every index on the target table, so each
+	// The statement also maintains every index on the target table, so each
 	// index key's collation must resolve at prepare time (build.c
 	// sqlite3LocateCollSeq; collate3-3.1: an INSERT fails after a
 	// close/reopen that did not re-register the indexed column's collation).
-	if res := e.validateIndexCollations(tableEntry, colDefs, nil); res != nil {
+	if res := e.validateInsertSourceAndCollations(tableEntry, colDefs, s); res != nil {
 		return res
 	}
 
@@ -189,47 +163,20 @@ func (e *DMLExecutor) execInsertInner(s *sql.InsertStmt) (ret *Result) {
 	// successful INSERT on an AUTOINCREMENT table (directly or via triggers),
 	// write the running max back to the real sqlite_sequence table. The
 	// write is skipped for empty statements that do not touch the table.
-	if e.ctx.TableHasAutoIncrement(tableEntry.Name) && dbCtx != nil {
-		// The sqlite_sequence table must exist and be an ordinary rowid
-		// table before an AUTOINCREMENT insert uses it (autoinc-12.2/12.3:
-		// a renamed-away or impostor sqlite_sequence fails the insert with
-		// SQLITE_CORRUPT, "database disk image is malformed").
-		if res := e.validateSequenceTable(dbCtx); res != nil {
-			return res
-		}
-		seqTable := tableEntry.Name
-		seqPg := dbCtx.Pager
-		seqRoot := tableEntry.RootPage
-		defer func() {
-			if ret != nil && ret.Error != nil {
-				return
-			}
-			seq, ok := e.ctx.AutoIncSeqFor(seqPg, seqRoot)
-			if !ok {
-				seq = 0
-			}
-			_ = e.ctx.WriteSQLiteSequence(seqPg, seqTable, seq)
-		}()
+	cleanupAutoInc, res := e.autoIncStatementSetup(dbCtx, tableEntry, &ret)
+	if res != nil {
+		return res
 	}
+	defer cleanupAutoInc()
 
-	if s.HasReturning {
-		if res := e.validateInsertReturning(s, colDefs, tableEntry.Name); res != nil {
-			return res
-		}
-	}
-
-	// Virtual tables without module-backed storage (rtree, echo, dbstat, ...)
-	// accept INSERT as a no-op success; RETURNING projects NULLs for every
-	// column. FTS tables are handled by their dedicated paths.
-	if e.ctx.IsStoragelessVirtualTable(tableEntry) {
-		return e.execStoragelessInsert(tableEntry, colDefs, s)
-	}
-
-	if s.Select != nil {
-		return e.execInsertSelect(tableEntry, colDefs, s)
-	}
-	if len(s.Values) == 0 {
-		return e.execInsertDefault(tableEntry, colDefs, s)
+	// RETURNING validation runs first (a bad column list fails the statement
+	// even for the routed paths), then the routed bodies: virtual tables
+	// without module-backed storage (rtree, echo, dbstat, ...) accept INSERT
+	// as a no-op success; RETURNING projects NULLs for every column. FTS
+	// tables are handled by their dedicated paths. INSERT...SELECT and
+	// DEFAULT VALUES also complete in their dedicated paths.
+	if res, done := e.execInsertRoutedBody(dbCtx, tableEntry, colDefs, s); done {
+		return res
 	}
 
 	// REPLACE deletes rows and may fire triggers before inserting; if anything
@@ -237,6 +184,152 @@ func (e *DMLExecutor) execInsertInner(s *sql.InsertStmt) (ret *Result) {
 	defer e.withInsertReplaceSnapshot(dbCtx, s, &ret)()
 
 	return e.execInsertTuples(dbCtx, tableEntry, colDefs, s)
+}
+
+// execInsertRoutedBody handles the INSERT paths that bypass the row-by-row
+// VALUES writer: the RETURNING column-list validation, storageless vtabs
+// (no-op success, RETURNING projects NULLs), INSERT...SELECT, and
+// empty-VALUES (DEFAULT VALUES). done reports that the statement completed
+// inside the helper.
+func (e *DMLExecutor) execInsertRoutedBody(dbCtx *DatabaseContext, tableEntry *schema.Entry, colDefs []sql.ColumnDef, s *sql.InsertStmt) (*Result, bool) {
+	if res := e.insertReturningValidation(s, colDefs, tableEntry.Name); res != nil {
+		return res, true
+	}
+	if e.ctx.IsStoragelessVirtualTable(tableEntry) {
+		return e.execStoragelessInsert(tableEntry, colDefs, s), true
+	}
+	if s.Select != nil {
+		return e.execInsertSelect(tableEntry, colDefs, s), true
+	}
+	if len(s.Values) == 0 {
+		return e.execInsertDefault(tableEntry, colDefs, s), true
+	}
+	return nil, false
+}
+
+// execInsertPrecheck runs the pre-target INSERT routing: a vtab-backed insert
+// completes there (sqlite_dbpage etc. route to the module's InsertRow,
+// xUpdate parity), and prepareInsertStmt validates the statement shape.
+func (e *DMLExecutor) execInsertPrecheck(s *sql.InsertStmt) *Result {
+	if res, handled := e.execVTabInsert(s); handled {
+		return res
+	}
+	return e.prepareInsertStmt(s)
+}
+
+// autoIncStatementSetup validates the sqlite_sequence table up front for an
+// AUTOINCREMENT insert and returns the statement-end sequence write (a no-op
+// for non-AUTOINCREMENT targets). The write is skipped when the statement
+// failed.
+func (e *DMLExecutor) autoIncStatementSetup(dbCtx *DatabaseContext, tableEntry *schema.Entry, ret **Result) (func(), *Result) {
+	if !(e.ctx.TableHasAutoIncrement(tableEntry.Name) && dbCtx != nil) {
+		return func() {}, nil
+	}
+	// The sqlite_sequence table must exist and be an ordinary rowid
+	// table before an AUTOINCREMENT insert uses it (autoinc-12.2/12.3:
+	// a renamed-away or impostor sqlite_sequence fails the insert with
+	// SQLITE_CORRUPT, "database disk image is malformed").
+	if res := e.validateSequenceTable(dbCtx); res != nil {
+		return nil, res
+	}
+	seqTable := tableEntry.Name
+	seqPg := dbCtx.Pager
+	seqRoot := tableEntry.RootPage
+	return func() {
+		e.writeAutoIncSeqOnSuccess(seqPg, seqRoot, seqTable, ret)
+	}, nil
+}
+
+// insertReturningValidation validates the RETURNING column list when the
+// statement carries one.
+func (e *DMLExecutor) insertReturningValidation(s *sql.InsertStmt, colDefs []sql.ColumnDef, tableName string) *Result {
+	if !s.HasReturning {
+		return nil
+	}
+	return e.validateInsertReturning(s, colDefs, tableName)
+}
+
+// checkInsertColumnList validates a named INSERT column list against the
+// target table when one is present.
+func (e *DMLExecutor) checkInsertColumnList(tableEntry *schema.Entry, s *sql.InsertStmt) *Result {
+	if len(s.Columns) == 0 {
+		return nil
+	}
+	colDefs := e.ctx.ParseColumnDefs(tableEntry.Name, tableEntry.SQL)
+	return validateInsertColumnList(tableEntry.Name, s.Columns, colDefs)
+}
+
+// shouldPublishOuterConflict reports whether this statement is the firing
+// depth-0 statement with no outer policy active.
+func (e *DMLExecutor) shouldPublishOuterConflict(outerPrev string) bool {
+	return e.ctx.TriggerDepth() == 0 && outerPrev == ""
+}
+
+// publishOuterInsertConflict publishes the statement's ON CONFLICT policy:
+// the explicit OR clause, else REPLACE for INSERT OR REPLACE semantics.
+func (e *DMLExecutor) publishOuterInsertConflict(s *sql.InsertStmt) {
+	if s.OrConflict != "" {
+		e.ctx.SetOuterOrConflict(s.OrConflict)
+	} else if s.IsReplace {
+		e.ctx.SetOuterOrConflict("REPLACE")
+	} else {
+		e.ctx.SetOuterOrConflict("")
+	}
+}
+
+// resolveInsertTarget finds the INSERT target table; a non-table name falls
+// back to INSTEAD-OF-trigger view insert support. A non-nil Result is the
+// statement's outcome (target lookup failure or the completed view insert).
+func (e *DMLExecutor) resolveInsertTarget(s *sql.InsertStmt) (*schema.Entry, *DatabaseContext, *Result) {
+	tableEntry, dbCtx, err := e.ctx.FindTable(s.Table)
+	if err != nil {
+		// Not a table — fall back to INSTEAD-OF-trigger view insert support.
+		viewEntry, _, viewErr := e.ctx.FindView(s.Table)
+		if viewErr != nil {
+			return nil, nil, &Result{Error: err}
+		}
+		return nil, nil, e.execInsertView(s, viewEntry)
+	}
+	return tableEntry, dbCtx, nil
+}
+
+// flushInsertFTS5Shadow persists a dirty fts5 index at statement end,
+// surfacing a flush error only when the statement did not already fail.
+func (e *DMLExecutor) flushInsertFTS5Shadow(tableEntry *schema.Entry, ret **Result) {
+	if t5, ok := e.ctx.FTS5Tables()[tableEntry.Name]; ok && t5 != nil {
+		if ferr := e.flushFTS5Shadow(t5); ferr != nil && (*ret == nil || (*ret).Error == nil) {
+			*ret = &Result{Error: ferr}
+		}
+	}
+}
+
+// validateInsertSourceAndCollations rejects an fts5 write fed by an fts5vocab
+// cursor over the same table (fts5vocab2.test 5.1/5.2: the vocab vtab holds a
+// read on the index; SQLite aborts the conflicting write with SQLITE_ABORT),
+// then validates every index key's collation resolves at prepare time
+// (build.c sqlite3LocateCollSeq; collate3-3.1: an INSERT fails after a
+// close/reopen that did not re-register the indexed column's collation).
+func (e *DMLExecutor) validateInsertSourceAndCollations(tableEntry *schema.Entry, colDefs []sql.ColumnDef, s *sql.InsertStmt) *Result {
+	if t5, ok := e.ctx.FTS5Tables()[tableEntry.Name]; ok && t5 != nil && s.Select != nil {
+		if insertSourceIsVocabOver(e.ctx, s.Select, tableEntry.Name) {
+			return &Result{Error: fmt.Errorf("query aborted")}
+		}
+	}
+	return e.validateIndexCollations(tableEntry, colDefs, nil)
+}
+
+// writeAutoIncSeqOnSuccess writes the AUTOINCREMENT running max back to the
+// real sqlite_sequence table at statement end (insert.c autoIncrementEnd),
+// skipping the write when the statement failed.
+func (e *DMLExecutor) writeAutoIncSeqOnSuccess(seqPg *pager.Pager, seqRoot uint32, seqTable string, ret **Result) {
+	if *ret != nil && (*ret).Error != nil {
+		return
+	}
+	seq, ok := e.ctx.AutoIncSeqFor(seqPg, seqRoot)
+	if !ok {
+		seq = 0
+	}
+	_ = e.ctx.WriteSQLiteSequence(seqPg, seqTable, seq)
 }
 
 // validateInsertReturning validates the RETURNING clause against the table's
@@ -363,19 +456,27 @@ func (e *DMLExecutor) uniqueReplaceableConflict(err error, tableEntry *schema.En
 		if !strings.EqualFold(cd.Name, violated) {
 			continue
 		}
-		if cd.Unique || cd.PrimaryKey {
-			// The column's own unique constraint is the first-declared
-			// constraint covering this column.
-			return cd.OnConflict == "REPLACE"
+		return e.columnReplaceVerdict(cd, tableEntry)
+	}
+	return false
+}
+
+// columnReplaceVerdict decides ON CONFLICT REPLACE for a violated column:
+// the column's own UNIQUE/PK declaration wins when present (the
+// first-declared constraint covering this column); otherwise any
+// table-level UNIQUE/PK containing it with ON CONFLICT REPLACE applies.
+func (e *DMLExecutor) columnReplaceVerdict(cd *sql.ColumnDef, tableEntry *schema.Entry) bool {
+	if cd.Unique || cd.PrimaryKey {
+		// The column's own unique constraint is the first-declared
+		// constraint covering this column.
+		return cd.OnConflict == "REPLACE"
+	}
+	// The column has no own unique constraint; check table-level
+	// UNIQUE constraints containing it, in declaration order.
+	for _, tc := range e.ctx.TableConstraints(tableEntry.Name, tableEntry.SQL) {
+		if (tc.Type == sql.ConstraintUnique || tc.Type == sql.ConstraintPrimaryKey) && tc.OnConflict == "REPLACE" {
+			return true
 		}
-		// The column has no own unique constraint; check table-level
-		// UNIQUE constraints containing it, in declaration order.
-		for _, tc := range e.ctx.TableConstraints(tableEntry.Name, tableEntry.SQL) {
-			if (tc.Type == sql.ConstraintUnique || tc.Type == sql.ConstraintPrimaryKey) && tc.OnConflict == "REPLACE" {
-				return true
-			}
-		}
-		return false
 	}
 	return false
 }
@@ -459,11 +560,7 @@ func (e *DMLExecutor) insertRow(pg *pager.Pager, tableEntry *schema.Entry, colDe
 	// row's index entries. On failure the just-written table row is removed
 	// (SQLite rolls the whole statement back).
 	if err := e.maintainIndexesOnInsert(tableEntry, colDefs, values, nextRowID); err != nil {
-		if _, derr := tree.DeleteCellsWhere(func(cell *storage.Cell) bool {
-			return cell.RowID == nextRowID
-		}); derr == nil {
-			e.ctx.InvalidateRowIDCache(pg, tableEntry.RootPage)
-		}
+		e.rollbackInsertedRow(pg, tableEntry, tree, nextRowID)
 		return &Result{Error: err}
 	}
 
@@ -704,18 +801,8 @@ func (e *DMLExecutor) execInsertOnConflict(pg *pager.Pager, tableEntry *schema.E
 	if rerr != nil {
 		return &Result{Error: rerr}
 	}
-	ipkWasNil, ipkIndex := e.fillIPKRowID(colDefs, values, nextRowID, withoutRowid, isStrictTable(tableEntry.SQL))
-	// The trigger-visible new.rowid is the EXPLICIT rowid (statement rowid
-	// column or explicit IPK value); an auto-assigned rowid reads -1.
-	expRowID := explicitTriggerRowid(explicitRowID, values, ipkIndex, withoutRowid)
-	if e.hasTriggersForTable(tableEntry.Name) {
-		newRow := buildBeforeTriggerRow(colDefs, values, ipkWasNil, ipkIndex, withoutRowid, expRowID)
-		if trigResult := e.fireBeforeInsertTriggers(tableEntry.Name, newRow); trigResult.Error != nil {
-			if trigResult.Error == errRaiseIgnore {
-				return &Result{Changes: 0, Row: nil}
-			}
-			return trigResult
-		}
+	if skipped, res := e.fireUpsertBeforeTriggers(tableEntry, colDefs, values, nextRowID, explicitRowID, withoutRowid); skipped {
+		return res
 	}
 
 	// Try to find existing conflicting rows (via UNIQUE columns, composite
@@ -724,15 +811,9 @@ func (e *DMLExecutor) execInsertOnConflict(pg *pager.Pager, tableEntry *schema.E
 	hits := e.findOnConflictRow(tableEntry, colDefs, colIndex, values)
 
 	if len(hits) == 0 {
-		res := e.insertRow(pg, tableEntry, colDefs, values, nil, s.OrConflict)
-		if res.Error != nil {
-			return res
-		}
 		// insertRow mutates values in place (rowid fill, affinity, generated
 		// columns), so values holds the row that was actually written.
-		res.Row = values
-		res.InsertedChanges = res.Changes
-		return res
+		return e.insertUpsertRow(pg, tableEntry, colDefs, values, s.OrConflict)
 	}
 
 	// Walk the chained ON CONFLICT clauses in statement order; the first
@@ -750,14 +831,42 @@ func (e *DMLExecutor) execInsertOnConflict(pg *pager.Pager, tableEntry *schema.E
 		if rr.Error != nil {
 			return rr
 		}
-		ins := e.insertRow(pg, tableEntry, colDefs, values, nil, s.OrConflict)
-		if ins.Error != nil {
-			return ins
-		}
-		ins.Row = values
-		ins.InsertedChanges = ins.Changes
-		return ins
+		return e.insertUpsertRow(pg, tableEntry, colDefs, values, s.OrConflict)
 	}
+	return res
+}
+
+// fireUpsertBeforeTriggers fills the IPK rowid and fires BEFORE INSERT
+// triggers for the attempted upsert row. skipped reports the row must not
+// proceed (RAISE(IGNORE) or a trigger failure); res carries the outcome.
+func (e *DMLExecutor) fireUpsertBeforeTriggers(tableEntry *schema.Entry, colDefs []sql.ColumnDef, values []interface{}, nextRowID int64, explicitRowID *int64, withoutRowid bool) (bool, *Result) {
+	ipkWasNil, ipkIndex := e.fillIPKRowID(colDefs, values, nextRowID, withoutRowid, isStrictTable(tableEntry.SQL))
+	// The trigger-visible new.rowid is the EXPLICIT rowid (statement rowid
+	// column or explicit IPK value); an auto-assigned rowid reads -1.
+	expRowID := explicitTriggerRowid(explicitRowID, values, ipkIndex, withoutRowid)
+	if !e.hasTriggersForTable(tableEntry.Name) {
+		return false, nil
+	}
+	newRow := buildBeforeTriggerRow(colDefs, values, ipkWasNil, ipkIndex, withoutRowid, expRowID)
+	if trigResult := e.fireBeforeInsertTriggers(tableEntry.Name, newRow); trigResult.Error != nil {
+		if trigResult.Error == errRaiseIgnore {
+			return true, &Result{Changes: 0, Row: nil}
+		}
+		return true, trigResult
+	}
+	return false, nil
+}
+
+// insertUpsertRow writes the attempted row and projects the written row:
+// insertRow mutates values in place (rowid fill, affinity, generated
+// columns), so values holds the row that was actually written.
+func (e *DMLExecutor) insertUpsertRow(pg *pager.Pager, tableEntry *schema.Entry, colDefs []sql.ColumnDef, values []interface{}, orConflict string) *Result {
+	res := e.insertRow(pg, tableEntry, colDefs, values, nil, orConflict)
+	if res.Error != nil {
+		return res
+	}
+	res.Row = values
+	res.InsertedChanges = res.Changes
 	return res
 }
 
@@ -851,3 +960,13 @@ func (e *DMLExecutor) execInsertDefault(tableEntry *schema.Entry, colDefs []sql.
 // and assigns an auto-generated rowid to an empty INTEGER PRIMARY KEY column.
 
 // defaultValuesWithRowID fills every column with its DEFAULT (NULL if none)
+
+// rollbackInsertedRow removes a just-written row after an index-maintenance
+// failure and invalidates the rowid cache (the statement rolls back).
+func (e *DMLExecutor) rollbackInsertedRow(pg *pager.Pager, tableEntry *schema.Entry, tree *btree.BTree, nextRowID int64) {
+	if _, derr := tree.DeleteCellsWhere(func(cell *storage.Cell) bool {
+		return cell.RowID == nextRowID
+	}); derr == nil {
+		e.ctx.InvalidateRowIDCache(pg, tableEntry.RootPage)
+	}
+}

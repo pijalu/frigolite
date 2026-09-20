@@ -52,73 +52,11 @@ func buildDMLColumnLookup(colDefs []sql.ColumnDef, hasRowid bool) map[string]boo
 // their own scope.
 func (e *DMLExecutor) validateDMLExprs(qualifiers []string, colDefs []sql.ColumnDef, hasRowid bool, exprs []sql.Expr) *Result {
 	lookup := buildDMLColumnLookup(colDefs, hasRowid)
-	validQual := func(q string) bool {
-		// Trigger-body NEW./OLD. row pseudo-aliases are always valid
-		// qualifiers (the T18 alias-masking rule only rejects the ORIGINAL
-		// table name).
-		if strings.EqualFold(q, "new") || strings.EqualFold(q, "old") {
-			return true
-		}
-		for _, v := range qualifiers {
-			if strings.EqualFold(q, v) {
-				return true
-			}
-		}
-		return false
-	}
 	for _, ex := range exprs {
 		if ex == nil {
 			continue
 		}
-		var err error
-		execquery.WalkExprFull(ex, func(n sql.Expr) {
-			if err != nil {
-				return
-			}
-			switch v := n.(type) {
-			case *sql.Subquery, *sql.ExistsExpr:
-				return
-			case *sql.ColumnRef:
-				if v.Table != "" {
-					// NEW./OLD. pseudo-rows (trigger bodies) resolve their
-					// columns against the fired row — which may carry columns
-					// the target table lacks (a view's column list), so the
-					// bare-name lookup does not apply to them.
-					if strings.EqualFold(v.Table, "new") || strings.EqualFold(v.Table, "old") {
-						return
-					}
-					if !validQual(v.Table) {
-						err = fmt.Errorf("no such column: %s.%s", v.Table, v.Name)
-						return
-					}
-					if !lookup[strings.ToLower(v.Name)] {
-						err = fmt.Errorf("no such column: %s.%s", v.Table, v.Name)
-					}
-					return
-				}
-				// Unquoted TRUE/FALSE are boolean literals (parser keeps
-				// them as ColumnRefs); a double-quoted identifier falls to
-				// the DQS_DML evaluator, which converts it to a string
-				// literal when the legacy DQS setting is on
-				// (indexexpr1-2110: WHERE (SELECT 'y') GLOB "y").
-				if isLiteralOrDQSRef(v) {
-					return
-				}
-				if !lookup[strings.ToLower(v.Name)] {
-					err = fmt.Errorf("no such column: %s", v.Name)
-				}
-			case *sql.FuncCall:
-				isAgg, exists := e.ctx.LookupFunction(v.Name)
-				if !exists {
-					err = fmt.Errorf("no such function: %s", v.Name)
-					return
-				}
-				if isAgg {
-					err = fmt.Errorf("misuse of aggregate: %s()", strings.ToLower(v.Name))
-				}
-			}
-		})
-		if err != nil {
+		if err := e.dmlExprError(lookup, qualifiers, ex); err != nil {
 			return &Result{Error: err}
 		}
 	}
@@ -129,6 +67,90 @@ func (e *DMLExecutor) validateDMLExprs(qualifiers []string, colDefs []sql.Column
 	// DML WHERE clauses).
 	if err := e.validateDMLComparisonCollations(colDefs, exprs); err != nil {
 		return &Result{Error: err}
+	}
+	return nil
+}
+
+// validDMLQualifier reports whether q is a valid table qualifier for the
+// statement: the target table (plus a statement alias), or the NEW./OLD.
+// trigger-body row pseudo-aliases (the T18 alias-masking rule only rejects
+// the ORIGINAL table name).
+func validDMLQualifier(qualifiers []string, q string) bool {
+	if strings.EqualFold(q, "new") || strings.EqualFold(q, "old") {
+		return true
+	}
+	for _, v := range qualifiers {
+		if strings.EqualFold(q, v) {
+			return true
+		}
+	}
+	return false
+}
+
+// dmlExprError finds the first resolution error in one DML expression, or nil.
+// WalkExprFull treats Subquery/ExistsExpr as leaves, so subquery bodies are
+// not descended into — they resolve against their own scope.
+func (e *DMLExecutor) dmlExprError(lookup map[string]bool, qualifiers []string, ex sql.Expr) error {
+	var err error
+	execquery.WalkExprFull(ex, func(n sql.Expr) {
+		if err != nil {
+			return
+		}
+		switch v := n.(type) {
+		case *sql.Subquery, *sql.ExistsExpr:
+			return
+		case *sql.ColumnRef:
+			err = e.dmlColumnRefError(v, lookup, qualifiers)
+		case *sql.FuncCall:
+			err = e.dmlFuncCallError(v)
+		}
+	})
+	return err
+}
+
+// dmlColumnRefError validates one column reference in a DML expression
+// against the target table's column lookup and valid qualifiers.
+func (e *DMLExecutor) dmlColumnRefError(v *sql.ColumnRef, lookup map[string]bool, qualifiers []string) error {
+	if v.Table != "" {
+		// NEW./OLD. pseudo-rows (trigger bodies) resolve their
+		// columns against the fired row — which may carry columns
+		// the target table lacks (a view's column list), so the
+		// bare-name lookup does not apply to them.
+		if strings.EqualFold(v.Table, "new") || strings.EqualFold(v.Table, "old") {
+			return nil
+		}
+		if !validDMLQualifier(qualifiers, v.Table) {
+			return fmt.Errorf("no such column: %s.%s", v.Table, v.Name)
+		}
+		if !lookup[strings.ToLower(v.Name)] {
+			return fmt.Errorf("no such column: %s.%s", v.Table, v.Name)
+		}
+		return nil
+	}
+	// Unquoted TRUE/FALSE are boolean literals (parser keeps
+	// them as ColumnRefs); a double-quoted identifier falls to
+	// the DQS_DML evaluator, which converts it to a string
+	// literal when the legacy DQS setting is on
+	// (indexexpr1-2110: WHERE (SELECT 'y') GLOB "y").
+	if isLiteralOrDQSRef(v) {
+		return nil
+	}
+	if !lookup[strings.ToLower(v.Name)] {
+		return fmt.Errorf("no such column: %s", v.Name)
+	}
+	return nil
+}
+
+// dmlFuncCallError validates one function reference in a DML expression: an
+// unknown function errors "no such function: NAME" and a scalar aggregate is
+// a misuse outside SELECT-list/HAVING context ("misuse of aggregate: NAME()").
+func (e *DMLExecutor) dmlFuncCallError(v *sql.FuncCall) error {
+	isAgg, exists := e.ctx.LookupFunction(v.Name)
+	if !exists {
+		return fmt.Errorf("no such function: %s", v.Name)
+	}
+	if isAgg {
+		return fmt.Errorf("misuse of aggregate: %s()", strings.ToLower(v.Name))
 	}
 	return nil
 }
@@ -144,43 +166,52 @@ func (e *DMLExecutor) validateInsertValuesExprs(s *sql.InsertStmt) *Result {
 			if ex == nil {
 				continue
 			}
-			var bad string
-			execquery.WalkExprFull(ex, func(n sql.Expr) {
-				if bad != "" {
-					return
-				}
-				switch v := n.(type) {
-				case *sql.Subquery, *sql.ExistsExpr:
-					return
-				case *sql.ColumnRef:
-					if strings.EqualFold(v.Table, "new") || strings.EqualFold(v.Table, "old") {
-						return
-					}
-					if v.Table == "" && (strings.EqualFold(v.Name, "true") || strings.EqualFold(v.Name, "false")) {
-						return
-					}
-					// DQS (resolve.c): a double-quoted identifier that fails
-					// column resolution becomes a string literal when DQS_DML
-					// is enabled (the legacy default). The evaluator owns the
-					// final decision, so the prepare pass tolerates quoted
-					// refs it cannot resolve (indexexpr1-2110: WHERE
-					// (SELECT 'y') GLOB "y").
-					if v.Quoted {
-						return
-					}
-					if v.Table != "" {
-						bad = v.Table + "." + v.Name
-						return
-					}
-					bad = v.Name
-				}
-			})
-			if bad != "" {
+			if bad := insertValuesBadRef(ex); bad != "" {
 				return &Result{Error: fmt.Errorf("no such column: %s", bad)}
 			}
 		}
 	}
 	return nil
+}
+
+// insertValuesBadRef finds the first rejected column reference in a VALUES
+// tuple expression ("name" or "table.name"); "" when every reference is
+// allowed.
+func insertValuesBadRef(ex sql.Expr) string {
+	var bad string
+	execquery.WalkExprFull(ex, func(n sql.Expr) {
+		if bad != "" {
+			return
+		}
+		if v, ok := n.(*sql.ColumnRef); ok {
+			bad = insertValuesRefName(v)
+		}
+	})
+	return bad
+}
+
+// insertValuesRefName reports the rejected reference text for one column
+// reference inside a VALUES tuple, or "" when the reference is allowed.
+func insertValuesRefName(v *sql.ColumnRef) string {
+	if strings.EqualFold(v.Table, "new") || strings.EqualFold(v.Table, "old") {
+		return ""
+	}
+	if v.Table == "" && (strings.EqualFold(v.Name, "true") || strings.EqualFold(v.Name, "false")) {
+		return ""
+	}
+	// DQS (resolve.c): a double-quoted identifier that fails
+	// column resolution becomes a string literal when DQS_DML
+	// is enabled (the legacy default). The evaluator owns the
+	// final decision, so the prepare pass tolerates quoted
+	// refs it cannot resolve (indexexpr1-2110: WHERE
+	// (SELECT 'y') GLOB "y").
+	if v.Quoted {
+		return ""
+	}
+	if v.Table != "" {
+		return v.Table + "." + v.Name
+	}
+	return v.Name
 }
 
 // validateInsertColumnList checks a named INSERT column list against the

@@ -15,38 +15,6 @@ import (
 )
 
 func (e *DMLExecutor) prepareInsertRowValues(tableEntry *schema.Entry, colDefs []sql.ColumnDef, values []interface{}, fixedRowID *int64, orConflict string) (int64, *Result) {
-	// recordTooBig reports whether a row's values exceed the
-	// SQLITE_LIMIT_LENGTH setting. SQLite checks the RECORD size (header
-	// varint + per-value serial-type varints + data), not just the data sum
-	// (e_createtable-3.11.5: a 30001+30000+30000 blob row with the limit
-	// lowered to 90010 errors, while 3×30000 passes because the record is
-	// exactly 90010). Replicate the serial-type varint overhead.
-	recordTooBig := func(values []interface{}) bool {
-		limit := e.ctx.LengthLimit()
-		if limit <= 0 {
-			return false
-		}
-		var data int
-		var serialVarints int
-		for _, v := range values {
-			serialType, dataLen := storage.EncodeValueSize(v)
-			data += dataLen
-			serialVarints += util.VarintLen(serialType)
-		}
-		// header size = 1 (header-size varint itself) + serial varints; the
-		// header-size varint may grow, iterate to a fixed point.
-		hdrSize := serialVarints + 1
-		for {
-			hdrLen := util.VarintLen(uint64(hdrSize))
-			newHdr := serialVarints + hdrLen
-			if newHdr == hdrSize {
-				break
-			}
-			hdrSize = newHdr
-		}
-		return int64(hdrSize+data) > int64(limit)
-	}
-
 	// Determine rowID: if an INTEGER PRIMARY KEY column has an explicit non-nil
 	// value, use that value as the rowid (the column IS the rowid). Otherwise
 	// auto-assign the next available rowid. REPLACE passes a rowid computed
@@ -75,7 +43,7 @@ func (e *DMLExecutor) prepareInsertRowValues(tableEntry *schema.Entry, colDefs [
 	// string/blob value (or the sum of a row's values) longer than the limit
 	// errors "string or blob too big" (e_createtable-3.11.5). The limit can
 	// be lowered via sqlite3_limit SQLITE_LIMIT_LENGTH.
-	if recordTooBig(values) {
+	if e.insertRecordTooBig(values) {
 		return 0, &Result{Error: fmt.Errorf("string or blob too big")}
 	}
 
@@ -366,3 +334,35 @@ func (e *DMLExecutor) fireAfterInsertRowTriggers(tableEntry *schema.Entry, colDe
 // table-level constraints.
 // hasInsertConstraints reports whether the table imposes any constraints at
 // all: column-level NOT NULL/CHECK/PRIMARY KEY/UNIQUE, UNIQUE indexes, or
+
+// insertRecordTooBig reports whether a row's values exceed the
+// SQLITE_LIMIT_LENGTH setting. SQLite checks the RECORD size (header
+// varint + per-value serial-type varints + data), not just the data sum
+// (e_createtable-3.11.5: a 30001+30000+30000 blob row with the limit
+// lowered to 90010 errors, while 3×30000 passes because the record is
+// exactly 90010). Replicate the serial-type varint overhead.
+func (e *DMLExecutor) insertRecordTooBig(values []interface{}) bool {
+	limit := e.ctx.LengthLimit()
+	if limit <= 0 {
+		return false
+	}
+	var data int
+	var serialVarints int
+	for _, v := range values {
+		serialType, dataLen := storage.EncodeValueSize(v)
+		data += dataLen
+		serialVarints += util.VarintLen(serialType)
+	}
+	// header size = 1 (header-size varint itself) + serial varints; the
+	// header-size varint may grow, iterate to a fixed point.
+	hdrSize := serialVarints + 1
+	for {
+		hdrLen := util.VarintLen(uint64(hdrSize))
+		newHdr := serialVarints + hdrLen
+		if newHdr == hdrSize {
+			break
+		}
+		hdrSize = newHdr
+	}
+	return int64(hdrSize+data) > int64(limit)
+}

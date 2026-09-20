@@ -83,20 +83,8 @@ func (e *DMLExecutor) unsafeSchemaFuncInStmt(stmt sql.Stmt) string {
 // Returns a Result with an error if execution fails, or nil on success
 // (including when the trigger does not match or its WHEN clause is false).
 func (e *DMLExecutor) fireTrigger(t *schema.Entry, event, timing string, newRow, oldRow RowMap) *Result {
-	// trusted_schema=OFF blocks non-innocuous user functions in trigger
-	// bodies (trustschema1-3.110/3.130); TEMP triggers are always trusted.
-	if !e.isTempTrigger(t) {
-		if name := e.unsafeTriggerFunc(t.SQL); name != "" {
-			return &Result{Error: fmt.Errorf("unsafe use of %s()", name)}
-		}
-	}
-	// Enforce SQLite's trigger nesting limit. Recursive trigger chains (with
-	// recursive_triggers ON) abort with "triggers nested too deep" once the
-	// nesting exceeds the limit (the message matches the SQLite TCL suite;
-	// newer SQLite CLI versions phrase it "too many levels of trigger
-	// recursion"). The limit can be lowered via SQLITE_LIMIT_TRIGGER_DEPTH.
-	if e.triggerDepthExceeded() {
-		return &Result{Error: fmt.Errorf("triggers nested too deep")}
+	if res := e.triggerGuardError(t); res != nil {
+		return res
 	}
 
 	// Extract the declared timing and event from the trigger header. This is
@@ -187,6 +175,25 @@ func (e *DMLExecutor) fireTrigger(t *schema.Entry, event, timing string, newRow,
 	defer e.ctx.SetLastChanges(savedChanges)
 
 	return e.execTriggerBody(stmts, timing)
+}
+
+// triggerGuardError runs the pre-flight trigger guards: trusted_schema=OFF
+// blocks non-innocuous user functions in trigger bodies (trustschema1-3.110/
+// 3.130; TEMP triggers are always trusted), and SQLite's trigger nesting
+// limit aborts recursive chains with "triggers nested too deep" (the message
+// matches the SQLite TCL suite; newer SQLite CLI versions phrase it "too many
+// levels of trigger recursion"). The limit can be lowered via
+// SQLITE_LIMIT_TRIGGER_DEPTH.
+func (e *DMLExecutor) triggerGuardError(t *schema.Entry) *Result {
+	if !e.isTempTrigger(t) {
+		if name := e.unsafeTriggerFunc(t.SQL); name != "" {
+			return &Result{Error: fmt.Errorf("unsafe use of %s()", name)}
+		}
+	}
+	if e.triggerDepthExceeded() {
+		return &Result{Error: fmt.Errorf("triggers nested too deep")}
+	}
+	return nil
 }
 
 // triggerDepthExceeded reports whether the trigger nesting limit is reached.

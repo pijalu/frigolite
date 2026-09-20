@@ -147,20 +147,7 @@ func (e *DMLExecutor) execInsertTuples(dbCtx *DatabaseContext, tableEntry *schem
 	for _, tuple := range s.Values {
 		changes, inserted, rowValues, rowid, skip, err := e.insertOneTuple(dbCtx, tableEntry, colDefs, s, tuple)
 		if err != nil {
-			res := &Result{Error: err}
-			// A constraint with its own ON CONFLICT FAIL keeps the rows
-			// written before the conflict (insert.c FAIL semantics: the
-			// failing row itself was never written — conflict3.test 1.x-11.x
-			// multi-row VALUES), exactly like the INSERT ... SELECT path.
-			if e.uniqueFailConflict(err, tableEntry, colDefs) {
-				res.SetKeepPriorRowsOnError()
-			}
-			// ON CONFLICT ROLLBACK extends the abort to the whole
-			// transaction (uniqueRollbackConflict parity with insertSelect).
-			if e.uniqueRollbackConflict(err, tableEntry, colDefs) {
-				res.SetRollbackTxOnError()
-			}
-			return res
+			return e.tupleErrorResult(err, tableEntry, colDefs)
 		}
 		if skip {
 			continue
@@ -188,6 +175,25 @@ func (e *DMLExecutor) execInsertTuples(dbCtx *DatabaseContext, tableEntry *schem
 		return res
 	}
 	return &Result{Changes: totalChanges, InsertedChanges: totalInserted, LastInsertRowID: lastRowID}
+}
+
+// tupleErrorResult builds the Result for a failed VALUES tuple, applying the
+// ON CONFLICT FAIL keep-prior-rows and ON CONFLICT ROLLBACK extensions.
+func (e *DMLExecutor) tupleErrorResult(err error, tableEntry *schema.Entry, colDefs []sql.ColumnDef) *Result {
+	res := &Result{Error: err}
+	// A constraint with its own ON CONFLICT FAIL keeps the rows
+	// written before the conflict (insert.c FAIL semantics: the
+	// failing row itself was never written — conflict3.test 1.x-11.x
+	// multi-row VALUES), exactly like the INSERT ... SELECT path.
+	if e.uniqueFailConflict(err, tableEntry, colDefs) {
+		res.SetKeepPriorRowsOnError()
+	}
+	// ON CONFLICT ROLLBACK extends the abort to the whole
+	// transaction (uniqueRollbackConflict parity with insertSelect).
+	if e.uniqueRollbackConflict(err, tableEntry, colDefs) {
+		res.SetRollbackTxOnError()
+	}
+	return res
 }
 
 // insertOneTuple evaluates, writes, and (for RETURNING) projects one VALUES
@@ -379,37 +385,16 @@ func (e *DMLExecutor) insertFTSRow(tableEntry *schema.Entry, values []interface{
 	// expect one value per ftsTable.ColumnNames(). The rowid-alias position
 	// (docid for FTS) holds the explicit docid and must be dropped.
 	colNames := ftsTable.ColumnNames()
-	ftsValues := make([]interface{}, len(colNames))
-	for i := range colNames {
-		if i < len(values) {
-			ftsValues[i] = values[i]
-		} else {
-			ftsValues[i] = ""
-		}
-	}
+	ftsValues := remapFTSValues(colNames, values)
 	// The languageid=<col> option: extract the langid value from the hidden
 	// column (the value at the langid column's position in `values`, which is
 	// indexed by the FTS colDefs — user columns then hidden table-name/docid/
 	// lang_id). SQLite's fts3UpdateMethod reads the langid value (default 0
 	// when not supplied; a non-integer coerces to 0; a negative value fails
 	// with "constraint failed" — fts4langid 1.9/1.17).
-	langID := int64(0)
-	if langCol := ftsTable.LangIDColName(); langCol != "" {
-		if lv := ftsLangIDFromValues(ftsTable, values, langCol); lv != nil {
-			langID = sqlValueToInt64(lv)
-			if langID < 0 {
-				return &Result{Error: fmt.Errorf("constraint failed")}
-			}
-		}
-		// A language-aware tokenizer may reject the language id outright
-		// (fts3_test.c testTokenizerLanguage fails xLanguageid for
-		// langid >= 100; the error surfaces as "SQL logic error" —
-		// fts4langid 4.1.5).
-		if lv, ok := ftsTable.Tokenizer().(fts.LangidValidator); ok {
-			if verr := lv.ValidateLangid(langID); verr != nil {
-				return &Result{Error: verr}
-			}
-		}
+	langID, res := ftsInsertLangID(ftsTable, values)
+	if res != nil {
+		return res
 	}
 	// Honor an explicit rowid (INSERT INTO ft(rowid, x) VALUES(-45,'a a')) via
 	// InsertWithID; otherwise the FTS module auto-assigns rowids 1..N.
@@ -418,7 +403,6 @@ func (e *DMLExecutor) insertFTSRow(tableEntry *schema.Entry, values []interface{
 	// fts3UpdateMethod: "constraint failed"). The OR conflict resolution
 	// mirrors regular tables: IGNORE skips, REPLACE deletes the old row
 	// and inserts, FAIL/ABORT/ROLLBACK error.
-	var nextRowID int64
 	isReplace := strings.EqualFold(orConflict, "REPLACE")
 	if fixedRowID != nil && ftsTable.HasDoc(*fixedRowID) && !isReplace {
 		return &Result{Error: fmt.Errorf("UNIQUE constraint failed: %s.rowid", tableEntry.Name)}
@@ -436,12 +420,7 @@ func (e *DMLExecutor) insertFTSRow(tableEntry *schema.Entry, values []interface{
 	// command; an unrecognized command string there is SQL logic error
 	// (fts3.c fts3SpecialInsert returns SQLITE_ERROR for unknown values;
 	// fts4merge5 1.5: 'maxpendinAB64' fails).
-	command := ""
-	if len(colNames) < len(values) {
-		if s, ok := values[len(colNames)].(string); ok {
-			command = s
-		}
-	}
+	command := ftsSpecialCommand(values, len(colNames))
 	special, specialRes := e.handleFTSCommand(tableEntry.Name, command)
 	if specialRes != nil {
 		return specialRes
@@ -450,56 +429,128 @@ func (e *DMLExecutor) insertFTSRow(tableEntry *schema.Entry, values []interface{
 		e.ctx.SetLastRowID(0)
 		return &Result{Changes: 0, LastInsertRowID: 0}
 	}
+	var nextRowID int64
 	if fixedRowID != nil {
-		if ftsTable.HasDoc(*fixedRowID) {
-			// OR REPLACE's xUpdate delete phase: C's fts3PendingTermsDocid
-			// (bDelete=1) flushes on a docid-restart (fts3conf 4.x).
-			if ftsTable.PendingDocidRestart(*fixedRowID, true, langID) && ftsTable.HasPendingOps() {
-				if res := e.ctx.FlushFTSPendingTable(tableEntry.Name); res != nil {
-					return res
-				}
-			}
-			ftsTable.Delete(*fixedRowID)
-		}
-		// Insert phase (bDelete=0): a docid moving backward, or repeating
-		// the previous insert's docid, restarts the pending batch
-		// (fts4onepass-4.0).
-		if ftsTable.PendingDocidRestart(*fixedRowID, false, langID) && ftsTable.HasPendingOps() {
-			if res := e.ctx.FlushFTSPendingTable(tableEntry.Name); res != nil {
-				return res
-			}
-		}
-		if langCol := ftsTable.LangIDColName(); langCol != "" {
-			ftsTable.InsertWithIDLangID(*fixedRowID, ftsValues, langID)
-		} else {
-			ftsTable.InsertWithID(*fixedRowID, ftsValues)
-		}
-		nextRowID = *fixedRowID
+		nextRowID, res = e.insertFTSFixedDocid(tableEntry, ftsTable, *fixedRowID, ftsValues, langID)
 	} else {
-		// An FTS4 content=<table> table's xUpdate reads the content row for
-		// an AUTO-assigned docid; a missing row fails the insert with
-		// "constraint failed" BEFORE the index is touched (fts3.c
-		// fts3UpdateMethod; fts4content 3.1.1 vs 3.1.2 — an explicit docid
-		// trusts the caller).
-		if ct := ftsTable.ContentTable(); ct != "" {
-			if !e.ctx.ContentRowExists(ct, ftsTable.NextDocID()) {
-				return &Result{Error: fmt.Errorf("constraint failed")}
-			}
-		}
-		// fts3PendingTermsDocid runs for auto docids too: a DELETE-all in
-		// the tx drops the next docid below iPrevDocid (the restart flush
-		// fires, usually on an empty pending batch — a no-op).
-		if r := ftsTable.PendingDocidRestart(ftsTable.NextDocID(), false, langID); r && ftsTable.HasPendingOps() {
-			if res := e.ctx.FlushFTSPendingTable(tableEntry.Name); res != nil {
-				return res
-			}
-		}
-		if langCol := ftsTable.LangIDColName(); langCol != "" {
-			nextRowID = ftsTable.InsertLangID(ftsValues, langID)
+		nextRowID, res = e.insertFTSAutoDocid(tableEntry, ftsTable, ftsValues, langID)
+	}
+	if res != nil {
+		return res
+	}
+	return e.finishFTSInsert(tableEntry, ftsTable, nextRowID, ftsValues, langID)
+}
+
+// remapFTSValues copies the insert values onto one slot per FTS user column,
+// padding missing trailing values with "".
+func remapFTSValues(colNames []string, values []interface{}) []interface{} {
+	ftsValues := make([]interface{}, len(colNames))
+	for i := range colNames {
+		if i < len(values) {
+			ftsValues[i] = values[i]
 		} else {
-			nextRowID = ftsTable.Insert(ftsValues)
+			ftsValues[i] = ""
 		}
 	}
+	return ftsValues
+}
+
+// ftsSpecialCommand reads the special-command value carried by the hidden
+// table-name column (values[len(colNames)] — the column named after the
+// table); "" when absent or not a string.
+func ftsSpecialCommand(values []interface{}, colCount int) string {
+	if colCount < len(values) {
+		if s, ok := values[colCount].(string); ok {
+			return s
+		}
+	}
+	return ""
+}
+
+// ftsInsertLangID extracts and validates the languageid=<col> column's value
+// for an FTS insert, returning the resolved language id (0 when the option is
+// absent) or an error Result: a negative value fails with "constraint failed"
+// (fts4langid 1.9/1.17), and a language-aware tokenizer may reject the
+// language id outright (fts3_test.c testTokenizerLanguage fails xLanguageid
+// for langid >= 100; the error surfaces as "SQL logic error" —
+// fts4langid 4.1.5).
+func ftsInsertLangID(ftsTable *fts.FTS3Table, values []interface{}) (int64, *Result) {
+	langID := int64(0)
+	if langCol := ftsTable.LangIDColName(); langCol != "" {
+		if lv := ftsLangIDFromValues(ftsTable, values, langCol); lv != nil {
+			langID = sqlValueToInt64(lv)
+			if langID < 0 {
+				return 0, &Result{Error: fmt.Errorf("constraint failed")}
+			}
+		}
+		if lv, ok := ftsTable.Tokenizer().(fts.LangidValidator); ok {
+			if verr := lv.ValidateLangid(langID); verr != nil {
+				return 0, &Result{Error: verr}
+			}
+		}
+	}
+	return langID, nil
+}
+
+// insertFTSFixedDocid performs the OR REPLACE delete-then-insert phase for an
+// explicitly targeted docid and returns the docid written.
+func (e *DMLExecutor) insertFTSFixedDocid(tableEntry *schema.Entry, ftsTable *fts.FTS3Table, fixedRowID int64, ftsValues []interface{}, langID int64) (int64, *Result) {
+	if ftsTable.HasDoc(fixedRowID) {
+		// OR REPLACE's xUpdate delete phase: C's fts3PendingTermsDocid
+		// (bDelete=1) flushes on a docid-restart (fts3conf 4.x).
+		if ftsTable.PendingDocidRestart(fixedRowID, true, langID) && ftsTable.HasPendingOps() {
+			if res := e.ctx.FlushFTSPendingTable(tableEntry.Name); res != nil {
+				return 0, res
+			}
+		}
+		ftsTable.Delete(fixedRowID)
+	}
+	// Insert phase (bDelete=0): a docid moving backward, or repeating
+	// the previous insert's docid, restarts the pending batch
+	// (fts4onepass-4.0).
+	if ftsTable.PendingDocidRestart(fixedRowID, false, langID) && ftsTable.HasPendingOps() {
+		if res := e.ctx.FlushFTSPendingTable(tableEntry.Name); res != nil {
+			return 0, res
+		}
+	}
+	if langCol := ftsTable.LangIDColName(); langCol != "" {
+		ftsTable.InsertWithIDLangID(fixedRowID, ftsValues, langID)
+	} else {
+		ftsTable.InsertWithID(fixedRowID, ftsValues)
+	}
+	return fixedRowID, nil
+}
+
+// insertFTSAutoDocid inserts with a module-assigned docid, flushing a pending
+// batch when the next docid restarts, and returns the docid written.
+func (e *DMLExecutor) insertFTSAutoDocid(tableEntry *schema.Entry, ftsTable *fts.FTS3Table, ftsValues []interface{}, langID int64) (int64, *Result) {
+	// An FTS4 content=<table> table's xUpdate reads the content row for
+	// an AUTO-assigned docid; a missing row fails the insert with
+	// "constraint failed" BEFORE the index is touched (fts3.c
+	// fts3UpdateMethod; fts4content 3.1.1 vs 3.1.2 — an explicit docid
+	// trusts the caller).
+	if ct := ftsTable.ContentTable(); ct != "" {
+		if !e.ctx.ContentRowExists(ct, ftsTable.NextDocID()) {
+			return 0, &Result{Error: fmt.Errorf("constraint failed")}
+		}
+	}
+	// fts3PendingTermsDocid runs for auto docids too: a DELETE-all in
+	// the tx drops the next docid below iPrevDocid (the restart flush
+	// fires, usually on an empty pending batch — a no-op).
+	if r := ftsTable.PendingDocidRestart(ftsTable.NextDocID(), false, langID); r && ftsTable.HasPendingOps() {
+		if res := e.ctx.FlushFTSPendingTable(tableEntry.Name); res != nil {
+			return 0, res
+		}
+	}
+	if langCol := ftsTable.LangIDColName(); langCol != "" {
+		return ftsTable.InsertLangID(ftsValues, langID), nil
+	}
+	return ftsTable.Insert(ftsValues), nil
+}
+
+// finishFTSInsert completes an FTS insert: shadow-root validation, pending
+// recording, %_content/%_docsize/%_stat writes, and the result rowid.
+func (e *DMLExecutor) finishFTSInsert(tableEntry *schema.Entry, ftsTable *fts.FTS3Table, nextRowID int64, ftsValues []interface{}, langID int64) *Result {
 	// Writing to an FTS table whose shadow btrees are structurally corrupt
 	// fails: real SQLite reads the index during the insert and hits the
 	// damage (fts3corrupt4 24.1: t1_segments page 4 free-space corruption).
@@ -722,80 +773,15 @@ func (e *DMLExecutor) handleFTSCommand(tableName, s string) (bool, *Result) {
 	lower := strings.ToLower(s)
 	switch {
 	case lower == "optimize":
-		// OPTIMIZE reads every segment and content row; a corrupt one
-		// aborts it (fts3corrupt4 10.3/14.2: a crash-written content
-		// table fails the command with "database disk image is
-		// malformed"). A segment whose start_block/end_block metadata is
-		// inconsistent is still optimizable (fts3corrupt4 4.4: after
-		// UPDATE t1_segdir SET start_block=1, optimize succeeds).
-		if t, ok := e.ctx.FTSTables()[tableName]; ok && (t.LoadErr() != nil || t.HasCorruptContent()) {
-			return true, &Result{Error: fmt.Errorf("database disk image is malformed")}
-		}
-		e.optimizeFTSShadow(tableName)
-		return true, nil
+		return e.handleFTSOptimize(tableName)
 	case lower == "rebuild":
-		// REBUILD drops and rebuilds the FTS index from %_content
-		// (fts3.c fts3RebuildMethod). A corrupt shadow btree or a
-		// corrupt freelist (the rebuild allocates new segments) fails it
-		// (fts3corrupt4 24.7: INSERT INTO t1(t1) SELECT 'rebuild'
-		// FROM ... on a corrupt DB).
-		if res := e.ctx.RebuildFTSIndex(tableName); res != nil {
-			return true, res
-		}
-		if err := e.ctx.ValidateFreelistForGrowth(); err != nil {
-			return true, &Result{Error: err}
-		}
-		return true, nil
+		return e.handleFTSRebuild(tableName)
 	case lower == "integrity-check":
-		// Validate all segment roots AND their referenced blocks, then
-		// verify the in-memory index against the content rows; a corrupt
-		// or drifted one fails the check (fts3.c
-		// sqlite3Fts3IntegrityCheck; fts4check/fts4intck1).
-		if res := e.ctx.RunFTSIntegrityCheck(tableName); res != nil {
-			return true, res
-		}
-		return true, nil
+		return e.handleFTSIntegrityCheck(tableName)
 	case strings.HasPrefix(lower, "merge="):
-		// A merge reads the source segments (roots AND blocks); a corrupt
-		// one aborts it (fts3corrupt 6.10/8.3). It also combines the
-		// level-0 segments into a level-1 segment whose leaf blocks go in
-		// %_segments (fts3corrupt4 2.1: after 12 single-leaf segments,
-		// merge=1,4 writes 3 blocks while keeping the segdir rows).
-		// Parse merge=A[,B] with SQLite's fts3DoIncrmerge semantics
-		// (fts3_write.c): A = max leaf pages to write (fts3Getint — 0 for
-		// a non-numeric prefix), optional ,B = min segments on a level
-		// (default MergeCount/2 = 8). The command errors ("SQL logic
-		// error") when trailing garbage remains or B < 2 (fts4merge 2.x:
-		// merge=abc, merge=%%%, merge=,, merge=5,, merge=6,%, merge=6,six,
-		// merge=6,1 all fail; merge=1 succeeds).
-		rest := s[len("merge="):]
-		nMerge, rest := ftsGetint(rest)
-		nMin := 8
-		// SQLite's fts3DoIncrmerge consumes ",B" only when a digit
-		// follows the comma; a bare trailing comma ("5,") leaves it in z
-		// and errors.
-		if len(rest) > 1 && rest[0] == ',' {
-			rest = rest[1:]
-			nMin, rest = ftsGetint(rest)
-		}
-		if len(rest) != 0 || nMin < 2 {
-			return true, &Result{Error: fmt.Errorf("SQL logic error")}
-		}
-		if res := e.ctx.ValidateFTSSegments(tableName, true); res != nil {
-			return true, res
-		}
-		e.ctx.MergeFTS(tableName, nMerge, nMin)
-		return true, nil
+		return e.handleFTSMerge(tableName, s)
 	case strings.HasPrefix(lower, "nodesize="):
-		// The nodesize command sets the segment node size (fts3.c
-		// fts3SegReader / the fts3 'nodesize' special command); it does not
-		// add a document.
-		if n, err := strconv.Atoi(strings.TrimSpace(s[len("nodesize="):])); err == nil {
-			if t, ok := e.ctx.FTSTables()[tableName]; ok {
-				t.SetNodeSize(n)
-			}
-		}
-		return true, nil
+		return e.handleFTSNodesize(tableName, s)
 	case strings.HasPrefix(lower, "maxpending="):
 		// maxpending=N sets the pending-terms hash size (fts3.c
 		// fts3SpecialInsert under SQLITE_TEST); it does not add a document.
@@ -815,23 +801,7 @@ func (e *DMLExecutor) handleFTSCommand(tableName, s string) (bool, *Result) {
 		// no-op (results are unaffected by the merge threshold).
 		return true, nil
 	case strings.HasPrefix(lower, "automerge="):
-		// automerge=X sets the persistent auto-incr-merge setting (fts3.c
-		// fts3DoAutoincrmerge: X==0 turns it off; 1 or > MergeCount map to 8;
-		// stored in the %_stat id=2 row). It does not add a document.
-		// SQLite's fts3SpecialInsert writes the %_stat row through the shadow
-		// btree, so a corrupt shadow table fails the command with "database
-		// disk image is malformed" (fts3corrupt4 24.7). The %_stat row makes
-		// the setting survive a close/reopen: a flushed-after-reopen
-		// connection whose setting is still unknown reads id=2 back
-		// (fts3_write.c sqlite3Fts3PendingTermsFlush — fts4merge4 2.2 tn2=2).
-		if res := e.ctx.ValidateFTSShadowRoots(tableName); res != nil {
-			return true, res
-		}
-		v, _ := ftsGetint(s[len("automerge="):])
-		if t, ok := e.ctx.FTSTables()[tableName]; ok {
-			e.ctx.WriteFTSAutomergeStat(tableName, t.SetAutomerge(v))
-		}
-		return true, nil
+		return e.handleFTSAutomerge(tableName, s)
 	case s == "":
 		return false, nil
 	default:
@@ -840,6 +810,124 @@ func (e *DMLExecutor) handleFTSCommand(tableName, s string) (bool, *Result) {
 		// 1.5: 'maxpendinAB64' fails).
 		return true, &Result{Error: fmt.Errorf("SQL logic error")}
 	}
+}
+
+// handleFTSOptimize runs the 'optimize' special command: OPTIMIZE reads every
+// segment and content row, and a corrupt one aborts it (fts3corrupt4 10.3/14.2:
+// a crash-written content table fails the command with "database disk image is
+// malformed"). A segment whose start_block/end_block metadata is inconsistent
+// is still optimizable (fts3corrupt4 4.4: after UPDATE t1_segdir SET
+// start_block=1, optimize succeeds).
+func (e *DMLExecutor) handleFTSOptimize(tableName string) (bool, *Result) {
+	if t, ok := e.ctx.FTSTables()[tableName]; ok && (t.LoadErr() != nil || t.HasCorruptContent()) {
+		return true, &Result{Error: fmt.Errorf("database disk image is malformed")}
+	}
+	e.optimizeFTSShadow(tableName)
+	return true, nil
+}
+
+// handleFTSRebuild runs the 'rebuild' special command: REBUILD drops and
+// rebuilds the FTS index from %_content (fts3.c fts3RebuildMethod). A corrupt
+// shadow btree or a corrupt freelist (the rebuild allocates new segments)
+// fails it (fts3corrupt4 24.7: INSERT INTO t1(t1) SELECT 'rebuild' FROM ... on
+// a corrupt DB).
+func (e *DMLExecutor) handleFTSRebuild(tableName string) (bool, *Result) {
+	if res := e.ctx.RebuildFTSIndex(tableName); res != nil {
+		return true, res
+	}
+	if err := e.ctx.ValidateFreelistForGrowth(); err != nil {
+		return true, &Result{Error: err}
+	}
+	return true, nil
+}
+
+// handleFTSIntegrityCheck runs the 'integrity-check' special command: validate
+// all segment roots AND their referenced blocks, then verify the in-memory
+// index against the content rows; a corrupt or drifted one fails the check
+// (fts3.c sqlite3Fts3IntegrityCheck; fts4check/fts4intck1).
+func (e *DMLExecutor) handleFTSIntegrityCheck(tableName string) (bool, *Result) {
+	if res := e.ctx.RunFTSIntegrityCheck(tableName); res != nil {
+		return true, res
+	}
+	return true, nil
+}
+
+// handleFTSMerge runs the merge=A[,B] special command with SQLite's
+// fts3DoIncrmerge semantics (fts3_write.c): A = max leaf pages to write
+// (fts3Getint — 0 for a non-numeric prefix), optional ,B = min segments on a
+// level (default MergeCount/2 = 8). The command errors ("SQL logic error")
+// when trailing garbage remains or B < 2 (fts4merge 2.x: merge=abc, merge=%%%,
+// merge=,, merge=5,, merge=6,%, merge=6,six, merge=6,1 all fail; merge=1
+// succeeds). A merge reads the source segments (roots AND blocks); a corrupt
+// one aborts it (fts3corrupt 6.10/8.3). It also combines the level-0 segments
+// into a level-1 segment whose leaf blocks go in %_segments (fts3corrupt4 2.1:
+// after 12 single-leaf segments, merge=1,4 writes 3 blocks while keeping the
+// segdir rows).
+func (e *DMLExecutor) handleFTSMerge(tableName, s string) (bool, *Result) {
+	rest := s[len("merge="):]
+	nMerge, rest := ftsGetint(rest)
+	nMin := 8
+	// SQLite's fts3DoIncrmerge consumes ",B" only when a digit
+	// follows the comma; a bare trailing comma ("5,") leaves it in z
+	// and errors.
+	if len(rest) > 1 && rest[0] == ',' {
+		rest = rest[1:]
+		nMin, rest = ftsGetint(rest)
+	}
+	if len(rest) != 0 || nMin < 2 {
+		return true, &Result{Error: fmt.Errorf("SQL logic error")}
+	}
+	if res := e.ctx.ValidateFTSSegments(tableName, true); res != nil {
+		return true, res
+	}
+	e.ctx.MergeFTS(tableName, nMerge, nMin)
+	return true, nil
+}
+
+// handleFTSNodesize runs the nodesize=N special command: it sets the segment
+// node size (fts3.c fts3SegReader / the fts3 'nodesize' special command); it
+// does not add a document.
+func (e *DMLExecutor) handleFTSNodesize(tableName, s string) (bool, *Result) {
+	if n, err := strconv.Atoi(strings.TrimSpace(s[len("nodesize="):])); err == nil {
+		if t, ok := e.ctx.FTSTables()[tableName]; ok {
+			t.SetNodeSize(n)
+		}
+	}
+	return true, nil
+}
+
+// handleFTSAutomerge runs the automerge=X special command (fts3.c
+// fts3DoAutoincrmerge: X==0 turns it off; 1 or > MergeCount map to 8; stored in
+// the %_stat id=2 row). It does not add a document. SQLite's fts3SpecialInsert
+// writes the %_stat row through the shadow btree, so a corrupt shadow table
+// fails the command with "database disk image is malformed" (fts3corrupt4
+// 24.7). The %_stat row makes the setting survive a close/reopen: a
+// flushed-after-reopen connection whose setting is still unknown reads id=2
+// back (fts3_write.c sqlite3Fts3PendingTermsFlush — fts4merge4 2.2 tn2=2).
+func (e *DMLExecutor) handleFTSAutomerge(tableName, s string) (bool, *Result) {
+	if res := e.ctx.ValidateFTSShadowRoots(tableName); res != nil {
+		return true, res
+	}
+	v, _ := ftsGetint(s[len("automerge="):])
+	if t, ok := e.ctx.FTSTables()[tableName]; ok {
+		e.ctx.WriteFTSAutomergeStat(tableName, t.SetAutomerge(v))
+	}
+	return true, nil
+}
+
+// ftsOptimizeState carries the shared state of one optimizeFTSShadow run.
+type ftsOptimizeState struct {
+	tableName      string
+	existingLevels map[int64]bool
+	maxLevel       int64
+	nodeSize       int
+	nextBlock      int
+}
+
+// ftsLangGroup is one (languageid, docids) merge group of an optimize run.
+type ftsLangGroup struct {
+	langid int64
+	ids    []int64
 }
 
 // optimizeFTSShadow merges an FTS table's segment-directory rows into one,
@@ -857,25 +945,7 @@ func (e *DMLExecutor) optimizeFTSShadow(tableName string) {
 	// user-modified end_block) is left untouched (fts4growth 5.x: the
 	// optimized segment keeps its level and end_block across later steps).
 	// One row = one segment; SQLite's no-op check is nSegment==1.
-	levelsRes := e.ctx.Exec(&sql.SelectStmt{
-		Columns: []sql.SelectColumn{{Expr: &sql.ColumnRef{Name: "level"}, As: "level"}},
-		From:    sql.TableRef{Name: segdir},
-	})
-	existingLevels := map[int64]bool{}
-	maxLevel := int64(-1)
-	nSegments := 0
-	if levelsRes.Error == nil {
-		for _, row := range levelsRes.Rows {
-			if lv, ok := util.UnwrapColumnValue(row[0]).(int64); ok {
-				existingLevels[lv] = true
-				if lv > maxLevel {
-					maxLevel = lv
-				}
-			}
-			// One row = one segment; SQLite's no-op check is nSegment==1.
-			nSegments++
-		}
-	}
+	existingLevels, maxLevel, nSegments := e.optimizeCollectSegdirLevels(segdir)
 	pending := 0
 	if t, ok := e.ctx.FTSTables()[tableName]; ok && t != nil {
 		pending = len(t.PendingSnapshot())
@@ -906,78 +976,22 @@ func (e *DMLExecutor) optimizeFTSShadow(tableName string) {
 	}
 	ids := ftsTable.AllRowsMap()
 
-	// A languageid=<col> table merges PER LANGUAGE: SQLite's segment merge
-	// works within one (iLangid, iIndex) group, so after 'optimize' the
-	// %_segdir holds one row per distinct language, at the language's base
-	// absolute level ((iLangid*nIndex+iIndex)*FTS3_SEGDIR_MAXLEVEL =
-	// iLangid*1024 with no prefix indexes — fts3_write.c getAbsoluteLevel;
-	// fts4langid 2.2: 9 languages → 9 segdir rows after optimize).
-	type langGroup struct {
-		langid int64
-		ids    []int64
+	groups := optimizeLangGroups(ftsTable, ids)
+	st := &ftsOptimizeState{
+		tableName:      tableName,
+		existingLevels: existingLevels,
+		maxLevel:       maxLevel,
+		nodeSize:       nodeSize,
+		nextBlock:      e.ctx.NextFTSBlockID(tableName),
 	}
-	var groups []langGroup
-	if ftsTable.LangIDColName() != "" {
-		byLang := map[int64][]int64{}
-		for _, id := range ids {
-			l := ftsTable.DocLangID(id)
-			byLang[l] = append(byLang[l], id)
-		}
-		for l := range byLang {
-			groups = append(groups, langGroup{l, byLang[l]})
-		}
-		sort.Slice(groups, func(i, j int) bool { return groups[i].langid < groups[j].langid })
-	} else {
-		groups = append(groups, langGroup{0, ids})
-	}
-
-	nextBlock := e.ctx.NextFTSBlockID(tableName)
 	for _, g := range groups {
-		if len(g.ids) == 0 {
-			// An empty group (no documents) contributes no segment: SQLite's
-			// optimize merges existing segments, and a table with none stays
-			// with zero %_segdir rows (fts4opt 3.2: CREATE + 'optimize' on an
-			// empty table leaves count(*) FROM fts_segdir at 0).
-			continue
-		}
-		rootBlob, blocks := ftsTable.SegmentRootBlocks(g.ids, nodeSize)
-		level := int(g.langid * 1024)
-		if g.langid == 0 {
-			// Main-index group: the output takes the greatest level present
-			// before the merge (fts3_write.c iNewLevel = iMaxLevel).
-			if maxLevel >= 0 {
-				level = int(maxLevel)
-			}
-		} else {
-			// Prefix/language groups keep their absolute base; use the
-			// greatest RELATIVE level seen inside this group's range.
-			base := g.langid * 1024
-			for lv := range existingLevels {
-				if lv >= base && lv < base+1024 && lv-base > int64(level)-base {
-					level = int(lv)
-				}
-			}
-		}
-		e.ctx.WriteFTSShadowRow(tableName, level, 0, blocks, rootBlob)
-		for _, blk := range blocks {
-			_ = e.ctx.Exec(&sql.InsertStmt{
-				Table:   tableName + "_segments",
-				Columns: []string{"blockid", "block"},
-				Values: [][]sql.Expr{
-					{
-						&sql.NumericLit{Value: fmt.Sprintf("%d", nextBlock)},
-						&sql.BlobLit{Value: blk.Block},
-					},
-				},
-			})
-			nextBlock++
-		}
+		e.optimizeMergeGroup(st, ftsTable, g)
 	}
 	// The optimize deleted every %_segdir row and replaced them with one;
 	// the segdir-idx cache is stale and must be rescanned next time. The
 	// %_segments block counter is advanced past the new blocks.
 	if t, ok := e.ctx.FTSTables()[tableName]; ok && t != nil {
-		t.SetNextBlockID(nextBlock)
+		t.SetNextBlockID(st.nextBlock)
 		t.InvalidateSegmentCache()
 		// The merged segment already contains every pending document
 		// (fts3DoOptimize flushes pending terms before merging); consuming
@@ -986,6 +1000,106 @@ func (e *DMLExecutor) optimizeFTSShadow(tableName string) {
 		// (fts3f 1.3).
 		t.PendingFlush()
 	}
+}
+
+// optimizeCollectSegdirLevels reads the %_segdir level rows before a merge,
+// returning the distinct levels, the greatest level, and the segment count.
+func (e *DMLExecutor) optimizeCollectSegdirLevels(segdir string) (map[int64]bool, int64, int) {
+	levelsRes := e.ctx.Exec(&sql.SelectStmt{
+		Columns: []sql.SelectColumn{{Expr: &sql.ColumnRef{Name: "level"}, As: "level"}},
+		From:    sql.TableRef{Name: segdir},
+	})
+	existingLevels := map[int64]bool{}
+	maxLevel := int64(-1)
+	nSegments := 0
+	if levelsRes.Error == nil {
+		for _, row := range levelsRes.Rows {
+			if lv, ok := util.UnwrapColumnValue(row[0]).(int64); ok {
+				existingLevels[lv] = true
+				if lv > maxLevel {
+					maxLevel = lv
+				}
+			}
+			// One row = one segment; SQLite's no-op check is nSegment==1.
+			nSegments++
+		}
+	}
+	return existingLevels, maxLevel, nSegments
+}
+
+// optimizeLangGroups partitions the table's documents into per-language merge
+// groups. A languageid=<col> table merges PER LANGUAGE: SQLite's segment merge
+// works within one (iLangid, iIndex) group, so after 'optimize' the %_segdir
+// holds one row per distinct language, at the language's base absolute level
+// ((iLangid*nIndex+iIndex)*FTS3_SEGDIR_MAXLEVEL = iLangid*1024 with no prefix
+// indexes — fts3_write.c getAbsoluteLevel; fts4langid 2.2: 9 languages → 9
+// segdir rows after optimize).
+func optimizeLangGroups(ftsTable *fts.FTS3Table, ids []int64) []ftsLangGroup {
+	var groups []ftsLangGroup
+	if ftsTable.LangIDColName() != "" {
+		byLang := map[int64][]int64{}
+		for _, id := range ids {
+			l := ftsTable.DocLangID(id)
+			byLang[l] = append(byLang[l], id)
+		}
+		for l := range byLang {
+			groups = append(groups, ftsLangGroup{l, byLang[l]})
+		}
+		sort.Slice(groups, func(i, j int) bool { return groups[i].langid < groups[j].langid })
+	} else {
+		groups = append(groups, ftsLangGroup{0, ids})
+	}
+	return groups
+}
+
+// optimizeMergeGroup merges one language group into a single segment, writing
+// its segdir row and leaf blocks (advancing the run's next block id).
+func (e *DMLExecutor) optimizeMergeGroup(st *ftsOptimizeState, ftsTable *fts.FTS3Table, g ftsLangGroup) {
+	if len(g.ids) == 0 {
+		// An empty group (no documents) contributes no segment: SQLite's
+		// optimize merges existing segments, and a table with none stays
+		// with zero %_segdir rows (fts4opt 3.2: CREATE + 'optimize' on an
+		// empty table leaves count(*) FROM fts_segdir at 0).
+		return
+	}
+	rootBlob, blocks := ftsTable.SegmentRootBlocks(g.ids, st.nodeSize)
+	level := optimizeGroupLevel(g.langid, st.maxLevel, st.existingLevels)
+	e.ctx.WriteFTSShadowRow(st.tableName, level, 0, blocks, rootBlob)
+	for _, blk := range blocks {
+		_ = e.ctx.Exec(&sql.InsertStmt{
+			Table:   st.tableName + "_segments",
+			Columns: []string{"blockid", "block"},
+			Values: [][]sql.Expr{
+				{
+					&sql.NumericLit{Value: fmt.Sprintf("%d", st.nextBlock)},
+					&sql.BlobLit{Value: blk.Block},
+				},
+			},
+		})
+		st.nextBlock++
+	}
+}
+
+// optimizeGroupLevel picks the merged segment's level for a language group.
+func optimizeGroupLevel(langid, maxLevel int64, existingLevels map[int64]bool) int {
+	level := int(langid * 1024)
+	if langid == 0 {
+		// Main-index group: the output takes the greatest level present
+		// before the merge (fts3_write.c iNewLevel = iMaxLevel).
+		if maxLevel >= 0 {
+			level = int(maxLevel)
+		}
+	} else {
+		// Prefix/language groups keep their absolute base; use the
+		// greatest RELATIVE level seen inside this group's range.
+		base := langid * 1024
+		for lv := range existingLevels {
+			if lv >= base && lv < base+1024 && lv-base > int64(level)-base {
+				level = int(lv)
+			}
+		}
+	}
+	return level
 }
 
 // prepareInsertRowValues resolves the rowid, fills the IPK, applies STRICT
