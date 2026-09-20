@@ -7493,3 +7493,20 @@ regenerated; suite net −2274 fails vs pre-tranche baseline (7230 → ~4950).
   balanceCoversSingleSurvivor's free loop vs balanceAllEmptyWindow's re-free).
 - **Pre-existing ≠ fixed**: fts4merge (4.1/4.2 datatype-mismatch/mismatch) was already
   adjudicated pre-existing at the T27 census — do not absorb it into a btree fix.
+
+## §5d Quality-Closure (fleet Q5-FTS5VTAB)
+
+- **Swapped multi-returns across an extraction = silent infinite loop**: splitting
+  `parseTokenize`'s word scan into `nextTokenizeWord(p) (rest, word, err)` while the
+  caller destructured `word, rest, err` crossed the two strings; `p` never shrank and
+  EVERY `tokenize=` directive spun forever (fts5simple went 0.5s → OOM-kill at 951s).
+  When adding a helper with a multi-value return, copy the caller's destructure order
+  verbatim and add one bounded-iteration trace (or run the coupled testgen package)
+  before moving on.
+- **"signal: killed" + hung testgen = memory-blowup loop, not flakiness**: run the
+  suspect package at the BASE commit in a scratch worktree (`git worktree add /tmp/...`)
+  — base 0.78s vs branch kill isolates the regression to your diff immediately, then
+  `-v` + bounded-iteration instrumentation pinpoints the loop.
+- **gocognit/gocyclo count `range`-captured lengths and switch cases**: table-driven
+  maps/arrays (`punctKinds`, `zipColumnFuncs`, `vocabRowFields`) and extracting one
+  switch case per helper are the mechanical fixes that keep behavior byte-identical.
