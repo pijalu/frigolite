@@ -182,33 +182,7 @@ func (idx *InvertedIndex) LoadSegment(root []byte, leavesEndBlock int, readBlock
 		// (fts3defer2 1.x: after zeroblob()ing the large blocks, MATCH on
 		// small-document terms still works). The first error is returned so
 		// the caller records the segment as damaged.
-		var firstErr error
-		for i := 1; i <= leavesEndBlock; i++ {
-			block, err := readBlock(i)
-			if err != nil {
-				if firstErr == nil {
-					firstErr = err
-				}
-				lastTerm = nil
-				continue
-			}
-			bHeight, bn := getFTS3Varint(block)
-			if bn == 0 || bHeight != 0 {
-				if firstErr == nil {
-					firstErr = fmt.Errorf("corrupt segment root")
-				}
-				lastTerm = nil
-				continue
-			}
-			lastTerm, err = idx.loadLeaf(block, bn, lastTerm)
-			if err != nil {
-				if firstErr == nil {
-					firstErr = err
-				}
-				lastTerm = nil
-			}
-		}
-		return firstErr
+		return idx.loadLeafChainBlocks(lastTerm, leavesEndBlock, readBlock)
 	}
 	// Interior node: descend the b-tree. Children sit at consecutive block
 	// ids and may themselves be interior nodes of height-1 (a layered
@@ -217,6 +191,46 @@ func (idx *InvertedIndex) LoadSegment(root []byte, leavesEndBlock int, readBlock
 	// interior blocks), so the walk recurses until it reaches leaves.
 	_, err := idx.loadInterior(root, height, pos, nil, readBlock)
 	return err
+}
+
+// loadLeafChainBlocks reads a leaf-root segment's remaining leaf blocks
+// 1..leavesEndBlock from %_segments, continuing the leaf chain's term
+// stream. An unreadable or non-leaf block records the first error and
+// resets the chain term but does not abort the load; the first error is
+// returned so the caller records the segment as damaged.
+func (idx *InvertedIndex) loadLeafChainBlocks(lastTerm []byte, leavesEndBlock int, readBlock SegmentBlockReader) error {
+	var firstErr error
+	for i := 1; i <= leavesEndBlock; i++ {
+		loaded, err := idx.loadLeafChainBlock(lastTerm, i, readBlock)
+		if err != nil {
+			if firstErr == nil {
+				firstErr = err
+			}
+			lastTerm = nil
+			continue
+		}
+		lastTerm = loaded
+	}
+	return firstErr
+}
+
+// loadLeafChainBlock loads one chained leaf block (id blockID): a missing or
+// non-leaf block is a corrupt segment; a lower-level load failure propagates.
+// An errored block resets the chain term (nil result).
+func (idx *InvertedIndex) loadLeafChainBlock(lastTerm []byte, blockID int, readBlock SegmentBlockReader) ([]byte, error) {
+	block, err := readBlock(blockID)
+	if err != nil {
+		return nil, err
+	}
+	bHeight, bn := getFTS3Varint(block)
+	if bn == 0 || bHeight != 0 {
+		return nil, fmt.Errorf("corrupt segment root")
+	}
+	term, err := idx.loadLeaf(block, bn, lastTerm)
+	if err != nil {
+		return nil, err
+	}
+	return term, nil
 }
 
 // loadInterior walks one interior node of a segment b-tree (height >= 1):
@@ -232,44 +246,9 @@ func (idx *InvertedIndex) loadInterior(blob []byte, height uint64, pos int, last
 	}
 	pos += n
 	// Parse the boundary terms to know the number of children.
-	nChildren := 1
-	if pos < len(blob) {
-		var prevTerm []byte
-		first := true
-		for pos < len(blob) {
-			var nLen uint64
-			if first {
-				nLen, n = getFTS3Varint(blob[pos:])
-				if n == 0 {
-					return nil, fmt.Errorf("corrupt segment root")
-				}
-				pos += n
-				if uint64(pos)+nLen > uint64(len(blob)) {
-					return nil, fmt.Errorf("corrupt segment root")
-				}
-				prevTerm = blob[pos : pos+int(nLen)]
-				pos += int(nLen)
-				first = false
-			} else {
-				var nPrefix, nSuffix uint64
-				nPrefix, n = getFTS3Varint(blob[pos:])
-				if n == 0 {
-					return nil, fmt.Errorf("corrupt segment root")
-				}
-				pos += n
-				nSuffix, n = getFTS3Varint(blob[pos:])
-				if n == 0 || nSuffix == 0 || uint64(nPrefix) > uint64(len(prevTerm)) || uint64(pos)+nSuffix > uint64(len(blob)) {
-					return nil, fmt.Errorf("corrupt segment root")
-				}
-				pos += n
-				term := make([]byte, nPrefix)
-				copy(term, prevTerm[:nPrefix])
-				term = append(term, blob[pos:pos+int(nSuffix)]...)
-				prevTerm = term
-				pos += int(nSuffix)
-			}
-			nChildren++
-		}
+	nChildren, _, err := countInteriorChildren(blob, pos)
+	if err != nil {
+		return nil, err
 	}
 	var firstErr error
 	for i := 0; i < nChildren; i++ {
@@ -282,45 +261,62 @@ func (idx *InvertedIndex) loadInterior(blob []byte, height uint64, pos int, last
 			lastTerm = nil
 			continue
 		}
-		// A child block starts with its own height varint. Height 0 is a
-		// leaf; height-1 is a lower interior layer descended recursively.
-		// Any other height means the segment b-tree chain is structurally
-		// broken; SQLite's seek descends it and fails regardless of the
-		// queried term (fts3corrupt7 3.x: a 40000-deep interior chain).
-		bHeight, bn := getFTS3Varint(block)
-		if bn == 0 {
+		loaded, cerr := idx.loadInteriorChild(block, height, lastTerm, readBlock)
+		if cerr != nil {
 			if firstErr == nil {
-				firstErr = fmt.Errorf("corrupt segment root")
+				firstErr = cerr
 			}
 			lastTerm = nil
 			continue
 		}
-		if bHeight == 0 {
-			lastTerm, err = idx.loadLeaf(block, bn, lastTerm)
-			if err != nil {
-				if firstErr == nil {
-					firstErr = err
-				}
-				lastTerm = nil
-			}
-			continue
-		}
-		if bHeight != height-1 {
-			if firstErr == nil {
-				firstErr = ErrSegmentStructure
-			}
-			lastTerm = nil
-			continue
-		}
-		lastTerm, err = idx.loadInterior(block, bHeight, bn, lastTerm, readBlock)
-		if err != nil {
-			if firstErr == nil {
-				firstErr = err
-			}
-			lastTerm = nil
-		}
+		lastTerm = loaded
 	}
 	return lastTerm, firstErr
+}
+
+// loadInteriorChild loads one child block of an interior node: height 0 is a
+// leaf; height-1 is a lower interior layer descended recursively. Any other
+// height means the segment b-tree chain is structurally broken; SQLite's
+// seek descends it and fails regardless of the queried term (fts3corrupt7
+// 3.x: a 40000-deep interior chain).
+func (idx *InvertedIndex) loadInteriorChild(block []byte, height uint64, lastTerm []byte, readBlock SegmentBlockReader) ([]byte, error) {
+	bHeight, bn := getFTS3Varint(block)
+	if bn == 0 {
+		return nil, fmt.Errorf("corrupt segment root")
+	}
+	if bHeight == 0 {
+		return idx.loadLeaf(block, bn, lastTerm)
+	}
+	if bHeight != height-1 {
+		return nil, ErrSegmentStructure
+	}
+	return idx.loadInterior(block, bHeight, bn, lastTerm, readBlock)
+}
+
+// countInteriorChildren parses an interior node's boundary terms (the first
+// length-prefixed, the rest delta-encoded) and returns the child count: one
+// boundary per child after the first. A framing violation is a corrupt
+// segment root.
+func countInteriorChildren(blob []byte, pos int) (nChildren, next int, err error) {
+	nChildren = 1
+	var prevTerm []byte
+	first := true
+	for pos < len(blob) {
+		var term []byte
+		var ok bool
+		if first {
+			term, pos, ok = readValidatedPrefixedTerm(blob, pos)
+		} else {
+			term, pos, ok = readValidatedLeafDeltaTerm(blob, pos, prevTerm)
+		}
+		if !ok {
+			return 0, pos, fmt.Errorf("corrupt segment root")
+		}
+		prevTerm = term
+		first = false
+		nChildren++
+	}
+	return nChildren, pos, nil
 }
 
 // loadLeaf parses a leaf node's terms (delta-encoded after the first) and adds
@@ -339,81 +335,93 @@ func (idx *InvertedIndex) loadLeaf(leaf []byte, pos int, prevTerm []byte) ([]byt
 	var prev []byte
 	first := true
 	for pos < len(leaf) {
-		var term []byte
-		var n int
-		if first {
-			var nLen uint64
-			nLen, n = getFTS3Varint(leaf[pos:])
-			if n == 0 {
+		term, next, hard, ok := readLeafChainTerm(leaf, pos, prev, first)
+		if !ok {
+			if hard {
 				return prev, fmt.Errorf("corrupt segment root")
 			}
-			pos += n
-			if uint64(pos)+nLen > uint64(len(leaf)) {
-				return prev, fmt.Errorf("corrupt segment root")
-			}
-			term = leaf[pos : pos+int(nLen)]
-			pos += int(nLen)
-			first = false
-			prev = term
-			// A leaf's first term is length-prefixed (full term); subsequent
-			// terms delta-encode against it.
-			term = append([]byte(nil), term...)
-		} else {
-			var nPrefix, nSuffix uint64
-			nPrefix, n = getFTS3Varint(leaf[pos:])
-			if n == 0 {
-				return prev, fmt.Errorf("corrupt segment root")
-			}
-			pos += n
-			nSuffix, n = getFTS3Varint(leaf[pos:])
-			if n == 0 || uint64(nPrefix) > uint64(len(prev)) || nSuffix > uint64(len(leaf)) || uint64(pos)+nSuffix > uint64(len(leaf)) {
-				// A term whose framing overruns the node ends the readable
-				// prefix of this segment. SQLite serves phrase queries via
-				// segment b-tree term lookup (fts3SegReaderNew bLookup), so
-				// the damaged term never surfaces unless queried; keep the
-				// terms loaded so far (fts3corrupt7 1.1). The damaged term's
-				// name is unknowable, so nothing is added to corruptTerms.
-				return prev, nil
-			}
-			pos += n
-			term = make([]byte, nPrefix)
-			copy(term, prev[:nPrefix])
-			term = append(term, leaf[pos:pos+int(nSuffix)]...)
-			pos += int(nSuffix)
+			// A term whose framing overruns the node ends the readable
+			// prefix of this segment. SQLite serves phrase queries via
+			// segment b-tree term lookup (fts3SegReaderNew bLookup), so
+			// the damaged term never surfaces unless queried; keep the
+			// terms loaded so far (fts3corrupt7 1.1). The damaged term's
+			// name is unknowable, so nothing is added to corruptTerms.
+			return prev, nil
 		}
-		var nDoclist uint64
-		nDoclist, n = getFTS3Varint(leaf[pos:])
-		if n == 0 {
+		pos = next
+		doclist, dnext, okDoc := readLeafDoclistBytes(leaf, pos)
+		if !okDoc {
 			return prev, fmt.Errorf("corrupt segment root")
 		}
-		pos += n
-		// Compare without addition: a near-2^64 doclist length would wrap
-		// the sum and pass the bounds check (fts3cov 17.x crafted root).
-		if nDoclist > uint64(len(leaf)-pos) {
-			return prev, fmt.Errorf("corrupt segment root")
-		}
-		doclist := leaf[pos : pos+int(nDoclist)]
-		if dbg := string(term); dbg == "rtree" || dbg == "json1" || dbg == "enable" {
-		}
-		if err := idx.loadDoclist(string(term), doclist); err != nil {
-			// The term's doclist content is corrupt (valid framing). Record
-			// the term so a query that reads it fails with "database disk
-			// image is malformed", and keep loading subsequent terms (their
-			// doclists are independent; fts3corrupt4 11.1 queries 'e*' which
-			// must fail, while 13.1's 'e*' on a segment with a corrupt
-			// unqueried term must succeed).
-			if idx.corruptTerms == nil {
-				idx.corruptTerms = make(map[string]bool)
-			}
-			idx.corruptTerms[string(term)] = true
-			pos += int(nDoclist)
-			prev = term
-			continue
-		}
-		pos += int(nDoclist)
+		idx.recordLeafTerm(string(term), doclist)
+		pos = dnext
 		prev = term
 	}
 	return prev, nil
+}
+
+// readLeafDoclistBytes reads a leaf term's doclist length + bytes, comparing
+// without addition: a near-2^64 doclist length would wrap the sum and pass
+// the bounds check (fts3cov 17.x crafted root).
+func readLeafDoclistBytes(leaf []byte, pos int) ([]byte, int, bool) {
+	nDoclist, n := getFTS3Varint(leaf[pos:])
+	if n == 0 {
+		return nil, pos, false
+	}
+	pos += n
+	if nDoclist > uint64(len(leaf)-pos) {
+		return nil, pos, false
+	}
+	return leaf[pos : pos+int(nDoclist)], pos + int(nDoclist), true
+}
+
+// recordLeafTerm loads one term's doclist into the index, recording the term
+// as corrupt (valid framing, damaged content) when the load fails. The
+// recording keeps loading subsequent terms (their doclists are independent;
+// fts3corrupt4 11.1 queries 'e*' which must fail, while 13.1's 'e*' on a
+// segment with a corrupt unqueried term must succeed).
+func (idx *InvertedIndex) recordLeafTerm(term string, doclist []byte) {
+	if err := idx.loadDoclist(term, doclist); err != nil {
+		if idx.corruptTerms == nil {
+			idx.corruptTerms = make(map[string]bool)
+		}
+		idx.corruptTerms[term] = true
+	}
+}
+
+// readLeafChainTerm reads one leaf term: the first is length-prefixed (a
+// full term), subsequent terms delta-encode against prev. hard marks a fatal
+// framing violation ("corrupt segment root"); a non-hard miss is the lenient
+// delta overrun that ends the leaf's readable prefix.
+func readLeafChainTerm(leaf []byte, pos int, prev []byte, first bool) (term []byte, next int, hard, ok bool) {
+	if first {
+		nLen, n := getFTS3Varint(leaf[pos:])
+		if n == 0 {
+			return nil, pos, true, false
+		}
+		pos += n
+		if uint64(pos)+nLen > uint64(len(leaf)) {
+			return nil, pos, true, false
+		}
+		term = leaf[pos : pos+int(nLen)]
+		// A leaf's first term is length-prefixed (full term); subsequent
+		// terms delta-encode against it.
+		return append([]byte(nil), term...), pos + int(nLen), false, true
+	}
+	nPrefix, n := getFTS3Varint(leaf[pos:])
+	if n == 0 {
+		return nil, pos, true, false
+	}
+	pos += n
+	nSuffix, n := getFTS3Varint(leaf[pos:])
+	if n == 0 || uint64(nPrefix) > uint64(len(prev)) || nSuffix > uint64(len(leaf)) || uint64(pos)+nSuffix > uint64(len(leaf)) {
+		return nil, pos, false, false
+	}
+	pos += n
+	term = make([]byte, nPrefix)
+	copy(term, prev[:nPrefix])
+	term = append(term, leaf[pos:pos+int(nSuffix)]...)
+	return term, pos + int(nSuffix), false, true
 }
 
 // loadDoclist parses an FTS3 doclist (delta-encoded docids, then position
@@ -433,122 +441,155 @@ func (idx *InvertedIndex) loadDoclist(term string, doclist []byte) error {
 	if doclist[len(doclist)-1] != 0 {
 		return fmt.Errorf("corrupt segment root")
 	}
-	pos := 0
-	var docID int64
-	// State: the first varint (and every varint after an end-of-doc 0) is a
-	// docid delta; the rest are positions (2+delta, 1=new-column, 0=end).
-	needDocID := true
-	lastPos, lastCol := 0, 0
+	sc := &doclistScanner{idx: idx, term: term, needDocID: true}
+	return sc.scan(doclist)
+}
+
+// doclistScanner carries the in-flight state of a doclist position scan
+// (delta docids, then 1=new-column / 0=end / 2+delta position varints).
+type doclistScanner struct {
+	idx  *InvertedIndex
+	term string
+	// docID is the document id of the entry being scanned.
+	docID int64
+	// needDocID tracks whether the next varint is a docid delta (the first
+	// varint, and every varint after an end-of-doc 0).
+	needDocID        bool
+	lastPos, lastCol int
 	// hasPosition tracks whether the current docid has any position posted.
 	// A docid with an empty or column-only position list (fts3corrupt4 15.x:
 	// doclist "07 01 00" = docid 7, new column 0, no positions) still matches
 	// the term in SQLite (the offset list is skipped, only the docid is read).
-	hasPosition := false
+	hasPosition bool
 	// sawColumn tracks whether a new-column marker (varint 1) was seen for the
 	// current docid. A doclist entry whose docid is followed IMMEDIATELY by an
 	// end-of-doc 0 (no column marker, no positions) is a DELETE marker: the
 	// document is removed from the term's postings (fts3.c fts3DeleteTerms
 	// writes [docid][0] doclists; fts4content 3.1.5 after DELETE FROM ft3).
-	sawColumn := false
+	sawColumn bool
 	// docEnded tracks whether the current docid's postings were already
 	// flushed by an explicit end-of-doc marker (varint 0). A well-formed
 	// doclist's final byte is 0, so the trailing flush after the loop must
 	// NOT re-interpret the already-flushed doc as a delete marker.
-	docEnded := false
-	flushDoc := func() {
-		if hasPosition {
-			// Normal posting(s).
-		} else if sawColumn {
-			// Column-only entry (docid + column marker, no positions): a
-			// regular posting at column 0 (fts3corrupt4 15.x).
-			idx.addPosting(term, docID, 0, 0)
-		} else if !docEnded {
-			// Delete marker: remove the document from this term and from the
-			// index entirely (fts3.c fts3DeleteTerms writes [docid][0]
-			// doclists). Only applies when the docid was NOT already ended by
-			// an explicit end-of-doc marker.
-			idx.deleteDocFromTerm(term, docID)
-		}
-		hasPosition = false
-		sawColumn = false
-		docEnded = true
-	}
+	docEnded bool
+}
+
+// scan walks the doclist body.
+func (sc *doclistScanner) scan(doclist []byte) error {
+	pos := 0
 	for pos < len(doclist) {
 		v, n := getFTS3Varint(doclist[pos:])
 		if n == 0 {
-			// A truncated varint (a continuation byte with no stop byte) is
-			// unreadable. If it occurs before any docid was read (the very
-			// first varint, or after an end-of-doc when a new docid is
-			// expected), the doclist is corrupt and the term cannot be read —
-			// SQLite's fts3SegReaderFirstDocid fails on the unreadable docid.
-			// A truncated tail AFTER valid docids is tolerated lazily: the
-			// docids already seen still match, and the corrupt tail only
-			// breaks a query that needs the positions (fts3corrupt4 27.4).
-			if docID == 0 {
-				return fmt.Errorf("corrupt segment root")
-			}
-			if docID != 0 {
-				flushDoc()
-			}
-			return nil
+			return sc.truncatedTail()
 		}
 		pos += n
-		if needDocID {
-			if v == 0 && docID != 0 {
-				// A zero docid delta repeats the previous docid. Era SQLite
-				// processed it without a corruption check (fts3corrupt7 1.1
-				// crafted doclists rely on the tolerance); flush the pending
-				// posting and keep scanning.
-				flushDoc()
-				continue
-			}
-			if docID != 0 {
-				flushDoc()
-			}
-			docID += int64(v)
-			needDocID = false
-			docEnded = false
-			lastCol = 0
-			lastPos = 0
-			continue
+		next, err := sc.step(v, doclist, pos)
+		if err != nil {
+			return err
 		}
-		if v == 0 {
-			// End of this document's positions: the next varint is a docid.
-			flushDoc()
-			needDocID = true
-			continue
-		}
-		if v == 1 {
-			// New column: the next varint is the column number. A column
-			// beyond the table's column count is corrupt — SQLite's poslist
-			// reader fails when the column exceeds nColumn (fts3corrupt7 4.x:
-			// a crafted marker of 0x0FFFFFFF).
-			col, n := getFTS3Varint(doclist[pos:])
-			if n == 0 {
-				return fmt.Errorf("corrupt segment root")
-			}
-			if idx.nCol > 0 && col >= uint64(idx.nCol) {
-				// A column beyond the table's column count is tolerated by
-				// ordinary MATCH reads (the postings are skipped) but fails
-				// fts4aux, whose term merge validates every column against
-				// nColumn (fts3corrupt7 4.4 vs 8.1).
-				idx.auxCorrupt = true
-			}
-			pos += n
-			lastCol = int(col)
-			lastPos = 0
-			sawColumn = true
-			continue
-		}
-		// A position: v = 2 + pos - lastPos.
-		lastPos = int(v) - 2 + lastPos
-		idx.addPosting(term, docID, lastCol, lastPos)
-		hasPosition = true
+		pos = next
 	}
-	if docID != 0 {
-		flushDoc()
+	if sc.docID != 0 {
+		sc.flushDoc()
 	}
 	return nil
+}
+
+// step consumes one doclist varint v (at pos, for the new-column marker's
+// column argument) and returns the position after it.
+func (sc *doclistScanner) step(v uint64, doclist []byte, pos int) (int, error) {
+	if sc.needDocID {
+		if v == 0 && sc.docID != 0 {
+			// A zero docid delta repeats the previous docid. Era SQLite
+			// processed it without a corruption check (fts3corrupt7 1.1
+			// crafted doclists rely on the tolerance); flush the pending
+			// posting and keep scanning.
+			sc.flushDoc()
+			return pos, nil
+		}
+		if sc.docID != 0 {
+			sc.flushDoc()
+		}
+		sc.docID += int64(v)
+		sc.needDocID = false
+		sc.docEnded = false
+		sc.lastCol = 0
+		sc.lastPos = 0
+		return pos, nil
+	}
+	switch {
+	case v == 0:
+		// End of this document's positions: the next varint is a docid.
+		sc.flushDoc()
+		sc.needDocID = true
+	case v == 1:
+		// New column: the next varint is the column number.
+		next, err := sc.newColumn(doclist, pos)
+		if err != nil {
+			return 0, err
+		}
+		pos = next
+	default:
+		// A position: v = 2 + pos - lastPos.
+		sc.lastPos = int(v) - 2 + sc.lastPos
+		sc.idx.addPosting(sc.term, sc.docID, sc.lastCol, sc.lastPos)
+		sc.hasPosition = true
+	}
+	return pos, nil
+}
+
+// truncatedTail handles a truncated varint (a continuation byte with no stop
+// byte). If it occurs before any docid was read (the very first varint, or
+// after an end-of-doc when a new docid is expected), the doclist is corrupt
+// and the term cannot be read — SQLite's fts3SegReaderFirstDocid fails on
+// the unreadable docid. A truncated tail AFTER valid docids is tolerated
+// lazily: the docids already seen still match, and the corrupt tail only
+// breaks a query that needs the positions (fts3corrupt4 27.4).
+func (sc *doclistScanner) truncatedTail() error {
+	if sc.docID == 0 {
+		return fmt.Errorf("corrupt segment root")
+	}
+	sc.flushDoc()
+	return nil
+}
+
+// newColumn consumes a new-column marker's column number. A column beyond
+// the table's column count is tolerated by ordinary MATCH reads (the
+// postings are skipped) but fails fts4aux, whose term merge validates every
+// column against nColumn (fts3corrupt7 4.x/4.4 vs 8.1).
+func (sc *doclistScanner) newColumn(doclist []byte, pos int) (int, error) {
+	col, n := getFTS3Varint(doclist[pos:])
+	if n == 0 {
+		return 0, fmt.Errorf("corrupt segment root")
+	}
+	if sc.idx.nCol > 0 && col >= uint64(sc.idx.nCol) {
+		sc.idx.auxCorrupt = true
+	}
+	pos += n
+	sc.lastCol = int(col)
+	sc.lastPos = 0
+	sc.sawColumn = true
+	return pos, nil
+}
+
+// flushDoc posts the pending document's entry.
+func (sc *doclistScanner) flushDoc() {
+	if sc.hasPosition {
+		// Normal posting(s).
+	} else if sc.sawColumn {
+		// Column-only entry (docid + column marker, no positions): a
+		// regular posting at column 0 (fts3corrupt4 15.x).
+		sc.idx.addPosting(sc.term, sc.docID, 0, 0)
+	} else if !sc.docEnded {
+		// Delete marker: remove the document from this term and from the
+		// index entirely (fts3.c fts3DeleteTerms writes [docid][0]
+		// doclists). Only applies when the docid was NOT already ended by
+		// an explicit end-of-doc marker.
+		sc.idx.deleteDocFromTerm(sc.term, sc.docID)
+	}
+	sc.hasPosition = false
+	sc.sawColumn = false
+	sc.docEnded = true
 }
 
 // addPosting records one (term, docid, column, position) hit in the index,

@@ -61,32 +61,47 @@ func (t *FTS3Table) Offsets(docID int64, phrases []MatchPhrase, override ...[]in
 // positions remaining).
 func (t *FTS3Table) offsetsColumn(b *strings.Builder, docID int64, phrases []MatchPhrase, col int, colText string, lenient bool) error {
 	// Per-phrase occurrence positions in this column (last-token positions
-	// for phrases, token positions for single terms). A phrase inside a
-	// NEAR reports only the occurrences that PARTICIPATE in the NEAR match
-	// (fts3.c fts3EvalNearTrim): e.g. for 'a OR (b NEAR/1 c)', a trailing
-	// 'c' with no adjacent 'b' yields no offset entry.
-	positions := make([][]int, len(phrases))
-	any := false
+	// for phrases, token positions for single terms); see
+	// offsetPhrasePositions. A phrase inside a NEAR reports only the
+	// occurrences that PARTICIPATE in the NEAR match (fts3.c
+	// fts3EvalNearTrim): e.g. for 'a OR (b NEAR/1 c)', a trailing 'c' with no
+	// adjacent 'b' yields no offset entry.
+	positions, any := offsetPhrasePositions(t.index, docID, phrases, col)
+	if !any {
+		return nil
+	}
+	tokens := tokenizeOffsets(t.tokenizer, colText)
+	if err := checkOffsetPositions(positions, tokens, lenient); err != nil {
+		return err
+	}
+	appendOffsetEntries(b, offsetsQueryTerms(phrases), positions, tokens, col)
+	return nil
+}
+
+// offsetPhrasePositions collects one column's per-phrase occurrence
+// positions; any reports whether at least one phrase occurs in the column.
+func offsetPhrasePositions(idx *InvertedIndex, docID int64, phrases []MatchPhrase, col int) (positions [][]int, any bool) {
+	positions = make([][]int, len(phrases))
 	for pi, mp := range phrases {
-		pos := phrasePositionsInCol(t.index, docID, mp, col)
+		pos := phrasePositionsInCol(idx, docID, mp, col)
 		if near, okN := mp.Scope.(*NearNode); okN {
-			pos = nearParticipatingPositions(t.index, docID, near, mp.Side, col)
+			pos = nearParticipatingPositions(idx, docID, near, mp.Side, col)
 		}
 		positions[pi] = pos
 		if len(pos) > 0 {
 			any = true
 		}
 	}
-	if !any {
-		return nil
-	}
-	tokens := tokenizeOffsets(t.tokenizer, colText)
-	// A position beyond the tokenized content means the %_content row is
-	// shorter than the index — corrupt (fts3_snippet.c: tokenizer DONE with
-	// query positions remaining). For a content=<table> table (lenient) the
-	// external content row may legitimately be shorter (updated after
-	// indexing); SQLite yields empty offsets for the row (fts4content
-	// 2.5.4).
+	return positions, any
+}
+
+// checkOffsetPositions rejects a position beyond the tokenized content: the
+// %_content row is shorter than the index — corrupt (fts3_snippet.c:
+// tokenizer DONE with query positions remaining). For a content=<table>
+// table (lenient) the external content row may legitimately be shorter
+// (updated after indexing); SQLite yields empty offsets for the row
+// (fts4content 2.5.4).
+func checkOffsetPositions(positions [][]int, tokens []OffsetToken, lenient bool) error {
 	for _, posList := range positions {
 		for _, p := range posList {
 			if p >= len(tokens) {
@@ -97,9 +112,13 @@ func (t *FTS3Table) offsetsColumn(b *strings.Builder, docID int64, phrases []Mat
 			}
 		}
 	}
-	terms := offsetsQueryTerms(phrases)
-	// occPtr[ti] = how many occurrences of term ti's phrase have been
-	// consumed.
+	return nil
+}
+
+// appendOffsetEntries writes the offset entries ("col termIndex start len ")
+// for the column's tokens. occPtr[ti] tracks how many occurrences of term
+// ti's phrase have been consumed.
+func appendOffsetEntries(b *strings.Builder, terms []offsetsQueryTerm, positions [][]int, tokens []OffsetToken, col int) {
 	occPtr := make([]int, len(terms))
 	for tokIdx, tok := range tokens {
 		for ti := range terms {
@@ -116,7 +135,6 @@ func (t *FTS3Table) offsetsColumn(b *strings.Builder, docID int64, phrases []Mat
 			}
 		}
 	}
-	return nil
 }
 
 // offsetsQueryTerm is one query token in the offsets() term list: it
@@ -268,10 +286,20 @@ func (t *FTS3Table) Snippet(docID int64, phrases []MatchPhrase, zStart, zEnd, zE
 	}
 
 	// Find up to four fragments covering the query phrases (fts3_snippet.c
-	// sqlite3Fts3Snippet: nSnippet=1..4, each iteration finds the best
-	// fragment(s) of nFToken tokens; the fragment array is reused, so a later
-	// nSnippet overwrites the earlier fragments. mSeen/mCovered are LOCAL to
-	// each nSnippet iteration (the C resets them at line 1481-1482).
+	// sqlite3Fts3Snippet), then render them (fts3SnippetText).
+	fragments, finalNFToken := t.findSnippetFragments(docID, phrases, iCol, nToken)
+	var b strings.Builder
+	t.renderSnippets(&b, doc, fragments, finalNFToken, zStart, zEnd, zEllipsis, override)
+	return b.String()
+}
+
+// findSnippetFragments finds up to four fragments of up to nToken total
+// tokens, each fragment containing phrase matches (fts3_snippet.c
+// sqlite3Fts3Snippet: nSnippet=1..4, each iteration finds the best
+// fragment(s) of nFToken tokens; the fragment array is reused, so a later
+// nSnippet overwrites the earlier fragments. mSeen/mCovered are LOCAL to
+// each nSnippet iteration (the C resets them at line 1481-1482).
+func (t *FTS3Table) findSnippetFragments(docID int64, phrases []MatchPhrase, iCol, nToken int) ([]snippetFragment, int) {
 	var fragments []snippetFragment
 	var finalNFToken int
 	nSnippet := 0
@@ -283,22 +311,8 @@ func (t *FTS3Table) Snippet(docID int64, phrases []MatchPhrase, zStart, zEnd, zE
 		var mSeen uint64    // phrases seen across all columns/fragments (this iteration)
 		var mCovered uint64 // phrases covered by chosen fragments (this iteration)
 		for iSnip := 0; iSnip < nSnippet; iSnip++ {
-			iBestScore := -1
-			var best snippetFragment
-			for col := 0; col < len(t.columnNames); col++ {
-				if iCol >= 0 && col != iCol {
-					continue
-				}
-				frag, score, seen, ok := t.bestSnippetFragment(docID, col, phrases, nFToken, mCovered)
-				if !ok {
-					continue
-				}
-				mSeen |= seen
-				if score > iBestScore {
-					best = frag
-					iBestScore = score
-				}
-			}
+			best, seen := t.bestFragmentAcrossColumns(docID, phrases, iCol, nFToken, mCovered)
+			mSeen |= seen
 			fragments = append(fragments, best)
 			mCovered |= best.covered
 		}
@@ -306,20 +320,45 @@ func (t *FTS3Table) Snippet(docID int64, phrases []MatchPhrase, zStart, zEnd, zE
 			break
 		}
 	}
+	return fragments, finalNFToken
+}
 
-	// Render the fragments (fts3_snippet.c fts3SnippetText). Each fragment is
-	// finalNFToken tokens long (the per-fragment count of the last nSnippet
-	// iteration).
-	var b strings.Builder
+// bestFragmentAcrossColumns finds the highest-scoring nFToken-token fragment
+// across the table's columns (restricted to iCol when scoped), marking the
+// phrases that occur (seen). ok=false candidates are skipped; when no
+// fragment qualifies the zero fragment is returned (fts3_snippet.c's
+// aSnippet entry stays zeroed).
+func (t *FTS3Table) bestFragmentAcrossColumns(docID int64, phrases []MatchPhrase, iCol, nFToken int, mCovered uint64) (best snippetFragment, mSeen uint64) {
+	iBestScore := -1
+	for col := 0; col < len(t.columnNames); col++ {
+		if iCol >= 0 && col != iCol {
+			continue
+		}
+		frag, score, seen, ok := t.bestSnippetFragment(docID, col, phrases, nFToken, mCovered)
+		if !ok {
+			continue
+		}
+		mSeen |= seen
+		if score > iBestScore {
+			best = frag
+			iBestScore = score
+		}
+	}
+	return best, mSeen
+}
+
+// renderSnippets renders the fragments (fts3_snippet.c fts3SnippetText). Each
+// fragment is nToken tokens long (the per-fragment count of the last
+// nSnippet iteration).
+func (t *FTS3Table) renderSnippets(b *strings.Builder, doc *Document, fragments []snippetFragment, nToken int, zStart, zEnd, zEllipsis string, override [][]interface{}) {
 	for i, frag := range fragments {
 		isLast := i == len(fragments)-1
 		var cols []interface{}
 		if len(override) > 0 && override[0] != nil {
 			cols = override[0]
 		}
-		t.snippetText(&b, doc, frag, i, isLast, finalNFToken, zStart, zEnd, zEllipsis, cols)
+		t.snippetText(b, doc, frag, i, isLast, nToken, zStart, zEnd, zEllipsis, cols)
 	}
-	return b.String()
 }
 
 // snippetFragment is one selected snippet fragment (fts3_snippet.c
@@ -451,18 +490,7 @@ func (it *snippetIter) details(covered uint64) (int, int, uint64, uint64) {
 			if pos >= iStart+it.nSnippet {
 				break
 			}
-			mPos := uint64(1) << uint(pos-iStart)
-			if (mCover|covered)&mPhrase != 0 {
-				iScore++
-			} else {
-				iScore += 1000
-			}
-			mCover |= mPhrase
-			for j := 0; j < p.nToken && j < it.nSnippet; j++ {
-				if pos-iStart-j >= 0 {
-					mHighlight |= mPos >> uint(j)
-				}
-			}
+			iScore += scorePhrasePos(pos, iStart, p.nToken, it.nSnippet, mPhrase, covered, &mCover, &mHighlight)
 			ti++
 		}
 		// NOTE: p.tail is intentionally NOT advanced here — the C's
@@ -474,29 +502,38 @@ func (it *snippetIter) details(covered uint64) (int, int, uint64, uint64) {
 	return iStart, iScore, mCover, mHighlight
 }
 
+// scorePhrasePos scores one phrase occurrence inside the fragment
+// (fts3_snippet.c fts3SnippetDetails): +1 per occurrence, +1000 for the
+// first occurrence of a phrase not already covered; the occurrence's bits
+// are added to the covered and highlight masks.
+func scorePhrasePos(pos, iStart, nToken, nSnippet int, mPhrase, covered uint64, mCover, mHighlight *uint64) int {
+	mPos := uint64(1) << uint(pos-iStart)
+	inc := 1
+	if (*mCover|covered)&mPhrase == 0 {
+		inc = 1000
+	}
+	*mCover |= mPhrase
+	for j := 0; j < nToken && j < nSnippet; j++ {
+		if pos-iStart-j >= 0 {
+			*mHighlight |= mPos >> uint(j)
+		}
+	}
+	return inc
+}
+
 // snippetText renders one fragment into b (fts3_snippet.c fts3SnippetText):
 // the fragment's tokens from frag.iPos, highlighted per frag.hlmask, with a
 // leading ellipsis when the fragment does not start at the document beginning
 // (or a non-first fragment), and a trailing ellipsis for the last fragment when
 // the document continues.
 func (t *FTS3Table) snippetText(b *strings.Builder, doc *Document, frag snippetFragment, iFragment int, isLast bool, nToken int, zStart, zEnd, zEllipsis string, override []interface{}) {
-	colText, ok := ftsDocColumnString(doc, frag.col)
-	if override != nil && frag.col < len(override) {
-		if s, sok := override[frag.col].(string); sok {
-			colText, ok = s, true
-		} else if override[frag.col] == nil {
-			// A content=<table> row whose content was deleted after indexing:
-			// SQLite renders an empty snippet (fts4content 2.4.2).
-			return
-		}
-	}
+	colText, ok := t.snippetColumnText(doc, frag, override)
 	if !ok {
 		return
 	}
 	tokens := tokenizeOffsets(t.tokenizer, colText)
 	nSnippet := nToken
-	iPos, hlmask := frag.iPos, frag.hlmask
-	iPos, hlmask = snippetShift(tokens, nSnippet, iPos, hlmask)
+	iPos, hlmask := snippetShift(tokens, nSnippet, frag.iPos, frag.hlmask)
 
 	iBegin := 0
 	if iPos < len(tokens) {
@@ -508,6 +545,39 @@ func (t *FTS3Table) snippetText(b *strings.Builder, doc *Document, frag snippetF
 		b.WriteString(colText[:iBegin])
 	}
 
+	iEnd := t.appendSnippetTokens(b, colText, tokens, iPos, nSnippet, hlmask, zStart, zEnd, zEllipsis, isLast)
+	// If the fragment's last token is also the column's last token, append
+	// the punctuation between it and the document end (fts3_snippet.c
+	// fts3SnippetText: the tokenizer reaches SQLITE_DONE and appends
+	// &zDoc[iEnd]).
+	if iEnd > 0 && iEnd < len(colText) && iPos+nSnippet >= len(tokens) {
+		b.WriteString(colText[iEnd:])
+	}
+}
+
+// snippetColumnText resolves the column text for a fragment, honoring a
+// content=<table> override row. ok is false when the fragment renders empty:
+// a missing column, or a deleted override cell (a content=<table> row whose
+// content was deleted after indexing — SQLite renders an empty snippet,
+// fts4content 2.4.2).
+func (t *FTS3Table) snippetColumnText(doc *Document, frag snippetFragment, override []interface{}) (string, bool) {
+	colText, ok := ftsDocColumnString(doc, frag.col)
+	if override != nil && frag.col < len(override) {
+		if s, sok := override[frag.col].(string); sok {
+			colText, ok = s, true
+		} else if override[frag.col] == nil {
+			return "", false
+		}
+	}
+	return colText, ok
+}
+
+// appendSnippetTokens writes the fragment's tokens from iPos, highlighted
+// per hlmask, with a leading ellipsis when the fragment does not start at
+// the document beginning (or a non-first fragment), and a trailing ellipsis
+// for the last fragment when the document continues. Returns the end offset
+// of the last written token.
+func (t *FTS3Table) appendSnippetTokens(b *strings.Builder, colText string, tokens []OffsetToken, iPos, nSnippet int, hlmask uint64, zStart, zEnd, zEllipsis string, isLast bool) int {
 	iEnd := 0
 	for ti := iPos; ti < len(tokens); ti++ {
 		if ti >= iPos+nSnippet {
@@ -530,13 +600,7 @@ func (t *FTS3Table) snippetText(b *strings.Builder, doc *Document, frag snippetF
 		}
 		iEnd = tok.End
 	}
-	// If the fragment's last token is also the column's last token, append
-	// the punctuation between it and the document end (fts3_snippet.c
-	// fts3SnippetText: the tokenizer reaches SQLITE_DONE and appends
-	// &zDoc[iEnd]).
-	if iEnd > 0 && iEnd < len(colText) && iPos+nSnippet >= len(tokens) {
-		b.WriteString(colText[iEnd:])
-	}
+	return iEnd
 }
 
 // snippetShift shifts a fragment right to center its highlighted tokens
