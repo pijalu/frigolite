@@ -176,26 +176,31 @@ func termMatchesKey(t, k conflictKeyTerm) bool {
 // (SQLite treats ((expr)) and (expr) as the same index key).
 func trimOuterParens(s string) string {
 	s = strings.TrimSpace(s)
-	for len(s) >= 2 && s[0] == '(' && s[len(s)-1] == ')' {
-		depth := 0
-		balanced := true
-		for i := 0; i < len(s); i++ {
-			if s[i] == '(' {
-				depth++
-			} else if s[i] == ')' {
-				depth--
-				if depth == 0 && i < len(s)-1 {
-					balanced = false
-					break
-				}
-			}
-		}
-		if !balanced || depth != 0 {
-			break
-		}
+	for parensBalancedWhole(s) {
 		s = strings.TrimSpace(s[1 : len(s)-1])
 	}
 	return s
+}
+
+// parensBalancedWhole reports whether s is a non-empty parenthesized span
+// whose opening paren matches the final one (depth never closes early and
+// returns to exactly zero at the last byte).
+func parensBalancedWhole(s string) bool {
+	if len(s) < 2 || s[0] != '(' || s[len(s)-1] != ')' {
+		return false
+	}
+	depth := 0
+	for i := 0; i < len(s); i++ {
+		if s[i] == '(' {
+			depth++
+		} else if s[i] == ')' {
+			depth--
+			if depth == 0 && i < len(s)-1 {
+				return false
+			}
+		}
+	}
+	return depth == 0
 }
 
 // splitCollateExpr splits "<base> COLLATE <name>" into (base, name). Returns

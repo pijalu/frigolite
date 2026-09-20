@@ -159,31 +159,40 @@ func (e *DMLExecutor) checkTableLevelCheckConstraints(tableEntry *schema.Entry, 
 		if e.ctx.IgnoreCheckConstraints() {
 			continue
 		}
-		// trusted_schema=OFF blocks non-innocuous user functions in CHECK
-		// constraints; temp-schema tables are always trusted.
-		if e.currentDMLCtx == nil || !e.currentDMLCtx.IsTemp {
-			if name := e.unsafeSchemaFunc(tc.Expr); name != "" {
-				return fmt.Errorf("unsafe use of %s()", name)
-			}
+		if err := e.tableCheckConstraintError(tableEntry, tc, ti, tcs, row); err != nil {
+			return err
 		}
-		var checkVal interface{}
-		var checkErr error
-		function.WithPureContext("check", func() error {
-			checkVal, checkErr = e.ctx.EvalExpr(tc.Expr, row)
-			return checkErr
-		})
-		if checkErr != nil {
-			// A CHECK evaluation error (e.g. non-deterministic use of a date
-			// function) propagates as-is, matching SQLite.
-			return checkErr
+	}
+	return nil
+}
+
+// tableCheckConstraintError evaluates one table-level CHECK constraint for the
+// row, returning the violation (or evaluation) error, nil when it passes.
+// trusted_schema=OFF blocks non-innocuous user functions in CHECK
+// constraints; temp-schema tables are always trusted. A CHECK evaluation
+// error (e.g. non-deterministic use of a date function) propagates as-is,
+// matching SQLite.
+func (e *DMLExecutor) tableCheckConstraintError(tableEntry *schema.Entry, tc sql.TableConstraint, ti int, tcs []sql.TableConstraint, row RowMap) error {
+	if e.currentDMLCtx == nil || !e.currentDMLCtx.IsTemp {
+		if name := e.unsafeSchemaFunc(tc.Expr); name != "" {
+			return fmt.Errorf("unsafe use of %s()", name)
 		}
-		if checkVal != nil && !execexpr.ToBool(checkVal) {
-			name := tc.Name
-			if name == "" {
-				name = e.tableCheckConstraintText(tableEntry.SQL, ti, tcs)
-			}
-			return fmt.Errorf("CHECK constraint failed: %s", name)
+	}
+	var checkVal interface{}
+	var checkErr error
+	function.WithPureContext("check", func() error {
+		checkVal, checkErr = e.ctx.EvalExpr(tc.Expr, row)
+		return checkErr
+	})
+	if checkErr != nil {
+		return checkErr
+	}
+	if checkVal != nil && !execexpr.ToBool(checkVal) {
+		name := tc.Name
+		if name == "" {
+			name = e.tableCheckConstraintText(tableEntry.SQL, ti, tcs)
 		}
+		return fmt.Errorf("CHECK constraint failed: %s", name)
 	}
 	return nil
 }
@@ -488,21 +497,30 @@ func (e *DMLExecutor) firstUnknownColumn(expr sql.Expr, tableEntry *schema.Entry
 		if !ok || ref.Table != "" {
 			return
 		}
-		if strings.EqualFold(ref.Name, "rowid") || strings.EqualFold(ref.Name, "_rowid_") || strings.EqualFold(ref.Name, "oid") {
+		if isRowidAliasName(ref.Name) {
 			return
 		}
-		found := false
-		for _, cd := range colDefs {
-			if strings.EqualFold(cd.Name, ref.Name) {
-				found = true
-				break
-			}
-		}
-		if !found {
+		if !columnExists(colDefs, ref.Name) {
 			bad = ref.Name
 		}
 	})
 	return bad
+}
+
+// isRowidAliasName reports whether name is one of the rowid aliases
+// (rowid/_rowid_/oid), case-insensitively.
+func isRowidAliasName(name string) bool {
+	return strings.EqualFold(name, "rowid") || strings.EqualFold(name, "_rowid_") || strings.EqualFold(name, "oid")
+}
+
+// columnExists reports whether name matches a colDefs column (case-insensitive).
+func columnExists(colDefs []sql.ColumnDef, name string) bool {
+	for i := range colDefs {
+		if strings.EqualFold(colDefs[i].Name, name) {
+			return true
+		}
+	}
+	return false
 }
 
 // validateUpsertExpressions checks the DO UPDATE SET assignments and WHERE
