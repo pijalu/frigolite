@@ -7510,3 +7510,31 @@ regenerated; suite net −2274 fails vs pre-tranche baseline (7230 → ~4950).
 - **gocognit/gocyclo count `range`-captured lengths and switch cases**: table-driven
   maps/arrays (`punctKinds`, `zipColumnFuncs`, `vocabRowFields`) and extracting one
   switch case per helper are the mechanical fixes that keep behavior byte-identical.
+- **Adopting a dead agent's WIP: test it BEFORE building on it, and salvage only the
+  provably-pure parts**: the resumed fts WIP looked mechanical but contained a
+  by-value `firstErr` parameter (error propagation lost) and turned a fast-failing
+  test into an infinite loop. Recipe that worked: (1) `go build`, (2) run the
+  package tests at WIP state vs HEAD vs base commit (scratch worktree), (3) keep
+  byte-identical pure moves (verified with `diff` of the moved region) and
+  well-scoped extractions whose behavior was audited, (4) `git checkout --` the
+  near-rewritten risky files, (5) redo the rest surgically with one helper per
+  loop-body/branch and the package suite re-run after each file.
+- **A pre-existing red test is still a regression bell for HANGS**: base may fail a
+  test in 2s; if your diff makes the same test hang, that is a regression even
+  though the suite was already red. Compare failure MODE (time + panic dump), not
+  just pass/fail, when the baseline is red.
+- **gocognit weights nesting, so naive branch-counting underestimates ~2x**: a
+  function estimated at 8 often measures 17-23. Budget for it: extract each
+  loop body / switch case / per-branch reader into its own helper and re-run
+  `gocognit -over 15 <files>` after every file — the tool is the only reliable
+  counter. Recurring shapes in this area (doclist/boundary-term scanners with
+  first-vs-delta branches) collapse cleanly into `(value, next, ok)` helpers
+  shared across callers, but VERIFY the check flavors match (one caller's
+  "extra" absolute bounds check was provably subsumed by the relative check —
+  prove subsumption before sharing).
+- **Repeated doclist/state-machine scan loops (reader.go loadDoclist,
+  stream.go parseDoclistHits/doclistDocIDs)**: converting the closure-based
+  scanner into a small struct with `step(v, blob, pos) (next, err/stop)` +
+  `flushDoc()` methods drops gocognit from 30-50 to <10 and preserves state
+  transitions verbatim — copy each state reset (`docEnded`, `sawColumn`,
+  `lastPos`) line-for-line.
