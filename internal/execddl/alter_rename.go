@@ -48,20 +48,43 @@ func (e *DDLExecutor) execAlterTableRename(s *sql.AlterTableStmt) *Result {
 	if res := e.ensureRtreeShadowTargets(entry, oldName, newName); res != nil {
 		return res
 	}
-	if !e.ctx.WritableSchema() {
-		if err := e.validateRename(oldName, newName); err != nil {
-			return &Result{Error: err}
-		}
-		if !e.ctx.LegacyAlterTable() {
-			if amb := e.checkRenameAmbiguity(oldName, newName); amb != nil && amb.Error != nil {
-				return amb
-			}
-		}
+	if res := e.validateRenameNames(oldName, newName); res != nil {
+		return res
 	}
 	if res := e.renameTableEntrySQL(entryCtx, entry, oldName, newName); res != nil {
 		return res
 	}
 	// alter.c order: schema rewrite before xRename (see below).
+	if res := e.renameFollowupObjects(entryCtx, entry, oldName, newName); res != nil {
+		return res
+	}
+	e.updateRenameCaches(oldName, newName)
+	e.renameSQLiteSequence(oldName, newName)
+	return &Result{}
+}
+
+// validateRenameNames runs the pre-rewrite rename validations when
+// writable_schema is off: the legacy rename check and, outside legacy
+// ALTER TABLE mode, the column-reference ambiguity check.
+func (e *DDLExecutor) validateRenameNames(oldName, newName string) *Result {
+	if e.ctx.WritableSchema() {
+		return nil
+	}
+	if err := e.validateRename(oldName, newName); err != nil {
+		return &Result{Error: err}
+	}
+	if !e.ctx.LegacyAlterTable() {
+		if amb := e.checkRenameAmbiguity(oldName, newName); amb != nil && amb.Error != nil {
+			return amb
+		}
+	}
+	return nil
+}
+
+// renameFollowupObjects performs the post-rewrite object renames in alter.c
+// order: schema-wide related entries, the FTS3/4 module plus its shadow
+// tables, the FTS5 module, and the rtree shadow family.
+func (e *DDLExecutor) renameFollowupObjects(entryCtx *DatabaseContext, entry *schema.Entry, oldName, newName string) *Result {
 	if !e.ctx.WritableSchema() {
 		e.renameUpdateRelatedEntries(entry.Name, newName)
 	}
@@ -79,9 +102,7 @@ func (e *DDLExecutor) execAlterTableRename(s *sql.AlterTableStmt) *Result {
 	if vtabFamilyModuleOf(entry.SQL) {
 		e.renameRTreeShadowTables(entryCtx, oldName, newName)
 	}
-	e.updateRenameCaches(oldName, newName)
-	e.renameSQLiteSequence(oldName, newName)
-	return &Result{}
+	return nil
 }
 
 // findAlterRenameTarget resolves the RENAME target: a plain table when found,
@@ -306,6 +327,13 @@ func (e *DDLExecutor) renameSQLiteSequence(oldName, newName string) {
 	}
 }
 
+// wrSequenceRename is one pending WITHOUT ROWID sequence row rewrite: the
+// original cell payload (the delete key) and the re-encoded record.
+type wrSequenceRename struct {
+	old []byte
+	new []byte
+}
+
 // renameWRSequenceRows renames a WITHOUT ROWID sqlite_sequence entry by NAME
 // value: index-leaf cells share synthetic RowID 0, so rowid-addressed
 // rewrite misses. Decodes each cell, swaps values[0] == oldName, and
@@ -316,35 +344,7 @@ func (e *DDLExecutor) renameWRSequenceRows(entry *schema.Entry, oldName, newName
 	if err != nil {
 		return
 	}
-	type wrRename struct {
-		old []byte
-		new []byte
-	}
-	var renames []wrRename
-	for {
-		cell, err := cursor.ReadCell()
-		if err != nil || cell == nil {
-			break
-		}
-		rec, err := storage.DecodeRecord(cell.Payload)
-		if err != nil || rec == nil || len(rec.Values) == 0 {
-			if ok, _ := cursor.Next(); !ok {
-				break
-			}
-			continue
-		}
-		if name, ok := rec.Values[0].(string); ok && name == oldName {
-			rec.Values[0] = newName
-			newPayload, err := storage.EncodeRecord(rec.Values)
-			if err == nil {
-				renames = append(renames, wrRename{old: append([]byte(nil), cell.Payload...), new: newPayload})
-			}
-		}
-		if ok, _ := cursor.Next(); !ok {
-			break
-		}
-	}
-	for _, rn := range renames {
+	for _, rn := range collectWRSequenceRenames(cursor, oldName, newName) {
 		if _, err := tree.DeleteCellsWhere(func(c *storage.Cell) bool {
 			return string(c.Payload) == string(rn.old)
 		}); err != nil {
@@ -352,6 +352,44 @@ func (e *DDLExecutor) renameWRSequenceRows(entry *schema.Entry, oldName, newName
 		}
 		_ = tree.InsertCell(&storage.Cell{Type: storage.CellIndexLeaf, Payload: rn.new})
 	}
+}
+
+// collectWRSequenceRenames scans a WITHOUT ROWID sqlite_sequence and collects
+// the payload rewrites for rows whose name column equals oldName.
+func collectWRSequenceRenames(cursor *btree.Cursor, oldName, newName string) []wrSequenceRename {
+	var renames []wrSequenceRename
+	for {
+		cell, err := cursor.ReadCell()
+		if err != nil || cell == nil {
+			break
+		}
+		if rn, ok := wrRenameCell(cell, oldName, newName); ok {
+			renames = append(renames, rn)
+		}
+		if ok, _ := cursor.Next(); !ok {
+			break
+		}
+	}
+	return renames
+}
+
+// wrRenameCell decodes one sequence cell and, when its name column equals
+// oldName, returns the rewrite: the original payload as the delete key and
+// the record re-encoded with newName in values[0]. Undecodable cells and
+// encode failures never produce a rewrite.
+func wrRenameCell(cell *storage.Cell, oldName, newName string) (wrSequenceRename, bool) {
+	rec, err := storage.DecodeRecord(cell.Payload)
+	if err != nil || rec == nil || len(rec.Values) == 0 {
+		return wrSequenceRename{}, false
+	}
+	if name, ok := rec.Values[0].(string); ok && name == oldName {
+		rec.Values[0] = newName
+		newPayload, err := storage.EncodeRecord(rec.Values)
+		if err == nil {
+			return wrSequenceRename{old: append([]byte(nil), cell.Payload...), new: newPayload}, true
+		}
+	}
+	return wrSequenceRename{}, false
 }
 
 func isSyntheticSequence(entry *schema.Entry) bool {
