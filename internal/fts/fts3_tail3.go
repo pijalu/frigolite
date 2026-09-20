@@ -66,8 +66,21 @@ func (t *FTS3Table) MatchInfoX(phrase, scope QueryNode, side int, gate QueryNode
 	} else {
 		local = make([]int, nCol)
 	}
-	var globalOcc []int
-	var globalRows []int
+	globalOcc, globalRows := t.globalPhraseStats(phrase, scope, side, nCol, docID)
+	for i := 0; i < nCol; i++ {
+		out[i*3+0] = uint32(local[i])
+		if globalOcc != nil {
+			out[i*3+1] = uint32(globalOcc[i])
+			out[i*3+2] = uint32(globalRows[i])
+		}
+	}
+	return out
+}
+
+// globalPhraseStats accumulates the per-column global occurrence and global
+// row counts of the phrase (fts3_snippet.c fts3ExprGlobalHitsCb): every row
+// whose scope matches contributes its phrase counts, the current row first.
+func (t *FTS3Table) globalPhraseStats(phrase, scope QueryNode, side, nCol int, docID int64) (globalOcc, globalRows []int) {
 	addRow := func(d int64) {
 		c := phraseCountsFor(t.index, d, phrase, scope, side, nCol)
 		if globalOcc == nil {
@@ -92,14 +105,7 @@ func (t *FTS3Table) MatchInfoX(phrase, scope QueryNode, side int, gate QueryNode
 			addRow(d)
 		}
 	}
-	for i := 0; i < nCol; i++ {
-		out[i*3+0] = uint32(local[i])
-		if globalOcc != nil {
-			out[i*3+1] = uint32(globalOcc[i])
-			out[i*3+2] = uint32(globalRows[i])
-		}
-	}
-	return out
+	return globalOcc, globalRows
 }
 
 // MatchInfoY computes the 'y' format values for one phrase: the per-column
@@ -176,62 +182,88 @@ func (t *FTS3Table) segmentBlocksIndexLocked(docIDs []int64, nodeSize int, iInde
 	}
 	termPostings := make(map[string][]Posting)
 	if iIndex <= 0 {
-		// For a small doc set (a per-commit pending flush), re-tokenize the
-		// wanted documents directly instead of scanning every posting in the
-		// index (O(pending tokens) vs O(total postings)). This keeps per-row
-		// FTS builds linear: without it, each flush scans the whole index, so
-		// N flushes over a growing table are O(N^2) (fts4merge4 2.2.x inserts
-		// 500 40KB documents in 100 transactions).
-		if len(docIDs) <= 64 {
-			for _, docID := range docIDs {
-				doc := t.index.GetDoc(docID)
-				if doc == nil {
-					continue
-				}
-				for colNum, v := range doc.Columns {
-					if !t.ColumnIndexed(colNum) {
-						continue
-					}
-					tokens := t.tokenizer.Tokenize(ftsColumnString(v))
-					for _, tok := range tokens {
-						termPostings[tok.Term] = append(termPostings[tok.Term], Posting{
-							DocID:    docID,
-							Column:   colNum,
-							Position: tok.Position,
-						})
-					}
-				}
-			}
-		} else {
-			for term, postings := range t.index.index {
-				for _, p := range postings {
-					if want[p.DocID] {
-						termPostings[term] = append(termPostings[term], p)
-					}
-				}
-			}
-		}
+		t.collectMainIndexPostingsLocked(docIDs, want, termPostings)
 	} else {
 		if iIndex-1 >= len(t.prefixLengths) {
 			return serializeSegmentBlocks(nil, nodeSize)
 		}
-		prefixLen := t.prefixLengths[iIndex-1]
-		for term, postings := range t.index.index {
-			if len(term) < prefixLen {
-				continue
-			}
-			prefix := term[:prefixLen]
-			for _, p := range postings {
-				if want[p.DocID] {
-					termPostings[prefix] = append(termPostings[prefix], p)
-				}
-			}
-		}
+		t.collectPrefixIndexPostingsLocked(want, t.prefixLengths[iIndex-1], termPostings)
 	}
 	// REPLACE markers first: they can introduce terms the re-inserted
 	// documents no longer contain (the old document's term set), so the
 	// record list must be collected afterwards.
 	t.injectReplaceMarkersLocked(termPostings, iIndex)
+	return serializeTermPostingsLocked(termPostings, nodeSize)
+}
+
+// collectMainIndexPostingsLocked gathers the wanted documents' postings for
+// the main index, keyed by the full term. For a small doc set (a per-commit
+// pending flush), it re-tokenizes the wanted documents directly instead of
+// scanning every posting in the index (O(pending tokens) vs O(total
+// postings)). This keeps per-row FTS builds linear: without it, each flush
+// scans the whole index, so N flushes over a growing table are O(N^2)
+// (fts4merge4 2.2.x inserts 500 40KB documents in 100 transactions).
+func (t *FTS3Table) collectMainIndexPostingsLocked(docIDs []int64, want map[int64]bool, termPostings map[string][]Posting) {
+	if len(docIDs) <= 64 {
+		t.retokenizeDocPostingsLocked(docIDs, termPostings)
+		return
+	}
+	for term, postings := range t.index.index {
+		for _, p := range postings {
+			if want[p.DocID] {
+				termPostings[term] = append(termPostings[term], p)
+			}
+		}
+	}
+}
+
+// retokenizeDocPostingsLocked re-tokenizes the wanted documents directly
+// instead of scanning every posting in the index (O(pending tokens) vs
+// O(total postings)). This keeps per-row FTS builds linear: without it, each
+// flush scans the whole index, so N flushes over a growing table are O(N^2)
+// (fts4merge4 2.2.x inserts 500 40KB documents in 100 transactions).
+func (t *FTS3Table) retokenizeDocPostingsLocked(docIDs []int64, termPostings map[string][]Posting) {
+	for _, docID := range docIDs {
+		doc := t.index.GetDoc(docID)
+		if doc == nil {
+			continue
+		}
+		for colNum, v := range doc.Columns {
+			if !t.ColumnIndexed(colNum) {
+				continue
+			}
+			tokens := t.tokenizer.Tokenize(ftsColumnString(v))
+			for _, tok := range tokens {
+				termPostings[tok.Term] = append(termPostings[tok.Term], Posting{
+					DocID:    docID,
+					Column:   colNum,
+					Position: tok.Position,
+				})
+			}
+		}
+	}
+}
+
+// collectPrefixIndexPostingsLocked gathers the wanted documents' postings
+// under their prefix-truncated keys (fts3_write.c fts3InsertTerms: a token
+// is added to prefix index i only when nToken >= aIndex[i].nPrefix).
+func (t *FTS3Table) collectPrefixIndexPostingsLocked(want map[int64]bool, prefixLen int, termPostings map[string][]Posting) {
+	for term, postings := range t.index.index {
+		if len(term) < prefixLen {
+			continue
+		}
+		prefix := term[:prefixLen]
+		for _, p := range postings {
+			if want[p.DocID] {
+				termPostings[prefix] = append(termPostings[prefix], p)
+			}
+		}
+	}
+}
+
+// serializeTermPostingsLocked sorts each term's postings and serializes the
+// term records into the segment root + leaf blocks.
+func serializeTermPostingsLocked(termPostings map[string][]Posting, nodeSize int) ([]byte, []SegmentBlock) {
 	terms := make([]string, 0, len(termPostings))
 	for term := range termPostings {
 		terms = append(terms, term)
@@ -389,7 +421,7 @@ func (t *FTS3Table) injectReplaceMarkersLocked(termPostings map[string][]Posting
 	if len(t.replaceDocs) == 0 || len(t.deleteMarkerTerms) == 0 {
 		return
 	}
-	var prefixLen int
+	prefixLen := 0
 	if iIndex > 0 {
 		if iIndex-1 >= len(t.prefixLengths) {
 			return
@@ -401,33 +433,48 @@ func (t *FTS3Table) injectReplaceMarkersLocked(termPostings map[string][]Posting
 		if !ok {
 			continue
 		}
-		for _, term := range terms {
-			key := term
-			if iIndex > 0 {
-				if len(term) < prefixLen {
-					continue
-				}
-				key = term[:prefixLen]
-			}
-			// A term the re-inserted document STILL contains needs no
-			// marker: SQLite's pending hash keys entries by (term, docid),
-			// so the delete contributes only the bare docid and the insert
-			// continues the SAME entry with its positions (one normal
-			// entry). Only dropped terms get a bare-docid marker record.
-			has := false
-			for _, p := range termPostings[key] {
-				if p.DocID == id {
-					has = true
-					break
-				}
-			}
-			if has {
-				continue
-			}
-			termPostings[key] = append([]Posting{{DocID: id, Column: -1, Delete: true}},
-				termPostings[key]...)
-		}
+		t.injectDocReplaceMarkersLocked(termPostings, id, terms, iIndex, prefixLen)
 	}
+}
+
+// injectDocReplaceMarkersLocked adds one replaced document's position-less
+// delete entries into termPostings, keyed by the index's term form.
+func (t *FTS3Table) injectDocReplaceMarkersLocked(termPostings map[string][]Posting, id int64, terms []string, iIndex, prefixLen int) {
+	for _, term := range terms {
+		key, ok := bandTermKey(term, iIndex, prefixLen)
+		if !ok {
+			continue
+		}
+		// A term the re-inserted document STILL contains needs no
+		// marker: SQLite's pending hash keys entries by (term, docid),
+		// so the delete contributes only the bare docid and the insert
+		// continues the SAME entry with its positions (one normal
+		// entry). Only dropped terms get a bare-docid marker record.
+		has := false
+		for _, p := range termPostings[key] {
+			if p.DocID == id {
+				has = true
+				break
+			}
+		}
+		if has {
+			continue
+		}
+		termPostings[key] = append([]Posting{{DocID: id, Column: -1, Delete: true}},
+			termPostings[key]...)
+	}
+}
+
+// bandTermKey returns a term's key in index band iIndex (prefix-truncated
+// for prefix bands), reporting whether the term contributes to the band.
+func bandTermKey(term string, iIndex, prefixLen int) (string, bool) {
+	if iIndex <= 0 {
+		return term, true
+	}
+	if len(term) < prefixLen {
+		return "", false
+	}
+	return term[:prefixLen], true
 }
 
 // consumeDeleteMarkersLocked drops the snapshot entries for docIDs.
@@ -451,18 +498,32 @@ func (t *FTS3Table) deleteMarkerTermsLocked(docIDs []int64) map[string]map[int64
 		want[id] = true
 	}
 	termDocIDs := make(map[string]map[int64]bool)
-	if t.deleteMarkerTerms != nil {
-		for _, id := range docIDs {
-			if terms, ok := t.deleteMarkerTerms[id]; ok {
-				for _, term := range terms {
-					if termDocIDs[term] == nil {
-						termDocIDs[term] = make(map[int64]bool)
-					}
-					termDocIDs[term][id] = true
+	t.collectSnapshotMarkerTerms(docIDs, termDocIDs)
+	t.collectIndexedMarkerTerms(want, termDocIDs)
+	return termDocIDs
+}
+
+// collectSnapshotMarkerTerms copies the DELETE-time term snapshots of docIDs
+// into termDocIDs.
+func (t *FTS3Table) collectSnapshotMarkerTerms(docIDs []int64, termDocIDs map[string]map[int64]bool) {
+	if t.deleteMarkerTerms == nil {
+		return
+	}
+	for _, id := range docIDs {
+		if terms, ok := t.deleteMarkerTerms[id]; ok {
+			for _, term := range terms {
+				if termDocIDs[term] == nil {
+					termDocIDs[term] = make(map[int64]bool)
 				}
+				termDocIDs[term][id] = true
 			}
 		}
 	}
+}
+
+// collectIndexedMarkerTerms scans the index for postings of the wanted
+// docids (marker sources for documents still indexed).
+func (t *FTS3Table) collectIndexedMarkerTerms(want map[int64]bool, termDocIDs map[string]map[int64]bool) {
 	for term, postings := range t.index.index {
 		for _, p := range postings {
 			if want[p.DocID] {
@@ -473,7 +534,6 @@ func (t *FTS3Table) deleteMarkerTermsLocked(docIDs []int64) map[string]map[int64
 			}
 		}
 	}
-	return termDocIDs
 }
 
 // markerRecords converts a term → docid set into sorted segment records with
@@ -748,17 +808,10 @@ func TokenizeQueryNode(node QueryNode, tok Tokenizer) QueryNode {
 		}
 		return tokens[0].Term
 	}
+	if leaf := tokenizeQueryLeaf(node, stem); leaf != nil {
+		return leaf
+	}
 	switch n := node.(type) {
-	case *TermNode:
-		return &TermNode{Term: stem(n.Term), First: n.First}
-	case *PrefixNode:
-		return &PrefixNode{Prefix: stem(n.Prefix), First: n.First}
-	case *PhraseNode:
-		terms := make([]string, len(n.Terms))
-		for i, t := range n.Terms {
-			terms[i] = stem(t)
-		}
-		return &PhraseNode{Terms: terms, Prefixes: n.Prefixes, First: n.First, FirstAt: n.FirstAt}
 	case *AndNode:
 		return &AndNode{Left: tokenizeQueryNode(n.Left, tok), Right: tokenizeQueryNode(n.Right, tok)}
 	case *NearNode:
@@ -774,6 +827,24 @@ func TokenizeQueryNode(node QueryNode, tok Tokenizer) QueryNode {
 	default:
 		return node
 	}
+}
+
+// tokenizeQueryLeaf rewrites a leaf query node (term, prefix or phrase) into
+// its tokenized form; nil when node is not a leaf the tokenizer rewrites.
+func tokenizeQueryLeaf(node QueryNode, stem func(string) string) QueryNode {
+	switch n := node.(type) {
+	case *TermNode:
+		return &TermNode{Term: stem(n.Term), First: n.First}
+	case *PrefixNode:
+		return &PrefixNode{Prefix: stem(n.Prefix), First: n.First}
+	case *PhraseNode:
+		terms := make([]string, len(n.Terms))
+		for i, t := range n.Terms {
+			terms[i] = stem(t)
+		}
+		return &PhraseNode{Terms: terms, Prefixes: n.Prefixes, First: n.First, FirstAt: n.FirstAt}
+	}
+	return nil
 }
 
 // restrictQueryColumn wraps every query node that is NOT already column-scoped

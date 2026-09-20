@@ -120,26 +120,38 @@ func (t *FTS3Table) BatchHasTerms(docIDs []int64) bool {
 	t.mu.Lock()
 	defer t.mu.Unlock()
 	if len(docIDs) <= 64 {
-		for _, docID := range docIDs {
-			doc := t.index.GetDoc(docID)
-			if doc == nil {
-				continue
-			}
-			for colNum, v := range doc.Columns {
-				if !t.ColumnIndexed(colNum) {
-					continue
-				}
-				if len(t.tokenizer.Tokenize(ftsColumnString(v))) > 0 {
-					return true
-				}
-			}
-		}
-		return false
+		return t.smallBatchHasTerms(docIDs)
 	}
 	want := make(map[int64]bool, len(docIDs))
 	for _, id := range docIDs {
 		want[id] = true
 	}
+	return t.anyPostingForDocSet(want)
+}
+
+// smallBatchHasTerms scans short document lists directly, re-tokenizing each
+// indexed column.
+func (t *FTS3Table) smallBatchHasTerms(docIDs []int64) bool {
+	for _, docID := range docIDs {
+		doc := t.index.GetDoc(docID)
+		if doc == nil {
+			continue
+		}
+		for colNum, v := range doc.Columns {
+			if !t.ColumnIndexed(colNum) {
+				continue
+			}
+			if len(t.tokenizer.Tokenize(ftsColumnString(v))) > 0 {
+				return true
+			}
+		}
+	}
+	return false
+}
+
+// anyPostingForDocSet reports whether any posting belongs to one of the
+// wanted docids (the postings walk for large batches).
+func (t *FTS3Table) anyPostingForDocSet(want map[int64]bool) bool {
 	for _, postings := range t.index.index {
 		for _, p := range postings {
 			if want[p.DocID] {
@@ -201,28 +213,14 @@ type IndexPosting struct {
 func (t *FTS3Table) IndexPostings(iIndex int) []IndexPosting {
 	t.mu.Lock()
 	defer t.mu.Unlock()
-	var out []IndexPosting
-	if iIndex <= 0 {
-		for term, postings := range t.index.index {
-			for _, p := range postings {
-				out = append(out, IndexPosting{Term: term, DocID: p.DocID, Col: p.Column, Pos: p.Position})
-			}
-		}
-	} else {
-		if iIndex-1 >= len(t.prefixLengths) {
-			return nil
-		}
-		prefixLen := t.prefixLengths[iIndex-1]
-		for term, postings := range t.index.index {
-			if len(term) < prefixLen {
-				continue
-			}
-			prefix := term[:prefixLen]
-			for _, p := range postings {
-				out = append(out, IndexPosting{Term: prefix, DocID: p.DocID, Col: p.Column, Pos: p.Position})
-			}
-		}
+	if iIndex > 0 && iIndex-1 >= len(t.prefixLengths) {
+		return nil
 	}
+	prefixLen := 0
+	if iIndex > 0 {
+		prefixLen = t.prefixLengths[iIndex-1]
+	}
+	out := t.indexBandPostings(iIndex, prefixLen)
 	sort.Slice(out, func(i, j int) bool {
 		if out[i].Term != out[j].Term {
 			return out[i].Term < out[j].Term
@@ -238,6 +236,26 @@ func (t *FTS3Table) IndexPostings(iIndex int) []IndexPosting {
 	return out
 }
 
+// indexBandPostings collects one index band's (term, posting) rows: band 0
+// reports full terms; a prefix band reports each term truncated to the band's
+// prefix length and skips shorter terms.
+func (t *FTS3Table) indexBandPostings(iIndex, prefixLen int) []IndexPosting {
+	var out []IndexPosting
+	for term, postings := range t.index.index {
+		reported := term
+		if iIndex > 0 {
+			if len(term) < prefixLen {
+				continue
+			}
+			reported = term[:prefixLen]
+		}
+		for _, p := range postings {
+			out = append(out, IndexPosting{Term: reported, DocID: p.DocID, Col: p.Column, Pos: p.Position})
+		}
+	}
+	return out
+}
+
 // IntegrityCheck verifies that the in-memory index exactly matches the given
 // content documents (docid → per-column text). It re-tokenizes each document
 // with the table's tokenizer and compares the resulting (term, docid, column,
@@ -248,37 +266,7 @@ func (t *FTS3Table) IndexPostings(iIndex int) []IndexPosting {
 func (t *FTS3Table) IntegrityCheck(docs map[int64][]interface{}) error {
 	t.mu.Lock()
 	defer t.mu.Unlock()
-	// Build the expected postings.
-	expected := make(map[string]map[string]bool) // term → "docid:col:pos"
-	add := func(term string, docID int64, col, pos int) {
-		key := fmt.Sprintf("%d:%d:%d", docID, col, pos)
-		if expected[term] == nil {
-			expected[term] = make(map[string]bool)
-		}
-		expected[term][key] = true
-	}
-	for docID, cols := range docs {
-		for colNum, v := range cols {
-			if !t.ColumnIndexed(colNum) {
-				continue
-			}
-			tokens := t.tokenizer.Tokenize(ftsColumnString(v))
-			for _, tok := range tokens {
-				add(tok.Term, docID, colNum, tok.Position)
-				// Prefix indexes add the first prefixLen bytes of each token
-				// whose length is at least prefixLen (fts3_write.c
-				// fts3InsertTerms); the segment index includes those terms,
-				// so the expected postings must too (fts4check t3 uses
-				// prefix="2,3").
-				for _, plen := range t.prefixLengths {
-					if len(tok.Term) >= plen {
-						add(tok.Term[:plen], docID, colNum, tok.Position)
-					}
-				}
-			}
-		}
-	}
-	// Compare against the actual index.
+	expected := t.buildExpectedPostings(docs)
 	// Compare against the actual index.
 	if len(expected) != len(t.index.index) {
 		return fmt.Errorf("database disk image is malformed [T21]")
@@ -286,11 +274,9 @@ func (t *FTS3Table) IntegrityCheck(docs map[int64][]interface{}) error {
 	for term, expKeys := range expected {
 		postings, ok := t.index.index[term]
 		if !ok {
-
 			return fmt.Errorf("database disk image is malformed [T22]")
 		}
 		if len(postings) != len(expKeys) {
-
 			return fmt.Errorf("database disk image is malformed [T23]")
 		}
 		for _, p := range postings {
@@ -301,6 +287,49 @@ func (t *FTS3Table) IntegrityCheck(docs map[int64][]interface{}) error {
 		}
 	}
 	return nil
+}
+
+// addExpectedPosting records one expected posting key ("docid:col:pos") for
+// a term.
+func addExpectedPosting(expected map[string]map[string]bool, term string, docID int64, col, pos int) {
+	key := fmt.Sprintf("%d:%d:%d", docID, col, pos)
+	if expected[term] == nil {
+		expected[term] = make(map[string]bool)
+	}
+	expected[term][key] = true
+}
+
+// buildExpectedPostings re-tokenizes every indexed column of docs and
+// records the expected postings, including the prefix-index bands: prefix
+// indexes add the first prefixLen bytes of each token whose length is at
+// least prefixLen (fts3_write.c fts3InsertTerms; the segment index includes
+// those terms, so the expected postings must too — fts4check t3 uses
+// prefix="2,3").
+func (t *FTS3Table) buildExpectedPostings(docs map[int64][]interface{}) map[string]map[string]bool {
+	expected := make(map[string]map[string]bool) // term → "docid:col:pos"
+	for docID, cols := range docs {
+		for colNum, v := range cols {
+			if !t.ColumnIndexed(colNum) {
+				continue
+			}
+			t.addColumnExpectedPostings(expected, docID, colNum, v)
+		}
+	}
+	return expected
+}
+
+// addColumnExpectedPostings tokenizes one column value and records its
+// expected postings (the term plus every prefix-band truncation).
+func (t *FTS3Table) addColumnExpectedPostings(expected map[string]map[string]bool, docID int64, colNum int, v interface{}) {
+	tokens := t.tokenizer.Tokenize(ftsColumnString(v))
+	for _, tok := range tokens {
+		addExpectedPosting(expected, tok.Term, docID, colNum, tok.Position)
+		for _, plen := range t.prefixLengths {
+			if len(tok.Term) >= plen {
+				addExpectedPosting(expected, tok.Term[:plen], docID, colNum, tok.Position)
+			}
+		}
+	}
 }
 
 // CompressFn returns the FTS4 compress= function name (empty when unset).
@@ -423,43 +452,55 @@ func (t *FTS3Table) InsertWithIDIncludingPrefixes(rowid int64, values []interfac
 func (t *FTS3Table) Delete(rowid int64) {
 	t.mu.Lock()
 	defer t.mu.Unlock()
-	wasPending := false
-	for i, id := range t.pendingDocIDs {
-		if id == rowid {
-			t.pendingDocIDs = append(t.pendingDocIDs[:i], t.pendingDocIDs[i+1:]...)
-			wasPending = true
-			break
-		}
-	}
+	wasPending := t.removePendingDoc(rowid)
 	doc := t.index.GetDoc(rowid)
 	if !wasPending && doc != nil {
 		t.deletedDocIDs = append(t.deletedDocIDs, rowid)
 		// Snapshot the document's terms so the flush can build a delete
-		// marker AFTER this call removes the postings (fts3DeleteTerms
-		// writes the marker from the old terms; fts4onepass 3.x UPDATE
-		// SET docid=... re-keys a flushed doc, fts4content 3.1.5 DELETE).
-		if t.deleteMarkerTerms == nil {
-			t.deleteMarkerTerms = make(map[int64][]string)
-		}
-		var terms []string
-		seen := make(map[string]bool)
-		for colNum, v := range doc.Columns {
-			if !t.ColumnIndexed(colNum) {
-				continue
-			}
-			tokens := t.tokenizer.Tokenize(ftsColumnString(v))
-			for _, tok := range tokens {
-				if !seen[tok.Term] {
-					seen[tok.Term] = true
-					terms = append(terms, tok.Term)
-				}
-			}
-		}
-		sort.Strings(terms)
-		t.deleteMarkerTerms[rowid] = terms
+		// marker AFTER this call removes the postings (see
+		// snapshotDeleteMarkerTerms).
+		t.snapshotDeleteMarkerTerms(rowid, doc)
 	}
 	t.subDocStats(rowid)
 	t.index.Delete(rowid)
+}
+
+// removePendingDoc removes rowid from the pending-insert batch, reporting
+// whether it was pending.
+func (t *FTS3Table) removePendingDoc(rowid int64) bool {
+	for i, id := range t.pendingDocIDs {
+		if id == rowid {
+			t.pendingDocIDs = append(t.pendingDocIDs[:i], t.pendingDocIDs[i+1:]...)
+			return true
+		}
+	}
+	return false
+}
+
+// snapshotDeleteMarkerTerms records the distinct indexed terms of a flushed
+// document so the flush can build a delete marker AFTER the postings are
+// removed (fts3DeleteTerms writes the marker from the old terms; fts4onepass
+// 3.x UPDATE SET docid=... re-keys a flushed doc, fts4content 3.1.5 DELETE).
+func (t *FTS3Table) snapshotDeleteMarkerTerms(rowid int64, doc *Document) {
+	if t.deleteMarkerTerms == nil {
+		t.deleteMarkerTerms = make(map[int64][]string)
+	}
+	var terms []string
+	seen := make(map[string]bool)
+	for colNum, v := range doc.Columns {
+		if !t.ColumnIndexed(colNum) {
+			continue
+		}
+		tokens := t.tokenizer.Tokenize(ftsColumnString(v))
+		for _, tok := range tokens {
+			if !seen[tok.Term] {
+				seen[tok.Term] = true
+				terms = append(terms, tok.Term)
+			}
+		}
+	}
+	sort.Strings(terms)
+	t.deleteMarkerTerms[rowid] = terms
 }
 
 // Update updates a row's content.
@@ -595,6 +636,46 @@ func (t *FTS3Table) LoadSegmentsPerLanguage(rows []SegmentRow, readBlock Segment
 	if nIndex < 1 {
 		nIndex = 1
 	}
+	groups, langs := groupSegmentsByLanguage(rows, nIndex)
+	sort.Slice(langs, func(a, b int) bool { return langs[a] < langs[b] })
+	for _, lang := range langs {
+		group := groups[lang]
+		sort.Slice(group, func(a, b int) bool {
+			if group[a].Level != group[b].Level {
+				return group[a].Level > group[b].Level
+			}
+			return group[a].Idx < group[b].Idx
+		})
+		t.mergeLanguageGroup(group, readBlock, &firstErr, &structural)
+	}
+	t.statDirty = true
+	return firstErr, structural
+}
+
+// mergeLanguageGroup loads one language's segment group into an isolated
+// table and merges it additively into the main index; the first load error
+// and the structural-error flag propagate to the caller.
+func (t *FTS3Table) mergeLanguageGroup(group []SegmentRow, readBlock SegmentBlockReader, firstErr *error, structural *bool) {
+	iso := &FTS3Table{columnNames: append([]string(nil), t.columnNames...), index: NewInvertedIndex()}
+	for _, row := range group {
+		if len(row.Root) == 0 {
+			continue
+		}
+		if lerr := iso.LoadSegment(row.Root, row.LeavesEndBlock, readBlock); lerr != nil {
+			if *firstErr == nil {
+				*firstErr = lerr
+			}
+			if errors.Is(lerr, ErrSegmentStructure) {
+				*structural = true
+			}
+		}
+	}
+	t.index.MergeFrom(iso.index)
+}
+
+// groupSegmentsByLanguage buckets segment rows by language id (the level
+// band decode: langid = (level/1024)/nIndex) and records first-seen order.
+func groupSegmentsByLanguage(rows []SegmentRow, nIndex int) (map[int64][]SegmentRow, []int64) {
 	groups := map[int64][]SegmentRow{}
 	langs := []int64{}
 	for _, row := range rows {
@@ -607,33 +688,7 @@ func (t *FTS3Table) LoadSegmentsPerLanguage(rows []SegmentRow, readBlock Segment
 		}
 		groups[lang] = append(groups[lang], row)
 	}
-	sort.Slice(langs, func(a, b int) bool { return langs[a] < langs[b] })
-	for _, lang := range langs {
-		group := groups[lang]
-		sort.Slice(group, func(a, b int) bool {
-			if group[a].Level != group[b].Level {
-				return group[a].Level > group[b].Level
-			}
-			return group[a].Idx < group[b].Idx
-		})
-		iso := &FTS3Table{columnNames: append([]string(nil), t.columnNames...), index: NewInvertedIndex()}
-		for _, row := range group {
-			if len(row.Root) == 0 {
-				continue
-			}
-			if lerr := iso.LoadSegment(row.Root, row.LeavesEndBlock, readBlock); lerr != nil {
-				if firstErr == nil {
-					firstErr = lerr
-				}
-				if errors.Is(lerr, ErrSegmentStructure) {
-					structural = true
-				}
-			}
-		}
-		t.index.MergeFrom(iso.index)
-	}
-	t.statDirty = true
-	return firstErr, structural
+	return groups, langs
 }
 
 // QueryHasCorruptTerm reports whether the given MATCH query reads a term whose
@@ -649,10 +704,7 @@ func (t *FTS3Table) QueryHasCorruptTerm(query string) bool {
 	}
 	node = tokenizeQueryNode(node, t.tokenizer)
 	node = ResolveQuery(node, t.columnNames)
-	res := queryReferencesCorruptTerm(node, t.index)
-	if res {
-	}
-	return res
+	return queryReferencesCorruptTerm(node, t.index)
 }
 
 // LoadErr returns the first segment-loading error, if any (a corrupt real
@@ -829,33 +881,45 @@ func (t *FTS3Table) IntegrityCheckIndex(docs map[int64][]interface{}, iIndex int
 		}
 		plen = t.prefixLengths[iIndex-1]
 	}
+	expected := t.buildBandExpectedPostings(docs, iIndex, plen)
+	return t.compareExpectedBand(expected, iIndex)
+}
+
+// buildBandExpectedPostings re-tokenizes docs for ONE index band: band 0
+// expects FULL token terms; iIndex >= 1 is prefix index iIndex-1 and expects
+// terms truncated to that prefix length. Comparing all bands in one shared
+// key space lets a delete-marker applied while loading a main-band segment
+// erase a prefix band's contribution to the same string key (e.g. "her" is
+// both a main term and the prefix-3 form of "here"), producing spurious
+// integrity-check failures (fts4opt 2.x churn).
+func (t *FTS3Table) buildBandExpectedPostings(docs map[int64][]interface{}, iIndex, plen int) map[string]map[string]bool {
 	expected := make(map[string]map[string]bool) // term -> "docid:col:pos"
-	add := func(term string, docID int64, col, pos int) {
-		key := fmt.Sprintf("%d:%d:%d", docID, col, pos)
-		if expected[term] == nil {
-			expected[term] = make(map[string]bool)
-		}
-		expected[term][key] = true
-	}
 	for docID, cols := range docs {
 		for colNum, v := range cols {
 			if !t.ColumnIndexed(colNum) {
 				continue
 			}
-			tokens := t.tokenizer.Tokenize(ftsColumnString(v))
-			for _, tok := range tokens {
-				term := tok.Term
-				if iIndex > 0 {
-					if len(term) < plen {
-						continue // shorter than this prefix: contributes nothing
-					}
-					term = term[:plen]
-				}
-				add(term, docID, colNum, tok.Position)
-			}
+			t.addBandExpectedPostings(expected, docID, iIndex, plen, colNum, v)
 		}
 	}
-	return t.compareExpectedBand(expected, iIndex)
+	return expected
+}
+
+// addBandExpectedPostings tokenizes one column value and records the band's
+// expected terms (truncated to the prefix length for prefix bands; shorter
+// terms contribute nothing).
+func (t *FTS3Table) addBandExpectedPostings(expected map[string]map[string]bool, docID int64, iIndex, plen, colNum int, v interface{}) {
+	tokens := t.tokenizer.Tokenize(ftsColumnString(v))
+	for _, tok := range tokens {
+		term := tok.Term
+		if iIndex > 0 {
+			if len(term) < plen {
+				continue
+			}
+			term = term[:plen]
+		}
+		addExpectedPosting(expected, term, docID, colNum, tok.Position)
+	}
 }
 
 // compareExpectedBand diffs the expected posting set against the actual
