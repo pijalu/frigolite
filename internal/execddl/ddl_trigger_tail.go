@@ -1028,8 +1028,12 @@ func auxFirstArgValidIn(expr sql.Expr, tableName string) bool {
 		default:
 			return
 		}
+		if len(fc.Args) == 0 {
+			ok = false
+			return
+		}
 		colRef, isCol := fc.Args[0].(*sql.ColumnRef)
-		if len(fc.Args) == 0 || !isCol || !strings.EqualFold(colRef.Name, tableName) {
+		if !isCol || !strings.EqualFold(colRef.Name, tableName) {
 			ok = false
 		}
 	})
