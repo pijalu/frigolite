@@ -349,6 +349,7 @@ func (idx *InvertedIndex) loadLeaf(leaf []byte, pos int, prevTerm []byte) ([]byt
 			return prev, nil
 		}
 		pos = next
+		first = false
 		doclist, dnext, okDoc := readLeafDoclistBytes(leaf, pos)
 		if !okDoc {
 			return prev, fmt.Errorf("corrupt segment root")

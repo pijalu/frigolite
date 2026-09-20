@@ -7519,6 +7519,21 @@ regenerated; suite net −2274 fails vs pre-tranche baseline (7230 → ~4950).
   well-scoped extractions whose behavior was audited, (4) `git checkout --` the
   near-rewritten risky files, (5) redo the rest surgically with one helper per
   loop-body/branch and the package suite re-run after each file.
+- **Extraction drops a state update = silent index corruption, caught only by a
+  neighbor suite**: converting loadLeaf's first-vs-delta term branch into
+  `readLeafChainTerm(leaf, pos, prev, first)` left `first = false` behind — every
+  subsequent term of a multi-term leaf was re-parsed as length-prefixed, the
+  in-memory index went silently wrong, and NO fts unit test caught it; only
+  `testgen/fts4onepass` integrity-check did ([T25] term-count mismatch). Before
+  extracting a helper that takes loop state by value, enumerate EVERY assignment
+  to outer-scope variables in the original loop (`first`, `prev`, `pos`,
+  `docEnded`, ...) and account for each in the new loop tail. Unit-suite green is
+  not enough — run the named neighbor testgen packages before committing.
+- **Isolate a regression to a region by hybrid splicing, not by eyeballing**:
+  1600-line diffs hide one-line drifts. Checkout the GREEN file, splice ONE
+  region at a time from the red version (python slice on unique markers — beware
+  prefix collisions like loadLeaf/loadLeafChainBlock), run the failing test per
+  splice. Three runs localized a one-line bug inside a 550-line diff.
 - **A pre-existing red test is still a regression bell for HANGS**: base may fail a
   test in 2s; if your diff makes the same test hang, that is a regression even
   though the suite was already red. Compare failure MODE (time + panic dump), not
