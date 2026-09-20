@@ -362,30 +362,7 @@ func (t *BTree) lastRowIDFrom(pageNum uint32, depth int) (int64, error) {
 	}
 	switch page.PageType {
 	case storage.PageTypeInteriorTable:
-		if page.RightmostPtr != 0 {
-			if id, err := t.lastRowIDFrom(page.RightmostPtr, depth+1); err == nil && id > 0 {
-				return id, nil
-			} else if err != nil {
-				return 0, err
-			}
-		}
-		// The rightmost subtree is empty (or absent): walk the interior
-		// cells high-to-low until a non-empty subtree is found.
-		for i := int(page.CellCount) - 1; i >= 0; i-- {
-			cellOff := int(storage.CellPointer(pg.Data, coff+4, i, int(t.pageSize)))
-			child := binary.BigEndian.Uint32(pg.Data[cellOff : cellOff+4])
-			if child == 0 {
-				continue
-			}
-			id, cerr := t.lastRowIDFrom(child, depth+1)
-			if cerr != nil {
-				return 0, cerr
-			}
-			if id > 0 {
-				return id, nil
-			}
-		}
-		return 0, nil // the whole subtree is empty
+		return t.lastRowIDFromInterior(pg, coff, page, depth)
 	case storage.PageTypeLeafTable:
 		if page.CellCount == 0 {
 			return 0, nil
@@ -398,6 +375,38 @@ func (t *BTree) lastRowIDFrom(pageNum uint32, depth int) (int64, error) {
 	default:
 		return 0, fmt.Errorf("btree: unexpected page type 0x%02x", page.PageType)
 	}
+}
+
+// lastRowIDFromInterior finds the largest rowid under an interior page: the
+// rightmost subtree first, then the cell children high-to-low. A subtree
+// that reports no rows (id <= 0) is skipped so the walk continues leftward.
+func (t *BTree) lastRowIDFromInterior(pg *pager.Page, coff int, page *storage.BTreePage, depth int) (int64, error) {
+	if page.RightmostPtr != 0 {
+		id, err := t.lastRowIDFrom(page.RightmostPtr, depth+1)
+		if err != nil {
+			return 0, err
+		}
+		if id > 0 {
+			return id, nil
+		}
+	}
+	// The rightmost subtree is empty (or absent): walk the interior
+	// cells high-to-low until a non-empty subtree is found.
+	for i := int(page.CellCount) - 1; i >= 0; i-- {
+		cellOff := int(storage.CellPointer(pg.Data, coff+4, i, int(t.pageSize)))
+		child := binary.BigEndian.Uint32(pg.Data[cellOff : cellOff+4])
+		if child == 0 {
+			continue
+		}
+		id, cerr := t.lastRowIDFrom(child, depth+1)
+		if cerr != nil {
+			return 0, cerr
+		}
+		if id > 0 {
+			return id, nil
+		}
+	}
+	return 0, nil // the whole subtree is empty
 }
 
 // Clear empties the b-tree, resetting the root page to a single empty leaf
@@ -733,11 +742,7 @@ func (c *Cursor) ReadCellData() (payload []byte, rowID int64, err error) {
 
 	if page.PageType != storage.PageTypeLeafTable {
 		// Fall back to full cell decode for other page types
-		cell, err := c.ReadCell()
-		if err != nil {
-			return nil, 0, err
-		}
-		return cell.Payload, cell.RowID, nil
+		return c.readCellFallback()
 	}
 
 	cellOff := int(storage.CellPointer(pg.Data, contentOffset(pg.PageNum), c.cellIdx, int(c.tx.pageSize)))
@@ -748,6 +753,59 @@ func (c *Cursor) ReadCellData() (payload []byte, rowID int64, err error) {
 		return nil, 0, fmt.Errorf("database disk image is malformed")
 	}
 
+	payload, rowID, pos, plen, localLen, err := c.tableLeafCellHeader(pg, cellOff)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	// If the payload spills to overflow pages, follow the chain.
+	if localLen < plen {
+		full, err := c.readCellDataOverflow(pg, pos, int(plen), rowID, payload)
+		if err != nil {
+			return nil, 0, err
+		}
+		return full, rowID, nil
+	}
+
+	return payload, rowID, nil
+}
+
+// readCellDataOverflow follows a table-leaf cell's overflow chain and
+// returns the reassembled payload.
+func (c *Cursor) readCellDataOverflow(pg *pager.Page, pos, plen int, rowID int64, payload []byte) ([]byte, error) {
+	if pos+4 > len(pg.Data) {
+		return nil, fmt.Errorf("database disk image is malformed")
+	}
+	cell := &storage.Cell{
+		Type:       storage.CellTableLeaf,
+		RowID:      rowID,
+		Payload:    payload,
+		PayloadLen: plen,
+		Overflow:   binary.BigEndian.Uint32(pg.Data[pos : pos+4]),
+	}
+	full, err := c.tx.readOverflow(cell)
+	if err != nil {
+		return nil, err
+	}
+	return full.Payload, nil
+}
+
+// readCellFallback decodes the current cell through the full ReadCell path
+// (ReadCellData's fallback for non-table-leaf pages).
+func (c *Cursor) readCellFallback() ([]byte, int64, error) {
+	cell, err := c.ReadCell()
+	if err != nil {
+		return nil, 0, err
+	}
+	return cell.Payload, cell.RowID, nil
+}
+
+// tableLeafCellHeader decodes a table-leaf cell's header at cellOff: the
+// rowid and the LOCAL payload slice (bounded by the page buffer). Returns
+// the payload, rowid, the offset just past the local payload, the full
+// payload length (for the overflow check) and the CLAMPED local length the
+// spill check must use.
+func (c *Cursor) tableLeafCellHeader(pg *pager.Page, cellOff int) ([]byte, int64, int, int, int, error) {
 	data := pg.Data[cellOff:]
 
 	// Skip payload length varint
@@ -756,40 +814,18 @@ func (c *Cursor) ReadCellData() (payload []byte, rowID int64, err error) {
 
 	// Read rowID varint
 	if pos >= len(pg.Data) {
-		return nil, 0, fmt.Errorf("database disk image is malformed")
+		return nil, 0, 0, 0, 0, fmt.Errorf("database disk image is malformed")
 	}
 	rowid, n := util.GetVarint(pg.Data[pos:])
 	pos += n
-	rowID = int64(rowid)
+	rowID := int64(rowid)
 
 	// Slice the local payload from the page data (no copy)
 	payloadLen := storage.LocalPayloadSize(int(plen), int(c.tx.usableSize), storage.CellTableLeaf)
 	if payloadLen > len(pg.Data)-pos {
 		payloadLen = len(pg.Data) - pos
 	}
-	payload = pg.Data[pos : pos+payloadLen]
-	pos += payloadLen
-
-	// If the payload spills to overflow pages, follow the chain.
-	if payloadLen < int(plen) {
-		if pos+4 > len(pg.Data) {
-			return nil, 0, fmt.Errorf("database disk image is malformed")
-		}
-		cell := &storage.Cell{
-			Type:       storage.CellTableLeaf,
-			RowID:      rowID,
-			Payload:    payload,
-			PayloadLen: int(plen),
-			Overflow:   binary.BigEndian.Uint32(pg.Data[pos : pos+4]),
-		}
-		full, err := c.tx.readOverflow(cell)
-		if err != nil {
-			return nil, 0, err
-		}
-		return full.Payload, rowID, nil
-	}
-
-	return payload, rowID, nil
+	return pg.Data[pos : pos+payloadLen], rowID, pos + payloadLen, int(plen), payloadLen, nil
 }
 
 // leafHasRoom checks if a leaf page has enough room for the given cell data.

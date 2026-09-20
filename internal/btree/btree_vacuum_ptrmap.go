@@ -33,36 +33,55 @@ func (t *BTree) setChildPtrmaps(pg *pager.Page, pgNo uint32) error {
 		return err
 	}
 	if page.PageType == storage.PageTypeInteriorTable || page.PageType == storage.PageTypeInteriorIndex {
-		ptrBase := coff + cellPtrOffset(page.PageType) - 8
-		for i := 0; i < int(page.CellCount); i++ {
-			cellOff := int(storage.CellPointer(pg.Data, ptrBase, i, int(t.pageSize)))
-			if cellOff+4 > len(pg.Data) {
-				continue
-			}
-			child := binary.BigEndian.Uint32(pg.Data[cellOff : cellOff+4])
-			if child != 0 {
-				if err := t.pager.WritePtrmap(child, storage.PtrmapBtree, pgNo); err != nil {
-					return err
-				}
-			}
-		}
-		rmp := binary.BigEndian.Uint32(pg.Data[coff+8 : coff+12])
-		if rmp != 0 {
-			if err := t.pager.WritePtrmap(rmp, storage.PtrmapBtree, pgNo); err != nil {
-				return err
-			}
-		}
-		return nil
+		return t.setChildPtrmapsInterior(pg, pgNo, coff, page)
 	}
 	// Leaf page: walk each cell's overflow chain.
-	var cellType storage.CellType
-	if page.PageType == storage.PageTypeLeafTable {
-		cellType = storage.CellTableLeaf
-	} else if page.PageType == storage.PageTypeLeafIndex {
-		cellType = storage.CellIndexLeaf
-	} else {
+	cellType, ok := leafChainCellType(page.PageType)
+	if !ok {
 		return nil
 	}
+	return t.setChildPtrmapsLeaf(pg, pgNo, coff, page, cellType)
+}
+
+// setChildPtrmapsInterior re-points the ptrmap entry of every interior cell's
+// left child (and the rightmost child) at pgNo.
+func (t *BTree) setChildPtrmapsInterior(pg *pager.Page, pgNo uint32, coff int, page *storage.BTreePage) error {
+	ptrBase := coff + cellPtrOffset(page.PageType) - 8
+	for i := 0; i < int(page.CellCount); i++ {
+		cellOff := int(storage.CellPointer(pg.Data, ptrBase, i, int(t.pageSize)))
+		if cellOff+4 > len(pg.Data) {
+			continue
+		}
+		child := binary.BigEndian.Uint32(pg.Data[cellOff : cellOff+4])
+		if child == 0 {
+			continue
+		}
+		if err := t.pager.WritePtrmap(child, storage.PtrmapBtree, pgNo); err != nil {
+			return err
+		}
+	}
+	rmp := binary.BigEndian.Uint32(pg.Data[coff+8 : coff+12])
+	if rmp == 0 {
+		return nil
+	}
+	return t.pager.WritePtrmap(rmp, storage.PtrmapBtree, pgNo)
+}
+
+// leafChainCellType maps a leaf page type to its cell encoding; ok=false for
+// non-leaf pages (nothing to walk).
+func leafChainCellType(pageType byte) (storage.CellType, bool) {
+	switch pageType {
+	case storage.PageTypeLeafTable:
+		return storage.CellTableLeaf, true
+	case storage.PageTypeLeafIndex:
+		return storage.CellIndexLeaf, true
+	}
+	return 0, false
+}
+
+// setChildPtrmapsLeaf re-points the ptrmap entry of each cell's overflow
+// chain head at pgNo.
+func (t *BTree) setChildPtrmapsLeaf(pg *pager.Page, pgNo uint32, coff int, page *storage.BTreePage, cellType storage.CellType) error {
 	for i := 0; i < int(page.CellCount); i++ {
 		ptrBase := coff + cellPtrOffset(page.PageType) - 8
 		cellOff := int(storage.CellPointer(pg.Data, ptrBase, i, int(t.usableSize)))
@@ -138,52 +157,62 @@ func decodeSchemaRootpage(payload []byte) (uint32, bool) {
 		return 0, false
 	}
 	headerEnd := int(hdrSize)
-	dataPos := headerEnd
-	// Field 1: type (string).
-	typeCode, n := binary.Uvarint(payload[n:headerEnd])
-	if n <= 0 {
+	dataPos, rootLen, ok := schemaDataPos(payload, n, headerEnd)
+	if !ok {
 		return 0, false
 	}
-	typeBytes, err := storage.SerialTypeLength(typeCode)
+	if rootLen == 0 || dataPos+rootLen > len(payload) {
+		return 0, false
+	}
+	root, ok := decodeSchemaInt(payload, dataPos, rootLen)
+	if !ok {
+		return 0, false
+	}
+	if root < 0 || root > 0xFFFFFFFF {
+		return 0, false
+	}
+	return uint32(root), true
+}
+
+// schemaDataPos walks the four serial-type varints of a sqlite_schema record
+// header (fields: type, name, tbl_name, rootpage — each start offset is the
+// previous field's varint width plus the field index) and returns the
+// data-section start offset together with the rootpage field's length.
+func schemaDataPos(payload []byte, n, headerEnd int) (dataPos, rootLen int, ok bool) {
+	dataPos = headerEnd
+	for i := 0; i < 4; i++ {
+		size, w, fok := schemaFieldSize(payload, n+i, headerEnd)
+		if !fok {
+			return 0, 0, false
+		}
+		n = w
+		if i < 3 {
+			dataPos += size
+		} else {
+			rootLen = size
+		}
+	}
+	return dataPos, rootLen, true
+}
+
+// schemaFieldSize reads one serial-type varint in a sqlite_schema record
+// header (the varint at payload[start:headerEnd]) and returns the field's
+// encoded data length together with the varint's width.
+func schemaFieldSize(payload []byte, start, headerEnd int) (size, width int, ok bool) {
+	code, w := binary.Uvarint(payload[start:headerEnd])
+	if w <= 0 {
+		return 0, 0, false
+	}
+	b, err := storage.SerialTypeLength(code)
 	if err != nil {
-		return 0, false
+		return 0, 0, false
 	}
-	dataPos += int(typeBytes)
-	// Field 2: name.
-	nameCode, n := binary.Uvarint(payload[n+1 : headerEnd])
-	if n <= 0 {
-		return 0, false
-	}
-	nameBytes, err := storage.SerialTypeLength(nameCode)
-	if err != nil {
-		return 0, false
-	}
-	dataPos += int(nameBytes)
-	// Field 3: tblname.
-	tblCode, n := binary.Uvarint(payload[n+2 : headerEnd])
-	if n <= 0 {
-		return 0, false
-	}
-	tblBytes, err := storage.SerialTypeLength(tblCode)
-	if err != nil {
-		return 0, false
-	}
-	dataPos += int(tblBytes)
-	// Field 4: rootpage (int).
-	rootCode, n := binary.Uvarint(payload[n+3 : headerEnd])
-	if n <= 0 {
-		return 0, false
-	}
-	rootLen, err := storage.SerialTypeLength(rootCode)
-	if err != nil {
-		return 0, false
-	}
-	if rootLen == 0 {
-		return 0, false
-	}
-	if dataPos+int(rootLen) > len(payload) {
-		return 0, false
-	}
+	return int(b), w, true
+}
+
+// decodeSchemaInt decodes a big-endian signed integer of serial length
+// 1/2/3/4/6/8 at dataPos; ok=false for any other length.
+func decodeSchemaInt(payload []byte, dataPos, rootLen int) (int64, bool) {
 	var root int64
 	switch rootLen {
 	case 1:
@@ -210,8 +239,5 @@ func decodeSchemaRootpage(payload []byte) (uint32, bool) {
 	default:
 		return 0, false
 	}
-	if root < 0 || root > 0xFFFFFFFF {
-		return 0, false
-	}
-	return uint32(root), true
+	return root, true
 }

@@ -34,100 +34,130 @@ import (
 // subtree a level and break the all-leaves-same-depth invariant.
 func (t *BTree) cascadeChildless(pnum uint32) error {
 	for {
-		pg, err := t.pager.ReadPage(pnum)
+		next, done, err := t.cascadeChildlessStep(pnum)
 		if err != nil {
 			return err
 		}
-		coff := contentOffset(pnum)
-		page, err := storage.ParsePage(pg.Data, int(t.pageSize), coff)
-		if err != nil {
-			return err
-		}
-		if page.PageType != storage.PageTypeInteriorTable && page.PageType != storage.PageTypeInteriorIndex {
-			return nil // leaf: nothing to collapse
-		}
-		rmp := binary.BigEndian.Uint32(pg.Data[coff+8 : coff+12])
-		if page.CellCount != 0 {
-			return nil // the page still has dividers
-		}
-		if rmp != 0 && !pager.IsPageOnFreelist(t.pager, rmp) {
-			// 0-cell interior with a LIVE single child. Splicing it out
-			// (repointing the parent's reference at the child) would lift
-			// the child's subtree one level, breaking the all-leaves-same-
-			// depth invariant ("Child page depth differs" in sqlite3
-			// integrity_check); C never faces this because its balance()
-			// walk rebalances interior pages among their siblings before
-			// they can empty. The balance paths that feed cascadeChildless
-			// keep the parent legal instead (see the coversParent and
-			// all-empty branches in balanceNonroot).
-			if pnum == t.rootPage {
-				// C skips the absorption when the child's content cannot
-				// fit the root page (pParent->hdrOffset<=apNew[0]->nFree,
-				// src/btree.c:8918): the root stays an interior page over
-				// its single live child. Propagating errRootAbsorbNoFit as
-				// a hard error would fail a perfectly legal DELETE.
-				if err := t.absorbSingleChildRoot(pg, coff, rmp); err != nil && err != errRootAbsorbNoFit {
-					return err
-				}
-				return nil
-			}
+		if done {
 			return nil
 		}
-		// No live children.
-		if pnum == t.rootPage {
-			return t.rewriteRootAsEmptyLeaf(pg, coff, page.PageType)
-		}
-		// Non-root: unlink from the parent, free, and cascade upward.
-		parentPgno, _, err := t.findParentByWalk(pnum)
-		if err != nil {
-			return nil // no parent found; nothing to unlink
-		}
-		parentPg, err := t.pager.ReadPage(parentPgno)
-		if err != nil {
-			return err
-		}
-		pco := contentOffset(parentPg.PageNum)
-		parentPage, err := storage.ParsePage(parentPg.Data, int(t.pageSize), pco)
-		if err != nil {
-			return err
-		}
-		idx, err := t.findLeafIndexInParent(parentPg, pnum)
-		if err != nil {
-			return nil
-		}
-		if idx >= 0 {
-			if err := t.removeInteriorCellRange(parentPg, parentPage, idx, 1); err != nil {
-				return err
-			}
-		} else {
-			// pnum was the parent's RIGHTMOST child. A parent with n cells
-			// holds n+1 children; dropping the rightmost pointer alone would
-			// leave n cells with n children (an invalid node the cursor walk
-			// reads as "descend to page 0"). balance_shallower instead pulls
-			// the LAST divider up into the rightmost slot: the last cell's
-			// left child becomes the rightmost pointer and the cell count
-			// drops by one, keeping children == cells+1.
-			if parentPage.CellCount > 0 {
-				last := int(parentPage.CellCount) - 1
-				ptroff := cellPtrOffset(parentPage.PageType)
-				lastOff := int(binary.BigEndian.Uint16(parentPg.Data[pco+ptroff+last*2 : pco+ptroff+last*2+2]))
-				lastChild := binary.BigEndian.Uint32(parentPg.Data[lastOff : lastOff+4])
-				if err := t.removeInteriorCellRange(parentPg, parentPage, last, 1); err != nil {
-					return err
-				}
-				binary.BigEndian.PutUint32(parentPg.Data[pco+8:pco+12], lastChild)
-			} else {
-				binary.BigEndian.PutUint32(parentPg.Data[pco+8:pco+12], 0)
-			}
-		}
-		if err := t.pager.WritePage(parentPg); err != nil {
-			return err
-		}
-		if err := t.freePageWithPtrmap(pnum); err != nil {
-			return err
-		}
-		pnum = parentPgno
+		pnum = next
 	}
+}
+
+// cascadeChildlessStep performs one collapse step for pnum (a 0-cell interior
+// page): done=true means the cascade ends at pnum (leaf, still-populated,
+// live-single-child, or collapsed root); done=false means pnum was unlinked
+// and freed and the walk continues at next (its parent).
+func (t *BTree) cascadeChildlessStep(pnum uint32) (next uint32, done bool, err error) {
+	pg, err := t.pager.ReadPage(pnum)
+	if err != nil {
+		return 0, true, err
+	}
+	coff := contentOffset(pnum)
+	page, err := storage.ParsePage(pg.Data, int(t.pageSize), coff)
+	if err != nil {
+		return 0, true, err
+	}
+	if page.PageType != storage.PageTypeInteriorTable && page.PageType != storage.PageTypeInteriorIndex {
+		return 0, true, nil // leaf: nothing to collapse
+	}
+	rmp := binary.BigEndian.Uint32(pg.Data[coff+8 : coff+12])
+	if page.CellCount != 0 {
+		return 0, true, nil // the page still has dividers
+	}
+	if rmp != 0 && !pager.IsPageOnFreelist(t.pager, rmp) {
+		return 0, true, t.cascadeLiveSingleChild(pg, coff, pnum, rmp)
+	}
+	// No live children.
+	if pnum == t.rootPage {
+		return 0, true, t.rewriteRootAsEmptyLeaf(pg, coff, page.PageType)
+	}
+	// Non-root: unlink from the parent, free, and cascade upward.
+	parentPgno, err := t.unlinkChildlessFromParent(pnum)
+	if err != nil {
+		return 0, true, err
+	}
+	if parentPgno == 0 {
+		return 0, true, nil // no parent found; nothing to unlink
+	}
+	return parentPgno, false, nil
+}
+
+// unlinkChildlessFromParent removes a childless non-root interior page from
+// its parent, frees the page, and returns the parent's page number for the
+// upward cascade. Returns (0, nil) when no parent can be found.
+func (t *BTree) unlinkChildlessFromParent(pnum uint32) (uint32, error) {
+	parentPgno, _, err := t.findParentByWalk(pnum)
+	if err != nil {
+		return 0, nil // no parent found; nothing to unlink
+	}
+	parentPg, err := t.pager.ReadPage(parentPgno)
+	if err != nil {
+		return 0, err
+	}
+	pco := contentOffset(parentPg.PageNum)
+	parentPage, err := storage.ParsePage(parentPg.Data, int(t.pageSize), pco)
+	if err != nil {
+		return 0, err
+	}
+	idx, err := t.findLeafIndexInParent(parentPg, pnum)
+	if err != nil {
+		return 0, nil
+	}
+	if idx >= 0 {
+		if err := t.removeInteriorCellRange(parentPg, parentPage, idx, 1); err != nil {
+			return 0, err
+		}
+	} else if parentPage.CellCount > 0 {
+		// pnum was the parent's RIGHTMOST child. A parent with n cells
+		// holds n+1 children; dropping the rightmost pointer alone would
+		// leave n cells with n children (an invalid node the cursor walk
+		// reads as "descend to page 0"). balance_shallower instead pulls
+		// the LAST divider up into the rightmost slot: the last cell's
+		// left child becomes the rightmost pointer and the cell count
+		// drops by one, keeping children == cells+1.
+		last := int(parentPage.CellCount) - 1
+		ptroff := cellPtrOffset(parentPage.PageType)
+		lastOff := int(binary.BigEndian.Uint16(parentPg.Data[pco+ptroff+last*2 : pco+ptroff+last*2+2]))
+		lastChild := binary.BigEndian.Uint32(parentPg.Data[lastOff : lastOff+4])
+		if err := t.removeInteriorCellRange(parentPg, parentPage, last, 1); err != nil {
+			return 0, err
+		}
+		binary.BigEndian.PutUint32(parentPg.Data[pco+8:pco+12], lastChild)
+	} else {
+		binary.BigEndian.PutUint32(parentPg.Data[pco+8:pco+12], 0)
+	}
+	if err := t.pager.WritePage(parentPg); err != nil {
+		return 0, err
+	}
+	if err := t.freePageWithPtrmap(pnum); err != nil {
+		return 0, err
+	}
+	return parentPgno, nil
+}
+
+// cascadeLiveSingleChild handles a 0-cell interior page whose rightmost child
+// is LIVE. Splicing it out (repointing the parent's reference at the child)
+// would lift the child's subtree one level, breaking the all-leaves-same-
+// depth invariant ("Child page depth differs" in sqlite3 integrity_check); C
+// never faces this because its balance() walk rebalances interior pages among
+// their siblings before they can empty. The balance paths that feed
+// cascadeChildless keep the parent legal instead (see the coversParent and
+// all-empty branches in balanceNonroot), so the cascade simply ends here —
+// except at the ROOT, whose single live child is absorbed (balance_shallower).
+// C skips the absorption when the child's content cannot fit the root page
+// (pParent->hdrOffset<=apNew[0]->nFree, src/btree.c:8918): the root stays an
+// interior page over its single live child. Propagating errRootAbsorbNoFit as
+// a hard error would fail a perfectly legal DELETE.
+func (t *BTree) cascadeLiveSingleChild(pg *pager.Page, coff int, pnum, rmp uint32) error {
+	if pnum != t.rootPage {
+		return nil
+	}
+	if err := t.absorbSingleChildRoot(pg, coff, rmp); err != nil && err != errRootAbsorbNoFit {
+		return err
+	}
+	return nil
 }
 
 // rewriteRootAsEmptyLeaf converts an interior root whose subtree is fully
@@ -195,25 +225,12 @@ func (t *BTree) absorbSingleChildRoot(rootPg *pager.Page, rootCoff int, childPgn
 	childPtrBase := childCoff + cellPtrOffset(childPage.PageType) - 8
 	for i := 0; i < int(childPage.CellCount); i++ {
 		src := int(storage.CellPointer(childPg.Data, childPtrBase, i, int(t.pageSize)))
-		switch {
-		case isInterior:
-			_, n := util.GetVarint(childPg.Data[src+4:])
-			sizes[i] = 4 + n
-		case childPage.PageType == storage.PageTypeLeafIndex:
-			plen, n1 := util.GetVarint(childPg.Data[src:])
-			local := storage.LocalPayloadSize(int(plen), int(t.usableSize), storage.CellIndexLeaf)
-			sizes[i] = n1 + local
-			if local < int(plen) {
-				sizes[i] += 4
-			}
-		default:
-			tsz, terr := storage.TableLeafCellSizeAt(childPg.Data, src, int(t.usableSize))
-			if terr != nil {
-				return terr
-			}
-			sizes[i] = tsz
+		sz, err := t.absorbChildCellSize(childPg, src, isInterior, childPage.PageType)
+		if err != nil {
+			return err
 		}
-		total += sizes[i]
+		sizes[i] = sz
+		total += sz
 	}
 	if total > int(t.usableSize)-limit {
 		return errRootAbsorbNoFit
@@ -231,15 +248,7 @@ func (t *BTree) absorbSingleChildRoot(rootPg *pager.Page, rootCoff int, childPgn
 	// leaf, index leaf, or interior. Decoding every child as a table-leaf
 	// cell mis-sizes index cells (the av1_idx root absorbs an index leaf
 	// in autovacuum-1) and writes garbled cells into the root.
-	end := int(t.usableSize)
-	for i := int(childPage.CellCount) - 1; i >= 0; i-- {
-		src := int(storage.CellPointer(childPg.Data, childPtrBase, i, int(t.pageSize)))
-		sz := sizes[i]
-		start := end - sz
-		copy(rootPg.Data[start:start+sz], childPg.Data[src:src+sz])
-		binary.BigEndian.PutUint16(rootPg.Data[rootCoff+cellPtrOffset(childPage.PageType)+i*2:], uint16(start))
-		end = start
-	}
+	end := t.repackAbsorbedChildCells(rootPg, childPg, rootCoff, childPtrBase, childPage, sizes)
 	binary.BigEndian.PutUint16(rootPg.Data[rootCoff+1:rootCoff+3], 0)
 	binary.BigEndian.PutUint16(rootPg.Data[rootCoff+3:rootCoff+5], childPage.CellCount)
 	if childPage.CellCount > 0 {
@@ -268,4 +277,44 @@ func (t *BTree) absorbSingleChildRoot(rootPg *pager.Page, rootCoff int, childPgn
 		return err
 	}
 	return t.freePageWithPtrmap(childPgno)
+}
+
+// absorbChildCellSize computes the on-page size of one child cell at src for
+// the root-absorption repack. Cell bytes are copied RAW (b-tree cells are
+// position-independent), so the size derives from the child's OWN cell kind —
+// table leaf, index leaf, or interior. Decoding every child as a table-leaf
+// cell mis-sizes index cells (the av1_idx root absorbs an index leaf in
+// autovacuum-1) and writes garbled cells into the root.
+func (t *BTree) absorbChildCellSize(childPg *pager.Page, src int, isInterior bool, pageType byte) (int, error) {
+	switch {
+	case isInterior:
+		_, n := util.GetVarint(childPg.Data[src+4:])
+		return 4 + n, nil
+	case pageType == storage.PageTypeLeafIndex:
+		plen, n1 := util.GetVarint(childPg.Data[src:])
+		local := storage.LocalPayloadSize(int(plen), int(t.usableSize), storage.CellIndexLeaf)
+		sz := n1 + local
+		if local < int(plen) {
+			sz += 4
+		}
+		return sz, nil
+	default:
+		return storage.TableLeafCellSizeAt(childPg.Data, src, int(t.usableSize))
+	}
+}
+
+// repackAbsorbedChildCells copies the child's cells (already sized) into the
+// root page from the usable end down, writing each cell pointer, and returns
+// the new lowest cell offset.
+func (t *BTree) repackAbsorbedChildCells(rootPg, childPg *pager.Page, rootCoff, childPtrBase int, childPage *storage.BTreePage, sizes []int) int {
+	end := int(t.usableSize)
+	for i := int(childPage.CellCount) - 1; i >= 0; i-- {
+		src := int(storage.CellPointer(childPg.Data, childPtrBase, i, int(t.pageSize)))
+		sz := sizes[i]
+		start := end - sz
+		copy(rootPg.Data[start:start+sz], childPg.Data[src:src+sz])
+		binary.BigEndian.PutUint16(rootPg.Data[rootCoff+cellPtrOffset(childPage.PageType)+i*2:], uint16(start))
+		end = start
+	}
+	return end
 }

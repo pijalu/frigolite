@@ -120,39 +120,9 @@ func (t *BTree) balanceQuick(pPage, pParent *pager.Page, pSpace []byte) (*balanc
 	//         while (((*(pOut++) = *(pCell++))&0x80) && pCell<pStop); // copy rowid varint
 	//
 	// In Go we use storage.DecodeCell which already extracts RowID.
-	//
-	// In SQLite's model, overflow cells are kept in apOvfl[] (not in
-	// the cell pointer array). pPage->nCell is the count of in-page
-	// cells, so findCell(pPage, pPage->nCell-1) is the last in-page
-	// cell. In our simplified model, overflow cells still appear in
-	// the cell pointer array; the "last in-page cell" is therefore
-	// at index page.CellCount - 1 - nOverflow.
-	lastCell := int(page.CellCount) - 1
-	var lastInPageRowID int64
-	// Detect overflow cells by inspecting the cell pointer at
-	// index `lastCell`. An overflow cell has a 4-byte overflow
-	// pointer at its end (non-zero, pointing to a valid page).
-	// We use a simpler heuristic: count overflow cells = number of
-	// cells whose payload length exceeds the in-page local
-	// capacity. For balance_quick, we know there's exactly 1
-	// overflow cell (the rightmost one in our pointer array).
-	// Walk backwards to find the last cell that does NOT have an
-	// overflow pointer.
-	for lastCell >= 0 {
-		lastCellPtr := storage.CellPointer(pPage.Data, pageCo, lastCell, int(t.pageSize))
-		c, derr := storage.DecodeCell(pPage.Data, int(lastCellPtr), storage.CellTableLeaf, int(t.usableSize))
-		if derr == nil && c.Overflow == 0 {
-			// Found the last in-page cell. Use its rowid.
-			lastInPageRowID = c.RowID
-			break
-		}
-		lastCell--
-	}
-	if lastCell < 0 {
-		return nil, fmt.Errorf("balanceQuick: no in-page cell found on pPage %d", pPage.PageNum)
-	}
-	if lastInPageRowID < 0 {
-		return nil, fmt.Errorf("balanceQuick: last in-page cell rowid is negative (%d)", lastInPageRowID)
+	lastInPageRowID, err := t.lastInPageRowID(pPage, pageCo, page)
+	if err != nil {
+		return nil, err
 	}
 
 	// Build the divider cell into pSpace:
@@ -169,13 +139,67 @@ func (t *BTree) balanceQuick(pPage, pParent *pager.Page, pSpace []byte) (*balanc
 	// (the rightmost-child slot in pParent's cell array). For
 	// interior-table pages, an interior cell is 4-byte left-child +
 	// varint rowid — that's exactly the divider layout.
+	if err := t.insertQuickDivider(pParent, newPg, pSpace, dividerSize); err != nil {
+		return nil, err
+	}
+	return &balanceQuickResult{
+		newPgno:    newPg.PageNum,
+		parentPgno: pParent.PageNum,
+	}, nil
+}
+
+// lastInPageRowID returns the rowid of the last IN-PAGE cell of pPage.
+//
+// In SQLite's model, overflow cells are kept in apOvfl[] (not in
+// the cell pointer array). pPage->nCell is the count of in-page
+// cells, so findCell(pPage, pPage->nCell-1) is the last in-page
+// cell. In our simplified model, overflow cells still appear in
+// the cell pointer array; the "last in-page cell" is therefore
+// at index page.CellCount - 1 - nOverflow.
+//
+// Detect overflow cells by inspecting the cell pointer at
+// index `lastCell`. An overflow cell has a 4-byte overflow
+// pointer at its end (non-zero, pointing to a valid page).
+// We use a simpler heuristic: count overflow cells = number of
+// cells whose payload length exceeds the in-page local
+// capacity. For balance_quick, we know there's exactly 1
+// overflow cell (the rightmost one in our pointer array).
+// Walk backwards to find the last cell that does NOT have an
+// overflow pointer.
+func (t *BTree) lastInPageRowID(pPage *pager.Page, pageCo int, page *storage.BTreePage) (int64, error) {
+	lastCell := int(page.CellCount) - 1
+	var lastInPageRowID int64
+	for lastCell >= 0 {
+		lastCellPtr := storage.CellPointer(pPage.Data, pageCo, lastCell, int(t.pageSize))
+		c, derr := storage.DecodeCell(pPage.Data, int(lastCellPtr), storage.CellTableLeaf, int(t.usableSize))
+		if derr == nil && c.Overflow == 0 {
+			// Found the last in-page cell. Use its rowid.
+			lastInPageRowID = c.RowID
+			break
+		}
+		lastCell--
+	}
+	if lastCell < 0 {
+		return 0, fmt.Errorf("balanceQuick: no in-page cell found on pPage %d", pPage.PageNum)
+	}
+	if lastInPageRowID < 0 {
+		return 0, fmt.Errorf("balanceQuick: last in-page cell rowid is negative (%d)", lastInPageRowID)
+	}
+	return lastInPageRowID, nil
+}
+
+// insertQuickDivider writes the divider cell (already encoded in pSpace)
+// into pParent's content area, appends its cell pointer, updates the parent
+// header, repoints pParent's rightmost child at the new sibling, and
+// persists both pages.
+func (t *BTree) insertQuickDivider(pParent, newPg *pager.Page, pSpace []byte, dividerSize int) error {
 	parentCo := contentOffset(pParent.PageNum)
 	parentPage, err := storage.ParsePage(pParent.Data, int(t.pageSize), parentCo)
 	if err != nil {
-		return nil, fmt.Errorf("btree: balanceQuick: parse pParent %d: %w", pParent.PageNum, err)
+		return fmt.Errorf("btree: balanceQuick: parse pParent %d: %w", pParent.PageNum, err)
 	}
 	if parentPage.PageType != storage.PageTypeInteriorTable && parentPage.PageType != storage.PageTypeInteriorIndex {
-		return nil, fmt.Errorf("btree: balanceQuick: pParent %d is not interior (type 0x%02x)", pParent.PageNum, parentPage.PageType)
+		return fmt.Errorf("btree: balanceQuick: pParent %d is not interior (type 0x%02x)", pParent.PageNum, parentPage.PageType)
 	}
 	// Place the divider cell at the end of pParent's content area.
 	// We do NOT call insertCell here because that requires
@@ -188,7 +212,7 @@ func (t *BTree) balanceQuick(pPage, pParent *pager.Page, pSpace []byte) (*balanc
 	// cell content area).
 	dividerStart := usableStart - dividerSize
 	if dividerStart < parentCo+cellPtrOffset(parentPage.PageType)+2*int(parentPage.CellCount)+2 {
-		return nil, fmt.Errorf("btree: balanceQuick: not enough room for divider cell on pParent %d", pParent.PageNum)
+		return fmt.Errorf("btree: balanceQuick: not enough room for divider cell on pParent %d", pParent.PageNum)
 	}
 	copy(pParent.Data[dividerStart:dividerStart+dividerSize], pSpace[:dividerSize])
 	// Cell pointer array: insert at position parentPage.CellCount.
@@ -210,15 +234,9 @@ func (t *BTree) balanceQuick(pPage, pParent *pager.Page, pSpace []byte) (*balanc
 
 	// Persist the new sibling and the parent.
 	if err := t.pager.WritePage(newPg); err != nil {
-		return nil, err
+		return err
 	}
-	if err := t.pager.WritePage(pParent); err != nil {
-		return nil, err
-	}
-	return &balanceQuickResult{
-		newPgno:    newPg.PageNum,
-		parentPgno: pParent.PageNum,
-	}, nil
+	return t.pager.WritePage(pParent)
 }
 
 // overflowCellAt returns the encoded bytes of the rightmost cell on

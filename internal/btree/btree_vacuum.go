@@ -60,68 +60,16 @@ func (t *BTree) RelocatePage(to, from uint32) (relocated bool, err error) {
 	//   - PTRMAP_OVERFLOW: not used in btree-only relocation; overflow
 	//     pages have a single chain, no parent in the b-tree.
 	//   - PTRMAP_FREELIST: not used; freelist pages are already free.
-	parentType, parentPgno, err := t.pager.ReadPtrmap(from)
+	parentType, parentPgno, orphan, err := t.relocateParentRef(from)
 	if err != nil {
-		return false, fmt.Errorf("btree: RelocatePage: read ptrmap for %d: %w", from, err)
+		return false, err
 	}
-
-	if parentType == 0 {
-		// Uninitialized ptrmap entry — fall back to a tree walk from
-		// the root to find `from`'s parent. The walk is O(n) but
-		// happens at most once per vacuum step; the next iteration
-		// will have the ptrmap populated.
-		if pp, pt, perr := t.findParentByWalk(from); perr == nil {
-			parentPgno = pp
-			parentType = pt
-		} else {
-			// Page is not in the tree (orphaned — the btree's parent
-			// was already dropped/freed, but `from` itself wasn't
-			// marked free). The file truncation reclaims the slot.
-			// The wasted `to` allocation must be returned to the
-			// freelist (signal relocated=false).
-			//
-			// P8.INCRVACUUM fix: do NOT FreePage(from) here. The
-			// orphan branch is hit when the ptrmap for `from` is
-			// uninitialized and the tree-walk fallback also failed
-			// (e.g. the btree allocated the page without writing a
-			// ptrmap entry, so the autovacuum has no way to find
-			// the parent). Adding `from` to the freelist would
-			// inflate p.freePages with a page that the next
-			// AllocatePageLE call would then return, causing a
-			// cascade of overwrites at the same target. The file
-			// truncation reclaims the slot; we just leave `from`
-			// to the truncation.
-			return false, nil
-		}
-	}
-	if parentType == storage.PtrmapRootpage {
-		// P8.INCRVACUUM BUG D (btree.c incrVacuumStep, src/btree.c:4030):
-		// a PTRMAP_ROOTPAGE entry is only trustworthy if the page is
-		// still a root of some schema object. For a genuine root the
-		// vacuum must never relocate or truncate it — SQLite reports
-		// CORRUPT in this position; the engine stops the drain step
-		// (the caller leaves the file above the root). For a STALE
-		// entry (the page changed role since the entry was written)
-		// the real parent is resolved by tree walk and the relocation
-		// proceeds with it.
-		isRoot := false
-		if roots, rerr := t.collectSchemaRoots(); rerr == nil {
-			for _, r := range roots {
-				if r == from {
-					isRoot = true
-					break
-				}
-			}
-		}
-		if isRoot {
-			return false, fmt.Errorf("btree: RelocatePage: %w: page %d is a root", errRelocateRoot, from)
-		}
-		if pp, pt, perr := t.findParentByWalk(from); perr == nil {
-			parentPgno = pp
-			parentType = pt
-		} else {
-			return false, nil
-		}
+	if orphan {
+		// Orphaned page: the btree's parent was already dropped/freed,
+		// but `from` itself wasn't marked free. The file truncation
+		// reclaims the slot; the wasted `to` allocation must be
+		// returned to the freelist (signal relocated=false).
+		return false, nil
 	}
 	// 1. Read `from`'s data into a temporary buffer.
 	// 2. Read `to`'s page (loads it into cache; its current content
@@ -206,29 +154,10 @@ func (t *BTree) RelocatePage(to, from uint32) (relocated bool, err error) {
 	if err := t.pager.WritePtrmap(to, parentType, parentPgno); err != nil {
 		return false, fmt.Errorf("btree: RelocatePage: write ptrmap for %d: %w", to, err)
 	}
-	// P8.INCRVACUUM phase 5: update the ptrmap entries for every
-	// child of the moved page. The children's "parent" is now `to`,
-	// not `from`. Without this, the next vacuum step that tries to
-	// move a child of `to` will look up `to` in the ptrmap, fail
-	// (entry says parent=from), and the engine falls back to a
-	// tree-walk that may pick the wrong ancestor if the parent's
-	// own child pointer was already updated. (Port of
-	// btree.c::relocatePage's child-fixup step, ~line 6605: b-tree
-	// pages run setChildPtrmaps; overflow pages only re-parent their
-	// next-in-chain pointer, the first 4 bytes.)
-	switch parentType {
-	case storage.PtrmapBtree, storage.PtrmapRootpage:
-		if err := t.setChildPtrmaps(toPg, to); err != nil {
-			return false, fmt.Errorf("btree: RelocatePage: setChildPtrmaps for %d: %w", to, err)
-		}
-	case storage.PtrmapOverflow1, storage.PtrmapOverflow2:
-		if len(toPg.Data) >= 4 {
-			if next := binary.BigEndian.Uint32(toPg.Data[0:4]); next != 0 {
-				if err := t.pager.WritePtrmap(next, storage.PtrmapOverflow2, to); err != nil {
-					return false, fmt.Errorf("btree: RelocatePage: ptrmap next-ovfl %d: %w", next, err)
-				}
-			}
-		}
+	// P8.INCRVACUUM phase 5: update the ptrmap entries for every child of
+	// the moved page (see reparentMovedPageChildren).
+	if err := t.reparentMovedPageChildren(toPg, to, parentType); err != nil {
+		return false, err
 	}
 	// P8.INCRVACUUM fix: do NOT call FreePage(from) here. The
 	// caller (IncrVacuumStep / AutoVacuumCommit) will truncate the
@@ -263,6 +192,106 @@ func (t *BTree) RelocatePage(to, from uint32) (relocated bool, err error) {
 	return true, nil
 }
 
+// relocateParentRef resolves the parent reference of `from` for relocation:
+// the pointer-map entry, with fallbacks for uninitialized (type 0) and
+// stale PTRMAP_ROOTPAGE entries — both re-resolved by a tree walk. Returns
+// orphan=true when the page is not in the tree (its parent was already
+// dropped/freed but the page itself wasn't marked free; the file truncation
+// reclaims the slot, so the caller signals relocated=false and returns the
+// wasted `to` allocation to the freelist).
+func (t *BTree) relocateParentRef(from uint32) (parentType byte, parentPgno uint32, orphan bool, err error) {
+	parentType, parentPgno, err = t.pager.ReadPtrmap(from)
+	if err != nil {
+		return 0, 0, false, fmt.Errorf("btree: RelocatePage: read ptrmap for %d: %w", from, err)
+	}
+
+	if parentType == 0 {
+		// Uninitialized ptrmap entry — fall back to a tree walk from
+		// the root to find `from`'s parent. The walk is O(n) but
+		// happens at most once per vacuum step; the next iteration
+		// will have the ptrmap populated.
+		//
+		// P8.INCRVACUUM fix: do NOT FreePage(from) here. The
+		// orphan branch is hit when the ptrmap for `from` is
+		// uninitialized and the tree-walk fallback also failed
+		// (e.g. the btree allocated the page without writing a
+		// ptrmap entry, so the autovacuum has no way to find
+		// the parent). Adding `from` to the freelist would
+		// inflate p.freePages with a page that the next
+		// AllocatePageLE call would then return, causing a
+		// cascade of overwrites at the same target. The file
+		// truncation reclaims the slot; we just leave `from`
+		// to the truncation.
+		pp, pt, perr := t.findParentByWalk(from)
+		if perr != nil {
+			return 0, 0, true, nil
+		}
+		parentPgno = pp
+		parentType = pt
+	}
+	if parentType == storage.PtrmapRootpage {
+		// P8.INCRVACUUM BUG D (btree.c incrVacuumStep, src/btree.c:4030):
+		// a PTRMAP_ROOTPAGE entry is only trustworthy if the page is
+		// still a root of some schema object. For a genuine root the
+		// vacuum must never relocate or truncate it — SQLite reports
+		// CORRUPT in this position; the engine stops the drain step
+		// (the caller leaves the file above the root). For a STALE
+		// entry (the page changed role since the entry was written)
+		// the real parent is resolved by tree walk and the relocation
+		// proceeds with it.
+		if err := t.checkRelocatableRoot(from); err != nil {
+			return 0, 0, false, err
+		}
+		pp, pt, perr := t.findParentByWalk(from)
+		if perr != nil {
+			return 0, 0, true, nil
+		}
+		parentPgno = pp
+		parentType = pt
+	}
+	return parentType, parentPgno, false, nil
+}
+
+// checkRelocatableRoot reports errRelocateRoot when `from` is a genuine
+// root of some schema object; a stale PTRMAP_ROOTPAGE entry falls through
+// to the tree walk.
+func (t *BTree) checkRelocatableRoot(from uint32) error {
+	if roots, rerr := t.collectSchemaRoots(); rerr == nil {
+		for _, r := range roots {
+			if r == from {
+				return fmt.Errorf("btree: RelocatePage: %w: page %d is a root", errRelocateRoot, from)
+			}
+		}
+	}
+	return nil
+}
+
+// reparentMovedPageChildren updates the ptrmap entries of the moved page's
+// children — their "parent" is now `to`, not `from`. Without this, the next
+// vacuum step that tries to move a child of `to` will look up `to` in the
+// ptrmap, fail (entry says parent=from), and the engine falls back to a
+// tree-walk that may pick the wrong ancestor if the parent's own child
+// pointer was already updated. (Port of btree.c::relocatePage's child-fixup
+// step, ~line 6605: b-tree pages run setChildPtrmaps; overflow pages only
+// re-parent their next-in-chain pointer, the first 4 bytes.)
+func (t *BTree) reparentMovedPageChildren(toPg *pager.Page, to uint32, parentType byte) error {
+	switch parentType {
+	case storage.PtrmapBtree, storage.PtrmapRootpage:
+		if err := t.setChildPtrmaps(toPg, to); err != nil {
+			return fmt.Errorf("btree: RelocatePage: setChildPtrmaps for %d: %w", to, err)
+		}
+	case storage.PtrmapOverflow1, storage.PtrmapOverflow2:
+		if len(toPg.Data) >= 4 {
+			if next := binary.BigEndian.Uint32(toPg.Data[0:4]); next != 0 {
+				if err := t.pager.WritePtrmap(next, storage.PtrmapOverflow2, to); err != nil {
+					return fmt.Errorf("btree: RelocatePage: ptrmap next-ovfl %d: %w", next, err)
+				}
+			}
+		}
+	}
+	return nil
+}
+
 // updateParentChildPtr updates the parent page's child pointer from
 // `oldChild` to `newChild`. Port of btree.c::modifyPagePointer (~line
 // 3877). The parent is identified by the pointer-map type:
@@ -279,19 +308,7 @@ func (t *BTree) RelocatePage(to, from uint32) (relocated bool, err error) {
 func (t *BTree) updateParentChildPtr(parentPgno, oldChild, newChild uint32, parentType byte) error {
 	switch parentType {
 	case storage.PtrmapOverflow2:
-		parentPg, err := t.pager.ReadPage(parentPgno)
-		if err != nil {
-			return err
-		}
-		if len(parentPg.Data) < 8 {
-			return fmt.Errorf("btree: updateParentChildPtr: overflow parent %d too small", parentPgno)
-		}
-		if got := binary.BigEndian.Uint32(parentPg.Data[0:4]); got != oldChild {
-			return fmt.Errorf("btree: updateParentChildPtr: overflow page %d chains to %d, not %d", parentPgno, got, oldChild)
-		}
-		binary.BigEndian.PutUint32(parentPg.Data[0:4], newChild)
-		pager.MarkPageDirtyForVacuum(t.pager, parentPgno)
-		return nil
+		return t.updateOvfl2ParentPtr(parentPgno, oldChild, newChild)
 	case storage.PtrmapOverflow1:
 		parentPg, err := t.pager.ReadPage(parentPgno)
 		if err != nil {
@@ -302,6 +319,31 @@ func (t *BTree) updateParentChildPtr(parentPgno, oldChild, newChild uint32, pare
 		// The schema owns the root pointer; no page-level fixup.
 		return nil
 	}
+	return t.updateBtreeParentPtr(parentPgno, oldChild, newChild)
+}
+
+// updateOvfl2ParentPtr rewrites the chain's next pointer on the parent
+// overflow page (btree.c modifyPagePointer, PTRMAP_OVERFLOW2 branch: the
+// pointer is always the first 4 bytes of the parent overflow page).
+func (t *BTree) updateOvfl2ParentPtr(parentPgno, oldChild, newChild uint32) error {
+	parentPg, err := t.pager.ReadPage(parentPgno)
+	if err != nil {
+		return err
+	}
+	if len(parentPg.Data) < 8 {
+		return fmt.Errorf("btree: updateParentChildPtr: overflow parent %d too small", parentPgno)
+	}
+	if got := binary.BigEndian.Uint32(parentPg.Data[0:4]); got != oldChild {
+		return fmt.Errorf("btree: updateParentChildPtr: overflow page %d chains to %d, not %d", parentPgno, got, oldChild)
+	}
+	binary.BigEndian.PutUint32(parentPg.Data[0:4], newChild)
+	pager.MarkPageDirtyForVacuum(t.pager, parentPgno)
+	return nil
+}
+
+// updateBtreeParentPtr repoints `oldChild` → `newChild` inside a parent
+// interior page (btree.c modifyPagePointer, PTRMAP_BTREE branch).
+func (t *BTree) updateBtreeParentPtr(parentPgno, oldChild, newChild uint32) error {
 	parentPg, err := t.pager.ReadPage(parentPgno)
 	if err != nil {
 		return err
@@ -478,220 +520,282 @@ func (t *BTree) IncrVacuumStep(n int, bCommit bool, nFin uint32, iLastPg uint32)
 	// after a successful TruncateNoFreelistAdjust, and an explicit
 	// truncate mid-loop is a feature, not a bug.
 	for i := 0; i < n; i++ {
-		var lastPg uint32
-		if iLastPg > 0 {
-			lastPg = iLastPg
-		} else {
-			lastPg = t.pager.NumPages()
+		done, stepped, err := t.incrVacuumOneStep(bCommit, nFin, iLastPg)
+		if err != nil {
+			return steps, err
 		}
-		if lastPg <= 1 {
-			// Page 1 is the schema page; can't truncate below it.
+		if done {
 			return steps, nil
 		}
-		// btree.c:4017 — PENDING_BYTE page is skipped. The bCommit==0
-		// tail block (lines 4096-4102) decrements iLastPg past it and
-		// sets nPage. The bCommit==1 caller (autoVacuumCommit)
-		// decrements iFree past it. For bCommit==0 we mirror C by
-		// skipping the work AND truncating past the skip page in one
-		// step (no work was done, so the file shrinks by the skip
-		// count). The bCommit==1 path just returns; the caller's
-		// loop decrement handles the skip.
-		if lastPg == t.pager.PendingBytePage() {
-			if bCommit {
-				steps++
-				continue
-			}
-			newLastPg := t.vacuumSkipPages(lastPg - 1)
-			if err := t.pager.TruncateNoFreelistAdjust(newLastPg); err != nil {
-				return steps, fmt.Errorf("btree: IncrVacuumStep: truncate to %d: %w", newLastPg, err)
-			}
-			return steps, nil
-		}
-		// btree.c:4019 — check if `lastPg` is free via the pointer-map.
-		isFree := pager.IsPageOnFreelist(t.pager, lastPg)
-		if !isFree {
-			if ptype, _, err := t.pager.ReadPtrmap(lastPg); err == nil && ptype == storage.PtrmapFreelist {
-				isFree = true
-			}
-		}
-		if os.Getenv("FRIGOLITE_VACUUM_DEBUG") != "" {
-			fmt.Fprintf(os.Stderr, "VACDBG step n=%d bCommit=%v nFin=%d lastPg=%d isFree=%v\n", n, bCommit, nFin, lastPg, isFree)
-		}
-		if isFree {
-			// btree.c:4034-4049 — the tail page is on the freelist.
-			// bCommit==0: pop the page from the chain (BTALLOC_EXACT)
-			// before the file shrinks; the bCommit==0 tail block in C
-			// then sets bDoTruncate=1 and nPage=iLastPg-1, and the
-			// actual file truncate happens at commit. We mirror that
-			// by truncating immediately (no commit hook between
-			// PRAGMA incremental_vacuum steps).
-			// bCommit==1: leave the chain alone. The post-loop block
-			// in autoVacuumCommit zeroes the chain header and
-			// truncates the file to nFin in one shot. Truncating
-			// here would shrink the file below the chain's reach
-			// (the chain still has the popped page) and turn the
-			// remaining chain entries into dangling references. The
-			// C bCommit==1 path returns SQLITE_OK without touching
-			// nPage or bDoTruncate when the tail is free; the
-			// caller decrements iFree and loops.
-			if !bCommit {
-				t.pager.TakePageFromFreelist(lastPg)
-				newLastPg := t.vacuumSkipPages(lastPg - 1)
-				if err := t.pager.TruncateNoFreelistAdjust(newLastPg); err != nil {
-					return steps, fmt.Errorf("btree: IncrVacuumStep: truncate to %d: %w", newLastPg, err)
-				}
-			}
+		if stepped {
 			steps++
-			continue
 		}
-		// btree.c:4017 PTRMAP_ISPAGE — the ptrmap page itself is skipped.
-		// bCommit==0: skip the work (page 2 is a ptrmap covering page 1,
-		// and the C post-block decrements iLastPg past it). We mirror
-		// that by truncating to vacuumSkipPages(lastPg-1).
-		// bCommit==1: just return; the caller's loop decrement handles
-		// the skip (autoVacuumCommit's iFree-- walks past ptrmap pages).
-		if storage.IsPtrmapPageNo(lastPg, t.pageSize) {
-			if bCommit {
-				steps++
-				continue
-			}
-			newLastPg := t.vacuumSkipPages(lastPg - 1)
-			if err := t.pager.TruncateNoFreelistAdjust(newLastPg); err != nil {
-				return steps, fmt.Errorf("btree: IncrVacuumStep: truncate to %d: %w", newLastPg, err)
-			}
-			return steps, nil
+	}
+	return steps, nil
+}
+
+// incrVacuumOneStep performs one incremental-vacuum step on the tail page
+// and reports: done=true — the drain stops cleanly at this point (tail is
+// the schema page, a skip page under bCommit=0, the freelist chain is
+// empty, or the tail was an orphan/root); stepped=true — the step consumed
+// one unit (the caller increments its counter and keeps draining).
+func (t *BTree) incrVacuumOneStep(bCommit bool, nFin uint32, iLastPg uint32) (done, stepped bool, err error) {
+	lastPg := t.vacuumTailPage(iLastPg)
+	if lastPg <= 1 {
+		// Page 1 is the schema page; can't truncate below it.
+		return true, false, nil
+	}
+	skipped, err := t.skipVacuumTailPage(lastPg, bCommit)
+	if err != nil {
+		return true, false, err
+	}
+	if skipped {
+		// bCommit==1: one no-op step; the caller's loop decrement walks
+		// past the skip page. bCommit==0: the file was truncated past
+		// the skip pages in one step; the drain stops here.
+		return bCommit, bCommit, nil
+	}
+	isFree := t.vacuumTailIsFree(lastPg)
+	if os.Getenv("FRIGOLITE_VACUUM_DEBUG") != "" {
+		fmt.Fprintf(os.Stderr, "VACDBG step bCommit=%v nFin=%d lastPg=%d isFree=%v\n", bCommit, nFin, lastPg, isFree)
+	}
+	if isFree {
+		if err := t.freeVacuumTail(lastPg, bCommit); err != nil {
+			return true, false, err
 		}
-		// btree.c:4050-4093 — the LIVE-tail branch. Allocate a free page
-		// and relocate lastPg's content into it. bCommit=0 runs the
-		// allocator exactly once (BTALLOC_LE, nearby=nFin). bCommit=1
-		// runs a do-while: pop ANY free page, and if it lands above
-		// nFin the pop is discarded (the page is just gone — the file
-		// truncation reclaims the slot). The do-while is bounded by the
-		// chain count; an empty chain returns SQLITE_DONE.
-		var freePg *pager.Page
-		var iFreePg uint32
-		var err error
-		if bCommit {
-			// bCommit=1 do-while: BTALLOC_ANY, discard pops above nFin.
-			for {
-				freePg, err = t.pager.AllocatePageANY()
-				if err != nil {
-					// Chain empty — SQLITE_DONE equivalent. The drain
-					// can't shrink the file any further; stop cleanly.
-					return steps, nil
-				}
-				iFreePg = freePg.PageNum
-				dbSize := t.pager.NumPages()
-				if iFreePg > dbSize {
-					// btree.c:4081 CORRUPT_BKPT guard. Refusing the
-					// relocation is the safe move: a page number beyond
-					// the file can't host a btree node. The wasted
-					// allocation is returned to the chain (it'll be
-					// zeroed by the commit end if nVac==nFree).
-					_ = t.freePageWithPtrmap(iFreePg)
-					return steps, fmt.Errorf("btree: IncrVacuumStep: iFreePg %d > dbSize %d (corrupt freelist)", iFreePg, dbSize)
-				}
-				if iFreePg <= nFin {
-					break
-				}
-				// Pop landed above nFin — discard. The pop already
-				// decremented the count, so the chain stays
-				// consistent. The page will be truncated away at the
-				// commit end (autoVacuumCommit's bDoTruncate / nPage).
-				// CRUCIAL: do NOT call FreePage here — the C btree.c
-				// equivalent is `releasePage(pFreePg)` which only drops
-				// the in-memory reference. Putting the page BACK on the
-				// chain via freePageWithPtrmap would re-increment the
-				// count and create an infinite loop (pop-decrement, free-
-				// increment, pop-decrement, ...). The page's data is
-				// also already overwritten with the on-disk free-page
-				// content, so it's not btree data.
-				_ = freePg // discard the page reference; do NOT free it
-			}
-		} else {
-			// bCommit=0: BTALLOC_LE(nFin) once.
-			freePg, err = t.pager.AllocatePageLE(nFin)
-			if err != nil {
-				// btree.c:4076 CORRUPT / SQLITE_FULL — chain empty or
-				// no free page ≤ nFin. The PRAGMA path treats this as
-				// DONE; the C code returns SQLITE_DONE at this point.
-				return steps, nil
-			}
-			iFreePg = freePg.PageNum
-			dbSize := t.pager.NumPages()
-			if iFreePg > dbSize {
-				_ = t.freePageWithPtrmap(iFreePg)
-				return steps, fmt.Errorf("btree: IncrVacuumStep: iFreePg %d > dbSize %d (corrupt freelist)", iFreePg, dbSize)
-			}
+		return false, true, nil
+	}
+	done, err = t.acquireAndRelocate(bCommit, nFin, lastPg)
+	if err != nil {
+		return false, false, err
+	}
+	if done {
+		return true, false, nil
+	}
+	// Truncate the file to remove the (now-relocated) last page.
+	// btree.c:4100 — bCommit=0 sets pBt->bDoTruncate=1; the actual
+	// file shrink happens in sqlite3BtreeCommitPhaseOne. We mirror
+	// that by truncating immediately (the engine's Truncate does
+	// both the file shrink and the chain-skip in one step).
+	// bCommit=1: the C bCommit=1 path does NOT truncate during
+	// the step. The post-loop block in autoVacuumCommit
+	// truncates the file to nFin in one shot — otherwise the
+	// chain entries above the new file size become dangling
+	// references and the next iteration's dbSize check fires
+	// SQLITE_CORRUPT_BKPT (the visible bug for
+	// autovacuum-1.1.16, autovacuum-2.x, incrvacuum-6).
+	if bCommit {
+		return false, true, nil
+	}
+	if err := t.truncateRelocatedTail(lastPg); err != nil {
+		return true, false, err
+	}
+	return false, true, nil
+}
+
+// vacuumTailPage returns the page to inspect this step: the caller-provided
+// iLastPg when set, else the current file tail.
+func (t *BTree) vacuumTailPage(iLastPg uint32) uint32 {
+	if iLastPg > 0 {
+		return iLastPg
+	}
+	return t.pager.NumPages()
+}
+
+// skipVacuumTailPage handles a tail page that is skipped rather than
+// relocated. btree.c:4017 — the PENDING_BYTE page is skipped: the bCommit==0
+// tail block (lines 4096-4102) decrements iLastPg past it and sets nPage,
+// while the bCommit==1 caller (autoVacuumCommit) decrements iFree past it.
+// btree.c:4017 PTRMAP_ISPAGE — the ptrmap page itself is skipped the same
+// way (page 2 is a ptrmap covering page 1, and the C post-block decrements
+// iLastPg past it). For bCommit==0 we mirror C by skipping the work AND
+// truncating past the skip page in one step (no work was done, so the file
+// shrinks by the skip count). Returns skipped=true when the page was a skip
+// page (the caller moves on or stops, per bCommit).
+func (t *BTree) skipVacuumTailPage(lastPg uint32, bCommit bool) (bool, error) {
+	if lastPg != t.pager.PendingBytePage() && !storage.IsPtrmapPageNo(lastPg, t.pageSize) {
+		return false, nil
+	}
+	if bCommit {
+		return true, nil
+	}
+	newLastPg := t.vacuumSkipPages(lastPg - 1)
+	if err := t.pager.TruncateNoFreelistAdjust(newLastPg); err != nil {
+		return true, fmt.Errorf("btree: IncrVacuumStep: truncate to %d: %w", newLastPg, err)
+	}
+	return true, nil
+}
+
+// vacuumTailIsFree reports whether the tail page is free (btree.c:4019):
+// freelist membership, or a PTRMAP_FREELIST pointer-map entry.
+func (t *BTree) vacuumTailIsFree(lastPg uint32) bool {
+	if pager.IsPageOnFreelist(t.pager, lastPg) {
+		return true
+	}
+	ptype, _, err := t.pager.ReadPtrmap(lastPg)
+	return err == nil && ptype == storage.PtrmapFreelist
+}
+
+// freeVacuumTail handles a tail page already on the freelist
+// (btree.c:4034-4049). bCommit==0: pop the page from the chain
+// (BTALLOC_EXACT) before the file shrinks; the bCommit==0 tail block in C
+// then sets bDoTruncate=1 and nPage=iLastPg-1, and the actual file truncate
+// happens at commit. We mirror that by truncating immediately (no commit
+// hook between PRAGMA incremental_vacuum steps). bCommit==1: leave the
+// chain alone. The post-loop block in autoVacuumCommit zeroes the chain
+// header and truncates the file to nFin in one shot. Truncating here would
+// shrink the file below the chain's reach (the chain still has the popped
+// page) and turn the remaining chain entries into dangling references. The
+// C bCommit==1 path returns SQLITE_OK without touching nPage or
+// bDoTruncate when the tail is free; the caller decrements iFree and loops.
+func (t *BTree) freeVacuumTail(lastPg uint32, bCommit bool) error {
+	if bCommit {
+		return nil
+	}
+	t.pager.TakePageFromFreelist(lastPg)
+	return t.truncateVacuumTail(lastPg)
+}
+
+// allocRelocationTarget allocates the relocation target for the LIVE-tail
+// branch (btree.c:4050-4093). bCommit=0 runs the allocator exactly once
+// (BTALLOC_LE, nearby=nFin). bCommit=1 runs a do-while: pop ANY free page
+// (BTALLOC_ANY), and if it lands above nFin the pop is discarded (the page
+// is just gone — the file truncation reclaims the slot). The do-while is
+// bounded by the chain count; an empty chain reports freePg==nil with no
+// error — the SQLITE_DONE equivalent (the drain can't shrink the file any
+// further).
+func (t *BTree) allocRelocationTarget(bCommit bool, nFin uint32) (*pager.Page, error) {
+	if !bCommit {
+		// bCommit=0: BTALLOC_LE(nFin) once.
+		freePg, err := t.pager.AllocatePageLE(nFin)
+		if err != nil {
+			// btree.c:4076 CORRUPT / SQLITE_FULL — chain empty or
+			// no free page ≤ nFin. The PRAGMA path treats this as
+			// DONE; the C code returns SQLITE_DONE at this point.
+			return nil, nil
 		}
-		// Relocate lastPg → freePg. RelocatePage returns relocated=false
-		// when the page was treated as an orphan (no parent found and
-		// the tree-walk fallback also failed) and the wasted `to`
-		// allocation must be put back on the freelist.
-		if os.Getenv("FRIGOLITE_VACUUM_DEBUG") != "" {
+		if err := t.checkRelocationTargetPage(freePg.PageNum); err != nil {
+			return nil, err
+		}
+		return freePg, nil
+	}
+	// bCommit=1 do-while: BTALLOC_ANY, discard pops above nFin.
+	for {
+		freePg, err := t.pager.AllocatePageANY()
+		if err != nil {
+			return nil, nil
+		}
+		if err := t.checkRelocationTargetPage(freePg.PageNum); err != nil {
+			return nil, err
+		}
+		if freePg.PageNum <= nFin {
+			return freePg, nil
+		}
+		// Pop landed above nFin — discard. The pop already
+		// decremented the count, so the chain stays
+		// consistent. The page will be truncated away at the
+		// commit end (autoVacuumCommit's bDoTruncate / nPage).
+		// CRUCIAL: do NOT call FreePage here — the C btree.c
+		// equivalent is `releasePage(pFreePg)` which only drops
+		// the in-memory reference. Putting the page BACK on the
+		// chain via freePageWithPtrmap would re-increment the
+		// count and create an infinite loop (pop-decrement, free-
+		// increment, pop-decrement, ...). The page's data is
+		// also already overwritten with the on-disk free-page
+		// content, so it's not btree data.
+		_ = freePg // discard the page reference; do NOT free it
+	}
+}
+
+// checkRelocationTargetPage validates a popped free page against the file
+// size — btree.c:4081 CORRUPT_BKPT guard. Refusing the relocation is the
+// safe move: a page number beyond the file can't host a btree node. The
+// wasted allocation is returned to the chain (it'll be zeroed by the commit
+// end if nVac==nFree).
+func (t *BTree) checkRelocationTargetPage(iFreePg uint32) error {
+	dbSize := t.pager.NumPages()
+	if iFreePg > dbSize {
+		_ = t.freePageWithPtrmap(iFreePg)
+		return fmt.Errorf("btree: IncrVacuumStep: iFreePg %d > dbSize %d (corrupt freelist)", iFreePg, dbSize)
+	}
+	return nil
+}
+
+// acquireAndRelocate allocates a relocation target (allocRelocationTarget)
+// and moves lastPg's content into it (relocateVacuumTail). done=true means
+// the drain stops cleanly here: the chain is empty (SQLITE_DONE equivalent —
+// the drain can't shrink the file any further), the tail is a genuine root,
+// or the tail page was an orphan; the wasted target allocation, when any,
+// has already been returned to the freelist.
+func (t *BTree) acquireAndRelocate(bCommit bool, nFin, lastPg uint32) (bool, error) {
+	freePg, err := t.allocRelocationTarget(bCommit, nFin)
+	if err != nil {
+		return false, err
+	}
+	if freePg == nil {
+		return true, nil
+	}
+	return t.relocateVacuumTail(freePg, lastPg)
+}
+
+// relocateVacuumTail relocates lastPg's content into freePg (RelocatePage)
+// and handles the stop-cleanly outcomes: a genuine root tail
+// (errRelocateRoot, btree.c:4030 reports CORRUPT there — the vacuum must
+// never relocate or truncate it) and the orphan branch (the page's parent
+// could not be located; do NOT truncate the file — the btree has a (stale)
+// parent pointer to `lastPg` that the relocator was supposed to update, and
+// truncating would leave the btree referencing a non-existent page). Both
+// return the wasted `to` allocation to the freelist and report done=true.
+// A relocation ERROR (not the orphan branch) frees the wasted `to` page and
+// is reported.
+func (t *BTree) relocateVacuumTail(freePg *pager.Page, lastPg uint32) (bool, error) {
+	if os.Getenv("FRIGOLITE_VACUUM_DEBUG") != "" {
 		fmt.Fprintf(os.Stderr, "VACDBG step relocating lastPg=%d -> freePg=%d\n", lastPg, freePg.PageNum)
 	}
 	relocated, err := t.RelocatePage(freePg.PageNum, lastPg)
-		if errors.Is(err, errRelocateRoot) {
-			// btree.c:4030 reports CORRUPT on a genuine root tail. The
-			// vacuum must never relocate or truncate it. Return the
-			// wasted `to` allocation to the freelist and stop the
-			// drain cleanly.
-			_ = t.freePageWithPtrmap(freePg.PageNum)
-			return steps, nil
-		}
-		if err != nil {
-			// Relocation ERROR (not the orphan branch) — the relocator
-			// decided it cannot proceed safely. Put the wasted `to`
-			// page back on the freelist.
-			_ = t.freePageWithPtrmap(freePg.PageNum)
-			return steps, fmt.Errorf("btree: IncrVacuumStep: relocate %d -> %d: %w", lastPg, freePg.PageNum, err)
-		}
-		if !relocated {
-			// Orphan branch: the page's parent could not be located.
-			// Do NOT truncate the file — the btree has a (stale)
-			// parent pointer to `lastPg` that the relocator was
-			// supposed to update. Truncating would leave the btree
-			// referencing a non-existent page. Return the wasted
-			// `to` allocation to the freelist and stop.
-			if err := t.freePageWithPtrmap(freePg.PageNum); err != nil {
-				return steps, fmt.Errorf("btree: IncrVacuumStep: free wasted %d: %w", freePg.PageNum, err)
-			}
-			return steps, nil
-		}
-		// Truncate the file to remove the (now-relocated) last page.
-		// btree.c:4100 — bCommit=0 sets pBt->bDoTruncate=1; the actual
-		// file shrink happens in sqlite3BtreeCommitPhaseOne. We mirror
-		// that by truncating immediately (the engine's Truncate does
-		// both the file shrink and the chain-skip in one step).
-		// bCommit=1: the C bCommit=1 path does NOT truncate during
-		// the step. The post-loop block in autoVacuumCommit
-		// truncates the file to nFin in one shot — otherwise the
-		// chain entries above the new file size become dangling
-		// references and the next iteration's dbSize check fires
-		// SQLITE_CORRUPT_BKPT (the visible bug for
-		// autovacuum-1.1.16, autovacuum-2.x, incrvacuum-6).
-		if bCommit {
-			steps++
-			continue
-		}
-		// bCommit=0: truncate the file to vacuumSkipPages(lastPg-1).
-		// The skip-decrement mirrors btree.c:4096-4102: any
-		// ptrmap/pending-byte page between lastPg-1 and the new file
-		// end is also removed. Without this, a step that relocates
-		// lastPg=3 (where page 2 is a ptrmap page covering page 1)
-		// would leave the file at 2 pages, and the next call's
-		// iLastPg=2 hits the ptrmap-page branch above with no
-		// progress — an infinite loop (the visible incrvacuum-5.2.5
-		// hang). vacuumSkipPages(2) = 1, so the file ends at 1 page
-		// and the caller's `iLastPg <= nFin` guard breaks the loop.
-		newLastPg := t.vacuumSkipPages(lastPg - 1)
-		if err := t.pager.Truncate(newLastPg); err != nil {
-			return steps, fmt.Errorf("btree: IncrVacuumStep: truncate to %d: %w", newLastPg, err)
-		}
-		steps++
+	if errors.Is(err, errRelocateRoot) {
+		_ = t.freePageWithPtrmap(freePg.PageNum)
+		return true, nil
 	}
-	return steps, nil
+	if err != nil {
+		_ = t.freePageWithPtrmap(freePg.PageNum)
+		return false, fmt.Errorf("btree: IncrVacuumStep: relocate %d -> %d: %w", lastPg, freePg.PageNum, err)
+	}
+	if !relocated {
+		if err := t.freePageWithPtrmap(freePg.PageNum); err != nil {
+			return true, fmt.Errorf("btree: IncrVacuumStep: free wasted %d: %w", freePg.PageNum, err)
+		}
+		return true, nil
+	}
+	return false, nil
+}
+
+// truncateVacuumTail truncates the file past lastPg without adjusting the
+// freelist (the bCommit=0 skip path).
+func (t *BTree) truncateVacuumTail(lastPg uint32) error {
+	newLastPg := t.vacuumSkipPages(lastPg - 1)
+	if err := t.pager.TruncateNoFreelistAdjust(newLastPg); err != nil {
+		return fmt.Errorf("btree: IncrVacuumStep: truncate to %d: %w", newLastPg, err)
+	}
+	return nil
+}
+
+// truncateRelocatedTail truncates past the relocated tail page (the
+// engine's Truncate does both the file shrink and the chain-skip in one
+// step). The skip-decrement mirrors btree.c:4096-4102: any ptrmap/pending-
+// byte page between lastPg-1 and the new file end is also removed. Without
+// this, a step that relocates lastPg=3 (where page 2 is a ptrmap page
+// covering page 1) would leave the file at 2 pages, and the next call's
+// iLastPg=2 hits the ptrmap-page branch with no progress — an infinite
+// loop (the visible incrvacuum-5.2.5 hang). vacuumSkipPages(2) = 1, so the
+// file ends at 1 page and the caller's `iLastPg <= nFin` guard breaks the
+// loop.
+func (t *BTree) truncateRelocatedTail(lastPg uint32) error {
+	newLastPg := t.vacuumSkipPages(lastPg - 1)
+	if err := t.pager.Truncate(newLastPg); err != nil {
+		return fmt.Errorf("btree: IncrVacuumStep: truncate to %d: %w", newLastPg, err)
+	}
+	return nil
 }
 
 // findParentByWalk scans the database looking for `target` as a

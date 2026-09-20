@@ -84,23 +84,8 @@ func (t *BTree) copyNodeContent(pFrom, pTo *pager.Page) error {
 		// bail rather than scribble.
 		return errBtreeCorrupt("copyNodeContent: cell-content %d > usable %d", iData, usableSize)
 	}
-	length := usableSize - iData
-	if length < 0 {
-		length = 0
-	}
 	// iData is page-buffer absolute; no fromHdr/toHdr offset.
-	if iData+length > len(pFrom.Data) {
-		length = len(pFrom.Data) - iData
-		if length < 0 {
-			length = 0
-		}
-	}
-	if iData+length > len(pTo.Data) {
-		length = len(pTo.Data) - iData
-		if length < 0 {
-			length = 0
-		}
-	}
+	length := copyContentLength(iData, usableSize, len(pFrom.Data), len(pTo.Data))
 	copy(pTo.Data[iData:iData+length], pFrom.Data[iData:iData+length])
 
 	// Cell pointer array + header: copy from pFrom's hdrOffset to
@@ -154,4 +139,27 @@ func (t *BTree) copyNodeContent(pFrom, pTo *pager.Page) error {
 		}
 	}
 	return nil
+}
+
+// copyContentLength computes how many content bytes to copy from pFrom to
+// pTo: the cell-content area, clamped to both page buffers (a corrupt
+// cell-content pointer is clamped rather than scribbling out of bounds).
+func copyContentLength(iData, usableSize, fromLen, toLen int) int {
+	length := usableSize - iData
+	if length < 0 {
+		length = 0
+	}
+	if iData+length > fromLen {
+		length = fromLen - iData
+		if length < 0 {
+			length = 0
+		}
+	}
+	if iData+length > toLen {
+		length = toLen - iData
+		if length < 0 {
+			length = 0
+		}
+	}
+	return length
 }

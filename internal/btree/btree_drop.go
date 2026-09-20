@@ -79,34 +79,38 @@ func (t *BTree) walkAllPages(pn uint32, visited map[uint32]bool, out *[]uint32) 
 	}
 	*out = append(*out, pn)
 	if page.PageType == storage.PageTypeInteriorTable || page.PageType == storage.PageTypeInteriorIndex {
-		ptrBase := coff + cellPtrOffset(page.PageType) - 8
-		for i := 0; i < int(page.CellCount); i++ {
-			p := storage.CellPointer(pg.Data, ptrBase, i, int(t.pageSize))
-			if int(p)+4 > len(pg.Data) {
-				continue
-			}
-			child := binary.BigEndian.Uint32(pg.Data[p : p+4])
-			if child == 0 {
-				continue
-			}
-			if err := t.walkAllPages(child, visited, out); err != nil {
-				return err
-			}
-		}
-		if page.RightmostPtr != 0 {
-			if err := t.walkAllPages(page.RightmostPtr, visited, out); err != nil {
-				return err
-			}
-		}
-		return nil
+		return t.walkInteriorPages(pg, coff, page, visited, out)
 	}
 	// Leaf: walk overflow chains.
-	var cellType storage.CellType
-	if page.PageType == storage.PageTypeLeafTable {
-		cellType = storage.CellTableLeaf
-	} else {
-		cellType = storage.CellIndexLeaf
+	cellType := leafCellType(page.PageType)
+	return t.walkLeafOverflow(pg, coff, page, cellType, visited, out)
+}
+
+// walkInteriorPages walks an interior page's cell children and rightmost
+// pointer, recursing into each.
+func (t *BTree) walkInteriorPages(pg *pager.Page, coff int, page *storage.BTreePage, visited map[uint32]bool, out *[]uint32) error {
+	ptrBase := coff + cellPtrOffset(page.PageType) - 8
+	for i := 0; i < int(page.CellCount); i++ {
+		p := storage.CellPointer(pg.Data, ptrBase, i, int(t.pageSize))
+		if int(p)+4 > len(pg.Data) {
+			continue
+		}
+		child := binary.BigEndian.Uint32(pg.Data[p : p+4])
+		if child == 0 {
+			continue
+		}
+		if err := t.walkAllPages(child, visited, out); err != nil {
+			return err
+		}
 	}
+	if page.RightmostPtr == 0 {
+		return nil
+	}
+	return t.walkAllPages(page.RightmostPtr, visited, out)
+}
+
+// walkLeafOverflow follows the overflow chain of every cell on a leaf page.
+func (t *BTree) walkLeafOverflow(pg *pager.Page, coff int, page *storage.BTreePage, cellType storage.CellType, visited map[uint32]bool, out *[]uint32) error {
 	for i := 0; i < int(page.CellCount); i++ {
 		p := storage.CellPointer(pg.Data, coff, i, int(t.pageSize))
 		c, err := storage.DecodeCell(pg.Data, int(p), cellType, int(t.usableSize))

@@ -25,37 +25,10 @@ func (t *BTree) DeleteCellsWhere(fn func(cell *storage.Cell) bool) (int64, error
 	// balances; this bulk sweep instead re-runs the leaf list until a
 	// full pass deletes nothing, so no migrated cell is stranded.
 	for {
-		passDeleted := int64(0)
-		var leaves []uint32
-		if err := t.collectLeafPages(t.rootPage, &leaves, nil); err != nil {
+		passDeleted, err := t.deletePass(fn)
+		deleted += passDeleted
+		if err != nil {
 			return deleted, err
-		}
-		for _, leafNum := range leaves {
-			// balanceNonroot may have freed this page as a surplus empty
-			// sibling during an earlier iteration of this loop; a freed
-			// page's first bytes are its freelist chain pointer (type byte
-			// 0x00), so it must be skipped, not parsed.
-			if pager.IsPageOnFreelist(t.pager, leafNum) {
-				continue
-			}
-			n, err := t.sweepLeafCells(leafNum, fn)
-			deleted += n
-			passDeleted += n
-			if err != nil {
-				return deleted, err
-			}
-			// P8.INCRVACUUM phase 5.5: after a leaf becomes empty,
-			// rebalance it. The leaf is the rightmost child of its
-			// parent (typical case for DELETE which leaves the
-			// rightmost leaf empty). We invoke balanceNonroot with
-			// iParentIdx = -1 (rightmost-child) and the empty leaf as
-			// the "page being balanced". balanceNonroot's Phase 3
-			// filter drops the empty leaf, Phase 5 frees it, and the
-			// parent is rewritten to point to the next non-empty
-			// sibling.
-			if err := t.maybeRebalanceAfterDelete(leafNum); err != nil {
-				return deleted, err
-			}
 		}
 		if passDeleted == 0 {
 			break
@@ -78,6 +51,43 @@ func (t *BTree) DeleteCellsWhere(fn func(cell *storage.Cell) bool) (int64, error
 		return deleted, err
 	}
 	return deleted, nil
+}
+
+// deletePass sweeps every live leaf of the btree once, rebalancing emptied
+// leaves as it goes, and returns the number of cells deleted during the pass.
+func (t *BTree) deletePass(fn func(cell *storage.Cell) bool) (int64, error) {
+	var passDeleted int64
+	var leaves []uint32
+	if err := t.collectLeafPages(t.rootPage, &leaves, nil); err != nil {
+		return passDeleted, err
+	}
+	for _, leafNum := range leaves {
+		// balanceNonroot may have freed this page as a surplus empty
+		// sibling during an earlier iteration of this loop; a freed
+		// page's first bytes are its freelist chain pointer (type byte
+		// 0x00), so it must be skipped, not parsed.
+		if pager.IsPageOnFreelist(t.pager, leafNum) {
+			continue
+		}
+		n, err := t.sweepLeafCells(leafNum, fn)
+		passDeleted += n
+		if err != nil {
+			return passDeleted, err
+		}
+		// P8.INCRVACUUM phase 5.5: after a leaf becomes empty,
+		// rebalance it. The leaf is the rightmost child of its
+		// parent (typical case for DELETE which leaves the
+		// rightmost leaf empty). We invoke balanceNonroot with
+		// iParentIdx = -1 (rightmost-child) and the empty leaf as
+		// the "page being balanced". balanceNonroot's Phase 3
+		// filter drops the empty leaf, Phase 5 frees it, and the
+		// parent is rewritten to point to the next non-empty
+		// sibling.
+		if err := t.maybeRebalanceAfterDelete(leafNum); err != nil {
+			return passDeleted, err
+		}
+	}
+	return passDeleted, nil
 }
 
 // sweepLeafCells deletes every matching cell from one leaf, in repeated
