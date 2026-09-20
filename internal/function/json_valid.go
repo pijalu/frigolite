@@ -365,8 +365,8 @@ func fnJSON_TYPE(args []interface{}) (interface{}, error) {
 		return nil, err
 	}
 	node, err := jsonTypeTarget(root, args)
-	if err != nil {
-		return nil, err
+	if err != nil || node == nil {
+		return nil, err // nil node: NULL path or unresolved path -> SQL NULL
 	}
 	return jsonTypeName(node), nil
 }
