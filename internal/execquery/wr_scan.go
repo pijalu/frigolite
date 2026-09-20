@@ -146,4 +146,3 @@ func wrRemapToDeclared(values []interface{}, order []int, colDefs []sql.ColumnDe
 		values[di] = tmp[s]
 	}
 }
-

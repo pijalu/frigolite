@@ -197,11 +197,12 @@ func (e *SelectEngine) skipScanForColumns(idxName string, cols []string, constra
 // stat1 idx column is the table name itself).
 // skipScanSkipCount determines the number of leading index columns the
 // skip-scan iterates over, or -1 when the shape does not apply. Two modes:
-//   1. K unconstrained leading cols + 1 constrained trailing col (basic).
-//   2. K constrained leading cols + >=1 unconstrained col + 1 constrained
-//      trailing col (2014-08-20 addition; needed for skipscan3.test 1.3:
-//      `a=1 AND c=32` -> ANY(a) AND ANY(b) AND c=? where the leading col a IS
-//      constrained and acts as a single-value iteration variable).
+//  1. K unconstrained leading cols + 1 constrained trailing col (basic).
+//  2. K constrained leading cols + >=1 unconstrained col + 1 constrained
+//     trailing col (2014-08-20 addition; needed for skipscan3.test 1.3:
+//     `a=1 AND c=32` -> ANY(a) AND ANY(b) AND c=? where the leading col a IS
+//     constrained and acts as a single-value iteration variable).
+//
 // Mode 2 is tried first (more permissive), then mode 1.
 func skipScanSkipCount(cols []string, constrainedCols map[string]bool) int {
 	if constrainedCols[strings.ToLower(cols[0])] {
@@ -504,4 +505,3 @@ func (e *SelectEngine) withoutRowidPKCols(tableName string) []string {
 	}
 	return out
 }
-

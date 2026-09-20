@@ -129,20 +129,7 @@ func (e *SelectEngine) execSelect(s *sql.SelectStmt) *Result {
 	if len(s.CTEs) > 0 {
 		defer func() { e.cteScopes = e.cteScopes[:len(e.cteScopes)-1] }()
 	}
-	if err := e.validateOrderGroupByTerms(s); err != nil {
-		return &Result{Error: err}
-	}
-	if err := e.validate.ValidateExprs(s); err != nil {
-		return &Result{Error: err}
-	}
-	if err := e.validateCompoundColumnCounts(s); err != nil {
-		return &Result{Error: err}
-	}
-	// SQLite resolves compound member FROM tables right-to-left, so a
-	// missing table in the LAST member is reported before an earlier
-	// member's (with3 1.0: "SELECT 5 FROM t0 UNION SELECT 8 FROM m" errors
-	// "no such table: m", not t0).
-	if err := e.validateCompoundFromTables(s); err != nil {
+	if err := e.validateSelectPreDispatch(s); err != nil {
 		return &Result{Error: err}
 	}
 	if res := e.indexedByOnViewError(s); res != nil {
@@ -159,6 +146,25 @@ func (e *SelectEngine) execSelect(s *sql.SelectStmt) *Result {
 		return result
 	}
 	return e.execRealTableSelect(s)
+}
+
+// validateSelectPreDispatch runs the statement-level validations before FROM
+// dispatch: ORDER BY/GROUP BY term shape, expression validity, compound
+// column counts, and compound FROM table resolution. SQLite resolves compound
+// member FROM tables right-to-left, so a missing table in the LAST member is
+// reported before an earlier member's (with3 1.0: "SELECT 5 FROM t0 UNION
+// SELECT 8 FROM m" errors "no such table: m", not t0).
+func (e *SelectEngine) validateSelectPreDispatch(s *sql.SelectStmt) error {
+	if err := e.validateOrderGroupByTerms(s); err != nil {
+		return err
+	}
+	if err := e.validate.ValidateExprs(s); err != nil {
+		return err
+	}
+	if err := e.validateCompoundColumnCounts(s); err != nil {
+		return err
+	}
+	return e.validateCompoundFromTables(s)
 }
 
 // indexedByOnViewError rejects INDEXED BY against a FROM term that resolves
@@ -493,21 +499,9 @@ func (e *SelectEngine) execSelectViewWithOuter(s *sql.SelectStmt, viewEntry *sch
 		viewQual = s.From.As
 	}
 	rowMaps := viewRowMapsFromResult(viewResult.Rows, viewColDefs, viewQual)
-
-	if len(s.Joins) > 0 {
-		if err := e.validateAmbiguousColumnRefs(s); err != nil {
-			return &Result{Error: err}
-		}
-		var err error
-		rowMaps, viewColDefs, err = e.execJoins(s, rowMaps, viewColDefs)
-		if err != nil {
-			return &Result{Error: err}
-		}
-	}
-	var err2 error
-	rowMaps, err2 = filterRowMapsByWhere(e, s.Where, rowMaps)
-	if err2 != nil {
-		return &Result{Error: err2}
+	rowMaps, viewColDefs, jerr := e.joinAndViewRowMaps(s, rowMaps, viewColDefs)
+	if jerr != nil {
+		return &Result{Error: jerr}
 	}
 	if aggResult := e.handleSelectAggregates(s, rowMaps, viewColDefs); aggResult != nil {
 		return aggResult
@@ -531,6 +525,23 @@ func (e *SelectEngine) execSelectViewWithOuter(s *sql.SelectStmt, viewEntry *sch
 		result.rowMaps = rowMaps
 	}
 	return e.finalizeSelectResult(result, s, rowMaps)
+}
+
+// joinAndViewRowMaps applies the outer statement's JOINs (with the ambiguous
+// reference pre-check) and WHERE filter over the view's row maps.
+func (e *SelectEngine) joinAndViewRowMaps(s *sql.SelectStmt, rowMaps []RowMap, viewColDefs []sql.ColumnDef) ([]RowMap, []sql.ColumnDef, error) {
+	if len(s.Joins) > 0 {
+		if err := e.validateAmbiguousColumnRefs(s); err != nil {
+			return nil, nil, err
+		}
+		var err error
+		rowMaps, viewColDefs, err = e.execJoins(s, rowMaps, viewColDefs)
+		if err != nil {
+			return nil, nil, err
+		}
+	}
+	rowMaps, ferr := filterRowMapsByWhere(e, s.Where, rowMaps)
+	return rowMaps, viewColDefs, ferr
 }
 
 // execSelectNoFrom handles SELECT without FROM clause.
@@ -731,7 +742,7 @@ func (e *SelectEngine) finalizeNoFromSelect(result *Result, s *sql.SelectStmt) e
 // result's ORDER BY. Compound queries restrict ORDER BY terms to result
 // column names or ordinals (SQLite: "Nth ORDER BY term does not match any
 // column in the result set"). The no-FROM path merges compounds too (e.g.
-// VALUES(2) EXCEPT SELECT '' ORDER BY abc), so validate the same way
+// VALUES(2) EXCEPT SELECT ” ORDER BY abc), so validate the same way
 // finalizeSelectResult does.
 func (e *SelectEngine) sortNoFromCompound(result *Result, s *sql.SelectStmt, orderBy []sql.OrderByTerm) error {
 	if len(orderBy) == 0 {

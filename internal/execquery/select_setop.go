@@ -10,8 +10,8 @@ import (
 	"github.com/pijalu/frigolite/internal/parse"
 	"github.com/pijalu/frigolite/internal/schema"
 	"github.com/pijalu/frigolite/internal/sql"
-	"github.com/pijalu/frigolite/internal/value"
 	"github.com/pijalu/frigolite/internal/util"
+	"github.com/pijalu/frigolite/internal/value"
 )
 
 func (e *SelectEngine) mergeUnionRows(rows [][]interface{}, union *sql.SelectStmt, op sql.SetOp, unionAll bool, colls []string) [][]interface{} {
