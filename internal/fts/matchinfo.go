@@ -159,6 +159,22 @@ func addFirstPrefixCount(idx *InvertedIndex, docID int64, prefix string, col int
 	}
 }
 
+// firstTermPostings collects the first phrase token's postings: the exact
+// term's postings, or — when the token is a prefix (prefixes[0]) — the
+// postings of every indexed term starting with the prefix.
+func firstTermPostings(idx *InvertedIndex, prefixes []bool, term string) []Posting {
+	if len(prefixes) > 0 && prefixes[0] {
+		var out []Posting
+		for t, postings := range idx.index {
+			if len(t) >= len(term) && t[:len(term)] == term {
+				out = append(out, postings...)
+			}
+		}
+		return out
+	}
+	return idx.index[term]
+}
+
 // addPinnedSeqCounts counts phrase matches where token FirstAt sits at the
 // column-start pin (^ inside a quoted phrase).
 func addPinnedSeqCounts(idx *InvertedIndex, docID int64, terms []string, prefixes []bool, firstAt, col int, counts []int) {
@@ -166,17 +182,7 @@ func addPinnedSeqCounts(idx *InvertedIndex, docID int64, terms []string, prefixe
 		return
 	}
 	// Require match start s with s+firstAt == 0.
-	var firstPostings []Posting
-	if len(prefixes) > 0 && prefixes[0] {
-		for term, postings := range idx.index {
-			if len(term) >= len(terms[0]) && term[:len(terms[0])] == terms[0] {
-				firstPostings = append(firstPostings, postings...)
-			}
-		}
-	} else {
-		firstPostings = idx.index[terms[0]]
-	}
-	for _, fp := range firstPostings {
+	for _, fp := range firstTermPostings(idx, prefixes, terms[0]) {
 		if fp.DocID != docID || (col >= 0 && fp.Column != col) {
 			continue
 		}
@@ -216,17 +222,26 @@ func addPrefixCounts(idx *InvertedIndex, docID int64, prefix string, col int, co
 			continue
 		}
 		for _, p := range postings {
-			if p.DocID != docID {
-				continue
-			}
-			if col >= 0 && p.Column != col {
-				continue
-			}
-			if p.Column < len(counts) {
-				counts[p.Column]++
-			}
+			bumpColumnCount(p, docID, col, counts)
 		}
 	}
+}
+
+// bumpColumnCount bumps the per-column count for one posting belonging to
+// docID (restricted to col when col is scoped); it reports whether a count
+// was bumped.
+func bumpColumnCount(p Posting, docID int64, col int, counts []int) bool {
+	if p.DocID != docID {
+		return false
+	}
+	if col >= 0 && p.Column != col {
+		return false
+	}
+	if p.Column < len(counts) {
+		counts[p.Column]++
+		return true
+	}
+	return false
 }
 
 // addPhraseSeqCounts adds per-column counts for every occurrence of a
@@ -235,17 +250,7 @@ func addPhraseSeqCounts(idx *InvertedIndex, docID int64, terms []string, prefixe
 	if len(terms) == 0 {
 		return
 	}
-	var firstPostings []Posting
-	if len(prefixes) > 0 && prefixes[0] {
-		for term, postings := range idx.index {
-			if len(term) >= len(terms[0]) && term[:len(terms[0])] == terms[0] {
-				firstPostings = append(firstPostings, postings...)
-			}
-		}
-	} else {
-		firstPostings = idx.index[terms[0]]
-	}
-	for _, fp := range firstPostings {
+	for _, fp := range firstTermPostings(idx, prefixes, terms[0]) {
 		if fp.DocID != docID || (col >= 0 && fp.Column != col) {
 			continue
 		}

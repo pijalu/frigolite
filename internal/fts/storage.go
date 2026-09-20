@@ -349,17 +349,7 @@ func (idx *InvertedIndex) phraseInDocFirst(docID int64, terms []string, prefixes
 	if len(terms) == 0 {
 		return true
 	}
-	var firstPostings []Posting
-	if len(prefixes) > 0 && prefixes[0] {
-		for term, postings := range idx.index {
-			if len(term) >= len(terms[0]) && term[:len(terms[0])] == terms[0] {
-				firstPostings = append(firstPostings, postings...)
-			}
-		}
-	} else {
-		firstPostings = collectDocPostings(idx.index[terms[0]], docID)
-	}
-	for _, fp := range firstPostings {
+	for _, fp := range firstTermPostings(idx, prefixes, terms[0]) {
 		if fp.DocID != docID || fp.Position != 0 {
 			continue
 		}
@@ -376,17 +366,7 @@ func (idx *InvertedIndex) phraseInDocColumn(docID int64, terms []string, prefixe
 	if len(terms) == 0 {
 		return true
 	}
-	var firstPostings []Posting
-	if len(prefixes) > 0 && prefixes[0] {
-		for term, postings := range idx.index {
-			if len(term) >= len(terms[0]) && term[:len(terms[0])] == terms[0] {
-				firstPostings = append(firstPostings, postings...)
-			}
-		}
-	} else {
-		firstPostings = idx.index[terms[0]]
-	}
-	for _, p := range firstPostings {
+	for _, p := range firstTermPostings(idx, prefixes, terms[0]) {
 		if p.DocID == docID && p.Column == colNum {
 			if phraseMatchesAt(p, terms, prefixes, idx) {
 				return true
@@ -506,17 +486,7 @@ func collectPhraseNearPositions(idx *InvertedIndex, docID int64, terms []string,
 		return nil
 	}
 	var positions []nearPos
-	var firstPostings []Posting
-	if len(prefixes) > 0 && prefixes[0] {
-		for term, postings := range idx.index {
-			if len(term) >= len(terms[0]) && term[:len(terms[0])] == terms[0] {
-				firstPostings = append(firstPostings, postings...)
-			}
-		}
-	} else {
-		firstPostings = idx.index[terms[0]]
-	}
-	for _, fp := range firstPostings {
+	for _, fp := range firstTermPostings(idx, prefixes, terms[0]) {
 		if fp.DocID != docID || (colNum >= 0 && fp.Column != colNum) {
 			continue
 		}
@@ -580,12 +550,59 @@ type AuxTerm struct {
 // documents/occurrences counts, plus a per-term "*" row aggregating across
 // all columns). Terms and columns are sorted so the cursor yields the same
 // order SQLite produces.
-// HasCorruptTerms reports whether any term's doclist failed to load (the
-// term was recorded as corrupt during segment loading).
-func (t *FTS3Table) HasCorruptTerms() bool {
+func (t *FTS3Table) AuxTerms() []AuxTerm {
 	t.mu.Lock()
 	defer t.mu.Unlock()
-	return len(t.index.corruptTerms) > 0
+	terms := make([]string, 0, len(t.index.index))
+	for term := range t.index.index {
+		terms = append(terms, term)
+	}
+	sort.Strings(terms)
+	nCol := len(t.columnNames)
+	var out []AuxTerm
+	for _, term := range terms {
+		perCol, totalDocs, totalOcc := collectAuxColStats(t.index.index[term], nCol)
+		// SQLite's fts4aux emits the per-term "*" aggregate row FIRST, then one
+		// row per column with the column INDEX as its name (fts3_aux.c
+		// fts3AuxNext: col "-1" becomes "*", else the column number).
+		out = append(out, AuxTerm{Term: term, Column: "*", Documents: totalDocs, Occurrences: totalOcc})
+		for i := 0; i < nCol; i++ {
+			out = append(out, AuxTerm{Term: term, Column: strconv.Itoa(i), Documents: perCol[i].docs, Occurrences: perCol[i].occ})
+		}
+	}
+	return out
+}
+
+// auxColStat is one column's per-term document/occurrence counts.
+type auxColStat struct {
+	docs int64
+	occ  int64
+}
+
+// collectAuxColStats accumulates one term's per-column document and
+// occurrence counts plus the all-column totals.
+func collectAuxColStats(postings []Posting, nCol int) (perCol []auxColStat, totalDocs, totalOcc int64) {
+	perCol = make([]auxColStat, nCol)
+	// Distinct documents per column (docid+column pair key).
+	seen := make(map[int64]bool)
+	for _, p := range postings {
+		if p.Column >= 0 && p.Column < nCol {
+			perCol[p.Column].occ++
+			key := p.DocID*int64(nCol+1) + int64(p.Column)
+			if !seen[key] {
+				seen[key] = true
+				perCol[p.Column].docs++
+			}
+		}
+	}
+	// Aggregate totals across columns.
+	allCols := make(map[int64]bool)
+	totalOcc = 0
+	for _, p := range postings {
+		totalOcc++
+		allCols[p.DocID] = true
+	}
+	return perCol, int64(len(allCols)), totalOcc
 }
 
 // HasOutOfRangePostings reports whether any posting references a column
@@ -608,50 +625,10 @@ func (t *FTS3Table) HasOutOfRangePostings() bool {
 	return false
 }
 
-func (t *FTS3Table) AuxTerms() []AuxTerm {
+// HasCorruptTerms reports whether any term's doclist failed to load (the
+// term was recorded as corrupt during segment loading).
+func (t *FTS3Table) HasCorruptTerms() bool {
 	t.mu.Lock()
 	defer t.mu.Unlock()
-	terms := make([]string, 0, len(t.index.index))
-	for term := range t.index.index {
-		terms = append(terms, term)
-	}
-	sort.Strings(terms)
-	nCol := len(t.columnNames)
-	var out []AuxTerm
-	for _, term := range terms {
-		postings := t.index.index[term]
-		type colStat struct {
-			docs int64
-			occ  int64
-		}
-		perCol := make([]colStat, nCol)
-		// Distinct documents per column (docid+column pair key).
-		seen := make(map[int64]bool)
-		for _, p := range postings {
-			if p.Column >= 0 && p.Column < nCol {
-				perCol[p.Column].occ++
-				key := p.DocID*int64(nCol+1) + int64(p.Column)
-				if !seen[key] {
-					seen[key] = true
-					perCol[p.Column].docs++
-				}
-			}
-		}
-		// Aggregate totals across columns.
-		allCols := make(map[int64]bool)
-		totalOcc := int64(0)
-		for _, p := range postings {
-			totalOcc++
-			allCols[p.DocID] = true
-		}
-		totalDocs := int64(len(allCols))
-		// SQLite's fts4aux emits the per-term "*" aggregate row FIRST, then one
-		// row per column with the column INDEX as its name (fts3_aux.c
-		// fts3AuxNext: col "-1" becomes "*", else the column number).
-		out = append(out, AuxTerm{Term: term, Column: "*", Documents: totalDocs, Occurrences: totalOcc})
-		for i := 0; i < nCol; i++ {
-			out = append(out, AuxTerm{Term: term, Column: strconv.Itoa(i), Documents: perCol[i].docs, Occurrences: perCol[i].occ})
-		}
-	}
-	return out
+	return len(t.index.corruptTerms) > 0
 }
