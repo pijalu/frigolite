@@ -443,33 +443,44 @@ func NewFTS3Table(name, moduleName string, args []string) (*FTS3Table, error) {
 		tokenizer:  &SimpleTokenizer{},
 		index:      NewInvertedIndex(),
 	}
-	isFts4 := strings.EqualFold(moduleName, "fts4")
+	p := &fts3ArgParser{t: t, isFts4: strings.EqualFold(moduleName, "fts4")}
+	cols, err := p.parseArgs(args)
+	if err != nil {
+		return nil, err
+	}
+	if len(cols) == 0 && t.contentTable == "" && !t.contentless {
+		cols = []string{"content"}
+	}
+	if err := t.finishConstruction(p.isFts4, cols); err != nil {
+		return nil, err
+	}
+	return t, nil
+}
 
+// fts3ArgParser carries the constructor's parse state (fts3InitVtab's local
+// variables across the argv loop).
+type fts3ArgParser struct {
+	t            *FTS3Table
+	isFts4       bool
+	tokenizerSet bool
+}
+
+// parseArgs walks the module argv: a tokenize= specification (first one
+// only), FTS4 key=value special options, and bare column names.
+func (p *fts3ArgParser) parseArgs(args []string) ([]string, error) {
 	var cols []string
-	tokenizerSet := false
 	for _, arg := range args {
 		arg = strings.TrimSpace(arg)
 		if arg == "" {
 			continue
 		}
-
-		// Tokenizer specification: only the first one, only when the text
-		// starts with "tokenize" followed by a non-identifier character.
-		if !tokenizerSet && len(arg) > 8 &&
-			strings.HasPrefix(strings.ToLower(arg), "tokenize") &&
-			!isFTSIdChar(arg[8]) {
-			tokenizerName := strings.TrimSpace(arg[9:])
-			tokenizerName = strings.TrimPrefix(tokenizerName, "=")
-			tokenizerName = strings.TrimSpace(tokenizerName)
-			tok, terr := NewTokenizerFromSpec(tokenizerName, nil)
-			if terr != nil {
-				return nil, terr
-			}
-			t.tokenizer = tok
-			tokenizerSet = true
+		handled, terr := p.tryTokenizerSpec(arg)
+		if terr != nil {
+			return nil, terr
+		}
+		if handled {
 			continue
 		}
-
 		// FTS4 special argument: an argument containing '=' must match one
 		// of the known options; otherwise the CREATE fails (fts3.c
 		// fts3IsSpecialColumn + aFts4Opt lookup). The engine accepts the
@@ -477,115 +488,155 @@ func NewFTS3Table(name, moduleName string, args []string) (*FTS3Table, error) {
 		// languageid=..., matchinfo=..., compress/uncompress are parsed but
 		// the in-memory store does not implement their semantics beyond
 		// order=desc ordering behavior).
-		if isFts4 && strings.Contains(arg, "=") {
-			key := strings.TrimSpace(arg[:strings.Index(arg, "=")])
-			switch strings.ToLower(key) {
-			case "matchinfo":
-				// matchinfo=fts3 is the only accepted value (fts3.c
-				// fts3InitVtab case MATCHINFO): anything else fails the
-				// CREATE with "unrecognized matchinfo: %s", and fts3
-				// omits the %_docsize shadow table (bNoDocsize=1).
-				val := strings.TrimSpace(arg[strings.Index(arg, "=")+1:])
-				if len(val) != 4 || !strings.EqualFold(val, "fts3") {
-					return nil, fmt.Errorf("unrecognized matchinfo: %s", val)
-				}
-				t.noDocsize = true
-				continue
-			case "prefix":
-				// Parse the comma-separated prefix lengths with SQLite semantics
-				// (fts3.c fts3PrefixParameter + fts3GobbleInt): each value must
-				// start with a decimal digit or the whole prefix= parameter
-				// fails with "error parsing prefix parameter: %s"; values >
-				// MAX_NPREFIX (10000000) or > 0x7FFFFFFF are treated as 0 and
-				// dropped; a 0 value is dropped. Order is preserved.
-				val := strings.Trim(strings.TrimSpace(arg[strings.Index(arg, "=")+1:]), "'\"")
-				if val == "" {
-					continue
-				}
-				parts := strings.Split(val, ",")
-				var lens []int
-				ok := true
-				for _, part := range parts {
-					if part == "" {
-						ok = false
-						break
-					}
-					n, okp := ftsParsePrefixInt(part)
-					if !okp {
-						ok = false
-						break
-					}
-					if n != 0 {
-						lens = append(lens, n)
-					}
-				}
-				if !ok {
-					return nil, fmt.Errorf("error parsing prefix parameter: %s", val)
-				}
-				t.prefixLengths = lens
-				continue
-			case "content":
-				// content=<table> associates the FTS table with an external
-				// content table (fts3.c fts3InitVtab case CONTENT): the index
-				// is stored in %_segments/%_segdir but column values are read
-				// from and written to the external table. A contentless table
-				// (content="") has no content table and stores no column data.
-				t.contentTable = strings.Trim(strings.TrimSpace(arg[strings.Index(arg, "=")+1:]), "'\"")
-				if t.contentTable == "" {
-					t.contentless = true
-				}
-				continue
-			case "languageid":
-				t.langidColName = strings.Trim(strings.TrimSpace(arg[strings.Index(arg, "=")+1:]), "'\"")
-				continue
-			case "notindexed":
-				// notindexed=<col> names a column whose text is stored but
-				// not indexed (fts3.c fts3InitVtab case NOTINDEXED: the name
-				// is recorded in p->azNotindexed). Duplicates are tolerated;
-				// an unknown column fails at CREATE (validated after all
-				// arguments are parsed).
-				ni := strings.Trim(strings.TrimSpace(arg[strings.Index(arg, "=")+1:]), "'\"")
-				if ni != "" {
-					if t.notindexed == nil {
-						t.notindexed = make(map[string]bool)
-					}
-					t.notindexed[strings.ToLower(ni)] = true
-				}
-				continue
-			case "compress":
-				t.compressFn = strings.Trim(strings.TrimSpace(arg[strings.Index(arg, "=")+1:]), "'\"")
-				continue
-			case "uncompress":
-				t.uncompressFn = strings.Trim(strings.TrimSpace(arg[strings.Index(arg, "=")+1:]), "'\"")
-				continue
-			case "order":
-				val := strings.Trim(strings.TrimSpace(arg[strings.Index(arg, "=")+1:]), "'\"")
-				switch {
-				case strings.EqualFold(val, "asc"):
-					t.orderDesc = false
-				case strings.EqualFold(val, "desc"):
-					t.orderDesc = true
-				default:
-					// fts3.c fts3InitVtab: any other order value is rejected.
-					return nil, fmt.Errorf("unrecognized order: %s", val)
-				}
-				continue
-			default:
-				return nil, fmt.Errorf("unrecognized parameter: %s", arg)
+		if p.isFts4 && strings.Contains(arg, "=") {
+			if err := p.t.applyFts4Option(arg); err != nil {
+				return nil, err
 			}
+			continue
 		}
-
 		// Otherwise the argument is a column name: the first identifier
 		// token (sqlite3Fts3NextToken semantics).
 		if colName := ftsNextToken(arg); colName != "" {
 			cols = append(cols, colName)
 		}
 	}
+	return cols, nil
+}
 
-	if len(cols) == 0 && t.contentTable == "" && !t.contentless {
-		cols = []string{"content"}
+// tryTokenizerSpec applies a "tokenize ..." argument: only the first one,
+// only when the text starts with "tokenize" followed by a non-identifier
+// character. handled reports whether the argument was consumed.
+func (p *fts3ArgParser) tryTokenizerSpec(arg string) (handled bool, err error) {
+	if p.tokenizerSet || len(arg) <= 8 ||
+		!strings.HasPrefix(strings.ToLower(arg), "tokenize") ||
+		isFTSIdChar(arg[8]) {
+		return false, nil
 	}
+	tokenizerName := strings.TrimSpace(arg[9:])
+	tokenizerName = strings.TrimPrefix(tokenizerName, "=")
+	tokenizerName = strings.TrimSpace(tokenizerName)
+	tok, err := NewTokenizerFromSpec(tokenizerName, nil)
+	if err != nil {
+		return true, err
+	}
+	p.t.tokenizer = tok
+	p.tokenizerSet = true
+	return true, nil
+}
 
+// fts4OptionError renders a named option's value (the text after '=',
+// dequoted).
+func fts4OptionValue(arg string) string {
+	return strings.Trim(strings.TrimSpace(arg[strings.Index(arg, "=")+1:]), "'\"")
+}
+
+// applyFts4Option dispatches one FTS4 key=value constructor option
+// (fts3.c fts3InitVtab's aFts4Opt table).
+func (t *FTS3Table) applyFts4Option(arg string) error {
+	key := strings.TrimSpace(arg[:strings.Index(arg, "=")])
+	switch strings.ToLower(key) {
+	case "matchinfo":
+		return t.applyMatchinfoOption(arg)
+	case "prefix":
+		return t.applyPrefixOption(arg)
+	case "content":
+		// content=<table> associates the FTS table with an external
+		// content table (fts3.c fts3InitVtab case CONTENT): the index
+		// is stored in %_segments/%_segdir but column values are read
+		// from and written to the external table. A contentless table
+		// (content="") has no content table and stores no column data.
+		t.contentTable = fts4OptionValue(arg)
+		if t.contentTable == "" {
+			t.contentless = true
+		}
+	case "languageid":
+		t.langidColName = fts4OptionValue(arg)
+	case "notindexed":
+		t.applyNotIndexedOption(arg)
+	case "compress":
+		t.compressFn = fts4OptionValue(arg)
+	case "uncompress":
+		t.uncompressFn = fts4OptionValue(arg)
+	case "order":
+		return t.applyOrderOption(arg)
+	default:
+		return fmt.Errorf("unrecognized parameter: %s", arg)
+	}
+	return nil
+}
+
+// applyMatchinfoOption handles matchinfo=fts3, the only accepted value
+// (fts3.c fts3InitVtab case MATCHINFO): anything else fails the CREATE with
+// "unrecognized matchinfo: %s", and fts3 omits the %_docsize shadow table
+// (bNoDocsize=1).
+func (t *FTS3Table) applyMatchinfoOption(arg string) error {
+	val := strings.TrimSpace(arg[strings.Index(arg, "=")+1:])
+	if len(val) != 4 || !strings.EqualFold(val, "fts3") {
+		return fmt.Errorf("unrecognized matchinfo: %s", val)
+	}
+	t.noDocsize = true
+	return nil
+}
+
+// applyPrefixOption parses the comma-separated prefix lengths with SQLite
+// semantics (fts3.c fts3PrefixParameter + fts3GobbleInt): each value must
+// start with a decimal digit or the whole prefix= parameter fails with
+// "error parsing prefix parameter: %s"; values > MAX_NPREFIX (10000000) or
+// > 0x7FFFFFFF are treated as 0 and dropped; a 0 value is dropped. Order is
+// preserved.
+func (t *FTS3Table) applyPrefixOption(arg string) error {
+	val := fts4OptionValue(arg)
+	if val == "" {
+		return nil
+	}
+	var lens []int
+	for _, part := range strings.Split(val, ",") {
+		n, okp := ftsParsePrefixInt(part)
+		if !okp {
+			return fmt.Errorf("error parsing prefix parameter: %s", val)
+		}
+		if n != 0 {
+			lens = append(lens, n)
+		}
+	}
+	t.prefixLengths = lens
+	return nil
+}
+
+// applyNotIndexedOption records notindexed=<col>: a column whose text is
+// stored but not indexed (fts3.c fts3InitVtab case NOTINDEXED: the name
+// is recorded in p->azNotindexed). Duplicates are tolerated; an unknown
+// column fails at CREATE (validated after all arguments are parsed).
+func (t *FTS3Table) applyNotIndexedOption(arg string) error {
+	ni := fts4OptionValue(arg)
+	if ni == "" {
+		return nil
+	}
+	if t.notindexed == nil {
+		t.notindexed = make(map[string]bool)
+	}
+	t.notindexed[strings.ToLower(ni)] = true
+	return nil
+}
+
+// applyOrderOption handles order=asc|desc (fts3.c fts3InitVtab: any other
+// order value is rejected).
+func (t *FTS3Table) applyOrderOption(arg string) error {
+	val := fts4OptionValue(arg)
+	switch {
+	case strings.EqualFold(val, "asc"):
+		t.orderDesc = false
+	case strings.EqualFold(val, "desc"):
+		t.orderDesc = true
+	default:
+		return fmt.Errorf("unrecognized order: %s", val)
+	}
+	return nil
+}
+
+// finishConstruction applies the post-parse constructor rules: the
+// compress/uncompress pairing, the column list and the notindexed wiring.
+func (t *FTS3Table) finishConstruction(isFts4 bool, cols []string) error {
 	// FTS4 compress and uncompress must be specified together (fts3.c
 	// fts3InitVtab: rc==SQLITE_OK && (zCompress==0)!=(zUncompress==0) →
 	// "missing %s parameter in fts4 constructor").
@@ -594,9 +645,8 @@ func NewFTS3Table(name, moduleName string, args []string) (*FTS3Table, error) {
 		if t.compressFn == "" {
 			miss = "compress"
 		}
-		return nil, fmt.Errorf("missing %s parameter in fts4 constructor", miss)
+		return fmt.Errorf("missing %s parameter in fts4 constructor", miss)
 	}
-
 	t.columnNames = cols
 	// Validate notindexed=<col> names against the declared columns
 	// (fts3.c fts3InitVtab case NOTINDEXED validates against
@@ -606,28 +656,34 @@ func NewFTS3Table(name, moduleName string, args []string) (*FTS3Table, error) {
 	// derived from the content table later); validation + wiring happen in
 	// SetColumnNames for that case.
 	if len(t.notindexed) > 0 && len(cols) > 0 {
-		known := make(map[string]bool)
-		for _, c := range cols {
-			known[strings.ToLower(c)] = true
-		}
-		for ni := range t.notindexed {
-			if !known[ni] {
-				return nil, fmt.Errorf("no such column: %s", ni)
-			}
-		}
-		// Wire the column indices into the inverted index so inserts skip
-		// them (fts4noti 2.x: notindexed columns produce no postings).
-		skip := make(map[int]bool)
-		for i, c := range cols {
-			if t.notindexed[strings.ToLower(c)] {
-				skip[i] = true
-			}
-		}
-		if len(skip) > 0 {
-			t.index.SetSkipColumns(skip)
+		return t.wireNotIndexed(cols)
+	}
+	return nil
+}
+
+// wireNotIndexed validates the notindexed names and wires the column indices
+// into the inverted index so inserts skip them (fts4noti 2.x: notindexed
+// columns produce no postings).
+func (t *FTS3Table) wireNotIndexed(cols []string) error {
+	known := make(map[string]bool, len(cols))
+	for _, c := range cols {
+		known[strings.ToLower(c)] = true
+	}
+	for ni := range t.notindexed {
+		if !known[ni] {
+			return fmt.Errorf("no such column: %s", ni)
 		}
 	}
-	return t, nil
+	skip := make(map[int]bool)
+	for i, c := range cols {
+		if t.notindexed[strings.ToLower(c)] {
+			skip[i] = true
+		}
+	}
+	if len(skip) > 0 {
+		t.index.SetSkipColumns(skip)
+	}
+	return nil
 }
 
 // isFTSIdChar reports whether c is an FTS identifier character
@@ -682,20 +738,7 @@ func ftsNextToken(s string) string {
 	}
 	switch s[0] {
 	case '\'', '"', '`':
-		q := s[0]
-		var b strings.Builder
-		for i := 1; i < len(s); i++ {
-			if s[i] == q {
-				if i+1 < len(s) && s[i+1] == q {
-					b.WriteByte(q)
-					i++
-					continue
-				}
-				return b.String()
-			}
-			b.WriteByte(s[i])
-		}
-		return b.String()
+		return quotedFtsName(s)
 	case '[':
 		if idx := strings.IndexByte(s, ']'); idx > 0 {
 			return s[1:idx]
@@ -786,3 +829,23 @@ func (t *FTS3Table) ValidateNotindexedColumns() string {
 }
 
 // ColumnNames returns the table's column names.
+
+// quotedFtsName scans a quoted identifier ('...', "...", `...` with
+// doubled-quote escapes) and returns the inner text (sqlite3Fts3NextToken's
+// quote branch).
+func quotedFtsName(s string) string {
+	q := s[0]
+	var b strings.Builder
+	for i := 1; i < len(s); i++ {
+		if s[i] == q {
+			if i+1 < len(s) && s[i+1] == q {
+				b.WriteByte(q)
+				i++
+				continue
+			}
+			return b.String()
+		}
+		b.WriteByte(s[i])
+	}
+	return b.String()
+}

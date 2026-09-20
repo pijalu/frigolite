@@ -7589,3 +7589,62 @@ regenerated; suite net −2274 fails vs pre-tranche baseline (7230 → ~4950).
   HEAD` + rsync the pre-fix regen in, run the changed-package set on both, diff pass/fail
   BY PACKAGE NAME (comm on `FAIL\tspam` lines fails — durations differ every run). The
   73-body-changed set went 34 → 22 failing, 0 new failures.
+## §5d Quality-Closure (fleet Q5-FTS5VTAB)
+
+- **Swapped multi-returns across an extraction = silent infinite loop**: splitting
+  `parseTokenize`'s word scan into `nextTokenizeWord(p) (rest, word, err)` while the
+  caller destructured `word, rest, err` crossed the two strings; `p` never shrank and
+  EVERY `tokenize=` directive spun forever (fts5simple went 0.5s → OOM-kill at 951s).
+  When adding a helper with a multi-value return, copy the caller's destructure order
+  verbatim and add one bounded-iteration trace (or run the coupled testgen package)
+  before moving on.
+- **"signal: killed" + hung testgen = memory-blowup loop, not flakiness**: run the
+  suspect package at the BASE commit in a scratch worktree (`git worktree add /tmp/...`)
+  — base 0.78s vs branch kill isolates the regression to your diff immediately, then
+  `-v` + bounded-iteration instrumentation pinpoints the loop.
+- **gocognit/gocyclo count `range`-captured lengths and switch cases**: table-driven
+  maps/arrays (`punctKinds`, `zipColumnFuncs`, `vocabRowFields`) and extracting one
+  switch case per helper are the mechanical fixes that keep behavior byte-identical.
+- **Adopting a dead agent's WIP: test it BEFORE building on it, and salvage only the
+  provably-pure parts**: the resumed fts WIP looked mechanical but contained a
+  by-value `firstErr` parameter (error propagation lost) and turned a fast-failing
+  test into an infinite loop. Recipe that worked: (1) `go build`, (2) run the
+  package tests at WIP state vs HEAD vs base commit (scratch worktree), (3) keep
+  byte-identical pure moves (verified with `diff` of the moved region) and
+  well-scoped extractions whose behavior was audited, (4) `git checkout --` the
+  near-rewritten risky files, (5) redo the rest surgically with one helper per
+  loop-body/branch and the package suite re-run after each file.
+- **Extraction drops a state update = silent index corruption, caught only by a
+  neighbor suite**: converting loadLeaf's first-vs-delta term branch into
+  `readLeafChainTerm(leaf, pos, prev, first)` left `first = false` behind — every
+  subsequent term of a multi-term leaf was re-parsed as length-prefixed, the
+  in-memory index went silently wrong, and NO fts unit test caught it; only
+  `testgen/fts4onepass` integrity-check did ([T25] term-count mismatch). Before
+  extracting a helper that takes loop state by value, enumerate EVERY assignment
+  to outer-scope variables in the original loop (`first`, `prev`, `pos`,
+  `docEnded`, ...) and account for each in the new loop tail. Unit-suite green is
+  not enough — run the named neighbor testgen packages before committing.
+- **Isolate a regression to a region by hybrid splicing, not by eyeballing**:
+  1600-line diffs hide one-line drifts. Checkout the GREEN file, splice ONE
+  region at a time from the red version (python slice on unique markers — beware
+  prefix collisions like loadLeaf/loadLeafChainBlock), run the failing test per
+  splice. Three runs localized a one-line bug inside a 550-line diff.
+- **A pre-existing red test is still a regression bell for HANGS**: base may fail a
+  test in 2s; if your diff makes the same test hang, that is a regression even
+  though the suite was already red. Compare failure MODE (time + panic dump), not
+  just pass/fail, when the baseline is red.
+- **gocognit weights nesting, so naive branch-counting underestimates ~2x**: a
+  function estimated at 8 often measures 17-23. Budget for it: extract each
+  loop body / switch case / per-branch reader into its own helper and re-run
+  `gocognit -over 15 <files>` after every file — the tool is the only reliable
+  counter. Recurring shapes in this area (doclist/boundary-term scanners with
+  first-vs-delta branches) collapse cleanly into `(value, next, ok)` helpers
+  shared across callers, but VERIFY the check flavors match (one caller's
+  "extra" absolute bounds check was provably subsumed by the relative check —
+  prove subsumption before sharing).
+- **Repeated doclist/state-machine scan loops (reader.go loadDoclist,
+  stream.go parseDoclistHits/doclistDocIDs)**: converting the closure-based
+  scanner into a small struct with `step(v, blob, pos) (next, err/stop)` +
+  `flushDoc()` methods drops gocognit from 30-50 to <10 and preserves state
+  transitions verbatim — copy each state reset (`docEnded`, `sawColumn`,
+  `lastPos`) line-for-line.

@@ -60,29 +60,14 @@ func escapeCrlf(quoted string) string {
 	if !useNL && !useCR {
 		return quoted
 	}
-	escNL, escCR := "\\n", "\\r"
-	if strings.Contains(quoted, escNL) {
-		escNL = "\\012"
-	}
-	if strings.Contains(quoted, escCR) {
-		escCR = "\\015"
-	}
+	escNL, escCR := crlfEscapes(quoted)
 	var b strings.Builder
 	if useNL && useCR {
 		b.WriteString("replace(replace(")
 	} else {
 		b.WriteString("replace(")
 	}
-	for i := 0; i < len(quoted); i++ {
-		switch {
-		case useNL && quoted[i] == '\n':
-			b.WriteString(escNL)
-		case useCR && quoted[i] == '\r':
-			b.WriteString(escCR)
-		default:
-			b.WriteByte(quoted[i])
-		}
-	}
+	writeCrlfEscaped(&b, quoted, useNL, useCR, escNL, escCR)
 	if useNL {
 		b.WriteString(",'")
 		b.WriteString(escNL)
@@ -94,6 +79,35 @@ func escapeCrlf(quoted string) string {
 		b.WriteString("', char(13))")
 	}
 	return b.String()
+}
+
+// crlfEscapes picks the replacement sequences for LF/CR: "\\n"/"\\r" unless
+// the text already contains that two-character form, in which case
+// "\\012"/"\\015" is used.
+func crlfEscapes(quoted string) (escNL, escCR string) {
+	escNL, escCR = "\\n", "\\r"
+	if strings.Contains(quoted, escNL) {
+		escNL = "\\012"
+	}
+	if strings.Contains(quoted, escCR) {
+		escCR = "\\015"
+	}
+	return escNL, escCR
+}
+
+// writeCrlfEscaped writes quoted's characters, replacing the LF/CR bytes
+// being escaped with their escape sequences.
+func writeCrlfEscaped(b *strings.Builder, quoted string, useNL, useCR bool, escNL, escCR string) {
+	for i := 0; i < len(quoted); i++ {
+		switch {
+		case useNL && quoted[i] == '\n':
+			b.WriteString(escNL)
+		case useCR && quoted[i] == '\r':
+			b.WriteString(escCR)
+		default:
+			b.WriteByte(quoted[i])
+		}
+	}
 }
 
 // parseTableColumns extracts a CREATE TABLE's column names and flags
@@ -108,36 +122,20 @@ func parseTableColumns(sql string, e *tableEntry) {
 	if open < 0 {
 		return
 	}
-	// Close paren matching the open one.
-	depth, end := 0, -1
-	inStr := byte(0)
-	for i := open; i < len(sql); i++ {
-		c := sql[i]
-		if inStr != 0 {
-			if c == inStr {
-				inStr = 0
-			}
-			continue
-		}
-		switch c {
-		case '\'':
-			inStr = '\''
-		case '(':
-			depth++
-		case ')':
-			depth--
-			if depth == 0 {
-				end = i
-			}
-		}
-		if end >= 0 {
-			break
-		}
-	}
+	// Close paren matching the open one; an unterminated list runs to the
+	// end of the SQL.
+	end := parenMatchEnd(sql, open)
 	if end < 0 {
 		end = len(sql)
 	}
-	fields := splitTopLevel(sql[open+1 : end])
+	appendColumnFields(e, splitTopLevel(sql[open+1:end]))
+}
+
+// appendColumnFields parses a column-definition list, appending the table's
+// column names and recording the INTEGER PRIMARY KEY rowid alias index.
+// Table-constraint definitions (PRIMARY/UNIQUE/CHECK/FOREIGN/CONSTRAINT
+// starters) name no column and are skipped.
+func appendColumnFields(e *tableEntry, fields []string) {
 	constraintStarters := map[string]bool{
 		"PRIMARY": true, "UNIQUE": true, "CHECK": true,
 		"FOREIGN": true, "CONSTRAINT": true,
@@ -199,19 +197,8 @@ func firstIdentifier(f string) string {
 	if f == "" {
 		return ""
 	}
-	switch {
-	case f[0] == '"':
-		if end := strings.Index(f[1:], "\""); end >= 0 {
-			return f[1 : 1+end]
-		}
-	case f[0] == '`':
-		if end := strings.Index(f[1:], "`"); end >= 0 {
-			return f[1 : 1+end]
-		}
-	case f[0] == '[':
-		if end := strings.Index(f[1:], "]"); end >= 0 {
-			return f[1 : 1+end]
-		}
+	if q, ok := quotedIdentifierPrefix(f); ok {
+		return q
 	}
 	for i := 0; i < len(f); i++ {
 		c := f[i]
@@ -220,6 +207,27 @@ func firstIdentifier(f string) string {
 		}
 	}
 	return f
+}
+
+// quotedIdentifierPrefix extracts the quoted identifier when f starts with a
+// quote ("..." / `...` / [...]); ok is false when f is unquoted (or the
+// closing quote is missing).
+func quotedIdentifierPrefix(f string) (string, bool) {
+	var close byte
+	switch f[0] {
+	case '"':
+		close = '"'
+	case '`':
+		close = '`'
+	case '[':
+		close = ']'
+	default:
+		return "", false
+	}
+	if end := strings.Index(f[1:], string(close)); end >= 0 {
+		return f[1 : 1+end], true
+	}
+	return "", false
 }
 
 // isIntegerPrimaryKey reports whether a column definition declares

@@ -52,19 +52,13 @@ func (m *UnionVtabModule) applySwarmOption(opt, val string, cfg *UnionSwarmConfi
 			cfg.MaxOpen = n
 		}
 	case len(opt) == 7 && strings.EqualFold(opt, "missing"):
-		if cfg.NotFound != "" {
-			return fmt.Errorf("swarmvtab: duplicate \"missing\" option")
-		}
-		if !m.src.UnionFunctionExists(val) {
-			return fmt.Errorf("sql error: no such function: %s", val)
+		if err := m.requireSwarmFunction("missing", val, cfg.NotFound); err != nil {
+			return err
 		}
 		cfg.NotFound = val
 	case len(opt) == 9 && strings.EqualFold(opt, "openclose"):
-		if cfg.OpenClose != "" {
-			return fmt.Errorf("swarmvtab: duplicate \"openclose\" option")
-		}
-		if !m.src.UnionFunctionExists(val) {
-			return fmt.Errorf("sql error: no such function: %s", val)
+		if err := m.requireSwarmFunction("openclose", val, cfg.OpenClose); err != nil {
+			return err
 		}
 		cfg.OpenClose = val
 	default:
@@ -79,29 +73,47 @@ func (m *UnionVtabModule) applySwarmOption(opt, val string, cfg *UnionSwarmConfi
 // (union_isidchar), optional whitespace, then '='. ok is false when no '='
 // follows the name.
 func splitSwarmOption(z string) (opt, val string, ok bool) {
-	i := 0
-	for i < len(z) && swarmIsSpace(z[i]) {
-		i++
-	}
+	i := skipSwarmSpace(z, 0)
 	start := i
 	if i < len(z) && z[i] == ':' {
 		i++
 	}
-	for i < len(z) && swarmIsIdChar(z[i]) {
-		i++
-	}
+	i = skipSwarmIdChars(z, i)
 	opt = z[start:i]
-	for i < len(z) && swarmIsSpace(z[i]) {
-		i++
-	}
+	i = skipSwarmSpace(z, i)
 	if i >= len(z) || z[i] != '=' {
 		return opt, "", false
 	}
-	i++
+	i = skipSwarmSpace(z, i+1)
+	return opt, unquoteVtabArg(z[i:]), true
+}
+
+// skipSwarmSpace skips union_isspace bytes.
+func skipSwarmSpace(z string, i int) int {
 	for i < len(z) && swarmIsSpace(z[i]) {
 		i++
 	}
-	return opt, unquoteVtabArg(z[i:]), true
+	return i
+}
+
+// skipSwarmIdChars skips union_isidchar bytes.
+func skipSwarmIdChars(z string, i int) int {
+	for i < len(z) && swarmIsIdChar(z[i]) {
+		i++
+	}
+	return i
+}
+
+// requireSwarmFunction validates a function-named option: a duplicate option
+// or an unknown function fails (unionConfigureVtab).
+func (m *UnionVtabModule) requireSwarmFunction(name, val, seen string) error {
+	if seen != "" {
+		return fmt.Errorf("swarmvtab: duplicate %q option", name)
+	}
+	if !m.src.UnionFunctionExists(val) {
+		return fmt.Errorf("sql error: no such function: %s", val)
+	}
+	return nil
 }
 
 // swarmIsSpace mirrors union_isspace (space, tab, CR, LF).

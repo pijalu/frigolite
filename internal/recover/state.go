@@ -32,32 +32,44 @@ func (r *recoveryState) markTree(pgno uint32, m map[uint32]bool) {
 	}
 	coff := contentOffset(pgno)
 	ptype := pgd.Data[coff]
+	pageSize := int(r.pg.PageSize())
 	switch ptype {
 	case 0x05, 0x02: // interior
-		page, perr := storage.ParsePage(pgd.Data, int(r.pg.PageSize()), coff)
+		page, perr := storage.ParsePage(pgd.Data, pageSize, coff)
 		if perr != nil {
 			return
 		}
-		for i := 0; i < int(page.CellCount); i++ {
-			cellOff := int(storage.CellPointer(pgd.Data, coff+4, i, int(r.pg.PageSize())))
-			if cellOff+4 <= len(pgd.Data) {
-				r.markTree(binary.BigEndian.Uint32(pgd.Data[cellOff:cellOff+4]), m)
-			}
-		}
-		r.markTree(binary.BigEndian.Uint32(pgd.Data[coff+8:coff+12]), m)
+		r.markInteriorChildren(pgd.Data, coff, pageSize, int(page.CellCount), m)
 	case 0x0d, 0x0a: // leaf: mark each cell's overflow chain
-		page, perr := storage.ParsePage(pgd.Data, int(r.pg.PageSize()), coff)
+		page, perr := storage.ParsePage(pgd.Data, pageSize, coff)
 		if perr != nil {
 			return
 		}
-		ptrBase := coff
-		if ptype == 0x02 || ptype == 0x0a {
-			ptrBase = coff + 4
+		r.markLeafOverflowChains(pgd.Data, coff, ptype, pageSize, int(page.CellCount), m)
+	}
+}
+
+// markInteriorChildren marks the interior page's cell left-children and the
+// rightmost pointer as reachable.
+func (r *recoveryState) markInteriorChildren(data []byte, coff, pageSize, cellCount int, m map[uint32]bool) {
+	for i := 0; i < cellCount; i++ {
+		cellOff := int(storage.CellPointer(data, coff+4, i, pageSize))
+		if cellOff+4 <= len(data) {
+			r.markTree(binary.BigEndian.Uint32(data[cellOff:cellOff+4]), m)
 		}
-		for i := 0; i < int(page.CellCount); i++ {
-			cellOff := int(storage.CellPointer(pgd.Data, ptrBase, i, int(r.pg.PageSize())))
-			r.markCellOverflow(pgd.Data, cellOff, ptype, m)
-		}
+	}
+	r.markTree(binary.BigEndian.Uint32(data[coff+8:coff+12]), m)
+}
+
+// markLeafOverflowChains marks every cell's overflow chain of a leaf page.
+func (r *recoveryState) markLeafOverflowChains(data []byte, coff int, ptype byte, pageSize, cellCount int, m map[uint32]bool) {
+	ptrBase := coff
+	if ptype == 0x02 || ptype == 0x0a {
+		ptrBase = coff + 4
+	}
+	for i := 0; i < cellCount; i++ {
+		cellOff := int(storage.CellPointer(data, ptrBase, i, pageSize))
+		r.markCellOverflow(data, cellOff, ptype, m)
 	}
 }
 
@@ -78,23 +90,17 @@ func (r *recoveryState) markCellOverflow(pageData []byte, cellOff int, ptype byt
 		plen64, n1 := varintAt(pageData, cellOff)
 		plen, pos = int(plen64), cellOff+n1
 	}
-	maxLocal := usable - 35
-	minLocal := ((usable - 12) * 32 / 255) - 23
-	if ptype == 0x0a || ptype == 0x02 {
-		maxLocal = ((usable - 12) * 64 / 255) - 23
-	}
-	local := plen
-	if plen > maxLocal {
-		surplus := minLocal + (plen-minLocal)%(usable-4)
-		local = surplus
-		if local > maxLocal {
-			local = minLocal
-		}
-	}
+	local := leafLocalSize(plen, usable, ptype == 0x0d)
 	if local+4 > len(pageData)-pos {
 		return
 	}
 	next := binary.BigEndian.Uint32(pageData[pos+local : pos+local+4])
+	r.markOverflowChain(next, m)
+}
+
+// markOverflowChain follows one overflow chain, marking each page until the
+// chain ends or reaches an already-marked page.
+func (r *recoveryState) markOverflowChain(next uint32, m map[uint32]bool) {
 	for next != 0 && next <= r.pg.NumPages() && !m[next] {
 		m[next] = true
 		pgd, err := r.pg.ReadPage(next)
@@ -112,10 +118,4 @@ func (r *recoveryState) freelistHead() uint32 {
 		return 0
 	}
 	return binary.BigEndian.Uint32(hdr[32:36])
-}
-
-// parsePageAt parses the btree page image at data with the page-1 header
-// offset applied.
-func parsePageAt(pgd *pager.Page, coff, pageSize int) (*storage.BTreePage, error) {
-	return storage.ParsePage(pgd.Data, pageSize, coff)
 }

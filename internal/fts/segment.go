@@ -147,37 +147,52 @@ func ParseSegmentRootBounds(root []byte) (height, firstBlock int, boundaries []s
 	var prevTerm []byte
 	first := true
 	for pos < len(root) {
-		var nLen, nPrefix, nSuffix uint64
-		var n int
+		var term []byte
+		var ok bool
 		if first {
-			nLen, n = getFTS3Varint(root[pos:])
-			if n == 0 || uint64(pos)+nLen > uint64(len(root)) {
-				break
-			}
-			pos += n
-			prevTerm = root[pos : pos+int(nLen)]
-			pos += int(nLen)
+			term, pos, ok = readPrefixedTerm(root, pos)
 		} else {
-			nPrefix, n = getFTS3Varint(root[pos:])
-			if n == 0 {
-				break
-			}
-			pos += n
-			nSuffix, n = getFTS3Varint(root[pos:])
-			if n == 0 || uint64(pos)+nSuffix > uint64(len(root)) {
-				break
-			}
-			pos += n
-			term := make([]byte, 0, int(nPrefix)+int(nSuffix))
-			term = append(term, prevTerm[:int(nPrefix)]...)
-			term = append(term, root[pos:pos+int(nSuffix)]...)
-			prevTerm = term
-			pos += int(nSuffix)
+			term, pos, ok = appendDeltaTerm(root, pos, prevTerm)
 		}
+		if !ok {
+			break
+		}
+		prevTerm = term
 		boundaries = append(boundaries, string(prevTerm))
 		first = false
 	}
 	return height, firstBlock, boundaries
+}
+
+// readPrefixedTerm reads a length-prefixed term at pos, validating the
+// varint and the term's bounds against blob.
+func readPrefixedTerm(blob []byte, pos int) (term []byte, next int, ok bool) {
+	nLen, n := getFTS3Varint(blob[pos:])
+	if n == 0 || uint64(pos)+nLen > uint64(len(blob)) {
+		return nil, pos, false
+	}
+	pos += n
+	return blob[pos : pos+int(nLen)], pos + int(nLen), true
+}
+
+// appendDeltaTerm reconstructs a delta-encoded boundary term: prefix bytes
+// from prevTerm plus suffix bytes from blob (the engine-built roots this
+// reader consumes carry no prefix bound to check).
+func appendDeltaTerm(blob []byte, pos int, prevTerm []byte) (term []byte, next int, ok bool) {
+	nPrefix, n := getFTS3Varint(blob[pos:])
+	if n == 0 {
+		return nil, pos, false
+	}
+	pos += n
+	nSuffix, n := getFTS3Varint(blob[pos:])
+	if n == 0 || uint64(pos)+nSuffix > uint64(len(blob)) {
+		return nil, pos, false
+	}
+	pos += n
+	term = make([]byte, 0, int(nPrefix)+int(nSuffix))
+	term = append(term, prevTerm[:int(nPrefix)]...)
+	term = append(term, blob[pos:pos+int(nSuffix)]...)
+	return term, pos + int(nSuffix), true
 }
 
 // BuildInteriorRoot builds an interior segment root over leaf blocks whose
@@ -345,6 +360,21 @@ func serializeSegmentBlocks(records []termRecord, nodeSize int) ([]byte, []Segme
 	if nodeSize <= 0 {
 		nodeSize = leafMaxBytes
 	}
+	leaves := packSegmentLeaves(records, nodeSize)
+	if len(leaves) == 0 {
+		return serializeLeafNode(nil), nil
+	}
+	if len(leaves) == 1 {
+		// A single-leaf segment: the root is the leaf, no %_segments rows.
+		return serializeLeafNode(leaves[0].records), nil
+	}
+	return serializeMultiLeafSegment(leaves)
+}
+
+// packSegmentLeaves greedily fills leaf buffers up to nodeSize bytes,
+// starting a new leaf whenever adding a record would overflow the current
+// one.
+func packSegmentLeaves(records []termRecord, nodeSize int) []segmentLeaf {
 	var leaves []segmentLeaf
 	var cur segmentLeaf
 	cur.blockID = 1
@@ -369,26 +399,27 @@ func serializeSegmentBlocks(records []termRecord, nodeSize int) ([]byte, []Segme
 	if len(cur.records) > 0 {
 		leaves = append(leaves, cur)
 	}
+	return leaves
+}
 
-	if len(leaves) == 0 {
-		return serializeLeafNode(nil), nil
-	}
-	if len(leaves) == 1 {
-		// A single-leaf segment: the root is the leaf, no %_segments rows.
-		return serializeLeafNode(leaves[0].records), nil
-	}
-
-	// Multiple leaves: store each leaf in %_segments and build an interior
-	// root referencing them.
+// serializeMultiLeafSegment stores each leaf in %_segments and builds an
+// interior root referencing them.
+func serializeMultiLeafSegment(leaves []segmentLeaf) ([]byte, []SegmentBlock) {
 	blocks := make([]SegmentBlock, 0, len(leaves))
 	for _, l := range leaves {
 		blocks = append(blocks, SegmentBlock{BlockID: l.blockID, Block: serializeLeafNode(l.records)})
 	}
-	// Boundary terms are TRUNCATED SEPARATORS (fts3_write.c
-	// fts3SegWriterAddBlock → fts3NodeAddTerm(..., zTerm, nPrefix+1)): the
-	// new leaf's first term cut to the common prefix it shares with the
-	// PREVIOUS leaf's last term, plus one byte. Full first-terms make the
-	// root blob diverge from SQLite's byte-for-byte (fts4growth 2.x).
+	root := serializeInteriorNode(1, leaves[0].blockID, truncatedBoundaryTerms(leaves))
+	return root, blocks
+}
+
+// truncatedBoundaryTerms computes the interior root's boundary terms. They
+// are TRUNCATED SEPARATORS (fts3_write.c fts3SegWriterAddBlock →
+// fts3NodeAddTerm(..., zTerm, nPrefix+1)): the new leaf's first term cut to
+// the common prefix it shares with the PREVIOUS leaf's last term, plus one
+// byte. Full first-terms make the root blob diverge from SQLite's
+// byte-for-byte (fts4growth 2.x).
+func truncatedBoundaryTerms(leaves []segmentLeaf) []string {
 	boundaries := make([]string, 0, len(leaves)-1)
 	for i := 1; i < len(leaves); i++ {
 		prev := leaves[i-1].lastTerm
@@ -399,8 +430,7 @@ func serializeSegmentBlocks(records []termRecord, nodeSize int) ([]byte, []Segme
 		}
 		boundaries = append(boundaries, leaves[i].firstTerm[:cut])
 	}
-	root := serializeInteriorNode(1, leaves[0].blockID, boundaries)
-	return root, blocks
+	return boundaries
 }
 
 // leafSize estimates the serialized size of a leaf's current records.
@@ -482,61 +512,88 @@ func validateLeafNode(root []byte, pos int) error {
 	var prevTerm []byte
 	first := true
 	for termIdx := 0; termIdx < 2 && pos < len(root); termIdx++ {
-		var nLen uint64
-		var n int
+		var term []byte
+		var ok bool
 		if first {
-			nLen, n = getFTS3Varint(root[pos:])
-			if n == 0 {
-				return fmt.Errorf("corrupt segment root")
-			}
-			pos += n
-			if uint64(pos)+nLen > uint64(len(root)) {
-				return fmt.Errorf("corrupt segment root")
-			}
-			prevTerm = root[pos : pos+int(nLen)]
-			pos += int(nLen)
+			term, pos, ok = readValidatedPrefixedTerm(root, pos)
 		} else {
-			var nPrefix, nSuffix uint64
-			nPrefix, n = getFTS3Varint(root[pos:])
-			if n == 0 {
-				return fmt.Errorf("corrupt segment root")
-			}
-			pos += n
-			nSuffix, n = getFTS3Varint(root[pos:])
-			if n == 0 {
-				return fmt.Errorf("corrupt segment root")
-			}
-			pos += n
-			if nSuffix == 0 || uint64(nPrefix) > uint64(len(prevTerm)) || nSuffix > uint64(len(root)) || uint64(pos)+nSuffix > uint64(len(root)) {
-				return fmt.Errorf("corrupt segment root")
-			}
-			// Reconstruct the full term (prefix from the previous term + the
-			// suffix) so a later delta can compare against it.
-			term := make([]byte, nPrefix)
-			copy(term, prevTerm[:nPrefix])
-			term = append(term, root[pos:pos+int(nSuffix)]...)
-			pos += int(nSuffix)
-			prevTerm = term
+			term, pos, ok = readValidatedLeafDeltaTerm(root, pos, prevTerm)
 		}
-		// Doclist length + bytes.
-		var nDoclist uint64
-		nDoclist, n = getFTS3Varint(root[pos:])
-		if n == 0 {
-			return fmt.Errorf("corrupt segment root")
+		if !ok {
+			return corruptRootErr()
 		}
-		pos += n
-		// Absolute bound first: a near-2^64 doclist length would wrap the
-		// uint64 sum and pass the relative check (fts3cov 17.x crafted root).
-		if nDoclist > uint64(len(root)) || uint64(pos)+nDoclist > uint64(len(root)) {
-			return fmt.Errorf("corrupt segment root")
+		prevTerm = term
+		if !validateLeafDoclist(root, &pos) {
+			return corruptRootErr()
 		}
-		if verr := validateDoclist(root[pos : pos+int(nDoclist)]); verr != nil {
-			return fmt.Errorf("corrupt segment root")
-		}
-		pos += int(nDoclist)
 		first = false
 	}
 	return nil
+}
+
+// corruptRootErr reports the segment-root structural error (a fresh error
+// value with the message the corruption tests match).
+func corruptRootErr() error {
+	return fmt.Errorf("corrupt segment root")
+}
+
+// readValidatedPrefixedTerm reads a length-prefixed first term, validating
+// the varint and the term's bounds against root.
+func readValidatedPrefixedTerm(root []byte, pos int) (term []byte, next int, ok bool) {
+	nLen, n := getFTS3Varint(root[pos:])
+	if n == 0 {
+		return nil, pos, false
+	}
+	pos += n
+	if uint64(pos)+nLen > uint64(len(root)) {
+		return nil, pos, false
+	}
+	return root[pos : pos+int(nLen)], pos + int(nLen), true
+}
+
+// readValidatedLeafDeltaTerm reads a leaf node's delta-encoded term,
+// validating the varints, the non-empty suffix and the prefix/suffix bounds
+// against the previous term and the root.
+func readValidatedLeafDeltaTerm(root []byte, pos int, prevTerm []byte) (term []byte, next int, ok bool) {
+	nPrefix, n := getFTS3Varint(root[pos:])
+	if n == 0 {
+		return nil, pos, false
+	}
+	pos += n
+	nSuffix, n := getFTS3Varint(root[pos:])
+	if n == 0 {
+		return nil, pos, false
+	}
+	pos += n
+	if nSuffix == 0 || uint64(nPrefix) > uint64(len(prevTerm)) || nSuffix > uint64(len(root)) || uint64(pos)+nSuffix > uint64(len(root)) {
+		return nil, pos, false
+	}
+	// Reconstruct the full term (prefix from the previous term + the
+	// suffix) so a later delta can compare against it.
+	term = make([]byte, nPrefix)
+	copy(term, prevTerm[:nPrefix])
+	term = append(term, root[pos:pos+int(nSuffix)]...)
+	return term, pos + int(nSuffix), true
+}
+
+// validateLeafDoclist checks a term's doclist framing (varint length in
+// range, non-empty doclist) and advances *pos past it.
+func validateLeafDoclist(root []byte, pos *int) bool {
+	nDoclist, n := getFTS3Varint(root[*pos:])
+	if n == 0 {
+		return false
+	}
+	*pos += n
+	// Absolute bound first: a near-2^64 doclist length would wrap the
+	// uint64 sum and pass the relative check (fts3cov 17.x crafted root).
+	if nDoclist > uint64(len(root)) || uint64(*pos)+nDoclist > uint64(len(root)) {
+		return false
+	}
+	if verr := validateDoclist(root[*pos : *pos+int(nDoclist)]); verr != nil {
+		return false
+	}
+	*pos += int(nDoclist)
+	return true
 }
 
 // validateInteriorNode parses an interior node: height, first block id, then
@@ -546,7 +603,7 @@ func validateInteriorNode(root []byte, pos int) error {
 	// First subtree block id.
 	_, n := getFTS3Varint(root[pos:])
 	if n == 0 {
-		return fmt.Errorf("corrupt segment root")
+		return corruptRootErr()
 	}
 	pos += n
 	if pos >= len(root) {
@@ -556,43 +613,42 @@ func validateInteriorNode(root []byte, pos int) error {
 	var prevTerm []byte
 	first := true
 	for pos < len(root) {
-		var nLen uint64
-		var n int
+		var term []byte
+		var ok bool
 		if first {
-			nLen, n = getFTS3Varint(root[pos:])
-			if n == 0 {
-				return fmt.Errorf("corrupt segment root")
-			}
-			pos += n
-			if uint64(pos)+nLen > uint64(len(root)) {
-				return fmt.Errorf("corrupt segment root")
-			}
-			prevTerm = root[pos : pos+int(nLen)]
-			pos += int(nLen)
+			term, pos, ok = readValidatedPrefixedTerm(root, pos)
 		} else {
-			var nPrefix, nSuffix uint64
-			nPrefix, n = getFTS3Varint(root[pos:])
-			if n == 0 {
-				return fmt.Errorf("corrupt segment root")
-			}
-			pos += n
-			nSuffix, n = getFTS3Varint(root[pos:])
-			if n == 0 {
-				return fmt.Errorf("corrupt segment root")
-			}
-			pos += n
-			if uint64(nPrefix) > uint64(len(prevTerm)) || uint64(pos)+nSuffix > uint64(len(root)) {
-				return fmt.Errorf("corrupt segment root")
-			}
-			term := make([]byte, nPrefix)
-			copy(term, prevTerm[:nPrefix])
-			term = append(term, root[pos:pos+int(nSuffix)]...)
-			pos += int(nSuffix)
-			prevTerm = term
+			term, pos, ok = readValidatedInteriorDeltaTerm(root, pos, prevTerm)
 		}
+		if !ok {
+			return corruptRootErr()
+		}
+		prevTerm = term
 		first = false
 	}
 	return nil
+}
+
+// readValidatedInteriorDeltaTerm reads an interior node's delta-encoded
+// boundary term, validating the varints and the prefix/suffix bounds.
+func readValidatedInteriorDeltaTerm(root []byte, pos int, prevTerm []byte) (term []byte, next int, ok bool) {
+	nPrefix, n := getFTS3Varint(root[pos:])
+	if n == 0 {
+		return nil, pos, false
+	}
+	pos += n
+	nSuffix, n := getFTS3Varint(root[pos:])
+	if n == 0 {
+		return nil, pos, false
+	}
+	pos += n
+	if uint64(nPrefix) > uint64(len(prevTerm)) || uint64(pos)+nSuffix > uint64(len(root)) {
+		return nil, pos, false
+	}
+	term = make([]byte, nPrefix)
+	copy(term, prevTerm[:nPrefix])
+	term = append(term, root[pos:pos+int(nSuffix)]...)
+	return term, pos + int(nSuffix), true
 }
 
 // LeafTermRange returns the first and last term of a leaf-node block (for
@@ -623,41 +679,52 @@ func LeafTermRange(block []byte) (string, string) {
 	// Iterate the remaining delta-encoded terms.
 	var prev []byte = []byte(first)
 	for pos < len(block) {
-		// Doclist length + content.
-		nDoclist, n := getFTS3Varint(block[pos:])
-		if n == 0 {
+		term, next, ok := leafNextTerm(block, pos, prev)
+		if !ok {
 			break
 		}
-		pos += n
-		if uint64(pos)+nDoclist > uint64(len(block)) {
-			break
-		}
-		pos += int(nDoclist)
-		if pos >= len(block) {
-			break
-		}
-		// Delta-encoded term.
-		nPrefix, n := getFTS3Varint(block[pos:])
-		if n == 0 {
-			break
-		}
-		pos += n
-		nSuffix, n := getFTS3Varint(block[pos:])
-		if n == 0 {
-			break
-		}
-		pos += n
-		if uint64(nPrefix) > uint64(len(prev)) || uint64(pos)+nSuffix > uint64(len(block)) {
-			break
-		}
-		term := make([]byte, nPrefix)
-		copy(term, prev[:nPrefix])
-		term = append(term, block[pos:pos+int(nSuffix)]...)
-		pos += int(nSuffix)
+		pos = next
 		last = string(term)
 		prev = term
 	}
 	return first, last
+}
+
+// leafNextTerm scans one doclist + delta-encoded term pair of a leaf block,
+// returning the reconstructed term and the new position. ok is false for a
+// malformed or exhausted tail (the scan stops without consuming).
+func leafNextTerm(block []byte, pos int, prev []byte) (term []byte, next int, ok bool) {
+	// Doclist length + content.
+	nDoclist, n := getFTS3Varint(block[pos:])
+	if n == 0 {
+		return nil, pos, false
+	}
+	pos += n
+	if uint64(pos)+nDoclist > uint64(len(block)) {
+		return nil, pos, false
+	}
+	pos += int(nDoclist)
+	if pos >= len(block) {
+		return nil, pos, false
+	}
+	// Delta-encoded term.
+	nPrefix, n := getFTS3Varint(block[pos:])
+	if n == 0 {
+		return nil, pos, false
+	}
+	pos += n
+	nSuffix, n := getFTS3Varint(block[pos:])
+	if n == 0 {
+		return nil, pos, false
+	}
+	pos += n
+	if uint64(nPrefix) > uint64(len(prev)) || uint64(pos)+nSuffix > uint64(len(block)) {
+		return nil, pos, false
+	}
+	term = make([]byte, nPrefix)
+	copy(term, prev[:nPrefix])
+	term = append(term, block[pos:pos+int(nSuffix)]...)
+	return term, pos + int(nSuffix), true
 }
 
 // sortPostings sorts postings by (docid, column, position) so buildDoclist
@@ -693,44 +760,60 @@ func parseLeafRecs(block []byte) ([]TermRecord, error) {
 	var prev []byte
 	first := true
 	for pos < len(block) {
-		var term []byte
-		if first {
-			nLen, n2 := getFTS3Varint(block[pos:])
-			if nLen > uint64(len(block)) || n2 == 0 || pos+n2+int(nLen) > len(block) {
-				return nil, fmt.Errorf("corrupt leaf")
-			}
-			pos += n2
-			term = block[pos : pos+int(nLen)]
-			pos += int(nLen)
-			prev = term
-			first = false
-		} else {
-			nPrefix, n2 := getFTS3Varint(block[pos:])
-			if n2 == 0 {
-				return nil, fmt.Errorf("corrupt leaf")
-			}
-			pos += n2
-			nSuffix, n3 := getFTS3Varint(block[pos:])
-			if nSuffix > uint64(len(block)) || nPrefix > uint64(len(prev)) || n3 == 0 || pos+n3+int(nSuffix) > len(block) {
-				return nil, fmt.Errorf("corrupt leaf")
-			}
-			pos += n3
-			term = make([]byte, 0, int(nPrefix)+int(nSuffix))
-			term = append(term, prev[:nPrefix]...)
-			term = append(term, block[pos:pos+int(nSuffix)]...)
-			pos += int(nSuffix)
-			prev = term
+		term, np, err := nextLeafRecTerm(block, pos, prev, first)
+		if err != nil {
+			return nil, err
 		}
-		nDoc, n4 := getFTS3Varint(block[pos:])
-		if nDoc > uint64(len(block)) || n4 == 0 || pos+n4+int(nDoc) > len(block) {
-			return nil, fmt.Errorf("corrupt leaf")
+		pos = np
+		prev = term
+		dl, np, err := nextLeafRecDoclist(block, pos)
+		if err != nil {
+			return nil, err
 		}
-		pos += n4
-		dl := block[pos : pos+int(nDoc)]
-		pos += int(nDoc)
+		pos = np
 		out = append(out, TermRecord{Term: string(term), Doclist: dl})
+		first = false
 	}
 	return out, nil
+}
+
+// nextLeafRecTerm decodes a leaf entry's term: the first is length-prefixed,
+// the rest are delta-encoded against prev.
+func nextLeafRecTerm(block []byte, pos int, prev []byte, first bool) ([]byte, int, error) {
+	if !first {
+		nPrefix, n2 := getFTS3Varint(block[pos:])
+		if n2 == 0 {
+			return nil, 0, fmt.Errorf("corrupt leaf")
+		}
+		pos += n2
+		nSuffix, n3 := getFTS3Varint(block[pos:])
+		if nSuffix > uint64(len(block)) || nPrefix > uint64(len(prev)) || n3 == 0 || pos+n3+int(nSuffix) > len(block) {
+			return nil, 0, fmt.Errorf("corrupt leaf")
+		}
+		pos += n3
+		term := make([]byte, 0, int(nPrefix)+int(nSuffix))
+		term = append(term, prev[:nPrefix]...)
+		term = append(term, block[pos:pos+int(nSuffix)]...)
+		return term, pos + int(nSuffix), nil
+	}
+	nLen, n2 := getFTS3Varint(block[pos:])
+	if nLen > uint64(len(block)) || n2 == 0 || pos+n2+int(nLen) > len(block) {
+		return nil, 0, fmt.Errorf("corrupt leaf")
+	}
+	pos += n2
+	term := block[pos : pos+int(nLen)]
+	return term, pos + int(nLen), nil
+}
+
+// nextLeafRecDoclist decodes a leaf entry's doclist length + bytes.
+func nextLeafRecDoclist(block []byte, pos int) ([]byte, int, error) {
+	nDoc, n4 := getFTS3Varint(block[pos:])
+	if nDoc > uint64(len(block)) || n4 == 0 || pos+n4+int(nDoc) > len(block) {
+		return nil, 0, fmt.Errorf("corrupt leaf")
+	}
+	pos += n4
+	dl := block[pos : pos+int(nDoc)]
+	return dl, pos + int(nDoc), nil
 }
 
 // SerializeLeafNode encodes leaf entries (fts3 leaf format) — exported for

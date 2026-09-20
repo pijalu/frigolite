@@ -214,9 +214,25 @@ func (aq *AuxQuery) evalStringNode(n stringNode, rowid int64) (bool, []Inst) {
 		insts := aq.t.phraseInstances(n.phrases[0], doc)
 		return len(insts) > 0, insts
 	}
-	// Per-column instance positions for every phrase.
-	byCol := make([]map[int][]int, len(n.phrases))
-	for i, ph := range n.phrases {
+	return aq.evalNearCluster(n, doc)
+}
+
+// evalNearCluster evaluates a multi-phrase NEAR cluster: per column, only the
+// instances inside matching windows are reported (fts5ExprNearIsMatch's
+// trimmed poslists).
+func (aq *AuxQuery) evalNearCluster(n stringNode, doc *docEntry) (bool, []Inst) {
+	byCol := aq.phraseInstancesByColumn(n.phrases, doc)
+	var out []Inst
+	for _, col := range phraseCols(aq.t, n.phrases[0]) {
+		out = append(out, aq.columnWindowInsts(n, byCol, col)...)
+	}
+	return len(out) > 0, out
+}
+
+// phraseInstancesByColumn buckets each phrase's instance offsets by column.
+func (aq *AuxQuery) phraseInstancesByColumn(phrases []*phraseNode, doc *docEntry) []map[int][]int {
+	byCol := make([]map[int][]int, len(phrases))
+	for i, ph := range phrases {
 		for _, in := range aq.t.phraseInstances(ph, doc) {
 			if byCol[i] == nil {
 				byCol[i] = make(map[int][]int)
@@ -224,33 +240,28 @@ func (aq *AuxQuery) evalStringNode(n stringNode, rowid int64) (bool, []Inst) {
 			byCol[i][in.Col] = append(byCol[i][in.Col], in.Offset)
 		}
 	}
+	return byCol
+}
+
+// columnWindowInsts emits one column's kept instances (nearWindowCollect's
+// trimmed poslists); a column where some phrase has no instance contributes
+// nothing.
+func (aq *AuxQuery) columnWindowInsts(n stringNode, byCol []map[int][]int, col int) []Inst {
+	instances := make([][]int, len(n.phrases))
+	for i := range n.phrases {
+		instances[i] = byCol[i][col]
+		if len(instances[i]) == 0 {
+			return nil
+		}
+	}
+	_, kept := nearWindowCollect(instances, phraseSizes(n.phrases), n.window)
 	var out []Inst
-	cols := phraseCols(aq.t, n.phrases[0])
-	sizes := make([]int, len(n.phrases))
-	for i, ph := range n.phrases {
-		sizes[i] = ph.size()
-	}
-	for _, col := range cols {
-		instances := make([][]int, len(n.phrases))
-		empty := false
-		for i := range n.phrases {
-			instances[i] = byCol[i][col]
-			if len(instances[i]) == 0 {
-				empty = true
-				break
-			}
-		}
-		if empty {
-			continue
-		}
-		_, kept := nearWindowCollect(instances, sizes, n.window)
-		for i := range n.phrases {
-			for _, pos := range kept[i] {
-				out = append(out, Inst{Phrase: i, Col: col, Offset: pos})
-			}
+	for i := range n.phrases {
+		for _, pos := range kept[i] {
+			out = append(out, Inst{Phrase: i, Col: col, Offset: pos})
 		}
 	}
-	return len(out) > 0, out
+	return out
 }
 
 // phraseInstances returns one phrase's instances in a document (colset
@@ -274,65 +285,113 @@ func (t *Table) phraseInstances(ph *phraseNode, doc *docEntry) []Inst {
 	return out
 }
 
+// nearWindowScan is fts5ExprNearIsMatch's scan state: per-phrase cursors into
+// the instance lists and the kept (trimmed) positions.
+type nearWindowScan struct {
+	instances [][]int
+	sizes     []int
+	window    int
+	idx       []int
+	kept      [][]int
+	iMax      int
+}
+
 // nearWindowCollect ports fts5ExprNearIsMatch: it finds the matching windows
 // and returns, per phrase, the instances that belong to at least one window
 // (the trimmed output poslists).
 func nearWindowCollect(instances [][]int, sizes []int, window int) (bool, [][]int) {
-	n := len(instances)
+	w := &nearWindowScan{
+		instances: instances,
+		sizes:     sizes,
+		window:    window,
+		idx:       make([]int, len(instances)),
+		kept:      make([][]int, len(instances)),
+	}
+	w.collect()
+	return len(w.kept[0]) > 0, w.kept
+}
+
+// collect runs the advancing-anchors loop until a phrase's instances are
+// exhausted or no cursor can advance past the recorded window
+// (fts5ExprNearIsMatch).
+func (w *nearWindowScan) collect() {
+	w.iMax = w.instances[0][0]
+	for w.step() {
+	}
+}
+
+// step performs one loop iteration; false ends the scan (a phrase exhausted
+// or, after a recorded window, no cursor left to advance).
+func (w *nearWindowScan) step() bool {
+	matched, ok := w.advanceCursors()
+	if !ok {
+		return false
+	}
+	if !matched {
+		return true // a cursor moved the anchor past iMax: re-check the window
+	}
+	w.recordWindow()
+	return w.advanceSmallest()
+}
+
+// advanceCursors moves each cursor up to its window floor (iMax - size -
+// window); ok=false when a phrase's instances are exhausted. matched reports
+// whether every cursor already sits at or above its floor within the window.
+func (w *nearWindowScan) advanceCursors() (matched, ok bool) {
+	matched = true
+	for i := range w.instances {
+		iMin := w.iMax - w.sizes[i] - w.window
+		for w.instances[i][w.idx[i]] < iMin {
+			w.idx[i]++
+			if w.idx[i] >= len(w.instances[i]) {
+				return matched, false
+			}
+		}
+		if p := w.instances[i][w.idx[i]]; p > w.iMax {
+			w.iMax = p
+			matched = false
+		}
+	}
+	return matched, true
+}
+
+// recordWindow appends each phrase's current position to its kept list,
+// deduplicated against the trailing entry (the trimmed poslist).
+func (w *nearWindowScan) recordWindow() {
+	for i := range w.instances {
+		pos := w.instances[i][w.idx[i]]
+		k := w.kept[i]
+		if len(k) == 0 || k[len(k)-1] != pos {
+			w.kept[i] = append(k, pos)
+		}
+	}
+}
+
+// advanceSmallest steps the cursor with the smallest lookahead past the
+// recorded window; false when every cursor is at its last instance (no
+// further window can match).
+func (w *nearWindowScan) advanceSmallest() bool {
 	const inf = math.MaxInt64
-	idx := make([]int, n)
-	kept := make([][]int, n)
-	next := func(i int) int {
-		if idx[i]+1 < len(instances[i]) {
-			return instances[i][idx[i]+1]
-		}
-		return inf
-	}
-	iMax := instances[0][0]
-	for {
-		bMatch := true
-		exhausted := false
-		for i := 0; i < n; i++ {
-			iMin := iMax - sizes[i] - window
-			for instances[i][idx[i]] < iMin {
-				idx[i]++
-				if idx[i] >= len(instances[i]) {
-					exhausted = true
-					break
-				}
-			}
-			if exhausted {
-				break
-			}
-			if p := instances[i][idx[i]]; p > iMax {
-				iMax = p
-				bMatch = false
-			}
-		}
-		if exhausted {
-			break
-		}
-		if bMatch {
-			for i := 0; i < n; i++ {
-				pos := instances[i][idx[i]]
-				k := kept[i]
-				if len(k) == 0 || k[len(k)-1] != pos {
-					kept[i] = append(k, pos)
-				}
-			}
-			best, bestAt := inf, -1
-			for i := 0; i < n; i++ {
-				if la := next(i); la < best {
-					best, bestAt = la, i
-				}
-			}
-			if bestAt < 0 {
-				break
-			}
-			idx[bestAt]++
+	best, bestAt := inf, -1
+	for i := range w.instances {
+		if la := w.lookahead(i); la < best {
+			best, bestAt = la, i
 		}
 	}
-	return len(kept[0]) > 0, kept
+	if bestAt < 0 {
+		return false
+	}
+	w.idx[bestAt]++
+	return true
+}
+
+// lookahead returns the next instance position of cursor i (the sentinel
+// maximum at the end of the list).
+func (w *nearWindowScan) lookahead(i int) int {
+	if w.idx[i]+1 < len(w.instances[i]) {
+		return w.instances[i][w.idx[i]+1]
+	}
+	return math.MaxInt64
 }
 
 // --- bm25 (fts5_aux.c fts5Bm25Function) ---
@@ -528,24 +587,51 @@ func (p *highlightState) append(s string) { p.zOut = append(p.zOut, s...) }
 func (p *highlightState) token(startOff, endOff int) {
 	iPos := p.iPos
 	p.iPos++
-	if p.iRangeEnd >= 0 {
-		if iPos < p.iRangeStart || iPos > p.iRangeEnd {
-			return
-		}
-		if p.iRangeStart != 0 && iPos == p.iRangeStart {
-			p.iOff = startOff
-		}
+	if !p.rangeFilter(iPos, startOff) {
+		return
 	}
+	p.closeBefore(startOff, iPos)
+	p.openAt(iPos, startOff)
+	p.closeAt(iPos, endOff)
+	p.atRangeEnd(iPos, endOff)
+}
+
+// rangeFilter applies the [iRangeStart, iRangeEnd] token window: it reports
+// whether the token is emitted, updating iOff at the window start
+// (fts5HighlightCb's range branch).
+func (p *highlightState) rangeFilter(iPos, startOff int) bool {
+	if p.iRangeEnd < 0 {
+		return true
+	}
+	if iPos < p.iRangeStart || iPos > p.iRangeEnd {
+		return false
+	}
+	if p.iRangeStart != 0 && iPos == p.iRangeStart {
+		p.iOff = startOff
+	}
+	return true
+}
+
+// closeBefore closes an open highlight run that ended before this token.
+func (p *highlightState) closeBefore(startOff, iPos int) {
 	if p.bOpen && (iPos <= p.iStart || p.iStart < 0) && startOff > p.iOff {
 		p.append(p.zClose)
 		p.bOpen = false
 	}
+}
+
+// openAt opens the highlight at a coalesced instance start.
+func (p *highlightState) openAt(iPos, startOff int) {
 	if iPos == p.iStart && !p.bOpen {
 		p.append(p.zIn[p.iOff:startOff])
 		p.append(p.zOpen)
 		p.iOff = startOff
 		p.bOpen = true
 	}
+}
+
+// closeAt closes the coalesced instance at its end token.
+func (p *highlightState) closeAt(iPos, endOff int) {
 	if iPos == p.iEnd {
 		if !p.bOpen {
 			p.append(p.zOpen)
@@ -555,18 +641,24 @@ func (p *highlightState) token(startOff, endOff int) {
 		p.iOff = endOff
 		p.iterNext()
 	}
-	if iPos == p.iRangeEnd {
-		if p.bOpen {
-			if p.iStart >= 0 && iPos >= p.iStart {
-				p.append(p.zIn[p.iOff:endOff])
-				p.iOff = endOff
-			}
-			p.append(p.zClose)
-			p.bOpen = false
-		}
-		p.append(p.zIn[p.iOff:endOff])
-		p.iOff = endOff
+}
+
+// atRangeEnd flushes the trailing text at the range's last token
+// (fts5HighlightCb's range-end branch).
+func (p *highlightState) atRangeEnd(iPos, endOff int) {
+	if iPos != p.iRangeEnd {
+		return
 	}
+	if p.bOpen {
+		if p.iStart >= 0 && iPos >= p.iStart {
+			p.append(p.zIn[p.iOff:endOff])
+			p.iOff = endOff
+		}
+		p.append(p.zClose)
+		p.bOpen = false
+	}
+	p.append(p.zIn[p.iOff:endOff])
+	p.iOff = endOff
 }
 
 // Highlight evaluates highlight(t1, iCol, zOpen, zClose) for one document
@@ -671,6 +763,107 @@ func sentenceStarts(text string, toks []Token) []int {
 	return out
 }
 
+// snippetCandidate is one scored candidate window (fts5SnippetFunction's
+// iBestCol/iBestStart/nColSize tracking).
+type snippetCandidate struct {
+	col, start, size, score int
+}
+
+// bestSnippetWindow scans every candidate column and instance offset for the
+// highest-scoring token window; ties keep the first candidate in scan order
+// (column ascending, instance offset ascending, offset window before
+// sentence window — the C loop's update order).
+func (aq *AuxQuery) bestSnippetWindow(insts []Inst, rowid int64, iCol, nToken, nCol int) snippetCandidate {
+	best := snippetCandidate{}
+	if iCol >= 0 {
+		best.col = iCol
+	}
+	for i := 0; i < nCol; i++ {
+		if iCol >= 0 && iCol != i {
+			continue
+		}
+		for _, c := range aq.scoreColumnWindows(insts, rowid, i, nToken) {
+			if c.score > best.score {
+				best = c
+			}
+		}
+	}
+	return best
+}
+
+// scoreColumnWindows scores column i's candidate windows: every instance's
+// offset window, plus each instance's preceding sentence-start window with
+// its bonus (fts5SnippetFunction's inner loops).
+func (aq *AuxQuery) scoreColumnWindows(insts []Inst, rowid int64, i, nToken int) []snippetCandidate {
+	nDocsize := aq.t.columnTokenCount(rowid, i)
+	firsts := aq.columnSentenceStarts(rowid, i)
+	var cands []snippetCandidate
+	for _, in := range insts {
+		if in.Col != i {
+			continue
+		}
+		cands = append(cands, aq.instanceCandidates(insts, i, in.Offset, nToken, nDocsize, firsts)...)
+	}
+	return cands
+}
+
+// instanceCandidates scores one instance's offset window and, when sentence
+// starts exist and the column is longer than the window, the sentence window
+// before the instance (fts5SnippetFunction's per-instance block).
+func (aq *AuxQuery) instanceCandidates(insts []Inst, i, io, nToken, nDocsize int, firsts []int) []snippetCandidate {
+	nScore, iAdj := aq.scoreWindow(insts, nDocsize, i, io, nToken, true)
+	cands := []snippetCandidate{{col: i, start: iAdj, size: nDocsize, score: nScore}}
+	if len(firsts) == 0 || nDocsize <= nToken {
+		return cands
+	}
+	if start, ok := precedingSentenceStart(firsts, io); ok {
+		cands = append(cands, aq.sentenceCandidate(insts, i, start, nToken, nDocsize))
+	}
+	return cands
+}
+
+// precedingSentenceStart returns the sentence start at or before io (the
+// fts5SentenceFinder probe); ok=false when it is not strictly before io.
+func precedingSentenceStart(firsts []int, io int) (int, bool) {
+	jj := 0
+	for jj < len(firsts)-1 && firsts[jj+1] <= io {
+		jj++
+	}
+	if firsts[jj] >= io {
+		return 0, false
+	}
+	return firsts[jj], true
+}
+
+// sentenceCandidate scores one sentence-start window with its bonus (120 for
+// a column-initial window, 100 otherwise).
+func (aq *AuxQuery) sentenceCandidate(insts []Inst, i, start, nToken, nDocsize int) snippetCandidate {
+	nScore, _ := aq.scoreWindow(insts, nDocsize, i, start, nToken, false)
+	if start == 0 {
+		nScore += 120
+	} else {
+		nScore += 100
+	}
+	return snippetCandidate{col: i, start: start, size: nDocsize, score: nScore}
+}
+
+// scoreWindow wraps snippetScore with a fresh seen mask (each candidate
+// scores independently).
+func (aq *AuxQuery) scoreWindow(insts []Inst, nDocsize, iCol, iPos, nToken int, wantAdj bool) (int, int) {
+	return aq.snippetScore(insts, nDocsize, iCol, iPos, nToken, make([]bool, len(aq.phrases)), wantAdj)
+}
+
+// columnSentenceStarts returns column i's sentence starts (empty when the
+// column has no stored text).
+func (aq *AuxQuery) columnSentenceStarts(rowid int64, i int) []int {
+	t := aq.t
+	text, ok, err := t.columnText(rowid, i)
+	if err != nil || !ok {
+		return nil
+	}
+	return sentenceStarts(text, t.tokenizeFor(text))
+}
+
 // Snippet evaluates snippet(t1, iCol, zOpen, zClose, zEllips, nToken) for one
 // document (fts5SnippetFunction): the highest-scoring token window is
 // selected (per-instance scores plus sentence-start bonuses) and rendered
@@ -678,70 +871,19 @@ func sentenceStarts(text string, toks []Token) []int {
 func (aq *AuxQuery) Snippet(rowid int64, iCol int, zOpen, zClose, zEllips string, nToken int) (interface{}, error) {
 	t := aq.t
 	nCol := len(t.cfg.Columns)
-	iBestCol := 0
-	if iCol >= 0 {
-		iBestCol = iCol
-	}
-	iBestStart := 0
-	nBestScore := 0
-	nColSize := 0
 	insts := aq.RowInstances(rowid)
-
-	for i := 0; i < nCol; i++ {
-		if iCol >= 0 && iCol != i {
-			continue
-		}
-		nDocsize := t.columnTokenCount(rowid, i)
-		var firsts []int
-		if text, ok, err := t.columnText(rowid, i); err == nil && ok {
-			firsts = sentenceStarts(text, t.tokenizeFor(text))
-		}
-		for _, in := range insts {
-			if in.Col != i {
-				continue
-			}
-			io := in.Offset
-			aSeen := make([]bool, len(aq.phrases))
-			nScore, iAdj := aq.snippetScore(insts, nDocsize, i, io, nToken, aSeen, true)
-			if nScore > nBestScore {
-				nBestScore = nScore
-				iBestCol = i
-				iBestStart = iAdj
-				nColSize = nDocsize
-			}
-			if len(firsts) > 0 && nDocsize > nToken {
-				jj := 0
-				for jj < len(firsts)-1 && firsts[jj+1] <= io {
-					jj++
-				}
-				if firsts[jj] < io {
-					aSeen := make([]bool, len(aq.phrases))
-					nScore, _ := aq.snippetScore(insts, nDocsize, i, firsts[jj], nToken, aSeen, false)
-					if firsts[jj] == 0 {
-						nScore += 120
-					} else {
-						nScore += 100
-					}
-					if nScore > nBestScore {
-						nBestScore = nScore
-						iBestCol = i
-						iBestStart = firsts[jj]
-						nColSize = nDocsize
-					}
-				}
-			}
-		}
-	}
-
-	if iBestCol < 0 || iBestCol >= nCol {
+	best := aq.bestSnippetWindow(insts, rowid, iCol, nToken, nCol)
+	if best.col < 0 || best.col >= nCol {
 		// xColumnText(iBestCol) reports SQLITE_RANGE for an out-of-range best
 		// column; the function fails (fts5SnippetFunction's rc path).
 		return nil, &ColumnRangeError{}
 	}
+	iBestStart := best.start
+	nColSize := best.size
 	if nColSize == 0 {
-		nColSize = t.columnTokenCount(rowid, iBestCol)
+		nColSize = t.columnTokenCount(rowid, best.col)
 	}
-	text, ok, err := t.columnText(rowid, iBestCol)
+	text, ok, err := t.columnText(rowid, best.col)
 	if err != nil {
 		return nil, err
 	}
@@ -757,7 +899,7 @@ func (aq *AuxQuery) Snippet(rowid int64, iCol int, zOpen, zClose, zEllips string
 		iStart:      -1,
 		iEnd:        -1,
 	}
-	p.iter = coalesceInstances(insts, aq, iBestCol)
+	p.iter = coalesceInstances(insts, aq, best.col)
 	p.iterNext()
 	if iBestStart > 0 {
 		p.append(zEllips)

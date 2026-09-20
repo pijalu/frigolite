@@ -228,19 +228,36 @@ func (t *Table) loadFromShadow() error {
 			return err
 		}
 	}
+	blob, ok := t.readShadowIndexBlob()
+	if !ok {
+		return nil
+	}
+	t.restoreShadowDocs(blob)
+	return nil
+}
+
+// readShadowIndexBlob decodes the persisted index payload (the id=11 row of
+// %_data): ok=false for a missing, foreign or corrupt payload (an empty
+// index).
+func (t *Table) readShadowIndexBlob() (indexBlob, bool) {
+	var blob indexBlob
 	qData := qual(t.dbName, t.cfg.Name+"_data")
 	rows, err := t.db.ExecSQL(fmt.Sprintf("SELECT block FROM %s WHERE id=11", qData))
 	if err != nil || len(rows) == 0 || rows[0][0] == nil {
-		return err // no persisted payload: an empty index
+		return blob, false // no persisted payload: an empty index
 	}
 	raw, ok := toBytes(rows[0][0])
 	if !ok || len(raw) < 4 || !bytes.Equal(raw[:2], []byte("GF")) {
-		return nil // foreign or empty payload: treat as empty index
+		return blob, false // foreign or empty payload: treat as empty index
 	}
-	var blob indexBlob
 	if err := gob.NewDecoder(bytes.NewReader(raw[2:])).Decode(&blob); err != nil {
-		return nil
+		return blob, false
 	}
+	return blob, true
+}
+
+// restoreShadowDocs rebuilds the in-memory index from a decoded blob.
+func (t *Table) restoreShadowDocs(blob indexBlob) {
 	for _, bd := range blob.Docs {
 		var values []interface{}
 		if stored, ok := t.contentValues[bd.Rowid]; ok {
@@ -256,7 +273,6 @@ func (t *Table) loadFromShadow() error {
 		t.ix.AddDoc(bd.Rowid, values, cols)
 		t.noteRowid(bd.Rowid)
 	}
-	return nil
 }
 
 // contentCols lists the column indexes stored in %_content (normal content

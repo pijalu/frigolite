@@ -30,13 +30,6 @@ type scenario struct {
 	SQL      []string          `json:"sql"`
 }
 
-type segdirRow struct {
-	level, idx     int64
-	startBlock     int64
-	leavesEndBlock int64
-	endBlock       int64
-}
-
 func TestWriterConformance(t *testing.T) {
 	files, err := filepath.Glob(filepath.Join(scenarioDir, "*.json"))
 	if err != nil {

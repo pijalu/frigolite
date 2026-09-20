@@ -96,28 +96,37 @@ func unicode61Fold(c, eRemoveDiacritic int) int {
 			ret = c + ('a' - 'A')
 		}
 	} else if c < 65536 {
-		iLo, iHi := 0, len(unicodeFoldEntry)-1
-		iRes := -1
-		for iHi >= iLo {
-			iTest := (iHi + iLo) / 2
-			if c-int(unicodeFoldEntry[iTest].iCode) >= 0 {
-				iRes = iTest
-				iLo = iTest + 1
-			} else {
-				iHi = iTest - 1
-			}
-		}
-		if iRes >= 0 {
-			p := unicodeFoldEntry[iRes]
-			if c < int(p.iCode)+int(p.nRange) && (0x01&int(p.flags)&(int(p.iCode)^c)) == 0 {
-				ret = (c + int(unicodeFoldOff[p.flags>>1])) & 0x0000FFFF
-			}
-		}
-		if eRemoveDiacritic != 0 {
-			ret = unicode61RemoveDiacritic(ret, eRemoveDiacritic == 2)
-		}
+		ret = foldBMP(c, eRemoveDiacritic)
 	} else if c >= 66560 && c < 66600 {
 		ret = c + 40
+	}
+	return ret
+}
+
+// foldBMP folds a codepoint below 65536 through the fold-entry table
+// (sqlite3FtsUnicodeFold's binary search over aUnicodeFoldData), then
+// applies diacritic removal when requested.
+func foldBMP(c, eRemoveDiacritic int) int {
+	ret := c
+	iLo, iHi := 0, len(unicodeFoldEntry)-1
+	iRes := -1
+	for iHi >= iLo {
+		iTest := (iHi + iLo) / 2
+		if c-int(unicodeFoldEntry[iTest].iCode) >= 0 {
+			iRes = iTest
+			iLo = iTest + 1
+		} else {
+			iHi = iTest - 1
+		}
+	}
+	if iRes >= 0 {
+		p := unicodeFoldEntry[iRes]
+		if c < int(p.iCode)+int(p.nRange) && (0x01&int(p.flags)&(int(p.iCode)^c)) == 0 {
+			ret = (c + int(unicodeFoldOff[p.flags>>1])) & 0x0000FFFF
+		}
+	}
+	if eRemoveDiacritic != 0 {
+		ret = unicode61RemoveDiacritic(ret, eRemoveDiacritic == 2)
 	}
 	return ret
 }
@@ -215,6 +224,42 @@ func decodeTokenRune(s string) (rune, int) {
 	return r, size
 }
 
+// skipSeparators advances i past non-token characters (unicodeNext's
+// separator scan, fts3_unicode.c).
+func (t *Unicode61Tokenizer) skipSeparators(text string, i int) int {
+	n := len(text)
+	for i < n {
+		r, size := decodeTokenRune(text[i:])
+		if t.isAlnum(int(r)) {
+			break
+		}
+		i += size
+	}
+	return i
+}
+
+// consumeToken folds the token characters starting at i (alnum chars and
+// diacritic continuations), returning the folded term and the position just
+// past the token's last byte.
+func (t *Unicode61Tokenizer) consumeToken(text string, i int) (string, int) {
+	var sb strings.Builder
+	n := len(text)
+	for i < n {
+		r, size := decodeTokenRune(text[i:])
+		cc := int(r)
+		if t.isAlnum(cc) || unicode61IsDiacritic(cc) {
+			out := t.fold(cc)
+			if out != 0 {
+				sb.WriteRune(rune(out))
+			}
+			i += size
+		} else {
+			break
+		}
+	}
+	return sb.String(), i
+}
+
 // Tokenize tokenizes text into tokens (unicodeNext, fts3_unicode.c): scan past
 // separators, then consume alnum chars (and diacritics), folding each char.
 func (t *Unicode61Tokenizer) Tokenize(text string) []Token {
@@ -224,32 +269,14 @@ func (t *Unicode61Tokenizer) Tokenize(text string) []Token {
 	n := len(text)
 	for i < n {
 		// Skip separators.
-		for i < n {
-			r, size := decodeTokenRune(text[i:])
-			if t.isAlnum(int(r)) {
-				break
-			}
-			i += size
-		}
+		i = t.skipSeparators(text, i)
 		if i >= n {
 			break
 		}
 		// Consume token chars (alnum or diacritic continuation).
-		var sb strings.Builder
-		for i < n {
-			r, size := decodeTokenRune(text[i:])
-			cc := int(r)
-			if t.isAlnum(cc) || unicode61IsDiacritic(cc) {
-				out := t.fold(cc)
-				if out != 0 {
-					sb.WriteRune(rune(out))
-				}
-				i += size
-			} else {
-				break
-			}
-		}
-		tokens = append(tokens, Token{Term: sb.String(), Position: pos})
+		var term string
+		term, i = t.consumeToken(text, i)
+		tokens = append(tokens, Token{Term: term, Position: pos})
 		pos++
 	}
 	return tokens
@@ -263,32 +290,14 @@ func (t *Unicode61Tokenizer) TokenizeOffsets(text string) []OffsetToken {
 	i := 0
 	n := len(text)
 	for i < n {
-		for i < n {
-			r, size := decodeTokenRune(text[i:])
-			if t.isAlnum(int(r)) {
-				break
-			}
-			i += size
-		}
+		i = t.skipSeparators(text, i)
 		if i >= n {
 			break
 		}
 		start := i
-		var sb strings.Builder
-		for i < n {
-			r, size := decodeTokenRune(text[i:])
-			cc := int(r)
-			if t.isAlnum(cc) || unicode61IsDiacritic(cc) {
-				out := t.fold(cc)
-				if out != 0 {
-					sb.WriteRune(rune(out))
-				}
-				i += size
-			} else {
-				break
-			}
-		}
-		tokens = append(tokens, OffsetToken{Term: sb.String(), Start: start, End: i})
+		var term string
+		term, i = t.consumeToken(text, i)
+		tokens = append(tokens, OffsetToken{Term: term, Start: start, End: i})
 	}
 	return tokens
 }

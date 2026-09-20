@@ -203,101 +203,155 @@ type vocabCursor struct {
 // fts5VocabNextMethod walking the term iterator).
 func newVocabCursor(v *vocabTable, t *Table) *vocabCursor {
 	c := &vocabCursor{tab: v, t: t}
+	for _, term := range sortedIndexTerms(t) {
+		c.addTermRows(term, t.ix.postings[term])
+	}
+	return c
+}
+
+// sortedIndexTerms returns the index's terms in ascending order (the vocab
+// scan's sorted term iterator).
+func sortedIndexTerms(t *Table) []string {
 	terms := make([]string, 0, len(t.ix.postings))
 	for term := range t.ix.postings {
 		terms = append(terms, term)
 	}
 	sort.Strings(terms)
-	detail := t.cfg.Detail
-	for _, term := range terms {
-		docs := t.ix.postings[term]
-		rowids := make([]int64, 0, len(docs))
-		for rowid := range docs {
-			rowids = append(rowids, rowid)
-		}
-		sortRowids(rowids)
-		switch v.eType {
-		case vocabTypeRow:
-			nDoc := int64(0)
-			nCnt := int64(0)
-			for _, rowid := range rowids {
-				nDoc++
-				if detail == DetailFull {
-					for _, pos := range docs[rowid].cols {
-						nCnt += int64(len(pos))
-					}
-				}
-			}
-			c.rows = append(c.rows, vocabRow{term: term, doc: nDoc, offset: nCnt})
-		case vocabTypeCol:
-			if detail == DetailNone {
-				// detail=none counts rows per term in the first column slot
-				// only, and the col name renders as NULL.
-				nDoc := int64(len(rowids))
-				c.rows = append(c.rows, vocabRow{term: term, doc: nDoc})
-				continue
-			}
-			aDoc := make(map[int]int64)
-			aCnt := make(map[int]int64)
-			for _, rowid := range rowids {
-				for col, pos := range docs[rowid].cols {
-					if len(pos) == 0 {
-						continue
-					}
-					aDoc[col]++
-					if detail == DetailFull {
-						aCnt[col] += int64(len(pos))
-					} else {
-						aCnt[col] = 0
-					}
-				}
-			}
-			cols := make([]int, 0, len(aDoc))
-			for col := range aDoc {
-				cols = append(cols, col)
-			}
-			sort.Ints(cols)
-			for _, col := range cols {
-				name := interface{}(nil)
-				if col < len(t.cfg.Columns) {
-					name = t.cfg.Columns[col]
-				}
-				c.rows = append(c.rows, vocabRow{term: term, name: name, doc: aDoc[col], offset: aCnt[col]})
-			}
-		case vocabTypeInstance:
-			for _, rowid := range rowids {
-				if detail == DetailNone {
-					c.rows = append(c.rows, vocabRow{term: term, doc: rowid})
-					continue
-				}
-				cols := make([]int, 0, len(docs[rowid].cols))
-				for col, pos := range docs[rowid].cols {
-					cols = append(cols, col)
-					_ = pos
-				}
-				sort.Ints(cols)
-				for _, col := range cols {
-					pos := docs[rowid].cols[col]
-					if detail == DetailColumns {
-						name := interface{}(nil)
-						if col < len(t.cfg.Columns) {
-							name = t.cfg.Columns[col]
-						}
-						c.rows = append(c.rows, vocabRow{term: term, doc: rowid, name: name})
-						continue
-					}
-					for _, off := range pos {
-						name := interface{}(nil)
-						if col < len(t.cfg.Columns) {
-							name = t.cfg.Columns[col]
-						}
-						c.rows = append(c.rows, vocabRow{term: term, doc: rowid, name: name, offset: int64(off)})
-					}
-				}
+	return terms
+}
+
+// addTermRows appends the vocab rows for one term and its postings
+// (fts5VocabNextMethod's per-term emission, one shape per table type).
+func (c *vocabCursor) addTermRows(term string, docs map[int64]*docPostings) {
+	switch c.tab.eType {
+	case vocabTypeRow:
+		c.rows = append(c.rows, vocabTermRows(term, docs, c.t.cfg.Detail)...)
+	case vocabTypeCol:
+		c.rows = append(c.rows, vocabColRows(c.t, term, docs)...)
+	case vocabTypeInstance:
+		c.rows = append(c.rows, vocabInstanceRows(c.t, term, docs)...)
+	}
+}
+
+// postingRowids returns a posting map's rowids in ascending order.
+func postingRowids(docs map[int64]*docPostings) []int64 {
+	rowids := make([]int64, 0, len(docs))
+	for rowid := range docs {
+		rowids = append(rowids, rowid)
+	}
+	sortRowids(rowids)
+	return rowids
+}
+
+// vocabTermRows builds the row-mode rows for one term: doc counts rows, cnt
+// totals positions under detail=full (fts5VocabNextMethod's row branch).
+func vocabTermRows(term string, docs map[int64]*docPostings, detail DetailMode) []vocabRow {
+	nDoc := int64(0)
+	nCnt := int64(0)
+	for _, rowid := range postingRowids(docs) {
+		nDoc++
+		if detail == DetailFull {
+			for _, pos := range docs[rowid].cols {
+				nCnt += int64(len(pos))
 			}
 		}
 	}
-	return c
+	return []vocabRow{{term: term, doc: nDoc, offset: nCnt}}
+}
+
+// vocabColRows builds the col-mode rows for one term (fts5VocabNextMethod's
+// col branch): one row per (term, column) with per-column doc/instance
+// counts; detail=none collapses to a single row with the row count.
+func vocabColRows(t *Table, term string, docs map[int64]*docPostings) []vocabRow {
+	rowids := postingRowids(docs)
+	if t.cfg.Detail == DetailNone {
+		// detail=none counts rows per term in the first column slot
+		// only, and the col name renders as NULL.
+		return []vocabRow{{term: term, doc: int64(len(rowids))}}
+	}
+	aDoc, aCnt := colPostingsCounts(docs, rowids, t.cfg.Detail)
+	var rows []vocabRow
+	for _, col := range sortedKeys(aDoc) {
+		rows = append(rows, vocabRow{
+			term: term, name: columnName(t, col), doc: aDoc[col], offset: aCnt[col],
+		})
+	}
+	return rows
+}
+
+// colPostingsCounts accumulates per-column doc and instance counts over a
+// term's rowids; empty position lists are skipped (fts5VocabNextMethod).
+func colPostingsCounts(docs map[int64]*docPostings, rowids []int64, detail DetailMode) (map[int]int64, map[int]int64) {
+	aDoc := make(map[int]int64)
+	aCnt := make(map[int]int64)
+	for _, rowid := range rowids {
+		for col, pos := range docs[rowid].cols {
+			if len(pos) == 0 {
+				continue
+			}
+			aDoc[col]++
+			if detail == DetailFull {
+				aCnt[col] += int64(len(pos))
+			} else {
+				aCnt[col] = 0
+			}
+		}
+	}
+	return aDoc, aCnt
+}
+
+// vocabInstanceRows builds the instance-mode rows for one term
+// (fts5VocabNextMethod's instance branch): one row per (term, rowid) under
+// detail=none, per (term, rowid, column) under detail=columns, and per
+// (term, rowid, column, offset) under detail=full.
+func vocabInstanceRows(t *Table, term string, docs map[int64]*docPostings) []vocabRow {
+	var rows []vocabRow
+	for _, rowid := range postingRowids(docs) {
+		if t.cfg.Detail == DetailNone {
+			rows = append(rows, vocabRow{term: term, doc: rowid})
+			continue
+		}
+		for _, col := range sortedIntKeys(docs[rowid].cols) {
+			rows = append(rows, vocabInstanceColRows(t, term, rowid, col, docs[rowid].cols[col])...)
+		}
+	}
+	return rows
+}
+
+// vocabInstanceColRows builds one column's instance rows for (term, rowid).
+func vocabInstanceColRows(t *Table, term string, rowid int64, col int, pos []int) []vocabRow {
+	if t.cfg.Detail == DetailColumns {
+		return []vocabRow{{term: term, doc: rowid, name: columnName(t, col)}}
+	}
+	rows := make([]vocabRow, 0, len(pos))
+	for _, off := range pos {
+		rows = append(rows, vocabRow{term: term, doc: rowid, name: columnName(t, col), offset: int64(off)})
+	}
+	return rows
+}
+
+// columnName renders the 'col' value: the column's name, or NULL beyond the
+// declared columns.
+func columnName(t *Table, col int) interface{} {
+	if col < len(t.cfg.Columns) {
+		return t.cfg.Columns[col]
+	}
+	return nil
+}
+
+// sortedKeys returns a count map's keys in ascending order.
+func sortedKeys(m map[int]int64) []int {
+	return sortedIntKeys(m)
+}
+
+// sortedIntKeys returns an int-keyed map's keys in ascending order.
+func sortedIntKeys[V any](m map[int]V) []int {
+	keys := make([]int, 0, len(m))
+	for k := range m {
+		keys = append(keys, k)
+	}
+	sort.Ints(keys)
+	return keys
 }
 
 // normalize zeroes stored zero counts into NULLs (fts5VocabColumnMethod's
@@ -327,43 +381,33 @@ func (c *vocabCursor) Column(idx int) (interface{}, error) {
 	if c.tab.eType != vocabTypeInstance {
 		row.normalize()
 	}
-	switch c.tab.eType {
-	case vocabTypeRow:
-		// term, doc, cnt
-		switch idx {
-		case 0:
-			return row.term, nil
-		case 1:
-			return row.doc, nil
-		case 2:
-			return row.offset, nil
-		}
-	case vocabTypeCol:
-		// term, col, doc, cnt
-		switch idx {
-		case 0:
-			return row.term, nil
-		case 1:
-			return row.name, nil
-		case 2:
-			return row.doc, nil
-		case 3:
-			return row.offset, nil
-		}
-	case vocabTypeInstance:
-		// term, doc, col, offset
-		switch idx {
-		case 0:
-			return row.term, nil
-		case 1:
-			return row.doc, nil
-		case 2:
-			return row.name, nil
-		case 3:
-			return row.offset, nil
-		}
+	fields := vocabRowFields[c.tab.eType]
+	if idx >= len(fields) {
+		return nil, fmt.Errorf("fts5vocab: invalid column index %d", idx)
 	}
-	return nil, fmt.Errorf("fts5vocab: invalid column index %d", idx)
+	return vocabRowField(&row, fields[idx]), nil
+}
+
+// vocabRowField reads one field of a row by its slot letter.
+func vocabRowField(row *vocabRow, field byte) interface{} {
+	switch field {
+	case 't':
+		return row.term
+	case 'n':
+		return row.name
+	case 'd':
+		return row.doc
+	default:
+		return row.offset
+	}
+}
+
+// vocabRowFields maps each table type's columns to row slots: t=term, n=col
+// name, d=doc, o=offset (fts5_vocab.c's aCol declarations).
+var vocabRowFields = map[vocabType][]byte{
+	vocabTypeRow:      {'t', 'd', 'o'},
+	vocabTypeCol:      {'t', 'n', 'd', 'o'},
+	vocabTypeInstance: {'t', 'd', 'n', 'o'},
 }
 
 // Rowid implements vtab.RowidCursor: a 1-based row counter

@@ -44,6 +44,27 @@ func (m *CSVModule) Connect(args []string) (VirtualTable, error) {
 }
 
 func (m *CSVModule) connect(args []string) (VirtualTable, error) {
+	params := csvParseArgs(args)
+	data := params["data"]
+	filename := params["filename"]
+	if data != "" && filename != "" {
+		return nil, fmt.Errorf("csv: must specify either filename= or data= but not both")
+	}
+	records, err := csvLoadRecords(data, filename)
+	if err != nil {
+		return nil, err
+	}
+	v, records, err := csvBuildColumns(params, records)
+	if err != nil {
+		return nil, err
+	}
+	csvAppendRows(v, records)
+	return v, nil
+}
+
+// csvParseArgs splits the module argv into key=value parameters and bare
+// flags (csv.c's parameter pass); SQL quoted values are dequoted one level.
+func csvParseArgs(args []string) map[string]string {
 	params := map[string]string{}
 	flags := map[string]bool{}
 	for _, a := range args {
@@ -56,106 +77,140 @@ func (m *CSVModule) connect(args []string) (VirtualTable, error) {
 			continue
 		}
 		key := strings.ToLower(strings.TrimSpace(a[:eq]))
-		val := strings.TrimSpace(a[eq+1:])
-		// SQL string-literal values keep their quotes in the verbatim argv:
-		// strip one level and undo '' escaping.
-		if len(val) >= 2 && val[0] == '\'' && val[len(val)-1] == '\'' {
-			val = strings.ReplaceAll(val[1:len(val)-1], "''", "'")
-		} else if len(val) >= 2 && ((val[0] == '"' && val[len(val)-1] == '"') || (val[0] == '`' && val[len(val)-1] == '`')) {
-			val = val[1 : len(val)-1]
-		}
-		params[key] = val
+		params[key] = csvDequoteValue(strings.TrimSpace(a[eq+1:]))
 	}
 	for k := range flags {
 		if _, isParam := params[k]; !isParam {
 			params[k] = "true" // bare flag: header, testflags w/o value, ...
 		}
 	}
+	return params
+}
 
-	data := params["data"]
-	filename := params["filename"]
-	if data != "" && filename != "" {
-		return nil, fmt.Errorf("csv: must specify either filename= or data= but not both")
+// csvDequoteValue strips one level of SQL string-literal quoting (the quotes
+// survive in the verbatim argv); ” inside '...' escapes.
+func csvDequoteValue(val string) string {
+	if len(val) >= 2 && val[0] == '\'' && val[len(val)-1] == '\'' {
+		return strings.ReplaceAll(val[1:len(val)-1], "''", "'")
 	}
+	if len(val) >= 2 && ((val[0] == '"' && val[len(val)-1] == '"') || (val[0] == '`' && val[len(val)-1] == '`')) {
+		return val[1 : len(val)-1]
+	}
+	return val
+}
 
-	var records [][]string
+// csvLoadRecords reads the CSV records from data= or filename=
+// (csv.c's fopen/Reader wiring).
+func csvLoadRecords(data, filename string) ([][]string, error) {
 	if data != "" {
 		recs, err := parseCSVString(data)
 		if err != nil {
 			return nil, fmt.Errorf("csv: %w", err)
 		}
-		records = recs
-	} else {
-		content, err := os.ReadFile(filename)
-		if err != nil {
-			return nil, fmt.Errorf("cannot open '%s' for reading", filename)
-		}
-		recs, perr := parseCSVString(string(content))
-		if perr != nil {
-			return nil, fmt.Errorf("csv: %w", perr)
-		}
-		records = recs
+		return recs, nil
 	}
+	content, err := os.ReadFile(filename)
+	if err != nil {
+		return nil, fmt.Errorf("cannot open '%s' for reading", filename)
+	}
+	recs, perr := parseCSVString(string(content))
+	if perr != nil {
+		return nil, fmt.Errorf("csv: %w", perr)
+	}
+	return recs, nil
+}
 
+// csvBuildColumns derives the declared column list from the schema=, header
+// or default c0..cN-1 naming (csv.c's schema pass); a header consumes the
+// first record.
+func csvBuildColumns(params map[string]string, records [][]string) (*csvVTab, [][]string, error) {
 	header := false
 	if hv, hvOK := params["header"]; hvOK {
 		header = parseBoolParam(hv)
 	}
-	nCol := -1
-	if v, ok := params["columns"]; ok {
-		n, err := strconv.Atoi(strings.TrimSpace(v))
-		if err != nil || n < 0 {
-			return nil, fmt.Errorf("csv: invalid columns=%q", v)
-		}
-		if n == 0 {
-			return nil, fmt.Errorf("column= value must be positive")
-		}
-		// SQLite's default SQLITE_LIMIT_COLUMN is 2000 (csv.c column= check).
-		if n > 2000 {
-			return nil, fmt.Errorf("column= value too big, max %d", 2000)
-		}
-		nCol = n
+	nCol, err := csvParseColumnCount(params)
+	if err != nil {
+		return nil, nil, err
 	}
-
 	v := &csvVTab{}
-	if params["schema"] != "" {
-		names, err := columnNamesFromSchema(params["schema"])
-		if err != nil {
-			return nil, err
+	switch {
+	case params["schema"] != "":
+		if serr := csvApplySchema(v, params["schema"]); serr != nil {
+			return nil, nil, serr
 		}
-		v.columns = names
-		if strings.Contains(strings.ToUpper(params["schema"]), "WITHOUT ROWID") {
-			v.withoutRowid = true
-			if verr := validateWithoutRowidSchema(params["schema"]); verr != nil {
-				return nil, verr
-			}
-		}
-	} else if header {
+	case header:
 		if len(records) == 0 {
-			return nil, fmt.Errorf("csv: empty input with header")
+			return nil, nil, fmt.Errorf("csv: empty input with header")
 		}
 		v.columns = quotedNames(records[0])
 		records = records[1:]
-	} else {
-		count := nCol
-		if count < 0 && len(records) > 0 {
-			count = len(records[0])
-		}
-		if count < 0 {
-			count = 0
-		}
-		v.columns = make([]string, count)
-		for i := range v.columns {
-			v.columns[i] = fmt.Sprintf("c%d", i)
+	default:
+		v.columns = csvDefaultNames(nCol, records)
+	}
+	return v, records, nil
+}
+
+// csvParseColumnCount resolves columns=N with csv.c's limit checks; -1 when
+// absent.
+func csvParseColumnCount(params map[string]string) (int, error) {
+	v, ok := params["columns"]
+	if !ok {
+		return -1, nil
+	}
+	n, err := strconv.Atoi(strings.TrimSpace(v))
+	if err != nil || n < 0 {
+		return 0, fmt.Errorf("csv: invalid columns=%q", v)
+	}
+	if n == 0 {
+		return 0, fmt.Errorf("column= value must be positive")
+	}
+	// SQLite's default SQLITE_LIMIT_COLUMN is 2000 (csv.c column= check).
+	if n > 2000 {
+		return 0, fmt.Errorf("column= value too big, max %d", 2000)
+	}
+	return n, nil
+}
+
+// csvApplySchema applies a declared schema and its WITHOUT ROWID marker.
+func csvApplySchema(v *csvVTab, schema string) error {
+	names, err := columnNamesFromSchema(schema)
+	if err != nil {
+		return err
+	}
+	v.columns = names
+	if strings.Contains(strings.ToUpper(schema), "WITHOUT ROWID") {
+		v.withoutRowid = true
+		if verr := validateWithoutRowidSchema(schema); verr != nil {
+			return verr
 		}
 	}
+	return nil
+}
 
-	// Normalize row widths to the column count (missing trailing fields
-	// become NULL; extras are dropped) like csv.c's field accounting.
-	// Fields that parse as numbers are stored as numbers: the engine does
-	// not apply column affinity when filtering materialized virtual-table
-	// rows, so keeping them as TEXT would break numeric predicates that
-	// SQLite answers correctly via the declared TEXT affinity.
+// csvDefaultNames renders the c0..cN-1 default column names; N falls back to
+// the first record's width.
+func csvDefaultNames(nCol int, records [][]string) []string {
+	count := nCol
+	if count < 0 && len(records) > 0 {
+		count = len(records[0])
+	}
+	if count < 0 {
+		count = 0
+	}
+	names := make([]string, count)
+	for i := range names {
+		names[i] = fmt.Sprintf("c%d", i)
+	}
+	return names
+}
+
+// csvAppendRows normalizes row widths to the column count (missing trailing
+// fields become NULL; extras are dropped) like csv.c's field accounting.
+// Fields that parse as numbers are stored as numbers: the engine does
+// not apply column affinity when filtering materialized virtual-table
+// rows, so keeping them as TEXT would break numeric predicates that
+// SQLite answers correctly via the declared TEXT affinity.
+func csvAppendRows(v *csvVTab, records [][]string) {
 	for _, r := range records {
 		row := make([]interface{}, len(v.columns))
 		for i := 0; i < len(v.columns); i++ {
@@ -165,7 +220,6 @@ func (m *CSVModule) connect(args []string) (VirtualTable, error) {
 		}
 		v.rows = append(v.rows, row)
 	}
-	return v, nil
 }
 
 // coerceCSVField converts a CSV field to int64/float64 when it is exactly a
@@ -237,17 +291,18 @@ func quotedNames(header []string) []string {
 	return out
 }
 
-// columnNamesFromSchema extracts column names from a "CREATE TABLE x(a,b,c)"
-// style schema argument: the identifier before the first space of each
-// top-level comma-separated term inside the outermost parentheses.
-func columnNamesFromSchema(schema string) ([]string, error) {
-	open := strings.Index(schema, "(")
-	close := strings.LastIndex(schema, ")")
-	if open < 0 || close <= open {
-		return nil, fmt.Errorf("csv: invalid schema=%q", schema)
+// constraintKeyword reports whether a term's leading keyword is a table-level
+// constraint rather than a column.
+func constraintKeyword(name string) bool {
+	switch name {
+	case "WITHOUT", "PRIMARY", "UNIQUE", "CHECK", "FOREIGN", "CONSTRAINT":
+		return true
 	}
-	body := schema[open+1 : close]
-	// Strip a trailing WITHOUT ROWID clause if the paren scan caught it.
+	return false
+}
+
+// splitTopLevel splits body on top-level commas (paren depth 0).
+func splitTopLevel(body string) []string {
 	var parts []string
 	depth := 0
 	cur := strings.Builder{}
@@ -266,15 +321,26 @@ func columnNamesFromSchema(schema string) ([]string, error) {
 		}
 		cur.WriteByte(body[i])
 	}
-	parts = append(parts, cur.String())
+	return append(parts, cur.String())
+}
+
+// columnNamesFromSchema extracts column names from a "CREATE TABLE x(a,b,c)"
+// style schema argument: the identifier before the first space of each
+// top-level comma-separated term inside the outermost parentheses.
+func columnNamesFromSchema(schema string) ([]string, error) {
+	open := strings.Index(schema, "(")
+	close := strings.LastIndex(schema, ")")
+	if open < 0 || close <= open {
+		return nil, fmt.Errorf("csv: invalid schema=%q", schema)
+	}
+	// Strip a trailing WITHOUT ROWID clause if the paren scan caught it.
 	var names []string
-	for _, p := range parts {
+	for _, p := range splitTopLevel(schema[open+1 : close]) {
 		f := strings.Fields(strings.TrimSpace(p))
 		if len(f) == 0 {
 			continue
 		}
-		name := strings.ToUpper(f[0])
-		if name == "WITHOUT" || name == "PRIMARY" || name == "UNIQUE" || name == "CHECK" || name == "FOREIGN" || name == "CONSTRAINT" {
+		if constraintKeyword(strings.ToUpper(f[0])) {
 			continue // table-level constraint tail, not a column
 		}
 		names = append(names, strings.Trim(f[0], `"`+"`"))

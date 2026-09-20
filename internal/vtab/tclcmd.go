@@ -117,35 +117,15 @@ func classifyDeclareSchema(schema string) ([]string, error) {
 	// Strip a leading IF NOT EXISTS after CREATE TABLE for name scanning.
 	body := s
 	if idx := strings.Index(up, " TABLE "); idx >= 0 {
-		rest := strings.TrimSpace(s[idx+len(" TABLE "):])
-		if restUpper := strings.ToUpper(rest); strings.HasPrefix(restUpper, "IF NOT EXISTS ") {
-			body = strings.TrimSpace(rest[len("IF NOT EXISTS "):])
-		} else {
-			body = rest
-		}
+		body = stripIfNotExists(s, idx)
 	}
-	// CTAS: "AS SELECT" appears before the column-list parenthesis.
-	paren := strings.IndexByte(body, '(')
-	asIdx := indexOutsideParens(body, " AS ")
-	hasParen := paren >= 0
-	if !hasParen {
-		// No column list: CREATE TABLE xyz AS SELECT ... is grammatical but
-		// rejected by declare_vtab with SQLITE_ERROR ("SQL logic error"),
-		// while a bare/malformed tail fails as a syntax error.
-		if strings.Contains(up, " AS SELECT ") {
+	colBody, ctas, ok := declareColumnBody(body, up)
+	if !ok {
+		if ctas {
 			return nil, logicErr
 		}
 		return nil, syntaxErr
 	}
-	if asIdx >= 0 && asIdx < paren {
-		// "AS" before "(" — e.g. CREATE TABLE x AS SELECT ...: CTAS.
-		return nil, logicErr
-	}
-	closeIdx := strings.LastIndexByte(body, ')')
-	if closeIdx < paren {
-		return nil, syntaxErr
-	}
-	colBody := body[paren+1 : closeIdx]
 	names, err := columnNamesFromSchema("(" + colBody + ")")
 	if err != nil {
 		return nil, syntaxErr
@@ -154,6 +134,40 @@ func classifyDeclareSchema(schema string) ([]string, error) {
 		return nil, syntaxErr
 	}
 	return names, nil
+}
+
+// stripIfNotExists removes a leading IF NOT EXISTS after CREATE TABLE for
+// name scanning.
+func stripIfNotExists(s string, tableIdx int) string {
+	rest := strings.TrimSpace(s[tableIdx+len(" TABLE "):])
+	if strings.HasPrefix(strings.ToUpper(rest), "IF NOT EXISTS ") {
+		return strings.TrimSpace(rest[len("IF NOT EXISTS "):])
+	}
+	return rest
+}
+
+// declareColumnBody extracts the column-list body. ok=false with ctas=true
+// marks a CTAS statement ("SQL logic error" is the caller's response); a
+// malformed tail is ok=false with ctas=false ("syntax error").
+func declareColumnBody(body, up string) (colBody string, ctas, ok bool) {
+	// CTAS: "AS SELECT" appears before the column-list parenthesis.
+	paren := strings.IndexByte(body, '(')
+	asIdx := indexOutsideParens(body, " AS ")
+	if paren < 0 {
+		// No column list: CREATE TABLE xyz AS SELECT ... is grammatical but
+		// rejected by declare_vtab with SQLITE_ERROR ("SQL logic error"),
+		// while a bare/malformed tail fails as a syntax error.
+		return "", strings.Contains(up, " AS SELECT "), false
+	}
+	if asIdx >= 0 && asIdx < paren {
+		// "AS" before "(" — e.g. CREATE TABLE x AS SELECT ...: CTAS.
+		return "", true, false
+	}
+	closeIdx := strings.LastIndexByte(body, ')')
+	if closeIdx < paren {
+		return "", false, false
+	}
+	return body[paren+1 : closeIdx], false, true
 }
 
 // indexOutsideParens finds needle in s at a position not nested inside any

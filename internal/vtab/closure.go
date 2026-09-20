@@ -161,19 +161,28 @@ func (v *closureVTab) Open() (Cursor, error) {
 	if err != nil {
 		return nil, err
 	}
-	// child lookup: parent -> children
+	c.bfsClosure(edges)
+	// closure.c keeps its scan queue sorted by id, so rows stream in
+	// ascending id order; mirror that here.
+	c.sortById()
+	return c, nil
+}
+
+// bfsClosure BFS-walks the edge list from the bound root, recording visit
+// order and minimal depth (children lookup: parent -> children).
+func (c *closureCursor) bfsClosure(edges [][2]int64) {
 	children := make(map[int64][]int64, len(edges))
 	for _, e := range edges {
 		id, parent := e[0], e[1]
 		children[parent] = append(children[parent], id)
 	}
-	// BFS from root, tracking minimal depth and skipping repeats.
+
 	type node struct {
 		id    int64
 		depth int
 	}
-	seen := map[int64]bool{v.root: true}
-	queue := []node{{v.root, 0}}
+	seen := map[int64]bool{c.vt.root: true}
+	queue := []node{{c.vt.root, 0}}
 	for len(queue) > 0 {
 		cur := queue[0]
 		queue = queue[1:]
@@ -186,8 +195,11 @@ func (v *closureVTab) Open() (Cursor, error) {
 			}
 		}
 	}
-	// closure.c keeps its scan queue sorted by id, so rows stream in
-	// ascending id order; mirror that here.
+}
+
+// sortById insertion-sorts the closure rows by id (closure.c streams rows in
+// ascending id order).
+func (c *closureCursor) sortById() {
 	for i := 1; i < len(c.ids); i++ {
 		id, dp := c.ids[i], c.depths[i]
 		j := i - 1
@@ -199,7 +211,6 @@ func (v *closureVTab) Open() (Cursor, error) {
 		c.ids[j+1] = id
 		c.depths[j+1] = dp
 	}
-	return c, nil
 }
 
 // closureCursor walks the computed closure rows.
@@ -257,44 +268,3 @@ func (c *closureCursor) Column(idx int) (interface{}, error) {
 
 // Close implements Cursor.
 func (c *closureCursor) Close() error { return nil }
-
-func stringsIndexByte(s string, b byte) int {
-	for i := 0; i < len(s); i++ {
-		if s[i] == b {
-			return i
-		}
-	}
-	return -1
-}
-
-func lowerTrim(s string) string {
-	return strings.ToLower(strings.TrimSpace(s))
-}
-
-func trimQuotes(s string) string {
-	s = strings.TrimSpace(s)
-	if len(s) >= 2 && s[0] == '\'' && s[len(s)-1] == '\'' {
-		return s[1 : len(s)-1]
-	}
-	return s
-}
-
-func parseInt64(s string) int64 {
-	var n int64
-	neg := false
-	i := 0
-	if i < len(s) && (s[i] == '-' || s[i] == '+') {
-		neg = s[i] == '-'
-		i++
-	}
-	for ; i < len(s); i++ {
-		if s[i] < '0' || s[i] > '9' {
-			break
-		}
-		n = n*10 + int64(s[i]-'0')
-	}
-	if neg {
-		return -n
-	}
-	return n
-}

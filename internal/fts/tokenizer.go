@@ -178,80 +178,96 @@ func splitTokenizerSpec(spec string) (string, []string) {
 	if spec == "" {
 		return "", nil
 	}
-	// The name is the leading run of identifier characters (or a quoted
-	// string).
-	name := ""
-	rest := spec
-	if spec[0] == '\'' || spec[0] == '"' || spec[0] == '`' {
-		q := spec[0]
-		if end := strings.IndexByte(spec[1:], q); end >= 0 {
-			name = spec[1 : 1+end]
-			rest = spec[2+end:]
-		}
-	} else {
-		i := 0
-		for i < len(spec) && (isFTSIdChar(spec[i]) && spec[i] != '\'' && spec[i] != '"') {
-			i++
-		}
-		name = spec[:i]
-		rest = spec[i:]
-	}
+	name, rest := splitTokenizerName(spec)
 	var args []string
 	for len(rest) > 0 {
 		rest = strings.TrimSpace(rest)
 		if rest == "" {
 			break
 		}
-		if rest[0] == '\'' || rest[0] == '"' || rest[0] == '`' {
-			q := rest[0]
-			// SQLite quotes: a doubled quote inside the string is an escaped
-			// quote (`"tokenchars=[=""]"` → tokenchars=[="]). Scan with the
-			// doubling rule so the closing quote is the last one.
-			end := -1
-			i := 1
-			for i < len(rest) {
-				if rest[i] == q {
-					if i+1 < len(rest) && rest[i+1] == q {
-						i += 2
-						continue
-					}
-					end = i
-					break
-				}
-				i++
-			}
-			if end >= 0 {
-				inner := rest[1:end]
-				inner = strings.ReplaceAll(inner, string(q)+string(q), string(q))
-				args = append(args, inner)
-				rest = rest[end+1:]
-				continue
-			}
-		}
-		// SQLite bracket-quoted identifier: [tokenchars= .] is the argument
-		// "tokenchars= ." (fts4unicode.test section 9: a CREATE VIRTUAL
-		// TABLE argument written as [tokenchars= .] reaches the tokenizer
-		// constructor as `tokenchars= .`).
-		if rest[0] == '[' {
-			if end := strings.IndexByte(rest[1:], ']'); end >= 0 {
-				args = append(args, rest[1:1+end])
-				rest = rest[2+end:]
-				continue
-			}
-		}
-		// Unquoted token (e.g. a bare arg): take the next whitespace-run.
-		i := 0
-		for i < len(rest) && !isSpaceByte(rest[i]) {
-			i++
-		}
-		if i > 0 {
-			args = append(args, rest[:i])
-			rest = rest[i:]
-		} else {
+		arg, tail, consumed := splitTokenizerArg(rest)
+		if !consumed {
 			break
 		}
+		args = append(args, arg)
+		rest = tail
 	}
 	return name, args
+}
+
+// splitTokenizerName splits the leading name token off a tokenizer spec: the
+// name is a quoted string or the leading run of identifier characters.
+func splitTokenizerName(spec string) (name, rest string) {
+	if spec[0] == '\'' || spec[0] == '"' || spec[0] == '`' {
+		q := spec[0]
+		if end := strings.IndexByte(spec[1:], q); end >= 0 {
+			return spec[1 : 1+end], spec[2+end:]
+		}
+		return "", spec
+	}
+	i := 0
+	for i < len(spec) && (isFTSIdChar(spec[i]) && spec[i] != '\'' && spec[i] != '"') {
+		i++
+	}
+	return spec[:i], spec[i:]
+}
+
+// splitTokenizerArg consumes one argument token from the head of rest,
+// returning the argument, the remaining text and whether a token was
+// consumed. A quoted token with no closing quote falls through to the
+// unquoted rule (the opening quote becomes part of the bare token).
+func splitTokenizerArg(rest string) (arg, tail string, consumed bool) {
+	if a, t, ok := splitQuotedArg(rest); ok {
+		return a, t, true
+	}
+	// SQLite bracket-quoted identifier: [tokenchars= .] is the argument
+	// "tokenchars= ." (fts4unicode.test section 9: a CREATE VIRTUAL
+	// TABLE argument written as [tokenchars= .] reaches the tokenizer
+	// constructor as `tokenchars= .`).
+	if rest[0] == '[' {
+		if end := strings.IndexByte(rest[1:], ']'); end >= 0 {
+			return rest[1 : 1+end], rest[2+end:], true
+		}
+	}
+	// Unquoted token (e.g. a bare arg): take the next whitespace-run.
+	i := 0
+	for i < len(rest) && !isSpaceByte(rest[i]) {
+		i++
+	}
+	if i == 0 {
+		return "", rest, false
+	}
+	return rest[:i], rest[i:], true
+}
+
+// splitQuotedArg consumes a quote-delimited argument. SQLite quotes: a
+// doubled quote inside the string is an escaped quote
+// (`"tokenchars=[=""]"` → tokenchars=[="]). Scan with the doubling rule so
+// the closing quote is the last one.
+func splitQuotedArg(rest string) (arg, tail string, ok bool) {
+	if rest[0] != '\'' && rest[0] != '"' && rest[0] != '`' {
+		return "", rest, false
+	}
+	q := rest[0]
+	end := -1
+	i := 1
+	for i < len(rest) {
+		if rest[i] == q {
+			if i+1 < len(rest) && rest[i+1] == q {
+				i += 2
+				continue
+			}
+			end = i
+			break
+		}
+		i++
+	}
+	if end < 0 {
+		return "", rest, false
+	}
+	inner := rest[1:end]
+	inner = strings.ReplaceAll(inner, string(q)+string(q), string(q))
+	return inner, rest[end+1:], true
 }
 
 // isSpaceByte reports whether b is an ASCII whitespace byte.

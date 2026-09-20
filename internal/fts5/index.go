@@ -167,15 +167,6 @@ func (ix *InvertedIndex) termRowids(term string, col int) map[int64]bool {
 	return out
 }
 
-// termPostings returns the per-column position lists of term within one doc.
-func (ix *InvertedIndex) termPostings(term string, rowid int64) *docPostings {
-	docs, ok := ix.postings[term]
-	if !ok {
-		return nil
-	}
-	return docs[rowid]
-}
-
 // prefixTerms lists every indexed term with the given prefix, in ascending
 // term order (the prefix-index lookup of fts5_index.c, served from the main
 // postings map).
@@ -188,11 +179,6 @@ func (ix *InvertedIndex) prefixTerms(prefix string) []string {
 	}
 	sort.Strings(out)
 	return out
-}
-
-// termDocCount returns the number of documents containing term.
-func (ix *InvertedIndex) termDocCount(term string) int {
-	return len(ix.postings[term])
 }
 
 // NumDocs returns the indexed document count.

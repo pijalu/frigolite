@@ -105,15 +105,47 @@ func asFloat64[T coordType](v T) float64 {
 // coordinate columns): leading whitespace skipped, optional sign, digits with
 // optional fraction/exponent. Returns 0 when no numeric prefix exists.
 func rtreeNumericPrefix(s string) float64 {
-	i := 0
-	for i < len(s) && (s[i] == ' ' || s[i] == '\t' || s[i] == '\n' || s[i] == '\r' || s[i] == '\v' || s[i] == '\f') {
-		i++
-	}
+	i := rtreeSkipSpace(s, 0)
 	start := i
 	if i < len(s) && (s[i] == '+' || s[i] == '-') {
 		i++
 	}
-	digits := 0
+	i, digits := rtreeScanDigits(s, i)
+	if !rtreeMantissaValid(s, start, i, digits) {
+		return 0
+	}
+	man := s[:i]
+	if i < len(s) && (s[i] == 'e' || s[i] == 'E') {
+		man = rtreeExtendExponent(s, i)
+	}
+	v, err := strconv.ParseFloat(man, 64)
+	if err != nil {
+		return 0
+	}
+	return v
+}
+
+// rtreeMantissaValid reports whether the scanned prefix is a number: at least
+// one digit, some advance, and a bare sign is not a number (sqlite3AtoF's
+// zGet rule).
+func rtreeMantissaValid(s string, start, end, digits int) bool {
+	if digits == 0 || end == start {
+		return false
+	}
+	return !(end == start+1 && (s[start] == '+' || s[start] == '-'))
+}
+
+// rtreeSkipSpace skips ASCII whitespace (sqlite3AtoF's leading skip).
+func rtreeSkipSpace(s string, i int) int {
+	for i < len(s) && (s[i] == ' ' || s[i] == '\t' || s[i] == '\n' || s[i] == '\r' || s[i] == '\v' || s[i] == '\f') {
+		i++
+	}
+	return i
+}
+
+// rtreeScanDigits consumes the integer part and an optional '.'-fraction,
+// returning the end offset and the digit count seen.
+func rtreeScanDigits(s string, i int) (end, digits int) {
 	for i < len(s) && s[i] >= '0' && s[i] <= '9' {
 		i++
 		digits++
@@ -125,29 +157,26 @@ func rtreeNumericPrefix(s string) float64 {
 			digits++
 		}
 	}
-	if digits == 0 || i == start || (i == start+1 && (s[start] == '+' || s[start] == '-')) {
-		return 0
+	return i, digits
+}
+
+// rtreeExtendExponent extends a mantissa s[:i] (i at 'e'/'E') with a
+// well-formed exponent; a sign-less or digit-less exponent leaves the
+// mantissa untouched (sqlite3AtoF's zGet-only-if-valid exponent rule).
+func rtreeExtendExponent(s string, i int) string {
+	j := i + 1
+	if j < len(s) && (s[j] == '+' || s[j] == '-') {
+		j++
 	}
-	man := s[:i]
-	if i < len(s) && (s[i] == 'e' || s[i] == 'E') {
-		j := i + 1
-		if j < len(s) && (s[j] == '+' || s[j] == '-') {
-			j++
-		}
-		expDigits := 0
-		for j < len(s) && s[j] >= '0' && s[j] <= '9' {
-			j++
-			expDigits++
-		}
-		if expDigits > 0 {
-			man = s[:j]
-		}
+	expDigits := 0
+	for j < len(s) && s[j] >= '0' && s[j] <= '9' {
+		j++
+		expDigits++
 	}
-	v, err := strconv.ParseFloat(man, 64)
-	if err != nil {
-		return 0
+	if expDigits > 0 {
+		return s[:j]
 	}
-	return v
+	return s[:i]
 }
 
 // Rounding constants for the double→float32 coordinate store (rtree.c

@@ -55,10 +55,6 @@ func RecoverSQL(pg *pager.Pager, opts Options) (string, error) {
 	if len(hdr) < 100 {
 		return "", fmt.Errorf("recover: database header missing")
 	}
-	enc := map[uint32]string{1: "UTF-8", 2: "UTF-16le", 3: "UTF-16be"}[binary.BigEndian.Uint32(hdr[56:60])]
-	userVersion := binary.BigEndian.Uint32(hdr[60:64])
-	appID := binary.BigEndian.Uint32(hdr[68:72])
-	autoVacuum := binary.BigEndian.Uint32(hdr[52:56])
 
 	entries, err := readSchema(pg)
 	if err != nil {
@@ -75,63 +71,15 @@ func RecoverSQL(pg *pager.Pager, opts Options) (string, error) {
 	}
 
 	var sb strings.Builder
-	sb.WriteString("BEGIN;\n")
-	sb.WriteString("PRAGMA writable_schema = on;\n")
-	sb.WriteString("PRAGMA foreign_keys = off;\n")
-	fmt.Fprintf(&sb, "PRAGMA encoding = '%s';\n", enc)
-	fmt.Fprintf(&sb, "PRAGMA page_size = '%d';\n", pg.PageSize())
-	fmt.Fprintf(&sb, "PRAGMA auto_vacuum = '%d';\n", autoVacuum)
-	fmt.Fprintf(&sb, "PRAGMA user_version = '%d';\n", userVersion)
-	fmt.Fprintf(&sb, "PRAGMA application_id = '%d';\n", appID)
-
-	// AUTOINCREMENT tables imply the output needs sqlite_sequence.
-	hasAutoInc := false
-	for _, e := range entries {
-		if e.typ == "table" && e.autoInc {
-			hasAutoInc = true
-			break
-		}
-	}
-	if hasAutoInc {
-		sb.WriteString("CREATE TABLE sqlite_sequence(name,seq);\n")
-	}
+	writeRecoverPreamble(&sb, pg, hdr, entries)
 
 	// Schema CREATEs in schema order, then each table's rows.
 	var sequenceRows []string
-	for _, e := range entries {
-		switch e.typ {
-		case "table":
-			if e.name == "sqlite_sequence" {
-				// The canonical CREATE is emitted in the preamble block; the
-				// input's own schema entry is not re-emitted. Its ROWS still
-				// are (recoverTableRows routes to appendSequenceRows).
-				if err := recoverTableRows(&sb, pg, e, &sequenceRows); err != nil {
-					return "", err
-				}
-				continue
-			}
-			if e.sql != "" {
-				sb.WriteString(e.sql)
-				if !strings.HasSuffix(e.sql, ";") {
-					sb.WriteString(";")
-				}
-				sb.WriteString("\n")
-			}
-			if err := recoverTableRows(&sb, pg, e, &sequenceRows); err != nil {
-				return "", err
-			}
-		case "index", "view", "trigger":
-			if e.sql != "" {
-				sb.WriteString(e.sql)
-				if !strings.HasSuffix(e.sql, ";") {
-					sb.WriteString(";")
-				}
-				sb.WriteString("\n")
-			}
-		}
+	if err := emitSchemaEntries(&sb, pg, entries, &sequenceRows); err != nil {
+		return "", err
 	}
 
-	if hasAutoInc {
+	if hasAutoIncrement(entries) {
 		sb.WriteString("DELETE FROM sqlite_sequence;\n")
 		for _, r := range sequenceRows {
 			sb.WriteString(r)
@@ -140,60 +88,148 @@ func RecoverSQL(pg *pager.Pager, opts Options) (string, error) {
 
 	// Orphaned-page recovery (lost_and_found): pages unreachable from any
 	// schema tree and not on the freelist are decoded into the lost_and_found
-	// table. The CREATE TABLE lost_and_found column count (c0..cN) is the
-	// maximum field count observed across all orphans.
-	orphans, maxFields, err := rs.collectOrphans()
-	if err != nil {
+	// table.
+	if err := emitLostAndFound(&sb, rs, entries, opts); err != nil {
 		return "", err
-	}
-	if len(orphans) > 0 {
-		// The output name must not collide with a table the schema
-		// CREATEs already emitted (recoverLostAndFoundCreate probes
-		// sqlite_schema: lost_and_found, lost_and_found_0, ...).
-		lafName := opts.LostAndFound
-		taken := map[string]bool{}
-		for _, e := range entries {
-			if e.typ == "table" {
-				taken[e.name] = true
-			}
-		}
-		if taken[lafName] {
-			for i := 0; ; i++ {
-				cand := opts.LostAndFound + "_" + strconv.Itoa(i)
-				if !taken[cand] {
-					lafName = cand
-					break
-				}
-			}
-		}
-		fmt.Fprintf(&sb, "CREATE TABLE %s(rootpgno INTEGER, pgno INTEGER, nfield INTEGER, id INTEGER",
-			lafName)
-		for i := 0; i < maxFields; i++ {
-			fmt.Fprintf(&sb, ", c%d", i)
-		}
-		sb.WriteString(");\n")
-		for _, r := range orphans {
-			parts := []string{
-				strconv.FormatInt(int64(r.root), 10),
-				strconv.FormatInt(int64(r.pgno), 10),
-				strconv.FormatInt(r.nfield, 10),
-			}
-			if r.id == nil {
-				parts = append(parts, "NULL")
-			} else {
-				parts = append(parts, renderValue(r.id))
-			}
-			for _, v := range r.values {
-				parts = append(parts, v)
-			}
-			fmt.Fprintf(&sb, "INSERT INTO %s VALUES(%s);\n",
-				lafName, strings.Join(parts, ", "))
-		}
 	}
 
 	sb.WriteString("PRAGMA writable_schema = off;\n")
 	sb.WriteString("COMMIT;\n")
 	return sb.String(), nil
+}
+
+// writeRecoverPreamble emits BEGIN, the writable_schema/foreign_keys PRAGMAs
+// and the database-header-derived PRAGMAs, plus the canonical
+// sqlite_sequence CREATE when the schema has AUTOINCREMENT tables.
+func writeRecoverPreamble(sb *strings.Builder, pg *pager.Pager, hdr []byte, entries []tableEntry) {
+	sb.WriteString("BEGIN;\n")
+	sb.WriteString("PRAGMA writable_schema = on;\n")
+	sb.WriteString("PRAGMA foreign_keys = off;\n")
+	enc := map[uint32]string{1: "UTF-8", 2: "UTF-16le", 3: "UTF-16be"}[binary.BigEndian.Uint32(hdr[56:60])]
+	userVersion := binary.BigEndian.Uint32(hdr[60:64])
+	appID := binary.BigEndian.Uint32(hdr[68:72])
+	autoVacuum := binary.BigEndian.Uint32(hdr[52:56])
+	fmt.Fprintf(sb, "PRAGMA encoding = '%s';\n", enc)
+	fmt.Fprintf(sb, "PRAGMA page_size = '%d';\n", pg.PageSize())
+	fmt.Fprintf(sb, "PRAGMA auto_vacuum = '%d';\n", autoVacuum)
+	fmt.Fprintf(sb, "PRAGMA user_version = '%d';\n", userVersion)
+	fmt.Fprintf(sb, "PRAGMA application_id = '%d';\n", appID)
+	// AUTOINCREMENT tables imply the output needs sqlite_sequence.
+	if hasAutoIncrement(entries) {
+		sb.WriteString("CREATE TABLE sqlite_sequence(name,seq);\n")
+	}
+}
+
+// hasAutoIncrement reports whether any schema entry is an AUTOINCREMENT
+// table.
+func hasAutoIncrement(entries []tableEntry) bool {
+	for _, e := range entries {
+		if e.typ == "table" && e.autoInc {
+			return true
+		}
+	}
+	return false
+}
+
+// emitSchemaEntries writes each schema entry's CREATE (tables, indexes,
+// views, triggers) followed by the table's recovered rows.
+func emitSchemaEntries(sb *strings.Builder, pg *pager.Pager, entries []tableEntry, sequenceRows *[]string) error {
+	for _, e := range entries {
+		switch e.typ {
+		case "table":
+			if e.name == "sqlite_sequence" {
+				// The canonical CREATE is emitted in the preamble block; the
+				// input's own schema entry is not re-emitted. Its ROWS still
+				// are (recoverTableRows routes to appendSequenceRows).
+				if err := recoverTableRows(sb, pg, e, sequenceRows); err != nil {
+					return err
+				}
+				continue
+			}
+			writeCreateSQL(sb, e.sql)
+			if err := recoverTableRows(sb, pg, e, sequenceRows); err != nil {
+				return err
+			}
+		case "index", "view", "trigger":
+			writeCreateSQL(sb, e.sql)
+		}
+	}
+	return nil
+}
+
+// writeCreateSQL emits one schema object's CREATE statement, terminated with
+// a semicolon and newline.
+func writeCreateSQL(sb *strings.Builder, sql string) {
+	if sql == "" {
+		return
+	}
+	sb.WriteString(sql)
+	if !strings.HasSuffix(sql, ";") {
+		sb.WriteString(";")
+	}
+	sb.WriteString("\n")
+}
+
+// emitLostAndFound decodes orphan pages into the lost_and_found table. The
+// CREATE TABLE lost_and_found column count (c0..cN) is the maximum field
+// count observed across all orphans.
+func emitLostAndFound(sb *strings.Builder, rs *recoveryState, entries []tableEntry, opts Options) error {
+	orphans, maxFields, err := rs.collectOrphans()
+	if err != nil {
+		return err
+	}
+	if len(orphans) == 0 {
+		return nil
+	}
+	lafName := resolveLostAndFoundName(opts.LostAndFound, entries)
+	fmt.Fprintf(sb, "CREATE TABLE %s(rootpgno INTEGER, pgno INTEGER, nfield INTEGER, id INTEGER",
+		lafName)
+	for i := 0; i < maxFields; i++ {
+		fmt.Fprintf(sb, ", c%d", i)
+	}
+	sb.WriteString(");\n")
+	for _, r := range orphans {
+		fmt.Fprintf(sb, "INSERT INTO %s VALUES(%s);\n",
+			lafName, renderLostAndFoundRow(r))
+	}
+	return nil
+}
+
+// resolveLostAndFoundName picks an output name that does not collide with a
+// table the schema CREATEs already emitted (recoverLostAndFoundCreate probes
+// sqlite_schema: lost_and_found, lost_and_found_0, ...).
+func resolveLostAndFoundName(base string, entries []tableEntry) string {
+	taken := map[string]bool{}
+	for _, e := range entries {
+		if e.typ == "table" {
+			taken[e.name] = true
+		}
+	}
+	if !taken[base] {
+		return base
+	}
+	for i := 0; ; i++ {
+		cand := base + "_" + strconv.Itoa(i)
+		if !taken[cand] {
+			return cand
+		}
+	}
+}
+
+// renderLostAndFoundRow renders one orphan row's VALUES list.
+func renderLostAndFoundRow(r orphanRow) string {
+	parts := []string{
+		strconv.FormatInt(int64(r.root), 10),
+		strconv.FormatInt(int64(r.pgno), 10),
+		strconv.FormatInt(r.nfield, 10),
+	}
+	if r.id == nil {
+		parts = append(parts, "NULL")
+	} else {
+		parts = append(parts, renderValue(r.id))
+	}
+	parts = append(parts, r.values...)
+	return strings.Join(parts, ", ")
 }
 
 // readSchema walks the sqlite_master btree (root page 1) and decodes its
@@ -245,11 +281,6 @@ func recoverTableRows(sb *strings.Builder, pg *pager.Pager, e tableEntry, sequen
 		// emitted after DELETE FROM sqlite_sequence by the caller.
 		return appendSequenceRows(sb, pg, e, sequenceRows)
 	}
-	tree := btree.NewBTree(pg, uint32(e.rootPage), true)
-	cursor, err := tree.OpenCursor()
-	if err != nil {
-		return err
-	}
 	// Page-type-aware WITHOUT ROWID mapping: oracle files store WR
 	// tables as index btrees (0x0a/0x02, PK-first iField layout per
 	// PRAGMA index_xinfo); frigolite's writer stores declared-column
@@ -259,66 +290,96 @@ func recoverTableRows(sb *strings.Builder, pg *pager.Pager, e tableEntry, sequen
 	if e.withoutRowid && !wrIdentity {
 		ifield = e.iField()
 	}
+	return walkTableRows(pg, e, func(rowID int64, rec []interface{}) {
+		emitRowInsert(sb, e, rowID, rec, ifield, wrIdentity)
+	})
+}
+
+// walkTableRows walks one table's btree, invoking fn for each decodable cell
+// (rowid + record values). Open/advance errors end the walk; damaged records
+// are skipped (an advance error after one still ends it).
+func walkTableRows(pg *pager.Pager, e tableEntry, fn func(rowID int64, rec []interface{})) error {
+	tree := btree.NewBTree(pg, uint32(e.rootPage), true)
+	cursor, err := tree.OpenCursor()
+	if err != nil {
+		return err
+	}
 	for {
 		payload, rowID, err := cursor.ReadCellData()
 		if err != nil {
 			break
 		}
-		recR, derr := storage.DecodeRecord(payload)
-		var rec []interface{}
-		if derr == nil && recR != nil {
-			rec = recR.Values
-		}
-		if derr != nil {
+		rec, ok := decodeRecordValues(payload)
+		if !ok {
 			if _, aerr := cursor.Next(); aerr != nil {
 				break
 			}
 			continue
 		}
-		var values []string
-		if e.withoutRowid {
-			// wrIdentity (0x0d engine pages): declared order, map
-			// by identity. Index pages: PK-first iField layout.
-			values = make([]string, len(e.columns))
-			for di := range e.columns {
-				v := "NULL"
-				si := di
-				if !wrIdentity {
-					si = ifield[di]
-				}
-				if si < len(rec) {
-					v = renderValue(rec[si])
-				}
-				values[di] = v
-			}
-		} else {
-			values = make([]string, len(e.columns))
-			for i := range e.columns {
-				v := "NULL"
-				if i < len(rec) {
-					v = renderValue(rec[i])
-				}
-				// An INTEGER PRIMARY KEY column is the rowid alias: its value
-				// is the btree rowid (the record slot holds NULL).
-				if i == e.ipkIndex {
-					v = strconv.FormatInt(rowID, 10)
-				}
-				values[i] = v
-			}
-		}
-		cols := quotedColumnList(e.columns, e.ipkIndex, e.withoutRowid)
-		if e.ipkIndex < 0 && !e.withoutRowid {
-			// A rowid table without an INTEGER PRIMARY KEY column stores the
-			// rowid separately: expose it as _rowid_.
-			values = append([]string{strconv.FormatInt(rowID, 10)}, values...)
-		}
-		fmt.Fprintf(sb, "INSERT OR IGNORE INTO '%s'(%s) VALUES (%s);\n",
-			e.name, cols, strings.Join(values, ", "))
+		fn(rowID, rec)
 		if ok, aerr := cursor.Next(); aerr != nil || !ok {
 			break
 		}
 	}
 	return nil
+}
+
+// emitRowInsert writes one recovered row's INSERT OR IGNORE statement.
+func emitRowInsert(sb *strings.Builder, e tableEntry, rowID int64, rec []interface{}, ifield []int, wrIdentity bool) {
+	values := renderRowValues(rec, rowID, e, ifield, wrIdentity)
+	cols := quotedColumnList(e.columns, e.ipkIndex, e.withoutRowid)
+	if e.ipkIndex < 0 && !e.withoutRowid {
+		// A rowid table without an INTEGER PRIMARY KEY column stores the
+		// rowid separately: expose it as _rowid_.
+		values = append([]string{strconv.FormatInt(rowID, 10)}, values...)
+	}
+	fmt.Fprintf(sb, "INSERT OR IGNORE INTO '%s'(%s) VALUES (%s);\n",
+		e.name, cols, strings.Join(values, ", "))
+}
+
+// decodeRecordValues decodes a cell payload's record values, reporting false
+// when the record is damaged (the row is skipped).
+func decodeRecordValues(payload []byte) ([]interface{}, bool) {
+	recR, derr := storage.DecodeRecord(payload)
+	if derr != nil || recR == nil {
+		return nil, false
+	}
+	return recR.Values, true
+}
+
+// renderRowValues maps one decoded record to the table's declared column
+// values. WITHOUT ROWID tables map by the PK-first iField layout (or by
+// identity on frigolite's declared-order 0x0d pages); rowid tables map in
+// declared order, substituting the rowid for the INTEGER PRIMARY KEY slot.
+func renderRowValues(rec []interface{}, rowID int64, e tableEntry, ifield []int, wrIdentity bool) []string {
+	values := make([]string, len(e.columns))
+	if e.withoutRowid {
+		for di := range e.columns {
+			v := "NULL"
+			si := di
+			if !wrIdentity {
+				si = ifield[di]
+			}
+			if si < len(rec) {
+				v = renderValue(rec[si])
+			}
+			values[di] = v
+		}
+		return values
+	}
+	for i := range e.columns {
+		v := "NULL"
+		if i < len(rec) {
+			v = renderValue(rec[i])
+		}
+		// An INTEGER PRIMARY KEY column is the rowid alias: its value
+		// is the btree rowid (the record slot holds NULL).
+		if i == e.ipkIndex {
+			v = strconv.FormatInt(rowID, 10)
+		}
+		values[i] = v
+	}
+	return values
 }
 
 // isDeclaredOrderWR reports whether a WITHOUT ROWID table's root page
@@ -430,9 +491,23 @@ func (e *tableEntry) primaryKeyColumns() []string {
 		}
 	}
 	open := strings.Index(up[i:], "(") + i
+	end := parenMatchEnd(e.sql, open)
+	if end < 0 {
+		return nil
+	}
+	var cols []string
+	for _, f := range splitTopLevel(e.sql[open+1 : end]) {
+		cols = append(cols, firstIdentifier(f))
+	}
+	return cols
+}
+
+// parenMatchEnd finds the index of the ')' closing the paren at open,
+// skipping quoted strings; -1 when unbalanced.
+func parenMatchEnd(sql string, open int) int {
 	depth, inStr, end := 0, byte(0), -1
-	for j := open; j < len(e.sql); j++ {
-		c := e.sql[j]
+	for j := open; j < len(sql); j++ {
+		c := sql[j]
 		if inStr != 0 {
 			if c == inStr {
 				inStr = 0
@@ -454,14 +529,7 @@ func (e *tableEntry) primaryKeyColumns() []string {
 			break
 		}
 	}
-	if end < 0 {
-		return nil
-	}
-	var cols []string
-	for _, f := range splitTopLevel(e.sql[open+1 : end]) {
-		cols = append(cols, firstIdentifier(f))
-	}
-	return cols
+	return end
 }
 
 // --- lost_and_found (tranche 4) ---
@@ -486,25 +554,7 @@ func (r *recoveryState) collectOrphans() ([]orphanRow, int, error) {
 	for _, root := range r.reachRoots {
 		r.markTree(root, reachable)
 	}
-	free := map[uint32]bool{}
-	if r.opts.IgnoreFreelist {
-		head := r.freelistHead()
-		for h := head; h >= 2 && !free[h]; {
-			free[h] = true
-			pg, err := r.pg.ReadPage(h)
-			if err != nil {
-				break
-			}
-			next := binary.BigEndian.Uint32(pg.Data[0:4])
-			k := binary.BigEndian.Uint32(pg.Data[4:8])
-			for i := uint32(0); i < k && 8+4*i+4 <= uint32(len(pg.Data)); i++ {
-				if leaf := binary.BigEndian.Uint32(pg.Data[8+4*i : 8+4*i+4]); leaf >= 2 {
-					free[leaf] = true
-				}
-			}
-			h = next
-		}
-	}
+	free := r.collectFreelistPages()
 	var rows []orphanRow
 	maxFields := 0
 	visited := map[uint32]bool{}
@@ -517,7 +567,7 @@ func (r *recoveryState) collectOrphans() ([]orphanRow, int, error) {
 			continue
 		}
 		ptype := pgd.Data[contentOffset(pgno)]
-		if ptype != 0x0d && ptype != 0x0a && ptype != 0x05 && ptype != 0x02 {
+		if !isBTreePageType(ptype) {
 			continue
 		}
 		// An unreached btree page starts a new orphan tree.
@@ -528,6 +578,38 @@ func (r *recoveryState) collectOrphans() ([]orphanRow, int, error) {
 		rows = append(rows, orphanRows...)
 	}
 	return rows, maxFields, nil
+}
+
+// isBTreePageType reports whether ptype is a btree page type (table
+// leaf/interior or index leaf/interior).
+func isBTreePageType(ptype byte) bool {
+	return ptype == 0x0d || ptype == 0x0a || ptype == 0x05 || ptype == 0x02
+}
+
+// collectFreelistPages walks the freelist (trunk pages and their leaf
+// arrays) when opts.IgnoreFreelist honors it, returning every page it marks
+// free. A walk cycle or read error ends the walk.
+func (r *recoveryState) collectFreelistPages() map[uint32]bool {
+	free := map[uint32]bool{}
+	if !r.opts.IgnoreFreelist {
+		return free
+	}
+	for h := r.freelistHead(); h >= 2 && !free[h]; {
+		free[h] = true
+		pg, err := r.pg.ReadPage(h)
+		if err != nil {
+			break
+		}
+		next := binary.BigEndian.Uint32(pg.Data[0:4])
+		k := binary.BigEndian.Uint32(pg.Data[4:8])
+		for i := uint32(0); i < k && 8+4*i+4 <= uint32(len(pg.Data)); i++ {
+			if leaf := binary.BigEndian.Uint32(pg.Data[8+4*i : 8+4*i+4]); leaf >= 2 {
+				free[leaf] = true
+			}
+		}
+		h = next
+	}
+	return free
 }
 
 // walkOrphanTree decodes one orphan subtree, emitting its rows.
@@ -542,83 +624,87 @@ func (r *recoveryState) walkOrphanTree(root, pgno uint32, visited map[uint32]boo
 	}
 	coff := contentOffset(pgno)
 	ptype := pgd.Data[coff]
-	var rows []orphanRow
 	switch ptype {
 	case 0x05, 0x02: // interior: recurse children (cells' left children + rightmost)
-		page, perr := storage.ParsePage(pgd.Data, int(r.pg.PageSize()), coff)
-		if perr != nil {
-			return nil, nil
-		}
-		var children []uint32
-		for i := 0; i < int(page.CellCount); i++ {
-			cellOff := int(storage.CellPointer(pgd.Data, coff+4, i, int(r.pg.PageSize())))
-			if cellOff+4 <= len(pgd.Data) {
-				children = append(children, binary.BigEndian.Uint32(pgd.Data[cellOff:cellOff+4]))
-			}
-		}
-		children = append(children, binary.BigEndian.Uint32(pgd.Data[coff+8:coff+12]))
-		for _, ch := range children {
-			sub, err := r.walkOrphanTree(root, ch, visited, maxFields)
-			if err != nil {
-				return nil, err
-			}
-			rows = append(rows, sub...)
-		}
+		return r.walkOrphanInterior(root, pgno, visited, maxFields, pgd.Data, coff)
 	case 0x0d: // table leaf: rowid rows
 		page, perr := storage.ParsePage(pgd.Data, int(r.pg.PageSize()), coff)
 		if perr != nil {
 			return nil, nil
 		}
-		for i := 0; i < int(page.CellCount); i++ {
-			cellOff := int(storage.CellPointer(pgd.Data, coff, i, int(r.pg.PageSize())))
-			// Leaf table cells: CellPointer base is the page-content offset.
-			payload, rowID, err := r.readLeafCellPayload(pgd.Data, cellOff, true)
-			if err != nil {
-				continue
-			}
-			rec, derr := storage.DecodeRecord(payload)
-			if derr != nil || rec == nil {
-				continue
-			}
-			vals := make([]string, len(rec.Values))
-			n := 0
-			for j, v := range rec.Values {
-				vals[j] = renderValue(v)
-				n++
-			}
-			if n > *maxFields {
-				*maxFields = n
-			}
-			rows = append(rows, orphanRow{root: root, pgno: pgno, nfield: int64(n), id: rowID, values: vals})
-		}
+		return r.orphanLeafRows(root, pgno, pgd.Data, coff, int(page.CellCount), true, maxFields), nil
 	case 0x0a: // index leaf: pure records, no rowid
 		page, perr := storage.ParsePage(pgd.Data, int(r.pg.PageSize()), coff)
 		if perr != nil {
 			return nil, nil
 		}
-		for i := 0; i < int(page.CellCount); i++ {
-			cellOff := int(storage.CellPointer(pgd.Data, coff, i, int(r.pg.PageSize())))
-			payload, _, err := r.readLeafCellPayload(pgd.Data, cellOff, false)
-			if err != nil {
-				continue
-			}
-			rec, derr := storage.DecodeRecord(payload)
-			if derr != nil || rec == nil {
-				continue
-			}
-			vals := make([]string, len(rec.Values))
-			n := 0
-			for j, v := range rec.Values {
-				vals[j] = renderValue(v)
-				n++
-			}
-			if n > *maxFields {
-				*maxFields = n
-			}
-			rows = append(rows, orphanRow{root: root, pgno: pgno, nfield: int64(n), id: nil, values: vals})
+		return r.orphanLeafRows(root, pgno, pgd.Data, coff, int(page.CellCount), false, maxFields), nil
+	}
+	return nil, nil
+}
+
+// walkOrphanInterior recurses an interior orphan page's children.
+func (r *recoveryState) walkOrphanInterior(root, pgno uint32, visited map[uint32]bool, maxFields *int, data []byte, coff int) ([]orphanRow, error) {
+	page, perr := storage.ParsePage(data, int(r.pg.PageSize()), coff)
+	if perr != nil {
+		return nil, nil
+	}
+	var rows []orphanRow
+	for _, ch := range orphanInteriorChildren(data, coff, int(r.pg.PageSize()), int(page.CellCount)) {
+		sub, err := r.walkOrphanTree(root, ch, visited, maxFields)
+		if err != nil {
+			return nil, err
 		}
+		rows = append(rows, sub...)
 	}
 	return rows, nil
+}
+
+// orphanInteriorChildren returns the child page numbers of an interior
+// btree page (cell left-children plus the rightmost pointer).
+func orphanInteriorChildren(data []byte, coff, pageSize, cellCount int) []uint32 {
+	var children []uint32
+	for i := 0; i < cellCount; i++ {
+		cellOff := int(storage.CellPointer(data, coff+4, i, pageSize))
+		if cellOff+4 <= len(data) {
+			children = append(children, binary.BigEndian.Uint32(data[cellOff:cellOff+4]))
+		}
+	}
+	children = append(children, binary.BigEndian.Uint32(data[coff+8:coff+12]))
+	return children
+}
+
+// orphanLeafRows decodes a leaf page's cells into orphan rows; hasRowid
+// selects table-leaf (0x0d, rowid id) vs index-leaf (0x0a, nil id) framing.
+func (r *recoveryState) orphanLeafRows(root, pgno uint32, data []byte, coff, cellCount int, hasRowid bool, maxFields *int) []orphanRow {
+	var rows []orphanRow
+	for i := 0; i < cellCount; i++ {
+		cellOff := int(storage.CellPointer(data, coff, i, int(r.pg.PageSize())))
+		// Leaf table cells: CellPointer base is the page-content offset.
+		payload, rowID, err := r.readLeafCellPayload(data, cellOff, hasRowid)
+		if err != nil {
+			continue
+		}
+		rec, derr := storage.DecodeRecord(payload)
+		if derr != nil || rec == nil {
+			continue
+		}
+		vals := make([]string, len(rec.Values))
+		n := 0
+		for j, v := range rec.Values {
+			vals[j] = renderValue(v)
+			n++
+		}
+		if n > *maxFields {
+			*maxFields = n
+		}
+		var id interface{}
+		if hasRowid {
+			id = rowID
+		}
+		rows = append(rows, orphanRow{root: root, pgno: pgno, nfield: int64(n), id: id, values: vals})
+	}
+	return rows
 }
 
 // readLeafCellPayload decodes one leaf cell: payload length varint, optional
@@ -639,6 +725,26 @@ func (r *recoveryState) readLeafCellPayload(pageData []byte, cellOff int, hasRow
 		pos += n2
 	}
 	usable := int(r.pg.UsableSize())
+	local := leafLocalSize(plen, usable, hasRowid)
+	if local < 0 || pos+local > len(pageData) {
+		return nil, 0, fmt.Errorf("cell payload truncated")
+	}
+	out := make([]byte, 0, plen)
+	out = append(out, pageData[pos:pos+local]...)
+	if plen <= local {
+		return out, rowid, nil
+	}
+	if pos+local+4 > len(pageData) {
+		return nil, 0, fmt.Errorf("cell overflow pointer missing")
+	}
+	next := binary.BigEndian.Uint32(pageData[pos+local : pos+local+4])
+	out = r.readOverflowChain(out, next, plen)
+	return out, rowid, nil
+}
+
+// leafLocalSize computes the local (in-page) payload size of a leaf cell
+// (SQLite's btreeParseCellPtr: the surplus formula and maxLocal cap).
+func leafLocalSize(plen, usable int, hasRowid bool) int {
 	maxLocal := usable - 35
 	minLocal := ((usable - 12) * 32 / 255) - 23
 	if !hasRowid {
@@ -652,18 +758,13 @@ func (r *recoveryState) readLeafCellPayload(pageData []byte, cellOff int, hasRow
 			local = minLocal
 		}
 	}
-	if local < 0 || pos+local > len(pageData) {
-		return nil, 0, fmt.Errorf("cell payload truncated")
-	}
-	out := make([]byte, 0, plen)
-	out = append(out, pageData[pos:pos+local]...)
-	if plen <= local {
-		return out, rowid, nil
-	}
-	if pos+local+4 > len(pageData) {
-		return nil, 0, fmt.Errorf("cell overflow pointer missing")
-	}
-	next := binary.BigEndian.Uint32(pageData[pos+local : pos+local+4])
+	return local
+}
+
+// readOverflowChain appends an overflow chain's pages to out until it holds
+// plen bytes (or the chain ends).
+func (r *recoveryState) readOverflowChain(out []byte, next uint32, plen int) []byte {
+	usable := int(r.pg.UsableSize())
 	for next != 0 && next <= r.pg.NumPages() {
 		pg, err := r.pg.ReadPage(next)
 		if err != nil {
@@ -680,7 +781,7 @@ func (r *recoveryState) readLeafCellPayload(pageData []byte, cellOff int, hasRow
 		}
 		next = binary.BigEndian.Uint32(pg.Data[0:4])
 	}
-	return out, rowid, nil
+	return out
 }
 
 // varintAt decodes one big-endian SQLite varint at data[pos].

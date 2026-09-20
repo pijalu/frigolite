@@ -102,18 +102,6 @@ func (m *Module) Bind(dbName, tableName string, cfg *Config, tok Tokenizer) (*Ta
 	return t, nil
 }
 
-// familyExists reports whether a table's shadow family is already in the
-// schema (the %_data table is present for every fts5 configuration).
-func (m *Module) familyExists(dbName, tableName string) bool {
-	rows, err := m.db.ExecSQL(fmt.Sprintf(
-		"SELECT 1 FROM %s WHERE type='table' AND name=%s",
-		qual(dbName, "sqlite_schema"), sqlLiteral(tableName+"_data")))
-	if err != nil {
-		return false
-	}
-	return len(rows) > 0
-}
-
 // familyExists reports whether this table's shadow family is already in the
 // schema (the %_data table is present for every fts5 configuration).
 func (t *Table) familyExists() bool {
@@ -477,11 +465,7 @@ func (t *Table) DeleteAll() error {
 func (t *Table) SpecialCommand(cmd string, args []interface{}) (bool, error) {
 	switch strings.ToLower(cmd) {
 	case "delete-all":
-		if t.cfg.EContent == ContentNormal {
-			return true, fmt.Errorf("'delete-all' may only be used with a " +
-				"contentless or external content fts5 table")
-		}
-		return true, t.DeleteAll()
+		return t.specialDeleteAll()
 	case "delete":
 		return true, t.specialDelete(args)
 	case "rebuild":
@@ -490,39 +474,10 @@ func (t *Table) SpecialCommand(cmd string, args []interface{}) (bool, error) {
 		}
 		return true, t.rebuild()
 	case "rank":
-		// The rank function configuration: parsed and persisted in %_config
-		// (fts5SpecialInsert's sqlite3Fts5ConfigSetValue('rank') path).
-		spec := ""
-		if len(args) > 0 {
-			if s, ok := args[0].(string); ok {
-				spec = s
-			}
-		}
-		parsed, err := ParseRankSpec(spec)
-		if err != nil {
-			return true, err
-		}
-		t.cfg.Rank = *parsed
-		return true, t.storeConfigValue("rank", spec)
+		return t.specialRank(args)
 	case "pgsz", "hashsize", "automerge", "usermerge", "crisismerge",
 		"deletemerge", "secure-delete", "insttoken":
-		// Integer-valued maintenance/config directives (fts5ConfigSetValue):
-		// the value must be INTEGER-typed — C's
-		// sqlite3_value_numeric_type(pVal)==SQLITE_INTEGER check, so REAL
-		// values (66.67) and non-numeric text fail before any range check —
-		// then range-checked and persisted in %_config (the raw value is
-		// stored, like C's sqlite3Fts5StorageConfigValue).
-		v, ok := configIntValue(argValue(args))
-		if !ok || badConfigValue(strings.ToLower(cmd), v) {
-			return true, errRankLogic()
-		}
-		// C keeps bSecureDelete in memory (fts5_config.c fts5ConfigSetValue);
-		// the format version upgrade happens lazily on the first secure
-		// delete.
-		if strings.EqualFold(cmd, "secure-delete") {
-			t.cfg.SecureDelete = v != 0
-		}
-		return true, t.storeConfigValue(strings.ToLower(cmd), v)
+		return t.specialConfigValue(strings.ToLower(cmd), args)
 	case "merge", "integrity-check", "optimize":
 		// Index maintenance directives with no SQL-observable effect at this
 		// storage granularity; integrity-check on a healthy index is a no-op.
@@ -534,6 +489,54 @@ func (t *Table) SpecialCommand(cmd string, args []interface{}) (bool, error) {
 		return true, t.FlushShadowIfDirty()
 	}
 	return false, nil
+}
+
+// specialDeleteAll applies the 'delete-all' command (fts5SpecialDelete's
+// gate: only contentless or external-content tables may delete all).
+func (t *Table) specialDeleteAll() (bool, error) {
+	if t.cfg.EContent == ContentNormal {
+		return true, fmt.Errorf("'delete-all' may only be used with a " +
+			"contentless or external content fts5 table")
+	}
+	return true, t.DeleteAll()
+}
+
+// specialRank applies the 'rank' command: the rank function configuration is
+// parsed and persisted in %_config (fts5SpecialInsert's
+// sqlite3Fts5ConfigSetValue('rank') path).
+func (t *Table) specialRank(args []interface{}) (bool, error) {
+	spec := ""
+	if len(args) > 0 {
+		if s, ok := args[0].(string); ok {
+			spec = s
+		}
+	}
+	parsed, err := ParseRankSpec(spec)
+	if err != nil {
+		return true, err
+	}
+	t.cfg.Rank = *parsed
+	return true, t.storeConfigValue("rank", spec)
+}
+
+// specialConfigValue applies an integer-valued maintenance/config directive
+// (fts5ConfigSetValue): the value must be INTEGER-typed — C's
+// sqlite3_value_numeric_type(pVal)==SQLITE_INTEGER check, so REAL values
+// (66.67) and non-numeric text fail before any range check — then
+// range-checked and persisted in %_config (the raw value is stored, like C's
+// sqlite3Fts5StorageConfigValue).
+func (t *Table) specialConfigValue(cmd string, args []interface{}) (bool, error) {
+	v, ok := configIntValue(argValue(args))
+	if !ok || badConfigValue(cmd, v) {
+		return true, errRankLogic()
+	}
+	// C keeps bSecureDelete in memory (fts5_config.c fts5ConfigSetValue);
+	// the format version upgrade happens lazily on the first secure
+	// delete.
+	if cmd == "secure-delete" {
+		t.cfg.SecureDelete = v != 0
+	}
+	return true, t.storeConfigValue(cmd, v)
 }
 
 // specialDelete implements the 'delete' special command (fts5SpecialDelete +
@@ -685,33 +688,7 @@ func (t *Table) ScanDocs() ([]int64, [][]interface{}, error) {
 		return nil, nil, fmt.Errorf("%s: table does not support scanning", t.cfg.Name)
 	}
 	if t.cfg.EContent == ContentNormal || t.cfg.EContent == ContentUnindexed {
-		qc := qual(t.dbName, t.cfg.Name+"_content")
-		colList := "id"
-		for _, c := range t.contentCols() {
-			colList += fmt.Sprintf(", c%d", c)
-		}
-		rows, err := t.db.ExecSQL(fmt.Sprintf("SELECT %s FROM %s ORDER BY id ASC", colList, qc))
-		if err != nil {
-			return nil, nil, err
-		}
-		rowids := make([]int64, 0, len(rows))
-		values := make([][]interface{}, 0, len(rows))
-		stored := t.contentCols()
-		for _, row := range rows {
-			id, ok := asInt64(row[0])
-			if !ok {
-				continue
-			}
-			full := make([]interface{}, len(t.cfg.Columns))
-			for j, c := range stored {
-				if j+1 < len(row) {
-					full[c] = row[j+1]
-				}
-			}
-			rowids = append(rowids, id)
-			values = append(values, full)
-		}
-		return rowids, values, nil
+		return t.scanContentTable()
 	}
 	rowids := t.ix.SortedRowids()
 	values := make([][]interface{}, len(rowids))
@@ -721,6 +698,45 @@ func (t *Table) ScanDocs() ([]int64, [][]interface{}, error) {
 		}
 	}
 	return rowids, values, nil
+}
+
+// scanContentTable scans %_content itself (C's FTS5_PLAN_SCAN runs
+// FTS5_STMT_SCAN_ASC — "SELECT <cols>, rowid FROM %_content ORDER BY rowid"),
+// so a document whose content row is missing does not appear even if the
+// index still holds it (fts5matchinfo 15.2/15.3).
+func (t *Table) scanContentTable() ([]int64, [][]interface{}, error) {
+	qc := qual(t.dbName, t.cfg.Name+"_content")
+	colList := "id"
+	for _, c := range t.contentCols() {
+		colList += fmt.Sprintf(", c%d", c)
+	}
+	rows, err := t.db.ExecSQL(fmt.Sprintf("SELECT %s FROM %s ORDER BY id ASC", colList, qc))
+	if err != nil {
+		return nil, nil, err
+	}
+	rowids := make([]int64, 0, len(rows))
+	values := make([][]interface{}, 0, len(rows))
+	stored := t.contentCols()
+	for _, row := range rows {
+		id, ok := asInt64(row[0])
+		if !ok {
+			continue
+		}
+		rowids = append(rowids, id)
+		values = append(values, t.storedRowValues(row, stored))
+	}
+	return rowids, values, nil
+}
+
+// storedRowValues spreads a %_content row over the user-column slots.
+func (t *Table) storedRowValues(row []interface{}, stored []int) []interface{} {
+	full := make([]interface{}, len(t.cfg.Columns))
+	for j, c := range stored {
+		if j+1 < len(row) {
+			full[c] = row[j+1]
+		}
+	}
+	return full
 }
 
 // DocValues returns one document's stored values in user-column order

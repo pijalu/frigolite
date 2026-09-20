@@ -197,7 +197,70 @@ func (v *rtreeVTab[T]) rowPassesAux(row []interface{}, aux []rtreeConstraint[T])
 
 // ---- filtered scan (priority-ordered MBR descent) ----
 
-// scanDataRowsFiltered walks the tree depth-first honoring the pushed
+// rtreeScan carries the filtered descent's shared state (rtreeGeopolyOverlap's
+// filter walk): the pushed constraints, the rowid filter, the MATCH geometry
+// callback and the output rows.
+type rtreeScan[T coordType] struct {
+	v           *rtreeVTab[T]
+	constraints []rtreeConstraint[T]
+	rowids      rtreeRowidSet
+	match       *RtreeGeometry
+	out         [][]interface{}
+}
+
+// cellMatches runs the geometry callback against one cell's MBR
+// (rtreeCallbackConstraint: nCoord = 2*nDim REAL-domain values).
+func (s *rtreeScan[T]) cellMatches(coords []T) (bool, error) {
+	fl := make([]float64, len(coords))
+	for i, c := range coords {
+		fl[i] = asFloat64(c)
+	}
+	res, err := s.match.Invoke(len(fl), fl)
+	if err != nil {
+		return false, err
+	}
+	return res != 0, nil
+}
+
+// rowidPassesAll applies every rowid-column constraint to id.
+func (s *rtreeScan[T]) rowidPassesAll(id int64) bool {
+	for _, con := range s.constraints {
+		if con.col == 0 && !rowidPasses(con.op, id, con.value) {
+			return false
+		}
+	}
+	return true
+}
+
+// coordPassesAll applies every coordinate constraint to the cell's MBR
+// (a coordinate-column constraint indexes aCoord[col-1]).
+func (s *rtreeScan[T]) coordPassesAll(cell RtreeCell[T]) bool {
+	for _, con := range s.constraints {
+		if con.col == 0 {
+			continue
+		}
+		ci := con.col - 1
+		if ci >= len(cell.aCoord) {
+			continue
+		}
+		if !coordPasses(con.op, cell.aCoord[ci], con.value) {
+			return false
+		}
+	}
+	return true
+}
+
+// collectLeafRow appends the output row for one matching leaf cell.
+func (s *rtreeScan[T]) collectLeafRow(cell RtreeCell[T]) {
+	row := make([]interface{}, 0, 1+s.v.nDim2+s.v.nAux)
+	row = append(row, cell.iRowid)
+	for j := 0; j < s.v.nDim2; j++ {
+		row = append(row, coordToOut[T](cell.aCoord[j]))
+	}
+	s.out = append(s.out, row)
+}
+
+// collectDataRows walks the tree depth-first honoring the pushed
 // constraints. Internal cells prune only when the subtree's bounding box
 // cannot satisfy ANY dimension constraint — a plain MBR rejection test — so
 // results stay identical to unfiltered enumeration even under mixed operators.
@@ -205,107 +268,79 @@ func (v *rtreeVTab[T]) rowPassesAux(row []interface{}, aux []rtreeConstraint[T])
 // every cell at BOTH levels with that cell's coordinates, pruning it when the
 // callback reports zero.
 func (v *rtreeVTab[T]) collectDataRows(constraints []rtreeConstraint[T], rowids rtreeRowidSet, match *RtreeGeometry) ([][]interface{}, error) {
-	isRowidCol := func(c int) bool { return c == 0 }
-	var out [][]interface{}
-	hasRowidSet := rowids != nil
-
-	// cellMatches runs the geometry callback against one cell's MBR
-	// (rtreeCallbackConstraint: nCoord = 2*nDim REAL-domain values).
-	cellMatches := func(coords []T) (bool, error) {
-		fl := make([]float64, len(coords))
-		for i, c := range coords {
-			fl[i] = asFloat64(c)
-		}
-		res, err := match.Invoke(len(fl), fl)
-		if err != nil {
-			return false, err
-		}
-		return res != 0, nil
-	}
-
-	descend := func(nodeno int64, depthLeft int) error { return nil }
-	descend = func(nodeno int64, depthLeft int) error {
-		node, err := v.nodeAcquire(nodeno)
-		if err != nil {
-			return err
-		}
-		defer v.nodeRelease(node)
-		nCell := node.nCell()
-		if depthLeft == 0 {
-			for i := 0; i < nCell; i++ {
-				cell := v.nodeGetCell(node, i)
-				id := cell.iRowid
-				if hasRowidSet {
-					if _, ok := rowids[id]; !ok {
-						continue
-					}
-				}
-				if match != nil {
-					okm, merr := cellMatches(cell.aCoord)
-					if merr != nil {
-						return merr
-					}
-					if !okm {
-						continue
-					}
-				}
-				pass := true
-				for _, con := range constraints {
-					if isRowidCol(con.col) {
-						if !rowidPasses(con.op, id, con.value) {
-							pass = false
-							break
-						}
-						continue
-					}
-					ci := con.col - 1
-					if ci >= len(cell.aCoord) {
-						continue
-					}
-					if !coordPasses(con.op, cell.aCoord[ci], con.value) {
-						pass = false
-						break
-					}
-				}
-				if !pass {
-					continue
-				}
-				row := make([]interface{}, 0, 1+v.nDim2+v.nAux)
-				row = append(row, id)
-				for j := 0; j < v.nDim2; j++ {
-					row = append(row, coordToOut[T](cell.aCoord[j]))
-				}
-				out = append(out, row)
-			}
-			return nil
-		}
-		for i := 0; i < nCell; i++ {
-			childRowid := v.nodeGetRowid(node, i)
-			if match != nil {
-				mbr := make([]T, v.nDim2)
-				copy(mbr, v.nodeGetCell(node, i).aCoord)
-				okm, merr := cellMatches(mbr)
-				if merr != nil {
-					return merr
-				}
-				if !okm {
-					continue // subtree pruned (res==0 => NOT_WITHIN)
-				}
-			}
-			if err := descend(childRowid, depthLeft-1); err != nil {
-				return err
-			}
-		}
-		return nil
-	}
-
+	s := &rtreeScan[T]{v: v, constraints: constraints, rowids: rowids, match: match}
 	root, err := v.rootAcquire()
 	if err != nil {
 		return nil, err
 	}
 	defer v.nodeRelease(root)
-	if err := descend(1, root.depth()); err != nil {
+	if err := s.descend(1, root.depth()); err != nil {
 		return nil, err
 	}
-	return out, nil
+	return s.out, nil
+}
+
+// descend walks one node: leaf cells run the rowid/MATCH/constraint filters;
+// internal cells run the MATCH MBR prune and recurse.
+func (s *rtreeScan[T]) descend(nodeno int64, depthLeft int) error {
+	v := s.v
+	node, err := v.nodeAcquire(nodeno)
+	if err != nil {
+		return err
+	}
+	defer v.nodeRelease(node)
+	nCell := node.nCell()
+	if depthLeft == 0 {
+		return s.descendLeaf(node, nCell)
+	}
+	for i := 0; i < nCell; i++ {
+		childRowid := v.nodeGetRowid(node, i)
+		if s.match != nil {
+			mbr := make([]T, v.nDim2)
+			copy(mbr, v.nodeGetCell(node, i).aCoord)
+			okm, merr := s.cellMatches(mbr)
+			if merr != nil {
+				return merr
+			}
+			if !okm {
+				continue // subtree pruned (res==0 => NOT_WITHIN)
+			}
+		}
+		if err := s.descend(childRowid, depthLeft-1); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// descendLeaf filters and collects one leaf node's cells.
+func (s *rtreeScan[T]) descendLeaf(node *rtreeNode[T], nCell int) error {
+	for i := 0; i < nCell; i++ {
+		cell := s.v.nodeGetCell(node, i)
+		keep, err := s.leafCellPasses(cell)
+		if err != nil {
+			return err
+		}
+		if keep {
+			s.collectLeafRow(cell)
+		}
+	}
+	return nil
+}
+
+// leafCellPasses applies the rowid-set filter, the MATCH geometry callback
+// and the pushed constraints to one leaf cell.
+func (s *rtreeScan[T]) leafCellPasses(cell RtreeCell[T]) (bool, error) {
+	if s.rowids != nil {
+		if _, ok := s.rowids[cell.iRowid]; !ok {
+			return false, nil
+		}
+	}
+	if s.match != nil {
+		okm, merr := s.cellMatches(cell.aCoord)
+		if merr != nil || !okm {
+			return false, merr
+		}
+	}
+	return s.rowidPassesAll(cell.iRowid) && s.coordPassesAll(cell), nil
 }

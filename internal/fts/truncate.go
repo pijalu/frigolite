@@ -34,37 +34,48 @@ func parseNodeEntries(aNode []byte) (height int, firstChild int64, entries []nod
 	}
 	var prev string
 	for pos < len(aNode) {
-		nPrefix := 0
-		if len(entries) > 0 {
-			v, n := GetFTS3Varint(aNode[pos:])
-			if n == 0 || int(v) > len(prev) {
-				return 0, 0, nil, true
-			}
-			nPrefix = int(v)
-			pos += n
-		}
-		vs, ns := GetFTS3Varint(aNode[pos:])
-		if ns == 0 || int(vs) == 0 || pos+ns+int(vs) > len(aNode) {
+		e, next, ok := nextNodeEntry(aNode, pos, prev, len(entries) > 0, height)
+		if !ok {
 			return 0, 0, nil, true
 		}
-		nSuffix := int(vs)
-		pos += ns
-		term := prev[:nPrefix] + string(aNode[pos:pos+nSuffix])
-		pos += nSuffix
-		e := nodeEntry{term: term}
-		if height == 0 {
-			vd, nd := GetFTS3Varint(aNode[pos:])
-			if nd == 0 || pos+nd+int(vd) > len(aNode) {
-				return 0, 0, nil, true
-			}
-			pos += nd
-			e.doclist = aNode[pos : pos+int(vd)]
-			pos += int(vd)
-		}
+		pos = next
 		entries = append(entries, e)
-		prev = term
+		prev = e.term
 	}
 	return height, firstChild, entries, false
+}
+
+// nextNodeEntry decodes one node entry at pos: the prefix-compressed term
+// (prefix omitted when hasPrefix is false) plus, for leaf nodes, the raw
+// doclist. ok is false when the entry framing is corrupt.
+func nextNodeEntry(aNode []byte, pos int, prev string, hasPrefix bool, height int) (e nodeEntry, next int, ok bool) {
+	nPrefix := 0
+	if hasPrefix {
+		v, n := GetFTS3Varint(aNode[pos:])
+		if n == 0 || int(v) > len(prev) {
+			return e, pos, false
+		}
+		nPrefix = int(v)
+		pos += n
+	}
+	vs, ns := GetFTS3Varint(aNode[pos:])
+	if ns == 0 || int(vs) == 0 || pos+ns+int(vs) > len(aNode) {
+		return e, pos, false
+	}
+	nSuffix := int(vs)
+	pos += ns
+	e.term = prev[:nPrefix] + string(aNode[pos:pos+nSuffix])
+	pos += nSuffix
+	if height == 0 {
+		vd, nd := GetFTS3Varint(aNode[pos:])
+		if nd == 0 || pos+nd+int(vd) > len(aNode) {
+			return e, pos, false
+		}
+		pos += nd
+		e.doclist = aNode[pos : pos+int(vd)]
+		pos += int(vd)
+	}
+	return e, pos, true
 }
 
 // startNode writes a node header: the height byte followed by the left-hand

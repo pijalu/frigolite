@@ -400,41 +400,56 @@ func (v *generateSeriesVTab) ExpandValueDefaults(lowerSeen, upperSeen bool) {
 // when unconstrained. The cursor's init() then aligns the terminal to the
 // step grid and detects empty ranges.
 func (v *generateSeriesVTab) NarrowValueRange(min, max *int64) {
-	desc := v.step < 0
-	ustep := uint64(0)
-	switch {
-	case v.step > 0:
-		ustep = uint64(v.step)
-	case v.step > math.MinInt64:
-		ustep = uint64(-v.step)
-	default:
-		ustep = uint64(math.MaxInt64) + 1
-	}
-	if desc {
+	if v.step < 0 {
 		// Values run start down to stop. Lower the head until <= max
 		// (series.c: floor multiples, then one guarded extra step).
-		if max != nil && v.start > *max {
-			span := span64(v.start, *max)
-			v.start = sub64(v.start, (span/ustep)*ustep)
-			if v.start > *max {
-				if v.start < add64(math.MinInt64, ustep) {
-					v.empty = true
-					return
-				}
-				v.start = sub64(v.start, ustep)
-				if v.start > *max {
-					v.empty = true
-					return
-				}
-			}
-		}
-		// Raise the tail until >= min.
-		if min != nil && v.stop < *min {
-			v.stop = *min
-		}
+		v.narrowDescending(v.absStep(), min, max)
 		return
 	}
 	// Ascending: raise the head until >= min.
+	v.narrowAscending(v.absStep(), min, max)
+}
+
+// absStep returns the step magnitude (|MinInt64| has no positive
+// counterpart).
+func (v *generateSeriesVTab) absStep() uint64 {
+	switch {
+	case v.step > 0:
+		return uint64(v.step)
+	case v.step > math.MinInt64:
+		return uint64(-v.step)
+	default:
+		return uint64(math.MaxInt64) + 1
+	}
+}
+
+// narrowDescending lowers the descending head to <= max and raises the tail
+// to >= min.
+func (v *generateSeriesVTab) narrowDescending(ustep uint64, min, max *int64) {
+	if max != nil && v.start > *max {
+		span := span64(v.start, *max)
+		v.start = sub64(v.start, (span/ustep)*ustep)
+		if v.start > *max {
+			if v.start < add64(math.MinInt64, ustep) {
+				v.empty = true
+				return
+			}
+			v.start = sub64(v.start, ustep)
+			if v.start > *max {
+				v.empty = true
+				return
+			}
+		}
+	}
+	// Raise the tail until >= min.
+	if min != nil && v.stop < *min {
+		v.stop = *min
+	}
+}
+
+// narrowAscending raises the ascending head to >= min and lowers the tail to
+// <= max.
+func (v *generateSeriesVTab) narrowAscending(ustep uint64, min, max *int64) {
 	if min != nil && v.start < *min {
 		span := uint64(*min) - uint64(v.start)
 		v.start = add64(v.start, (span/ustep)*ustep)

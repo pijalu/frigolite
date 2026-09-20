@@ -181,16 +181,9 @@ func (v *carrayVTab) bindArgs(args []interface{}) error {
 		if n < 0 || n > int64(len(h.Values)) {
 			n = int64(len(h.Values))
 		}
-		typ := "int32"
-		if len(args) >= 3 {
-			name, ok := args[2].(string)
-			if !ok {
-				return fmt.Errorf("unknown datatype: %q", fmt.Sprint(args[2]))
-			}
-			if err := v.validateCType(name); err != nil {
-				return err
-			}
-			typ = name
+		typ, err := v.carrayCType(args)
+		if err != nil {
+			return err
 		}
 		v.values = convertCArray(h.Values[:n], typ)
 		v.ctype = typ
@@ -397,4 +390,20 @@ func asInt64(v interface{}) (int64, bool) {
 		}
 	}
 	return 0, false
+}
+
+// carrayCType resolves the optional third carray() argument (idxNum 3's
+// ctype); int32 is the default.
+func (v *carrayVTab) carrayCType(args []interface{}) (string, error) {
+	if len(args) < 3 {
+		return "int32", nil
+	}
+	name, ok := args[2].(string)
+	if !ok {
+		return "", fmt.Errorf("unknown datatype: %q", fmt.Sprint(args[2]))
+	}
+	if err := v.validateCType(name); err != nil {
+		return "", err
+	}
+	return name, nil
 }

@@ -88,35 +88,11 @@ func (w *IncrLeafWriter) LoadLeaf(block []byte) bool {
 	w.loadedLeaf = true
 	var prevTerm []byte
 	for pos < len(block) {
-		var term string
-		if len(w.records) == 0 {
-			nLen, n := getFTS3Varint(block[pos:])
-			if n == 0 || uint64(pos)+nLen > uint64(len(block)) {
-				return false
-			}
-			pos += n
-			term = string(block[pos : pos+int(nLen)])
-			pos += int(nLen)
-		} else {
-			nPrefix, n := getFTS3Varint(block[pos:])
-			if n == 0 {
-				return false
-			}
-			pos += n
-			nSuffix, n := getFTS3Varint(block[pos:])
-			if n == 0 {
-				return false
-			}
-			pos += n
-			if uint64(nPrefix) > uint64(len(prevTerm)) || uint64(pos)+nSuffix > uint64(len(block)) {
-				return false
-			}
-			t := make([]byte, nPrefix)
-			copy(t, prevTerm[:nPrefix])
-			t = append(t, block[pos:pos+int(nSuffix)]...)
-			pos += int(nSuffix)
-			term = string(t)
+		term, next, ok := loadLeafTerm(block, pos, prevTerm, len(w.records) == 0)
+		if !ok {
+			return false
 		}
+		pos = next
 		nDoclist, n := getFTS3Varint(block[pos:])
 		if n == 0 || uint64(pos)+nDoclist > uint64(len(block)) {
 			return false
@@ -129,6 +105,37 @@ func (w *IncrLeafWriter) LoadLeaf(block []byte) bool {
 		prevTerm = []byte(term)
 	}
 	return true
+}
+
+// loadLeafTerm reads a leaf entry's term — the first is length-prefixed,
+// later ones are delta-encoded against prevTerm — advancing pos. ok is false
+// on a framing violation.
+func loadLeafTerm(block []byte, pos int, prevTerm []byte, firstRecord bool) (term string, next int, ok bool) {
+	if firstRecord {
+		nLen, n := getFTS3Varint(block[pos:])
+		if n == 0 || uint64(pos)+nLen > uint64(len(block)) {
+			return "", pos, false
+		}
+		pos += n
+		return string(block[pos : pos+int(nLen)]), pos + int(nLen), true
+	}
+	nPrefix, n := getFTS3Varint(block[pos:])
+	if n == 0 {
+		return "", pos, false
+	}
+	pos += n
+	nSuffix, n := getFTS3Varint(block[pos:])
+	if n == 0 {
+		return "", pos, false
+	}
+	pos += n
+	if uint64(nPrefix) > uint64(len(prevTerm)) || uint64(pos)+nSuffix > uint64(len(block)) {
+		return "", pos, false
+	}
+	t := make([]byte, nPrefix)
+	copy(t, prevTerm[:nPrefix])
+	t = append(t, block[pos:pos+int(nSuffix)]...)
+	return string(t), pos + int(nSuffix), true
 }
 
 // Append adds one merged term. It returns the finished previous leaf's bytes
