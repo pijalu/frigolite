@@ -696,23 +696,7 @@ func (t *Tokenizer) readIdent() Token {
 
 	// Hex blob literal: X'...' or x'...'
 	if len(word) == 1 && (word == "x" || word == "X") && t.pos < len(t.input) && t.input[t.pos] == '\'' {
-		content := t.readHexBlobContent()
-		if len(content)%2 != 0 || !allHexDigits(content) {
-			badContent := strings.TrimSpace(content)
-			terminated := true
-			if i := strings.IndexAny(badContent, "\r\n"); i >= 0 {
-				badContent = badContent[:i]
-				terminated = false
-			}
-			value := word + "'" + badContent
-			if terminated {
-				value += "'"
-			}
-			t.last = Token{Type: TokenUnrecognized, Value: value, Pos: pos}
-			return t.last
-		}
-		t.last = Token{Type: TokenBlob, Value: content, Pos: pos}
-		return t.last
+		return t.readHexBlobLiteral(pos, word)
 	}
 
 	upper := strings.ToUpper(word)
@@ -724,6 +708,29 @@ func (t *Tokenizer) readIdent() Token {
 	} else {
 		t.last = Token{Type: TokenIdentifier, Value: word, Pos: pos}
 	}
+	return t.last
+}
+
+// readHexBlobLiteral lexes the blob literal whose x/X identifier and opening
+// quote have been confirmed. Even-length all-hex content yields a TokenBlob;
+// anything else is an unrecognized token echoing the raw literal.
+func (t *Tokenizer) readHexBlobLiteral(pos int, word string) Token {
+	content := t.readHexBlobContent()
+	if len(content)%2 != 0 || !allHexDigits(content) {
+		badContent := strings.TrimSpace(content)
+		terminated := true
+		if i := strings.IndexAny(badContent, "\r\n"); i >= 0 {
+			badContent = badContent[:i]
+			terminated = false
+		}
+		value := word + "'" + badContent
+		if terminated {
+			value += "'"
+		}
+		t.last = Token{Type: TokenUnrecognized, Value: value, Pos: pos}
+		return t.last
+	}
+	t.last = Token{Type: TokenBlob, Value: content, Pos: pos}
 	return t.last
 }
 
