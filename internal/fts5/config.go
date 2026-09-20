@@ -500,13 +500,13 @@ func parseTokenize(cfg *Config, val string) error {
 // nextTokenizeWord consumes one whitespace-separated tokenizer word: a
 // '-quoted SQL literal (validated then dequoted) or a bareword
 // (fts5ConfigParseSpecial's tokenize branch).
-func nextTokenizeWord(p string) (rest, word string, err error) {
+func nextTokenizeWord(p string) (word, rest string, err error) {
 	if p[0] == '\'' {
 		r, ok := skipSQLLiteral(p)
 		if !ok {
 			return "", "", fmt.Errorf("parse error in tokenize directive")
 		}
-		return r, fts5Dequote(p[:len(p)-len(r)]), nil
+		return fts5Dequote(p[:len(p)-len(r)]), r, nil
 	}
 	i := 0
 	for i < len(p) && isFts5BarewordByte(p[i]) {
@@ -515,7 +515,7 @@ func nextTokenizeWord(p string) (rest, word string, err error) {
 	if i == 0 {
 		return "", "", fmt.Errorf("parse error in tokenize directive")
 	}
-	return p[i:], p[:i], nil
+	return p[:i], p[i:], nil
 }
 
 // skipSQLLiteral consumes one '-quoted SQL literal with ” escapes
