@@ -695,41 +695,27 @@ func (e *DDLExecutor) checkTriggerSelectSchemaRefs(trigName string, s *sql.Selec
 }
 
 // checkTriggerExprSubqueries walks a SELECT's expression positions, recursing
-// into subquery SELECTs for schema-reference validation.
+// into subquery SELECTs for schema-reference validation (via
+// checkTriggerExprSchemaRefs, the per-expression walker).
 func (e *DDLExecutor) checkTriggerExprSubqueries(trigName string, s *sql.SelectStmt, trigCtx *DatabaseContext) error {
-	check := func(expr sql.Expr) error {
-		if expr == nil {
-			return nil
-		}
-		var subErr error
-		execquery.WalkExprFull(expr, func(n sql.Expr) {
-			if subErr != nil {
-				return
-			}
-			if sub, ok := n.(*sql.Subquery); ok {
-				subErr = e.checkTriggerSelectSchemaRefs(trigName, sub.Select, trigCtx)
-			}
-		})
-		return subErr
-	}
 	for _, col := range s.Columns {
-		if err := check(col.Expr); err != nil {
+		if err := e.checkTriggerExprSchemaRefs(trigName, col.Expr, trigCtx); err != nil {
 			return err
 		}
 	}
-	if err := check(s.Where); err != nil {
+	if err := e.checkTriggerExprSchemaRefs(trigName, s.Where, trigCtx); err != nil {
 		return err
 	}
 	for _, g := range s.GroupBy {
-		if err := check(g); err != nil {
+		if err := e.checkTriggerExprSchemaRefs(trigName, g, trigCtx); err != nil {
 			return err
 		}
 	}
-	if err := check(s.Having); err != nil {
+	if err := e.checkTriggerExprSchemaRefs(trigName, s.Having, trigCtx); err != nil {
 		return err
 	}
 	for _, ob := range s.OrderBy {
-		if err := check(ob.Expr); err != nil {
+		if err := e.checkTriggerExprSchemaRefs(trigName, ob.Expr, trigCtx); err != nil {
 			return err
 		}
 	}

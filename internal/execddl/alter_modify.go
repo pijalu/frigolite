@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/pijalu/frigolite/internal/btree"
 	"github.com/pijalu/frigolite/internal/execdml"
 	"github.com/pijalu/frigolite/internal/execexpr"
 	"github.com/pijalu/frigolite/internal/schema"
@@ -63,7 +64,12 @@ func (e *DDLExecutor) validateAddColumnConstraints(tableEntry *schema.Entry, col
 	if newCol.Check == nil && !newCol.NotNull {
 		return &Result{}
 	}
+	return e.enforceAddedColumnNotNullCheck(tableEntry, colDefs, newCol)
+}
 
+// enforceAddedColumnNotNullCheck applies the added column's NOT NULL and CHECK
+// constraints against the table's existing rows.
+func (e *DDLExecutor) enforceAddedColumnNotNullCheck(tableEntry *schema.Entry, colDefs []sql.ColumnDef, newCol sql.ColumnDef) *Result {
 	// Determine the default value for the new column.
 	defVal, err := e.evalColumnExpr(newCol)
 	if err != nil {
@@ -302,10 +308,6 @@ func (e *DDLExecutor) checkConstraintRow(tableEntry *schema.Entry, tc *sql.Table
 }
 func (e *DDLExecutor) columnHasNull(tableName string, entry *schema.Entry, colDefs []sql.ColumnDef, colName string) bool {
 	tree := e.ctx.TableBTreeForName(tableName, entry.RootPage, true)
-	cursor, err := tree.OpenCursor()
-	if err != nil {
-		return false
-	}
 	idx := findColDefIndex(colDefs, colName)
 	if idx < 0 {
 		return false
@@ -317,20 +319,26 @@ func (e *DDLExecutor) columnHasNull(tableName string, entry *schema.Entry, colDe
 	if isIPKRowidAlias(colDefs[idx]) {
 		return false
 	}
+	return e.columnHasNullValue(tree, idx)
+}
+
+// columnHasNullValue scans the table's rows for one whose stored record slot
+// at column index idx holds NULL (or whose record is too short to carry it).
+// An unreadable record ends the scan (no NULL found).
+func (e *DDLExecutor) columnHasNullValue(tree *btree.BTree, idx int) bool {
+	cursor, err := tree.OpenCursor()
+	if err != nil {
+		return false
+	}
 	for {
-		cell, cerr := cursor.ReadCell()
-		if cerr != nil || cell == nil {
+		_, values, ok := nextFTSContentCell(cursor)
+		if !ok {
 			break
 		}
-		rec, derr := storage.DecodeRecord(cell.Payload)
-		if derr != nil || rec == nil {
-			break
-		}
-		if idx >= len(rec.Values) || rec.Values[idx] == nil {
+		if idx >= len(values) || values[idx] == nil {
 			return true
 		}
-		ok, nerr := cursor.Next()
-		if nerr != nil || !ok {
+		if !advanceSequenceCursor(cursor) {
 			break
 		}
 	}
