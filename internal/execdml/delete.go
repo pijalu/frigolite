@@ -8,6 +8,7 @@ import (
 
 	"github.com/pijalu/frigolite/internal/auth"
 	"github.com/pijalu/frigolite/internal/btree"
+	"github.com/pijalu/frigolite/internal/execexpr"
 	"github.com/pijalu/frigolite/internal/execquery"
 	"github.com/pijalu/frigolite/internal/pager"
 	"github.com/pijalu/frigolite/internal/schema"
@@ -146,13 +147,36 @@ func (e *DMLExecutor) execDeleteInner(s *sql.DeleteStmt) *Result {
 	return e.execDeleteReturning(s, tableEntry, tree, colDefs, deletedRows)
 }
 
+// unwrapDMLValue peels the row-map value wrappers down to the raw scalar:
+// a CollatedValue collation marker around a ColumnValue affinity marker
+// around the value (the WHERE-comparison wrappers). The delete-identity keys
+// and preupdate values must compare against raw stored scalars — a leaked
+// wrapper makes the WR PK-key match silently fail and the delete no-ops
+// (without_rowid3-12.2.4's NOCASE PK t1 kept every deleted row).
+func unwrapDMLValue(v interface{}) interface{} {
+	// Wrappers nest at most two deep; the bound just keeps the loop
+	// obviously terminating without comparing interface values (a raw
+	// []byte payload is not comparable).
+	for i := 0; i < 4; i++ {
+		switch cv := v.(type) {
+		case *execexpr.CollatedValue:
+			v = cv.Value
+		case *util.ColumnValue:
+			v = cv.Value
+		default:
+			return v
+		}
+	}
+	return v
+}
+
 // rowMapColumnValues extracts a row's column values in colDefs order
 // (unwrapping any collation wrappers), for preupdate-hook old/new reporting.
 func (e *DMLExecutor) rowMapColumnValues(row RowMap, colDefs []sql.ColumnDef) []interface{} {
 	vals := make([]interface{}, 0, len(colDefs))
 	for _, cd := range colDefs {
 		if v, ok := row[cd.Name]; ok {
-			vals = append(vals, util.UnwrapColumnValue(v))
+			vals = append(vals, unwrapDMLValue(v))
 		} else {
 			vals = append(vals, nil)
 		}
@@ -177,7 +201,7 @@ func (e *DMLExecutor) withoutRowidLess(a, b RowMap, tableName, createSQL string,
 		if !aok || !bok {
 			continue
 		}
-		c := e.ctx.CompareValuesCollate(util.UnwrapColumnValue(av), util.UnwrapColumnValue(bv), colDefs[idx].Collate)
+		c := e.ctx.CompareValuesCollate(unwrapDMLValue(av), unwrapDMLValue(bv), colDefs[idx].Collate)
 		if c != 0 {
 			return c < 0
 		}
