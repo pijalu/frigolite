@@ -72,26 +72,33 @@ func (e *DDLExecutor) readFTSAutomergeStat(tableName string) (int, bool) {
 			break
 		}
 		if cell.RowID == int64(2) {
-			switch v := rec.Values[1].(type) {
-			case int64:
-				return int(v), true
-			case string:
-				if n, perr := strconv.Atoi(v); perr == nil {
-					return n, true
-				}
-				return 0, false
-			case []byte:
-				if n, perr := strconv.Atoi(string(v)); perr == nil {
-					return n, true
-				}
-				return 0, false
-			default:
-				return 0, false
-			}
+			return automergeStatValue(rec.Values[1])
 		}
-		if ok, nerr := cursor.Next(); nerr != nil || !ok {
+		if !advanceSequenceCursor(cursor) {
 			break
 		}
 	}
 	return 0, false
+}
+
+// automergeStatValue converts the %_stat id=2 row's value column to the
+// auto-incr-merge setting: an int64 decodes directly; a string or blob holds
+// a numeric string written by a foreign tool. Any other shape fails.
+func automergeStatValue(v interface{}) (int, bool) {
+	switch x := v.(type) {
+	case int64:
+		return int(x), true
+	case string:
+		if n, perr := strconv.Atoi(x); perr == nil {
+			return n, true
+		}
+		return 0, false
+	case []byte:
+		if n, perr := strconv.Atoi(string(x)); perr == nil {
+			return n, true
+		}
+		return 0, false
+	default:
+		return 0, false
+	}
 }
