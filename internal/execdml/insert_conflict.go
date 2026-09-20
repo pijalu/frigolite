@@ -85,37 +85,54 @@ func (e *DMLExecutor) explicitRowIDFromColumns(tableEntry *schema.Entry, s *sql.
 	// accepted (fts3b-4.8).
 	var rowidAliasVal, docidVal *int64
 	for i, col := range s.Columns {
-		isRowIDCol := execquery.IsRowIDName(col) || (isFTS && strings.EqualFold(col, "docid"))
-		if isRowIDCol && i < len(tuple) {
-			v, err := e.ctx.EvalExpr(tuple[i], nil)
-			if err != nil {
-				return nil, &Result{Error: err}
-			}
-			if v != nil {
-				iv, isInt := mustBeIntRowid(v)
-				if !isInt {
-					// OP_MustBeInt: an explicit rowid value that cannot be
-					// coerced to an integer fails the statement with
-					// SQLITE_MISMATCH ("datatype mismatch"). Ordinary rowid
-					// tables enforce this at the rowid write; fts3/4's
-					// fts3UpdateMethod reports it for docid; fts5 binds the
-					// raw value to the %_content INTEGER PRIMARY KEY, where
-					// the core raises it (fts5blob 4.1: rowid 4.5/'xyz'/blob).
-					return nil, &Result{Error: fmt.Errorf("datatype mismatch")}
-				}
-				explicitRowID = &iv
-				if execquery.IsRowIDName(col) {
-					rowidAliasVal = &iv
-				} else {
-					docidVal = &iv
-				}
-			}
+		if i >= len(tuple) {
+			continue
+		}
+		iv, isRowidAlias, res := e.rowidAliasColumnValue(col, tuple[i], isFTS)
+		if res != nil {
+			return nil, res
+		}
+		if iv == nil {
+			continue
+		}
+		explicitRowID = iv
+		if isRowidAlias {
+			rowidAliasVal = iv
+		} else {
+			docidVal = iv
 		}
 	}
 	if isFTS && rowidAliasVal != nil && docidVal != nil && *rowidAliasVal != *docidVal {
 		return nil, &Result{Error: fmt.Errorf("SQL logic error")}
 	}
 	return explicitRowID, nil
+}
+
+// rowidAliasColumnValue evaluates one INSERT-list column entry's contribution
+// to the explicit rowid: a rowid alias (or docid on an FTS table) with a
+// non-NULL value returns its integer rowid and whether the column was the
+// plain rowid alias. A non-integer coercible value fails with OP_MustBeInt
+// semantics ("datatype mismatch": ordinary rowid tables enforce this at the
+// rowid write; fts3/4's fts3UpdateMethod reports it for docid; fts5 binds the
+// raw value to the %_content INTEGER PRIMARY KEY, where the core raises it —
+// fts5blob 4.1: rowid 4.5/'xyz'/blob). res != nil aborts the statement.
+func (e *DMLExecutor) rowidAliasColumnValue(col string, expr sql.Expr, isFTS bool) (*int64, bool, *Result) {
+	isRowIDCol := execquery.IsRowIDName(col) || (isFTS && strings.EqualFold(col, "docid"))
+	if !isRowIDCol {
+		return nil, false, nil
+	}
+	v, err := e.ctx.EvalExpr(expr, nil)
+	if err != nil {
+		return nil, false, &Result{Error: err}
+	}
+	if v == nil {
+		return nil, false, nil
+	}
+	iv, isInt := mustBeIntRowid(v)
+	if !isInt {
+		return nil, false, &Result{Error: fmt.Errorf("datatype mismatch")}
+	}
+	return &iv, execquery.IsRowIDName(col), nil
 }
 
 // explicitTriggerRowid returns the trigger-visible explicit rowid — the
@@ -289,19 +306,8 @@ func (e *DMLExecutor) checkUniqueConstraints(tableEntry *schema.Entry, colDefs [
 // itself).
 func (e *DMLExecutor) checkUniqueConstraintsExcluding(tableEntry *schema.Entry, colDefs []sql.ColumnDef, values []interface{}, excludeRowID int64, haveExclude bool) error {
 	colIndex := buildColumnIndex(colDefs)
-	uniqueCols := uniqueColIndicesWithPK(colDefs, values)
-	if len(uniqueCols) > 0 {
-		rowID, vals, conflictIdx, found := e.findRowByUniqueCols(tableEntry.Name, tableEntry.RootPage, colDefs, colIndex, values, tableEntry.SQL)
-		if found && (!haveExclude || !e.foundRowIsExcluded(tableEntry, colDefs, values, vals, rowID, excludeRowID)) {
-			if conflictIdx >= 0 && conflictIdx < len(colDefs) {
-				return fmt.Errorf("UNIQUE constraint failed: %s.%s", tableEntry.Name, colDefs[conflictIdx].Name)
-			}
-			if os.Getenv("FRIGOLITE_C9_DEBUG") != "" {
-				fmt.Fprintf(os.Stderr, "DBG C9E bare raise at %s:234\n", tableEntry.Name)
-				debug.PrintStack()
-			}
-			return fmt.Errorf("UNIQUE constraint failed: %s", tableEntry.Name)
-		}
+	if err := e.bareUniqueConflictError(tableEntry, colDefs, colIndex, values, excludeRowID, haveExclude); err != nil {
+		return err
 	}
 
 	// Check table-level composite PRIMARY KEY / UNIQUE constraints
@@ -319,6 +325,27 @@ func (e *DMLExecutor) checkUniqueConstraintsExcluding(tableEntry *schema.Entry, 
 		if err := e.checkUniqueIndexExcluding(tableEntry, colDefs, values, def, excludeCell); err != nil {
 			return err
 		}
+	}
+	return nil
+}
+
+// bareUniqueConflictError scans the single-column UNIQUE/PRIMARY KEY conflict
+// path (findRowByUniqueCols) and returns the violation error, or nil when no
+// conflicting row exists (or only the excluded row matches).
+func (e *DMLExecutor) bareUniqueConflictError(tableEntry *schema.Entry, colDefs []sql.ColumnDef, colIndex map[string]int, values []interface{}, excludeRowID int64, haveExclude bool) error {
+	if len(uniqueColIndicesWithPK(colDefs, values)) == 0 {
+		return nil
+	}
+	rowID, vals, conflictIdx, found := e.findRowByUniqueCols(tableEntry.Name, tableEntry.RootPage, colDefs, colIndex, values, tableEntry.SQL)
+	if found && (!haveExclude || !e.foundRowIsExcluded(tableEntry, colDefs, values, vals, rowID, excludeRowID)) {
+		if conflictIdx >= 0 && conflictIdx < len(colDefs) {
+			return fmt.Errorf("UNIQUE constraint failed: %s.%s", tableEntry.Name, colDefs[conflictIdx].Name)
+		}
+		if os.Getenv("FRIGOLITE_C9_DEBUG") != "" {
+			fmt.Fprintf(os.Stderr, "DBG C9E bare raise at %s:234\n", tableEntry.Name)
+			debug.PrintStack()
+		}
+		return fmt.Errorf("UNIQUE constraint failed: %s", tableEntry.Name)
 	}
 	return nil
 }
