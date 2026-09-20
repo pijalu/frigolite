@@ -566,40 +566,37 @@ func (v *joinOnValidator) registerJoinAvailability(join sql.JoinClause, tn strin
 		addLowerTableNames(subNames, v.available)
 		collectSubqueryOnCols(join.Table.Subquery, v.availableCols)
 		v.engine.addSubqueryFromCols(join.Table.Subquery, v.availableCols)
-		// VALUES-derived tables expose column1..columnN columns (SQLite: a
-		// "( VALUES(...) )" JOIN's ON clause may reference column1 = x). When
-		// the subquery has no named output columns (a bare VALUES chain),
-		// synthesize columnN entries so availableCols contains them.
-		if join.Table.Subquery.ValuesChain {
-			if nc := valuesColumnCount(join.Table.Subquery); nc > 0 {
-				// Only synthesize if the subquery contributed no named columns
-				// (otherwise collectSubqueryOnCols already covered them).
-				hasNamed := false
-				for _, col := range join.Table.Subquery.Columns {
-					if col.As != "" {
-						hasNamed = true
-						break
-					}
-					if ref, ok := col.Expr.(*sql.ColumnRef); ok && ref.Name != "" {
-						hasNamed = true
-						break
-					}
-				}
-				if !hasNamed {
-					for i := 1; i <= nc; i++ {
-						v.availableCols[fmt.Sprintf("column%d", i)] = true
-					}
-				}
+		v.synthesizeValuesColumns(join.Table.Subquery)
+	}
+}
+
+// synthesizeValuesColumns adds column1..columnN entries for VALUES-derived
+// tables: a "( VALUES(...) )" JOIN's ON clause may reference column1 = x
+// (SQLite). When the subquery has no named output columns (a bare VALUES
+// chain), synthesize columnN so availableCols contains them; the
+// non-ValuesChain encoding exposes columnN as well.
+func (v *joinOnValidator) synthesizeValuesColumns(sub *sql.SelectStmt) {
+	if !sub.ValuesChain && !v.isValuesDerived(sub) {
+		return
+	}
+	nc := valuesColumnCount(sub)
+	if nc <= 0 {
+		return
+	}
+	if sub.ValuesChain {
+		// Only synthesize if the subquery contributed no named columns
+		// (otherwise collectSubqueryOnCols already covered them).
+		for _, col := range sub.Columns {
+			if col.As != "" {
+				return
 			}
-		} else if v.isValuesDerived(join.Table.Subquery) {
-			// `( VALUES ... )` without explicit column aliases still exposes
-			// column1..columnN — handle the non-ValuesChain encoding as well.
-			if nc := valuesColumnCount(join.Table.Subquery); nc > 0 {
-				for i := 1; i <= nc; i++ {
-					v.availableCols[fmt.Sprintf("column%d", i)] = true
-				}
+			if ref, ok := col.Expr.(*sql.ColumnRef); ok && ref.Name != "" {
+				return
 			}
 		}
+	}
+	for i := 1; i <= nc; i++ {
+		v.availableCols[fmt.Sprintf("column%d", i)] = true
 	}
 }
 
