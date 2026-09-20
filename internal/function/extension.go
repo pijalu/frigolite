@@ -90,28 +90,34 @@ func toBase64(pIn []byte) []byte {
 		}
 	}
 	if rem := len(pIn) - i; rem > 0 {
-		nco := rem + 1
-		qv := uint64(pIn[i])
-		for nbe := 1; nbe < 3; nbe++ {
-			qv <<= 8
-			if nbe < rem {
-				qv |= uint64(pIn[i+nbe])
-			}
-		}
-		// Emit 4 chars, most significant first, padding with '='.
-		buf := [4]byte{}
-		for nbe := 3; nbe >= 0; nbe-- {
-			if nbe < nco {
-				buf[nbe] = b64Numeral(byte(qv & 0x3f))
-			} else {
-				buf[nbe] = '='
-			}
-			qv >>= 6
-		}
-		out = append(out, buf[:]...)
-		out = append(out, '\n')
+		out = appendB64Tail(out, pIn[i:], rem)
 	}
 	return out
+}
+
+// appendB64Tail encodes the final 1-2 bytes of a group, most significant
+// bits first, padding with '=' and a trailing newline (base64.c tail).
+func appendB64Tail(out []byte, pIn []byte, rem int) []byte {
+	nco := rem + 1
+	qv := uint64(pIn[0])
+	for nbe := 1; nbe < 3; nbe++ {
+		qv <<= 8
+		if nbe < rem {
+			qv |= uint64(pIn[nbe])
+		}
+	}
+	// Emit 4 chars, most significant first, padding with '='.
+	buf := [4]byte{}
+	for nbe := 3; nbe >= 0; nbe-- {
+		if nbe < nco {
+			buf[nbe] = b64Numeral(byte(qv & 0x3f))
+		} else {
+			buf[nbe] = '='
+		}
+		qv >>= 6
+	}
+	out = append(out, buf[:]...)
+	return append(out, '\n')
 }
 
 // skipNonB64 advances s past characters that are not base64 numerals.
@@ -131,7 +137,6 @@ func fromBase64(pIn []byte) []byte {
 	if nc > 0 && pIn[nc-1] == '\n' {
 		nc--
 	}
-	nboi := [...]int{0, 0, 1, 2, 3}
 	for nc > 0 && pIn[0] != '=' {
 		skip := skipNonB64(pIn[:nc])
 		nc -= skip
@@ -141,43 +146,66 @@ func fromBase64(pIn []byte) []byte {
 			nti = 4
 		}
 		nc -= nti
-		nbo := nboi[nti]
-		if nbo == 0 {
+		if nboi[nti] == 0 {
 			break
 		}
-		qv := uint64(0)
-		for nac := 0; nac < 4; nac++ {
-			var c byte
-			if nac < nti {
-				c = pIn[0]
-				pIn = pIn[1:]
-			} else {
-				c = b64Alphabet[0]
-			}
-			bdp := b64DigitValue(c)
-			switch {
-			case bdp == 0x80: // ND: treat as pad, terminate this group
-				nc = 0
-				fallthrough
-			case isB64WS(bdp):
-				nti = nac
-				fallthrough
-			case isB64Pad(bdp):
-				bdp = 0
-				nbo--
-				fallthrough
-			default:
-				qv = qv<<6 | uint64(bdp)
-			}
+		qv, nbo, rest, stop := decodeB64Quad(pIn, nti)
+		pIn = rest
+		if stop {
+			nc = 0 // invalid digit terminates decoding
 		}
-		switch nbo {
-		case 3:
-			out = append(out, byte((qv>>16)&0xff), byte((qv>>8)&0xff), byte(qv&0xff))
-		case 2:
-			out = append(out, byte((qv>>16)&0xff), byte((qv>>8)&0xff))
-		case 1:
-			out = append(out, byte((qv>>16)&0xff))
+		out = appendB64QuadBytes(out, qv, nbo)
+	}
+	return out
+}
+
+// nboi maps a group's numeral count to its decoded byte count.
+var nboi = [...]int{0, 0, 1, 2, 3}
+
+// decodeB64Quad decodes one base64 group from pIn (nti numerals, the rest
+// 'A'-padded). Stop characters (invalid digit, whitespace, '=') drop one
+// output byte each; an invalid digit also reports stop, which terminates
+// decoding. It returns the 24-bit value, the output byte count, and the
+// input past the consumed bytes (a stop character is consumed with the
+// group).
+func decodeB64Quad(pIn []byte, nti int) (qv uint64, nbo int, rest []byte, stop bool) {
+	nbo = nboi[nti]
+	for nac := 0; nac < 4; nac++ {
+		var c byte
+		if nac < nti {
+			c = pIn[0]
+			pIn = pIn[1:]
+		} else {
+			c = b64Alphabet[0]
 		}
+		bdp := b64DigitValue(c)
+		switch {
+		case bdp == 0x80: // ND: treat as pad, terminate this group
+			stop = true
+			fallthrough
+		case isB64WS(bdp):
+			nti = nac
+			fallthrough
+		case isB64Pad(bdp):
+			bdp = 0
+			nbo--
+			fallthrough
+		default:
+			qv = qv<<6 | uint64(bdp)
+		}
+	}
+	return qv, nbo, pIn, stop
+}
+
+// appendB64QuadBytes appends the nbo decoded bytes of a quad value.
+func appendB64QuadBytes(out []byte, qv uint64, nbo int) []byte {
+	switch nbo {
+	case 3:
+		return append(out, byte((qv>>16)&0xff), byte((qv>>8)&0xff), byte(qv&0xff))
+	case 2:
+		return append(out, byte((qv>>16)&0xff), byte((qv>>8)&0xff))
+	case 1:
+		return append(out, byte((qv>>16)&0xff))
 	}
 	return out
 }
@@ -203,37 +231,15 @@ func fnBASE64(args []interface{}) (interface{}, error) {
 func EvalBaseX(name string, v interface{}, limit int) (interface{}, error) {
 	switch x := v.(type) {
 	case []byte:
-		nv := int64(len(x))
-		var nc int64
-		if name == "base64" {
-			nc = 4 * ((nv + 2) / 3)
-			nc += (nc + 71) / 72
-			nc++
-		} else {
-			nc = 5*(nv/4) + nv%4 + nv/64 + 1 + 2
-		}
-		if int64(limit) < nc {
+		if int64(limit) < baseXEncodedSize(name, int64(len(x))) {
 			return nil, fmt.Errorf("blob expanded to %s too big", name)
 		}
-		if name == "base64" {
-			return string(toBase64(x)), nil
-		}
-		return string(toBase85(x)), nil
+		return baseXEncode(name, x)
 	case string:
-		nv := int64(len(x))
-		var nb int64
-		if name == "base64" {
-			nb = 3 * ((nv + 3) / 4)
-		} else {
-			nb = 4*(nv/5) + nv%5
-		}
-		if int64(limit) < nb {
+		if int64(limit) < baseXDecodedSize(name, int64(len(x))) {
 			return nil, fmt.Errorf("blob from %s may be too big", name)
 		}
-		if name == "base64" {
-			return fromBase64([]byte(x)), nil
-		}
-		return fromBase85([]byte(x)), nil
+		return baseXDecode(name, []byte(x))
 	default:
 		if name == "base64" {
 			return nil, fmt.Errorf("base64 accepts only blob or text")
@@ -241,6 +247,39 @@ func EvalBaseX(name string, v interface{}, limit int) (interface{}, error) {
 		//lint:ignore ST1005 exact SQLite error text ends with a period (base85.c)
 		return nil, fmt.Errorf("base85 accepts only blob or text.")
 	}
+}
+
+// baseXEncodedSize is the worst-case encoded size of nv blob bytes.
+func baseXEncodedSize(name string, nv int64) int64 {
+	if name == "base64" {
+		nc := 4 * ((nv + 2) / 3)
+		return nc + (nc+71)/72 + 1
+	}
+	return 5*(nv/4) + nv%4 + nv/64 + 1 + 2
+}
+
+// baseXDecodedSize is the worst-case decoded size of nv text bytes.
+func baseXDecodedSize(name string, nv int64) int64 {
+	if name == "base64" {
+		return 3 * ((nv + 3) / 4)
+	}
+	return 4*(nv/5) + nv%5
+}
+
+// baseXEncode encodes a blob with the named base-x codec.
+func baseXEncode(name string, x []byte) (interface{}, error) {
+	if name == "base64" {
+		return string(toBase64(x)), nil
+	}
+	return string(toBase85(x)), nil
+}
+
+// baseXDecode decodes text with the named base-x codec.
+func baseXDecode(name string, x []byte) (interface{}, error) {
+	if name == "base64" {
+		return fromBase64([]byte(x)), nil
+	}
+	return fromBase85([]byte(x)), nil
 }
 
 // ---------------------------------------------------------------------------
@@ -592,18 +631,7 @@ func ieee754Reconstruct(m, e int64) (interface{}, bool) {
 		return float64(0), true
 	}
 	m, e = ieee754Normalize(m, e)
-	e += 1075
-	if e <= 0 {
-		// Subnormal
-		if 1-e >= 64 {
-			m = 0
-		} else {
-			m >>= 1 - e
-		}
-		e = 0
-	} else if e > 0x7ff {
-		e = 0x7ff
-	}
+	m, e = ieee754Scale(m, e)
 	a := uint64(m & ((int64(1) << 52) - 1))
 	a |= uint64(e) << 52
 	if isNeg {
@@ -616,6 +644,24 @@ func ieee754Reconstruct(m, e int64) (interface{}, bool) {
 		return nil, false
 	}
 	return r, true
+}
+
+// ieee754Scale applies the biased exponent: subnormal results shift the
+// mantissa right; exponents beyond the double range clamp to 0x7ff.
+func ieee754Scale(m, e int64) (int64, int64) {
+	e += 1075
+	if e <= 0 {
+		// Subnormal
+		if 1-e >= 64 {
+			m = 0
+		} else {
+			m >>= 1 - e
+		}
+		e = 0
+	} else if e > 0x7ff {
+		e = 0x7ff
+	}
+	return m, e
 }
 
 // ieee754Normalize shifts m into the range [2^52, 2^53), adjusting e so that

@@ -53,18 +53,8 @@ func decimalNewFromText(zIn string) *decimalVal {
 // exponent (0 if none). Sign, leading zeros, digits, decimal point, and the
 // optional e/E exponent are handled (decimal.c decimalNewFromText scan loop).
 func decimalParseText(zIn string, p *decimalVal) int {
-	iExp := 0
-	i := 0
+	i := scanDecimalSpaceAndSign(zIn, p)
 	n := len(zIn)
-	for i < n && isASCIISpace(zIn[i]) {
-		i++
-	}
-	if i < n && zIn[i] == '-' {
-		p.sign = true
-		i++
-	} else if i < n && zIn[i] == '+' {
-		i++
-	}
 	for i < n && zIn[i] == '0' {
 		i++
 	}
@@ -76,11 +66,28 @@ func decimalParseText(zIn string, p *decimalVal) int {
 		case c == '.':
 			p.nFrac = len(p.digits) + 1
 		case c == 'e' || c == 'E':
-			return decimalParseExponent(zIn, i+1, n, iExp)
+			return decimalParseExponent(zIn, i+1, n, 0)
 		}
 		i++
 	}
 	return 0
+}
+
+// scanDecimalSpaceAndSign skips leading whitespace and consumes the sign
+// (setting p.sign for '-'). It returns the offset of the first digit.
+func scanDecimalSpaceAndSign(zIn string, p *decimalVal) int {
+	i := 0
+	n := len(zIn)
+	for i < n && isASCIISpace(zIn[i]) {
+		i++
+	}
+	if i < n && zIn[i] == '-' {
+		p.sign = true
+		i++
+	} else if i < n && zIn[i] == '+' {
+		i++
+	}
+	return i
 }
 
 // decimalParseExponent parses the optional e/E exponent starting at zIn[j],
@@ -112,36 +119,47 @@ func decimalParseExponent(zIn string, j, n, iExp int) int {
 // exponent (decimal.c decimalNewFromText's iExp>0 / iExp<0 blocks).
 func decimalApplyExponent(p *decimalVal, iExp int) {
 	if iExp > 0 {
-		if p.nFrac > 0 {
-			if iExp <= p.nFrac {
-				p.nFrac -= iExp
-				iExp = 0
-			} else {
-				iExp -= p.nFrac
-				p.nFrac = 0
-			}
-		}
-		if iExp > 0 {
-			p.digits = append(p.digits, make([]byte, iExp)...)
-		}
+		decimalApplyPosExp(p, iExp)
 		return
 	}
 	if iExp < 0 {
-		iExp = -iExp
-		nExtra := len(p.digits) - p.nFrac - 1
-		if nExtra > 0 {
-			if nExtra >= iExp {
-				p.nFrac += iExp
-				iExp = 0
-			} else {
-				iExp -= nExtra
-				p.nFrac = len(p.digits) - 1
-			}
+		decimalApplyNegExp(p, -iExp)
+	}
+}
+
+// decimalApplyPosExp applies a positive exponent: fraction digits convert
+// to integer digits and any remainder appends trailing zeros.
+func decimalApplyPosExp(p *decimalVal, iExp int) {
+	if p.nFrac > 0 {
+		if iExp <= p.nFrac {
+			p.nFrac -= iExp
+			iExp = 0
+		} else {
+			iExp -= p.nFrac
+			p.nFrac = 0
 		}
-		if iExp > 0 {
-			p.digits = append(make([]byte, iExp), p.digits...)
+	}
+	if iExp > 0 {
+		p.digits = append(p.digits, make([]byte, iExp)...)
+	}
+}
+
+// decimalApplyNegExp applies a negative exponent: spare integer digits
+// convert to fraction digits and any remainder prepends leading zeros.
+func decimalApplyNegExp(p *decimalVal, iExp int) {
+	nExtra := len(p.digits) - p.nFrac - 1
+	if nExtra > 0 {
+		if nExtra >= iExp {
 			p.nFrac += iExp
+			iExp = 0
+		} else {
+			iExp -= nExtra
+			p.nFrac = len(p.digits) - 1
 		}
+	}
+	if iExp > 0 {
+		p.digits = append(make([]byte, iExp), p.digits...)
+		p.nFrac += iExp
 	}
 }
 
@@ -215,25 +233,31 @@ func decimalRound(p *decimalVal, N int) {
 		return
 	}
 	if p.digits[N] >= 5 {
-		// If all leading digits are 9, expand by adding a new 0 at the front.
-		allNine := true
-		for i := 0; i < N; i++ {
-			if p.digits[i] != 9 {
-				allNine = false
-				break
-			}
-		}
-		if allNine {
-			p.digits = append([]byte{0}, p.digits...)
-		}
-		p.digits[N-1]++
-		for i := N - 1; i > 0 && p.digits[i] > 9; i-- {
-			p.digits[i] = 0
-			p.digits[i-1]++
-		}
+		decimalRoundCarry(p, N)
 	}
 	for i := N; i < len(p.digits); i++ {
 		p.digits[i] = 0
+	}
+}
+
+// decimalRoundCarry propagates a round-up carry at position N, prepending a
+// new 0 at the front when all leading digits are 9.
+func decimalRoundCarry(p *decimalVal, N int) {
+	// If all leading digits are 9, expand by adding a new 0 at the front.
+	allNine := true
+	for i := 0; i < N; i++ {
+		if p.digits[i] != 9 {
+			allNine = false
+			break
+		}
+	}
+	if allNine {
+		p.digits = append([]byte{0}, p.digits...)
+	}
+	p.digits[N-1]++
+	for i := N - 1; i > 0 && p.digits[i] > 9; i-- {
+		p.digits[i] = 0
+		p.digits[i-1]++
 	}
 }
 
@@ -260,45 +284,58 @@ func decimalResultSci(p *decimalVal, N int) string {
 		nDigit = 1
 		nFrac = 0
 	}
+	b := strings.Builder{}
+	b.WriteString(decimalSciHead(p, nDigit, nZero))
+	exp := nDigit - nFrac - 1
+	b.WriteString(fmt.Sprintf("e%+03d", exp))
+	return b.String()
+}
+
+// decimalSciHead renders the sign and mantissa of the scientific form
+// (digits up to, not including, the exponent).
+func decimalSciHead(p *decimalVal, nDigit, nZero int) string {
 	var b strings.Builder
 	if p.sign && nDigit > 0 {
 		b.WriteByte('-')
 	} else {
 		b.WriteByte('+')
 	}
-	if nZero < len(p.digits) {
-		b.WriteByte(p.digits[nZero] + '0')
-	} else {
-		b.WriteByte('0')
-	}
+	b.WriteByte(decimalSciDigit(p, nZero))
 	b.WriteByte('.')
 	if nDigit == 1 {
 		b.WriteByte('0')
 	} else {
 		for i := 1; i < nDigit; i++ {
-			if nZero+i < len(p.digits) {
-				b.WriteByte(p.digits[nZero+i] + '0')
-			} else {
-				b.WriteByte('0')
-			}
+			b.WriteByte(decimalSciDigit(p, nZero+i))
 		}
 	}
-	exp := nDigit - nFrac - 1
-	b.WriteString(fmt.Sprintf("e%+03d", exp))
 	return b.String()
+}
+
+// decimalSciDigit is the mantissa byte at position n ('0' past the end).
+func decimalSciDigit(p *decimalVal, n int) byte {
+	if n < len(p.digits) {
+		return p.digits[n] + '0'
+	}
+	return '0'
+}
+
+// decimalCmp compares two decimals (decimal.c decimal_cmp). Both must be
+// non-null. Returns negative/zero/positive.
+// decimalTrimFracZeros drops trailing fraction zeros from p (decimal_cmp
+// normalization).
+func decimalTrimFracZeros(p *decimalVal) {
+	for p.nFrac > 0 && len(p.digits) > 0 && p.digits[len(p.digits)-1] == 0 {
+		p.digits = p.digits[:len(p.digits)-1]
+		p.nFrac--
+	}
 }
 
 // decimalCmp compares two decimals (decimal.c decimal_cmp). Both must be
 // non-null. Returns negative/zero/positive.
 func decimalCmp(pA, pB *decimalVal) int {
-	for pA.nFrac > 0 && len(pA.digits) > 0 && pA.digits[len(pA.digits)-1] == 0 {
-		pA.digits = pA.digits[:len(pA.digits)-1]
-		pA.nFrac--
-	}
-	for pB.nFrac > 0 && len(pB.digits) > 0 && pB.digits[len(pB.digits)-1] == 0 {
-		pB.digits = pB.digits[:len(pB.digits)-1]
-		pB.nFrac--
-	}
+	decimalTrimFracZeros(pA)
+	decimalTrimFracZeros(pB)
 	if pA.sign != pB.sign {
 		if pA.sign {
 			return -1
