@@ -24,43 +24,7 @@ import (
 func (e *DDLExecutor) createFTSShadowTables(tableName string, t *fts.FTS3Table, moduleName string) error {
 	isFts4 := strings.EqualFold(moduleName, "fts4")
 	if strings.EqualFold(moduleName, "fts5") {
-		// fts5_storage.c creates %_data, %_idx, %_content, %_docsize and
-		// %_config for every fts5 table (vtabdrop 2.2 lists them in
-		// sqlite_master).
-		cols := t.ColumnNames()
-		if res := e.createShadowTableSQL(tableName+"_data", []sql.ColumnDef{
-			{Name: "id", Type: "INTEGER", PrimaryKey: true},
-			{Name: "block", Type: "BLOB"},
-		}); res.Error != nil {
-			return res.Error
-		}
-		if res := e.createShadowTableSQL(tableName+"_idx", []sql.ColumnDef{
-			{Name: "segid", Type: "INTEGER"},
-			{Name: "term", Type: "TEXT"},
-			{Name: "pgno", Type: "INTEGER"},
-		}); res.Error != nil {
-			return res.Error
-		}
-		contentDefs := []sql.ColumnDef{{Name: "id", Type: "INTEGER", PrimaryKey: true}}
-		for i := range cols {
-			contentDefs = append(contentDefs, sql.ColumnDef{Name: fmt.Sprintf("c%d", i)})
-		}
-		if res := e.createShadowTableSQL(tableName+"_content", contentDefs); res.Error != nil {
-			return res.Error
-		}
-		if res := e.createShadowTableSQL(tableName+"_docsize", []sql.ColumnDef{
-			{Name: "id", Type: "INTEGER", PrimaryKey: true},
-			{Name: "sz", Type: "BLOB"},
-		}); res.Error != nil {
-			return res.Error
-		}
-		if res := e.createShadowTableSQL(tableName+"_config", []sql.ColumnDef{
-			{Name: "k", Type: "INTEGER", PrimaryKey: true},
-			{Name: "v", Type: ""},
-		}); res.Error != nil {
-			return res.Error
-		}
-		return nil
+		return e.createFTS5ShadowTables(tableName, t)
 	}
 	cols := t.ColumnNames()
 
@@ -72,43 +36,105 @@ func (e *DDLExecutor) createFTSShadowTables(tableName string, t *fts.FTS3Table, 
 	// zContent is set), and neither does a contentless (content=) table
 	// (fts4content 7.2.3: SELECT name FROM sqlite_master LIKE 'ft9_%' has no
 	// ft9_content).
-	if t.ContentTable() != "" || t.Contentless() {
-		// still create segments/segdir/docsize/stat below
-	} else {
-		contentDefs := []sql.ColumnDef{{Name: "docid", Type: "INTEGER", PrimaryKey: true}}
-		for i, col := range cols {
-			contentDefs = append(contentDefs, sql.ColumnDef{Name: fmt.Sprintf("c%d%s", i, col), Type: ""})
-		}
-		// A languageid=<col> table's %_content gains a trailing langid column
-		// (fts3.c fts3CreateTables: "%z, langid" is appended to the content
-		// table's column list — fts4langid 1.2 shows the 'langid' column).
-		if t.LangIDColName() != "" {
-			contentDefs = append(contentDefs, sql.ColumnDef{Name: "langid", Type: ""})
-		}
-		if res := e.createShadowTableSQL(tableName+"_content", contentDefs); res.Error != nil {
-			return res.Error
-		}
-		// A languageid=<col> table's stored CREATE statement must match
-		// SQLite byte-for-byte (fts3.c fts3CreateTables builds it with %Q/%q:
-		// the table name and every c%d%s column are single-quoted, docid and
-		// langid are not — fts4langid 1.2). The generic renderer emits an
-		// unquoted form, so rewrite the schema entry's SQL to the canonical
-		// text.
-		if t.LangIDColName() != "" {
-			q := func(s string) string { return "'" + strings.ReplaceAll(s, "'", "''") + "'" }
-			colSQL := ""
-			for i, col := range cols {
-				colSQL += fmt.Sprintf(", %s", q(fmt.Sprintf("c%d%s", i, col)))
-			}
-			colSQL += ", langid"
-			canonical := fmt.Sprintf("CREATE TABLE %s(docid INTEGER PRIMARY KEY%s)",
-				q(tableName+"_content"), colSQL)
-			if err := e.ctx.Schema().UpdateEntry(tableName+"_content", canonical); err != nil {
-				return err
-			}
-		}
+	if err := e.createFTS3ContentShadow(tableName, t, cols, isFts4); err != nil {
+		return err
 	}
 
+	return e.createFTS3CoreShadowTables(tableName, t, isFts4)
+}
+
+// createFTS5ShadowTables creates fts5's shadow family: fts5_storage.c creates
+// %_data, %_idx, %_content, %_docsize and %_config for every fts5 table
+// (vtabdrop 2.2 lists them in sqlite_master).
+func (e *DDLExecutor) createFTS5ShadowTables(tableName string, t *fts.FTS3Table) error {
+	cols := t.ColumnNames()
+	if res := e.createShadowTableSQL(tableName+"_data", []sql.ColumnDef{
+		{Name: "id", Type: "INTEGER", PrimaryKey: true},
+		{Name: "block", Type: "BLOB"},
+	}); res.Error != nil {
+		return res.Error
+	}
+	if res := e.createShadowTableSQL(tableName+"_idx", []sql.ColumnDef{
+		{Name: "segid", Type: "INTEGER"},
+		{Name: "term", Type: "TEXT"},
+		{Name: "pgno", Type: "INTEGER"},
+	}); res.Error != nil {
+		return res.Error
+	}
+	contentDefs := []sql.ColumnDef{{Name: "id", Type: "INTEGER", PrimaryKey: true}}
+	for i := range cols {
+		contentDefs = append(contentDefs, sql.ColumnDef{Name: fmt.Sprintf("c%d", i)})
+	}
+	if res := e.createShadowTableSQL(tableName+"_content", contentDefs); res.Error != nil {
+		return res.Error
+	}
+	if res := e.createShadowTableSQL(tableName+"_docsize", []sql.ColumnDef{
+		{Name: "id", Type: "INTEGER", PrimaryKey: true},
+		{Name: "sz", Type: "BLOB"},
+	}); res.Error != nil {
+		return res.Error
+	}
+	return e.createShadowTableSQL(tableName+"_config", []sql.ColumnDef{
+		{Name: "k", Type: "INTEGER", PrimaryKey: true},
+		{Name: "v", Type: ""},
+	}).Error
+}
+
+// createFTS3ContentShadow creates the %_content shadow (fts3.c
+// fts3CreateTables), skipped for content=/contentless tables, and canonicalizes
+// the languageid table's stored CREATE statement.
+func (e *DDLExecutor) createFTS3ContentShadow(tableName string, t *fts.FTS3Table, cols []string, isFts4 bool) error {
+	if t.ContentTable() != "" || t.Contentless() {
+		// still create segments/segdir/docsize/stat below
+		return nil
+	}
+	// %_content(docid INTEGER PRIMARY KEY, c0 <name>, ...)
+	// SQLite names the content columns "c%d%s" — c + column index + the user
+	// column name (fts3.c fts3CreateTables: "c%d%s", i, azCol[i]), so a
+	// table with columns (a, b) gets c0a, c1b. A content=<table> FTS table
+	// has NO %_content shadow (fts3.c fts3CreateTables skips it when
+	// zContent is set), and neither does a contentless (content=) table
+	// (fts4content 7.2.3: SELECT name FROM sqlite_master LIKE 'ft9_%' has no
+	// ft9_content).
+	contentDefs := []sql.ColumnDef{{Name: "docid", Type: "INTEGER", PrimaryKey: true}}
+	for i, col := range cols {
+		contentDefs = append(contentDefs, sql.ColumnDef{Name: fmt.Sprintf("c%d%s", i, col), Type: ""})
+	}
+	// A languageid=<col> table's %_content gains a trailing langid column
+	// (fts3.c fts3CreateTables: "%z, langid" is appended to the content
+	// table's column list — fts4langid 1.2 shows the 'langid' column).
+	if t.LangIDColName() != "" {
+		contentDefs = append(contentDefs, sql.ColumnDef{Name: "langid", Type: ""})
+	}
+	if res := e.createShadowTableSQL(tableName+"_content", contentDefs); res.Error != nil {
+		return res.Error
+	}
+	return e.canonicalizeLangidContentSQL(tableName, t, cols)
+}
+
+// canonicalizeLangidContentSQL rewrites a languageid=<col> table's %_content
+// schema entry to SQLite's byte-for-byte CREATE text (fts3.c
+// fts3CreateTables builds it with %Q/%q: the table name and every c%d%s
+// column are single-quoted, docid and langid are not — fts4langid 1.2). The
+// generic renderer emits an unquoted form.
+func (e *DDLExecutor) canonicalizeLangidContentSQL(tableName string, t *fts.FTS3Table, cols []string) error {
+	if t.LangIDColName() == "" {
+		return nil
+	}
+	q := func(s string) string { return "'" + strings.ReplaceAll(s, "'", "''") + "'" }
+	colSQL := ""
+	for i, col := range cols {
+		colSQL += fmt.Sprintf(", %s", q(fmt.Sprintf("c%d%s", i, col)))
+	}
+	colSQL += ", langid"
+	canonical := fmt.Sprintf("CREATE TABLE %s(docid INTEGER PRIMARY KEY%s)",
+		q(tableName+"_content"), colSQL)
+	return e.ctx.Schema().UpdateEntry(tableName+"_content", canonical)
+}
+
+// createFTS3CoreShadowTables creates the segments/segdir (and FTS4
+// docsize/stat) shadows; see createFTSShadowTables.
+func (e *DDLExecutor) createFTS3CoreShadowTables(tableName string, t *fts.FTS3Table, isFts4 bool) error {
 	// %_segments(blockid INTEGER PRIMARY KEY, block BLOB)
 	if res := e.createShadowTableSQL(tableName+"_segments", []sql.ColumnDef{
 		{Name: "blockid", Type: "INTEGER", PrimaryKey: true},
@@ -239,32 +265,37 @@ func validateIndexExprContext(expr sql.Expr, whereClause bool) error {
 		if err != nil {
 			return
 		}
-		switch e := n.(type) {
-		case *sql.FuncCall:
-			if e.Over != nil {
-				err = fmt.Errorf("misuse of window function %s()", strings.ToLower(e.Name))
-				return
-			}
-			err = checkIndexKeyFuncCtx(e, whereClause)
-		case *sql.Subquery:
-			if whereClause {
-				err = fmt.Errorf("subqueries prohibited in partial index WHERE clauses")
-			} else {
-				err = fmt.Errorf("subqueries prohibited in index expressions")
-			}
-		case *sql.ExistsExpr:
-			if whereClause {
-				err = fmt.Errorf("subqueries prohibited in partial index WHERE clauses")
-			} else {
-				err = fmt.Errorf("subqueries prohibited in index expressions")
-			}
-		case *sql.ParameterExpr:
-			if whereClause {
-				err = fmt.Errorf("parameters prohibited in partial index WHERE clauses")
-			}
-		}
+		err = indexExprContextError(n, whereClause)
 	})
 	return err
+}
+
+// indexExprContextError validates one node of an index expression: no window
+// functions or key-function misuse, no subqueries, and (in a partial index's
+// WHERE clause) no parameters; see validateIndexExprContext.
+func indexExprContextError(n sql.Expr, whereClause bool) error {
+	switch e := n.(type) {
+	case *sql.FuncCall:
+		if e.Over != nil {
+			return fmt.Errorf("misuse of window function %s()", strings.ToLower(e.Name))
+		}
+		return checkIndexKeyFuncCtx(e, whereClause)
+	case *sql.Subquery:
+		if whereClause {
+			return fmt.Errorf("subqueries prohibited in partial index WHERE clauses")
+		}
+		return fmt.Errorf("subqueries prohibited in index expressions")
+	case *sql.ExistsExpr:
+		if whereClause {
+			return fmt.Errorf("subqueries prohibited in partial index WHERE clauses")
+		}
+		return fmt.Errorf("subqueries prohibited in index expressions")
+	case *sql.ParameterExpr:
+		if whereClause {
+			return fmt.Errorf("parameters prohibited in partial index WHERE clauses")
+		}
+	}
+	return nil
 }
 
 // checkIndexKeyFunc validates one function call appearing in an index
@@ -308,204 +339,14 @@ func (e *DDLExecutor) execFTSSelect(s *sql.SelectStmt, tableEntry *schema.Entry,
 	defer e.ctx.ClearFTSMatchInfo()
 	e.setFTSMatchInfoFromWhere(s, tableEntry.Name, ftsTable)
 
-	// An orphan autoindex in sqlite_schema (an index row with no SQL whose
-	// name does not resolve to a table PK/UNIQUE slot) makes the whole schema
-	// malformed; SQLite reports it at schema load, before any table read
-	// (prepare.c sqlite3InitCallback "orphan index"). Check here so the
-	// schema error surfaces before the FTS segment validation would report
-	// "database disk image is malformed" (fts3corrupt4 5.1). PRAGMA
-	// writable_schema=ON skips schema validation entirely, so it must run in
-	// the same statement batch before the query (fts3corrupt4 21.1/22.1).
-	if !e.ctx.WritableSchema() {
-		if err := e.validateOrphanIndexes(); err != nil {
-			return &Result{Error: err}
-		}
-	}
-
-	// A malformed MATCH expression fails the statement at prepare, before
-	// any row is read — even on an empty table (fts3.c fts3FilterMethod
-	// surfaces the expression parser's SQLITE_ERROR as "malformed MATCH
-	// expression: [query]"; fts3expr 2.x).
-	if s.Where != nil {
-		if qs, ok := e.ftsMatchQueryString(s.Where, tableEntry.Name); ok {
-			node, perr := fts.ParseMatchQuery(qs)
-			if perr != nil {
-				return &Result{Error: perr}
-			}
-			_ = node
-			// Deferred corruption: a segment load that failed partway leaves
-			// the loaded terms queryable; only a query referencing a term
-			// whose doclist lives in an unreadable block fails with
-			// "database disk image is malformed" (fts3.c reads each term's
-			// doclist on demand; fts3defer2 1.x vs 1.7).
-			if ftsTable.LoadErr() != nil {
-				// A structurally broken segment b-tree defeats every term
-				// lookup (fts3corrupt7 3.x: the 40000-deep interior chain),
-				// so the MATCH fails regardless of its terms.
-				if ftsTable.StructuralLoadErr() {
-					return &Result{Error: fmt.Errorf("database disk image is malformed")}
-				}
-			}
-		}
-	}
-	// A corrupt segment root surfaces as "database disk image is malformed"
-	// when the index is read (fts3corrupt 2.2/3.2: MATCH after corruption).
-	// ensureFTSForTable first: a fresh connection's first FTS SELECT reaches
-	// here before the lazy table load, and the load is what records the
-	// segment error this check reports (fts3corrupt4 31.1: the crafted
-	// segdir root fails LoadSegment; the SELECT must fail malformed).
-	e.ensureFTSForTable(tableEntry)
-	if ft, ok := e.ctx.FTSTables()[tableEntry.Name]; ok {
-		ftsTable = ft
-	}
-	if res := e.validateFTSSegments(tableEntry.Name, false); res != nil {
+	ftsTable, res := e.validateFTSSelectPreconditions(s, tableEntry, ftsTable)
+	if res != nil {
 		return res
 	}
-	// A corrupt %_stat value is NOT validated here: it only matters when
-	// matchinfo() actually reads it (fts3corrupt 5.2/5.3 corrupt the stat
-	// blob then SELECT matchinfo; a plain MATCH over a table whose stat says
-	// nDoc=0 — e.g. after DELETE FROM ft3 removed every document — must still
-	// return rows, fts4content 3.1.5). The matchinfo functions themselves
-	// validate the blob.
 
-	// An FTS4 uncompress= function that is not schema-safe (e.g. a
-	// direct-only function) makes reading the table fail with "SQL logic
-	// error": SQLite executes SELECT %_content with uncompress(?) per column
-	// (fts3ReadExprList), and the core rejects the unsafe schema function
-	// (fts3comp1 4.3).
-	if ufn := ftsTable.UncompressFn(); ufn != "" && !e.ctx.SchemaFunctionSafe(ufn) {
-		return &Result{Error: fmt.Errorf("SQL logic error")}
-	}
-
-	// A table whose in-memory index is empty but whose %_segdir has rows (a
-	// hand-crafted or externally-written FTS index, e.g. fts3corrupt4 15.x
-	// inserts into t1_segdir directly) needs its segments loaded now.
-	if ftsTable.DocCount() == 0 {
-		e.loadFTSSegments(tableEntry.Name, ftsTable)
-	}
-	// A MATCH query that reads a term whose segment doclist is corrupt must
-	// fail with "database disk image is malformed" even when no candidate rows
-	// exist (fts3corrupt4 31.1: an empty in-memory index whose hand-crafted
-	// segment holds a corrupt term; SQLite reads the segment at prepare).
-	if s.Where != nil {
-		if mres := e.validateFTSMatchCorruption(s.Where, tableEntry.Name); mres != nil {
-			return mres
-		}
-	}
-
-	// For an FTS4 content=<table> table, row values come from the external
-	// content table: an unconstrained SELECT returns every content-table row;
-	// a MATCH returns the matched docids' content rows (fts3.c
-	// fts3ReadExprList). A contentless (content=) table and a content=<table>
-	// whose content table was dropped have no row values: docid/MATCH queries
-	// still work off the index, but reading a content column fails
-	// (fts4content 7.2.x, 6.2.x).
-	var allRowMaps []RowMap
-	if ct := ftsTable.ContentTable(); ct != "" || ftsTable.Contentless() {
-		// contentOK is false for a contentless table or when the content
-		// table cannot be found. A self-referential content source (CREATE
-		// VIRTUAL TABLE t1 USING fts4(content=t1)) has no usable content
-		// either: SQLite fails every read with "SQL logic error"
-		// (fts4content 12.x).
-		contentOK := true
-		if ftsTable.Contentless() {
-			contentOK = false
-		} else if strings.EqualFold(ct, tableEntry.Name) {
-			contentOK = false
-		} else if _, isFTSContent := e.ctx.FTSTables()[ct]; isFTSContent {
-			// A content source that is itself an FTS table (t1 content=t2,
-			// t2 content=t1 — fts4content 12.2.x) cannot be read as a
-			// content table: SQLite fails EVERY read with "SQL logic error",
-			// including count(*) (which reads no content column).
-			return &Result{Error: fmt.Errorf("SQL logic error")}
-		} else if _, _, cerr := e.ctx.FindTable(ct); cerr != nil {
-			contentOK = false
-		}
-		if s.Where != nil {
-			if qs, ok := e.ftsMatchQueryString(s.Where, tableEntry.Name); ok {
-				// A MATCH query's row set is the INDEX docids (fts3.c
-				// fts3EvalNext: the index is the source of truth for which
-				// documents match; the content table only supplies values). A
-				// content row deleted after indexing still matches (its
-				// values read as NULL/empty).
-				matched, merr := ftsTable.MatchDocIDs(qs)
-				if merr != nil {
-					// A MATCH syntax error fails the statement (fts3.c
-					// fts3FilterMethod surfaces the expression parser's
-					// SQLITE_ERROR; fts3expr 2.x "malformed MATCH
-					// expression").
-					return &Result{Error: merr}
-				}
-				if contentOK {
-					allRowMaps = e.ftsContentTableRowMapsForDocIDs(ftsTable, colDefs, matched)
-				} else {
-					// Index-only rows: docid queries work without the
-					// content table; a query that reads a content column
-					// fails below.
-					allRowMaps = e.ftsIndexRowMapsForDocIDs(ftsTable, colDefs, matched)
-				}
-			}
-		}
-		if allRowMaps == nil {
-			// No MATCH constraint (or an unresolvable one): return every
-			// content-table row; the WHERE filter applies below. A missing
-			// content table yields no rows; a content-column read fails
-			// below (fts4content 6.2.2/6.2.4).
-			if contentOK {
-				allRowMaps = e.ftsContentTableRowMaps(ftsTable, colDefs, nil)
-			}
-		}
-		// A self-referential content source (CREATE VIRTUAL TABLE t1 USING
-		// fts4(content=t1)) fails EVERY read with "SQL logic error" —
-		// including count(*) — because the content table cannot be read
-		// (fts4content 12.x).
-		if strings.EqualFold(ftsTable.ContentTable(), tableEntry.Name) {
-			return &Result{Error: fmt.Errorf("SQL logic error")}
-		}
-		// Reading a content column when the content is unavailable fails:
-		// "SQL logic error" when the FTS columns are known (6.2.2, 7.1.x,
-		// 7.2.4), "no such table: main.<ct>" when the columns were never
-		// derived because the content table was missing at connection time
-		// (6.2.4: SELECT * FROM ft7 after a reopen with t7 dropped).
-		if !contentOK && e.selectReadsFTSContentColumn(s, ftsTable) {
-			if len(ftsTable.ColumnNames()) == 0 {
-				return &Result{Error: fmt.Errorf("no such table: main.%s", ftsTable.ContentTable())}
-			}
-			return &Result{Error: fmt.Errorf("SQL logic error")}
-		}
-		// A content=<table> table whose content table's column set no longer
-		// matches the FTS columns fails on a content-column read with "SQL
-		// logic error" (fts4content 6.2.8: after DROP TABLE t7 + CREATE
-		// TABLE t7(x), SELECT * FROM ft7 WHERE ft7 MATCH errors because the
-		// FTS column y is missing from the new t7's single column). The FTS
-		// columns are matched against the content table BY NAME (fts3.c
-		// fts3ReadExprList); a missing FTS column makes the read fail.
-		if contentOK && e.selectReadsFTSContentColumn(s, ftsTable) {
-			ctEntry, _, cerr := e.ctx.FindTable(ct)
-			if cerr == nil && ctEntry != nil {
-				ctDefs := e.ctx.ParseColumnDefs(ctEntry.Name, ctEntry.SQL)
-				ctCols := make(map[string]bool)
-				for _, cd := range ctDefs {
-					if strings.EqualFold(cd.Name, "docid") || strings.EqualFold(cd.Name, "rowid") {
-						continue
-					}
-					ctCols[strings.ToLower(cd.Name)] = true
-				}
-				for _, cn := range ftsTable.ColumnNames() {
-					if !ctCols[strings.ToLower(cn)] {
-						return &Result{Error: fmt.Errorf("SQL logic error")}
-					}
-				}
-			}
-		}
-	} else {
-		// A %_content btree that could not be navigated at load time fails
-		// any query that READS content columns with "database disk image is
-		// malformed" (fts3corrupt4 52.1: SELECT * FROM t1, t2 steps the
-		// corrupt content table); index-only queries still work (28.1/28.2).
-		if e.selectReadsFTSContentColumn(s, ftsTable) && e.contentBtreeCorrupt(tableEntry.Name) {
-		}
-		allRowMaps = e.ftsRowMaps(ftsTable, colDefs)
+	allRowMaps, res := e.materializeFTSRowMaps(s, tableEntry, ftsTable, colDefs)
+	if res != nil {
+		return res
 	}
 
 	// A languageid=<col> table searches ONE language: the WHERE's lang_id
@@ -514,25 +355,7 @@ func (e *DDLExecutor) execFTSSelect(s *sql.SelectStmt, tableEntry *schema.Entry,
 	// fts4langid 1.14: MATCH 'b' with docs in languages 0 and 1 returns only
 	// the language-0 doc). Filter the row set before the WHERE applies, but
 	// only for a MATCH query — a plain SELECT returns all languages.
-	if langCol := ftsTable.LangIDColName(); langCol != "" && allRowMaps != nil {
-		if _, isMatch := e.ftsMatchQueryString(s.Where, tableEntry.Name); isMatch {
-			wantLang := int64(0)
-			if lv, ok := e.ftsLangIDFromWhere(s.Where, langCol); ok {
-				wantLang = lv
-			}
-			filtered := allRowMaps[:0]
-			for _, rm := range allRowMaps {
-				var docLang int64
-				if v, ok := rm[langCol]; ok {
-					docLang = ftsValueToInt64(v)
-				}
-				if docLang == wantLang {
-					filtered = append(filtered, rm)
-				}
-			}
-			allRowMaps = filtered
-		}
-	}
+	allRowMaps = e.filterFTSRowsByLanguage(s, tableEntry, ftsTable, allRowMaps)
 
 	// Apply WHERE clause
 	if s.Where != nil {
@@ -579,6 +402,290 @@ func (e *DDLExecutor) execFTSSelect(s *sql.SelectStmt, tableEntry *schema.Entry,
 
 	// Apply DISTINCT, ORDER BY, LIMIT
 	return e.ctx.FinalizeSelectResult(result, s, allRowMaps)
+}
+
+// validateFTSSelectPreconditions runs every pre-read check of an FTS SELECT
+// (orphan indexes, malformed MATCH, lazy table load, segment validation,
+// uncompress safety, empty-index segment load, per-term corruption) and
+// returns the possibly-reloaded FTS table.
+func (e *DDLExecutor) validateFTSSelectPreconditions(s *sql.SelectStmt, tableEntry *schema.Entry, ftsTable *fts.FTS3Table) (*fts.FTS3Table, *Result) {
+	// An orphan autoindex in sqlite_schema (an index row with no SQL whose
+	// name does not resolve to a table PK/UNIQUE slot) makes the whole schema
+	// malformed; SQLite reports it at schema load, before any table read
+	// (prepare.c sqlite3InitCallback "orphan index"). Check here so the
+	// schema error surfaces before the FTS segment validation would report
+	// "database disk image is malformed" (fts3corrupt4 5.1). PRAGMA
+	// writable_schema=ON skips schema validation entirely, so it must run in
+	// the same statement batch before the query (fts3corrupt4 21.1/22.1).
+	if !e.ctx.WritableSchema() {
+		if err := e.validateOrphanIndexes(); err != nil {
+			return ftsTable, &Result{Error: err}
+		}
+	}
+
+	if err := e.validateFTSSelectMatchParse(s, tableEntry, ftsTable); err != nil {
+		return ftsTable, &Result{Error: err}
+	}
+	// A corrupt segment root surfaces as "database disk image is malformed"
+	// when the index is read (fts3corrupt 2.2/3.2: MATCH after corruption).
+	// ensureFTSForTable first: a fresh connection's first FTS SELECT reaches
+	// here before the lazy table load, and the load is what records the
+	// segment error this check reports (fts3corrupt4 31.1: the crafted
+	// segdir root fails LoadSegment; the SELECT must fail malformed).
+	e.ensureFTSForTable(tableEntry)
+	if ft, ok := e.ctx.FTSTables()[tableEntry.Name]; ok {
+		ftsTable = ft
+	}
+	if res := e.validateFTSSegments(tableEntry.Name, false); res != nil {
+		return ftsTable, res
+	}
+	// A corrupt %_stat value is NOT validated here: it only matters when
+	// matchinfo() actually reads it (fts3corrupt 5.2/5.3 corrupt the stat
+	// blob then SELECT matchinfo; a plain MATCH over a table whose stat says
+	// nDoc=0 — e.g. after DELETE FROM ft3 removed every document — must still
+	// return rows, fts4content 3.1.5). The matchinfo functions themselves
+	// validate the blob.
+
+	// An FTS4 uncompress= function that is not schema-safe (e.g. a
+	// direct-only function) makes reading the table fail with "SQL logic
+	// error": SQLite executes SELECT %_content with uncompress(?) per column
+	// (fts3ReadExprList), and the core rejects the unsafe schema function
+	// (fts3comp1 4.3).
+	if ufn := ftsTable.UncompressFn(); ufn != "" && !e.ctx.SchemaFunctionSafe(ufn) {
+		return ftsTable, &Result{Error: fmt.Errorf("SQL logic error")}
+	}
+
+	// A table whose in-memory index is empty but whose %_segdir has rows (a
+	// hand-crafted or externally-written FTS index, e.g. fts3corrupt4 15.x
+	// inserts into t1_segdir directly) needs its segments loaded now.
+	if ftsTable.DocCount() == 0 {
+		e.loadFTSSegments(tableEntry.Name, ftsTable)
+	}
+	// A MATCH query that reads a term whose segment doclist is corrupt must
+	// fail with "database disk image is malformed" even when no candidate rows
+	// exist (fts3corrupt4 31.1: an empty in-memory index whose hand-crafted
+	// segment holds a corrupt term; SQLite reads the segment at prepare).
+	if s.Where != nil {
+		if mres := e.validateFTSMatchCorruption(s.Where, tableEntry.Name); mres != nil {
+			return ftsTable, mres
+		}
+	}
+
+	return ftsTable, nil
+}
+
+// validateFTSSelectMatchParse fails a SELECT whose constant MATCH expression
+// does not parse — at prepare, before any row is read, even on an empty table
+// (fts3.c fts3FilterMethod surfaces the expression parser's SQLITE_ERROR as
+// "malformed MATCH expression: [query]"; fts3expr 2.x). A structurally broken
+// segment b-tree defeats every term lookup (fts3corrupt7 3.x), so the MATCH
+// fails regardless of its terms; a part-failed load stays queryable
+// (fts3defer2 1.x vs 1.7).
+func (e *DDLExecutor) validateFTSSelectMatchParse(s *sql.SelectStmt, tableEntry *schema.Entry, ftsTable *fts.FTS3Table) error {
+	if s.Where == nil {
+		return nil
+	}
+	qs, ok := e.ftsMatchQueryString(s.Where, tableEntry.Name)
+	if !ok {
+		return nil
+	}
+	node, perr := fts.ParseMatchQuery(qs)
+	if perr != nil {
+		return perr
+	}
+	_ = node
+	// Deferred corruption: a segment load that failed partway leaves
+	// the loaded terms queryable; only a query referencing a term
+	// whose doclist lives in an unreadable block fails with
+	// "database disk image is malformed" (fts3.c reads each term's
+	// doclist on demand; fts3defer2 1.x vs 1.7).
+	if ftsTable.LoadErr() != nil && ftsTable.StructuralLoadErr() {
+		return fmt.Errorf("database disk image is malformed")
+	}
+	return nil
+}
+
+// materializeFTSRowMaps builds the SELECT's candidate row maps: content-table
+// rows for a content=<table> table, index-only rows for a contentless table,
+// and the in-memory %_content-backed rows otherwise.
+func (e *DDLExecutor) materializeFTSRowMaps(s *sql.SelectStmt, tableEntry *schema.Entry, ftsTable *fts.FTS3Table, colDefs []sql.ColumnDef) ([]RowMap, *Result) {
+	// For an FTS4 content=<table> table, row values come from the external
+	// content table: an unconstrained SELECT returns every content-table row;
+	// a MATCH returns the matched docids' content rows (fts3.c
+	// fts3ReadExprList). A contentless (content=) table and a content=<table>
+	// whose content table was dropped have no row values: docid/MATCH queries
+	// still work off the index, but reading a content column fails
+	// (fts4content 7.2.x, 6.2.x).
+	var allRowMaps []RowMap
+	if ct := ftsTable.ContentTable(); ct != "" || ftsTable.Contentless() {
+		contentOK, res := e.resolveFTSContentAvailability(tableEntry, ftsTable, ct)
+		if res != nil {
+			return nil, res
+		}
+		allRowMaps = e.loadFTSContentRows(s, tableEntry, ftsTable, colDefs, ct, contentOK)
+		if res := e.validateFTSContentColumnRead(s, tableEntry, ftsTable, ct, contentOK); res != nil {
+			return nil, res
+		}
+	} else {
+		// A %_content btree that could not be navigated at load time fails
+		// any query that READS content columns with "database disk image is
+		// malformed" (fts3corrupt4 52.1: SELECT * FROM t1, t2 steps the
+		// corrupt content table); index-only queries still work (28.1/28.2).
+		allRowMaps = e.ftsRowMaps(ftsTable, colDefs)
+	}
+	return allRowMaps, nil
+}
+
+// resolveFTSContentAvailability determines whether an FTS table's content
+// source can supply row values. contentOK is false for a contentless table or
+// when the content table cannot be found. A self-referential content source
+// (CREATE VIRTUAL TABLE t1 USING fts4(content=t1)) has no usable content
+// either: SQLite fails every read with "SQL logic error" (fts4content 12.x).
+func (e *DDLExecutor) resolveFTSContentAvailability(tableEntry *schema.Entry, ftsTable *fts.FTS3Table, ct string) (bool, *Result) {
+	contentOK := true
+	switch {
+	case ftsTable.Contentless():
+		contentOK = false
+	case strings.EqualFold(ct, tableEntry.Name):
+		contentOK = false
+	default:
+		if _, isFTSContent := e.ctx.FTSTables()[ct]; isFTSContent {
+			// A content source that is itself an FTS table (t1 content=t2,
+			// t2 content=t1 — fts4content 12.2.x) cannot be read as a
+			// content table: SQLite fails EVERY read with "SQL logic error",
+			// including count(*) (which reads no content column).
+			return false, &Result{Error: fmt.Errorf("SQL logic error")}
+		}
+		if _, _, cerr := e.ctx.FindTable(ct); cerr != nil {
+			contentOK = false
+		}
+	}
+	return contentOK, nil
+}
+
+// loadFTSContentRows builds the SELECT's candidate row maps: the MATCH
+// query's index docids joined to content (or index-only) rows, else every
+// content-table row; see materializeFTSRowMaps.
+func (e *DDLExecutor) loadFTSContentRows(s *sql.SelectStmt, tableEntry *schema.Entry, ftsTable *fts.FTS3Table, colDefs []sql.ColumnDef, ct string, contentOK bool) []RowMap {
+	var allRowMaps []RowMap
+	if s.Where != nil {
+		if qs, ok := e.ftsMatchQueryString(s.Where, tableEntry.Name); ok {
+			// A MATCH query's row set is the INDEX docids (fts3.c
+			// fts3EvalNext: the index is the source of truth for which
+			// documents match; the content table only supplies values). A
+			// content row deleted after indexing still matches (its
+			// values read as NULL/empty).
+			matched, merr := ftsTable.MatchDocIDs(qs)
+			if merr != nil {
+				return nil
+			}
+			if contentOK {
+				allRowMaps = e.ftsContentTableRowMapsForDocIDs(ftsTable, colDefs, matched)
+			} else {
+				// Index-only rows: docid queries work without the
+				// content table; a query that reads a content column
+				// fails below.
+				allRowMaps = e.ftsIndexRowMapsForDocIDs(ftsTable, colDefs, matched)
+			}
+		}
+	}
+	if allRowMaps == nil && contentOK {
+		// No MATCH constraint (or an unresolvable one): return every
+		// content-table row; the WHERE filter applies below. A missing
+		// content table yields no rows; a content-column read fails
+		// below (fts4content 6.2.2/6.2.4).
+		allRowMaps = e.ftsContentTableRowMaps(ftsTable, colDefs, nil)
+	}
+	return allRowMaps
+}
+
+// validateFTSContentColumnRead rejects content-column reads that the content
+// source cannot serve; see materializeFTSRowMaps.
+func (e *DDLExecutor) validateFTSContentColumnRead(s *sql.SelectStmt, tableEntry *schema.Entry, ftsTable *fts.FTS3Table, ct string, contentOK bool) *Result {
+	// A self-referential content source (CREATE VIRTUAL TABLE t1 USING
+	// fts4(content=t1)) fails EVERY read with "SQL logic error" —
+	// including count(*) — because the content table cannot be read
+	// (fts4content 12.x).
+	if strings.EqualFold(ftsTable.ContentTable(), tableEntry.Name) {
+		return &Result{Error: fmt.Errorf("SQL logic error")}
+	}
+	// Reading a content column when the content is unavailable fails:
+	// "SQL logic error" when the FTS columns are known (6.2.2, 7.1.x,
+	// 7.2.4), "no such table: main.<ct>" when the columns were never
+	// derived because the content table was missing at connection time
+	// (6.2.4: SELECT * FROM ft7 after a reopen with t7 dropped).
+	if !contentOK && e.selectReadsFTSContentColumn(s, ftsTable) {
+		if len(ftsTable.ColumnNames()) == 0 {
+			return &Result{Error: fmt.Errorf("no such table: main.%s", ftsTable.ContentTable())}
+		}
+		return &Result{Error: fmt.Errorf("SQL logic error")}
+	}
+	// A content=<table> table whose content table's column set no longer
+	// matches the FTS columns fails on a content-column read with "SQL
+	// logic error" (fts4content 6.2.8: after DROP TABLE t7 + CREATE
+	// TABLE t7(x), SELECT * FROM ft7 WHERE ft7 MATCH errors because the
+	// FTS column y is missing from the new t7's single column). The FTS
+	// columns are matched against the content table BY NAME (fts3.c
+	// fts3ReadExprList); a missing FTS column makes the read fail.
+	if !contentOK || !e.selectReadsFTSContentColumn(s, ftsTable) {
+		return nil
+	}
+	return e.contentColumnsMatchFTS(ftsTable, ct)
+}
+
+// contentColumnsMatchFTS verifies every FTS column still exists (by name) in
+// the content table's current schema; see validateFTSContentColumnRead.
+func (e *DDLExecutor) contentColumnsMatchFTS(ftsTable *fts.FTS3Table, ct string) *Result {
+	ctEntry, _, cerr := e.ctx.FindTable(ct)
+	if cerr != nil || ctEntry == nil {
+		return nil
+	}
+	ctDefs := e.ctx.ParseColumnDefs(ctEntry.Name, ctEntry.SQL)
+	ctCols := make(map[string]bool)
+	for _, cd := range ctDefs {
+		if strings.EqualFold(cd.Name, "docid") || strings.EqualFold(cd.Name, "rowid") {
+			continue
+		}
+		ctCols[strings.ToLower(cd.Name)] = true
+	}
+	for _, cn := range ftsTable.ColumnNames() {
+		if !ctCols[strings.ToLower(cn)] {
+			return &Result{Error: fmt.Errorf("SQL logic error")}
+		}
+	}
+	return nil
+}
+
+// filterFTSRowsByLanguage narrows a MATCH query's row set to ONE language for
+// a languageid=<col> table: the WHERE's lang_id constraint when present, else
+// language 0 (fts3.c fts3EvalNext: the cursor's iLangid comes from the
+// langid= constraint or defaults to 0 — fts4langid 1.14: MATCH 'b' with docs
+// in languages 0 and 1 returns only the language-0 doc). Filter the row set
+// before the WHERE applies, but only for a MATCH query — a plain SELECT
+// returns all languages.
+func (e *DDLExecutor) filterFTSRowsByLanguage(s *sql.SelectStmt, tableEntry *schema.Entry, ftsTable *fts.FTS3Table, allRowMaps []RowMap) []RowMap {
+	langCol := ftsTable.LangIDColName()
+	if langCol == "" || allRowMaps == nil {
+		return allRowMaps
+	}
+	if _, isMatch := e.ftsMatchQueryString(s.Where, tableEntry.Name); !isMatch {
+		return allRowMaps
+	}
+	wantLang := int64(0)
+	if lv, ok := e.ftsLangIDFromWhere(s.Where, langCol); ok {
+		wantLang = lv
+	}
+	filtered := allRowMaps[:0]
+	for _, rm := range allRowMaps {
+		var docLang int64
+		if v, ok := rm[langCol]; ok {
+			docLang = ftsValueToInt64(v)
+		}
+		if docLang == wantLang {
+			filtered = append(filtered, rm)
+		}
+	}
+	return filtered
 }
 
 // setFTSMatchInfoFromWhere populates the matchinfo() context from a SELECT's
@@ -658,39 +765,45 @@ func (e *DDLExecutor) ftsMatchQueryString(where sql.Expr, tableName string) (str
 		if t := ftsMatchTableNameFor(bop, e.ctx.FTSTables()); !strings.EqualFold(t, tableName) {
 			return
 		}
-		if lit, ok := bop.Right.(*sql.StringLit); ok {
-			if found == "" {
-				found = lit.Value
-			}
-			return
-		}
-		if blob, ok := bop.Right.(*sql.BlobLit); ok {
-			if found == "" {
-				found = string(blob.Value)
-			}
-			return
-		}
-		// A constant expression RHS (e.g. 'a'||'b') evaluates to the query
-		// string (fts3snippet.test 5.1 builds a huge OR list via ||). A
-		// non-constant RHS (column reference) is left unresolved.
-		hasColRef := false
-		execquery.WalkExprFull(bop.Right, func(sub sql.Expr) {
-			if _, isCol := sub.(*sql.ColumnRef); isCol {
-				hasColRef = true
-			}
-		})
-		if !hasColRef {
-			if v, err := e.ctx.EvalExpr(bop.Right, nil); err == nil {
-				if sv, ok := util.UnwrapColumnValue(v).(string); ok && found == "" {
-					found = sv
-				}
-			}
-		}
+		e.resolveMatchQueryRHS(bop, &found)
 	})
 	if found == "" {
 		return "", false
 	}
 	return found, true
+}
+
+// resolveMatchQueryRHS extracts the constant query string from one MATCH
+// operator's right-hand side into found; see ftsMatchQueryString.
+func (e *DDLExecutor) resolveMatchQueryRHS(bop *sql.BinaryOp, found *string) {
+	if lit, ok := bop.Right.(*sql.StringLit); ok {
+		if *found == "" {
+			*found = lit.Value
+		}
+		return
+	}
+	if blob, ok := bop.Right.(*sql.BlobLit); ok {
+		if *found == "" {
+			*found = string(blob.Value)
+		}
+		return
+	}
+	// A constant expression RHS (e.g. 'a'||'b') evaluates to the query
+	// string (fts3snippet.test 5.1 builds a huge OR list via ||). A
+	// non-constant RHS (column reference) is left unresolved.
+	hasColRef := false
+	execquery.WalkExprFull(bop.Right, func(sub sql.Expr) {
+		if _, isCol := sub.(*sql.ColumnRef); isCol {
+			hasColRef = true
+		}
+	})
+	if !hasColRef {
+		if v, err := e.ctx.EvalExpr(bop.Right, nil); err == nil {
+			if sv, ok := util.UnwrapColumnValue(v).(string); ok && *found == "" {
+				*found = sv
+			}
+		}
+	}
 }
 
 // ftsMatchPhrases parses and resolves a MATCH query string against an FTS
@@ -781,17 +894,22 @@ func (e *DDLExecutor) validateFTSContentRow(tableName string, ftsTable *fts.FTS3
 	}
 	nCol := len(ftsTable.ColumnNames())
 	for i := 0; i < nCol; i++ {
-		contentStr := contentColumnString(rec.Values, i+1)
-		memStr, memBlob := docColumnValue(doc, i)
-		match := contentStr == memStr || (memBlob != nil && contentStr == string(memBlob))
-		if match {
-			continue
+		if !ftsContentColumnMatches(rec.Values, doc, i) {
+			// Content differs: corrupt when the token counts disagree. (An
+			// FTS4 content table stores the raw text; a hand UPDATE changes it.)
+			return &Result{Error: fmt.Errorf("database disk image is malformed")}
 		}
-		// Content differs: corrupt when the token counts disagree. (An
-		// FTS4 content table stores the raw text; a hand UPDATE changes it.)
-		return &Result{Error: fmt.Errorf("database disk image is malformed")}
 	}
 	return nil
+}
+
+// ftsContentColumnMatches compares one %_content column value against the
+// in-memory document's stored value (text or blob form); see
+// validateFTSContentRow.
+func ftsContentColumnMatches(recValues []interface{}, doc *fts.Document, i int) bool {
+	contentStr := contentColumnString(recValues, i+1)
+	memStr, memBlob := docColumnValue(doc, i)
+	return contentStr == memStr || (memBlob != nil && contentStr == string(memBlob))
 }
 
 // contentColumnString renders one %_content record value as a string.
@@ -851,12 +969,8 @@ func (e *DDLExecutor) ftsLangIDFromWhere(where sql.Expr, langCol string) (int64,
 		}
 		return ref.Name, true
 	}
-	var valExpr sql.Expr
-	if name, ok := colRef(bop.Left); ok && strings.EqualFold(name, langCol) {
-		valExpr = bop.Right
-	} else if name, ok := colRef(bop.Right); ok && strings.EqualFold(name, langCol) {
-		valExpr = bop.Left
-	} else {
+	valExpr := langEqualityValue(bop, langCol, colRef)
+	if valExpr == nil {
 		return 0, false
 	}
 	v, err := e.ctx.EvalExpr(valExpr, nil)
@@ -864,6 +978,19 @@ func (e *DDLExecutor) ftsLangIDFromWhere(where sql.Expr, langCol string) (int64,
 		return 0, false
 	}
 	return ftsValueToInt64(v), true
+}
+
+// langEqualityValue returns the value side of a `<langid col> = <expr>`
+// equality (either operand order), or nil when neither side is the langid
+// column; see ftsLangIDFromWhere.
+func langEqualityValue(bop *sql.BinaryOp, langCol string, colRef func(sql.Expr) (string, bool)) sql.Expr {
+	if name, ok := colRef(bop.Left); ok && strings.EqualFold(name, langCol) {
+		return bop.Right
+	}
+	if name, ok := colRef(bop.Right); ok && strings.EqualFold(name, langCol) {
+		return bop.Left
+	}
+	return nil
 }
 
 // ftsValueToInt64 coerces a SQL value to int64 the way SQLite's
@@ -878,30 +1005,33 @@ func (e *DDLExecutor) ftsLangIDFromWhere(where sql.Expr, langCol string) (int64,
 // SQLite reads any content, so a corrupt content row must not preempt that
 // error (fts3query 5.4.x).
 func (e *DDLExecutor) ftsWithValidAuxFirstArg(s *sql.SelectStmt, tableName string) bool {
-	ok := true
 	for _, cd := range s.Columns {
-		execquery.WalkExprFull(cd.Expr, func(n sql.Expr) {
-			fc, isFunc := n.(*sql.FuncCall)
-			if !isFunc {
-				return
-			}
-			switch strings.ToUpper(fc.Name) {
-			case "MATCHINFO", "OFFSETS", "SNIPPET", "OPTIMIZE":
-			default:
-				return
-			}
-			if len(fc.Args) == 0 {
-				ok = false
-				return
-			}
-			colRef, isCol := fc.Args[0].(*sql.ColumnRef)
-			if !isCol || !strings.EqualFold(colRef.Name, tableName) {
-				ok = false
-			}
-		})
-		if !ok {
-			break
+		if !auxFirstArgValidIn(cd.Expr, tableName) {
+			return false
 		}
 	}
+	return true
+}
+
+// auxFirstArgValidIn reports whether every aux call (matchinfo/offsets/
+// snippet/optimize) in the expression names the FTS table as its first
+// argument; see ftsWithValidAuxFirstArg.
+func auxFirstArgValidIn(expr sql.Expr, tableName string) bool {
+	ok := true
+	execquery.WalkExprFull(expr, func(n sql.Expr) {
+		fc, isFunc := n.(*sql.FuncCall)
+		if !isFunc {
+			return
+		}
+		switch strings.ToUpper(fc.Name) {
+		case "MATCHINFO", "OFFSETS", "SNIPPET", "OPTIMIZE":
+		default:
+			return
+		}
+		colRef, isCol := fc.Args[0].(*sql.ColumnRef)
+		if len(fc.Args) == 0 || !isCol || !strings.EqualFold(colRef.Name, tableName) {
+			ok = false
+		}
+	})
 	return ok
 }

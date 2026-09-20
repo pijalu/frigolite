@@ -84,25 +84,7 @@ func (e *DDLExecutor) flushFTSTable(tableName string, ftsTable *fts.FTS3Table) *
 	// segment per index carrying the delete entry AND the new postings,
 	// so exclude it from the separate marker pass and let the segment
 	// builders inject its marker entries (fts4opt 2.x per-ROW parity).
-	var replaced []int64
-	if len(deleted) > 0 && len(ids) > 0 {
-		idset := make(map[int64]bool, len(ids))
-		for _, id := range ids {
-			idset[id] = true
-		}
-		rest := deleted[:0]
-		for _, id := range deleted {
-			if idset[id] {
-				replaced = append(replaced, id)
-			} else {
-				rest = append(rest, id)
-			}
-		}
-		deleted = rest
-		if len(replaced) > 0 {
-			ftsTable.SetReplaceDocs(replaced)
-		}
-	}
+	replaced, deleted := splitReplacedDeletes(ftsTable, ids, deleted)
 	// The flush allocates a new segment at level 0 (or 1024*iIndex for a
 	// prefix index). SQLite's fts3AllocateSegdirIdx crisis-merges a level
 	// that has reached MergeCount (16) segments into the next level, so
@@ -112,194 +94,18 @@ func (e *DDLExecutor) flushFTSTable(tableName string, ftsTable *fts.FTS3Table) *
 	nodeSize := e.ftsNodeSize(ftsTable)
 	nLeafAdd := 0
 	if len(deleted) > 0 {
-		// DELETEs of documents already flushed to %_segdir write
-		// delete-marker segments (fts3.c fts3DeleteTerms: doclists carry
-		// only docids, no positions) so a segment reload does not
-		// resurrect the deleted documents. fts3DeleteTerms feeds EVERY
-		// index's pending-terms hash (main + prefix indexes), so ONE
-		// marker segment is flushed PER INDEX at its absolute level
-		// 1024*iIndex (fts4opt 2.x: without prefix-index markers the
-		// level structure diverges from the oracle after delete churn).
-		nIndexes := 1 + len(ftsTable.PrefixLengths())
-		for iIndex := 0; iIndex < nIndexes; iIndex++ {
-			dmRoot, dmBlocks := ftsTable.DeleteMarkerRootIndex(deleted, nodeSize, iIndex)
-			if dmRoot == nil {
-				// No term maps into this index — SQLite's pending-terms
-				// merge bails before allocating a segdir idx.
-				continue
-			}
-			level := 1024 * iIndex
-			nLeafAdd += len(dmBlocks)
-			idx, res := e.allocFTSIdx(tableName, level, ftsTable)
-			if res != nil {
-				return res
-			}
-			dmStart := e.writeFTSShadowRow(tableName, level, idx, dmBlocks, dmRoot)
-			ftsTable.SetSegdirNextIdx(level, idx+1)
-			nextBlock := dmStart
-			if nextBlock == 0 {
-				var nbOK bool
-				nextBlock, nbOK = ftsTable.NextBlockID()
-				if !nbOK {
-					nextBlock = e.ftsNextBlockID(tableName)
-				}
-			}
-			for _, blk := range dmBlocks {
-				_ = e.ctx.Exec(&sql.InsertStmt{
-					Table:   tableName + "_segments",
-					Columns: []string{"blockid", "block"},
-					Values: [][]sql.Expr{
-						{
-							&sql.NumericLit{Value: fmt.Sprintf("%d", nextBlock)},
-							&sql.BlobLit{Value: blk.Block},
-						},
-					},
-				})
-				nextBlock++
-			}
-			ftsTable.SetNextBlockID(nextBlock)
+		n, res := e.flushDeleteMarkers(tableName, ftsTable, deleted, nodeSize)
+		if res != nil {
+			return res
 		}
-		// The markers are persisted; drop the term snapshots so the next
-		// flush does not rebuild them.
-		ftsTable.ConsumeDeleteMarkers(deleted)
+		nLeafAdd += n
 	}
 	if len(ids) > 0 {
-		// A languageid=<col> table flushes one segment PER LANGUAGE: the
-		// pending-terms hash is keyed by language, and each language's
-		// segment lands at its base absolute level
-		// ((iLangid*nIndex+iIndex)*1024 = iLangid*1024 without prefix
-		// indexes — fts3_write.c getAbsoluteLevel; fts4langid 5.1.1:
-		// levels 0 1024 2048 2^40 for languages 0,1,2,1<<30).
-		type flushGroup struct {
-			level int
-			ids   []int64
+		n, res := e.flushPendingSegments(tableName, ftsTable, ids, nodeSize)
+		if res != nil {
+			return res
 		}
-		var groups []flushGroup
-		if ftsTable.LangIDColName() != "" {
-			byLang := map[int64][]int64{}
-			for _, id := range ids {
-				l := ftsTable.DocLangID(id)
-				byLang[l] = append(byLang[l], id)
-			}
-			langs := make([]int64, 0, len(byLang))
-			for l := range byLang {
-				langs = append(langs, l)
-			}
-			sort.Slice(langs, func(i, j int) bool { return langs[i] < langs[j] })
-			for _, l := range langs {
-				groups = append(groups, flushGroup{level: int(l) * 1024, ids: byLang[l]})
-			}
-		} else {
-			groups = append(groups, flushGroup{level: 0, ids: ids})
-		}
-		for _, g := range groups {
-			level := g.level
-			// Allocate the segment idx at the group's absolute level
-			// (crisis-merging a full level first — SQLite's
-			// fts3AllocateSegdirIdx).
-			idx, res := e.allocFTSIdx(tableName, level, ftsTable)
-			if res != nil {
-				return res
-			}
-			rootBlob, blocks := ftsTable.SegmentRootBlocks(g.ids, nodeSize)
-			nLeafAdd += len(blocks)
-			// writeFTSShadowRow returns the first block id it recorded in the
-			// row AND patched into the root; the leaf writes MUST use the SAME
-			// id (re-reading the cache after the row write can diverge when a
-			// shadow-table write invalidated it — fts4merge4 am=2 stale root).
-			startBlock := e.writeFTSShadowRow(tableName, level, idx, blocks, rootBlob)
-			ftsTable.SetSegdirNextIdx(level, idx+1)
-			// fts3PromoteSegments: a freshly flushed base-level segment
-			// DEMOTES every smaller higher-level segment of its group to
-			// this level (relabeled in place) — fts4opt 1.8 folds the
-			// lone level-B+1 merge output back down when regrowth lands.
-			var mainLeaf int
-			for _, blk := range blocks {
-				mainLeaf += len(blk.Block)
-			}
-			e.promoteFTSSegments(tableName, ftsTable, level, mainLeaf)
-			// Multi-block segments store their leaf blocks in %_segments
-			// (fts3.c fts3WriteSegment); the corruption tests count them
-			// (fts3corrupt 8.1: count(*) FROM f_segments). Block IDs are global
-			// across segments (the next block is max(existing)+1).
-			nextBlock := startBlock
-			if nextBlock == 0 {
-				// Root-only segment: no leaf blocks; fall back to the cache for
-				// the next segment's allocation.
-				var blockCached bool
-				nextBlock, blockCached = ftsTable.NextBlockID()
-				if !blockCached {
-					nextBlock = e.ftsNextBlockID(tableName)
-				}
-			}
-			for _, blk := range blocks {
-				res := e.ctx.Exec(&sql.InsertStmt{
-					Table:   tableName + "_segments",
-					Columns: []string{"blockid", "block"},
-					Values: [][]sql.Expr{
-						{
-							&sql.NumericLit{Value: fmt.Sprintf("%d", nextBlock)},
-							&sql.BlobLit{Value: blk.Block},
-						},
-					},
-				})
-				if res != nil && res.Error != nil {
-					return &Result{Error: res.Error}
-				}
-				nextBlock++
-			}
-			ftsTable.SetNextBlockID(nextBlock)
-			// FTS4 prefix indexes (fts3.c fts3PrefixParameter + fts3SegWriter):
-			// each non-empty prefix index is a separate segment at absolute level
-			// 1024*iIndex. An index whose prefix length exceeds every token
-			// (e.g. prefix="1,600,2" with short documents) contributes no
-			// postings and therefore no segdir row, which is why fts3prefix.test
-			// 6.4.2 (1,600,2 vs 1,2) compares equal.
-			for i, prefixLen := range ftsTable.PrefixLengths() {
-				iIndex := i + 1
-				if !ftsTable.IndexHasPostings(iIndex, prefixLen, g.ids) {
-					continue
-				}
-				pRoot, pBlocks := ftsTable.SegmentRootBlocksIndex(g.ids, nodeSize, iIndex)
-				nLeafAdd += len(pBlocks)
-				level := 1024 * iIndex
-				pIdx, res := e.allocFTSIdx(tableName, level, ftsTable)
-				if res != nil {
-					return res
-				}
-				pStart := e.writeFTSShadowRow(tableName, level, pIdx, pBlocks, pRoot)
-				ftsTable.SetSegdirNextIdx(level, pIdx+1)
-				// Promotion for prefix groups too (fts4opt 1.8: 1057/2081/
-				// 3105 outputs fold back to their base levels likewise).
-				var pLeaf int
-				for _, blk := range pBlocks {
-					pLeaf += len(blk.Block)
-				}
-				e.promoteFTSSegments(tableName, ftsTable, level, pLeaf)
-				nextBlock := pStart
-				if nextBlock == 0 {
-					var nbOK bool
-					nextBlock, nbOK = ftsTable.NextBlockID()
-					if !nbOK {
-						nextBlock = e.ftsNextBlockID(tableName)
-					}
-				}
-				for _, blk := range pBlocks {
-					_ = e.ctx.Exec(&sql.InsertStmt{
-						Table:   tableName + "_segments",
-						Columns: []string{"blockid", "block"},
-						Values: [][]sql.Expr{
-							{
-								&sql.NumericLit{Value: fmt.Sprintf("%d", nextBlock)},
-								&sql.BlobLit{Value: blk.Block},
-							},
-						},
-					})
-					nextBlock++
-				}
-				ftsTable.SetNextBlockID(nextBlock)
-			}
-		}
+		nLeafAdd += n
 	}
 	if len(replaced) > 0 {
 		// The merged marker entries are persisted with the pending
@@ -308,18 +114,254 @@ func (e *DDLExecutor) flushFTSTable(tableName string, ftsTable *fts.FTS3Table) *
 		ftsTable.ConsumeDeleteMarkers(replaced)
 	}
 	e.writeFTSStat(tableName, ftsTable)
-	// Flush-time auto-incr-merge (fts3.c fts3SyncMethod): when the
-	// automerge setting is enabled, estimate the work A =
-	// nLeafAdd*mxLevel + A/2 and run an incremental merge ONLY when A
-	// exceeds the minimum useful amount (nMinMerge=64 leaf blocks) AND the
-	// flush itself added more than nMinMerge/16 = 4 leaf blocks (SQLite's
-	// p->nLeafAdd>(nMinMerge/16) pre-gate — small flushes never trigger a
-	// merge no matter how tall the tree is; fts4merge4 2.2 am=8/am=1: the
-	// oracle keeps 0 4 | 1 3 | 2 1 because the small per-tx flushes stay
-	// below the gate and only the occasional larger flush merges).
-	// nLeafAdd counts EVERY leaf block the transaction wrote: the main
-	// index's flush blocks plus prefix-index and delete-marker segments
-	// (fts3_write.c fts3SegWriterAddBlock/flush increment per leaf).
+	e.autoIncrMergeAfterFlush(tableName, ftsTable, nLeafAdd)
+	return nil
+}
+
+// splitReplacedDeletes separates the docids that appear in BOTH the pending
+// and deleted lists (INSERT OR REPLACE of an already-flushed row inside one
+// transaction) from the plain deletes, registering the replaced docs on the
+// FTS table; see flushFTSTable.
+func splitReplacedDeletes(ftsTable *fts.FTS3Table, ids, deleted []int64) ([]int64, []int64) {
+	var replaced []int64
+	if len(deleted) == 0 || len(ids) == 0 {
+		return nil, deleted
+	}
+	idset := make(map[int64]bool, len(ids))
+	for _, id := range ids {
+		idset[id] = true
+	}
+	rest := deleted[:0]
+	for _, id := range deleted {
+		if idset[id] {
+			replaced = append(replaced, id)
+		} else {
+			rest = append(rest, id)
+		}
+	}
+	if len(replaced) > 0 {
+		ftsTable.SetReplaceDocs(replaced)
+	}
+	return replaced, rest
+}
+
+// flushDeleteMarkers writes the delete-marker segments for one flush's
+// deleted documents (fts3.c fts3DeleteTerms: doclists carry only docids, no
+// positions) so a segment reload does not resurrect the deleted documents.
+// fts3DeleteTerms feeds EVERY index's pending-terms hash (main + prefix
+// indexes), so ONE marker segment is flushed PER INDEX at its absolute level
+// 1024*iIndex (fts4opt 2.x: without prefix-index markers the level structure
+// diverges from the oracle after delete churn). Returns the leaf-block count
+// added.
+func (e *DDLExecutor) flushDeleteMarkers(tableName string, ftsTable *fts.FTS3Table, deleted []int64, nodeSize int) (int, *Result) {
+	nLeafAdd := 0
+	nIndexes := 1 + len(ftsTable.PrefixLengths())
+	for iIndex := 0; iIndex < nIndexes; iIndex++ {
+		dmRoot, dmBlocks := ftsTable.DeleteMarkerRootIndex(deleted, nodeSize, iIndex)
+		if dmRoot == nil {
+			// No term maps into this index — SQLite's pending-terms
+			// merge bails before allocating a segdir idx.
+			continue
+		}
+		level := 1024 * iIndex
+		nLeafAdd += len(dmBlocks)
+		idx, res := e.allocFTSIdx(tableName, level, ftsTable)
+		if res != nil {
+			return 0, res
+		}
+		dmStart := e.writeFTSShadowRow(tableName, level, idx, dmBlocks, dmRoot)
+		ftsTable.SetSegdirNextIdx(level, idx+1)
+		e.writeSegmentBlocks(tableName, ftsTable, dmBlocks, e.resumeSegmentBlockID(tableName, ftsTable, dmStart), false)
+	}
+	// The markers are persisted; drop the term snapshots so the next
+	// flush does not rebuild them.
+	ftsTable.ConsumeDeleteMarkers(deleted)
+	return nLeafAdd, nil
+}
+
+// flushPendingSegments flushes one pending batch's documents into segments
+// (grouped per language for a languageid=<col> table); returns the
+// leaf-block count added.
+func (e *DDLExecutor) flushPendingSegments(tableName string, ftsTable *fts.FTS3Table, ids []int64, nodeSize int) (int, *Result) {
+	nLeafAdd := 0
+	for _, g := range langFlushGroups(ftsTable, ids) {
+		n, res := e.flushOneSegmentGroup(tableName, ftsTable, g, nodeSize)
+		if res != nil {
+			return 0, res
+		}
+		nLeafAdd += n
+	}
+	return nLeafAdd, nil
+}
+
+// ftsFlushGroup is one flush's (absolute level, docid set) group.
+type ftsFlushGroup struct {
+	level int
+	ids   []int64
+}
+
+// langFlushGroups groups a pending batch per language for a languageid=<col>
+// table: the pending-terms hash is keyed by language, and each language's
+// segment lands at its base absolute level
+// ((iLangid*nIndex+iIndex)*1024 = iLangid*1024 without prefix indexes —
+// fts3_write.c getAbsoluteLevel; fts4langid 5.1.1: levels 0 1024 2048 2^40
+// for languages 0,1,2,1<<30).
+func langFlushGroups(ftsTable *fts.FTS3Table, ids []int64) []ftsFlushGroup {
+	if ftsTable.LangIDColName() == "" {
+		return []ftsFlushGroup{{level: 0, ids: ids}}
+	}
+	byLang := map[int64][]int64{}
+	for _, id := range ids {
+		l := ftsTable.DocLangID(id)
+		byLang[l] = append(byLang[l], id)
+	}
+	langs := make([]int64, 0, len(byLang))
+	for l := range byLang {
+		langs = append(langs, l)
+	}
+	sort.Slice(langs, func(i, j int) bool { return langs[i] < langs[j] })
+	groups := make([]ftsFlushGroup, 0, len(langs))
+	for _, l := range langs {
+		groups = append(groups, ftsFlushGroup{level: int(l) * 1024, ids: byLang[l]})
+	}
+	return groups
+}
+
+// flushOneSegmentGroup flushes one (level, docids) group's segment: allocates
+// the segment idx at the group's absolute level (crisis-merging a full level
+// first — SQLite's fts3AllocateSegdirIdx), builds the segment, promotes
+// smaller higher-level segments down, writes the leaf blocks, then the FTS4
+// prefix indexes. Returns the leaf-block count added.
+func (e *DDLExecutor) flushOneSegmentGroup(tableName string, ftsTable *fts.FTS3Table, g ftsFlushGroup, nodeSize int) (int, *Result) {
+	level := g.level
+	// Allocate the segment idx at the group's absolute level
+	// (crisis-merging a full level first — SQLite's
+	// fts3AllocateSegdirIdx).
+	idx, res := e.allocFTSIdx(tableName, level, ftsTable)
+	if res != nil {
+		return 0, res
+	}
+	rootBlob, blocks := ftsTable.SegmentRootBlocks(g.ids, nodeSize)
+	nLeafAdd := len(blocks)
+	// writeFTSShadowRow returns the first block id it recorded in the
+	// row AND patched into the root; the leaf writes MUST use the SAME
+	// id (re-reading the cache after the row write can diverge when a
+	// shadow-table write invalidated it — fts4merge4 am=2 stale root).
+	startBlock := e.writeFTSShadowRow(tableName, level, idx, blocks, rootBlob)
+	ftsTable.SetSegdirNextIdx(level, idx+1)
+	// fts3PromoteSegments: a freshly flushed base-level segment
+	// DEMOTES every smaller higher-level segment of its group to
+	// this level (relabeled in place) — fts4opt 1.8 folds the
+	// lone level-B+1 merge output back down when regrowth lands.
+	var mainLeaf int
+	for _, blk := range blocks {
+		mainLeaf += len(blk.Block)
+	}
+	e.promoteFTSSegments(tableName, ftsTable, level, mainLeaf)
+	// Multi-block segments store their leaf blocks in %_segments
+	// (fts3.c fts3WriteSegment); the corruption tests count them
+	// (fts3corrupt 8.1: count(*) FROM f_segments). Block IDs are global
+	// across segments (the next block is max(existing)+1).
+	nextBlock := e.resumeSegmentBlockID(tableName, ftsTable, startBlock)
+	if res := e.writeSegmentBlocks(tableName, ftsTable, blocks, nextBlock, true); res != nil {
+		return 0, res
+	}
+	n, res := e.flushPrefixIndexes(tableName, ftsTable, g.ids, nodeSize)
+	if res != nil {
+		return 0, res
+	}
+	return nLeafAdd + n, nil
+}
+
+// flushPrefixIndexes flushes the FTS4 prefix indexes for one group's docids
+// (fts3.c fts3PrefixParameter + fts3SegWriter): each non-empty prefix index
+// is a separate segment at absolute level 1024*iIndex. An index whose prefix
+// length exceeds every token (e.g. prefix="1,600,2" with short documents)
+// contributes no postings and therefore no segdir row, which is why
+// fts3prefix.test 6.4.2 (1,600,2 vs 1,2) compares equal.
+func (e *DDLExecutor) flushPrefixIndexes(tableName string, ftsTable *fts.FTS3Table, ids []int64, nodeSize int) (int, *Result) {
+	nLeafAdd := 0
+	for i, prefixLen := range ftsTable.PrefixLengths() {
+		iIndex := i + 1
+		if !ftsTable.IndexHasPostings(iIndex, prefixLen, ids) {
+			continue
+		}
+		pRoot, pBlocks := ftsTable.SegmentRootBlocksIndex(ids, nodeSize, iIndex)
+		nLeafAdd += len(pBlocks)
+		level := 1024 * iIndex
+		pIdx, res := e.allocFTSIdx(tableName, level, ftsTable)
+		if res != nil {
+			return 0, res
+		}
+		pStart := e.writeFTSShadowRow(tableName, level, pIdx, pBlocks, pRoot)
+		ftsTable.SetSegdirNextIdx(level, pIdx+1)
+		// Promotion for prefix groups too (fts4opt 1.8: 1057/2081/
+		// 3105 outputs fold back to their base levels likewise).
+		var pLeaf int
+		for _, blk := range pBlocks {
+			pLeaf += len(blk.Block)
+		}
+		e.promoteFTSSegments(tableName, ftsTable, level, pLeaf)
+		nextBlock := e.resumeSegmentBlockID(tableName, ftsTable, pStart)
+		e.writeSegmentBlocks(tableName, ftsTable, pBlocks, nextBlock, false)
+	}
+	return nLeafAdd, nil
+}
+
+// resumeSegmentBlockID derives the first %_segments block id for a segment's
+// leaf writes: the row write's recorded start block, or the cache/scan
+// fallback for a root-only segment (no leaf blocks; the fallback decides the
+// NEXT segment's allocation).
+func (e *DDLExecutor) resumeSegmentBlockID(tableName string, ftsTable *fts.FTS3Table, startBlock int) int {
+	if startBlock != 0 {
+		return startBlock
+	}
+	nextBlock, cached := ftsTable.NextBlockID()
+	if !cached {
+		nextBlock = e.ftsNextBlockID(tableName)
+	}
+	return nextBlock
+}
+
+// writeSegmentBlocks persists a segment's leaf blocks at consecutive ids
+// from nextBlock (fts3.c fts3WriteSegment) and bumps the table's block
+// counter past them. strict=true surfaces a failed write to the caller (the
+// pending-batch segment write aborts the flush); the marker/prefix writes
+// keep the historical fire-and-forget behavior.
+func (e *DDLExecutor) writeSegmentBlocks(tableName string, ftsTable *fts.FTS3Table, blocks []fts.SegmentBlock, nextBlock int, strict bool) *Result {
+	for _, blk := range blocks {
+		res := e.ctx.Exec(&sql.InsertStmt{
+			Table:   tableName + "_segments",
+			Columns: []string{"blockid", "block"},
+			Values: [][]sql.Expr{
+				{
+					&sql.NumericLit{Value: fmt.Sprintf("%d", nextBlock)},
+					&sql.BlobLit{Value: blk.Block},
+				},
+			},
+		})
+		if strict && res != nil && res.Error != nil {
+			return &Result{Error: res.Error}
+		}
+		nextBlock++
+	}
+	ftsTable.SetNextBlockID(nextBlock)
+	return nil
+}
+
+// autoIncrMergeAfterFlush runs the flush-time auto-incr-merge (fts3.c
+// fts3SyncMethod): when the automerge setting is enabled, estimate the work A
+// = nLeafAdd*mxLevel + A/2 and run an incremental merge ONLY when A
+// exceeds the minimum useful amount (nMinMerge=64 leaf blocks) AND the
+// flush itself added more than nMinMerge/16 = 4 leaf blocks (SQLite's
+// p->nLeafAdd>(nMinMerge/16) pre-gate — small flushes never trigger a
+// merge no matter how tall the tree is; fts4merge4 2.2 am=8/am=1: the
+// oracle keeps 0 4 | 1 3 | 2 1 because the small per-tx flushes stay
+// below the gate and only the occasional larger flush merges).
+// nLeafAdd counts EVERY leaf block the transaction wrote: the main
+// index's flush blocks plus prefix-index and delete-marker segments
+// (fts3_write.c fts3SegWriterAddBlock/flush increment per leaf).
+func (e *DDLExecutor) autoIncrMergeAfterFlush(tableName string, ftsTable *fts.FTS3Table, nLeafAdd int) {
 	am, known := ftsTable.Automerge()
 	if !known && nLeafAdd > 0 {
 		// The setting is UNKNOWN (SQLite's 0xff sentinel after a (re)open —
@@ -344,7 +386,6 @@ func (e *DDLExecutor) flushFTSTable(tableName string, ftsTable *fts.FTS3Table) *
 			e.MergeFTS(tableName, A, am)
 		}
 	}
-	return nil
 }
 
 // WriteFTSShadowRow inserts one %_segdir row (exported for the DML layer's
@@ -555,16 +596,24 @@ func (e *DDLExecutor) ftSSegmentIdx(tableName string, level int) int {
 		if derr != nil || rec == nil || len(rec.Values) < 2 {
 			break
 		}
-		if lv, ok := rec.Values[0].(int64); ok && int(lv) == level {
-			if ix, ok := rec.Values[1].(int64); ok && int(ix) > maxIdx {
-				maxIdx = int(ix)
-			}
-		}
+		segdirTrackMaxIdx(rec, level, &maxIdx)
 		if ok, nerr := cursor.Next(); nerr != nil || !ok {
 			break
 		}
 	}
 	return maxIdx + 1
+}
+
+// segdirTrackMaxIdx raises maxIdx to the row's idx when the row belongs to
+// the given level; see ftSSegmentIdx.
+func segdirTrackMaxIdx(rec *storage.Record, level int, maxIdx *int) {
+	lv, ok := rec.Values[0].(int64)
+	if !ok || int(lv) != level {
+		return
+	}
+	if ix, ok := rec.Values[1].(int64); ok && int(ix) > *maxIdx {
+		*maxIdx = int(ix)
+	}
 }
 
 // ftsNextBlockID returns the next %_segments block ID for an FTS table, using
@@ -611,6 +660,27 @@ func (e *DDLExecutor) nextFTSBlockID(tableName string) int {
 	return int(maxID) + 1
 }
 
+// crisisReallocIdx re-allocates a level's segment idx after a crisis merge:
+// the crisis may have been a no-op (a stale cache said the level was full but
+// it has fewer rows — e.g. after a cascade wrote to this level and
+// invalidated the cache mid-flight), so re-scan to get the real count instead
+// of assuming the level was cleared.
+func (e *DDLExecutor) crisisReallocIdx(tableName string, level int, ftsTable *fts.FTS3Table) (int, *Result) {
+	if res := e.crisisMergeFTSLevel(tableName, level, ftsTable); res != nil {
+		return 0, res
+	}
+	rows := e.readFTSSegdirRows(tableName, level)
+	if len(rows) >= ftsMergeThreshold {
+		return 0, &Result{Error: fmt.Errorf("fts merge: level %d still full after crisis", level)}
+	}
+	if len(rows) == 0 {
+		return 0, nil // the level was cleared; idx restarts at 0
+	}
+	idx := e.ftSSegmentIdx(tableName, level)
+	ftsTable.SetSegdirNextIdx(level, idx)
+	return idx, nil
+}
+
 // allocFTSIdx implements SQLite's fts3AllocateSegdirIdx: it returns the next
 // %_segdir idx to use at an absolute level, crisis-merging the level first
 // when it has reached ftsMergeThreshold (16) segments. The merge is recursive:
@@ -626,26 +696,10 @@ func (e *DDLExecutor) allocFTSIdx(tableName string, level int, ftsTable *fts.FTS
 	// rows scanned per flush). Only when the cache is stale (a direct SQL
 	// write, a table reload, or a just-crisis-merged level) do we scan.
 	if idx, ok := ftsTable.SegdirNextIdx(level); ok {
-		if idx >= ftsMergeThreshold {
-			if res := e.crisisMergeFTSLevel(tableName, level, ftsTable); res != nil {
-				return 0, res
-			}
-			// The crisis may have been a no-op (a stale cache said the level
-			// was full but it has fewer rows — e.g. after a cascade wrote to
-			// this level and invalidated the cache mid-flight). Re-scan to
-			// get the real count instead of assuming the level was cleared.
-			rows := e.readFTSSegdirRows(tableName, level)
-			if len(rows) >= ftsMergeThreshold {
-				return 0, &Result{Error: fmt.Errorf("fts merge: level %d still full after crisis", level)}
-			}
-			if len(rows) == 0 {
-				return 0, nil // the level was cleared; idx restarts at 0
-			}
-			idx = e.ftSSegmentIdx(tableName, level)
-			ftsTable.SetSegdirNextIdx(level, idx)
+		if idx < ftsMergeThreshold {
 			return idx, nil
 		}
-		return idx, nil
+		return e.crisisReallocIdx(tableName, level, ftsTable)
 	}
 	rows := e.readFTSSegdirRows(tableName, level)
 	if len(rows) >= ftsMergeThreshold {
@@ -850,23 +904,31 @@ func (e *DDLExecutor) readFTSStatRow(tableName string, id int) []byte {
 		if derr != nil || rec == nil || len(rec.Values) < 2 {
 			break
 		}
-		// id is the %_stat table's INTEGER PRIMARY KEY: the value IS the
-		// rowid and the record slot decodes as NULL (SQLite's rowid-alias
-		// storage convention), so the match must use the cell's rowid.
-		if cell.RowID == int64(id) {
-			switch v := rec.Values[1].(type) {
-			case []byte:
-				return v
-			case string:
-				return []byte(v)
-			}
-			return nil
+		if v, ok := statRowValue(rec, cell.RowID, int64(id)); ok {
+			return v
 		}
 		if ok, nerr := cursor.Next(); nerr != nil || !ok {
 			break
 		}
 	}
 	return nil
+}
+
+// statRowValue decodes one %_stat row's value blob when the row matches the
+// wanted id. id is the %_stat table's INTEGER PRIMARY KEY: the value IS the
+// rowid and the record slot decodes as NULL (SQLite's rowid-alias storage
+// convention), so the match must use the cell's rowid.
+func statRowValue(rec *storage.Record, rowID, id int64) ([]byte, bool) {
+	if rowID != id {
+		return nil, false
+	}
+	switch v := rec.Values[1].(type) {
+	case []byte:
+		return v, true
+	case string:
+		return []byte(v), true
+	}
+	return nil, true
 }
 
 // updateFTSShadowRowRangeKeepEndBlock updates a %_segdir row's start_block,
