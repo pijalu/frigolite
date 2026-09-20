@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/pijalu/frigolite/internal/auth"
+	"github.com/pijalu/frigolite/internal/btree"
 	"github.com/pijalu/frigolite/internal/execdml"
 	"github.com/pijalu/frigolite/internal/execquery"
 	"github.com/pijalu/frigolite/internal/fts"
@@ -403,27 +404,7 @@ func (e *DDLExecutor) ensureFTSForTable(entry *schema.Entry) {
 	if err != nil {
 		return
 	}
-	// A content=<table> table with no explicit columns derives its column
-	// names from the content table's CURRENT schema at connection time
-	// (fts3.c fts3ContentColumns; fts4content 6.2.5: after DROP TABLE t7 +
-	// CREATE TABLE t7(x, y), a reopened connection's SELECT * FROM ft7
-	// returns the x/y values because the columns are re-derived from the new
-	// t7). registerFTSVTab does the same at CREATE; a reopened connection
-	// must re-derive too.
-	if ct := ftsTable.ContentTable(); ct != "" && len(ftsTable.ColumnNames()) == 0 {
-		ctEntry, _, cerr := e.ctx.FindTable(ct)
-		if cerr == nil && ctEntry != nil {
-			ctDefs := e.ctx.ParseColumnDefs(ctEntry.Name, ctEntry.SQL)
-			var names []string
-			for _, cd := range ctDefs {
-				if strings.EqualFold(cd.Name, "docid") || strings.EqualFold(cd.Name, "rowid") {
-					continue
-				}
-				names = append(names, cd.Name)
-			}
-			ftsTable.SetColumnNames(names)
-		}
-	}
+	e.deriveFTSContentColumns(ftsTable)
 	e.ctx.FTSTables()[entry.Name] = ftsTable
 	// Rebuild the in-memory index from the %_content shadow table so a
 	// reopened connection (db_restore_and_reopen, sqlite3 db test.db) finds
@@ -437,6 +418,25 @@ func (e *DDLExecutor) ensureFTSForTable(entry *schema.Entry) {
 	// by addPosting. A corrupt segment records a load error that surfaces as
 	// "database disk image is malformed" at the next FTS operation.
 	e.loadFTSSegments(entry.Name, ftsTable)
+}
+
+// deriveFTSContentColumns re-derives a content=<table> FTS table's column
+// names from the content table's CURRENT schema at connection time (fts3.c
+// fts3ContentColumns; fts4content 6.2.5: after DROP TABLE t7 + CREATE TABLE
+// t7(x, y), a reopened connection's SELECT * FROM ft7 returns the x/y values
+// because the columns are re-derived from the new t7). registerFTSVTab does
+// the same at CREATE; a reopened connection must re-derive too.
+func (e *DDLExecutor) deriveFTSContentColumns(ftsTable *fts.FTS3Table) {
+	ct := ftsTable.ContentTable()
+	if ct == "" || len(ftsTable.ColumnNames()) != 0 {
+		return
+	}
+	ctEntry, _, cerr := e.ctx.FindTable(ct)
+	if cerr != nil || ctEntry == nil {
+		return
+	}
+	ctDefs := e.ctx.ParseColumnDefs(ctEntry.Name, ctEntry.SQL)
+	ftsTable.SetColumnNames(nonRowidColumnNames(ctDefs))
 }
 
 // loadFTSSegments populates an FTS table's in-memory index from its %_segdir
@@ -479,83 +479,8 @@ func (e *DDLExecutor) loadFTSSegmentsForIndex(tableName string, ftsTable *fts.FT
 	// re-inserts rows ordered by level,idx), and applying delete-marker
 	// tombstones in the wrong order resurrects/kills the wrong documents
 	// (fts4opt 2.x: integrity-check missing-term failures after prepare).
-	type segRowInfo struct {
-		level, idx     int64
-		leavesEndBlock int64
-		root           []byte
-	}
-	var rows []segRowInfo
-	loadSeen := 0
-	for {
-		cell, rerr := cursor.ReadCell()
-		if rerr != nil {
-			if !strings.Contains(rerr.Error(), "cursor at end") {
-				ftsTable.SetLoadErr(fmt.Errorf("database disk image is malformed"))
-			}
-			break
-		}
-		if cell == nil {
-			break
-		}
-		rec, derr := storage.DecodeRecord(cell.Payload)
-		if derr != nil || rec == nil || len(rec.Values) == 0 {
-			break
-		}
-		loadSeen++
-		// Band filter: skip rows belonging to other indexes.
-		if iIndex >= 0 {
-			lvRaw, _ := rec.Values[0].(int64)
-			if lvRaw < 0 || (lvRaw/1024)%int64(nIndex) != int64(iIndex) {
-				if ok, nerr := cursor.Next(); nerr != nil || !ok {
-					break
-				}
-				continue
-			}
-		}
-		// %_segdir(level, idx, start_block, leaves_end_block, end_block, root).
-		// Values are [level, idx, start_block, leaves_end_block, end_block, root].
-		var levelVal, idxVal int64
-		if lv, ok := rec.Values[0].(int64); ok {
-			levelVal = lv
-		}
-		if iv, ok := rec.Values[1].(int64); ok {
-			idxVal = iv
-		}
-		var leavesEndBlock int64
-		if len(rec.Values) >= 4 {
-			switch lb := rec.Values[3].(type) {
-			case int64:
-				leavesEndBlock = lb
-			case float64:
-				leavesEndBlock = int64(lb)
-			case []byte:
-				fmt.Sscanf(string(lb), "%d", &leavesEndBlock)
-			case string:
-				fmt.Sscanf(lb, "%d", &leavesEndBlock)
-			}
-		}
-		// start_block==0 marks a root-only segment (fts3_write.c
-		// fts3SegReaderNew: iStartLeaf==0 → rootOnly=1); %_segments is never
-		// read, so a non-zero leaves_end_block on such a row must not send
-		// the loader block-hunting (fts3corrupt7 1.1 crafted segdir).
-		if len(rec.Values) >= 3 {
-			if sb, ok := rec.Values[2].(int64); ok && sb == 0 {
-				leavesEndBlock = 0
-			}
-		}
-		rootVal := rec.Values[len(rec.Values)-1]
-		var root []byte
-		switch rv := rootVal.(type) {
-		case []byte:
-			root = rv
-		case string:
-			root = []byte(rv)
-		}
-		rows = append(rows, segRowInfo{level: levelVal, idx: idxVal, leavesEndBlock: leavesEndBlock, root: root})
-		if ok, nerr := cursor.Next(); nerr != nil || !ok {
-			break
-		}
-	}
+	type segRowInfo = ftsSegdirLoadRow
+	rows, loadSeen := e.collectSegdirRows(cursor, ftsTable, nIndex, iIndex)
 	// Oldest first (within one language): higher level = older; within one
 	// level, lower idx = older. The grouping and per-language isolation live
 	// in LoadSegmentsPerLanguage.
@@ -568,16 +493,7 @@ func (e *DDLExecutor) loadFTSSegmentsForIndex(tableName string, ftsTable *fts.FT
 			Root:           row.root,
 		})
 	}
-	reader := func(blockID int) ([]byte, error) {
-		blk, res := e.readFTSBlock(tableName, blockID)
-		if res != nil {
-			return nil, fmt.Errorf("corrupt segment root")
-		}
-		if blk == nil {
-			return nil, fmt.Errorf("corrupt segment root")
-		}
-		return blk, nil
-	}
+	reader := e.segdirBlockReader(tableName)
 	if firstErr, structural := ftsTable.LoadSegmentsPerLanguage(segRows, reader); firstErr != nil {
 		// A segment that fails to load (corrupt term structure) makes
 		// any SELECT/MATCH fail with "database disk image is
@@ -590,6 +506,120 @@ func (e *DDLExecutor) loadFTSSegmentsForIndex(tableName string, ftsTable *fts.FT
 			ftsTable.SetStructuralLoadErr()
 		}
 		ftsTable.SetLoadErr(fmt.Errorf("database disk image is malformed"))
+	}
+	_ = loadSeen
+}
+
+// ftsSegdirLoadRow mirrors one %_segdir row during the segment load.
+type ftsSegdirLoadRow struct {
+	level, idx     int64
+	leavesEndBlock int64
+	root           []byte
+}
+
+// collectSegdirRows walks the %_segdir btree, decoding each row and keeping
+// only the rows of the requested index band; see loadFTSSegmentsForIndex.
+func (e *DDLExecutor) collectSegdirRows(cursor *btree.Cursor, ftsTable *fts.FTS3Table, nIndex, iIndex int) ([]ftsSegdirLoadRow, int) {
+	var rows []ftsSegdirLoadRow
+	loadSeen := 0
+	for {
+		cell, rerr := cursor.ReadCell()
+		if rerr != nil {
+			if !strings.Contains(rerr.Error(), "cursor at end") {
+				ftsTable.SetLoadErr(fmt.Errorf("database disk image is malformed"))
+			}
+			break
+		}
+		rec, ok := e.decodeSegdirCell(cursor, ftsTable, cell)
+		if !ok {
+			break
+		}
+		loadSeen++
+		if row, skip := decodeSegdirLoadRow(rec, nIndex, iIndex); !skip {
+			rows = append(rows, row)
+		}
+		if ok, nerr := cursor.Next(); nerr != nil || !ok {
+			break
+		}
+	}
+	return rows, loadSeen
+}
+
+// decodeSegdirCell decodes the segdir cursor's current cell into a record;
+// ok=false ends the walk (EOF or an undecodable trailing cell).
+func (e *DDLExecutor) decodeSegdirCell(cursor *btree.Cursor, ftsTable *fts.FTS3Table, cell *storage.Cell) (*storage.Record, bool) {
+	if cell == nil {
+		return nil, false
+	}
+	rec, derr := storage.DecodeRecord(cell.Payload)
+	if derr != nil || rec == nil || len(rec.Values) == 0 {
+		return nil, false
+	}
+	return rec, true
+}
+
+// decodeSegdirLoadRow decodes one %_segdir row for the segment load;
+// skip=true marks a row belonging to another index band.
+func decodeSegdirLoadRow(rec *storage.Record, nIndex, iIndex int) (ftsSegdirLoadRow, bool) {
+	// Band filter: skip rows belonging to other indexes.
+	if iIndex >= 0 {
+		lvRaw, _ := rec.Values[0].(int64)
+		if lvRaw < 0 || (lvRaw/1024)%int64(nIndex) != int64(iIndex) {
+			return ftsSegdirLoadRow{}, true
+		}
+	}
+	// %_segdir(level, idx, start_block, leaves_end_block, end_block, root).
+	// Values are [level, idx, start_block, leaves_end_block, end_block, root].
+	var levelVal, idxVal int64
+	if lv, ok := rec.Values[0].(int64); ok {
+		levelVal = lv
+	}
+	if iv, ok := rec.Values[1].(int64); ok {
+		idxVal = iv
+	}
+	leavesEndBlock := segdirLeavesEndValue(rec)
+	// start_block==0 marks a root-only segment (fts3_write.c
+	// fts3SegReaderNew: iStartLeaf==0 → rootOnly=1); %_segments is never
+	// read, so a non-zero leaves_end_block on such a row must not send
+	// the loader block-hunting (fts3corrupt7 1.1 crafted segdir).
+	if len(rec.Values) >= 3 {
+		if sb, ok := rec.Values[2].(int64); ok && sb == 0 {
+			leavesEndBlock = 0
+		}
+	}
+	return ftsSegdirLoadRow{level: levelVal, idx: idxVal, leavesEndBlock: leavesEndBlock, root: segdirRootBytes(rec)}, false
+}
+
+// segdirLeavesEndValue decodes leaves_end_block (integer, float, or text).
+func segdirLeavesEndValue(rec *storage.Record) int64 {
+	var leavesEndBlock int64
+	if len(rec.Values) >= 4 {
+		switch lb := rec.Values[3].(type) {
+		case int64:
+			leavesEndBlock = lb
+		case float64:
+			leavesEndBlock = int64(lb)
+		case []byte:
+			fmt.Sscanf(string(lb), "%d", &leavesEndBlock)
+		case string:
+			fmt.Sscanf(lb, "%d", &leavesEndBlock)
+		}
+	}
+	return leavesEndBlock
+}
+
+// segdirBlockReader builds the block-fetch callback the segment loader uses;
+// a missing or unreadable block is a corrupt segment root.
+func (e *DDLExecutor) segdirBlockReader(tableName string) func(blockID int) ([]byte, error) {
+	return func(blockID int) ([]byte, error) {
+		blk, res := e.readFTSBlock(tableName, blockID)
+		if res != nil {
+			return nil, fmt.Errorf("corrupt segment root")
+		}
+		if blk == nil {
+			return nil, fmt.Errorf("corrupt segment root")
+		}
+		return blk, nil
 	}
 }
 
@@ -658,32 +688,16 @@ func (e *DDLExecutor) rebuildFTSFromContentMode(tableName string, ftsTable *fts.
 	isContentExternal := ftsTable.ContentTable() != ""
 	// For content= tables, find each FTS column's position in the external
 	// table's columns (0-based over the non-rowid columns).
-	ftsCols := ftsTable.ColumnNames()
-	contentValIdx := make([]int, len(ftsCols))
-	for fi, fname := range ftsCols {
-		contentValIdx[fi] = -1
-		vi := 0
-		for _, cd := range colDefs {
-			if strings.EqualFold(cd.Name, "docid") || strings.EqualFold(cd.Name, "rowid") {
-				continue
-			}
-			if strings.EqualFold(cd.Name, fname) {
-				contentValIdx[fi] = vi
-				break
-			}
-			vi++
-		}
-	}
+	contentValIdx := e.byNameColumnIndex(ftsTable, colDefs)
+	e.scanContentDocsForRebuild(tableName, ftsTable, contentValIdx, isContentExternal, cursor, textOnly)
+}
+
+// scanContentDocsForRebuild walks a content btree, decoding each record and
+// feeding it to the rebuild/text-restore; see rebuildFTSFromContentMode.
+func (e *DDLExecutor) scanContentDocsForRebuild(tableName string, ftsTable *fts.FTS3Table, contentValIdx []int, isContentExternal bool, cursor *btree.Cursor, textOnly bool) {
 	for {
 		cell, rerr := cursor.ReadCell()
-		if rerr != nil {
-			// A cell that fails to decode mid-scan is skipped: SQLite reads
-			// %_content lazily per matched row (fts3Column), so an unreadable
-			// non-matched row never surfaces; poisoning the whole table would
-			// fail queries over intact rows (fts3corrupt7 1.1).
-			break
-		}
-		if cell == nil {
+		if rerr != nil || cell == nil {
 			break
 		}
 		rec, derr := storage.DecodeRecord(cell.Payload)
@@ -692,88 +706,119 @@ func (e *DDLExecutor) rebuildFTSFromContentMode(tableName string, ftsTable *fts.
 			// rowid so a query that matches it fails with "database disk
 			// image is malformed" (fts3corrupt4 11.1), while queries that
 			// never read the row succeed (9.1: an unmatched corrupt row).
-			if cell != nil {
-				ftsTable.RecordCorruptContentDocID(cell.RowID)
-			}
+			ftsTable.RecordCorruptContentDocID(cell.RowID)
 			break
 		}
-		var docID int64
-		var vals []interface{}
-		uncompressFn := ftsTable.UncompressFn()
-		if isContentExternal {
-			// The external content table's record has no docid column (the
-			// rowid is the cell rowid); build the FTS value list by
-			// contentValIdx directly over rec.Values.
-			docID = cell.RowID
-			for _, vi := range contentValIdx {
-				var v interface{}
-				if vi >= 0 && vi < len(rec.Values) {
-					v = rec.Values[vi]
-				}
-				if uncompressFn != "" && v != nil {
-					if uv, uerr := e.ctx.EvalExpr(&sql.FuncCall{
-						Name: uncompressFn,
-						Args: []sql.Expr{&sql.StringLit{Value: fmt.Sprintf("%v", v)}},
-					}, nil); uerr == nil && uv != nil {
-						v = uv
-					}
-				}
-				vals = append(vals, v)
-			}
-		} else {
-			// %_content's docid column is the table's INTEGER PRIMARY KEY:
-			// the rowid IS the docid and the alias record slot decodes as
-			// NULL (SQLite's rowid-alias storage convention; real SQLite
-			// writes %_content rows the same way). Take the docid from the
-			// cell's rowid — decoding it from rec.Values[0] fails the int64
-			// assertion and indexes every rebuilt document under docid 0
-			// (fts3defer 6.3: MATCH '"common rare"' after reopen returned a
-			// phantom rowid 0 carrying every term of every document).
-			docID = cell.RowID
-			for i, v := range rec.Values {
-				if i == 0 {
-					// Slot 0 is the docid column itself (a stored value in
-					// engine-written rows, the NULL alias in SQLite-written
-					// ones) — never a user column value.
-					continue
-				}
-				if _, ok := e.ctx.FTSTables()[tableName]; !ok {
-					return
-				}
-				if uncompressFn != "" {
-					// FTS4 uncompress= restores the original text from the
-					// compressed content value (fts3.c fts3ReadNextRow).
-					if uv, uerr := e.ctx.EvalExpr(&sql.FuncCall{
-						Name: uncompressFn,
-						Args: []sql.Expr{&sql.StringLit{Value: fmt.Sprintf("%v", v)}},
-					}, nil); uerr == nil && uv != nil {
-						v = uv
-					}
-				}
-				vals = append(vals, v)
-			}
-		}
-		if len(vals) == 0 {
-			vals = make([]interface{}, 0)
-		}
-		if textOnly {
-			// Text-only restore: fill the stored text of documents the
-			// segment load already indexed; docs whose content row vanished
-			// stay textless (a matched read reports the corruption).
-			ftsTable.RestoreDocText(docID, vals)
-		} else {
-			ftsTable.InsertWithID(docID, vals)
-			// Record the docid as pending so the next COMMIT flushes the rebuilt
-			// index to %_segdir (SQLite's fts3RebuildMethod writes segments
-			// immediately; the engine defers to the commit-time flush, which
-			// requires the pending list — fts4check/fts4intck1's integrity check
-			// reads the index from the segments).
-			ftsTable.RecordPending(docID)
+		if !e.ingestRebuildContentRow(tableName, ftsTable, contentValIdx, isContentExternal, cell, rec, textOnly) {
+			return
 		}
 		if ok, nerr := cursor.Next(); nerr != nil || !ok {
 			break
 		}
 	}
+}
+
+// ingestRebuildContentRow decodes one content record into a document and
+// applies it (insert+pending, or text-only restore); returns false when the
+// walk must abort because the FTS table vanished mid-scan.
+func (e *DDLExecutor) ingestRebuildContentRow(tableName string, ftsTable *fts.FTS3Table, contentValIdx []int, isContentExternal bool, cell *storage.Cell, rec *storage.Record, textOnly bool) bool {
+	uncompressFn := ftsTable.UncompressFn()
+	var vals []interface{}
+	var ok bool
+	if isContentExternal {
+		// The external content table's record has no docid column (the
+		// rowid is the cell rowid); build the FTS value list by
+		// contentValIdx directly over rec.Values.
+		vals = e.externalContentValues(contentValIdx, rec, uncompressFn)
+		ok = true
+	} else {
+		vals, ok = e.internalContentValues(tableName, rec, uncompressFn)
+	}
+	if !ok {
+		return false
+	}
+	if len(vals) == 0 {
+		vals = make([]interface{}, 0)
+	}
+	docID := cell.RowID
+	if textOnly {
+		// Text-only restore: fill the stored text of documents the
+		// segment load already indexed; docs whose content row vanished
+		// stay textless (a matched read reports the corruption).
+		ftsTable.RestoreDocText(docID, vals)
+		return true
+	}
+	ftsTable.InsertWithID(docID, vals)
+	// Record the docid as pending so the next COMMIT flushes the rebuilt
+	// index to %_segdir (SQLite's fts3RebuildMethod writes segments
+	// immediately; the engine defers to the commit-time flush, which
+	// requires the pending list — fts4check/fts4intck1's integrity check
+	// reads the index from the segments).
+	ftsTable.RecordPending(docID)
+	return true
+}
+
+// externalContentValues builds an FTS document's values from an external
+// content= table's record by contentValIdx (uncompressing values); see
+// ingestRebuildContentRow.
+func (e *DDLExecutor) externalContentValues(contentValIdx []int, rec *storage.Record, uncompressFn string) []interface{} {
+	var vals []interface{}
+	for _, vi := range contentValIdx {
+		var v interface{}
+		if vi >= 0 && vi < len(rec.Values) {
+			v = rec.Values[vi]
+		}
+		if uncompressFn != "" && v != nil {
+			if uv, uerr := e.uncompressContentValue(uncompressFn, v); uerr == nil && uv != nil {
+				v = uv
+			}
+		}
+		vals = append(vals, v)
+	}
+	return vals
+}
+
+// internalContentValues builds an FTS document's values from a %_content
+// record (slot 0 is the docid column, never a user value); returns ok=false
+// when the FTS table vanished mid-scan. %_content's docid column is the
+// table's INTEGER PRIMARY KEY: the rowid IS the docid and the alias record
+// slot decodes as NULL (SQLite's rowid-alias storage convention; real SQLite
+// writes %_content rows the same way). The docid comes from the cell's
+// rowid — decoding it from rec.Values[0] fails the int64 assertion and
+// indexes every rebuilt document under docid 0 (fts3defer 6.3: MATCH
+// '"common rare"' after reopen returned a phantom rowid 0 carrying every
+// term of every document).
+func (e *DDLExecutor) internalContentValues(tableName string, rec *storage.Record, uncompressFn string) ([]interface{}, bool) {
+	var vals []interface{}
+	for i, v := range rec.Values {
+		if i == 0 {
+			// Slot 0 is the docid column itself (a stored value in
+			// engine-written rows, the NULL alias in SQLite-written
+			// ones) — never a user column value.
+			continue
+		}
+		if _, ok := e.ctx.FTSTables()[tableName]; !ok {
+			return nil, false
+		}
+		if uncompressFn != "" {
+			// FTS4 uncompress= restores the original text from the
+			// compressed content value (fts3.c fts3ReadNextRow).
+			if uv, uerr := e.uncompressContentValue(uncompressFn, v); uerr == nil && uv != nil {
+				v = uv
+			}
+		}
+		vals = append(vals, v)
+	}
+	return vals, true
+}
+
+// uncompressContentValue applies an FTS4 uncompress= function to one content
+// value (fts3.c fts3ReadNextRow); (nil, nil) keeps the original value.
+func (e *DDLExecutor) uncompressContentValue(uncompressFn string, v interface{}) (interface{}, error) {
+	return e.ctx.EvalExpr(&sql.FuncCall{
+		Name: uncompressFn,
+		Args: []sql.Expr{&sql.StringLit{Value: fmt.Sprintf("%v", v)}},
+	}, nil)
 }
 
 // rebuildFTSFromVTabContent repopulates an FTS table's in-memory index from a
@@ -791,20 +836,10 @@ func (e *DDLExecutor) rebuildFTSFromVTabContent(tableName string, ftsTable *fts.
 	// ParseColumnDefs on the echo entry resolves them).
 	vtDefs := e.ctx.ParseColumnDefs(contentEntry.Name, contentEntry.SQL)
 	ftsCols := ftsTable.ColumnNames()
-	// Map each FTS column name to its position in the vtab's column list.
-	contentValIdx := make([]int, len(ftsCols))
-	for fi, fname := range ftsCols {
-		contentValIdx[fi] = -1
-		for vi, cd := range vtDefs {
-			if strings.EqualFold(cd.Name, "docid") || strings.EqualFold(cd.Name, "rowid") {
-				continue
-			}
-			if strings.EqualFold(cd.Name, fname) {
-				contentValIdx[fi] = vi
-				break
-			}
-		}
-	}
+	// Map each FTS column name to its position in the vtab's column list
+	// (the same name-matching rebuildFTSFromContent uses for a b-tree
+	// content table).
+	contentValIdx := e.byNameColumnIndex(ftsTable, vtDefs)
 	docID := int64(1)
 	for _, row := range rows {
 		vals := make([]interface{}, len(ftsCols))

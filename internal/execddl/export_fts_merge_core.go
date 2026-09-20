@@ -25,6 +25,8 @@ func (e *DDLExecutor) MergeFTS(tableName string, nMerge, nMin int) {
 		tableName:       tableName,
 		ftsTable:        ftsTable,
 		nodeSize:        nodeSize,
+		nMerge:          nMerge,
+		nMin:            nMin,
 		segdirNextRowID: e.ftsSegdirNextRowID(tableName),
 		nRem:            nMerge,
 		effMin:          nMin,
@@ -37,9 +39,11 @@ func (e *DDLExecutor) MergeFTS(tableName string, nMerge, nMin int) {
 	// (nRem) decreases by (1 + leaf pages written) each iteration and the
 	// loop exits when it is exhausted.
 	for r.nRem > 0 {
-		if r.iterate() != mergeContinue {
+		if r.iterate() == mergeStop {
 			return
 		}
+		// mergeRetry loops again: the hinted level was consumed and the
+		// hint cleared, so the next iteration re-runs FIND_MERGE_LEVEL.
 	}
 }
 
@@ -52,10 +56,15 @@ func (r *ftsMergeRun) iterate() mergeFlow {
 		return flow
 	}
 	r.prepareOutput()
-	if !r.buildReaders() || !r.primeHeap() || !r.setupWriter() {
+	if !r.buildReaders() || !r.primeHeap() {
 		return mergeStop
 	}
+	// The append-order verdict can still flip replacingOut off (falling back
+	// to a fresh output), so it must run BEFORE the writer is created.
 	r.checkAppendOrder()
+	if !r.setupWriter() {
+		return mergeStop
+	}
 	if !r.prepareAllocation() || !r.seedHierarchy() {
 		return mergeStop
 	}

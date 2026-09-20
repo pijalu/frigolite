@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	"github.com/pijalu/frigolite/internal/auth"
+	"github.com/pijalu/frigolite/internal/fts"
 	"github.com/pijalu/frigolite/internal/schema"
 	"github.com/pijalu/frigolite/internal/sql"
 	"github.com/pijalu/frigolite/internal/vtab"
@@ -32,46 +33,12 @@ func (e *DDLExecutor) execCreateVirtualTable(s *sql.CreateVirtualTableStmt) *Res
 		return res
 	}
 	ctx0, tableName0 := resolveVTabContext(e, s.Name)
-	if existing, ferr := ctx0.Schema.FindTable(tableName0); ferr == nil && existing != nil {
-		if s.IfNotExists {
-			// IF NOT EXISTS makes an existing object a silent no-op — even a
-			// real table under the same name, and even when the module is
-			// unknown: SQLite resolves the name before the module
-			// (vtab1-1.8.2, oracle-verified).
-			return &Result{}
-		}
-		// A table of the same name (including a prior virtual table's schema
-		// entry) makes the CREATE fail BEFORE any shadow table is touched
-		// (SQLite raises "table t1 already exists" from the schema insert;
-		// fts3expr-6.1 re-CREATEs t1 in the same session).
-		return &Result{Error: fmt.Errorf("table %s already exists", tableName0)}
+	if res := e.vtabExistingObjectResult(s, ctx0, tableName0); res != nil {
+		return res
 	}
-	module, ok := e.ctx.VTables().Find(s.Module)
-	if !ok {
-		return &Result{Error: fmt.Errorf("no such module: %s", s.Module)}
-	}
-	// Eponymous-only modules (series.c) register without xCreate: the name
-	// is usable in FROM but CREATE VIRTUAL TABLE reports "no such module"
-	// (tabfunc01-1.3).
-	if eo, ok := module.(vtab.EponymousOnlyModule); ok && eo.EponymousOnly() {
-		return &Result{Error: fmt.Errorf("no such module: %s", s.Module)}
-	}
-	// TEMP-only modules (unionvtab.c): creation outside the TEMP schema
-	// fails before any source resolution (unionvtab.test 2.1.*). The error
-	// names the connected module (unionConnect's zVtab: "unionvtab" or
-	// "swarmvtab").
-	if to, ok := module.(vtab.TempSchemaOnly); ok && to.TempSchemaOnly() {
-		target := ""
-		if idx := strings.LastIndexByte(s.Name, '.'); idx >= 0 {
-			target = s.Name[:idx]
-		}
-		if !strings.EqualFold(target, "temp") {
-			name := s.Module
-			if mn, ok := module.(vtab.ModuleNamer); ok {
-				name = mn.ModuleName()
-			}
-			return &Result{Error: fmt.Errorf("%s tables must be created in TEMP schema", name)}
-		}
+	module, res := e.findVTabModuleChecked(s)
+	if res != nil {
+		return res
 	}
 	// Authorizer actions (sqlite3AuthCheck at prepare/codegen parity): the
 	// sqlite_schema row insert is authorized first, then the vtab creation
@@ -83,50 +50,15 @@ func (e *DDLExecutor) execCreateVirtualTable(s *sql.CreateVirtualTableStmt) *Res
 	if err := e.ctx.Authorize(auth.ActionCreateVTable, tableName0, s.Module, ctx0.Name, ""); err != nil {
 		return &Result{Error: err}
 	}
-	// Module arguments: the parser AST joins argument tokens with spaces
-	// (rule 405), but SQLite hands the module the VERBATIM argument text
-	// (sqlite3VtabArgExtend concatenation). When RawSQL is available, re-split
-	// the original argument text so spellfix1's "edit_cost_table=x" and FTS4's
-	// option syntax arrive exactly as written.
-	createArgs := s.Args
-	if strings.TrimSpace(s.RawSQL) != "" {
-		if _, rargs, perr := parseVTabSQL(s.RawSQL); perr == nil && rargs != nil {
-			createArgs = rargs
-		}
-	}
 	// The constructor receives the vtab's own name (xCreate's argv[2]):
 	// the echo module's '*'-pattern source resolves <name><suffix> during
-	// xCreate (test8.c echoConstructor).
-	if bn, ok := module.(vtab.CreateNameSetter); ok {
-		bn.SetCreateName(tableName0)
+	// xCreate (test8.c echoConstructor); the module's VERBATIM argument text
+	// is re-split from RawSQL when available (see createVTabInstance).
+	vt, res := e.createVTabInstance(s, module, tableName0)
+	if res != nil {
+		return res
 	}
-	vt, err := module.Create(createArgs)
-	if err != nil {
-		// A constructor error WITHOUT a message becomes
-		// "vtable constructor failed: <table>" (vtab.c vtabCallConstructor:
-		// zErr==0 → sqlite3MPrintf "vtable constructor failed: %s"); an
-		// error with a message passes through verbatim (vtab1-1.5.x vs
-		// unionvtab's own diagnostics).
-		var silent *vtab.SilentConstructorError
-		if errors.As(err, &silent) {
-			return &Result{Error: fmt.Errorf("vtable constructor failed: %s", tableName0)}
-		}
-		return &Result{Error: err}
-	}
-	// A constructor that never declared the instance schema fails: SQLite
-	// tracks sqlite3_declare_vtab during xCreate (sCtx.bDeclared) and reports
-	// "vtable constructor did not declare schema: <name>" otherwise
-	// (vtab1-1.3.x: the echo module with zero arguments). Declared columns
-	// imply the declare; a module whose constructor declares even an empty
-	// schema opts in via SchemaDeclaredMarker (fts3()/fts5()).
-	declared := false
-	if ci, ok := vt.(vtab.ColumnInfo); ok && len(ci.Columns()) > 0 {
-		declared = true
-	}
-	if m, ok := vt.(vtab.SchemaDeclaredMarker); ok && m.SchemaDeclared() {
-		declared = true
-	}
-	if !declared {
+	if !vtabSchemaDeclared(vt) {
 		e.disconnectVtabOnCreateFailure(vt)
 		return &Result{Error: fmt.Errorf("vtable constructor did not declare schema: %s", tableName0)}
 	}
@@ -147,17 +79,8 @@ func (e *DDLExecutor) execCreateVirtualTable(s *sql.CreateVirtualTableStmt) *Res
 		e.disconnectVtabOnCreateFailure(vt)
 		return &Result{Error: err}
 	}
-	// Bind the resolved schema/table name so the module can create its shadow
-	// tables (rtree/dbdata/dbstat name backing tables after the vtab name).
-	// A binding failure (shadow-name collision) aborts the CREATE — the
-	// schema entry is rolled back like a failed statement (the master row
-	// C wrote before xCreate fails is removed by the statement abort).
-	if sb, ok := vt.(vtab.SchemaBoundVTab); ok {
-		if err := sb.BindSchema(ctx0.Name, tableName0); err != nil {
-			ctx.Schema.RemoveEntry(entry.Name)
-			e.disconnectVtabOnCreateFailure(vt)
-			return &Result{Error: err}
-		}
+	if res := e.bindCreatedVTabSchema(vt, ctx0, tableName0, ctx, entry); res != nil {
+		return res
 	}
 	e.cachePersistentVtabInstance(tableName, vt)
 
@@ -172,10 +95,136 @@ func (e *DDLExecutor) execCreateVirtualTable(s *sql.CreateVirtualTableStmt) *Res
 			e.forgetCreatedVTab(tableName, vt)
 		})
 	}
+	return e.registerCreatedFTSVTab(s, entry, ctx, tableName)
+}
 
-	// fts5 owns its module lifecycle: the instance bound by BindSchema above
-	// registered the table in the fts5 module; record it in the engine map so
-	// DML/SELECT route to the fts5 machinery.
+// createVTabInstance runs xCreate: re-splits the VERBATIM argument text from
+// RawSQL when available (the parser AST joins argument tokens with spaces,
+// rule 405, but SQLite hands the module the verbatim text via
+// sqlite3VtabArgExtend — spellfix1's "edit_cost_table=x" and FTS4's option
+// syntax must arrive exactly as written), passes the vtab's own name
+// (xCreate's argv[2]; the echo module's '*'-pattern source resolves
+// <name><suffix> during xCreate, test8.c echoConstructor), and maps a
+// message-less constructor error to "vtable constructor failed: <table>"
+// (vtab.c vtabCallConstructor: zErr==0 → sqlite3MPrintf "vtable constructor
+// failed: %s"); an error with a message passes through verbatim
+// (vtab1-1.5.x vs unionvtab's own diagnostics).
+func (e *DDLExecutor) createVTabInstance(s *sql.CreateVirtualTableStmt, module vtab.Module, tableName0 string) (vtab.VirtualTable, *Result) {
+	createArgs := s.Args
+	if strings.TrimSpace(s.RawSQL) != "" {
+		if _, rargs, perr := parseVTabSQL(s.RawSQL); perr == nil && rargs != nil {
+			createArgs = rargs
+		}
+	}
+	if bn, ok := module.(vtab.CreateNameSetter); ok {
+		bn.SetCreateName(tableName0)
+	}
+	vt, err := module.Create(createArgs)
+	if err != nil {
+		var silent *vtab.SilentConstructorError
+		if errors.As(err, &silent) {
+			return nil, &Result{Error: fmt.Errorf("vtable constructor failed: %s", tableName0)}
+		}
+		return nil, &Result{Error: err}
+	}
+	return vt, nil
+}
+
+// bindCreatedVTabSchema binds the resolved schema/table name so the module
+// can create its shadow tables (rtree/dbdata/dbstat name backing tables
+// after the vtab name). A binding failure (shadow-name collision) aborts the
+// CREATE — the schema entry is rolled back like a failed statement (the
+// master row C wrote before xCreate fails is removed by the statement abort).
+func (e *DDLExecutor) bindCreatedVTabSchema(vt vtab.VirtualTable, ctx0 *DatabaseContext, tableName0 string, ctx *DatabaseContext, entry *schema.Entry) *Result {
+	sb, ok := vt.(vtab.SchemaBoundVTab)
+	if !ok {
+		return nil
+	}
+	if err := sb.BindSchema(ctx0.Name, tableName0); err != nil {
+		ctx.Schema.RemoveEntry(entry.Name)
+		e.disconnectVtabOnCreateFailure(vt)
+		return &Result{Error: err}
+	}
+	return nil
+}
+
+// vtabExistingObjectResult resolves an existing object of the same name at
+// CREATE VIRTUAL TABLE time. IF NOT EXISTS makes it a silent no-op — even a
+// real table under the same name, and even when the module is unknown:
+// SQLite resolves the name before the module (vtab1-1.8.2, oracle-verified).
+// A table of the same name (including a prior virtual table's schema entry)
+// makes the CREATE fail BEFORE any shadow table is touched (SQLite raises
+// "table t1 already exists" from the schema insert; fts3expr-6.1 re-CREATEs
+// t1 in the same session).
+func (e *DDLExecutor) vtabExistingObjectResult(s *sql.CreateVirtualTableStmt, ctx0 *DatabaseContext, tableName0 string) *Result {
+	existing, ferr := ctx0.Schema.FindTable(tableName0)
+	if ferr != nil || existing == nil {
+		return nil
+	}
+	if s.IfNotExists {
+		return &Result{}
+	}
+	return &Result{Error: fmt.Errorf("table %s already exists", tableName0)}
+}
+
+// findVTabModuleChecked looks the module up and enforces the contract checks
+// that run before any authorizer action. Eponymous-only modules (series.c)
+// register without xCreate: the name is usable in FROM but CREATE VIRTUAL
+// TABLE reports "no such module" (tabfunc01-1.3). TEMP-only modules
+// (unionvtab.c) fail outside the TEMP schema before any source resolution
+// (unionvtab.test 2.1.*); the error names the connected module
+// (unionConnect's zVtab: "unionvtab" or "swarmvtab").
+func (e *DDLExecutor) findVTabModuleChecked(s *sql.CreateVirtualTableStmt) (vtab.Module, *Result) {
+	module, ok := e.ctx.VTables().Find(s.Module)
+	if !ok {
+		return nil, &Result{Error: fmt.Errorf("no such module: %s", s.Module)}
+	}
+	if eo, ok := module.(vtab.EponymousOnlyModule); ok && eo.EponymousOnly() {
+		return nil, &Result{Error: fmt.Errorf("no such module: %s", s.Module)}
+	}
+	if to, ok := module.(vtab.TempSchemaOnly); ok && to.TempSchemaOnly() {
+		target := ""
+		if idx := strings.LastIndexByte(s.Name, '.'); idx >= 0 {
+			target = s.Name[:idx]
+		}
+		if !strings.EqualFold(target, "temp") {
+			name := s.Module
+			if mn, ok := module.(vtab.ModuleNamer); ok {
+				name = mn.ModuleName()
+			}
+			return nil, &Result{Error: fmt.Errorf("%s tables must be created in TEMP schema", name)}
+		}
+	}
+	return module, nil
+}
+
+// vtabSchemaDeclared reports whether the constructor declared the instance
+// schema (via ColumnInfo columns or an explicit SchemaDeclaredMarker).
+func vtabSchemaDeclared(vt vtab.VirtualTable) bool {
+	declared := false
+	if ci, ok := vt.(vtab.ColumnInfo); ok && len(ci.Columns()) > 0 {
+		declared = true
+	}
+	if m, ok := vt.(vtab.SchemaDeclaredMarker); ok && m.SchemaDeclared() {
+		declared = true
+	}
+	return declared
+}
+
+// registerCreatedFTSVTab registers an FTS/fts5 module's live table after the
+// schema entry and shadow binding succeeded; see execCreateVirtualTable.
+//
+// fts5 owns its module lifecycle: the instance bound by BindSchema above
+// registered the table in the fts5 module; record it in the engine map so
+// DML/SELECT route to the fts5 machinery.
+//
+// If this is an FTS module, create and store the FTS table. The args
+// are re-parsed from the stored SQL text (which preserves the original
+// spacing) so that module validation matches SQLite: "xyz=abc" fails
+// FTS4 validation with "unrecognized parameter: xyz=abc" while
+// "xyz = abc" reports "unrecognized parameter: xyz = abc" (the vtab
+// arg span, not a space-joined reconstruction).
+func (e *DDLExecutor) registerCreatedFTSVTab(s *sql.CreateVirtualTableStmt, entry *schema.Entry, ctx *DatabaseContext, tableName string) *Result {
 	if strings.EqualFold(s.Module, "fts5") {
 		if err := e.registerFTS5VTab(tableName); err != nil {
 			ctx.Schema.RemoveEntry(entry.Name)
@@ -183,24 +232,19 @@ func (e *DDLExecutor) execCreateVirtualTable(s *sql.CreateVirtualTableStmt) *Res
 		}
 		return &Result{}
 	}
-	// If this is an FTS module, create and store the FTS table. The args
-	// are re-parsed from the stored SQL text (which preserves the original
-	// spacing) so that module validation matches SQLite: "xyz=abc" fails
-	// FTS4 validation with "unrecognized parameter: xyz=abc" while
-	// "xyz = abc" reports "unrecognized parameter: xyz = abc" (the vtab
-	// arg span, not a space-joined reconstruction).
-	if e.getFTSModule(s.Module) != nil {
-		_, args, perr := parseVTabSQL(entry.SQL)
-		if perr != nil {
-			ctx.Schema.RemoveEntry(entry.Name)
-			return &Result{Error: perr}
-		}
-		if err := e.registerFTSVTab(s.Module, tableName, args); err != nil {
-			// The CREATE failed: roll back the schema entry so a retry or a
-			// subsequent DROP does not see a half-created table.
-			ctx.Schema.RemoveEntry(entry.Name)
-			return &Result{Error: err}
-		}
+	if e.getFTSModule(s.Module) == nil {
+		return &Result{}
+	}
+	_, args, perr := parseVTabSQL(entry.SQL)
+	if perr != nil {
+		ctx.Schema.RemoveEntry(entry.Name)
+		return &Result{Error: perr}
+	}
+	if err := e.registerFTSVTab(s.Module, tableName, args); err != nil {
+		// The CREATE failed: roll back the schema entry so a retry or a
+		// subsequent DROP does not see a half-created table.
+		ctx.Schema.RemoveEntry(entry.Name)
+		return &Result{Error: err}
 	}
 	return &Result{}
 }
@@ -299,22 +343,7 @@ func (e *DDLExecutor) registerFTSVTab(moduleName, tableName string, args []strin
 		return fmt.Errorf("vtable constructor called recursively: %s", tableName)
 	}
 	e.ctx.FTSTables()[tableName] = ftsTable
-	// A later validation failure must not leave the FTS table registered:
-	// the CREATE fails and the schema entry is rolled back, but a stale
-	// FTSTables entry would leak into the next CREATE of the same name
-	// (fts4noti 1.8 then 1.9: the failed notindexed=d content=cc CREATE
-	// must not poison the following notindexed=a content=cc CREATE).
-	cleanupOnErr := func(err error) error {
-		if err != nil {
-			delete(e.ctx.FTSTables(), tableName)
-			// Also drop the module's cached FTS3Table: GetOrCreateTable
-			// caches by name, so a failed CREATE (e.g. notindexed=d) would
-			// otherwise return the poisoned table object to the next CREATE
-			// of the same name (fts4noti 1.8 then 1.9).
-			ftsMod.DropTable(tableName)
-		}
-		return err
-	}
+	cleanupOnErr := ftsRegisterCleanup(e, ftsMod, tableName)
 	// FTS4 content=<table>: when the CREATE declares no explicit columns, the
 	// FTS table's columns are derived from the content table's (fts3.c
 	// fts3ContentColumns reads the content table schema). The content table
@@ -325,14 +354,7 @@ func (e *DDLExecutor) registerFTSVTab(moduleName, tableName string, args []strin
 			return cleanupOnErr(fmt.Errorf("no such table: main.%s", ct))
 		}
 		ctDefs := e.ctx.ParseColumnDefs(ctEntry.Name, ctEntry.SQL)
-		var names []string
-		for _, cd := range ctDefs {
-			if strings.EqualFold(cd.Name, "docid") || strings.EqualFold(cd.Name, "rowid") {
-				continue
-			}
-			names = append(names, cd.Name)
-		}
-		ftsTable.SetColumnNames(names)
+		ftsTable.SetColumnNames(nonRowidColumnNames(ctDefs))
 	}
 	// Validate notindexed=<col> against the final column list (a content=
 	// table's names were just derived; an unknown name fails the CREATE with
@@ -350,8 +372,24 @@ func (e *DDLExecutor) registerFTSVTab(moduleName, tableName string, args []strin
 	return e.createFTSShadowTables(tableName, ftsTable, moduleName)
 }
 
+// ftsRegisterCleanup builds the failure hook that un-registers a failed FTS
+// CREATE: a stale FTSTables entry would leak into the next CREATE of the
+// same name (fts4noti 1.8 then 1.9: the failed notindexed=d content=cc
+// CREATE must not poison the following notindexed=a content=cc CREATE), and
+// GetOrCreateTable caches by name, so a failed CREATE (e.g. notindexed=d)
+// would otherwise return the poisoned table object to the next CREATE of the
+// same name.
+func ftsRegisterCleanup(e *DDLExecutor, ftsMod *fts.FTS3Module, tableName string) func(error) error {
+	return func(err error) error {
+		if err != nil {
+			delete(e.ctx.FTSTables(), tableName)
+			ftsMod.DropTable(tableName)
+		}
+		return err
+	}
+}
+
 // createFTSShadowTables creates the FTS backing-store tables for an FTS
 // virtual table (fts3.c fts3CreateTables). The content table carries the
 // docid plus one column per user column; segments/segdir are the segment
 // b-trees. FTS4 additionally creates docsize and stat tables.
-
