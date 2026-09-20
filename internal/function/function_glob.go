@@ -62,51 +62,65 @@ func globMatchClass(s, pattern string, px, sx int) (bool, int, int) {
 	if ch == utf8.RuneError && size <= 1 {
 		ch = rune(s[sx])
 	}
-	pi := px + 1
-	next := func() rune {
-		if pi >= len(pattern) {
-			return 0
-		}
-		r, sz := utf8.DecodeRuneInString(pattern[pi:])
-		pi += sz
-		return r
+	seen, invert, pi := globClassScan(pattern, px+1, ch)
+	if seen == invert {
+		return false, px, sx
 	}
-	at := func() byte { // pattern byte just past the last decoded rune
-		if pi < len(pattern) {
-			return pattern[pi]
-		}
-		return 0
-	}
-	seen, invert := false, false
+	return true, pi, sx + size
+}
+
+// globClassScan walks the class body starting just past '[': an optional
+// '^' inversion, then items up to the closing ']' (an unterminated class
+// reports no match). It returns whether ch was seen, the inversion flag,
+// and the offset just past the class.
+func globClassScan(pattern string, pi int, ch rune) (seen, invert bool, end int) {
 	priorC := rune(0)
-	c2 := next()
+	c2, pi := globClassNext(pattern, pi)
 	if c2 == '^' {
 		invert = true
-		c2 = next()
+		c2, pi = globClassNext(pattern, pi)
 	}
-	if c2 == ']' {
-		if ch == ']' {
-			seen = true
-		}
-		c2 = next()
+	if c2 == ']' { // a ']' first in the class is a literal member
+		seen = ch == ']'
+		c2, pi = globClassNext(pattern, pi)
 	}
 	for c2 != 0 && c2 != ']' {
-		if c2 == '-' && at() != ']' && at() != 0 && priorC > 0 {
-			c2 = next()
-			if ch >= priorC && ch <= c2 {
+		switch {
+		case c2 == '-' && globClassRangeable(pattern, pi, priorC):
+			hi, npi := globClassNext(pattern, pi)
+			if ch >= priorC && ch <= hi {
 				seen = true
 			}
 			priorC = 0
-		} else {
+			pi = npi
+		default:
 			if ch == c2 {
 				seen = true
 			}
 			priorC = c2
 		}
-		c2 = next()
+		c2, pi = globClassNext(pattern, pi)
 	}
-	if c2 == 0 || seen == invert {
-		return false, px, sx
+	if c2 == 0 { // unterminated class never matches
+		return false, invert, pi
 	}
-	return true, pi, sx + size
+	return seen, invert, pi
+}
+
+// globClassNext decodes the next class rune; (0, pi) marks the end of the
+// pattern.
+func globClassNext(pattern string, pi int) (rune, int) {
+	if pi >= len(pattern) {
+		return 0, pi
+	}
+	r, sz := utf8.DecodeRuneInString(pattern[pi:])
+	return r, pi + sz
+}
+
+// globClassRangeable reports whether the '-' just decoded opens a range: a
+// prior item exists and the byte starting the range end is neither ']',
+// end-of-pattern, nor NUL (treated as end-of-pattern).
+func globClassRangeable(pattern string, pi int, priorC rune) bool {
+	return priorC > 0 && pi < len(pattern) &&
+		pattern[pi] != ']' && pattern[pi] != 0
 }

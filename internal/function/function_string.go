@@ -122,39 +122,50 @@ func sqliteTrim(s, set, mode string) string {
 		return s
 	}
 	setChars := splitUTF8Chars(set)
-	start := 0
-	end := len(s)
+	start, end := 0, len(s)
 	if mode == "both" || mode == "left" {
-		for start < end {
-			matched := false
-			for _, c := range setChars {
-				if strings.HasPrefix(s[start:end], string(c)) {
-					start += len(c)
-					matched = true
-					break
-				}
-			}
-			if !matched {
-				break
-			}
-		}
+		start = trimForward(s, 0, end, setChars)
 	}
 	if mode == "both" || mode == "right" {
-		for end > start {
-			matched := false
-			for _, c := range setChars {
-				if strings.HasSuffix(s[start:end], string(c)) {
-					end -= len(c)
-					matched = true
-					break
-				}
-			}
-			if !matched {
+		end = trimBackward(s, start, len(s), setChars)
+	}
+	return s[start:end]
+}
+
+// trimForward advances start past any leading set character byte-sequences.
+func trimForward(s string, start, end int, setChars [][]byte) int {
+	for start < end {
+		matched := false
+		for _, c := range setChars {
+			if strings.HasPrefix(s[start:end], string(c)) {
+				start += len(c)
+				matched = true
 				break
 			}
 		}
+		if !matched {
+			break
+		}
 	}
-	return s[start:end]
+	return start
+}
+
+// trimBackward pulls end back past any trailing set character sequences.
+func trimBackward(s string, start, end int, setChars [][]byte) int {
+	for end > start {
+		matched := false
+		for _, c := range setChars {
+			if strings.HasSuffix(s[start:end], string(c)) {
+				end -= len(c)
+				matched = true
+				break
+			}
+		}
+		if !matched {
+			break
+		}
+	}
+	return end
 }
 
 // splitUTF8Chars splits a string into its character byte-sequences (lead byte
@@ -394,27 +405,7 @@ func fnQUOTE(args []interface{}) (interface{}, error) {
 	case int64:
 		return fmt.Sprintf("%d", v), nil
 	case float64:
-		// SQLite renders infinities and NaN in quote() as fixed text.
-		if math.IsInf(v, 1) {
-			return "9.0e+999", nil
-		}
-		if math.IsInf(v, -1) {
-			return "-9.0e+999", nil
-		}
-		if math.IsNaN(v) {
-			return "NaN", nil
-		}
-		// Format float like SQLite: use %g but ensure .0 for whole numbers
-		s := fmt.Sprintf("%g", v)
-		// Handle negative zero: SQLite shows -0.0
-		if s == "-0" {
-			s = "0"
-		}
-		// If no decimal point and no exponent, add .0
-		if !strings.Contains(s, ".") && !strings.ContainsAny(s, "eE") {
-			s += ".0"
-		}
-		return s, nil
+		return quoteFloat(v), nil
 	case string:
 		// Escape single quotes by doubling them, wrap in single quotes
 		escaped := strings.ReplaceAll(v, "'", "''")
@@ -429,6 +420,31 @@ func fnQUOTE(args []interface{}) (interface{}, error) {
 		// For bool and other types
 		return fmt.Sprintf("'%v'", v), nil
 	}
+}
+
+// quoteFloat renders a float like SQLite's quote(): fixed text for
+// infinities and NaN, otherwise %g with a ".0" suffix for whole numbers and
+// negative zero normalized.
+func quoteFloat(v float64) string {
+	switch {
+	case math.IsInf(v, 1):
+		return "9.0e+999"
+	case math.IsInf(v, -1):
+		return "-9.0e+999"
+	case math.IsNaN(v):
+		return "NaN"
+	}
+	// Format float like SQLite: use %g but ensure .0 for whole numbers
+	s := fmt.Sprintf("%g", v)
+	// Handle negative zero: SQLite shows -0.0
+	if s == "-0" {
+		s = "0"
+	}
+	// If no decimal point and no exponent, add .0
+	if !strings.Contains(s, ".") && !strings.ContainsAny(s, "eE") {
+		s += ".0"
+	}
+	return s
 }
 
 func fnUNICODE(args []interface{}) (interface{}, error) {
