@@ -7795,3 +7795,8 @@ regenerated; suite net −2274 fails vs pre-tranche baseline (7230 → ~4950).
   autoindex AddEntry error path returned !LegacyAlterTable() on all paths).
 - **`false && expr` in the merge output path (bIgnoreEmpty)** is intentional
   dead logic pending re-enable — preserved verbatim; do NOT "simplify" it.
+- **Single-run family comparison lies when the family is nondeterministic**:
+  temptrigger/alterlegacy subtests flip pass/fail between runs on the SAME
+  tree (pre-existing map-order nondeterminism). Adjudicate with pooled 3-run
+  unions per tree — union sets matched exactly between main and the branch,
+  while single runs showed phantom "regressions" in both directions.
