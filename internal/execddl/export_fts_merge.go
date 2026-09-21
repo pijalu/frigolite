@@ -9,6 +9,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/pijalu/frigolite/internal/btree"
 	"github.com/pijalu/frigolite/internal/fts"
 	"github.com/pijalu/frigolite/internal/storage"
 )
@@ -102,48 +103,68 @@ func segdirEndBlockFirst(v interface{}) int64 {
 	return 0
 }
 
+// segdirCursor opens a cursor over a table's %_segdir shadow btree; ok is
+// false when the shadow table is absent or unreadable.
+func (e *DDLExecutor) segdirCursor(tableName string) (*btree.Cursor, bool) {
+	return e.shadowTableCursor(tableName, "_segdir")
+}
+
+// nextSegdirScanRecord reads and decodes the cursor's next %_segdir record
+// for a plain (non-validating) scan: ok is false at end/error or when the
+// record has fewer than minValues columns. Unlike the integrity walk's
+// nextSegdirRecord, a mid-scan read error is a plain stop, not a corruption
+// report (the pre-existing merge scanners' tolerance).
+func nextSegdirScanRecord(cursor *btree.Cursor, minValues int) (*storage.Cell, *storage.Record, bool) {
+	return nextShadowRecord(cursor, minValues)
+}
+
+// segdirRowFromRecord builds an ftsSegdirRow from a decoded %_segdir record
+// (level, idx, start_block, leaves_end_block, end_block, ..., root).
+func segdirRowFromRecord(cell *storage.Cell, rec *storage.Record) ftsSegdirRow {
+	lv, _ := rec.Values[0].(int64)
+	ix, _ := rec.Values[1].(int64)
+	return ftsSegdirRow{
+		idx:            int(ix),
+		level:          int(lv),
+		rowid:          cell.RowID,
+		rowidKnown:     true,
+		root:           rec.Values[len(rec.Values)-1],
+		leavesEndBlock: rec.Values[3],
+		startBlock:     rec.Values[2],
+		endBlock:       rec.Values[4],
+	}
+}
+
+// scanSegdirRows walks a %_segdir cursor and collects the rows whose absolute
+// level passes match, in btree (rowid) order.
+func scanSegdirRows(cursor *btree.Cursor, match func(level int) bool) []ftsSegdirRow {
+	var rows []ftsSegdirRow
+	for {
+		cell, rec, ok := nextSegdirScanRecord(cursor, 6)
+		if !ok {
+			break
+		}
+		lv, lvOK := rec.Values[0].(int64)
+		_, ixOK := rec.Values[1].(int64)
+		if lvOK && ixOK && match(int(lv)) {
+			rows = append(rows, segdirRowFromRecord(cell, rec))
+		}
+		if !advanceSequenceCursor(cursor) {
+			break
+		}
+	}
+	return rows
+}
+
 // readFTSSegdirRows reads every %_segdir row of one absolute level, sorted by
 // idx. Used by the crisis merge and incremental merge to read the source
 // segments' contents and to renumber surviving rows.
 func (e *DDLExecutor) readFTSSegdirRows(tableName string, level int) []ftsSegdirRow {
-	segdir := tableName + "_segdir"
-	segEntry, _, err := e.ctx.FindTable(segdir)
-	if err != nil || segEntry == nil {
+	cursor, ok := e.segdirCursor(tableName)
+	if !ok {
 		return nil
 	}
-	tree := e.ctx.TableBTreeForName(segEntry.Name, segEntry.RootPage, true)
-	cursor, cerr := tree.OpenCursor()
-	if cerr != nil {
-		return nil
-	}
-	var rows []ftsSegdirRow
-	for {
-		cell, rerr := cursor.ReadCell()
-		if rerr != nil || cell == nil {
-			break
-		}
-		rec, derr := storage.DecodeRecord(cell.Payload)
-		if derr != nil || rec == nil || len(rec.Values) < 6 {
-			break
-		}
-		lv, lvOK := rec.Values[0].(int64)
-		ix, ixOK := rec.Values[1].(int64)
-		if lvOK && ixOK && int(lv) == level {
-			rows = append(rows, ftsSegdirRow{
-				idx:            int(ix),
-				level:          int(lv),
-				rowid:          cell.RowID,
-				rowidKnown:     true,
-				root:           rec.Values[len(rec.Values)-1],
-				leavesEndBlock: rec.Values[3],
-				startBlock:     rec.Values[2],
-				endBlock:       rec.Values[4],
-			})
-		}
-		if ok, nerr := cursor.Next(); nerr != nil || !ok {
-			break
-		}
-	}
+	rows := scanSegdirRows(cursor, func(lv int) bool { return lv == level })
 	// The btree scans in ROWID order; SQLite reads the level with ORDER BY
 	// idx ASC (azSql#12). The merge loads rows[:n] as the OLDEST segments and
 	// the flush allocates max(idx)+1, so idx order is semantic — after a
@@ -272,31 +293,21 @@ func foundCountAt(e *DDLExecutor, tableName string, level int) int {
 }
 
 func (e *DDLExecutor) ftSMergeLevel(tableName string, nMin int) int {
-	segdir := tableName + "_segdir"
-	segEntry, _, err := e.ctx.FindTable(segdir)
-	if err != nil || segEntry == nil {
-		return -1
-	}
-	tree := e.ctx.TableBTreeForName(segEntry.Name, segEntry.RootPage, true)
-	cursor, cerr := tree.OpenCursor()
-	if cerr != nil {
+	cursor, ok := e.segdirCursor(tableName)
+	if !ok {
 		return -1
 	}
 	counts := map[int]int{}
 	for {
-		cell, rerr := cursor.ReadCell()
-		if rerr != nil || cell == nil {
-			break
-		}
-		rec, derr := storage.DecodeRecord(cell.Payload)
-		if derr != nil || rec == nil || len(rec.Values) == 0 {
+		_, rec, ok := nextSegdirScanRecord(cursor, 1)
+		if !ok {
 			break
 		}
 		if lv, ok := rec.Values[0].(int64); ok {
 			// Skip prefix-index levels (>= 1024) — the main index is level 0.
 			counts[int(lv)]++
 		}
-		if ok, nerr := cursor.Next(); nerr != nil || !ok {
+		if !advanceSequenceCursor(cursor) {
 			break
 		}
 	}
@@ -314,30 +325,20 @@ func (e *DDLExecutor) ftSMergeLevel(tableName string, nMin int) int {
 // auto-incr-merge quota A = nLeafAdd*mxLevel + A/2). Returns 0 when the table
 // has no segments.
 func (e *DDLExecutor) maxFTSLevel(tableName string) int {
-	segdir := tableName + "_segdir"
-	segEntry, _, err := e.ctx.FindTable(segdir)
-	if err != nil || segEntry == nil {
-		return 0
-	}
-	tree := e.ctx.TableBTreeForName(segEntry.Name, segEntry.RootPage, true)
-	cursor, cerr := tree.OpenCursor()
-	if cerr != nil {
+	cursor, ok := e.segdirCursor(tableName)
+	if !ok {
 		return 0
 	}
 	maxLevel := 0
 	for {
-		cell, rerr := cursor.ReadCell()
-		if rerr != nil || cell == nil {
-			break
-		}
-		rec, derr := storage.DecodeRecord(cell.Payload)
-		if derr != nil || rec == nil || len(rec.Values) == 0 {
+		_, rec, ok := nextSegdirScanRecord(cursor, 1)
+		if !ok {
 			break
 		}
 		if lv, ok := rec.Values[0].(int64); ok && int(lv) < 1024 && int(lv) > maxLevel {
 			maxLevel = int(lv)
 		}
-		if ok, nerr := cursor.Next(); nerr != nil || !ok {
+		if !advanceSequenceCursor(cursor) {
 			break
 		}
 	}
@@ -347,43 +348,11 @@ func (e *DDLExecutor) maxFTSLevel(tableName string) int {
 // readFTSSegdirRowsRange reads every %_segdir row whose absolute level is in
 // [lo, hi], sorted by (level, idx).
 func (e *DDLExecutor) readFTSSegdirRowsRange(tableName string, lo, hi int) []ftsSegdirRow {
-	segEntry, _, err := e.ctx.FindTable(tableName + "_segdir")
-	if err != nil || segEntry == nil {
+	cursor, ok := e.segdirCursor(tableName)
+	if !ok {
 		return nil
 	}
-	tree := e.ctx.TableBTreeForName(segEntry.Name, segEntry.RootPage, true)
-	cursor, cerr := tree.OpenCursor()
-	if cerr != nil {
-		return nil
-	}
-	var rows []ftsSegdirRow
-	for {
-		cell, rerr := cursor.ReadCell()
-		if rerr != nil || cell == nil {
-			break
-		}
-		rec, derr := storage.DecodeRecord(cell.Payload)
-		if derr != nil || rec == nil || len(rec.Values) < 6 {
-			break
-		}
-		lv, lvOK := rec.Values[0].(int64)
-		ix, ixOK := rec.Values[1].(int64)
-		if lvOK && ixOK && int(lv) >= lo && int(lv) <= hi {
-			rows = append(rows, ftsSegdirRow{
-				idx:            int(ix),
-				level:          int(lv),
-				rowid:          cell.RowID,
-				rowidKnown:     true,
-				root:           rec.Values[len(rec.Values)-1],
-				leavesEndBlock: rec.Values[3],
-				startBlock:     rec.Values[2],
-				endBlock:       rec.Values[4],
-			})
-		}
-		if ok, nerr := cursor.Next(); nerr != nil || !ok {
-			break
-		}
-	}
+	rows := scanSegdirRows(cursor, func(lv int) bool { return lv >= lo && lv <= hi })
 	sort.SliceStable(rows, func(i, j int) bool {
 		if rows[i].level != rows[j].level {
 			return rows[i].level < rows[j].level

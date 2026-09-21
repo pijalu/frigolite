@@ -201,12 +201,7 @@ func (r *ftsMergeRun) prepareOutput() {
 	// the chomp deleted them, shrinking L1[1] and diverging the cascade).
 	// SQLite avoids this by pre-allocating the writer's entire block
 	// range (iStart..iEnd) above all existing blocks.
-	r.maxSourceEnd = 0
-	for _, row := range r.rows {
-		if end := int(r.e.segdirRowLeavesEnd(row.leavesEndBlock)); end > r.maxSourceEnd {
-			r.maxSourceEnd = end
-		}
-	}
+	r.maxSourceEnd = r.maxSourceLeavesEnd()
 	// The output lives at level+1. When the hint directed us here (a
 	// continuation), APPEND to the existing output segment (the largest
 	// idx at level+1); a fresh FIND_MERGE_LEVEL creates a new output.
@@ -219,14 +214,7 @@ func (r *ftsMergeRun) prepareOutput() {
 	// entries inflate merged outputs (~1.5x) until regrowth-time
 	// promotion aborts on size, stranding stale segments (fts4opt 2.7/
 	// 2.8).
-	promoBase := (r.level / 1024) * 1024
-	iMaxLevel := -1
-	for _, r2 := range r.e.readFTSSegdirRowsRange(r.tableName, promoBase, promoBase+1024) {
-		if r2.level > iMaxLevel {
-			iMaxLevel = r2.level
-		}
-	}
-	r.bIgnoreEmpty = false && r.nextLevel > iMaxLevel
+	r.bIgnoreEmpty = false && r.nextLevel > r.outputFloorLevel()
 	r.outIdx = r.e.ftSSegmentIdx(r.tableName, r.nextLevel)
 	r.replacingOut = false
 	// A continuation appends to the existing output segment (SQLite's
@@ -260,6 +248,33 @@ func (r *ftsMergeRun) prepareOutput() {
 	if !r.replacingOut && r.nLeafEst == 0 {
 		r.estimateFreshLeafQuota()
 	}
+}
+
+// maxSourceLeavesEnd returns the highest leaves_end_block across the merge's
+// source rows (0 for none): the output writes must allocate above every
+// source segment's leaves_end_block.
+func (r *ftsMergeRun) maxSourceLeavesEnd() int {
+	maxSourceEnd := 0
+	for _, row := range r.rows {
+		if end := int(r.e.segdirRowLeavesEnd(row.leavesEndBlock)); end > maxSourceEnd {
+			maxSourceEnd = end
+		}
+	}
+	return maxSourceEnd
+}
+
+// outputFloorLevel returns the highest absolute level in the output's 1024-
+// level band — the bIgnoreEmpty comparison base (-1 when the band holds no
+// segments).
+func (r *ftsMergeRun) outputFloorLevel() int {
+	promoBase := (r.level / 1024) * 1024
+	iMaxLevel := -1
+	for _, r2 := range r.e.readFTSSegdirRowsRange(r.tableName, promoBase, promoBase+1024) {
+		if r2.level > iMaxLevel {
+			iMaxLevel = r2.level
+		}
+	}
+	return iMaxLevel
 }
 
 // estimateFreshLeafQuota sizes a fresh merge's leaf quota

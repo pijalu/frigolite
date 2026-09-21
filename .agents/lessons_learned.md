@@ -7823,3 +7823,39 @@ regenerated; suite net −2274 fails vs pre-tranche baseline (7230 → ~4950).
   (NOT stash — stash without -u leaves untracked new files behind and the
   failed build chain skips the pop), regenerate ori/sqlite/test corpus with
   both binaries into separate outdirs, diff -rq. Byte-identical = safe.
+## §5d.exec3a — execddl final quality sweep (2026-09-20, fleet branch q5-exec3a)
+- **NEVER `git stash pop` when your own `git stash push` FAILED**: push rejects
+  untracked files listed by pathspec (error, nothing stashed), but the
+  follow-up pop then pops the OLDEST unrelated stash (e.g. another branch's
+  leftover), spewing UU conflicts across ~15 files. Recovery: `git reset` +
+  `git checkout HEAD -- <UU files>` (committed work is safe in HEAD; untracked
+  new files survive). For pre-existing-failure comparisons use a THROWAWAY
+  WORKTREE (`git worktree add --detach /tmp/x HEAD`) — zero stash risk.
+- **grep for a helper name before declaring it**: execddl already had a
+  `nextSegdirRecord` (corruption-aware, integrity walk) — a same-name
+  "new" helper with different semantics fails the build. Name scan-variants
+  distinctly (`nextSegdirScanRecord`) and document WHY the semantics differ
+  (plain stop vs malformed report).
+- **A package can be lint-clean while still failing testgen**: execddl landed
+  gocognit/gocyclo/staticcheck clean, but trigger2/index/check/without_rowid4
+  fail — all byte-identical to HEAD (adjudicated pre-existing drift). The
+  refactor contract is "identical failure set", verified by counting
+  `result mismatch` lines in a HEAD worktree vs the working tree.
+- **attach testgen fails only under `-p 2` with fts* siblings, passes serially,
+  and HEAD fails the same way in parallel**: cross-package parallelism
+  interference is itself a pre-existing condition — verify in the same
+  execution mode you will ship (both trees under -p 2, or both serial).
+- **Extraction patterns that held for all 37 functions**: (1) invert guard
+  chains into named *Error/*Conflicts helpers returning *Result (nil = keep
+  going) — preserves exact evaluation order; (2) closure walkers become
+  methods taking the captured state as params; (3) cursor scan loops factor
+  into (open cursor, ok) + (next record, ok) + per-row predicate; (4) a
+  branch whose every outcome returns the same value can be collapsed (e.g.
+  autoindex AddEntry error path returned !LegacyAlterTable() on all paths).
+- **`false && expr` in the merge output path (bIgnoreEmpty)** is intentional
+  dead logic pending re-enable — preserved verbatim; do NOT "simplify" it.
+- **Single-run family comparison lies when the family is nondeterministic**:
+  temptrigger/alterlegacy subtests flip pass/fail between runs on the SAME
+  tree (pre-existing map-order nondeterminism). Adjudicate with pooled 3-run
+  unions per tree — union sets matched exactly between main and the branch,
+  while single runs showed phantom "regressions" in both directions.

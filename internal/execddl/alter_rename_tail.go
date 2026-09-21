@@ -60,44 +60,62 @@ func (e *DDLExecutor) entryRenameAllowed(schemaMgr *schema.Manager, entry *schem
 	case schema.TypeView:
 		return !e.ctx.LegacyAlterTable()
 	case schema.TypeTrigger:
-		if strings.EqualFold(entry.TblName, baseTableName(oldName)) {
-			entry.TblName = newName
-			_ = schemaMgr.RemoveEntryOfType(entry.Name, entry.Type)
-			_ = schemaMgr.AddEntry(entry)
-		}
-		return !e.ctx.LegacyAlterTable()
+		return e.triggerEntryRenameAllowed(schemaMgr, entry, oldName, newName)
 	case schema.TypeIndex:
-		if strings.EqualFold(entry.TblName, baseTableName(oldName)) {
-			entry.TblName = newName
-		}
-		// An auto-generated index (sqlite_autoindex_<table>_N) is renamed to
-		// sqlite_autoindex_<newtable>_N when its table is renamed, matching
-		// SQLite (auth3-3.0: ALTER TABLE TempTable RENAME TO DoNotRead makes
-		// sqlite_autoindex_DoNotRead_1).
-		if strings.HasPrefix(entry.Name, "sqlite_autoindex_") {
-			if idx := strings.LastIndex(entry.Name, "_"); idx > len("sqlite_autoindex_") {
-				prefix := entry.Name[len("sqlite_autoindex_"):idx]
-				if strings.EqualFold(prefix, oldName) {
-					newIndexName := "sqlite_autoindex_" + newName + entry.Name[idx:]
-					// Re-add the autoindex under the new name with its tbl_name
-					// updated to the renamed table. RemoveEntryOfType + AddEntry
-					// preserves the entry's type, root page and SQL; the rowid
-					// may shift (acceptable for autoindexes).
-					if err := schemaMgr.RemoveEntryOfType(entry.Name, entry.Type); err == nil {
-						entry.Name = newIndexName
-						entry.TblName = newName
-						if err := schemaMgr.AddEntry(entry); err != nil {
-							return !e.ctx.LegacyAlterTable()
-						}
-					}
-				}
-			}
-		}
-		return !e.ctx.LegacyAlterTable()
+		return e.indexEntryRenameAllowed(schemaMgr, entry, oldName, newName)
 	case schema.TypeTable:
 		return !(e.ctx.LegacyAlterTable() && !e.ctx.ForeignKeys())
 	default:
 		return false
+	}
+}
+
+// triggerEntryRenameAllowed retargets a trigger whose TblName is the renamed
+// table and reports whether its SQL should be rewritten.
+func (e *DDLExecutor) triggerEntryRenameAllowed(schemaMgr *schema.Manager, entry *schema.Entry, oldName, newName string) bool {
+	if strings.EqualFold(entry.TblName, baseTableName(oldName)) {
+		entry.TblName = newName
+		_ = schemaMgr.RemoveEntryOfType(entry.Name, entry.Type)
+		_ = schemaMgr.AddEntry(entry)
+	}
+	return !e.ctx.LegacyAlterTable()
+}
+
+// indexEntryRenameAllowed retargets an index whose TblName is the renamed
+// table, renames auto-generated indexes with their table, and reports whether
+// the index's SQL should be rewritten.
+func (e *DDLExecutor) indexEntryRenameAllowed(schemaMgr *schema.Manager, entry *schema.Entry, oldName, newName string) bool {
+	if strings.EqualFold(entry.TblName, baseTableName(oldName)) {
+		entry.TblName = newName
+	}
+	// An auto-generated index (sqlite_autoindex_<table>_N) is renamed to
+	// sqlite_autoindex_<newtable>_N when its table is renamed, matching
+	// SQLite (auth3-3.0: ALTER TABLE TempTable RENAME TO DoNotRead makes
+	// sqlite_autoindex_DoNotRead_1).
+	if strings.HasPrefix(entry.Name, "sqlite_autoindex_") {
+		if idx := strings.LastIndex(entry.Name, "_"); idx > len("sqlite_autoindex_") {
+			e.renameAutoIndexEntry(schemaMgr, entry, oldName, newName, idx)
+		}
+	}
+	return !e.ctx.LegacyAlterTable()
+}
+
+// renameAutoIndexEntry re-adds the autoindex under its new
+// sqlite_autoindex_<newtable>_N name with its tbl_name updated to the
+// renamed table. RemoveEntryOfType + AddEntry preserves the entry's type,
+// root page and SQL; the rowid may shift (acceptable for autoindexes).
+// AddEntry's error does not change the verdict: the caller reports the SQL
+// rewritable whether the re-add succeeded or not.
+func (e *DDLExecutor) renameAutoIndexEntry(schemaMgr *schema.Manager, entry *schema.Entry, oldName, newName string, idx int) {
+	prefix := entry.Name[len("sqlite_autoindex_"):idx]
+	if !strings.EqualFold(prefix, oldName) {
+		return
+	}
+	newIndexName := "sqlite_autoindex_" + newName + entry.Name[idx:]
+	if schemaMgr.RemoveEntryOfType(entry.Name, entry.Type) == nil {
+		entry.Name = newIndexName
+		entry.TblName = newName
+		_ = schemaMgr.AddEntry(entry)
 	}
 }
 
@@ -295,41 +313,58 @@ func quotedSpansOf(sql string) [][2]int {
 	for i < len(sql) {
 		switch c := sql[i]; {
 		case c == '\'' || c == '"' || c == '`':
-			close := c
-			j := i + 1
-			closed := false
-			for j < len(sql) {
-				if sql[j] == close {
-					if j+1 < len(sql) && sql[j+1] == close {
-						j += 2
-						continue
-					}
-					j++
-					closed = true
-					break
-				}
-				j++
-			}
+			// A doubled closing quote ("") is an escape, not the span end; an
+			// unterminated literal swallows the rest of the text.
+			end, closed := quotedSpanEnd(sql, i, c)
 			if closed {
-				spans = append(spans, [2]int{i, j})
+				spans = append(spans, [2]int{i, end})
 			}
-			i = j
+			i = end
 		case c == '[':
-			j := i + 1
-			for j < len(sql) && sql[j] != ']' {
-				j++
+			end, closed := bracketSpanEnd(sql, i)
+			if closed {
+				spans = append(spans, [2]int{i, end})
 			}
-			if j < len(sql) {
-				spans = append(spans, [2]int{i, j + 1})
-				i = j + 1
-			} else {
-				i = j
-			}
+			i = end
 		default:
 			i++
 		}
 	}
 	return spans
+}
+
+// quotedSpanEnd scans a quote-delimited span whose opening quote sits at open
+// and returns the offset just past the closing quote (treating a doubled
+// close as an escaped quote). closed reports whether a closing quote was
+// found; when it was not, end is len(sql).
+func quotedSpanEnd(sql string, open int, close byte) (end int, closed bool) {
+	j := open + 1
+	for j < len(sql) {
+		if sql[j] == close {
+			if j+1 < len(sql) && sql[j+1] == close {
+				j += 2
+				continue
+			}
+			return j + 1, true
+		}
+		j++
+	}
+	return j, false
+}
+
+// bracketSpanEnd scans a [bracket-quoted] identifier whose opening bracket
+// sits at open and returns the offset just past the closing bracket. closed
+// reports whether the closing bracket was found; when it was not, end is
+// len(sql).
+func bracketSpanEnd(sql string, open int) (end int, closed bool) {
+	j := open + 1
+	for j < len(sql) && sql[j] != ']' {
+		j++
+	}
+	if j < len(sql) {
+		return j + 1, true
+	}
+	return j, false
 }
 
 // inQuotedSpan reports whether byte offset off falls inside one of the quoted

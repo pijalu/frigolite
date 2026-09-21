@@ -68,71 +68,13 @@ func (e *DDLExecutor) execCreateIndex(s *sql.CreateIndexStmt) *Result {
 		return res
 	}
 
-	tableEntry, tableCtx, err := e.resolveIndexTable(ctx, s)
-	if err != nil {
-		return &Result{Error: err}
+	tableEntry, tableCtx, colDefs, res := e.resolveIndexTarget(ctx, s)
+	if res != nil {
+		return res
 	}
 
-	// build.c sqlite3CreateIndex: a TEMP-schema index cannot index a table
-	// that lives in another schema ("cannot create a TEMP index on non-TEMP
-	// table \"t6\"", index.test 12.x). It must fire before any schema
-	// entry is written: the failed CREATE must not register the index.
-	// The engine's FindTable resolves unqualified names temp-first with a
-	// main fallback, so the resolved tableCtx is not evidence that the table
-	// lives in temp: query the temp schema STRICTLY (build.c compares the
-	// table's own schema with the index's iDb==1).
-	if ctx.IsTemp {
-		inTemp := false
-		if tc := e.ctx.GetDB("temp"); tc != nil {
-			if _, terr := tc.Schema.FindTable(s.Table); terr == nil {
-				inTemp = true
-			}
-		}
-		if !inTemp {
-			return &Result{Error: fmt.Errorf("cannot create a TEMP index on non-TEMP table %q", tableEntry.Name)}
-		}
-	}
-
-	// SQLite refuses to index tables whose names begin with "sqlite_"
-	// (src/build.c:4034-4038), except during schema init. Error:
-	// "table %s may not be indexed".
-	if strings.HasPrefix(strings.ToLower(tableEntry.Name), "sqlite_") {
-		return &Result{Error: fmt.Errorf("table %s may not be indexed", tableEntry.Name)}
-	}
-	// build.c sqlite3CreateIndex: virtual tables have no btree to index —
-	// "virtual tables may not be indexed" (vtab5-1.5; CREATE INDEX on a
-	// vtab previously scanned the shadow storage as a btree).
-	if e.ctx.IsStoragelessVirtualTable(tableEntry) || tableEntry.RootPage == 0 {
-		return &Result{Error: fmt.Errorf("virtual tables may not be indexed")}
-	}
-
-	// Resolve the table's column definitions up front: DQS validation and
-	// collation checks both need them, and both must run before the index
-	// entry is written to the schema (an error must not leak a partial index).
-	colDefs := e.ctx.ParseColumnDefs(tableEntry.Name, tableEntry.SQL)
-
-	// CREATE INDEX IF NOT EXISTS: silently ignore when an index with the
-	// same name already exists in the target schema (SQLite checks the
-	// schema by name; a table with the name still errors).
-	if s.IfNotExists {
-		if _, _, findErr := e.ctx.FindIndex(indexName); findErr == nil {
-			return &Result{}
-		}
-	}
-
-	// A duplicate index name in the TARGET schema is an error unless IF NOT
-	// EXISTS: "index i1 already exists".
-	if !s.IfNotExists {
-		if existing, _ := ctx.Schema.FindIndex(indexName); existing != nil {
-			return &Result{Error: fmt.Errorf("index %s already exists", indexName)}
-		}
-	}
-
-	// build.c sqlite3CreateIndex: an index name must not collide with a
-	// table name in the same schema ("there is already a table named
-	// test1", index.test 6.2).
-	if _, terr := ctx.Schema.FindTable(indexName); terr == nil {
-		return &Result{Error: fmt.Errorf("there is already a table named %s", indexName)}
+	if res := e.indexNameConflicts(ctx, indexName, s); res != nil {
+		return res
 	}
 
 	if res := e.validateIndexExpressions(s, colDefs); res != nil {
@@ -154,13 +96,9 @@ func (e *DDLExecutor) execCreateIndex(s *sql.CreateIndexStmt) *Result {
 	}
 
 	// Allocate root page for index
-	pg, perr := allocateRootPage(tableCtx.Pager)
-	if perr != nil {
-		return &Result{Error: perr}
-	}
-	initIndexRootPage(pg, tableCtx.Pager.PageSize())
-	if err := tableCtx.Pager.WritePage(pg); err != nil {
-		return &Result{Error: err}
+	pg, res := newIndexRootPage(tableCtx)
+	if res != nil {
+		return res
 	}
 	sqlStr := e.indexEntrySQL(s, indexName)
 	entry := &schema.Entry{
@@ -182,6 +120,93 @@ func (e *DDLExecutor) execCreateIndex(s *sql.CreateIndexStmt) *Result {
 	}
 
 	return &Result{Changes: 0}
+}
+
+// resolveIndexTarget finds the index target table and applies SQLite's
+// table-target guards in order: a TEMP-schema index cannot index a table in
+// another schema, sqlite_-prefixed tables may not be indexed, and virtual
+// tables have no btree to index. It also parses the table's column
+// definitions up front: DQS validation and collation checks both need them,
+// and both must run before the index entry is written to the schema (an
+// error must not leak a partial index).
+func (e *DDLExecutor) resolveIndexTarget(ctx *DatabaseContext, s *sql.CreateIndexStmt) (*schema.Entry, *DatabaseContext, []sql.ColumnDef, *Result) {
+	tableEntry, tableCtx, err := e.resolveIndexTable(ctx, s)
+	if err != nil {
+		return nil, nil, nil, &Result{Error: err}
+	}
+
+	// build.c sqlite3CreateIndex: a TEMP-schema index cannot index a table
+	// that lives in another schema ("cannot create a TEMP index on non-TEMP
+	// table \"t6\"", index.test 12.x). It must fire before any schema
+	// entry is written: the failed CREATE must not register the index.
+	// The engine's FindTable resolves unqualified names temp-first with a
+	// main fallback, so the resolved tableCtx is not evidence that the table
+	// lives in temp: query the temp schema STRICTLY (build.c compares the
+	// table's own schema with the index's iDb==1).
+	if ctx.IsTemp {
+		inTemp := false
+		if tc := e.ctx.GetDB("temp"); tc != nil {
+			if _, terr := tc.Schema.FindTable(s.Table); terr == nil {
+				inTemp = true
+			}
+		}
+		if !inTemp {
+			return nil, nil, nil, &Result{Error: fmt.Errorf("cannot create a TEMP index on non-TEMP table %q", tableEntry.Name)}
+		}
+	}
+
+	// SQLite refuses to index tables whose names begin with "sqlite_"
+	// (src/build.c:4034-4038), except during schema init. Error:
+	// "table %s may not be indexed".
+	if strings.HasPrefix(strings.ToLower(tableEntry.Name), "sqlite_") {
+		return nil, nil, nil, &Result{Error: fmt.Errorf("table %s may not be indexed", tableEntry.Name)}
+	}
+	// build.c sqlite3CreateIndex: virtual tables have no btree to index —
+	// "virtual tables may not be indexed" (vtab5-1.5; CREATE INDEX on a
+	// vtab previously scanned the shadow storage as a btree).
+	if e.ctx.IsStoragelessVirtualTable(tableEntry) || tableEntry.RootPage == 0 {
+		return nil, nil, nil, &Result{Error: fmt.Errorf("virtual tables may not be indexed")}
+	}
+
+	return tableEntry, tableCtx, e.ctx.ParseColumnDefs(tableEntry.Name, tableEntry.SQL), nil
+}
+
+// indexNameConflicts applies the index-name preflight checks: CREATE INDEX IF
+// NOT EXISTS silently ignores an existing index of the same name in the
+// target schema (SQLite checks the schema by name; a table with the name
+// still errors), a duplicate index name in the TARGET schema is an error
+// unless IF NOT EXISTS ("index i1 already exists"), and an index name must
+// not collide with a table name in the same schema ("there is already a
+// table named test1", index.test 6.2).
+func (e *DDLExecutor) indexNameConflicts(ctx *DatabaseContext, indexName string, s *sql.CreateIndexStmt) *Result {
+	if s.IfNotExists {
+		if _, _, findErr := e.ctx.FindIndex(indexName); findErr == nil {
+			return &Result{}
+		}
+	}
+	if !s.IfNotExists {
+		if existing, _ := ctx.Schema.FindIndex(indexName); existing != nil {
+			return &Result{Error: fmt.Errorf("index %s already exists", indexName)}
+		}
+	}
+	if _, terr := ctx.Schema.FindTable(indexName); terr == nil {
+		return &Result{Error: fmt.Errorf("there is already a table named %s", indexName)}
+	}
+	return nil
+}
+
+// newIndexRootPage allocates a fresh index root page, initializes its leaf
+// index layout, and writes it back.
+func newIndexRootPage(tableCtx *DatabaseContext) (*pager.Page, *Result) {
+	pg, perr := allocateRootPage(tableCtx.Pager)
+	if perr != nil {
+		return nil, &Result{Error: perr}
+	}
+	initIndexRootPage(pg, tableCtx.Pager.PageSize())
+	if err := tableCtx.Pager.WritePage(pg); err != nil {
+		return nil, &Result{Error: err}
+	}
+	return pg, nil
 }
 
 // initIndexRootPage initializes a freshly allocated index root page: zero the
@@ -619,26 +644,44 @@ func (e *DDLExecutor) validateIndexExpressions(s *sql.CreateIndexStmt, colDefs [
 	// load bypass) — an unresolvable double-quoted identifier becomes a
 	// string literal (TK_STRING) instead of an error.
 	allowDQS := e.dqsAllowedDDL()
-	// DDL double-quoted-string (DQS) validation: with DQS disabled for DDL, a
-	// double-quoted identifier in an index key or WHERE clause that does not
-	// resolve to a table column is an error. writable_schema + DQS DML allows
-	// the DDL (legacy schema load bypass).
-	if !allowDQS {
-		for _, term := range s.Terms {
-			if err := e.validateDQSExpr(term.Expr, colDefs); err != nil {
-				return &Result{Error: err}
-			}
-		}
-		if s.Where != nil {
-			if err := e.validateDQSExpr(s.Where, colDefs); err != nil {
-				return &Result{Error: err}
-			}
-		}
+	if res := e.validateIndexDQS(s, colDefs, allowDQS); res != nil {
+		return res
 	}
 	// Validate index key expressions: SQLite rejects non-deterministic
 	// functions (random(), julianday('now',...)), subqueries, window
 	// functions, and other prohibited constructs in index expressions
 	// (build.c sqlite3CreateIndex / sqlite3ExprIsConstantOrFunction).
+	if res := validateIndexKeyTerms(s, colDefs, allowDQS); res != nil {
+		return res
+	}
+	return validateIndexWhereClause(s, colDefs, allowDQS)
+}
+
+// validateIndexDQS runs DDL double-quoted-string (DQS) validation over the
+// index key terms and WHERE clause: with DQS disabled for DDL, a
+// double-quoted identifier in an index key or WHERE clause that does not
+// resolve to a table column is an error. writable_schema + DQS DML allows
+// the DDL (legacy schema load bypass).
+func (e *DDLExecutor) validateIndexDQS(s *sql.CreateIndexStmt, colDefs []sql.ColumnDef, allowDQS bool) *Result {
+	if allowDQS {
+		return nil
+	}
+	for _, term := range s.Terms {
+		if err := e.validateDQSExpr(term.Expr, colDefs); err != nil {
+			return &Result{Error: err}
+		}
+	}
+	if s.Where != nil {
+		if err := e.validateDQSExpr(s.Where, colDefs); err != nil {
+			return &Result{Error: err}
+		}
+	}
+	return nil
+}
+
+// validateIndexKeyTerms resolves and validates each index key term against
+// the table's columns and SQLite's prohibited-construct rules.
+func validateIndexKeyTerms(s *sql.CreateIndexStmt, colDefs []sql.ColumnDef, allowDQS bool) *Result {
 	for _, term := range s.Terms {
 		if err := validateIndexColumnRefs(term.Expr, colDefs, allowDQS); err != nil {
 			return &Result{Error: err}
@@ -647,15 +690,20 @@ func (e *DDLExecutor) validateIndexExpressions(s *sql.CreateIndexStmt, colDefs [
 			return &Result{Error: err}
 		}
 	}
-	if s.Where != nil {
-		if err := validateIndexColumnRefs(s.Where, colDefs, allowDQS); err != nil {
-			return &Result{Error: err}
-		}
+	return nil
+}
+
+// validateIndexWhereClause resolves the partial-index WHERE clause's column
+// references and rejects prohibited constructs in its context.
+func validateIndexWhereClause(s *sql.CreateIndexStmt, colDefs []sql.ColumnDef, allowDQS bool) *Result {
+	if s.Where == nil {
+		return nil
 	}
-	if s.Where != nil {
-		if err := validateIndexExprContext(s.Where, true); err != nil {
-			return &Result{Error: err}
-		}
+	if err := validateIndexColumnRefs(s.Where, colDefs, allowDQS); err != nil {
+		return &Result{Error: err}
+	}
+	if err := validateIndexExprContext(s.Where, true); err != nil {
+		return &Result{Error: err}
 	}
 	return nil
 }
@@ -800,34 +848,40 @@ func validateIndexColumnRefs(expr sql.Expr, colDefs []sql.ColumnDef, allowDQS bo
 		if !ok {
 			return
 		}
-		// Unquoted TRUE/FALSE keywords are boolean literals, not column
-		// references (SQLite 3.23+; a column named "true" must be quoted).
-		// The LALR parser keeps them as ColumnRefs so the IS TRUE/FALSE
-		// predicates stay recognizable — index expressions resolve them to
-		// 1/0 here.
-		if !ref.Quoted {
-			if strings.EqualFold(ref.Name, "TRUE") || strings.EqualFold(ref.Name, "FALSE") {
-				return
-			}
-		} else if allowDQS {
-			// DQS fallback: an unresolvable double-quoted identifier in the
-			// index expression evaluates as a string literal.
-			return
+		if !indexRefResolves(ref, colDefs, allowDQS) {
+			err = fmt.Errorf("no such column: %s", ref.Name)
 		}
-		for _, cd := range colDefs {
-			if strings.EqualFold(cd.Name, ref.Name) {
-				return
-			}
-		}
-		// DQS: an unmatched double-quoted identifier evaluates as a string
-		// literal (the evaluator's Quoted fallback), so it does not fail
-		// resolution.
-		if ref.Quoted && allowDQS {
-			return
-		}
-		err = fmt.Errorf("no such column: %s", ref.Name)
 	})
 	return err
+}
+
+// indexRefResolves reports whether a column reference in an index key term or
+// partial-index WHERE clause resolves against the table's column definitions.
+// Unquoted TRUE/FALSE keywords are boolean literals, not column references
+// (SQLite 3.23+; a column named "true" must be quoted). The LALR parser keeps
+// them as ColumnRefs so the IS TRUE/FALSE predicates stay recognizable — index
+// expressions resolve them to 1/0 here. With DQS enabled, a double-quoted
+// identifier is exempt: an unresolvable one evaluates as a string literal
+// (the evaluator's Quoted fallback), not a resolution failure.
+func indexRefResolves(ref *sql.ColumnRef, colDefs []sql.ColumnDef, allowDQS bool) bool {
+	if !ref.Quoted {
+		if strings.EqualFold(ref.Name, "TRUE") || strings.EqualFold(ref.Name, "FALSE") {
+			return true
+		}
+	} else if allowDQS {
+		// DQS fallback: an unresolvable double-quoted identifier in the
+		// index expression evaluates as a string literal.
+		return true
+	}
+	for _, cd := range colDefs {
+		if strings.EqualFold(cd.Name, ref.Name) {
+			return true
+		}
+	}
+	// DQS: an unmatched double-quoted identifier evaluates as a string
+	// literal (the evaluator's Quoted fallback), so it does not fail
+	// resolution.
+	return ref.Quoted && allowDQS
 }
 
 // unwrapDDLIndexKeyValue peels value wrappers (*util.ColumnValue affinity

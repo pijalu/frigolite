@@ -481,14 +481,7 @@ func (e *DDLExecutor) processViewRenameDependency(view *schema.Entry, tableName,
 // FROM table is valid/recoverable.
 func (e *DDLExecutor) viewUnavailableModule(ft string, entry *schema.Entry, viewName string, findErr error) *Result {
 	if findErr != nil {
-		// If the FROM table itself doesn't exist, the view is broken; SQLite
-		// reports this on rename.
-		if v, vErr := e.ctx.Schema().FindView(ft); vErr != nil {
-			return &Result{Error: fmt.Errorf("error in view %s: %s", viewName, findErr.Error())}
-		} else if v != nil {
-			return nil
-		}
-		return nil
+		return e.brokenViewFromError(ft, viewName, findErr)
 	}
 	// A view that references a virtual table whose module is not registered
 	// cannot be re-validated; SQLite reports "no such module: %s" on rename.
@@ -497,18 +490,40 @@ func (e *DDLExecutor) viewUnavailableModule(ft string, entry *schema.Entry, view
 	// the connection that ran register_echo_module. Frigolite registers echo
 	// globally, so for rename validation it must be treated as unavailable to
 	// match a fresh connection (altercol-11.3).
-	if e.isVirtualTable(entry) {
-		if mod := vtabModuleName(entry.SQL); mod != "" {
-			m, ok := e.ctx.VTables().Find(mod)
-			if !ok {
-				return &Result{Error: fmt.Errorf("error in view %s: no such module: %s", viewName, mod)}
-			}
-			if _, isNoop := m.(*vtab.NoopModule); isNoop {
-				return &Result{Error: fmt.Errorf("error in view %s: no such module: %s", viewName, mod)}
-			}
-			if _, isEcho := m.(*vtab.EchoModule); isEcho {
-				return &Result{Error: fmt.Errorf("error in view %s: no such module: %s", viewName, mod)}
-			}
+	if !e.isVirtualTable(entry) {
+		return nil
+	}
+	return e.viewModuleUnavailable(entry, viewName)
+}
+
+// brokenViewFromError resolves a FROM table lookup failure: a view that
+// doesn't exist either is recoverable (nil); anything else leaves the view
+// broken and SQLite reports the lookup error on rename.
+func (e *DDLExecutor) brokenViewFromError(ft, viewName string, findErr error) *Result {
+	// If the FROM table itself doesn't exist, the view is broken; SQLite
+	// reports this on rename.
+	if v, vErr := e.ctx.Schema().FindView(ft); vErr != nil {
+		return &Result{Error: fmt.Errorf("error in view %s: %s", viewName, findErr.Error())}
+	} else if v != nil {
+		return nil
+	}
+	return nil
+}
+
+// viewModuleUnavailable reports the rename-blocking error for a view whose
+// FROM virtual table's module is unregistered, a NoopModule stub, or the
+// test-only echo module.
+func (e *DDLExecutor) viewModuleUnavailable(entry *schema.Entry, viewName string) *Result {
+	if mod := vtabModuleName(entry.SQL); mod != "" {
+		m, ok := e.ctx.VTables().Find(mod)
+		if !ok {
+			return &Result{Error: fmt.Errorf("error in view %s: no such module: %s", viewName, mod)}
+		}
+		if _, isNoop := m.(*vtab.NoopModule); isNoop {
+			return &Result{Error: fmt.Errorf("error in view %s: no such module: %s", viewName, mod)}
+		}
+		if _, isEcho := m.(*vtab.EchoModule); isEcho {
+			return &Result{Error: fmt.Errorf("error in view %s: no such module: %s", viewName, mod)}
 		}
 	}
 	return nil

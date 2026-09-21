@@ -58,15 +58,8 @@ func (r *ftsMergeRun) nextOutputBlockID(next int, cached bool) (int, bool) {
 		next = r.contLeavesEnd
 		r.contReuseLeaf = false
 		cached = true
-	} else if r.replacingOut && r.markerID > 0 && r.contLeavesEnd > 0 {
-		// A markered continuation allocates SEQUENTIALLY inside its
-		// pre-allocated range: the previous leaf id + 1, never the
-		// max-based fallback (the NULL marker row sits above the
-		// range and would drag every leaf up to markerID-1,
-		// overwriting one block per flush).
-		r.contNext++
-		next = int(r.contNext)
-		cached = true
+	} else if n2, c2, handled := r.markeredContinuationNext(next, cached); handled {
+		next, cached = n2, c2
 	} else if !cached {
 		// The cache was invalidated by a shadow write: recompute the max
 		// (an uncached read returns 0 — writing block 0/1 would clobber
@@ -87,6 +80,19 @@ func (r *ftsMergeRun) nextOutputBlockID(next int, cached bool) (int, bool) {
 		cached = true
 	}
 	return next, cached
+}
+
+// markeredContinuationNext allocates a markered continuation's next leaf
+// SEQUENTIALLY inside its pre-allocated range: the previous leaf id + 1,
+// never the max-based fallback (the NULL marker row sits above the range and
+// would drag every leaf up to markerID-1, overwriting one block per flush).
+// Reports whether it applied (and the new id and cached verdict).
+func (r *ftsMergeRun) markeredContinuationNext(next int, cached bool) (int, bool, bool) {
+	if !(r.replacingOut && r.markerID > 0 && r.contLeavesEnd > 0) {
+		return next, cached, false
+	}
+	r.contNext++
+	return int(r.contNext), true, true
 }
 
 // runMergeStream consumes the source level's segments via a STREAMING k-way

@@ -74,53 +74,66 @@ func (e *DDLExecutor) execCreateView(s *sql.CreateViewStmt) *Result {
 	return &Result{}
 }
 
-// validateViewBody enforces SQLite's CREATE VIEW body rules: bound
-// parameters are rejected everywhere ("parameters are not allowed in views")
-// and a non-temp view may not reference objects in an attached database
-// ("view NAME cannot reference objects in database X"). The walk descends
-// into WITH-clause CTE bodies and expression subqueries (with4 110/120/130).
 func (e *DDLExecutor) validateViewBody(s *sql.CreateViewStmt, viewName string, ctx *DatabaseContext) error {
 	// resolveViewContext already routes CREATE TEMP VIEW to the temp context.
 	isTemp := ctx == e.ctx.GetDB("temp")
-	var checkErr error
-	var walkSelect func(*sql.SelectStmt)
-	walkSelect = func(sel *sql.SelectStmt) {
-		if checkErr != nil || sel == nil {
-			return
-		}
-		if err := e.checkViewFromRefs(viewName, sel, isTemp); err != nil {
-			checkErr = err
-			return
-		}
-		for _, cte := range sel.CTEs {
-			walkSelect(cte.Select)
-		}
-		if sel.From.Subquery != nil {
-			walkSelect(sel.From.Subquery)
-		}
-		for i := range sel.Joins {
-			if sel.Joins[i].Table.Subquery != nil {
-				walkSelect(sel.Joins[i].Table.Subquery)
-			}
-		}
-		if sel.Union != nil {
-			walkSelect(sel.Union)
-		}
-		walkExprsForView(sel, func(expr sql.Expr) {
-			if checkErr != nil {
-				return
-			}
-			if _, ok := expr.(*sql.ParameterExpr); ok {
-				checkErr = fmt.Errorf("parameters are not allowed in views")
-				return
-			}
-			if sub, ok := expr.(*sql.Subquery); ok {
-				walkSelect(sub.Select)
-			}
-		})
+	return e.checkViewSelect(viewName, s.Select, isTemp)
+}
+
+// checkViewSelect walks one SELECT level of a view body: it validates the
+// FROM/join schema references, descends into the nested SELECT bodies
+// (CTEs, the FROM subquery, join subqueries, the UNION chain — with4
+// 110/120/130) and the expression subqueries, and rejects bound parameters
+// ("parameters are not allowed in views").
+func (e *DDLExecutor) checkViewSelect(viewName string, sel *sql.SelectStmt, isTemp bool) error {
+	if sel == nil {
+		return nil
 	}
-	walkSelect(s.Select)
+	if err := e.checkViewFromRefs(viewName, sel, isTemp); err != nil {
+		return err
+	}
+	for _, next := range viewChildSelects(sel) {
+		if err := e.checkViewSelect(viewName, next, isTemp); err != nil {
+			return err
+		}
+	}
+	var checkErr error
+	walkExprsForView(sel, func(expr sql.Expr) {
+		if checkErr != nil {
+			return
+		}
+		if _, ok := expr.(*sql.ParameterExpr); ok {
+			checkErr = fmt.Errorf("parameters are not allowed in views")
+			return
+		}
+		if sub, ok := expr.(*sql.Subquery); ok {
+			if err := e.checkViewSelect(viewName, sub.Select, isTemp); err != nil {
+				checkErr = err
+			}
+		}
+	})
 	return checkErr
+}
+
+// viewChildSelects lists a SELECT's directly nested SELECT bodies in walk
+// order: CTE bodies, the FROM subquery, join subqueries, and the UNION chain.
+func viewChildSelects(sel *sql.SelectStmt) []*sql.SelectStmt {
+	var children []*sql.SelectStmt
+	for _, cte := range sel.CTEs {
+		children = append(children, cte.Select)
+	}
+	if sel.From.Subquery != nil {
+		children = append(children, sel.From.Subquery)
+	}
+	for i := range sel.Joins {
+		if sel.Joins[i].Table.Subquery != nil {
+			children = append(children, sel.Joins[i].Table.Subquery)
+		}
+	}
+	if sel.Union != nil {
+		children = append(children, sel.Union)
+	}
+	return children
 }
 
 // checkViewFromRefs validates one SELECT's FROM/join schema references against
