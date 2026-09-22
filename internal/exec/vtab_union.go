@@ -248,6 +248,21 @@ func unionSourceDefFromRow(row []interface{}) vtab.UnionSourceDef {
 // statement is the unionConfigureVtab "no such SQL parameter" error, raised
 // in option order.
 func bindUnionSwarmParams(sqlText string, params []vtab.UnionSwarmParam) (string, error) {
+	present := scanUnionSwarmParams(sqlText)
+	for _, p := range params {
+		if !present[p.Name] {
+			return "", fmt.Errorf("swarmvtab: no such SQL parameter: %s", p.Name)
+		}
+	}
+	byName := make(map[string]string, len(params))
+	for _, p := range params {
+		byName[p.Name] = p.Value
+	}
+	return substituteUnionSwarmParams(sqlText, byName), nil
+}
+
+// scanUnionSwarmParams collects the :name parameter tokens of the statement.
+func scanUnionSwarmParams(sqlText string) map[string]bool {
 	present := map[string]bool{}
 	tk := sql.NewTokenizer(sqlText)
 	for {
@@ -259,15 +274,14 @@ func bindUnionSwarmParams(sqlText string, params []vtab.UnionSwarmParam) (string
 			present[tok.Value] = true
 		}
 	}
-	for _, p := range params {
-		if !present[p.Name] {
-			return "", fmt.Errorf("swarmvtab: no such SQL parameter: %s", p.Name)
-		}
-	}
-	byName := make(map[string]string, len(params))
-	for _, p := range params {
-		byName[p.Name] = p.Value
-	}
+	return present
+}
+
+// substituteUnionSwarmParams rewrites the statement replacing :name tokens
+// with single-quoted text literals (C binds the values with sqlite3_bind_text
+// after prepare; textual substitution before parsing is equivalent for
+// these values).
+func substituteUnionSwarmParams(sqlText string, byName map[string]string) string {
 	var b strings.Builder
 	pos := 0
 	tk2 := sql.NewTokenizer(sqlText)
@@ -285,7 +299,7 @@ func bindUnionSwarmParams(sqlText string, params []vtab.UnionSwarmParam) (string
 		}
 	}
 	b.WriteString(sqlText[pos:])
-	return b.String(), nil
+	return b.String()
 }
 
 // unionSourceEntry locates and validates one unionvtab source table: it
@@ -314,42 +328,57 @@ func (e *Engine) unionSourceEntry(defSchema, table string) (*schema.Entry, error
 // MAIN, then attached databases in attach order); a named schema resolves
 // within that schema with a TEMP fallback.
 func (e *Engine) lookupUnionSource(defSchema, name string) *schema.Entry {
-	var entry *schema.Entry
-	lookup := func(ctx *DatabaseContext) bool {
-		if ctx == nil {
-			return false
-		}
-		var ferr error
-		entry, ferr = ctx.Schema.FindTable(name)
-		return ferr == nil && entry != nil
-	}
 	switch {
 	case defSchema == "":
-		if lookup(e.getDB("TEMP")) {
-			return entry
-		}
-		if lookup(e.getDB("main")) {
-			return entry
-		}
-		for _, ctx := range e.dbList {
-			up := strings.ToUpper(ctx.Name)
-			if up == "MAIN" || up == "TEMP" || up == "TEMPORARY" {
-				continue
-			}
-			if lookup(ctx) {
-				return entry
-			}
-		}
+		return e.lookupUnionSourceUnqualified(name)
 	case strings.EqualFold(defSchema, "main"):
-		if !lookup(e.getDB("main")) {
-			lookup(e.mainDB)
+		ent := e.unionSchemaLookup(e.getDB("main"), name)
+		if ent == nil {
+			ent = e.unionSchemaLookup(e.mainDB, name)
 		}
+		return ent
 	case !strings.EqualFold(defSchema, "temp"):
-		if !lookup(e.getDB(defSchema)) {
-			lookup(e.getDB("TEMP"))
+		ent := e.unionSchemaLookup(e.getDB(defSchema), name)
+		if ent == nil {
+			ent = e.unionSchemaLookup(e.getDB("TEMP"), name)
 		}
+		return ent
 	default:
-		lookup(e.getDB("TEMP"))
+		return e.unionSchemaLookup(e.getDB("TEMP"), name)
+	}
+}
+
+// lookupUnionSourceUnqualified resolves an unqualified source name following
+// SQLite's default name resolution (TEMP, then MAIN, then attached databases
+// in attach order).
+func (e *Engine) lookupUnionSourceUnqualified(name string) *schema.Entry {
+	if ent := e.unionSchemaLookup(e.getDB("TEMP"), name); ent != nil {
+		return ent
+	}
+	if ent := e.unionSchemaLookup(e.getDB("main"), name); ent != nil {
+		return ent
+	}
+	for _, ctx := range e.dbList {
+		up := strings.ToUpper(ctx.Name)
+		if up == "MAIN" || up == "TEMP" || up == "TEMPORARY" {
+			continue
+		}
+		if ent := e.unionSchemaLookup(ctx, name); ent != nil {
+			return ent
+		}
+	}
+	return nil
+}
+
+// unionSchemaLookup probes one database context for a source table; nil
+// when the context is nil or the table is absent.
+func (e *Engine) unionSchemaLookup(ctx *DatabaseContext, name string) *schema.Entry {
+	if ctx == nil {
+		return nil
+	}
+	entry, ferr := ctx.Schema.FindTable(name)
+	if ferr != nil || entry == nil {
+		return nil
 	}
 	return entry
 }

@@ -6,6 +6,7 @@ import (
 
 	"github.com/pijalu/frigolite/internal/execquery"
 	"github.com/pijalu/frigolite/internal/function"
+	"github.com/pijalu/frigolite/internal/schema"
 	"github.com/pijalu/frigolite/internal/sql"
 	"github.com/pijalu/frigolite/internal/util"
 	"github.com/pijalu/frigolite/internal/vtab"
@@ -125,38 +126,53 @@ func (e *Engine) materializeCorrelatedVTabFunc(ref sql.TableRef, leftRows []RowM
 		if !e.outerConjunctsPass(conjuncts, left) {
 			continue
 		}
-		args, err := evalVtabArgs(e, ref, left)
+		defs, maps, err := e.materializeCorrelatedRow(module, ref, left, li)
 		if err != nil {
 			return nil, nil, nil, err
 		}
-		valArgs, verr := evalVtabArgValues(e, ref, left)
-		if verr != nil {
-			return nil, nil, nil, verr
-		}
-		vt, err := createVtabModuleConn(module, args, valArgs)
-		if err != nil {
-			return nil, nil, nil, err
-		}
-		rows, rerr := readVtabRows(vt)
-		if rerr != nil {
-			return nil, nil, nil, rerr
-		}
-		defs := vtabColumnDefs(vt, rows)
 		if colDefs == nil {
 			colDefs = defs
 		}
-		for _, row := range rows {
-			m := make(RowMap)
-			for i, val := range row {
-				if i < len(defs) {
-					m[defs[i].Name] = val
-				}
-			}
-			allMaps = append(allMaps, m)
+		for range maps {
 			leftIdx = append(leftIdx, li)
 		}
+		allMaps = append(allMaps, maps...)
 	}
 	return colDefs, allMaps, leftIdx, nil
+}
+
+// materializeCorrelatedRow connects the TVF module once for one outer row
+// (that row as the argument-evaluation context) and returns the connection's
+// column defs plus its rows as row maps (SQLite correlation).
+func (e *Engine) materializeCorrelatedRow(module vtab.Module, ref sql.TableRef, left RowMap, li int) ([]sql.ColumnDef, []RowMap, error) {
+	args, err := evalVtabArgs(e, ref, left)
+	if err != nil {
+		return nil, nil, err
+	}
+	valArgs, verr := evalVtabArgValues(e, ref, left)
+	if verr != nil {
+		return nil, nil, verr
+	}
+	vt, err := createVtabModuleConn(module, args, valArgs)
+	if err != nil {
+		return nil, nil, err
+	}
+	rows, rerr := readVtabRows(vt)
+	if rerr != nil {
+		return nil, nil, rerr
+	}
+	defs := vtabColumnDefs(vt, rows)
+	maps := make([]RowMap, 0, len(rows))
+	for _, row := range rows {
+		m := make(RowMap)
+		for i, val := range row {
+			if i < len(defs) {
+				m[defs[i].Name] = val
+			}
+		}
+		maps = append(maps, m)
+	}
+	return defs, maps, nil
 }
 
 // splitAndConjuncts flattens an AND-tree into its conjuncts.
@@ -374,28 +390,37 @@ func readCursorRowsWithRowids(cur vtab.Cursor, maxRows int64) ([][]interface{}, 
 func vtabColumnDefs(vt vtab.VirtualTable, rows [][]interface{}) []sql.ColumnDef {
 	var colDefs []sql.ColumnDef
 	if ci, ok := vt.(vtab.ColumnInfo); ok {
-		var hidden map[int]bool
-		if hc, ok := vt.(vtab.HiddenColumnInfo); ok {
-			hidden = hc.HiddenColumns()
-		}
-		// The cursor must provide one value per declared column (including
-		// HIDDEN ones) for the hidden defs to be backed by data.
-		fullWidth := len(rows) > 0 && len(rows[0]) == len(ci.Columns())
-		for i, c := range ci.Columns() {
-			cd := sql.ColumnDef{Name: c}
-			if hidden[i] {
-				if !fullWidth {
-					continue
-				}
-				cd.Hidden = true
-			}
-			colDefs = append(colDefs, cd)
-		}
+		colDefs = declaredVtabColumnDefs(vt, ci, rows)
 	}
 	if len(colDefs) == 0 && len(rows) > 0 {
 		for i := range rows[0] {
 			colDefs = append(colDefs, sql.ColumnDef{Name: fmt.Sprintf("c%d", i)})
 		}
+	}
+	return colDefs
+}
+
+// declaredVtabColumnDefs builds defs from the instance's declared columns,
+// flagging HIDDEN ones. Hidden columns are only declared when the cursor
+// actually serves their values (row width == full declared schema).
+func declaredVtabColumnDefs(vt vtab.VirtualTable, ci vtab.ColumnInfo, rows [][]interface{}) []sql.ColumnDef {
+	var hidden map[int]bool
+	if hc, ok := vt.(vtab.HiddenColumnInfo); ok {
+		hidden = hc.HiddenColumns()
+	}
+	// The cursor must provide one value per declared column (including
+	// HIDDEN ones) for the hidden defs to be backed by data.
+	fullWidth := len(rows) > 0 && len(rows[0]) == len(ci.Columns())
+	var colDefs []sql.ColumnDef
+	for i, c := range ci.Columns() {
+		cd := sql.ColumnDef{Name: c}
+		if hidden[i] {
+			if !fullWidth {
+				continue
+			}
+			cd.Hidden = true
+		}
+		colDefs = append(colDefs, cd)
 	}
 	return colDefs
 }
@@ -723,18 +748,7 @@ func (e *Engine) tableInfoColDefs(tableName string) (colDefs []sql.ColumnDef, fo
 		}
 	}
 	if te, _, err := e.findTable(tableName); err == nil {
-		// A created virtual table whose module is not registered on this
-		// connection is unreachable: SQLite reports "no such module" when
-		// the schema is next required (vtab1.2.6: PRAGMA table_info(t1)
-		// after a reopen with the echo module unregistered).
-		if te.RootPage == 0 {
-			if modName, _, isVtab := vtabModuleFromSQL(te.SQL); isVtab {
-				if _, found := e.vtabs.Find(modName); !found {
-					return nil, false, fmt.Errorf("no such module: %s", modName)
-				}
-			}
-		}
-		return e.parseColumnDefs(te.Name, te.SQL), true, nil
+		return e.tableInfoTableColDefs(te)
 	}
 	if ve, _, err := e.findView(tableName); err == nil {
 		defs, err := e.viewColumnDefs(ve)
@@ -749,6 +763,23 @@ func (e *Engine) tableInfoColDefs(tableName string) (colDefs []sql.ColumnDef, fo
 		return defs, true, err
 	}
 	return nil, false, nil
+}
+
+// tableInfoTableColDefs resolves defs for a plain table target, surfacing
+// the unregistered-module error for unreachable created vtabs.
+func (e *Engine) tableInfoTableColDefs(te *schema.Entry) ([]sql.ColumnDef, bool, error) {
+	// A created virtual table whose module is not registered on this
+	// connection is unreachable: SQLite reports "no such module" when
+	// the schema is next required (vtab1.2.6: PRAGMA table_info(t1)
+	// after a reopen with the echo module unregistered).
+	if te.RootPage == 0 {
+		if modName, _, isVtab := vtabModuleFromSQL(te.SQL); isVtab {
+			if _, found := e.vtabs.Find(modName); !found {
+				return nil, false, fmt.Errorf("no such module: %s", modName)
+			}
+		}
+	}
+	return e.parseColumnDefs(te.Name, te.SQL), true, nil
 }
 
 // tableInfoRows renders column definitions as pragma_table_info(xinfo) rows.

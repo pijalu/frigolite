@@ -5,6 +5,7 @@ import (
 	"os"
 	"strings"
 
+	"github.com/pijalu/frigolite/internal/btree"
 	"github.com/pijalu/frigolite/internal/execquery"
 	"github.com/pijalu/frigolite/internal/pager"
 	"github.com/pijalu/frigolite/internal/parse"
@@ -95,37 +96,19 @@ func (p enginePageSources) AllPageSources() []vtab.NamedPageSource {
 // ok is false when the name is neither; err reports instance creation
 // failures for names that DO resolve to a vtab.
 func (e *Engine) VTabUpdaterInstance(name string) (vtab.VirtualTable, []sql.ColumnDef, bool, error) {
-	lower := strings.ToLower(name)
-	var module vtab.Module
-	var args []string
-	var entry *schema.Entry
-	var ctx *DatabaseContext
-	if m, ok := e.vtabs.Find(lower); ok && vtab.ModuleIsEponymous(m) {
-		module = m
-	} else if e2, c2, terr := e.findTable(name); terr == nil && e2 != nil {
-		entry = e2
-		ctx = c2
-		if os.Getenv("CL_DBG") != "" {
-			fmt.Fprintf(os.Stderr, "VU DBG sql=%q type=%q root=%d\n", entry.SQL, entry.Type, entry.RootPage)
-		}
-		mod2, args2, ok2 := vtabModuleFromSQL(entry.SQL)
-		if ok2 {
-			m3, found := e.vtabs.Find(mod2)
-			if !found {
-				return nil, nil, true, fmt.Errorf("no such module: %s", mod2)
-			}
-			module, args = m3, args2
-		}
+	module, args, entry, ctx, rerr := e.resolveUpdaterVtabTarget(name)
+	if rerr != nil {
+		return nil, nil, true, rerr
 	}
 	if module == nil {
-		if os.Getenv("CL_DBG") != "" {
+		if debugUpdater {
 			fmt.Fprintf(os.Stderr, "VU DBG module nil\n")
 		}
 		return nil, nil, false, nil
 	}
 	vt, err := createVtabModule(module, args, nil)
 	if err != nil {
-		if os.Getenv("CL_DBG") != "" {
+		if debugUpdater {
 			fmt.Fprintf(os.Stderr, "VU DBG create err=%v\n", err)
 		}
 		return nil, nil, true, err
@@ -144,26 +127,71 @@ func (e *Engine) VTabUpdaterInstance(name string) (vtab.VirtualTable, []sql.Colu
 	// Only generic updatable instances are claimed here; FTS and other
 	// special-purpose modules keep their dedicated write paths.
 	if _, isUp := vt.(vtab.RowUpdater); !isUp {
-		if os.Getenv("CL_DBG") != "" {
+		if debugUpdater {
 			fmt.Fprintf(os.Stderr, "VU DBG not RowUpdater type=%T\n", vt)
 		}
 		return nil, nil, false, nil
 	}
+	defs, derr := updaterColumnDefs(vt)
+	if derr != nil {
+		return nil, nil, true, fmt.Errorf("virtual table %s has no columns", name)
+	}
+	return vt, defs, true, nil
+}
+
+// debugUpdater toggles verbose tracing of the vtab updater resolution path.
+var debugUpdater = os.Getenv("CL_DBG") != ""
+
+// resolveUpdaterVtabTarget resolves a DML target name to its vtab module.
+// module is nil (rerr nil) when the name does not resolve to a vtab at all;
+// rerr non-nil reports a claimed name whose module is not registered.
+func (e *Engine) resolveUpdaterVtabTarget(name string) (module vtab.Module, args []string, entry *schema.Entry, ctx *DatabaseContext, rerr error) {
+	lower := strings.ToLower(name)
+	if m, ok := e.vtabs.Find(lower); ok && vtab.ModuleIsEponymous(m) {
+		return m, nil, nil, nil, nil
+	}
+	e2, c2, terr := e.findTable(name)
+	if terr != nil || e2 == nil {
+		return nil, nil, nil, nil, nil
+	}
+	entry, ctx = e2, c2
+	if os.Getenv("CL_DBG") != "" {
+		fmt.Fprintf(os.Stderr, "VU DBG sql=%q type=%q root=%d\n", entry.SQL, entry.Type, entry.RootPage)
+	}
+	mod2, args2, ok2 := vtabModuleFromSQL(entry.SQL)
+	if !ok2 {
+		return nil, nil, entry, ctx, nil
+	}
+	m3, found := e.vtabs.Find(mod2)
+	if !found {
+		return nil, nil, entry, ctx, fmt.Errorf("no such module: %s", mod2)
+	}
+	return m3, args2, entry, ctx, nil
+}
+
+// updaterColumnDefs builds name-only column defs (HIDDEN flags applied) of
+// an updater instance; an error means the instance declares no columns.
+func updaterColumnDefs(vt vtab.VirtualTable) ([]sql.ColumnDef, error) {
 	ci, ok := vt.(vtab.ColumnInfo)
 	if !ok {
-		return nil, nil, true, fmt.Errorf("virtual table %s has no columns", name)
+		return nil, fmt.Errorf("virtual table has no columns")
 	}
 	defs := make([]sql.ColumnDef, 0)
 	for _, c := range ci.Columns() {
 		defs = append(defs, sql.ColumnDef{Name: c})
 	}
+	applyHiddenColumnFlags(vt, defs)
+	return defs, nil
+}
+
+// applyHiddenColumnFlags copies an instance's HIDDEN column flags onto defs.
+func applyHiddenColumnFlags(vt vtab.VirtualTable, defs []sql.ColumnDef) {
 	if hc, ok := vt.(vtab.HiddenColumnInfo); ok {
 		hidden := hc.HiddenColumns()
 		for i := range defs {
 			defs[i].Hidden = hidden[i]
 		}
 	}
-	return vt, defs, true, nil
 }
 
 // DirectOnlyVTab reports whether name resolves to an eponymous module
@@ -182,11 +210,11 @@ func (e *Engine) MaterializeCreatedVTab(name string, opts execquery.VtabScanOpti
 		return nil, nil, nil, nil, false
 	}
 	modName, modArgs, isVtab, skip := createdVTabModuleKind(e, entry, name)
-	if skip {
-		return nil, nil, nil, nil, false
-	}
 	if debugClosure {
 		fmt.Fprintf(os.Stderr, "MCVT name=%s mod=%q args=%q\n", name, modName, modArgs)
+	}
+	if skip {
+		return nil, nil, nil, nil, false
 	}
 	if isEchoModule(modName, modArgs) {
 		return e.materializeEchoVTabModule(entry, modName, modArgs, opts)
@@ -201,12 +229,7 @@ func (e *Engine) MaterializeCreatedVTab(name string, opts execquery.VtabScanOpti
 	// Schema-bound modules (rtree) name shadow tables after the vtab; give
 	// every scan instance the resolved db + table identity before its first
 	// read. Table-valued/eponymous modules are unaffected (binder no-op).
-	bindSchema := func(vt vtab.VirtualTable) error {
-		if sb, ok := vt.(vtab.SchemaBoundVTab); ok && entry != nil && ctx != nil {
-			return sb.BindSchema(ctx.Name, entry.Name)
-		}
-		return nil
-	}
+	bindSchema := e.createdVtabBindSchema(entry, ctx)
 	// unionvtab/swarmvtab keep per-table persistent state (the swarm source
 	// handles and maxopen LRU — unionvtab.c UnionTab) that must survive
 	// across statements. Reuse the cached instance when present so the LRU
@@ -219,14 +242,56 @@ func (e *Engine) MaterializeCreatedVTab(name string, opts execquery.VtabScanOpti
 	if rerr != nil {
 		return nil, nil, nil, rerr, true
 	}
-	vt, cerr := createVtabModule(module, modArgs, nil)
+	return createdVtabScanResult(module, modArgs, rows, rowids)
+}
+
+// createdVtabScanResult finishes a materialized created-vtab scan by
+// building the projected column definitions of a representative instance.
+// handled=false marks instances without declared columns (not a generic
+// read path); err carries instance-creation failures.
+func createdVtabScanResult(module vtab.Module, modArgs []string, rows [][]interface{}, rowids []int64) ([]sql.ColumnDef, [][]interface{}, []int64, error, bool) {
+	defs, cerr, defsOK := createdVtabDefsForScan(module, modArgs)
 	if cerr != nil {
 		return nil, nil, nil, cerr, true
 	}
-	ci, ciOK := vt.(vtab.ColumnInfo)
-	if !ciOK {
+	if !defsOK {
 		return nil, nil, nil, nil, false // no declared columns: not a generic read path
 	}
+	return defs, rows, rowids, nil, true
+}
+
+// createdVtabBindSchema returns the schema-binding callback handed to vtab
+// materializers: schema-bound modules (rtree) name shadow tables after the
+// vtab and need the resolved db + table identity; the binder is a no-op for
+// table-valued/eponymous modules and unresolvable identities.
+func (e *Engine) createdVtabBindSchema(entry *schema.Entry, ctx *DatabaseContext) func(vtab.VirtualTable) error {
+	return func(vt vtab.VirtualTable) error {
+		if sb, ok := vt.(vtab.SchemaBoundVTab); ok && entry != nil && ctx != nil {
+			return sb.BindSchema(ctx.Name, entry.Name)
+		}
+		return nil
+	}
+}
+
+// createdVtabDefsForScan builds the projected column definitions (with
+// declared types and HIDDEN flags) of a created vtab's representative
+// instance. defsOK is false for instances without declared columns (not a
+// generic read path); err carries instance-creation failures.
+func createdVtabDefsForScan(module vtab.Module, modArgs []string) (defs []sql.ColumnDef, err error, defsOK bool) {
+	vt, cerr := createVtabModule(module, modArgs, nil)
+	if cerr != nil {
+		return nil, cerr, true
+	}
+	if _, ciOK := vt.(vtab.ColumnInfo); !ciOK {
+		return nil, nil, false
+	}
+	return typedColumnDefsWithMeta(vt), nil, true
+}
+
+// typedColumnDefsWithMeta builds column defs carrying names, declared types
+// and HIDDEN flags of a representative instance.
+func typedColumnDefsWithMeta(vt vtab.VirtualTable) []sql.ColumnDef {
+	ci := vt.(vtab.ColumnInfo)
 	defs := make([]sql.ColumnDef, 0, len(ci.Columns()))
 	for _, c := range ci.Columns() {
 		defs = append(defs, sql.ColumnDef{Name: c})
@@ -239,13 +304,8 @@ func (e *Engine) MaterializeCreatedVTab(name string, opts execquery.VtabScanOpti
 			}
 		}
 	}
-	if hc, ok := vt.(vtab.HiddenColumnInfo); ok {
-		hidden := hc.HiddenColumns()
-		for i := range defs {
-			defs[i].Hidden = hidden[i]
-		}
-	}
-	return defs, rows, rowids, nil, true
+	applyHiddenColumnFlags(vt, defs)
+	return defs
 }
 
 // debugClosure toggles verbose tracing of created-vtab materialization.
@@ -290,13 +350,7 @@ func firstIndexColumn(indexSQL, _ string) string {
 // materialization path: FTS/fts5 keep their dedicated scan paths.
 func createdVTabModuleKind(e *Engine, entry *schema.Entry, name string) (modName string, modArgs []string, isVtab bool, skip bool) {
 	modName, modArgs, isVtab = vtabModuleFromSQL(entry.SQL)
-	if _, isFTS := e.ftsTables[entry.Name]; isFTS {
-		return modName, modArgs, isVtab, true
-	}
-	if _, isFTS5 := e.fts5Tables[entry.Name]; isFTS5 {
-		return modName, modArgs, isVtab, true
-	}
-	return modName, modArgs, isVtab, false
+	return modName, modArgs, isVtab, e.createdVtabScanBlocked(entry)
 }
 
 // materializeEchoVTabModule runs the echo module's scan-time observable
@@ -417,6 +471,14 @@ func (e *Engine) materializeEchoVTab(entry *schema.Entry, srcArg string) ([]sql.
 	if cerr != nil {
 		return nil, nil, nil, cerr, true
 	}
+	rows, rowids := scanBTreeRecords(cursor)
+	return defs, rows, rowids, nil, true
+}
+
+// scanBTreeRecords reads every remaining record of an open cursor,
+// collecting row values and rowids; decoding or stepping failures stop the
+// scan (the rows read so far are kept).
+func scanBTreeRecords(cursor *btree.Cursor) ([][]interface{}, []int64) {
 	var rows [][]interface{}
 	var rowids []int64
 	for {
@@ -434,7 +496,7 @@ func (e *Engine) materializeEchoVTab(entry *schema.Entry, srcArg string) ([]sql.
 			break
 		}
 	}
-	return defs, rows, rowids, nil, true
+	return rows, rowids
 }
 
 // MaterializeCreatedVTabFunc materializes the table-valued form of a CREATED
@@ -447,11 +509,8 @@ func (e *Engine) MaterializeCreatedVTabFunc(ref sql.TableRef, opts execquery.Vta
 	if err != nil || entry == nil || entry.RootPage != 0 {
 		return nil, nil, nil, nil, false
 	}
-	if _, isFTS := e.ftsTables[entry.Name]; isFTS {
-		return nil, nil, nil, nil, false // FTS keeps its dedicated scan path
-	}
-	if _, isFTS5 := e.fts5Tables[entry.Name]; isFTS5 {
-		return nil, nil, nil, nil, false // fts5 has its own TVF path
+	if e.createdVtabScanBlocked(entry) {
+		return nil, nil, nil, nil, false // FTS/fts5 keep their dedicated TVF paths
 	}
 	modName, modArgs, isVtab := vtabModuleFromSQL(entry.SQL)
 	if !isVtab {
@@ -472,7 +531,18 @@ func (e *Engine) MaterializeCreatedVTabFunc(ref sql.TableRef, opts execquery.Vta
 	if len(ref.Args) > 0 && len(hidden) == 0 {
 		return nil, nil, nil, nil, false
 	}
-	for i, argExpr := range ref.Args {
+	opts.Where = tvfBindArgs(opts.Where, ref.Args, hidden)
+	rows, rowids, rerr := e.materializeVtabModule(module, modArgs, nil, opts, e.createdVtabBindSchema(entry, ctx))
+	if rerr != nil {
+		return nil, nil, nil, rerr, true
+	}
+	return createdVtabColumnDefs(module, modArgs), rows, rowids, nil, true
+}
+
+// tvfBindArgs ANDs the FROM-arguments onto the scan's WHERE as equality
+// constraints against the leftmost HIDDEN columns (SQLite's vtab TVF form).
+func tvfBindArgs(where sql.Expr, args []sql.Expr, hidden []string) sql.Expr {
+	for i, argExpr := range args {
 		if i >= len(hidden) {
 			break
 		}
@@ -481,18 +551,9 @@ func (e *Engine) MaterializeCreatedVTabFunc(ref sql.TableRef, opts execquery.Vta
 			Operator: "=",
 			Right:    argExpr,
 		}
-		opts.Where = andExpr(opts.Where, conj)
+		where = andExpr(where, conj)
 	}
-	rows, rowids, rerr := e.materializeVtabModule(module, modArgs, nil, opts, func(vt vtab.VirtualTable) error {
-		if sb, ok := vt.(vtab.SchemaBoundVTab); ok && entry != nil && ctx != nil {
-			return sb.BindSchema(ctx.Name, entry.Name)
-		}
-		return nil
-	})
-	if rerr != nil {
-		return nil, nil, nil, rerr, true
-	}
-	return createdVtabColumnDefs(module, modArgs), rows, rowids, nil, true
+	return where
 }
 
 // tvfHiddenColumns lists the leftmost-hidden-column names of an instance in
@@ -530,29 +591,10 @@ func createdVtabColumnDefs(module vtab.Module, modArgs []string) []sql.ColumnDef
 	if err != nil {
 		return nil
 	}
-	ci, ok := vt.(vtab.ColumnInfo)
-	if !ok {
+	if _, ok := vt.(vtab.ColumnInfo); !ok {
 		return nil
 	}
-	defs := make([]sql.ColumnDef, 0, len(ci.Columns()))
-	for _, c := range ci.Columns() {
-		defs = append(defs, sql.ColumnDef{Name: c})
-	}
-	if ct, ok := vt.(vtab.ColumnTypeInfo); ok {
-		types := ct.ColumnTypes()
-		for i := range defs {
-			if i < len(types) && types[i] != "" {
-				defs[i].Type = types[i]
-			}
-		}
-	}
-	if hc, ok := vt.(vtab.HiddenColumnInfo); ok {
-		hidden := hc.HiddenColumns()
-		for i := range defs {
-			defs[i].Hidden = hidden[i]
-		}
-	}
-	return defs
+	return typedColumnDefsWithMeta(vt)
 }
 
 // VtabPlanInstance resolves a created virtual table (CREATE VIRTUAL TABLE
@@ -569,11 +611,8 @@ func (e *Engine) VtabPlanInstance(name string) (vtab.VirtualTable, []string, boo
 	if err != nil || entry == nil || entry.RootPage != 0 {
 		return nil, nil, false
 	}
-	if _, isFTS := e.ftsTables[entry.Name]; isFTS {
-		return nil, nil, false // FTS keeps its dedicated scan path
-	}
-	if _, isFTS5 := e.fts5Tables[entry.Name]; isFTS5 {
-		return nil, nil, false // fts5 keeps its dedicated scan path
+	if e.createdVtabScanBlocked(entry) {
+		return nil, nil, false // FTS/fts5 keep their dedicated scan paths
 	}
 	modName, modArgs, isVtab := vtabModuleFromSQL(entry.SQL)
 	if !isVtab {
@@ -602,6 +641,16 @@ func (e *Engine) VtabPlanInstance(name string) (vtab.VirtualTable, []string, boo
 	return vt, ci.Columns(), true
 }
 
+// createdVtabScanBlocked reports whether a rootpage-0 schema entry keeps its
+// dedicated scan path (FTS or fts5) instead of generic vtab materialization.
+func (e *Engine) createdVtabScanBlocked(entry *schema.Entry) bool {
+	if _, isFTS := e.ftsTables[entry.Name]; isFTS {
+		return true
+	}
+	_, isFTS5 := e.fts5Tables[entry.Name]
+	return isFTS5
+}
+
 // vtabModuleFromSQL extracts the module name and arguments from a stored
 // "CREATE VIRTUAL TABLE ... USING module(args)" statement.
 func vtabModuleFromSQL(sqlStr string) (module string, args []string, ok bool) {
@@ -616,6 +665,13 @@ func vtabModuleFromSQL(sqlStr string) (module string, args []string, ok bool) {
 		return strings.ToLower(strings.TrimSuffix(rest, ";")), nil, rest != ""
 	}
 	module = strings.ToLower(strings.TrimSpace(rest[:end]))
+	return module, vtabModuleArgs(rest, end, module), true
+}
+
+// vtabModuleArgs extracts the module argument list starting the scan at the
+// first character after the module name. nil means the statement has no
+// argument list (trailing junk, bare module name, or an unterminated '(').
+func vtabModuleArgs(rest string, end int, module string) []string {
 	// Allow whitespace between module name and '(' ("USING rtree (...)").
 	j := end
 	for j < len(rest) && (rest[j] == ' ' || rest[j] == '\t' || rest[j] == '\n' || rest[j] == '\r') {
@@ -623,17 +679,16 @@ func vtabModuleFromSQL(sqlStr string) (module string, args []string, ok bool) {
 	}
 	if j >= len(rest) || (rest[j] != '(' && strings.ContainsAny(module, " \t\n")) {
 		// Trailing junk without an argument list.
-		return module, nil, true
+		return nil
 	}
 	if rest[j] != '(' {
-		return module, nil, true
+		return nil
 	}
 	close := strings.LastIndex(rest, ")")
 	if close < 0 {
-		return module, nil, true
+		return nil
 	}
-	args = vtab.SplitModuleArgs(rest[j+1 : close])
-	return module, args, true
+	return vtab.SplitModuleArgs(rest[j+1 : close])
 }
 
 // WithoutRowidVTab reports whether the named created virtual table's stored
@@ -691,31 +746,11 @@ func (s closureEdgeSource) ClosureEdges(table, idCol, parentCol string) ([][2]in
 	// up front (closure01 4.1/4.2: "no such column: t2.xyz" / "t2.pqr").
 	// Malformed values (e.g. "'abc'x") fall through to natural evaluation.
 	for _, col := range []string{idCol, parentCol} {
-		clean := len(col) > 0
-		for i := 0; i < len(col); i++ {
-			c := col[i]
-			if !(c == '_' || c >= 'a' && c <= 'z' || c >= 'A' && c <= 'Z' || i > 0 && c >= '0' && c <= '9') {
-				clean = false
-				break
-			}
-		}
-		if !clean {
+		if !closureCleanIdent(col) {
 			continue
 		}
-		entry, _, terr := s.e.findTable(table)
-		if terr != nil || entry == nil {
-			return nil, fmt.Errorf("no such table: %s", table)
-		}
-		colDefs := s.e.parseColumnDefs(entry.Name, entry.SQL)
-		found := false
-		for _, cd := range colDefs {
-			if strings.EqualFold(cd.Name, col) {
-				found = true
-				break
-			}
-		}
-		if !found {
-			return nil, fmt.Errorf("no such column: %s.%s", table, col)
+		if err := closureColumnExists(s.e, table, col); err != nil {
+			return nil, err
 		}
 	}
 	q := fmt.Sprintf("SELECT %q, %q FROM %q", idCol, parentCol, table)
@@ -728,23 +763,68 @@ func (s closureEdgeSource) ClosureEdges(table, idCol, parentCol string) ([][2]in
 	}
 	res := s.e.Exec(stmts[0])
 	if res.Error != nil {
-		if strings.Contains(res.Error.Error(), "no such column") {
-			// Qualify the failing configured column with the base table
-			// (closure01 4.2/4.3: "no such column: t2.xyz" / "t2.pqr").
-			if strings.Contains(res.Error.Error(), idCol) {
-				return nil, fmt.Errorf("no such column: %s.%s", table, idCol)
-			}
-			if strings.Contains(res.Error.Error(), parentCol) {
-				return nil, fmt.Errorf("no such column: %s.%s", table, parentCol)
-			}
-		}
-		return nil, res.Error
+		return nil, closureQualifyNoSuchColumn(res.Error, table, idCol, parentCol)
 	}
 	if debugClosure {
 		fmt.Fprintf(os.Stderr, "CE rows=%d first=%T %#v\n", len(res.Rows), rowType(res.Rows), rowFirst(res.Rows))
 	}
-	out := make([][2]int64, 0, len(res.Rows))
-	for _, row := range res.Rows {
+	return closureRowsFrom(res.Rows)
+}
+
+// closureCleanIdent reports whether col is a clean SQL identifier (letters,
+// underscores, and — not in first position — digits). Malformed configured
+// values fall through to natural evaluation.
+func closureCleanIdent(col string) bool {
+	if len(col) == 0 {
+		return false
+	}
+	for i := 0; i < len(col); i++ {
+		c := col[i]
+		if !(c == '_' || c >= 'a' && c <= 'z' || c >= 'A' && c <= 'Z' || i > 0 && c >= '0' && c <= '9') {
+			return false
+		}
+	}
+	return true
+}
+
+// closureColumnExists verifies one configured column is declared by the base
+// table ("no such table: T" / "no such column: T.C").
+func closureColumnExists(e *Engine, table, col string) error {
+	entry, _, terr := e.findTable(table)
+	if terr != nil || entry == nil {
+		return fmt.Errorf("no such table: %s", table)
+	}
+	colDefs := e.parseColumnDefs(entry.Name, entry.SQL)
+	for _, cd := range colDefs {
+		if strings.EqualFold(cd.Name, col) {
+			return nil
+		}
+	}
+	return fmt.Errorf("no such column: %s.%s", table, col)
+}
+
+// closureQualifyNoSuchColumn rewrites a raw "no such column" failure,
+// qualifying the failing configured column with the base table (closure01
+// 4.2/4.3: "no such column: t2.xyz" / "t2.pqr").
+func closureQualifyNoSuchColumn(err error, table, idCol, parentCol string) error {
+	if strings.Contains(err.Error(), "no such column") {
+		// Qualify the failing configured column with the base table
+		// (closure01 4.2/4.3: "no such column: t2.xyz" / "t2.pqr").
+		if strings.Contains(err.Error(), idCol) {
+			return fmt.Errorf("no such column: %s.%s", table, idCol)
+		}
+		if strings.Contains(err.Error(), parentCol) {
+			return fmt.Errorf("no such column: %s.%s", table, parentCol)
+		}
+	}
+	return err
+}
+
+// closureRowsFrom converts the internal SELECT's rows to (id, parent) edge
+// pairs, skipping rows whose cells do not convert to integers.
+func closureRowsFrom(rows [][]interface{}) ([][2]int64, error) {
+	out := make([][2]int64, 0, len(rows))
+	for _, row := range rows {
 		if len(row) < 2 {
 			continue
 		}
