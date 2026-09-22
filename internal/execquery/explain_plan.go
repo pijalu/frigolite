@@ -627,10 +627,13 @@ func (e *SelectEngine) planWhereSubqueries(expr sql.Expr, outer *sql.SelectStmt,
 		return
 	}
 	if ex, ok := expr.(*sql.ExistsExpr); ok {
-		// A correlated EXISTS stays a subquery node (SQLite reports
-		// "CORRELATED SCALAR SUBQUERY n"); only a non-correlated flat EXISTS
-		// may become an EXISTS join loop.
-		if !e.subqueryReferencesOuter(ex.Select, outer) {
+		// SQLite's existsToJoin transforms ANY top-level EXISTS conjunct
+		// meeting the structural conditions into a CROSS join of the inner
+		// table with the subquery's WHERE ANDed into the outer query —
+		// correlated or not (existsexpr-1.3.x: the plan shows
+		// "SEARCH x1 EXISTS ..." with no SUBQUERY line). NOT EXISTS is not a
+		// bare TK_EXISTS conjunct and stays a subquery.
+		if !ex.Negated {
 			if exNodes, ok2 := e.existsJoinNode(ex.Select, sel); ok2 {
 				*nodes = append(*nodes, exNodes...)
 				return // pruned: rendered as an EXISTS loop, no SUBQUERY node
@@ -652,7 +655,7 @@ func (e *SelectEngine) existsJoinNode(sub *sql.SelectStmt, s *sql.SelectStmt) ([
 	if sub == nil || sub.From.Name == "" || sub.From.Subquery != nil || len(sub.Joins) > 0 {
 		return nil, false
 	}
-	if sub.Union != nil || sub.Limit != nil || e.hasAggregate(sub) {
+	if sub.Union != nil || sub.Limit != nil || sub.GroupBy != nil || e.hasAggregate(sub) {
 		return nil, false
 	}
 	tableName := sub.From.Name
@@ -665,7 +668,10 @@ func (e *SelectEngine) existsJoinNode(sub *sql.SelectStmt, s *sql.SelectStmt) ([
 	}
 	idx := e.findIndexOnColumn(tableName, col, sub.Where)
 	if idx == "" {
-		return []planNode{{detail: "SCAN " + tableName + " EXISTS"}}, true
+		// Without a real index SQLite builds an automatic partial covering
+		// index on the join key for the EXISTS probe (existsexpr-1.3.2
+		// "SEARCH x1 EXISTS USING AUTOMATIC PARTIAL COVERING INDEX (b=?);").
+		return []planNode{{detail: fmt.Sprintf("SEARCH %s EXISTS USING AUTOMATIC PARTIAL COVERING INDEX (%s=?)", tableName, col)}}, true
 	}
 	using := e.indexUsingLabel(tableName, idx, s)
 	return []planNode{{detail: fmt.Sprintf("SEARCH %s EXISTS USING %s (%s=?)", tableName, using, col)}}, true
