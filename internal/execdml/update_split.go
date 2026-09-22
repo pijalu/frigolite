@@ -253,6 +253,14 @@ func (e *DMLExecutor) runUpdatePipeline(s *sql.UpdateStmt, tableEntry *schema.En
 	// skipping the row (IGNORE) — notnull-2.6..2.9.
 	changes, pres := e.preCheckUpdate(s, tableEntry, colDefs, changes)
 	if pres.Error != nil {
+		// ON CONFLICT FAIL keeps the rows updated before the violation
+		// (SQLite's per-row loop writes incrementally — check-6.5/6.6
+		// "UPDATE OR FAIL t1 SET x=7-x" keeps the first row's change).
+		if pres.KeepPriorRowsOnError() && len(changes) > 0 {
+			if ares := e.dispatchUpdate(s, tableEntry, colDefs, changes); ares.Error != nil {
+				return ares
+			}
+		}
 		return pres
 	}
 
@@ -445,6 +453,13 @@ func (e *DMLExecutor) resolveUpdateNotNullConflicts(s *sql.UpdateStmt, tableEntr
 	for _, ch := range changes {
 		r := e.resolveChangeNotNullConflicts(ch, tableEntry, colDefs, withoutRowid, pkCols, stmtClause)
 		if r.res != nil {
+			// ON CONFLICT FAIL: the changes validated before the violation
+			// were already written in SQLite's per-row loop and survive the
+			// failed statement (check-6.5/6.6).
+			if stmtClause == "FAIL" && len(kept) > 0 {
+				r.res.SetKeepPriorRowsOnError()
+				return kept, r.res
+			}
 			return changes, r.res
 		}
 		if r.drop {

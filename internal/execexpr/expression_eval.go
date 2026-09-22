@@ -77,9 +77,38 @@ func (ev *Evaluator) evalInListScalarItem(v *sql.InList, item sql.Expr, row Row,
 	if opIsRow && ivIsRow {
 		equal = ev.inListRowEqual(opRow, ivRow)
 	} else {
+		// SQLite applies the LEFT operand's affinity to each list item
+		// (expr.c sqlite3CodeSubselect: affinity = sqlite3ExprAffinity(pLeft)
+		// coded as OP_Affinity on the RHS record) — in4-4.17 "a IN (b)" with
+		// a TEXT-typed a coerces the item b (1) to '1', which no longer
+		// matches '1.0'.
+		if ctype := ev.inListLHSColumnType(v.Operand); ctype != "" {
+			ival = util.ApplyColumnAffinity(util.UnwrapColumnValue(ival), ctype)
+		}
 		equal = ev.inListScalarEqual(operand, ival)
 	}
 	return equal, false, nil
+}
+
+// inListLHSColumnType resolves the LEFT operand's declared column type for an
+// IN expression list. Only an unqualified column reference of the current
+// scan table resolves; anything else has no affinity to apply.
+func (ev *Evaluator) inListLHSColumnType(lhs sql.Expr) string {
+	ref, ok := lhs.(*sql.ColumnRef)
+	if !ok || ref.Table != "" {
+		return ""
+	}
+	scanTable := ev.ctx.CurrentScanTable()
+	if scanTable == "" {
+		return ""
+	}
+	defs := ev.ctx.FromSourceColumnDefs(sql.TableRef{Name: scanTable}, nil)
+	for _, cd := range defs {
+		if strings.EqualFold(cd.Name, ref.Name) {
+			return cd.Type
+		}
+	}
+	return ""
 }
 
 func addValues(a, b interface{}) (interface{}, error) {
