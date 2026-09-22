@@ -398,6 +398,13 @@ type txState struct {
 	// executing when the schema changed out from under it fails).
 	execDepth       int
 	rollbackAborted bool
+	// nestedRollback is set when a NESTED statement's failure rolled back
+	// the whole transaction (an OR-ROLLBACK conflict inside a trigger body).
+	// The enclosing statement's own pager snapshots are then stale — they
+	// were taken after BEGIN and restoring them would resurrect rows the
+	// transaction rollback already undid — so its failure path must skip the
+	// statement-snapshot restore. Cleared at every outermost statement start.
+	nestedRollback bool
 	// txSchemaChanged is set when DDL runs inside a transaction; a nested
 	// ROLLBACK that undoes schema changes (misc8-1.7's CREATE TABLE inside
 	// BEGIN) aborts the enclosing statement.

@@ -420,7 +420,7 @@ func (e *SelectEngine) finalizeSelectResult(result *Result, s *sql.SelectStmt, r
 		if rerr != nil {
 			return &Result{Error: rerr}
 		}
-		if serr := e.sortRowsWithMaps(result, resolved, rowMaps); serr != nil {
+		if serr := e.sortRowsWithMaps(result, resolved, rowMaps, s); serr != nil {
 			return &Result{Error: serr}
 		}
 	}
@@ -658,7 +658,7 @@ func (e *SelectEngine) execSelectNoFrom(s *sql.SelectStmt) *Result {
 	result = e.applyNoFromWindowPass(result, s, columns)
 	if len(s.OrderBy) > 0 {
 		rowMaps := e.buildNoFromRowMaps(result.Rows, columns)
-		if serr := e.sortRowsWithMaps(result, s.OrderBy, rowMaps); serr != nil {
+		if serr := e.sortRowsWithMaps(result, s.OrderBy, rowMaps, s); serr != nil {
 			return &Result{Error: serr}
 		}
 	}
@@ -759,7 +759,7 @@ func (e *SelectEngine) sortNoFromCompound(result *Result, s *sql.SelectStmt, ord
 		}
 	}
 	rowMaps := e.buildNoFromRowMaps(result.Rows, result.Columns)
-	if serr := e.sortRowsWithMaps(result, orderBy, rowMaps); serr != nil {
+	if serr := e.sortRowsWithMaps(result, orderBy, rowMaps, s); serr != nil {
 		result.Error = serr
 		return serr
 	}

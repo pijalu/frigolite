@@ -87,21 +87,55 @@ func (ev *Evaluator) evalSQLFunc(args []interface{}) (interface{}, error) {
 }
 
 // evalScalarMinMax evaluates scalar MIN()/MAX() with two or more arguments:
-// NULL propagates (unlike the aggregate forms, which ignore NULLs).
-func evalScalarMinMax(upper string, args []interface{}) interface{} {
+// NULL propagates (unlike the aggregate forms, which ignore NULLs). String
+// comparisons use the function's collating sequence — the FIRST (leftmost)
+// argument that yields one, mirroring expr.c's SQLITE_FUNC_NEEDCOLL argument
+// scan feeding OP_CollSeq (collate4-4.9/4.10: max(b,a) with b COLLATE NUMERIC
+// compares numerically even though a COLLATE TEXT follows it).
+func (ev *Evaluator) evalScalarMinMax(upper string, f *sql.FuncCall, args []interface{}) interface{} {
 	for _, a := range args {
 		if a == nil {
 			return nil
 		}
 	}
+	collation := minMaxFuncCollation(f, args)
 	best := args[0]
 	for _, a := range args[1:] {
-		if (upper == "MIN" && util.CompareValues(a, best) < 0) ||
-			(upper == "MAX" && util.CompareValues(a, best) > 0) {
+		var c int
+		if collation != "" {
+			c = ev.ctx.CompareValuesCollate(
+				util.UnwrapColumnValue(unwrapCollatedValue(a)),
+				util.UnwrapColumnValue(unwrapCollatedValue(best)),
+				collation)
+		} else {
+			c = util.CompareValues(a, best)
+		}
+		if (upper == "MIN" && c < 0) || (upper == "MAX" && c > 0) {
 			best = a
 		}
 	}
-	return best
+	// The result is a plain function value: strip the collation marker the
+	// argument evaluation kept for collation resolution.
+	return unwrapCollatedValue(best)
+}
+
+// minMaxFuncCollation resolves the collating sequence for a scalar MIN()/MAX()
+// call: walking the argument list left to right, the first argument with a
+// defined collation wins — an explicit COLLATE operator (compile-time,
+// sqlite3ExprCollSeq) or a column reference's declared collation (runtime,
+// carried on the evaluated value as a CollatedValue marker).
+func minMaxFuncCollation(f *sql.FuncCall, args []interface{}) string {
+	for i, arg := range f.Args {
+		if c, _ := exprCollation(arg); c != "" {
+			return c
+		}
+		if i < len(args) {
+			if _, c := extractValue(args[i]); c != "" {
+				return c
+			}
+		}
+	}
+	return ""
 }
 
 func (ev *Evaluator) evalBetween(v *sql.Between, row Row) (interface{}, error) {

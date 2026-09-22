@@ -4,6 +4,63 @@
 - P6.VTAB zipfile: statement-level OR conflict handling must be delegated to module xUpdate semantics when uniqueness key is non-rowid. Added optional ConflictAwareUpdater path in execdml; zipfile UpdateRowConflict handles IGNORE/REPLACE against name collisions. Generic delete/retry cannot identify zipfile name-keyed conflicts.
 # Lessons Learned — Frigolite
 
+## T29-execqfix — FULL-SUITE-DRIFT census regression triage (2026-09-22, branch fleet/execq-fix)
+
+- **A census "flip point" merge can be green at BOTH parents and at the merge
+  itself — bisect the whole range, not the blamed branch.** The coordinator's
+  bisect blamed the execq merge (a15a5045b) for ~100 flipped testgen packages;
+  running the 4-package test at a15a5045b, its execq parent (ebcc805a2), AND
+  the other parent (160a24e25) showed all GREEN. The real first-bad commit was
+  3fcb5cea4 (a testgen REGENERATION): the old emitter never emitted got/want
+  checks for many assertions, so latent engine gaps were invisible until the
+  regenerated tests activated them. When a "regression" survives at every
+  blamed commit, suspect the test side (regeneration/activation), not the
+  engine refactor.
+- **Five latent engine gaps behind the 4 confirmed red packages, each fixed
+  C-faithfully (sqlite3 source paths in comments):**
+  1. HAVING on a no-GROUP-BY aggregate over zero rows: the empty group is
+     still one group; HAVING filters it (select_agg.go evalAggregatesEmpty +
+     select_agg_walk.go applyEmptyGroupHaving; evalHavingDefault now evaluates
+     literals against an empty RowMap instead of returning NULL, and
+     evalHavingSubquery no longer indexes groupRows[0] on an empty group).
+  2. Scalar min/max(x,y) argument collation: expr.c's SQLITE_FUNC_NEEDCOLL arg
+     scan — leftmost arg with a collation wins (explicit COLLATE compile-time,
+     column-declared at runtime via CollatedValue markers kept on min/max args
+     only; execexpr keepCollatedArgs/evalScalarMinMax/minMaxFuncCollation).
+  3. ORDER BY satisfied by an index must tie-break by rowid, DESCENDING for an
+     all-DESC (reverse) scan (select_colnames.go orderByIndexRowidTie /
+     rowidTie.ordersRowsBefore, mirroring orderByIndexPlan's predicate).
+  4. Trigger-body ON CONFLICT override: trigger.c codeTriggerProgram
+     `pParse->eOrconf = (orconf==OE_Default) ? pStep->orconf : orconf` — the
+     outer clause replaces the step's clause OUTRIGHT (an earlier "strict outer
+     wins" over-fit broke OR REPLACE; INSERT flags must be rewritten as the
+     parser would: OrConflict/IsReplace/OrIgnore/OrFail).
+  5. CTAS into an attached db: execCreateTableAsSelect resolved the just-
+     created table via the ENGINE-WIDE FindTable (main first) → rows landed in
+     a same-named main table, derived SQL persisted onto the wrong entry, and
+     the rowid cache (keyed by the resolved pager) gave every row the same
+     rowid. Fix: resolve via ctx.Schema.FindTable (target schema), bind
+     SetCurrentDMLCtx(dbCtx) around the insert loop, and store the UNQUALIFIED
+     table name in the schema SQL (persistCTASSQL).
+- **OR ROLLBACK from a nested statement invalidates the OUTER statement's
+  pager snapshots.** After the nested full rollback restores the BEGIN state,
+  the outer statement's failure path restoring its own snapshots (taken after
+  BEGIN) resurrects in-transaction rows (trigger2-6.1h/6.2h). Fix:
+  e.tx.nestedRollback set by execRollback when execDepth>1, cleared at
+  outermost statement start, consulted in undoFailedDML to skip the stale
+  restore.
+- **CREATE VIEW stores the UNQUALIFIED name in every schema** (attach3-6.x):
+  buildViewSQL stripped main/temp prefixes only; attached-db prefixes must be
+  stripped too (SQLite sqlite3EndTable re-renders the name unqualified).
+- Adjudicated still-red after the fix (failure counts identical to
+  c69cad573 baseline; separate latent gaps, NOT caused by this fix): bind(2),
+  expr(1), in4(1), interrupt(2), journal2(3), jrnlmode(7), lock(4),
+  minmax3(10), sort5(7), index(7 — WHERE-driven index scans must emit rows in
+  full index-key order, NULLs first), limit(compound LIMIT/OFFSET emission
+  order over CTAS-created tables). without_rowid4 IMPROVED 6→4.
+
+
+
 ## §5d.exec4b — internal/exec closure sweep (2026-09-22, branch q5-exec4b)
 
 - **A verified sibling-branch commit can be adopted wholesale by cherry-pick when

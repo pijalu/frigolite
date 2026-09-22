@@ -688,11 +688,8 @@ func (e *SelectEngine) evalAggregatesEmpty(s *sql.SelectStmt, colDefs []sql.Colu
 			e.appendEmptyStarCols(&outRow, ref, colDefs)
 			continue
 		}
-		if fn, ok := col.Expr.(*sql.FuncCall); ok {
-			if f, found := e.ctx.Functions().Find(fn.Name); found && f.Type == function.TypeAggregate {
-				outRow = append(outRow, e.emptyAggValue(f))
-				continue
-			}
+		if appended := e.appendEmptyAggValue(col.Expr, &outRow); appended {
+			continue
 		}
 		v, err := e.ctx.EvalExpr(col.Expr, emptyRow)
 		if err != nil {
@@ -702,6 +699,13 @@ func (e *SelectEngine) evalAggregatesEmpty(s *sql.SelectStmt, colDefs []sql.Colu
 		}
 	}
 	if outRow != nil {
+		// A HAVING clause without GROUP BY still applies to the single
+		// (empty) group an aggregate query over zero rows forms — count-2.9a:
+		// "SELECT count(*) FROM t2 HAVING count(*)>1" emits no row because
+		// the empty-input aggregate (count(*)=0) fails the predicate.
+		if res := e.applyEmptyGroupHaving(s, columns); res != nil {
+			return res
+		}
 		// Route through finalizeSelectResult so a compound (UNION/INTERSECT/
 		// EXCEPT) head with an empty row set still merges its members (e.g.
 		// "SELECT count(*) FROM t1 WHERE 0 UNION ALL SELECT count(*) FROM

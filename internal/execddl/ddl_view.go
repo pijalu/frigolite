@@ -231,11 +231,12 @@ func resolveViewContext(e *DDLExecutor, s *sql.CreateViewStmt) (*DatabaseContext
 func buildViewSQL(s *sql.CreateViewStmt, viewName, colsClause string) string {
 	if s.RawSQL != "" {
 		sqlStr := s.RawSQL
+		// SQLite stores every view's SQL in its own schema's sqlite_schema
+		// with the UNQUALIFIED name ("CREATE VIEW v1 AS ..." in aux's
+		// schema for "CREATE VIEW aux.v1" — attach3-6.x), so strip any
+		// schema prefix, not just main/temp.
 		if dotIdx := strings.Index(s.Name, "."); dotIdx >= 0 {
-			prefix := strings.ToUpper(s.Name[:dotIdx])
-			if prefix == "MAIN" || prefix == "TEMP" || prefix == "TEMPORARY" {
-				sqlStr = stripViewSchemaPrefix(s.RawSQL, s.Name[:dotIdx])
-			}
+			sqlStr = stripViewSchemaPrefix(sqlStr, s.Name[:dotIdx])
 		}
 		return sqlStr
 	}

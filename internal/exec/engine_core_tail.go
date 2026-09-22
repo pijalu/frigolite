@@ -428,7 +428,11 @@ func (e *Engine) undoFailedDML(res *Result, snaps []pagerSnap, isOrRollback, isI
 		// execRollback restores the BEGIN snapshots, closes the transaction,
 		// and invalidates caches.
 		e.execRollback()
-	} else {
+	} else if !e.tx.nestedRollback {
+		// A NESTED statement (trigger body OR ROLLBACK, eval()) already
+		// rolled back the whole transaction: this statement's snapshots
+		// predate that rollback, so restoring them would resurrect rows the
+		// transaction rollback undid — skip the restore.
 		e.restoreAllPagers(snaps)
 		e.restoreAllFTS()
 	}

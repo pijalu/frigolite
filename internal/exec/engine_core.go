@@ -796,6 +796,9 @@ func (e *Engine) Exec(stmt sql.Stmt) *Result {
 	// then propagates to the outer statement's restore.
 	isDML := e.isDMLStmt(stmt)
 	snaps := e.execSnapshotDML(stmt, isDML)
+	// A nested-rollback flag from a PREVIOUS statement must not suppress this
+	// statement's own failure-path restore.
+	e.tx.nestedRollback = false
 
 	// Push DML WITH (CTE) definitions before preflight validation so
 	// subqueries inside SET/WHERE can resolve the CTE by name. The CTE

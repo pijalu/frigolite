@@ -112,6 +112,8 @@ type DDLContext interface {
 
 	// DML delegation (index population, sqlite_schema writes).
 	InsertRow(pg *pager.Pager, tableEntry *schema.Entry, colDefs []sql.ColumnDef, values []interface{}, fixedRowID *int64, orConflict string) *Result
+	CurrentDMLCtx() *DatabaseContext
+	SetCurrentDMLCtx(ctx *DatabaseContext)
 	CheckConstraintText(createSQL, colName string, check sql.Expr) string
 
 	// Table access.

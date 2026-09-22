@@ -533,7 +533,7 @@ func ordinalSuffix(n int) string {
 // expressions are evaluated once per row up front (their values are stored in
 // the row maps under the rendered-expression key, which compareOrderByFallback
 // reuses).
-func (e *SelectEngine) sortRowsWithMaps(result *Result, orderBy []sql.OrderByTerm, rowMaps []RowMap) error {
+func (e *SelectEngine) sortRowsWithMaps(result *Result, orderBy []sql.OrderByTerm, rowMaps []RowMap, s *sql.SelectStmt) error {
 	n := len(rowMaps)
 	if n <= 1 {
 		return nil
@@ -556,13 +556,26 @@ func (e *SelectEngine) sortRowsWithMaps(result *Result, orderBy []sql.OrderByTer
 	if err := e.preEvalOrderByTerms(result, orderBy, rowMaps, n); err != nil {
 		return err
 	}
+	// When SQLite satisfies the ORDER BY with an index scan (no temp b-tree
+	// sort), rows with equal sort keys emerge in the index entry order —
+	// the keys followed by the implicit rowid, DESCENDING for a reverse
+	// (all-DESC) scan (memdb-6.6: ORDER BY c DESC over i2(c) ties in
+	// descending rowid). A temp-b-tree sort has no defined tie order, so
+	// without the index the stable scan order is kept.
+	tie := e.orderByIndexRowidTie(s, orderBy)
 	// Sort indices, then reorder both slices in-place
 	indices := make([]int, n)
 	for i := range indices {
 		indices[i] = i
 	}
 	sort.SliceStable(indices, func(i, j int) bool {
-		return e.lessRows(orderBy, rowMaps, result.Rows, result.Columns, indices[i], indices[j])
+		if e.lessRows(orderBy, rowMaps, result.Rows, result.Columns, indices[i], indices[j]) {
+			return true
+		}
+		if e.lessRows(orderBy, rowMaps, result.Rows, result.Columns, indices[j], indices[i]) {
+			return false
+		}
+		return tie.ordersRowsBefore(rowMaps, indices[i], indices[j])
 	})
 	newRows := make([][]interface{}, n)
 	newMaps := make([]RowMap, n)
@@ -573,6 +586,74 @@ func (e *SelectEngine) sortRowsWithMaps(result *Result, orderBy []sql.OrderByTer
 	result.Rows = newRows
 	copy(rowMaps, newMaps)
 	return nil
+}
+
+// rowidTie describes the implicit rowid tie-break of an index-satisfied
+// ORDER BY: desc is true for a reverse scan (every ORDER BY term DESC).
+type rowidTie struct {
+	desc bool
+}
+
+// ordersRowsBefore breaks a full ORDER BY tie by rowid: row i comes first
+// when its rowid is smaller (ascending scan) or larger (descending scan).
+// Rows without a rowid in the row map (CTE/view materializations) keep the
+// stable sort order.
+func (tie *rowidTie) ordersRowsBefore(rowMaps []RowMap, i, j int) bool {
+	if tie == nil {
+		return false
+	}
+	ri := lookupRowMapValue(rowMaps[i], "rowid")
+	rj := lookupRowMapValue(rowMaps[j], "rowid")
+	if ri == nil || rj == nil {
+		return false
+	}
+	c := util.CompareValues(util.UnwrapColumnValue(ri), util.UnwrapColumnValue(rj))
+	if tie.desc {
+		return c > 0
+	}
+	return c < 0
+}
+
+// orderByIndexRowidTie reports the rowid tie-break for an ORDER BY that an
+// index satisfies, or nil when the ordering needs a temp b-tree sort (no
+// defined tie order — stable scan order applies). The predicate mirrors
+// orderByIndexPlan (explain_plan.go): single-table scan, all terms bare
+// columns matching an index prefix, no WHERE constraint on non-index
+// columns, and a rowid table (WITHOUT ROWID storage has no rowid keying).
+func (e *SelectEngine) orderByIndexRowidTie(s *sql.SelectStmt, orderBy []sql.OrderByTerm) *rowidTie {
+	if s == nil || s.Union != nil || len(s.Joins) != 0 || s.From.Name == "" {
+		return nil
+	}
+	cols, allDesc, plain := orderByTermColumns(orderBy)
+	if !plain {
+		return nil
+	}
+	if len(e.withoutRowidPKCols(s.From.Name)) > 0 {
+		return nil
+	}
+	idxName := e.findIndexOnColsForQuery(s.From.Name, cols, s.Where)
+	if idxName == "" || (s.Where != nil && e.whereHasNonIndexConstraint(s.Where, s.From.Name, idxName)) {
+		return nil
+	}
+	return &rowidTie{desc: allDesc}
+}
+
+// orderByTermColumns extracts the bare column names of an ORDER BY list.
+// plain is false when any term is not an unqualified column reference.
+// allDesc reports whether every term is DESC.
+func orderByTermColumns(orderBy []sql.OrderByTerm) (cols []string, allDesc, plain bool) {
+	allDesc = len(orderBy) > 0
+	for _, ob := range orderBy {
+		ref, ok := normalizeOrderByExpr(ob.Expr).(*sql.ColumnRef)
+		if !ok || ref.Table != "" || ref.Name == "*" {
+			return nil, false, false
+		}
+		cols = append(cols, ref.Name)
+		if !ob.Desc {
+			allDesc = false
+		}
+	}
+	return cols, allDesc, len(cols) > 0
 }
 
 // resultColumnIndex returns the index of a column name in resultCols

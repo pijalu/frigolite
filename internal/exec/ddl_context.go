@@ -4,6 +4,7 @@ import (
 	"strings"
 
 	"github.com/pijalu/frigolite/internal/execddl"
+	"github.com/pijalu/frigolite/internal/execquery"
 	"github.com/pijalu/frigolite/internal/pager"
 	"github.com/pijalu/frigolite/internal/schema"
 	"github.com/pijalu/frigolite/internal/sql"
@@ -72,6 +73,10 @@ func (e *Engine) ValidateRowValueUse(expr sql.Expr, topLevel bool) error {
 func (e *Engine) InsertRow(pg *pager.Pager, tableEntry *schema.Entry, colDefs []sql.ColumnDef, values []interface{}, fixedRowID *int64, orConflict string) *Result {
 	return e.dml.InsertRow(pg, tableEntry, colDefs, values, fixedRowID, orConflict)
 }
+
+// SetCurrentDMLCtx sets the database context of the table being modified
+// (exported for the DDL executor's CTAS row-loading scope).
+func (e *Engine) SetCurrentDMLCtx(ctx *execquery.DatabaseContext) { e.dml.SetCurrentDMLCtx(ctx) }
 
 // CheckConstraintText formats a column-level CHECK constraint's SQL text.
 func (e *Engine) CheckConstraintText(createSQL, colName string, check sql.Expr) string {

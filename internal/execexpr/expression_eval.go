@@ -370,7 +370,7 @@ func (ev *Evaluator) evalCallArgs(fn *function.Func, f *sql.FuncCall, row Row) (
 		}
 		return []interface{}{}, nil
 	}
-	args, err := ev.evalFuncArgs(f, row)
+	args, err := ev.evalFuncArgs(f, row, keepCollatedArgs(f))
 	if err != nil {
 		return nil, err
 	}
@@ -378,6 +378,19 @@ func (ev *Evaluator) evalCallArgs(fn *function.Func, f *sql.FuncCall, row Row) (
 		restoreAggArg()
 	}
 	return args, nil
+}
+
+// keepCollatedArgs reports whether a call's raw argument values must keep
+// their CollatedValue markers: scalar MIN()/MAX() (two or more arguments)
+// resolve the function's collating sequence from the LEFTMOST argument that
+// has one — an explicit COLLATE operator or a column's declared collation
+// (expr.c SQLITE_FUNC_NEEDCOLL argument scan feeding OP_CollSeq). Markers are
+// peeled again inside evalScalarMinMax, so the function result stays clean.
+func keepCollatedArgs(f *sql.FuncCall) bool {
+	if len(f.Args) < 2 {
+		return false
+	}
+	return strings.EqualFold(f.Name, "MIN") || strings.EqualFold(f.Name, "MAX")
 }
 
 // evalCoalesceLazy evaluates COALESCE/IFNULL arguments one at a time,
@@ -419,7 +432,7 @@ func (ev *Evaluator) evalFuncCallDispatched(fn *function.Func, f *sql.FuncCall, 
 	// functions. SQLite semantics: if any argument is NULL the result is
 	// NULL (unlike the aggregate forms, which ignore NULLs).
 	if fn.Type == function.TypeAggregate && len(args) >= 2 && (upper == "MIN" || upper == "MAX") {
-		return evalScalarMinMax(upper, args), nil
+		return ev.evalScalarMinMax(upper, f, args), nil
 	}
 	// For aggregate functions, evaluate step by step if row is provided
 	if fn.Type == function.TypeAggregate {
@@ -785,7 +798,7 @@ func (ev *Evaluator) engineFTSAux(f *sql.FuncCall, row Row) (interface{}, error)
 // 9eda2697f5cc1aba), never when marshalling function arguments — quote(),
 // length() and hex() of an odd-length blob return the full value (oracle
 // 3.51.0 verified).
-func (ev *Evaluator) evalFuncArgs(f *sql.FuncCall, row Row) ([]interface{}, error) {
+func (ev *Evaluator) evalFuncArgs(f *sql.FuncCall, row Row, keepCollated bool) ([]interface{}, error) {
 	args := make([]interface{}, len(f.Args))
 	for i, arg := range f.Args {
 		v, err := ev.evalExpr(arg, row)
@@ -793,7 +806,9 @@ func (ev *Evaluator) evalFuncArgs(f *sql.FuncCall, row Row) ([]interface{}, erro
 			return nil, err
 		}
 		v = util.UnwrapColumnValue(v)
-		v = unwrapCollatedValue(v)
+		if !keepCollated {
+			v = unwrapCollatedValue(v)
+		}
 		args[i] = v
 	}
 	return args, nil

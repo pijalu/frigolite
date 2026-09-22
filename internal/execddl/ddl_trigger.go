@@ -263,14 +263,27 @@ func (e *DDLExecutor) execCreateTableAsSelect(s *sql.CreateTableStmt, ctx *Datab
 		e.deriveCTASColumns(s, result, tableName)
 	}
 
-	// Get the table entry that was just created
-	tableEntry, dbCtx, err := e.ctx.FindTable(tableName)
-	if err != nil {
-		return &Result{Error: err}
+	// Get the table entry that was just created — from the TARGET schema of
+	// the CREATE. The engine-wide FindTable searches main first, so an
+	// unqualified lookup on "CREATE TABLE aux.t1 AS SELECT ..." would return
+	// a same-named main table: the CTAS rows would be inserted there and the
+	// derived SQL persisted onto the wrong entry (alter3-5.x).
+	tableEntry, ferr := ctx.Schema.FindTable(tableName)
+	if ferr != nil || tableEntry == nil {
+		return &Result{Error: fmt.Errorf("no such table: %s", tableName)}
 	}
+	dbCtx := ctx
 	tableEntry = e.persistCTASSQL(s, dbCtx, tableName, tableEntry)
 
-	// Insert rows into the new table
+	// Insert rows into the new table. The DML context must name the TARGET
+	// database while loading: the rowid machinery resolves the table's pager
+	// from the current DML context, so with a stale (main) context a
+	// same-named main table's rowid state is reused — every derived row
+	// would collide on one rowid and overwrite the previous (aux.t1 kept
+	// only the last SELECT row, alter3-5.3).
+	prevDMLCtx := e.ctx.CurrentDMLCtx()
+	e.ctx.SetCurrentDMLCtx(dbCtx)
+	defer func() { e.ctx.SetCurrentDMLCtx(prevDMLCtx) }()
 	for _, row := range result.Rows {
 		res := e.ctx.InsertRow(dbCtx.Pager, tableEntry, s.Columns, row, nil, "")
 		if res.Error != nil {
@@ -329,6 +342,11 @@ func (e *DDLExecutor) persistCTASSQL(s *sql.CreateTableStmt, dbCtx *DatabaseCont
 	if len(s.Columns) == 0 {
 		return tableEntry
 	}
+	// The stored schema text carries the UNQUALIFIED table name — SQLite
+	// renders "CREATE TABLE t1(a,b)" in the target schema's sqlite_schema,
+	// never "CREATE TABLE aux.t1(a,b)" (alter3-5.1). s is a per-statement
+	// copy (see execCreateTableAsSelect), so retarget it for serialization.
+	s.Name = tableName
 	derivedSQL := e.buildCreateTableSQL(s)
 	if rerr := dbCtx.Schema.RenameEntryWithSQL(tableName, tableName, derivedSQL); rerr == nil {
 		tableEntry.SQL = derivedSQL
@@ -336,7 +354,7 @@ func (e *DDLExecutor) persistCTASSQL(s *sql.CreateTableStmt, dbCtx *DatabaseCont
 	// The findTable cache above holds the pre-rename entry (empty columns);
 	// drop it so later lookups re-read the derived columns.
 	e.ctx.InvalidateTableCaches()
-	if te, _, terr := e.ctx.FindTable(tableName); terr == nil {
+	if te, terr := dbCtx.Schema.FindTable(tableName); terr == nil && te != nil {
 		tableEntry = te
 	}
 	return tableEntry

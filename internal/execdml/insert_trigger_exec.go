@@ -409,10 +409,11 @@ func parseTriggerBody(t *schema.Entry) ([]sql.Stmt, bool) {
 // and table-not-found error qualification.
 
 // applyOuterOrConflict applies the firing statement's ON CONFLICT policy to
-// a trigger-body step that has no explicit OR clause (SQLite trigger.c
-// codeTriggerProgram: pParse->eOrconf = (orconf==OE_Default) ? step->orconf
-// : orconf). Only INSERT and UPDATE steps carry an OR policy; other
-// statements are untouched.
+// a trigger-body step (SQLite trigger.c codeTriggerProgram: pParse->eOrconf =
+// (orconf==OE_Default) ? pStep->orconf : orconf — a firing statement that
+// specified an ON CONFLICT clause REPLACES the body step's own policy
+// outright, whatever it is). Only INSERT and UPDATE steps carry an OR policy;
+// other statements are untouched.
 func (e *DMLExecutor) applyOuterOrConflict(stmt sql.Stmt) {
 	outer := e.ctx.OuterOrConflict()
 	if outer == "" || strings.EqualFold(outer, "DEFAULT") {
@@ -420,36 +421,18 @@ func (e *DMLExecutor) applyOuterOrConflict(stmt sql.Stmt) {
 	}
 	switch s := stmt.(type) {
 	case *sql.InsertStmt:
-		// A step WITH an explicit OR clause keeps its own policy EXCEPT
-		// when the outer policy is stricter (ABORT/FAIL/ROLLBACK over a
-		// weaker step policy): e.g. trigger2-6.1b's INSERT OR IGNORE body
-		// step under an outer INSERT OR ABORT must raise the UNIQUE
-		// violation (verified against sqlite3: INSERT OR ABORT of a fresh
-		// key fires the body step and errors). IGNORE/REPLACE outers never
-		// override an explicit step policy.
-		if !s.IsReplace && (s.OrConflict == "" || outerConflictOverridesStep(s.OrConflict, outer)) {
-			s.OrConflict = outer
-			s.OrIgnore = strings.EqualFold(outer, "IGNORE")
-			s.OrFail = strings.EqualFold(outer, "FAIL")
-		}
+		// Rewrite the full OR-clause flag set exactly as the parser would
+		// have for the outer mode (trigger2-6.1f: outer INSERT OR REPLACE
+		// turns the body's INSERT OR IGNORE into REPLACE, so the trigger's
+		// (new.a,0,0) row replaces the just-inserted row; trigger2-6.1b:
+		// outer INSERT OR ABORT raises the body step's UNIQUE violation).
+		s.OrConflict = outer
+		s.IsReplace = strings.EqualFold(outer, "REPLACE")
+		s.OrIgnore = strings.EqualFold(outer, "IGNORE")
+		s.OrFail = strings.EqualFold(outer, "FAIL")
 	case *sql.UpdateStmt:
-		if s.OnConflict == "" || outerConflictOverridesStep(s.OnConflict, outer) {
-			s.OnConflict = outer
-		}
+		s.OnConflict = outer
 	}
-}
-
-// isStrictOuterConflict reports whether an outer ON CONFLICT policy is one
-// of the strict modes (ABORT/FAIL/ROLLBACK) that override an explicit body
-// step clause.
-func isStrictOuterConflict(outer string) bool {
-	return strings.EqualFold(outer, "ABORT") || strings.EqualFold(outer, "FAIL") || strings.EqualFold(outer, "ROLLBACK")
-}
-
-// outerConflictOverridesStep reports whether a strict outer policy overrides
-// a step's explicit (and different) ON CONFLICT clause.
-func outerConflictOverridesStep(stepClause, outer string) bool {
-	return stepClause != "" && !strings.EqualFold(stepClause, outer) && isStrictOuterConflict(outer)
 }
 
 // execTriggerBody runs a trigger's parsed statements, handling RAISE(IGNORE)

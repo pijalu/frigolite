@@ -368,6 +368,13 @@ func (e *Engine) execRollback() *Result {
 	if e.tx.execDepth > 1 && e.tx.txSchemaChanged {
 		e.tx.rollbackAborted = true
 	}
+	// A rollback performed by a NESTED statement (trigger body OR ROLLBACK,
+	// eval()) invalidates every enclosing statement's pager snapshots: they
+	// were taken after BEGIN, and restoring them would resurrect rows the
+	// transaction rollback already undid (trigger2-6.1h/6.2h).
+	if e.tx.execDepth > 1 {
+		e.tx.nestedRollback = true
+	}
 	e.tx.txSchemaChanged = false
 	e.tx.inTransaction = false
 	e.settings.deferForeignKeys = false

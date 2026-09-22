@@ -84,7 +84,7 @@ func (e *SelectEngine) finalizeMaterializedRows(result *Result, s *sql.SelectStm
 		if err := validateOrderBy(s.OrderBy, len(result.Columns)); err != nil {
 			return &Result{Error: err}
 		}
-		if serr := e.sortRowsWithMaps(result, s.OrderBy, allRowMaps); serr != nil {
+		if serr := e.sortRowsWithMaps(result, s.OrderBy, allRowMaps, s); serr != nil {
 			return &Result{Error: serr}
 		}
 	}

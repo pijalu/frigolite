@@ -591,6 +591,42 @@ func (e *SelectEngine) evalHaving(expr sql.Expr, groupRows []RowMap) (bool, erro
 	return execexpr.ToBool(v), nil
 }
 
+// appendEmptyAggValue appends an aggregate call's empty-input value (e.g.
+// count(*) -> 0, avg(a) -> NULL) when expr IS a bare aggregate call, and
+// reports whether it did.
+func (e *SelectEngine) appendEmptyAggValue(expr sql.Expr, outRow *[]interface{}) bool {
+	fn, ok := expr.(*sql.FuncCall)
+	if !ok {
+		return false
+	}
+	f, found := e.ctx.Functions().Find(fn.Name)
+	if !found || f.Type != function.TypeAggregate {
+		return false
+	}
+	*outRow = append(*outRow, e.emptyAggValue(f))
+	return true
+}
+
+// applyEmptyGroupHaving filters the single output row of a no-GROUP-BY
+// aggregate query over ZERO input rows: such a query forms one (empty) group,
+// and HAVING still applies to it — count-2.9a: "SELECT count(*) FROM t2
+// HAVING count(*)>1" emits no row because the empty-input aggregate
+// (count(*)=0) fails the predicate, while HAVING count(*)<10 passes one row.
+// A non-nil Result is the outcome (error or filtered-empty row set).
+func (e *SelectEngine) applyEmptyGroupHaving(s *sql.SelectStmt, columns []string) *Result {
+	if s.Having == nil {
+		return nil
+	}
+	match, herr := e.evalHaving(s.Having, nil)
+	if herr != nil {
+		return &Result{Error: herr}
+	}
+	if !match {
+		return &Result{Columns: columns, Rows: nil}
+	}
+	return nil
+}
+
 // evalHavingExpr recursively evaluates an expression, handling aggregate
 // functions across all groupRows.
 func (e *SelectEngine) evalHavingExpr(expr sql.Expr, groupRows []RowMap) (interface{}, error) {
@@ -749,7 +785,12 @@ func (e *SelectEngine) evalHavingDefault(expr sql.Expr, groupRows []RowMap) (int
 	if len(groupRows) > 0 {
 		return e.ctx.EvalExpr(expr, groupRows[0])
 	}
-	return nil, nil
+	// Empty group (no-GROUP-BY aggregate over zero input rows): literals and
+	// scalar expressions still evaluate; column references resolve to NULL
+	// against the empty row map, matching sqlite3's OP_Column yielding NULL
+	// when the aggregate query's single group has no source row
+	// (count-2.9a: HAVING count(*)<10 must compare 0 against the literal 10).
+	return e.ctx.EvalExpr(expr, RowMap{})
 }
 
 // evalHavingSubquery evaluates a Subquery expression in a HAVING clause.
@@ -757,10 +798,12 @@ func (e *SelectEngine) evalHavingDefault(expr sql.Expr, groupRows []RowMap) (int
 // the subquery can evaluate over the entire group (not just one row).
 func (e *SelectEngine) evalHavingSubquery(v *sql.Subquery, groupRows []RowMap) (interface{}, error) {
 	prevOuterRows := e.outerRows
+	outer := RowMap{}
 	if len(groupRows) > 0 {
 		e.outerRows = groupRows
+		outer = groupRows[0]
 	}
-	result, err := e.ctx.EvalSubquery(v, groupRows[0])
+	result, err := e.ctx.EvalSubquery(v, outer)
 	e.outerRows = prevOuterRows
 	return result, err
 }
