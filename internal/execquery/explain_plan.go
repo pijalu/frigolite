@@ -8,6 +8,7 @@ package execquery
 
 import (
 	"fmt"
+	"math"
 	"strconv"
 	"strings"
 
@@ -50,8 +51,30 @@ func (e *SelectEngine) planSingleTable(t queryTable, s *sql.SelectStmt) string {
 		}
 	}
 
-	// Threshold: if estimated rows is less than ~10% of table, use SEARCH
-	threshold := float64(nRow) * 0.10
+	// INTEGER PRIMARY KEY / rowid equality is a direct table-btree seek:
+	// SQLite renders "SEARCH <t> USING INTEGER PRIMARY KEY (rowid=?)" and
+	// bestIndexForQuery only knows secondary b-tree indexes (intpkey-1.12.2
+	// "WHERE a==4" over t1(a INTEGER PRIMARY KEY) plans "SEARCH t1").
+	if s.Where != nil {
+		if detail := e.ipkSearchDetail(tableName, s.Where); detail != "" {
+			return detail
+		}
+	}
+	return e.finishSingleTablePlan(t, s, tableName, bestIndex, conditions, bestEstimate, float64(nRow))
+}
+
+// finishSingleTablePlan applies the threshold and fallback plans after the
+// best secondary index is known: an index seek when selective (or when no
+// sqlite_stat1 row prices it — SQLite's default cost model prices an index
+// range seek at one tenth of a full scan, so the seek always wins,
+// intpkey-2.5 "WHERE b>'a'" plans "SEARCH t1 USING INDEX i1 (b>?)" without
+// any ANALYZE), else index-assisted ORDER BY/GROUP BY/DISTINCT or COUNT
+// covering plans, else a full SCAN.
+func (e *SelectEngine) finishSingleTablePlan(t queryTable, s *sql.SelectStmt, tableName, bestIndex, conditions string, bestEstimate, nRow float64) string {
+	threshold := nRow * 0.10
+	if bestIndex != "" && bestIndex != "PRIMARY KEY" && len(e.stat1Tokens(bestIndex)) == 0 {
+		threshold = math.MaxFloat64
+	}
 	if bestIndex != "" && (bestIndex == "PRIMARY KEY" || bestEstimate < threshold) {
 		return e.searchPlan(tableName, bestIndex, conditions, s)
 	}
@@ -463,12 +486,14 @@ func (e *SelectEngine) bestIndexForQuery(tableName string, where sql.Expr, estim
 			bestName = e.tiebreakIndex(refs, bestName, ref.indexName)
 		}
 	}
-	// Collect all refs for the best index to build conditions. Also include
-	// column-to-constant predicates on columns without an index: SQLite's
-	// older plans (and the without_rowid1 14.2 test) list every WHERE
-	// constraint that narrows the search, e.g. SEARCH ... (a=? AND b=?).
+	// Collect all refs for the best index to build conditions. Only
+	// column-to-constant predicates ON THE CHOSEN INDEX'S COLUMNS are listed:
+	// SQLite's explainIndexRange renders one constraint per leading index
+	// column satisfied by the query, so a constraint on a column outside the
+	// index never appears (analyze7-2.3 "SEARCH t1 USING INDEX t1a (a=?)" for
+	// "WHERE a=123 AND b=123" — b is not in t1a and is not listed).
 	if bestName != "" {
-		bestRefs = refsForBestIndex(refs, where, tableName, bestName)
+		bestRefs = e.refsForBestIndex(refs, where, tableName, bestName)
 	}
 	*estimate = bestEst
 	return bestName, formatConditions(bestRefs)
@@ -501,12 +526,12 @@ func (e *SelectEngine) tiebreakIndex(refs []indexedRef, bestName, candidateName 
 }
 
 // refsForBestIndex returns every indexed ref matching the best index, plus
-// every column-to-constant predicate (indexed or not) so the plan lists the
-// full set of search constraints. For a WITHOUT ROWID PRIMARY KEY search,
-// only PRIMARY KEY columns are listed: SQLite's plan for a PK lookup shows
-// exactly the PK constraints, not unrelated WHERE predicates (see
-// without_rowid1 14.2).
-func refsForBestIndex(refs []indexedRef, where sql.Expr, tableName, bestName string) []indexedRef {
+// column-to-constant predicates on the index's own columns so the plan lists
+// the full set of search constraints for that index. For a WITHOUT ROWID
+// PRIMARY KEY search, only PRIMARY KEY columns are listed: SQLite's plan for
+// a PK lookup shows exactly the PK constraints, not unrelated WHERE
+// predicates (see without_rowid1 14.2).
+func (e *SelectEngine) refsForBestIndex(refs []indexedRef, where sql.Expr, tableName, bestName string) []indexedRef {
 	var bestRefs []indexedRef
 	for _, ref := range refs {
 		if ref.indexName == bestName {
@@ -516,7 +541,11 @@ func refsForBestIndex(refs []indexedRef, where sql.Expr, tableName, bestName str
 	if bestName == "PRIMARY KEY" {
 		return bestRefs
 	}
+	indexCols := e.indexColumns(bestName)
 	for _, ar := range collectAllColumnRefs(where, tableName) {
+		if !containsFold(indexCols, ar.colName) {
+			continue
+		}
 		if !bestRefsContain(bestRefs, ar) {
 			bestRefs = append(bestRefs, ar)
 		}
@@ -598,10 +627,13 @@ func (e *SelectEngine) planWhereSubqueries(expr sql.Expr, outer *sql.SelectStmt,
 		return
 	}
 	if ex, ok := expr.(*sql.ExistsExpr); ok {
-		// A correlated EXISTS stays a subquery node (SQLite reports
-		// "CORRELATED SCALAR SUBQUERY n"); only a non-correlated flat EXISTS
-		// may become an EXISTS join loop.
-		if !e.subqueryReferencesOuter(ex.Select, outer) {
+		// SQLite's existsToJoin transforms ANY top-level EXISTS conjunct
+		// meeting the structural conditions into a CROSS join of the inner
+		// table with the subquery's WHERE ANDed into the outer query —
+		// correlated or not (existsexpr-1.3.x: the plan shows
+		// "SEARCH x1 EXISTS ..." with no SUBQUERY line). NOT EXISTS is not a
+		// bare TK_EXISTS conjunct and stays a subquery.
+		if !ex.Negated {
 			if exNodes, ok2 := e.existsJoinNode(ex.Select, sel); ok2 {
 				*nodes = append(*nodes, exNodes...)
 				return // pruned: rendered as an EXISTS loop, no SUBQUERY node
@@ -623,7 +655,7 @@ func (e *SelectEngine) existsJoinNode(sub *sql.SelectStmt, s *sql.SelectStmt) ([
 	if sub == nil || sub.From.Name == "" || sub.From.Subquery != nil || len(sub.Joins) > 0 {
 		return nil, false
 	}
-	if sub.Union != nil || sub.Limit != nil || e.hasAggregate(sub) {
+	if sub.Union != nil || sub.Limit != nil || sub.GroupBy != nil || e.hasAggregate(sub) {
 		return nil, false
 	}
 	tableName := sub.From.Name
@@ -636,7 +668,10 @@ func (e *SelectEngine) existsJoinNode(sub *sql.SelectStmt, s *sql.SelectStmt) ([
 	}
 	idx := e.findIndexOnColumn(tableName, col, sub.Where)
 	if idx == "" {
-		return []planNode{{detail: "SCAN " + tableName + " EXISTS"}}, true
+		// Without a real index SQLite builds an automatic partial covering
+		// index on the join key for the EXISTS probe (existsexpr-1.3.2
+		// "SEARCH x1 EXISTS USING AUTOMATIC PARTIAL COVERING INDEX (b=?);").
+		return []planNode{{detail: fmt.Sprintf("SEARCH %s EXISTS USING AUTOMATIC PARTIAL COVERING INDEX (%s=?)", tableName, col)}}, true
 	}
 	using := e.indexUsingLabel(tableName, idx, s)
 	return []planNode{{detail: fmt.Sprintf("SEARCH %s EXISTS USING %s (%s=?)", tableName, using, col)}}, true

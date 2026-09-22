@@ -94,7 +94,7 @@ func Test_whereF(t *testing.T) {
 					return
 				}
 				got := flatten(r)
-				wantPattern := ".*SCAN t2y.*SEARCH t1y.*"
+				wantPattern := ".*SCAN t2\\b.*SEARCH t1\\b.*"
 				if matched, _ := regexp.MatchString(wantPattern, got); !matched {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]", got, wantPattern)
 				}
@@ -121,7 +121,7 @@ func Test_whereF(t *testing.T) {
 						return
 					}
 					got := flatten(r)
-					wantPattern := ".*SCAN t2y.*SEARCH t1y.*"
+					wantPattern := ".*SCAN t2\\b.*SEARCH t1\\b.*"
 					if matched, _ := regexp.MatchString(wantPattern, got); !matched {
 						t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]", got, wantPattern)
 					}

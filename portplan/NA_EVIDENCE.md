@@ -2222,3 +2222,31 @@ oracle) BEFORE the skip, per the engine-correctness-first directive.
   "4 -5 -6 1 -2 -3"). Same class as the adjudicated index(7) latent gap;
   owned by the query-planner goal (failure count identical to the T30
   baseline — nothing added).
+## FULL-SUITE-DRIFT.T30-query — generated-harness artifacts fixed in place (2026-09-22)
+
+Five of T30-query's assigned packages failed on generated-code artifacts, not
+engine behavior. tools/tcl2go is outside the agent's ownership, so the
+generated files were repaired in place with minimal, TCL-faithful edits; each
+is a candidate for the corresponding generator fix (noted per entry).
+
+- `window6-2.0` — the transpiled `winproc` rendered `$args` as a plain
+  space-join instead of TCL list rendering (`window: {hello world}`). The
+  generated registration now brace-quotes elements; the want string is
+  unchanged.
+- `windowC-1.*.2.*` (30 assertions) — the `db eval` body (check that every
+  group_concat result starts and ends with "val") was dropped, leaving a
+  comparison against the literal `{}`. The body check is restored natively in
+  the generated file; engine values were verified correct in every case.
+- `rowhash` — `do_keyset_test` and its calls are untranspiled; the surviving
+  lappend loop panicked on a nil `tclListBuilder`. The loop is initialized;
+  the engine contract is pinned natively in `frigolite_rowhash_pin_test.go`
+  (OR-of-equalities across three indexes returns exactly the inserted rowids).
+- `skipscan5` — a second `:=` on the already-declared `_items1` broke the
+  build ("no new variables on left side of :="); changed to `=`.
+- `whereF-1.*` / `whereF-2.*` (6 assertions) — TCL `\y` word-boundary in the
+  want regex was transpiled as a literal `y` ("SCAN t2y"); the generated
+  patterns now use Go-regexp `\b`. The engine plans (SCAN t2 / SEARCH t1)
+  were already correct.
+- `selectC-1.12.2/1.13.2/1.14.2` — `db function ... longname_toupper`
+  (string toupper) transpiled as a nil-returning stub; the registration now
+  uppercases, matching proc longname_toupper.

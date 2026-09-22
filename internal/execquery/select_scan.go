@@ -441,6 +441,14 @@ func (e *SelectEngine) scanTableRowsWithSQL(cursor *btree.Cursor, s *sql.SelectS
 		reverseInterfaces(allRows)
 		reverseRowMaps(st.allRowMaps)
 	}
+	// A WHERE-driven index scan emits rows in index-key order: SQLite drives
+	// the scan loop from the index (where.c), so the WHERE survivors arrive
+	// sorted by the index key (NULLs first, rowid ties) even though the
+	// engine filters a table scan (intpkey-2.3.2 "WHERE b<'second'" over
+	// index i1(b) emits (hello world, one two), not insertion order).
+	if idx := e.indexScanOrderIndex(s); idx != "" {
+		e.sortScanRowsIndexOrder(allRows, st.allRowMaps, s.From.Name, idx)
+	}
 	return allRows, st.allRowMaps, nil
 }
 

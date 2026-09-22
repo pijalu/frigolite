@@ -433,6 +433,17 @@ func (e *SelectEngine) mergeCompoundChain(rows [][]interface{}, s *sql.SelectStm
 		}
 		memberCopy := *member
 		memberCopy.Union = nil
+		// The parser attaches a compound's trailing ORDER BY / LIMIT / OFFSET
+		// to the last member (like SQLite's grammar attaches them to the
+		// outermost SELECT). Those clauses belong to the COMPOUND result —
+		// applySetOp output is re-sorted and cut once by finalizeSelectResult
+		// — so they must be stripped from the member copy before executing it
+		// (select.c emits a single sorter/limit on the compound, never one per
+		// member; limit-7.3 "SELECT x FROM t2 UNION ALL SELECT a FROM t6 LIMIT
+		// 3 OFFSET 1" must skip one row of the merged set, not one per arm).
+		memberCopy.OrderBy = nil
+		memberCopy.Limit = nil
+		memberCopy.Offset = nil
 		prevCompound := e.inCompoundMember
 		e.inCompoundMember = true
 		memberResult := e.execSelect(&memberCopy)

@@ -77,6 +77,14 @@ func evalNumericLit(v *sql.NumericLit) (interface{}, error) {
 		v.SetCached(i)
 		return i, nil
 	}
+	// SQLite's TK_INTEGER coding folds the sign of an out-of-i64-range
+	// literal when the NEGATED magnitude fits: -9223372036854775808 (with
+	// any number of leading zeros) is INTEGER MinInt64, while the positive
+	// 2^63 is REAL (expr.c sqlite3ExprCodeInteger).
+	if i, ok := negatedMinInt64(v.Value); ok {
+		v.SetCached(i)
+		return i, nil
+	}
 	if f, err := strconv.ParseFloat(v.Value, 64); err == nil || (errors.Is(err, strconv.ErrRange) && math.IsInf(f, 0)) {
 		// ParseFloat returns ErrRange for literals that overflow/underflow
 		// float64 (1e400 -> +Inf, 1e-400 -> 0.0). SQLite treats these as
@@ -88,6 +96,20 @@ func evalNumericLit(v *sql.NumericLit) (interface{}, error) {
 	}
 	v.SetCached(v.Value)
 	return v.Value, nil
+}
+
+// negatedMinInt64 reports whether text is a decimal integer literal whose
+// magnitude is exactly 2^63 with a '-' sign — the one out-of-range literal
+// whose negation fits int64 — returning MinInt64 in that case.
+func negatedMinInt64(text string) (int64, bool) {
+	if text == "" || text[0] != '-' {
+		return 0, false
+	}
+	digits := strings.TrimLeft(text[1:], "0")
+	if digits != "9223372036854775808" {
+		return 0, false
+	}
+	return math.MinInt64, true
 }
 
 // evalHexLiteral evaluates a hexadecimal numeric literal, rejecting any whose

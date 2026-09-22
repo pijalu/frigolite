@@ -4,6 +4,9 @@ import (
 	"encoding/binary"
 	"fmt"
 	"github.com/pijalu/frigolite/internal/btree"
+	"github.com/pijalu/frigolite/internal/execdml"
+	"github.com/pijalu/frigolite/internal/execexpr"
+	"github.com/pijalu/frigolite/internal/parse"
 	"github.com/pijalu/frigolite/internal/schema"
 	"github.com/pijalu/frigolite/internal/sql"
 	"github.com/pijalu/frigolite/internal/storage"
@@ -344,20 +347,24 @@ func (e *Engine) analyzeOneTable(entry *schema.Entry) *Result {
 		return res
 	}
 
-	nIdx, res := e.analyzeTableIndexes(entry, tableNames, allEntries, nRow)
+	nIdx, allPartial, res := e.analyzeTableIndexes(entry, tableNames, allEntries, nRow)
 	if res.Error != nil {
 		return res
 	}
 
-	// A rowid table with NO explicit indexes gets a single stat1 row with
-	// idx NULL (e.g. "sqliteDemo||5"), recording the rowid scan. WITHOUT
-	// ROWID tables already emitted a PK row above. SQLite omits the NULL row
-	// for tables that have at least one index (only the index rows appear).
-	if nIdx == 0 && !hasWithoutRowidKeyword(strings.ToUpper(entry.SQL)) {
-		return e.insertTableScanStat(entry, nRow)
+	// needTableCnt (analyze.c): the NULL-idx table-count row is emitted when
+	// the table has NO indexes, or when EVERY index is partial — any
+	// non-partial index clears the count (index6-1.10 "t1 {t1a {14 1} t1b
+	// {10 1}} plus a NULL-idx row for the table scan"). WITHOUT ROWID tables
+	// already emitted their table row above (the PRIMARY KEY row named after
+	// the table).
+	if nIdx > 0 && !allPartial {
+		return &Result{}
 	}
-
-	return &Result{}
+	if hasWithoutRowidKeyword(strings.ToUpper(entry.SQL)) {
+		return &Result{}
+	}
+	return e.insertTableScanStat(entry, nRow)
 }
 
 // analyzeWithoutRowidPK records a stat1/stat4 row for a WITHOUT ROWID table's
@@ -381,10 +388,35 @@ func (e *Engine) analyzeWithoutRowidPK(entry *schema.Entry, nRow int64) *Result 
 	return &Result{}
 }
 
-// analyzeTableIndexes records stat1/stat4 rows for every index of a table and
-// returns the number of indexes analyzed.
-func (e *Engine) analyzeTableIndexes(entry *schema.Entry, tableNames map[string]bool, allEntries []*schema.Entry, nRow int64) (int, *Result) {
+// storageSlotsFor maps declared column indices to WITHOUT ROWID record slots
+// (PK columns come first in the stored record). Rowid tables are the
+// identity mapping.
+func (e *Engine) storageSlotsFor(tableEntry *schema.Entry, colIdx []int) []int {
+	if !hasWithoutRowidKeyword(strings.ToUpper(tableEntry.SQL)) {
+		return colIdx
+	}
+	colDefs := e.parseColumnDefs(tableEntry.Name, tableEntry.SQL)
+	order := execdml.WithoutRowidStorageOrder(tableEntry.SQL, colDefs)
+	out := make([]int, len(colIdx))
+	for i, di := range colIdx {
+		out[i] = -1
+		for slot, d := range order {
+			if d == di {
+				out[i] = slot
+				break
+			}
+		}
+	}
+	return out
+}
+
+// analyzeTableIndexes records stat1/stat4 rows for every index of a table.
+// It returns the number of indexes analyzed and whether every index is
+// partial (analyze.c's needTableCnt: any non-partial index suppresses the
+// NULL-idx table-count row).
+func (e *Engine) analyzeTableIndexes(entry *schema.Entry, tableNames map[string]bool, allEntries []*schema.Entry, nRow int64) (int, bool, *Result) {
 	nIdx := 0
+	allPartial := true
 	for _, idx := range allEntries {
 		if idx.Type != schema.TypeIndex {
 			continue
@@ -393,16 +425,19 @@ func (e *Engine) analyzeTableIndexes(entry *schema.Entry, tableNames map[string]
 			continue
 		}
 		nIdx++
+		if partialIndexWhereSQL(idx.SQL) == "" {
+			allPartial = false
+		}
 
 		statStr := e.computeIndexStat(entry, idx, nRow)
 		if res := e.insertStatRow(entry.Name, idx.Name, statStr); res.Error != nil {
-			return nIdx, res
+			return nIdx, allPartial, res
 		}
 		if res := e.insertStat4Row(entry.Name, idx.Name); res.Error != nil {
-			return nIdx, res
+			return nIdx, allPartial, res
 		}
 	}
-	return nIdx, &Result{}
+	return nIdx, allPartial, &Result{}
 }
 
 // insertTableScanStat records the single stat1/stat4 row a rowid table with no
@@ -452,7 +487,7 @@ func (e *Engine) computePKStat(entry *schema.Entry, pkCols []string, nRow int64)
 	if len(pkIdx) == 0 {
 		return ""
 	}
-	distincts := e.countDistinctPrefixes(entry, pkIdx, func(v interface{}, j int) string {
+	distincts := e.countDistinctPrefixes(entry, e.storageSlotsFor(entry, pkIdx), func(v interface{}, j int) string {
 		return fmt.Sprintf("%v", v)
 	})
 	return statAvgParts(nRow, distincts)
@@ -611,12 +646,142 @@ func (e *Engine) computeIndexStat(tableEntry *schema.Entry, idxEntry *schema.Ent
 	explicitColls := parseIndexColumnCollations(idxEntry.SQL)
 	colls := indexStatCollations(colIdx, colDefs, explicitColls)
 
+	// A PARTIAL index's stat row counts only rows satisfying the partial
+	// WHERE clause: analyze.c scans the INDEX b-tree, whose entries exist
+	// only for indexed rows (index6-1.10: t1a on t1(a) WHERE a IS NOT NULL
+	// over 20 rows reports "14 1", not "20 ...").
+	if pred := partialIndexPredicate(idxEntry.SQL); pred != nil {
+		nRowIdx, distincts := e.scanPartialIndexStats(tableEntry, colIdx, colls, pred)
+		return statAvgParts(nRowIdx, distincts)
+	}
+
 	// Scan the table rows, counting distinct prefixes of the index columns
-	// under each column's collation.
-	distincts := e.countDistinctPrefixes(tableEntry, colIdx, func(v interface{}, j int) string {
+	// under each column's collation. WITHOUT ROWID records store PK columns
+	// first, so declared column indices must map to storage slots first.
+	distincts := e.countDistinctPrefixes(tableEntry, e.storageSlotsFor(tableEntry, colIdx), func(v interface{}, j int) string {
 		return normalizeCollationKey(v, colls[j])
 	})
 	return statAvgParts(nRow, distincts)
+}
+
+// partialIndexWhereSQL extracts the partial-index predicate text from a
+// CREATE INDEX statement ("... ON t(a) WHERE a IS NOT NULL"), or "" when the
+// index is not partial.
+func partialIndexWhereSQL(indexSQL string) string {
+	m := indexWhereRe.FindStringSubmatch(indexSQL)
+	if len(m) < 2 {
+		return ""
+	}
+	return strings.TrimSpace(m[1])
+}
+
+// partialIndexPredicate parses a partial index's WHERE clause into an
+// expression, returning nil for a full index (or an unparseable predicate,
+// which the membership machinery also treats as always-true).
+func partialIndexPredicate(indexSQL string) sql.Expr {
+	whereSQL := partialIndexWhereSQL(indexSQL)
+	if whereSQL == "" {
+		return nil
+	}
+	stmts, err := parse.ParseSQL("SELECT " + whereSQL)
+	if err != nil || len(stmts) == 0 {
+		return nil
+	}
+	sel, ok := stmts[0].(*sql.SelectStmt)
+	if !ok || len(sel.Columns) == 0 {
+		return nil
+	}
+	return sel.Columns[0].Expr
+}
+
+// scanPartialIndexStats scans the parent table once and returns the partial
+// index's own row count plus distinct key-prefix counts, skipping rows that
+// fail the partial predicate.
+func (e *Engine) scanPartialIndexStats(tableEntry *schema.Entry, colIdx []int, colls []string, pred sql.Expr) (int64, []int) {
+	colDefs := e.parseColumnDefs(tableEntry.Name, tableEntry.SQL)
+	seen := make([]map[string]bool, len(colIdx))
+	for i := range seen {
+		seen[i] = make(map[string]bool)
+	}
+	tree := e.tableBTreeForName(tableEntry.Name, tableEntry.RootPage, true)
+	cursor, err := tree.OpenCursor()
+	if err != nil {
+		return 0, make([]int, len(colIdx))
+	}
+	order := e.wrRecordOrder(tableEntry, colDefs)
+	nRow := e.collectPartialIndexKeys(cursor, colDefs, order, seen, colIdx, colls, pred)
+	distincts := make([]int, len(seen))
+	for k := range seen {
+		distincts[k] = len(seen[k])
+	}
+	return nRow, distincts
+}
+
+// wrRecordOrder returns the slot-to-declared-column order for a WITHOUT ROWID
+// table (PK columns come first in the stored record), or nil for a rowid
+// table whose records are already in declared order.
+func (e *Engine) wrRecordOrder(tableEntry *schema.Entry, colDefs []sql.ColumnDef) []int {
+	if !hasWithoutRowidKeyword(strings.ToUpper(tableEntry.SQL)) {
+		return nil
+	}
+	return execdml.WithoutRowidStorageOrder(tableEntry.SQL, colDefs)
+}
+
+// declaredRecord remaps a WITHOUT ROWID record's slot values to declared
+// column order (order == nil means the record is already in declared order).
+func declaredRecord(rec *storage.Record, order []int) *storage.Record {
+	if order == nil {
+		return rec
+	}
+	declared := make([]interface{}, len(order))
+	for slot, di := range order {
+		if slot < len(rec.Values) && di < len(declared) {
+			declared[di] = rec.Values[slot]
+		}
+	}
+	return &storage.Record{Values: declared}
+}
+
+// collectPartialIndexKeys walks the table once, counting rows and recording
+// index-key prefixes for rows that satisfy the partial-index predicate.
+func (e *Engine) collectPartialIndexKeys(cursor *btree.Cursor, colDefs []sql.ColumnDef, order []int, seen []map[string]bool, colIdx []int, colls []string, pred sql.Expr) int64 {
+	var nRow int64
+	for {
+		cell, err := cursor.ReadCell()
+		if err != nil || cell == nil {
+			return nRow
+		}
+		rec, err := storage.DecodeRecord(cell.Payload)
+		if err != nil || rec == nil {
+			return nRow
+		}
+		rec = declaredRecord(rec, order)
+		if e.recordSatisfiesPredicate(rec, colDefs, pred) {
+			nRow++
+			e.recordDistinctPrefixes(seen, rec, colIdx, func(v interface{}, j int) string {
+				return normalizeCollationKey(v, colls[j])
+			})
+		}
+		ok, err := cursor.Next()
+		if err != nil || !ok {
+			return nRow
+		}
+	}
+}
+
+// recordSatisfiesPredicate evaluates pred against one stored record rendered
+// as a row map. A row whose predicate evaluation errors stays indexed,
+// matching the membership machinery's always-true fallback.
+func (e *Engine) recordSatisfiesPredicate(rec *storage.Record, colDefs []sql.ColumnDef, pred sql.Expr) bool {
+	rm := buildRowMapFromValues(rec.Values, colDefs, 0)
+	v, err := e.EvalExpr(pred, rm)
+	if err != nil {
+		return true
+	}
+	if v == nil {
+		return false
+	}
+	return execexpr.ToBool(v)
 }
 
 // indexStatCollations resolves the effective collation per index column: an
