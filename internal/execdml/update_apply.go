@@ -44,27 +44,39 @@ func (e *DMLExecutor) applyUpdateWithTriggers(tableEntry *schema.Entry, colDefs 
 		if res != nil {
 			return res
 		}
-		if appliedChange {
-			changesMade++
-			// Fire AFTER UPDATE triggers per-row (immediately after this
-			// row's write), matching SQLite: the AFTER trigger for row N runs
-			// before row N+1's SET expressions are evaluated. This makes the
-			// changes() counter (and user functions like my_changes) observe
-			// the row-by-row interleaving (e_changes 5.1.2).
-			if e.hasTriggersForTable(tableName) {
-				newRowID := ch.rowID
-				if ch.newRowID != nil {
-					newRowID = *ch.newRowID
-				}
-				newRow := buildRowMapFromValues(ch.values, colDefs, newRowID)
-				oldRow := buildRowMapFromValues(ch.oldValues, colDefs, ch.rowID)
-				if trigResult := e.fireAfterUpdateTriggers(tableName, newRow, oldRow); trigResult.Error != nil {
-					return trigResult
-				}
-			}
+		if !appliedChange {
+			continue
+		}
+		changesMade++
+		// Fire AFTER UPDATE triggers per-row (immediately after this
+		// row's write), matching SQLite: the AFTER trigger for row N runs
+		// before row N+1's SET expressions are evaluated. This makes the
+		// changes() counter (and user functions like my_changes) observe
+		// the row-by-row interleaving (e_changes 5.1.2).
+		if res := e.fireTriggeredUpdateAfter(tableName, colDefs, *ch); res != nil {
+			return res
 		}
 	}
 	return &Result{Changes: changesMade}
+}
+
+// fireTriggeredUpdateAfter fires AFTER UPDATE triggers for one written change
+// (the trigger-per-row apply path), passing the change's NEW rowid when the
+// UPDATE re-keyed the row.
+func (e *DMLExecutor) fireTriggeredUpdateAfter(tableName string, colDefs []sql.ColumnDef, ch updateChange) *Result {
+	if !e.hasTriggersForTable(tableName) {
+		return nil
+	}
+	newRowID := ch.rowID
+	if ch.newRowID != nil {
+		newRowID = *ch.newRowID
+	}
+	newRow := buildRowMapFromValues(ch.values, colDefs, newRowID)
+	oldRow := buildRowMapFromValues(ch.oldValues, colDefs, ch.rowID)
+	if trigResult := e.fireAfterUpdateTriggers(tableName, newRow, oldRow); trigResult.Error != nil {
+		return trigResult
+	}
+	return nil
 }
 
 // pushUpdateScanTable installs the UPDATE target's effective scan-table
@@ -229,23 +241,30 @@ func (e *DMLExecutor) updateRowConflictValues(tree *btree.BTree, ch updateChange
 		if err != nil || cell == nil {
 			return false, nil
 		}
-		if cell.RowID == ch.rowID {
-			if cursorExhausted(cursor) {
-				return false, nil
-			}
-			continue
-		}
-		conflict, stop, vals := e.cellConflictValues(cell, ch, colDefs, colIndex, uniqueCols, idxColsList)
-		if stop || conflict {
-			if conflict && conflictVals != nil {
-				*conflictVals = vals
-			}
+		done, conflict := e.visitUpdateConflictCell(cursor, cell, ch, colDefs, colIndex, uniqueCols, idxColsList, conflictVals)
+		if done {
 			return conflict, nil
 		}
-		if cursorExhausted(cursor) {
-			return false, nil
-		}
 	}
+}
+
+// visitUpdateConflictCell classifies one live-table cell during the UNIQUE
+// conflict scan: it advances the cursor past non-matching cells and reports
+// whether the scan is done (conflict carries the verdict when done). The
+// change's own row is not a conflict.
+func (e *DMLExecutor) visitUpdateConflictCell(cursor *btree.Cursor, cell *storage.Cell, ch updateChange, colDefs []sql.ColumnDef, colIndex map[string]int, uniqueCols []int, idxColsList []uniqueIndexDef, conflictVals *[]interface{}) (bool, bool) {
+	if cell.RowID == ch.rowID {
+		// The row being updated is not a conflict.
+		return cursorExhausted(cursor), false
+	}
+	conflict, stop, vals := e.cellConflictValues(cell, ch, colDefs, colIndex, uniqueCols, idxColsList)
+	if stop || conflict {
+		if conflict && conflictVals != nil {
+			*conflictVals = vals
+		}
+		return true, conflict
+	}
+	return cursorExhausted(cursor), false
 }
 
 // cellConflictValues reports whether one table cell's values conflict with a
@@ -284,48 +303,24 @@ func (e *DMLExecutor) writeUpdateCell(tree *btree.BTree, tableName string, rootP
 		}
 	}
 	withoutRowid := tableEntry != nil && hasWithoutRowidKeyword(strings.ToUpper(tableEntry.SQL))
-	var oldKey [][]interface{}
-	if withoutRowid {
-		oldKey = [][]interface{}{ch.oldValues}
+	res, skip := e.deleteUpdatedRow(tree, tableEntry, colDefs, ch, withoutRowid)
+	if res != nil {
+		return res
 	}
-	if withoutRowid {
-		deleted, err := e.deleteRowsByIdentity(tableEntry, colDefs, nil, oldKey, nil)
-		if err != nil {
-			return &Result{Error: err}
-		}
-		if deleted == 0 {
-			// The row vanished while the UPDATE's triggers ran (e.g. a
-			// BEFORE UPDATE trigger deleted it): SQLite's OP_NotExists
-			// skips the row silently — no delete, no re-insert.
-			return &Result{}
-		}
-	} else if _, err := tree.DeleteCellByRowID(ch.rowID); err != nil {
-		return &Result{Error: err}
+	if skip {
+		// The row vanished while the UPDATE's triggers ran (e.g. a
+		// BEFORE UPDATE trigger deleted it): SQLite's OP_NotExists
+		// skips the row silently — no delete, no re-insert.
+		return &Result{}
 	}
-	// The cached largest rowid survives an in-place UPDATE (the rowid is
-	// rewritten, not removed). Invalidate only when the rowid itself
-	// changed: an unconditional invalidate here let the post-write
-	// BumpRowIDCache(writeRowID) re-seed the entry with just this row's
-	// rowid, so later auto-rowid INSERTs (trigger bodies inserting during
-	// the same statement) re-allocated existing rowids and the per-row
-	// write then clobbered them (sqllimits1-7.4 cascade lost rows).
-	newRecord, err := storage.EncodeRecord(finalValues)
+	record, cellType, tree, err := e.encodeUpdatedRecord(tree, tableName, tableEntry, colDefs, finalValues, withoutRowid)
 	if err != nil {
 		return &Result{Error: err}
-	}
-	cellType := storage.CellTableLeaf
-	if withoutRowid {
-		newRecord, err = storage.EncodeRecord(ReorderToStorage(finalValues, WithoutRowidStorageOrder(tableEntry.SQL, colDefs)))
-		if err != nil {
-			return &Result{Error: err}
-		}
-		cellType = storage.CellIndexLeaf
-		tree = e.wrTableBTree(e.dmlPager(tableName), tableEntry, colDefs)
 	}
 	newCell := &storage.Cell{
 		Type:    cellType,
 		RowID:   writeRowID,
-		Payload: newRecord,
+		Payload: record,
 	}
 	if err := tree.InsertCell(newCell); err != nil {
 		return &Result{Error: err}
@@ -337,7 +332,62 @@ func (e *DMLExecutor) writeUpdateCell(tree *btree.BTree, tableName string, rootP
 			return &Result{Error: err}
 		}
 	}
-	if writeRowID != ch.rowID {
+	e.bumpUpdateRowIDCache(tableName, rootPage, ch.rowID, writeRowID)
+
+	// Fire the preupdate hook with the old and new row values. WITHOUT ROWID
+	// tables report rowid 0 (SQLite uses the key columns instead); rowid
+	// tables report the rowid (old for UPDATE, per the preupdate contract).
+	return e.fireUpdateWritePreupdate(tableName, ch, finalValues)
+}
+
+// deleteUpdatedRow deletes the row a change rewrites: OLD-PK identity delete
+// for WITHOUT ROWID tables, rowid delete otherwise. res non-nil aborts;
+// skip=true means the row already vanished (silently skipped, OP_NotExists).
+func (e *DMLExecutor) deleteUpdatedRow(tree *btree.BTree, tableEntry *schema.Entry, colDefs []sql.ColumnDef, ch updateChange, withoutRowid bool) (res *Result, skip bool) {
+	if !withoutRowid {
+		if _, err := tree.DeleteCellByRowID(ch.rowID); err != nil {
+			return &Result{Error: err}, false
+		}
+		return nil, false
+	}
+	oldKey := [][]interface{}{ch.oldValues}
+	deleted, err := e.deleteRowsByIdentity(tableEntry, colDefs, nil, oldKey, nil)
+	if err != nil {
+		return &Result{Error: err}, false
+	}
+	return nil, deleted == 0
+}
+
+// encodeUpdatedRecord encodes the updated row's record: the plain encode
+// runs first (its error aborts), then WITHOUT ROWID tables re-encode
+// PK-first and the write retargets the WR storage tree (CellIndexLeaf).
+func (e *DMLExecutor) encodeUpdatedRecord(tree *btree.BTree, tableName string, tableEntry *schema.Entry, colDefs []sql.ColumnDef, finalValues []interface{}, withoutRowid bool) ([]byte, storage.CellType, *btree.BTree, error) {
+	newRecord, err := storage.EncodeRecord(finalValues)
+	if err != nil {
+		return nil, 0, nil, err
+	}
+	cellType := storage.CellTableLeaf
+	if withoutRowid {
+		newRecord, err = storage.EncodeRecord(ReorderToStorage(finalValues, WithoutRowidStorageOrder(tableEntry.SQL, colDefs)))
+		if err != nil {
+			return nil, 0, nil, err
+		}
+		cellType = storage.CellIndexLeaf
+		tree = e.wrTableBTree(e.dmlPager(tableName), tableEntry, colDefs)
+	}
+	return newRecord, cellType, tree, nil
+}
+
+// bumpUpdateRowIDCache maintains the rowid cache after an update write. The
+// cached largest rowid survives an in-place UPDATE (the rowid is rewritten,
+// not removed). Invalidate only when the rowid itself changed: an
+// unconditional invalidate here let the post-write
+// BumpRowIDCache(writeRowID) re-seed the entry with just this row's
+// rowid, so later auto-rowid INSERTs (trigger bodies inserting during
+// the same statement) re-allocated existing rowids and the per-row
+// write then clobbered them (sqllimits1-7.4 cascade lost rows).
+func (e *DMLExecutor) bumpUpdateRowIDCache(tableName string, rootPage uint32, oldRowID, writeRowID int64) {
+	if writeRowID != oldRowID {
 		// The old rowid (possibly the table's largest) is gone; force the
 		// next allocation to re-scan. Bump first so the new rowid is not
 		// lost, then drop the entry (bump is monotone-max but the largest
@@ -347,13 +397,16 @@ func (e *DMLExecutor) writeUpdateCell(tree *btree.BTree, tableName string, rootP
 	} else {
 		e.ctx.BumpRowIDCache(e.dmlPager(tableName), rootPage, writeRowID)
 	}
+}
 
-	// Fire the preupdate hook with the old and new row values. WITHOUT ROWID
-	// tables report rowid 0 (SQLite uses the key columns instead); rowid
-	// tables report the rowid (old for UPDATE, per the preupdate contract).
+// fireUpdateWritePreupdate fires the preupdate UPDATE hook after a
+// writeUpdateCell write, reporting the change's old rowid (0 for WITHOUT
+// ROWID tables, which use the key columns instead).
+func (e *DMLExecutor) fireUpdateWritePreupdate(tableName string, ch updateChange, finalValues []interface{}) *Result {
 	if entry, _, err := e.ctx.FindTable(tableName); err == nil {
 		rowID := ch.rowID
-		if hasWithoutRowidKeyword(strings.ToUpper(entry.SQL)) {
+		wr := hasWithoutRowidKeyword(strings.ToUpper(entry.SQL))
+		if wr {
 			rowID = 0
 		}
 		if res := e.ctx.FirePreupdate(PreupdateEvent{
@@ -361,7 +414,7 @@ func (e *DMLExecutor) writeUpdateCell(tree *btree.BTree, tableName string, rootP
 			DB:    e.schemaNameForPager(e.dmlPager(tableName)),
 			Table: tableName,
 			RowID: rowID, RowID2: rowID,
-			RowidTable: !hasWithoutRowidKeyword(strings.ToUpper(entry.SQL)),
+			RowidTable: !wr,
 			Old:        append([]interface{}(nil), ch.oldValues...),
 			New:        append([]interface{}(nil), finalValues...),
 		}); res != nil {
@@ -528,26 +581,9 @@ func (e *DMLExecutor) applyIgnoredUpdateRow(tree *btree.BTree, tableName string,
 		}
 	}
 	// Check conflicts against the live table state; skip on conflict.
-	// WITHOUT ROWID tables use the WR-aware checker: every WR cell shares
-	// the synthetic RowID 0, so the rowid-based self-exclusion inside
-	// updateRowConflictsWithTable would skip EVERY cell — including the
-	// conflicting one — and a conflicting row was updated instead of
-	// ignored (without_rowid4-2.x: OR IGNORE inside a trigger cascade).
-	wrOrder := e.ctx.WRStorageOrder(tableEntry.SQL, colDefs)
-	if len(wrOrder) > 0 {
-		// OR IGNORE skips the row on any constraint violation, so a
-		// conflict result (res.Error) means: leave the row unchanged.
-		if res := e.checkLiveTableConflictsWR(tree, nil, ch, colDefs, colIndex, uniqueCols, idxColsList, tableEntry, wrOrder); res.Error != nil {
-			return true, nil
-		}
-	} else {
-		conflict, err := e.updateRowConflictsWithTable(tree, ch, colDefs, colIndex, uniqueCols, idxColsList)
-		if err != nil {
-			return false, &Result{Error: err}
-		}
-		if conflict {
-			return true, nil
-		}
+	skip, res := e.ignoredUpdateRowConflict(tree, tableEntry, colDefs, colIndex, uniqueCols, idxColsList, ch)
+	if res != nil || skip {
+		return skip, res
 	}
 	// OR IGNORE also skips rows whose NEW values violate a NOT NULL, CHECK,
 	// or FOREIGN KEY constraint (SQLite's OR IGNORE applies to every
@@ -568,6 +604,29 @@ func (e *DMLExecutor) applyIgnoredUpdateRow(tree *btree.BTree, tableName string,
 		}
 	}
 	return false, nil
+}
+
+// ignoredUpdateRowConflict checks one OR IGNORE change against the live
+// table; skip=true leaves the row unchanged. WITHOUT ROWID tables use the
+// WR-aware checker: every WR cell shares the synthetic RowID 0, so the
+// rowid-based self-exclusion inside updateRowConflictsWithTable would skip
+// EVERY cell — including the conflicting one — and a conflicting row was
+// updated instead of ignored (without_rowid4-2.x: OR IGNORE inside a
+// trigger cascade). OR IGNORE skips the row on any constraint violation, so
+// a conflict result (res.Error) means: leave the row unchanged.
+func (e *DMLExecutor) ignoredUpdateRowConflict(tree *btree.BTree, tableEntry *schema.Entry, colDefs []sql.ColumnDef, colIndex map[string]int, uniqueCols []int, idxColsList []uniqueIndexDef, ch updateChange) (bool, *Result) {
+	wrOrder := e.ctx.WRStorageOrder(tableEntry.SQL, colDefs)
+	if len(wrOrder) > 0 {
+		if res := e.checkLiveTableConflictsWR(tree, nil, ch, colDefs, colIndex, uniqueCols, idxColsList, tableEntry, wrOrder); res.Error != nil {
+			return true, nil
+		}
+		return false, nil
+	}
+	conflict, err := e.updateRowConflictsWithTable(tree, ch, colDefs, colIndex, uniqueCols, idxColsList)
+	if err != nil {
+		return false, &Result{Error: err}
+	}
+	return conflict, nil
 }
 
 // skipIgnoreChange reports whether UPDATE OR IGNORE should skip a change
@@ -674,16 +733,30 @@ func (e *DMLExecutor) updateTouchesUniqueColumn(ch updateChange, colIndex map[st
 		if !ok {
 			continue
 		}
-		for _, u := range uniqueCols {
-			if u == i {
-				return true
-			}
+		if setColIsUniqueCol(i, uniqueCols) || setColHitsUniqueIndex(i, colIndex, idxColsList) {
+			return true
 		}
-		for _, idx := range idxColsList {
-			for _, cn := range idx.Cols {
-				if j, ok := colIndex[cn]; ok && j == i {
-					return true
-				}
+	}
+	return false
+}
+
+// setColIsUniqueCol reports whether assigned column i is a UNIQUE/PK column.
+func setColIsUniqueCol(i int, uniqueCols []int) bool {
+	for _, u := range uniqueCols {
+		if u == i {
+			return true
+		}
+	}
+	return false
+}
+
+// setColHitsUniqueIndex reports whether assigned column i is a key column of
+// any UNIQUE index.
+func setColHitsUniqueIndex(i int, colIndex map[string]int, idxColsList []uniqueIndexDef) bool {
+	for _, idx := range idxColsList {
+		for _, cn := range idx.Cols {
+			if j, ok := colIndex[cn]; ok && j == i {
+				return true
 			}
 		}
 	}
@@ -702,22 +775,29 @@ func (e *DMLExecutor) validateDMLAliasQualifier(tableName, alias string, exprs [
 		if ex == nil {
 			continue
 		}
-		var bad string
-		execquery.WalkExprFull(ex, func(n sql.Expr) {
-			if bad != "" {
-				return
-			}
-			switch n.(type) {
-			case *sql.Subquery, *sql.ExistsExpr:
-				return // subqueries resolve against their own scope
-			}
-			if ref, ok := n.(*sql.ColumnRef); ok && strings.EqualFold(ref.Table, tableName) {
-				bad = ref.Table + "." + ref.Name
-			}
-		})
-		if bad != "" {
+		if bad := aliasMaskedColumnRef(ex, tableName); bad != "" {
 			return &Result{Error: fmt.Errorf("no such column: %s", bad)}
 		}
 	}
 	return nil
+}
+
+// aliasMaskedColumnRef returns the first "table.column" reference in the
+// expression tree that uses the masked original table name ("" when none).
+// Subqueries resolve against their own scope.
+func aliasMaskedColumnRef(ex sql.Expr, tableName string) string {
+	var bad string
+	execquery.WalkExprFull(ex, func(n sql.Expr) {
+		if bad != "" {
+			return
+		}
+		switch n.(type) {
+		case *sql.Subquery, *sql.ExistsExpr:
+			return // subqueries resolve against their own scope
+		}
+		if ref, ok := n.(*sql.ColumnRef); ok && strings.EqualFold(ref.Table, tableName) {
+			bad = ref.Table + "." + ref.Name
+		}
+	})
+	return bad
 }
