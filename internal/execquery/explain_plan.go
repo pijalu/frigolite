@@ -463,12 +463,14 @@ func (e *SelectEngine) bestIndexForQuery(tableName string, where sql.Expr, estim
 			bestName = e.tiebreakIndex(refs, bestName, ref.indexName)
 		}
 	}
-	// Collect all refs for the best index to build conditions. Also include
-	// column-to-constant predicates on columns without an index: SQLite's
-	// older plans (and the without_rowid1 14.2 test) list every WHERE
-	// constraint that narrows the search, e.g. SEARCH ... (a=? AND b=?).
+	// Collect all refs for the best index to build conditions. Only
+	// column-to-constant predicates ON THE CHOSEN INDEX'S COLUMNS are listed:
+	// SQLite's explainIndexRange renders one constraint per leading index
+	// column satisfied by the query, so a constraint on a column outside the
+	// index never appears (analyze7-2.3 "SEARCH t1 USING INDEX t1a (a=?)" for
+	// "WHERE a=123 AND b=123" — b is not in t1a and is not listed).
 	if bestName != "" {
-		bestRefs = refsForBestIndex(refs, where, tableName, bestName)
+		bestRefs = e.refsForBestIndex(refs, where, tableName, bestName)
 	}
 	*estimate = bestEst
 	return bestName, formatConditions(bestRefs)
@@ -501,12 +503,12 @@ func (e *SelectEngine) tiebreakIndex(refs []indexedRef, bestName, candidateName 
 }
 
 // refsForBestIndex returns every indexed ref matching the best index, plus
-// every column-to-constant predicate (indexed or not) so the plan lists the
-// full set of search constraints. For a WITHOUT ROWID PRIMARY KEY search,
-// only PRIMARY KEY columns are listed: SQLite's plan for a PK lookup shows
-// exactly the PK constraints, not unrelated WHERE predicates (see
-// without_rowid1 14.2).
-func refsForBestIndex(refs []indexedRef, where sql.Expr, tableName, bestName string) []indexedRef {
+// column-to-constant predicates on the index's own columns so the plan lists
+// the full set of search constraints for that index. For a WITHOUT ROWID
+// PRIMARY KEY search, only PRIMARY KEY columns are listed: SQLite's plan for
+// a PK lookup shows exactly the PK constraints, not unrelated WHERE
+// predicates (see without_rowid1 14.2).
+func (e *SelectEngine) refsForBestIndex(refs []indexedRef, where sql.Expr, tableName, bestName string) []indexedRef {
 	var bestRefs []indexedRef
 	for _, ref := range refs {
 		if ref.indexName == bestName {
@@ -516,7 +518,11 @@ func refsForBestIndex(refs []indexedRef, where sql.Expr, tableName, bestName str
 	if bestName == "PRIMARY KEY" {
 		return bestRefs
 	}
+	indexCols := e.indexColumns(bestName)
 	for _, ar := range collectAllColumnRefs(where, tableName) {
+		if !containsFold(indexCols, ar.colName) {
+			continue
+		}
 		if !bestRefsContain(bestRefs, ar) {
 			bestRefs = append(bestRefs, ar)
 		}

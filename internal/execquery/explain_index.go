@@ -294,6 +294,14 @@ func (e *SelectEngine) indexUsingLabel(tableName, idx string, s *sql.SelectStmt)
 		using = "PRIMARY KEY"
 	} else {
 		cols := e.indexColumns(idx)
+		// A WITHOUT ROWID index implicitly carries the PRIMARY KEY columns
+		// (they lead every index entry), so an index that covers the PK
+		// covers the whole row (index7-2.2: t2(a,b PRIMARY KEY) WITHOUT
+		// rowid with index t2a1(a) gives "SEARCH t2 USING COVERING INDEX
+		// t2a1 (a=?)" for "SELECT * FROM t2 WHERE a=5").
+		if pk := e.withoutRowidPKCols(tableName); len(pk) > 0 {
+			cols = append(append([]string{}, cols...), pk...)
+		}
 		covered := e.indexCoversAllTableCols(tableName, cols)
 		if !covered && s != nil {
 			// COVERING when the index covers every column referenced by this
@@ -586,7 +594,12 @@ func indexPredImplied(pred string, queryTerms map[string]bool) bool {
 }
 
 // allAndTermsImplied checks that every AND conjunct in pred is implied by
-// queryTerms. Parenthesised sub-expressions are recursed into.
+// queryTerms. Parenthesised sub-expressions are recursed into. An "X IS NOT
+// NULL" conjunct is implied when any query constraint on X uses a comparison
+// with a non-NULL operand (where.c exprImpliesNonNullRow: an EQ/LT/LE/GT/GE/
+// NE/IN/BETWEEN/LIKE/GLOB constraint on the column guarantees it is not NULL
+// in every surviving row — index6-2.2 "WHERE a=5" implies the partial index
+// predicate "a IS NOT NULL").
 func allAndTermsImplied(pred string, queryTerms map[string]bool) bool {
 	for _, t := range splitTopLevel(pred, " AND ") {
 		t = strings.TrimSpace(t)
@@ -597,10 +610,40 @@ func allAndTermsImplied(pred string, queryTerms map[string]bool) bool {
 			continue
 		}
 		if _, ok := queryTerms[normaliseTerm(t)]; !ok {
+			if col, isNonNull := nonNullTermColumn(t); isNonNull && nonNullImpliedByTerms(col, queryTerms) {
+				continue
+			}
 			return false
 		}
 	}
 	return true
+}
+
+// nonNullTermColumn matches an "X IS NOT NULL" predicate term and returns X
+// (qualified form preserved), or reports that the term is not of that shape.
+func nonNullTermColumn(term string) (string, bool) {
+	f := strings.Fields(term)
+	if len(f) == 4 && strings.EqualFold(f[1], "IS") && strings.EqualFold(f[2], "NOT") &&
+		strings.EqualFold(f[3], "NULL") {
+		return f[0], true
+	}
+	return "", false
+}
+
+// nonNullImpliedByTerms reports whether any query conjunct constrains col
+// with an operator whose surviving rows cannot hold NULL for that column.
+func nonNullImpliedByTerms(col string, queryTerms map[string]bool) bool {
+	for term := range queryTerms {
+		f := strings.Fields(term)
+		if len(f) < 2 || !strings.EqualFold(f[0], col) {
+			continue
+		}
+		switch strings.ToUpper(f[1]) {
+		case "=", "==", "<", "<=", ">", ">=", "<>", "!=", "IN", "BETWEEN", "LIKE", "GLOB":
+			return true
+		}
+	}
+	return false
 }
 
 // splitTopLevel splits a SQL predicate string on the given separator at

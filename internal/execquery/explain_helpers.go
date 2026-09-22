@@ -157,6 +157,12 @@ func extractConst(e sql.Expr) interface{} {
 		return v.Value
 	case *sql.NullLit:
 		return nil
+	case *sql.ParameterExpr:
+		// A bound parameter is a runtime constant: SQLite plans "col=?" via
+		// an index search exactly like a literal (analyze7-3.2.1 "WHERE
+		// c=?"). The node marks constrainedness only — the EQP condition
+		// renders every operator as "col=?" regardless.
+		return v
 	default:
 		return nil
 	}
