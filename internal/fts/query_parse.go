@@ -426,11 +426,14 @@ func (p *legacyParser) legacyNextNode(start int) (node *exprNode, consumed int, 
 	if isPrefix {
 		tokEnd++
 	}
+	// The term keeps its RAW case: the table's tokenizer re-tokenizes every
+	// term later (TokenizeQueryNode), and a langid-aware tokenizer needs the
+	// original text (fts4langid 4.1.3: 'Quick' at langid 1 stays distinct).
 	var phrase QueryNode
 	if isPrefix {
-		phrase = &PrefixNode{Prefix: asciiLowerBytes(word), First: first}
+		phrase = &PrefixNode{Prefix: word, First: first}
 	} else {
-		phrase = &TermNode{Term: asciiLowerBytes(word), First: first}
+		phrase = &TermNode{Term: word, First: first}
 	}
 	if colName != "" {
 		phrase = &ColumnRefNode{ColumnName: colName, Inner: phrase}
