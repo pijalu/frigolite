@@ -79,7 +79,31 @@ func (e *Engine) PageSize(schema, value string) *execpragma.Result {
 // modes it records the mode so the getter reports it. A mode change requested
 // while a transaction is open is deferred (pager.c pendingJournalMode) and only
 // applied when the transaction ends, matching SQLite (test/jrnlmode3.c 3.3/3.5).
+//
+// pragma.c PragTyp_JOURNAL_MODE emits OP_JournalMode for EVERY database with
+// a materialized btree when the pragma has no schema qualifier
+// (ii==iDb || pId2->n==0, iterating db->nDb-1..0) — but each opcode writes
+// the SAME result register and ONE OP_ResultRow follows the loop, so the
+// statement returns a single row: MAIN's resulting mode (ii=0 runs last).
+// The TEMP btree participates once materialized (aDb[1].pBt; any pragma
+// naming temp opens it — pragma.c:457 sqlite3OpenTempDatabase).
 func (e *Engine) JournalMode(schema, value string) *execpragma.Result {
+	if schema == "" && value != "" {
+		for i := len(e.dbList) - 1; i >= 0; i-- {
+			ctx := e.dbList[i]
+			if ctx == nil || ctx.Pager == nil {
+				continue
+			}
+			upper := strings.ToUpper(ctx.Name)
+			if (upper == "TEMP" || upper == "TEMPORARY") && !e.tempBtreeOpen && !e.hasTempTables() {
+				continue // lazy aDb[1].pBt: no btree materialized
+			}
+			if strings.EqualFold(ctx.Name, "main") {
+				continue // main is applied LAST below (its result is returned)
+			}
+			_ = e.setJournalMode(ctx, ctx.Name, strings.ToLower(strings.TrimSpace(value)))
+		}
+	}
 	ctx := e.pragmaDBCtx(schema)
 	if ctx == nil || ctx.Pager == nil {
 		if value == "" {
