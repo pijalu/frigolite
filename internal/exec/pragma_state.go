@@ -157,20 +157,29 @@ func (e *Engine) JournalSizeLimit(schema, value string) *execpragma.Result {
 	return &execpragma.Result{Rows: [][]interface{}{{ctx.Pager.JournalSizeLimit()}}}
 }
 
-// LockingMode implements PRAGMA locking_mode (getter and setter). SQLite tracks
-// it per database but the value is a connection-level lock model; the setter
-// echoes the new mode as a result row (pragma.c PragTyp_LOCKING_MODE).
+// LockingMode implements PRAGMA locking_mode (getter and setter), mirroring
+// pragma.c PragTyp_LOCKING_MODE:
+//
+//   - Bare "PRAGMA locking_mode = X" (no schema) sets X on every attached
+//     database EXCEPT temp (pragma.c loops ii=2..nDb) and also updates
+//     db->dfltLockMode, so databases attached LATER inherit X; the result
+//     row is MAIN's resulting mode.
+//   - Bare "PRAGMA locking_mode" (query) returns db->dfltLockMode — which
+//     may differ from MAIN's own pager mode after a schema-qualified set.
+//   - Schema-qualified forms address only that database's pager and never
+//     touch dfltLockMode. TEMP ignores sets and always reports "exclusive"
+//     (pager.c: pPager->exclusiveMode = tempFile at open, and
+//     sqlite3PagerLockingMode refuses to change a tempFile pager).
 func (e *Engine) LockingMode(schema, value string) *execpragma.Result {
-	if value != "" {
-		m := strings.ToLower(strings.TrimSpace(value))
-		switch m {
-		case "normal", "exclusive":
+	m := strings.ToLower(strings.TrimSpace(value))
+	switch m {
+	case "normal", "exclusive":
+		if schema == "" {
+			// No schema: set every database except temp (pragma.c ii=2..nDb
+			// loop) and the connection default for future ATTACHes.
 			e.lockingMode = m
-			if m == "normal" {
-				// Reverting to normal releases the never-unlocked SHARED
-				// locks held in exclusive mode (pager.c drops back to
-				// unlock-at-transaction-end).
-				e.clearPersistentShared()
+			for _, dbCtx := range e.dbList {
+				e.setSchemaLockingMode(dbCtx.Name, m)
 			}
 			// WAL parity (wal.c walLockShared/walLockExclusive): in
 			// locking_mode=EXCLUSIVE the shm lock calls become no-ops.
@@ -179,16 +188,77 @@ func (e *Engine) LockingMode(schema, value string) *execpragma.Result {
 					dbCtx.Pager.SetWALExclusiveMode(m == "exclusive")
 				}
 			}
-		default:
-			// Unrecognised token: leave the current mode unchanged (no error),
-			// matching SQLite's lenient handling of invalid pragma values.
+			if m == "normal" {
+				// Reverting to normal releases the never-unlocked SHARED
+				// locks held in exclusive mode (pager.c drops back to
+				// unlock-at-transaction-end).
+				e.clearPersistentShared()
+			}
+		} else {
+			// Schema-qualified set: only that pager (pragma.c pId2->n!=0
+			// branch); dfltLockMode is untouched. TEMP refuses the set.
+			upper := strings.ToUpper(schema)
+			settable := upper != "TEMP" && upper != "TEMPORARY"
+			if settable {
+				e.setSchemaLockingMode(upper, m)
+				if ctx := e.GetDB(upper); ctx != nil && ctx.Pager != nil {
+					ctx.Pager.SetWALExclusiveMode(m == "exclusive")
+				}
+				if m == "normal" && upper == "MAIN" {
+					// Reverting MAIN to normal releases the never-unlocked
+					// SHARED locks held in exclusive mode (pager.c drops
+					// back to unlock-at-transaction-end).
+					e.clearPersistentShared()
+				}
+			}
 		}
+	default:
+		// Unrecognised token: leave the current mode unchanged (no error),
+		// matching SQLite's lenient handling of invalid pragma values
+		// (getLockingMode falls back to QUERY mode, so the result row is
+		// just the current value).
 	}
-	return &execpragma.Result{Rows: [][]interface{}{{e.currentLockingMode()}}}
+	return &execpragma.Result{Rows: [][]interface{}{{e.currentLockingMode(schema)}}}
 }
 
-// currentLockingMode returns the active locking mode (default "normal").
-func (e *Engine) currentLockingMode() string {
+// setSchemaLockingMode records the per-schema locking mode. The TEMP
+// database's pager is created exclusiveMode (pager.c pPager->exclusiveMode =
+// tempFile) and sqlite3PagerLockingMode refuses to change a tempFile pager,
+// so sets targeting TEMP are silently ignored. Caller resolves the schema
+// name; only MAIN / TEMP / attached names are meaningful here.
+func (e *Engine) setSchemaLockingMode(schema string, m string) {
+	upper := strings.ToUpper(schema)
+	if upper == "TEMP" || upper == "TEMPORARY" {
+		return
+	}
+	if upper == "" {
+		upper = "MAIN"
+	}
+	e.settings.lockingModes[upper] = m
+}
+
+// schemaLockingMode resolves one database's locking mode: TEMP is pinned
+// exclusive; an explicitly set schema reports its value; anything else
+// (including databases attached after the last bare set) reports the
+// connection default dfltLockMode — the pager.c model where a new pager
+// starts at db->dfltLockMode.
+func (e *Engine) schemaLockingMode(schema string) string {
+	upper := strings.ToUpper(schema)
+	if upper == "TEMP" || upper == "TEMPORARY" {
+		return "exclusive"
+	}
+	if m, ok := e.settings.lockingModes[upper]; ok {
+		return m
+	}
+	return e.currentLockingMode("")
+}
+
+// currentLockingMode returns the addressed default locking mode (default
+// "normal"): the bare-query form reports db->dfltLockMode.
+func (e *Engine) currentLockingMode(schema string) string {
+	if schema != "" {
+		return e.schemaLockingMode(schema)
+	}
 	if e.lockingMode == "" {
 		return "normal"
 	}
