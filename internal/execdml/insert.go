@@ -2,17 +2,27 @@ package execdml
 
 import (
 	"fmt"
+	"regexp"
+	"strings"
+
 	"github.com/pijalu/frigolite/internal/btree"
 	"github.com/pijalu/frigolite/internal/execexpr"
 	"github.com/pijalu/frigolite/internal/function"
+	"github.com/pijalu/frigolite/internal/pager"
 	"github.com/pijalu/frigolite/internal/parse"
 	"github.com/pijalu/frigolite/internal/schema"
 	"github.com/pijalu/frigolite/internal/sql"
 	"github.com/pijalu/frigolite/internal/storage"
 	"github.com/pijalu/frigolite/internal/util"
-	"regexp"
-	"strings"
 )
+
+// persistTreeRootPage persists a (possibly split-moved) tree root so later
+// statements write to the new root page.
+func (e *DMLExecutor) persistTreeRootPage(pg *pager.Pager, tableName string, rootPage uint32, tree *btree.BTree) {
+	if tree.RootPage() != e.ctx.RootPagePg(pg, tableName, rootPage) {
+		e.ctx.UpdateRootPagePg(pg, tableName, tree.RootPage())
+	}
+}
 
 // strictCheckValues enforces STRICT table type checking on non-generated
 // column values.
@@ -382,14 +392,28 @@ func (e *DMLExecutor) applyUpsertUpdate(tableEntry *schema.Entry, colDefs []sql.
 // upsertWhereAllows evaluates the DO UPDATE WHERE against the existing row and
 // excluded pseudo-table.
 func (e *DMLExecutor) upsertWhereAllows(tableEntry *schema.Entry, colDefs []sql.ColumnDef, colIndex map[string]int, existingValues []interface{}, values []interface{}, oc *sql.OnConflictClause, alias string) (bool, error) {
-	row := make(RowMap)
 	dmlName := tableEntry.Name
 	if alias != "" {
 		dmlName = alias
 	}
-	// The pseudo-table "excluded" is shadowed only when the statement's
-	// target table is itself named "excluded" and NOT aliased.
-	excludedShadowed := alias == "" && strings.EqualFold(tableEntry.Name, "excluded")
+	row := upsertWhereRowMap(dmlName, alias == "", tableEntry.Name, colDefs, colIndex, existingValues, values)
+	// The WHERE may reference the table by name (t1.b): resolve against
+	// the row's unqualified keys via the current DML table context.
+	prevDML := e.currentDMLTable
+	e.currentDMLTable = dmlName
+	ok, err := e.ctx.EvalBool(oc.Where, row)
+	e.currentDMLTable = prevDML
+	return ok, err
+}
+
+// upsertWhereRowMap builds the DO UPDATE WHERE evaluation row: the current
+// row under the statement's DML name (and its qualified form), plus the
+// attempted insert row under "excluded.". The pseudo-table "excluded" is
+// shadowed only when the statement's target table is itself named "excluded"
+// and NOT aliased.
+func upsertWhereRowMap(dmlName string, noAlias bool, tableName string, colDefs []sql.ColumnDef, colIndex map[string]int, existingValues, values []interface{}) RowMap {
+	row := make(RowMap)
+	excludedShadowed := noAlias && strings.EqualFold(tableName, "excluded")
 	for _, col := range colDefs {
 		if idx, ok := colIndex[col.Name]; ok && idx < len(existingValues) {
 			row[col.Name] = existingValues[idx]
@@ -403,13 +427,7 @@ func (e *DMLExecutor) upsertWhereAllows(tableEntry *schema.Entry, colDefs []sql.
 			}
 		}
 	}
-	// The WHERE may reference the table by name (t1.b): resolve against
-	// the row's unqualified keys via the current DML table context.
-	prevDML := e.currentDMLTable
-	e.currentDMLTable = dmlName
-	ok, err := e.ctx.EvalBool(oc.Where, row)
-	e.currentDMLTable = prevDML
-	return ok, err
+	return row
 }
 
 // writeUpdatedRow deletes the old row, fires BEFORE UPDATE triggers, writes the
@@ -422,48 +440,16 @@ func (e *DMLExecutor) writeUpdatedRow(tableEntry *schema.Entry, colDefs []sql.Co
 	withoutRowid := tableEntry != nil && hasWithoutRowidKeyword(strings.ToUpper(tableEntry.SQL))
 	dmlPg := e.dmlPager(tableEntry.Name)
 
-	var record []byte
-	var cell storage.CellType
-	tree := e.dmlTableBTree(tableEntry.Name, tableEntry.RootPage)
-	if withoutRowid {
-		// PK-addressed delete: the WR row lives in the index btree keyed by
-		// its PK columns, not by any rowid.
-		if _, err := e.deleteRowsByIdentity(tableEntry, colDefs, nil, [][]interface{}{existingValues}, nil); err != nil {
-			return &Result{Error: err}
-		}
-		var err error
-		record, err = storage.EncodeRecord(ReorderToStorage(updated, WithoutRowidStorageOrder(tableEntry.SQL, colDefs)))
-		if err != nil {
-			return &Result{Error: err}
-		}
-		cell = storage.CellIndexLeaf
-		tree = e.wrTableBTree(dmlPg, tableEntry, colDefs)
-	} else {
-		var err error
-		record, err = storage.EncodeRecord(updated)
-		if err != nil {
-			return &Result{Error: err}
-		}
-		cell = storage.CellTableLeaf
-		deleted, err := tree.DeleteCellsWhere(func(c *storage.Cell) bool {
-			return c.RowID == existingRowID
-		})
-		if err != nil || deleted == 0 {
-			return &Result{Error: fmt.Errorf("upsert: row not found for update")}
-		}
+	record, cell, tree, res := e.upsertRewriteRow(tableEntry, colDefs, updated, existingRowID, existingValues, withoutRowid, dmlPg)
+	if res != nil {
+		return res
 	}
-	if tree.RootPage() != e.ctx.RootPagePg(dmlPg, tableEntry.Name, tableEntry.RootPage) {
-		e.ctx.UpdateRootPagePg(dmlPg, tableEntry.Name, tree.RootPage())
-	}
+	e.persistTreeRootPage(dmlPg, tableEntry.Name, tableEntry.RootPage, tree)
 	e.ctx.InvalidateRowIDCache(dmlPg, tableEntry.RootPage)
 
 	// Fire BEFORE UPDATE triggers before writing the updated row.
-	if e.hasTriggersForTable(tableEntry.Name) {
-		newRow := buildRowMapFromValues(updated, colDefs, existingRowID)
-		oldRow := buildRowMapFromValues(existingValues, colDefs, existingRowID)
-		if trigResult := e.fireBeforeUpdateTriggers(tableEntry.Name, newRow, oldRow); trigResult.Error != nil {
-			return trigResult
-		}
+	if res := e.fireUpsertUpdateTrigger(tableEntry, colDefs, updated, existingValues, existingRowID, e.fireBeforeUpdateTriggers); res != nil {
+		return res
 	}
 
 	newCell := &storage.Cell{
@@ -476,49 +462,103 @@ func (e *DMLExecutor) writeUpdatedRow(tableEntry *schema.Entry, colDefs []sql.Co
 	}
 	// A split during InsertCell may have changed the tree root; persist it so
 	// later statements (e.g. the next VALUES tuple) write to the new root.
-	if tree.RootPage() != e.ctx.RootPagePg(dmlPg, tableEntry.Name, tableEntry.RootPage) {
-		e.ctx.UpdateRootPagePg(dmlPg, tableEntry.Name, tree.RootPage())
-	}
+	e.persistTreeRootPage(dmlPg, tableEntry.Name, tableEntry.RootPage, tree)
 	// The re-inserted row already existed, so its rowid cannot extend the
 	// largest-rowid cache; the delete invalidated it and the next
 	// findNextRowID rescans (bumping here to the re-inserted rowid would
 	// drop the true maximum if this rowid is lower, e.g. rowid 1 after a
 	// rowid 2 was inserted by a previous VALUES tuple).
 
-	if e.hasTriggersForTable(tableEntry.Name) {
-		newRow := buildRowMapFromValues(updated, colDefs, existingRowID)
-		oldRow := buildRowMapFromValues(existingValues, colDefs, existingRowID)
-		if trigResult := e.fireAfterUpdateTriggers(tableEntry.Name, newRow, oldRow); trigResult.Error != nil {
-			return trigResult
-		}
+	if res := e.fireUpsertUpdateTrigger(tableEntry, colDefs, updated, existingValues, existingRowID, e.fireAfterUpdateTriggers); res != nil {
+		return res
 	}
 	// Carry the updated row back so RETURNING can project against it.
 	return &Result{Changes: 1, Row: updated}
+}
+
+// upsertRewriteRow deletes the old row and encodes the replacement: WITHOUT
+// ROWID tables delete by OLD-PK identity and re-encode PK-first into an
+// index-leaf payload addressed through the WR storage tree; rowid tables
+// delete by rowid (a vanished row is an upsert anomaly).
+func (e *DMLExecutor) upsertRewriteRow(tableEntry *schema.Entry, colDefs []sql.ColumnDef, updated []interface{}, existingRowID int64, existingValues []interface{}, withoutRowid bool, dmlPg *pager.Pager) ([]byte, storage.CellType, *btree.BTree, *Result) {
+	tree := e.dmlTableBTree(tableEntry.Name, tableEntry.RootPage)
+	if withoutRowid {
+		// PK-addressed delete: the WR row lives in the index btree keyed by
+		// its PK columns, not by any rowid.
+		if _, err := e.deleteRowsByIdentity(tableEntry, colDefs, nil, [][]interface{}{existingValues}, nil); err != nil {
+			return nil, 0, nil, &Result{Error: err}
+		}
+		record, err := storage.EncodeRecord(ReorderToStorage(updated, WithoutRowidStorageOrder(tableEntry.SQL, colDefs)))
+		if err != nil {
+			return nil, 0, nil, &Result{Error: err}
+		}
+		return record, storage.CellIndexLeaf, e.wrTableBTree(dmlPg, tableEntry, colDefs), nil
+	}
+	record, err := storage.EncodeRecord(updated)
+	if err != nil {
+		return nil, 0, nil, &Result{Error: err}
+	}
+	deleted, err := tree.DeleteCellsWhere(func(c *storage.Cell) bool {
+		return c.RowID == existingRowID
+	})
+	if err != nil || deleted == 0 {
+		return nil, 0, nil, &Result{Error: fmt.Errorf("upsert: row not found for update")}
+	}
+	return record, storage.CellTableLeaf, tree, nil
+}
+
+// fireUpsertUpdateTrigger fires one DO UPDATE trigger phase (before or
+// after) when the target table has triggers.
+func (e *DMLExecutor) fireUpsertUpdateTrigger(tableEntry *schema.Entry, colDefs []sql.ColumnDef, updated, existingValues []interface{}, rowID int64, fire func(string, RowMap, RowMap) *Result) *Result {
+	if !e.hasTriggersForTable(tableEntry.Name) {
+		return nil
+	}
+	newRow := buildRowMapFromValues(updated, colDefs, rowID)
+	oldRow := buildRowMapFromValues(existingValues, colDefs, rowID)
+	if trigResult := fire(tableEntry.Name, newRow, oldRow); trigResult.Error != nil {
+		return trigResult
+	}
+	return nil
 }
 
 // buildUpdatedRow applies ON CONFLICT DO UPDATE SET assignments to the
 // existing values and returns the updated row. values holds the attempted
 // insert row; its columns are exposed to the SET expressions through the
 // "excluded" pseudo-table (e.g. excluded.b).
-
-// buildUpdatedRow applies ON CONFLICT DO UPDATE SET assignments to the
-// existing values and returns the updated row. values holds the attempted
-// insert row; its columns are exposed to the SET expressions through the
-// "excluded" pseudo-table (e.g. excluded.b).
 func (e *DMLExecutor) buildUpdatedRow(tableName string, colDefs []sql.ColumnDef, colIndex map[string]int, existingValues []interface{}, values []interface{}, oc *sql.OnConflictClause) []interface{} {
-	// Pad to the full column count: storage trims trailing NULLs from records,
-	// so existingValues may be shorter than colDefs.
+	updated := paddedUpsertBase(existingValues, colDefs)
+	row := upsertExcludedRowMap(tableName, colDefs, colIndex, existingValues, values)
+	e.applyUpsertAssignments(updated, oc.Assignments, tableName, colIndex, row)
+
+	// Recompute generated columns after the assignments: a DO UPDATE that
+	// changes a base column must refresh columns generated from it (SQLite
+	// recomputes generated columns on UPSERT DO UPDATE).
+	if hasGeneratedCols(colDefs) {
+		updated = recomputeUpsertGenerated(e.ctx, colDefs, updated)
+	}
+	return updated
+}
+
+// paddedUpsertBase copies the existing row padded to the full column count
+// (storage trims trailing NULLs from records, so existingValues may be
+// shorter than colDefs).
+func paddedUpsertBase(existingValues []interface{}, colDefs []sql.ColumnDef) []interface{} {
 	n := len(existingValues)
 	if len(colDefs) > n {
 		n = len(colDefs)
 	}
 	updated := make([]interface{}, n)
 	copy(updated, existingValues)
+	return updated
+}
 
+// upsertExcludedRowMap builds the DO UPDATE evaluation row: the current row
+// under its own (and alias-qualified) names, plus the attempted insert row
+// under "excluded." — unless the target table itself is named "excluded" and
+// NOT aliased, in which case the pseudo-table is shadowed and "excluded.c"
+// resolves to the current row (SQLite upsert semantics).
+func upsertExcludedRowMap(tableName string, colDefs []sql.ColumnDef, colIndex map[string]int, existingValues, values []interface{}) RowMap {
 	row := make(RowMap)
-	// When the table itself is named "excluded", the pseudo-table name is
-	// shadowed: an "excluded.c" reference resolves to the table's column
-	// (the current row), not the attempted row (SQLite upsert semantics).
 	excludedShadowed := strings.EqualFold(tableName, "excluded")
 	for _, col := range colDefs {
 		if idx, ok := colIndex[col.Name]; ok && idx < len(existingValues) {
@@ -538,8 +578,13 @@ func (e *DMLExecutor) buildUpdatedRow(tableName string, colDefs []sql.ColumnDef,
 			}
 		}
 	}
+	return row
+}
 
-	for _, assign := range oc.Assignments {
+// applyUpsertAssignments writes the DO UPDATE SET results into updated,
+// evaluating each assignment against the current DML table context.
+func (e *DMLExecutor) applyUpsertAssignments(updated []interface{}, assignments []sql.Assignment, tableName string, colIndex map[string]int, row RowMap) {
+	for _, assign := range assignments {
 		if idx, ok := colIndex[assign.Column]; ok {
 			prevDML := e.currentDMLTable
 			e.currentDMLTable = tableName
@@ -550,14 +595,6 @@ func (e *DMLExecutor) buildUpdatedRow(tableName string, colDefs []sql.ColumnDef,
 			}
 		}
 	}
-
-	// Recompute generated columns after the assignments: a DO UPDATE that
-	// changes a base column must refresh columns generated from it (SQLite
-	// recomputes generated columns on UPSERT DO UPDATE).
-	if hasGeneratedCols(colDefs) {
-		updated = recomputeUpsertGenerated(e.ctx, colDefs, updated)
-	}
-	return updated
 }
 
 // recomputeUpsertGenerated forces recomputation of every generated column for
@@ -598,10 +635,6 @@ func hasGeneratedCols(colDefs []sql.ColumnDef) bool {
 	return false
 }
 
-// findRowByUniqueCols searches for a row that conflicts with the given values
-// on any UNIQUE column. Returns the RowID, existing values, and whether a
-// conflict was found.
-
 // scanForConflict iterates through all rows and looks for a value match
 // on any of the given UNIQUE column indices. It returns the conflicting row's
 // rowid, its values, and the column index that conflicted. createSQL drives
@@ -615,30 +648,13 @@ func (e *DMLExecutor) scanForConflict(cursor *btree.Cursor, uniqueCols []int, va
 		if err != nil || cell == nil {
 			break
 		}
-
-		rec, err := storage.DecodeRecord(cell.Payload)
-		if err != nil || rec == nil {
+		rec := e.scanCellRecord(cell, createSQL, colDefs)
+		if rec == nil {
 			break
 		}
-
-		// WITHOUT ROWID records are stored PK-first: permute the values back
-		// to declared order so the UNIQUE column indices line up.
-		e.ctx.RemapWRRecordToDeclared(rec, createSQL, colDefs)
-		// Rowid-alias convention: the IPK column reads back NULL from the
-		// record (NullIPKAliasForWrite); its value IS the rowid. Without the
-		// substitution an inserted row with an explicit IPK value never
-		// conflicts when the scan runs (tables whose IPK is one of several
-		// UNIQUE columns skip the rowid-seek fast path).
-		for i, cd := range colDefs {
-			if i < len(rec.Values) && rec.Values[i] == nil && isIPKRowidAliasCol(cd) {
-				rec.Values[i] = cell.RowID
-			}
-		}
-
 		if idx := hasConflictAt(rec.Values, uniqueCols, values, colDefs); idx >= 0 {
 			return cell.RowID, rec.Values, idx, true
 		}
-
 		hasNext, err := cursor.Next()
 		if err != nil || !hasNext {
 			break
@@ -647,14 +663,9 @@ func (e *DMLExecutor) scanForConflict(cursor *btree.Cursor, uniqueCols []int, va
 	return 0, nil, -1, false
 }
 
-// hasConflictAt returns true if any of the UNIQUE column values match.
-// Per SQL standard, NULL != NULL for UNIQUE constraint purposes.
 // hasConflictAt returns the first UNIQUE column index whose value matches the
-// new row (or -1 if the row does not conflict).
-
-// hasConflictAt returns true if any of the UNIQUE column values match.
-// hasConflictAt returns the first UNIQUE column index whose value matches the
-// new row (or -1 if the row does not conflict).
+// new row (or -1 if the row does not conflict). Per SQL standard, NULL !=
+// NULL for UNIQUE constraint purposes.
 // colConflict describes a row conflicting with the new values on one UNIQUE
 // column.
 type colConflict struct {
@@ -683,22 +694,9 @@ func (e *DMLExecutor) scanAllUniqueConflicts(tableEntry *schema.Entry, colDefs [
 		if err != nil || cell == nil {
 			break
 		}
-		rec, err := storage.DecodeRecord(cell.Payload)
-		if err != nil || rec == nil {
+		rec := e.scanCellRecord(cell, tableEntry.SQL, colDefs)
+		if rec == nil {
 			break
-		}
-		// WITHOUT ROWID records are stored PK-first: permute back to declared
-		// order before the declared-index conflict comparison.
-		e.ctx.RemapWRRecordToDeclared(rec, tableEntry.SQL, colDefs)
-		// Rowid-alias convention: the IPK column is stored NULL in the
-		// record (NullIPKAliasForWrite) and its value IS the rowid, so the
-		// UNIQUE/PK comparison must read the rowid for that slot — otherwise
-		// a row inserted with an explicit IPK value never conflicts
-		// (upsert arbiter and INSERT ... ON CONFLICT miss it).
-		for i, cd := range colDefs {
-			if i < len(rec.Values) && rec.Values[i] == nil && isIPKRowidAliasCol(cd) {
-				rec.Values[i] = cell.RowID
-			}
 		}
 		result = collectRowConflicts(result, foundCols, uniqueCols, rec.Values, values, cell)
 		hasNext, err := cursor.Next()
@@ -707,6 +705,24 @@ func (e *DMLExecutor) scanAllUniqueConflicts(tableEntry *schema.Entry, colDefs [
 		}
 	}
 	return result
+}
+
+// scanCellRecord decodes one scanned cell's record, normalizing it for
+// declared-order UNIQUE comparisons: WITHOUT ROWID records are permuted
+// PK-first to declared order, and the IPK rowid-alias slot (stored NULL) is
+// substituted with the cell's rowid. A nil record ends the scan.
+func (e *DMLExecutor) scanCellRecord(cell *storage.Cell, createSQL string, colDefs []sql.ColumnDef) *storage.Record {
+	rec, err := storage.DecodeRecord(cell.Payload)
+	if err != nil || rec == nil {
+		return nil
+	}
+	e.ctx.RemapWRRecordToDeclared(rec, createSQL, colDefs)
+	for i, cd := range colDefs {
+		if i < len(rec.Values) && rec.Values[i] == nil && isIPKRowidAliasCol(cd) {
+			rec.Values[i] = cell.RowID
+		}
+	}
+	return rec
 }
 
 // collectRowConflicts records a conflict for each UNIQUE column whose value in
