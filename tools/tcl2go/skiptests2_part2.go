@@ -985,6 +985,17 @@ var skipTestsMoreTail = map[string]string{
 	// to adjudicate (no-side-effects).
 	"zipfile-23.0": "C zipfile archive-buffer alloc-failure error selection N-A: engine reports MAX_LENGTH TOOBIG (no-side-effects)",
 
+	// T30-misc evidence skips (FULL-SUITE-DRIFT.T30-misc): transpiler-side
+	// classes whose engine-visible contracts are pinned by native tests
+	// (frigolite_w6_misc_pin_test.go); engine behavior oracle-verified
+	// against /usr/bin/sqlite3.
+	"alterlegacy-4.2": "transpiler squish() stub: the TCL whitespace-collapse proc is registered to return NULL, so the generated want (a squish-wrapped literal) can never match; legacy ALTER TABLE RENAME trigger ON-target rewrite pinned natively (no-side-effects)",
+	"altertab-4.2":    "transpiler squish() stub (see alterlegacy-4.2); modern rename trigger text pinned natively (no-side-effects)",
+	"e_fkey-4.1":      "transpiler folds the drop_all_tables $pk (foreign_keys) restore to ON; a fresh connection defaults foreign_keys OFF (pinned natively), so the generated setup contradicts the no-cascade expectation (no-side-effects)",
+	"e_fkey-51.2":     "TCL proc maxparent (nested db-one SELECT max(x) FROM parent) stubbed to return NULL; SET DEFAULT contract pinned natively with a static default (no-side-effects)",
+	"e_fkey-51.3":     "maxparent stub, see e_fkey-51.2 (no-side-effects)",
+	"incrvacuum-13.5": "prepare/step timing: the oracle steps auto_vacuum=2 at 13.4 after db2 grew the file so SetAutoVacuum fails (READONLY); the transpiled harness steps at prepare time on the empty file where the set succeeds (no-side-effects)",
+
 	// fts5simple 14.4 / 23.2: physical-storage statistics the mirror-storage
 	// model cannot reproduce (portplan/NA_EVIDENCE.md §P6.FTS5).
 	"fts5simple-14.4": "MATCH '*reads' returns C's cumulative %_data blob-fetch counter (fts5_index.c fts5DataRead p->nRead++); the engine's mirror storage (one Go-native blob, write-through) performs no tracked page reads, so the count is unreachable by design (no-side-effects)",

@@ -171,6 +171,12 @@ func (e *Engine) execPragmaDefaultCacheSize(ctx *DatabaseContext, value string) 
 		}); err != nil {
 			return &Result{Error: err}
 		}
+		// pragma.c: the setter also assigns pDb->pSchema->cache_size, so the
+		// CURRENT cache_size reads the new default afterwards (pragma-4.3).
+		if e.settings.cacheSizes == nil {
+			e.settings.cacheSizes = make(map[string]int64)
+		}
+		e.settings.cacheSizes[strings.ToUpper(ctx.Name)] = n
 		return &Result{}
 	}
 	n := int64(2000) // SQLite default when the header field is zero
@@ -235,7 +241,10 @@ func (e *Engine) execPragmaUserVersion(ctx *DatabaseContext, value string) *Resu
 	}
 	n := int64(0)
 	if dh := e.headerFor(ctx); dh != nil {
-		n = int64(dh.UserVersion)
+		// user_version is a SIGNED 32-bit header field: SQLite reports it
+		// through sqlite3BtreeGetMeta cast to i64 via (i64)(int32) — a
+		// stored -450 reads back -450, not 4294966846 (pragma-8.2.15).
+		n = int64(int32(dh.UserVersion))
 	}
 	return &Result{Rows: [][]interface{}{{n}}}
 }
@@ -416,14 +425,26 @@ func (e *Engine) effectiveSpillFor(ctx *DatabaseContext) int64 {
 }
 
 func (e *Engine) pragmaCacheSizeFor(ctx *DatabaseContext) int64 {
-	// Cache sizes are tracked per connection in the engine; the default is
-	// 2000 pages.
-	if e.settings.cacheSizes == nil {
-		return 2000
+	// Cache sizes are tracked per connection in the engine. SQLite's
+	// pDb->pSchema->cache_size is initialized from the file header's
+	// default-cache-size field when the database is attached
+	// (sqlite3BtreeSetCacheSize in attach.c / sqlite3Init), so a database
+	// with no connection-local cache_size setting reports the header
+	// default (pragma-4.4/4.6: a re-attached db reports 456 written by an
+	// earlier connection's default_cache_size). 2000 is the build default
+	// (SQLITE_DEFAULT_CACHE_SIZE) when the header field is zero.
+	if e.settings.cacheSizes != nil {
+		key := strings.ToUpper(ctx.Name)
+		if v, ok := e.settings.cacheSizes[key]; ok {
+			return v
+		}
 	}
-	key := strings.ToUpper(ctx.Name)
-	if v, ok := e.settings.cacheSizes[key]; ok {
-		return v
+	if dh := e.headerFor(ctx); dh != nil && dh.DefaultCacheSize != 0 {
+		n := int64(int32(dh.DefaultCacheSize))
+		if n < 0 {
+			n = -n
+		}
+		return n
 	}
 	return 2000
 }
@@ -434,13 +455,10 @@ func (e *Engine) setPragmaCacheSize(ctx *DatabaseContext, value string) {
 	if err != nil {
 		return
 	}
-	if n < 0 {
-		// Negative values are in KiB; convert to pages (SQLite rounds up).
-		n = (-n + 1023) / 1024
-		if n == 0 {
-			n = 1
-		}
-	}
+	// Negative values (KiB) are stored raw: PRAGMA cache_size reports the
+	// setting verbatim (pragma-1.5: -4321 reads back -4321); the page
+	// conversion for the internal threshold model happens at read time
+	// (effectiveSpillFor / pragmaCacheSpillFor).
 	if e.settings.cacheSizes == nil {
 		e.settings.cacheSizes = make(map[string]int64)
 	}
@@ -522,6 +540,15 @@ func (e *Engine) pragmaCacheSpillFor(ctx *DatabaseContext) int64 {
 	// threshold, where the transaction counts ALL pages dirtied so far
 	// (not just currently dirty — COMMIT clears).
 	cache := e.pragmaCacheSizeFor(ctx)
+	if cache < 0 {
+		// Negative cache_size is KiB: convert to pages like
+		// effectiveSpillFor (numberOfCachePages).
+		szPage := int64(ctx.Pager.PageSize())
+		cache = (-1024 * cache) / (szPage + 152)
+		if cache > 1000000000 {
+			cache = 1000000000
+		}
+	}
 	if cache > int64(spill) {
 		return cache
 	}

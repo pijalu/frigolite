@@ -133,6 +133,10 @@ type DDLContext interface {
 	RootPagePg(pg *pager.Pager, tableName string, schemaRoot uint32) uint32
 	UpdateRootPagePg(pg *pager.Pager, tableName string, newRoot uint32)
 	ColCache() map[string][]sql.ColumnDef
+
+	// ClearDbPragmaSettings drops the per-schema pragma settings recorded
+	// for a detached database (cache_size, synchronous, ...).
+	ClearDbPragmaSettings(schemaUpper string)
 	TcCache() map[string][]sql.TableConstraint
 	DeleteTcCacheTable(name string)
 	DeleteTableCache(name string)

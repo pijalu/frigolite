@@ -459,6 +459,18 @@ func (e *DMLExecutor) execTriggerBody(stmts []sql.Stmt, timing string) *Result {
 			}
 			return nil
 		}
+		// The RAISE kind decides the undo scope of the failed statement
+		// (vdbe.c OP_Halt): RAISE(FAIL) keeps the statement's prior changes
+		// (trigger3-2.x), RAISE(ROLLBACK) rolls back the whole transaction
+		// (trigger3-3.x), RAISE(ABORT) keeps the default statement undo.
+		if re := execexpr.RaiseErrorOf(res.Error); re != nil {
+			switch re.Kind {
+			case "FAIL":
+				res.SetKeepPriorRowsOnError()
+			case "ROLLBACK":
+				res.SetRollbackTxOnError()
+			}
+		}
 		// Add the trigger's schema prefix to table-not-found errors during
 		// trigger execution, matching SQLite's behavior where trigger
 		// execution errors include the owning database's schema (a trigger
@@ -500,3 +512,23 @@ func (e *DMLExecutor) qualifyTriggerTableError(err error) error {
 // CREATE TRIGGER SQL text. Returns nil when the trigger has no WHEN clause.
 
 // mapNamedTupleValues starts with each column's DEFAULT and overrides with the
+
+// applyRaiseUndoScope marks a failed DML statement's undo scope from a
+// RAISE(kind, message) error in its error chain (vdbe.c OP_Halt P2): a
+// RAISE(FAIL) keeps the changes the statement made before the raise
+// (trigger3-2.x) and a RAISE(ROLLBACK) extends the abort to the whole
+// transaction (trigger3-3.x). RAISE(ABORT) keeps the default statement
+// undo, so it needs no flag.
+func applyRaiseUndoScope(res *Result, err error) {
+	if res == nil || err == nil {
+		return
+	}
+	if re := execexpr.RaiseErrorOf(err); re != nil {
+		switch re.Kind {
+		case "FAIL":
+			res.SetKeepPriorRowsOnError()
+		case "ROLLBACK":
+			res.SetRollbackTxOnError()
+		}
+	}
+}

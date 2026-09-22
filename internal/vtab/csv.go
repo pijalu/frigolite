@@ -185,6 +185,9 @@ func textTypes(n int) []string {
 }
 
 // csvApplySchema applies a declared schema and its WITHOUT ROWID marker.
+// The schema argument is passed to sqlite3_declare_vtab verbatim (csv.c:
+// only GENERATED declarations append " TEXT"), so the declared column
+// types — not an all-TEXT assumption — drive comparison affinities.
 func csvApplySchema(v *csvVTab, schema string) error {
 	names, types, err := columnDefsFromSchema(schema)
 	if err != nil {

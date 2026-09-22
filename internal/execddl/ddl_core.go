@@ -247,6 +247,12 @@ func (e *DDLExecutor) execDetach(s *sql.AttachStmt) *Result {
 		}
 	}
 
+	// Per-Db pragma state dies with the detached database (C: the Db
+	// object owns pSchema->cache_size / safety_level) so a later ATTACH of
+	// the same schema name starts fresh (pragma-4.5: re-attaching a
+	// different file under the same name must not inherit cache settings).
+	e.ctx.ClearDbPragmaSettings(schemaUpper)
+
 	delete(e.ctx.Databases(), schemaUpper)
 	// Remove from the ordered attach list.
 	for i, c := range e.ctx.DBList() {

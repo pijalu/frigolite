@@ -6,6 +6,7 @@ import (
 
 	"github.com/pijalu/frigolite/internal/exec"
 	"github.com/pijalu/frigolite/internal/sql"
+	"github.com/pijalu/frigolite/internal/storage"
 	"github.com/pijalu/frigolite/internal/util"
 )
 
@@ -129,6 +130,12 @@ func (db *DB) vacuumRebuild(schema string) *exec.Result {
 	// forward by exactly one — the copy's internal statements must not leave
 	// their own per-statement bumps in the final image.
 	preCC := db.fileChangeCounter(schema)
+	// vacuum.c aCopy: the rebuild preserves the source's schema cookie,
+	// default page cache size, text encoding, user version and application
+	// id metas — the copy-back image's header would otherwise reset them to
+	// the empty-temp defaults (pragma-1.9.2: default_cache_size=123 must
+	// survive VACUUM).
+	preserved := db.vacuumHeaderMetas(schema)
 	if err := copyViaBackup(tmp, "main", db, schema, reset); err != nil {
 		// The rebuild failed (e.g. an auto_vacuum shape the logical copy
 		// does not yet handle): restore the pre-VACUUM image from the temp
@@ -140,11 +147,59 @@ func (db *DB) vacuumRebuild(schema string) *exec.Result {
 		return &exec.Result{}
 	}
 	db.pinChangeCounter(schema, preCC+1)
+	db.restoreVacuumHeaderMetas(schema, preserved)
 	if ctx := db.engine.GetDB(schema); ctx != nil {
 		ctx.PendingPageSize = 0
 		ctx.Schema.InvalidateCache()
 	}
 	return &exec.Result{}
+}
+
+// vacuumHeaderMetas snapshots the aCopy header metas of the rebuild source
+// (vacuum.c:350-356: the schema cookie is handled separately by
+// pinChangeCounter; the encoding/user-version/application-id/default-cache
+// size fields ride along so the rebuilt image keeps them).
+func (db *DB) vacuumHeaderMetas(schema string) storage.DatabaseHeader {
+	ctx := db.engine.GetDB(schema)
+	if ctx == nil || ctx.Pager == nil {
+		return storage.DatabaseHeader{}
+	}
+	hdr := ctx.Pager.Header()
+	if hdr == nil {
+		return storage.DatabaseHeader{}
+	}
+	dh, err := storage.ParseHeader(hdr)
+	if err != nil {
+		return storage.DatabaseHeader{}
+	}
+	return *dh
+}
+
+// restoreVacuumHeaderMetas writes the preserved metas back onto the rebuilt
+// image's header and flushes it.
+func (db *DB) restoreVacuumHeaderMetas(schema string, metas storage.DatabaseHeader) {
+	ctx := db.engine.GetDB(schema)
+	if ctx == nil || ctx.Pager == nil {
+		return
+	}
+	hdr := ctx.Pager.Header()
+	if hdr == nil {
+		return
+	}
+	dh, err := storage.ParseHeader(hdr)
+	if err != nil {
+		return
+	}
+	dh.DefaultCacheSize = metas.DefaultCacheSize
+	dh.TextEncoding = metas.TextEncoding
+	dh.UserVersion = metas.UserVersion
+	dh.ApplicationID = metas.ApplicationID
+	// vacuum.c rebuilds the schema, so the schema cookie ends at
+	// (pre-VACUUM cookie + 1) — the rebuild's own count is discarded
+	// (pragma-8.2.4: 108 set before VACUUM, 109 read after).
+	dh.SchemaCookie = metas.SchemaCookie + 1
+	ctx.Pager.SetHeader(dh.Encode())
+	_ = ctx.Pager.Flush()
 }
 
 // pagerReserves returns the schema's current and requested reserved-bytes

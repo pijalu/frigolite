@@ -316,9 +316,15 @@ func (ev *Evaluator) evalInListSubqueryItem(v *sql.InList, subq *sql.Subquery, r
 }
 
 func (ev *Evaluator) evalFuncCall(f *sql.FuncCall, row Row) (interface{}, error) {
-	// Engine-specific functions that need engine state
-	if val, handled, err := ev.evalEngineFunc(f, row); handled {
-		return val, err
+	// Engine-specific functions that need engine state — but only when the
+	// application has not registered its own function of this name: SQLite's
+	// sqlite3FindFunction searches the connection's user function hash
+	// before the builtin table (trigger6-1.5's user counter() UDF must
+	// shadow the test builtin).
+	if !ev.ctx.Functions().IsUserRegistered(f.Name) {
+		if val, handled, err := ev.evalEngineFunc(f, row); handled {
+			return val, err
+		}
 	}
 	upper := strings.ToUpper(f.Name)
 	fn, ok := ev.ctx.Functions().Find(f.Name)

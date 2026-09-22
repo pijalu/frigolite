@@ -8353,3 +8353,69 @@ regenerated; suite net −2274 fails vs pre-tranche baseline (7230 → ~4950).
 - **IN affinity**: sqlite3CodeSubselect applies the LEFT operand's affinity to the LIST ITEMS only — different from binary comparison affinity (both sides). '1.0' IN (b NUMERIC 1) matches nothing while '1.0' = b matches.
 - **int64 boundary literals**: -9223372036854775808 with any leading zeros is INTEGER MinInt64 (parser folds -+2^63); positive 2^63 stays REAL. CAST(x AS NUMERIC) parses the numeric PREFIX, integer-form prefixes parse as INTEGER, integral reals fold to INTEGER, blobs convert to TEXT first, lone signs are 0.
 - **Generated-artifact tells**: TCL `\y` word boundary transpiled as literal 'y' in want regexes; `db eval {...}` bodies dropped leaving `want := "{}"` comparisons; TCL procs registered as nil-returning stubs; double `:=` on tclSplitList variables breaking builds. Repair in generated files + document; pin the engine contract natively.
+## T30-misc — misc singles wave (2026-09-22, branch fleet/w6-misc)
+
+- **Nondeterministic testgen failures that move between runs = Go map iteration in
+  the engine.** attach-4.8 (and any case with SAME-NAMED triggers in main + an
+  attached db) picked the trigger's owning schema by iterating `Databases()`
+  (a map): the winner was random per run, so a trigger body's unqualified
+  table writes landed in one schema or the other. Fix: carry the owning
+  context with the trigger entry (`triggerRef{ctx, entry}`) from the schema
+  it was COLLECTED from; never re-derive ownership by name. Audit other
+  `for range Databases()` sites for order-sensitive decisions.
+- **RAISE(kind) needs the kind, not just the message.** The engine reduced
+  every RAISE to a plain error string, so ABORT/FAIL/ROLLBACK all took the
+  ABORT-style statement undo. `execexpr.RaiseError{Kind,Msg}` (Error() ==
+  Msg keeps text classification working) + `Result.SetKeepPriorRowsOnError`
+  (FAIL) / `SetRollbackTxOnError` (ROLLBACK) restore vdbe.c OP_Halt P2
+  semantics: FAIL keeps prior statement changes, ROLLBACK unwinds the whole
+  transaction (COMMIT then fails "cannot commit - no transaction is active").
+- **User-registered UDFs must shadow engine-state functions.** evalFuncCall
+  dispatched COUNTER/NONDETER/... before the registry, so trigger6's
+  `db func counter` never ran (the engine "counter" builtin consumed the
+  call and returned arg-based values). Gate the engine dispatch on
+  `Registry.IsUserRegistered` (user hash first, sqlite3FindFunction order).
+  Registry.Register*/noteUser records the user set.
+- **cross-worktree `git stash` is a shared, LIFO, repo-global namespace.**
+  During this wave a concurrent agent's stash landed at @{0} between my push
+  and pop: my pop applied THEIR WIP to my worktree and my stash was popped
+  by them. Recovered by re-applying from session knowledge, but: in fleet
+  runs prefer `git commit -m WIP` over stash, and verify `git status` after
+  every stash op.
+- A read statement inside an explicit transaction takes the pager SHARED
+  lock (backup-8.9 "main shared"): track per-tx read marks
+  (`tx.readDbs`, noteStmtReadLock) and report "shared" from lock_status —
+  deferred BEGIN alone stays "unlocked" (lock7).
+- csv.c returns EVERY field as TEXT (sqlite3_result_text, csv.c:780) and
+  passes a `schema=` argument to sqlite3_declare_vtab VERBATIM (generated
+  header/columns declarations are the only all-TEXT case). Numeric
+  predicates match via the declared column affinity at comparison time.
+- pragma.c read-only pragmas with a value (`PRAGMA freelist_count = 500`)
+  ignore the RHS and STILL RETURN the getter row; pragma handlers must pass
+  `s.Schema` (aux.freelist_count reads the aux header).
+- SQLite's schema cache_size model: cache_size stores RAW negatives (KiB),
+  pDb->pSchema->cache_size initializes from the header default on attach
+  (pragma-4.4/4.6), default_cache_size= writes the header AND the current
+  setting, and DETACH drops the per-Db pragma state
+  (Engine.ClearDbPragmaSettings).
+- table_info's `pk` column is the 1-based POSITION in the PRIMARY KEY
+  (table-level PRIMARY KEY(a,b,a,c) → a=1,b=2,c=4); dflt_value renders
+  compactly ("5+3"); PRAGMA main/temp.table_info(t) is schema-scoped;
+  user_version is SIGNED int32; temp_store only honors leading digits 0..2
+  (3+ → 0); temp_store_directory's getter emits NO row when unset and
+  `=''` is a setter (PragmaStmt.HasValue distinguishes `= value` from the
+  bare getter).
+- VACUUM preserves vacuum.c aCopy header metas (default cache size, text
+  encoding, user version, application id) — the copy-back image would
+  otherwise reset them (pragma-1.9.2).
+- **Adjudicated remaining engine gaps (oracle-verified, NOT transpiler):**
+  reindex-2.6/2.7 (w5-query select core: an ORDER BY satisfied by an index
+  must EMIT stored index order; the engine re-sorts under the CURRENT
+  collation, so a redefined collation flips the output); unionall-8.4
+  (w5-query: compound-VIEW column affinity — the leftmost member's TEXT
+  affinity must apply to outer WHERE comparisons; the engine matches
+  numerically); pragma-8.2.4.3 (schema_cookie increment parity across the
+  whole file: oracle 109 vs engine 15 — every CREATE/ALTER/writable_schema/
+  VACUUM bump site must match); autovacuum (80 integrity_check "Page N
+  never used" mismatches under the full delete-order matrix — auto-vacuum
+  page accounting; unchanged from baseline).

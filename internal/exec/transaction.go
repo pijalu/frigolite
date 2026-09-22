@@ -495,9 +495,11 @@ func (e *Engine) noteReservedDbs() {
 }
 
 // clearReservedDbs releases the per-transaction RESERVED marks (COMMIT /
-// full ROLLBACK; pager.c clears the WRITER state when the transaction ends).
+// full ROLLBACK; pager.c clears the WRITER state when the transaction ends)
+// and the per-transaction SHARED read marks.
 func (e *Engine) clearReservedDbs() {
 	e.tx.reservedDbs = nil
+	e.tx.readDbs = nil
 }
 
 func (e *Engine) execSavepoint(s *sql.SavepointStmt) *Result {

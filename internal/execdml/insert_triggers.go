@@ -16,27 +16,6 @@ import (
 
 // and assigns an auto-generated rowid to an empty INTEGER PRIMARY KEY column.
 
-// fireAfterInsertTriggers fires AFTER INSERT triggers for the given table.
-// triggerOwningCtx returns the database context whose schema contains the
-// trigger entry (temp first, then main/attached). Used to scope trigger-body
-// name resolution: TEMP triggers may reference tables in any database.
-func (e *DMLExecutor) triggerOwningCtx(t *schema.Entry) *DatabaseContext {
-	if tc := e.ctx.GetDB("temp"); tc != nil {
-		if _, err := tc.Schema.FindTrigger(t.Name); err == nil {
-			return tc
-		}
-	}
-	for _, ctx := range e.ctx.Databases() {
-		if ctx == nil || ctx == e.ctx.GetDB("temp") {
-			continue
-		}
-		if _, err := ctx.Schema.FindTrigger(t.Name); err == nil {
-			return ctx
-		}
-	}
-	return nil
-}
-
 // fireTriggers fires triggers matching the given event and timing for the table.
 func (e *DMLExecutor) fireTriggers(tableName, event, timing string, newRow, oldRow RowMap) *Result {
 	// Engine-wide suppression (logical backup/VACUUM rebuild): the copy
@@ -45,8 +24,8 @@ func (e *DMLExecutor) fireTriggers(tableName, event, timing string, newRow, oldR
 	if e.ctx.TriggersSuppressed() {
 		return &Result{}
 	}
-	tableCtx, triggers := e.collectTableTriggers(tableName)
-	if len(triggers) == 0 {
+	tableCtx, refs := e.collectTableTriggerRefs(tableName)
+	if len(refs) == 0 {
 		return &Result{}
 	}
 	// SQLite fires AFTER triggers in REVERSE creation order (the most recently
@@ -54,24 +33,64 @@ func (e *DMLExecutor) fireTriggers(tableName, event, timing string, newRow, oldR
 	// before aux.tr2). BEFORE triggers fire in creation order. fireTrigger
 	// filters by timing, so reverse the whole slice for the AFTER pass.
 	if strings.EqualFold(timing, "AFTER") {
-		for i, j := 0, len(triggers)-1; i < j; i, j = i+1, j-1 {
-			triggers[i], triggers[j] = triggers[j], triggers[i]
+		for i, j := 0, len(refs)-1; i < j; i, j = i+1, j-1 {
+			refs[i], refs[j] = refs[j], refs[i]
 		}
 	}
-	for _, t := range triggers {
+	for _, ref := range refs {
 		// Recursive-trigger guard (recursive_triggers OFF): a trigger does not
 		// re-fire itself for a nested statement on the same table, but OTHER
 		// triggers on the table DO fire (SQLite: the currently-executing
 		// trigger program is excluded; e_changes autoinc-3928 fires r2 for
 		// r1's inner inserts). fireTrigger pushes its own key onto the chain.
-		if e.triggerInChain(tableCtx.Name, t.Name) {
+		if e.triggerInChain(tableCtx.Name, ref.entry.Name) {
 			continue
 		}
-		if res := e.fireTrigger(t, event, timing, newRow, oldRow); res != nil {
+		if res := e.fireTrigger(ref.entry, ref.ctx, event, timing, newRow, oldRow); res != nil {
 			return res
 		}
 	}
 	return &Result{}
+}
+
+// triggerRef pairs a trigger schema entry with the database context whose
+// schema contains it (SQLite's Trigger.pTabSchema / owning iDb). The owning
+// context scopes the trigger body's unqualified name resolution, so it must
+// be the schema the trigger was collected FROM — never re-derived by name,
+// because two schemas may hold same-named triggers (attach-4.6/4.7 create
+// t3r3 in both main and the attached db).
+type triggerRef struct {
+	ctx   *DatabaseContext
+	entry *schema.Entry
+}
+
+// collectTableTriggerRefs returns the database context owning the named table
+// and the triggers bound to it paired with their owning contexts: the table's
+// own-schema triggers plus the TEMP triggers that target it, in registration
+// order (trigger.c sqlite3TriggerList: pTab->pTrigger with the TEMP triggers
+// on pTabSchema).
+func (e *DMLExecutor) collectTableTriggerRefs(tableName string) (*DatabaseContext, []triggerRef) {
+	tableCtx := e.triggerTableContext(tableName)
+	var refs []triggerRef
+	if ts, err := tableCtx.Schema.FindTriggersForTable(tableName); err == nil {
+		for _, t := range ts {
+			if e.triggerTargetsCtx(t, tableCtx) {
+				refs = append(refs, triggerRef{ctx: tableCtx, entry: t})
+			}
+		}
+	}
+	if tc := e.ctx.GetDB("temp"); tc != nil && tc != tableCtx && tableCtx != nil {
+		tempTriggers, _ := tc.Schema.FindTriggersForTable(tableName)
+		for _, tt := range tempTriggers {
+			if tt == nil {
+				continue
+			}
+			if e.shouldAppendTempTrigger(tt, tableCtx, tc, tableName) {
+				refs = append(refs, triggerRef{ctx: tc, entry: tt})
+			}
+		}
+	}
+	return tableCtx, refs
 }
 
 // collectTableTriggers returns the database context owning the named table

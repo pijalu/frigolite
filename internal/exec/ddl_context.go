@@ -88,6 +88,13 @@ func (e *Engine) ColCache() map[string][]sql.ColumnDef {
 	return e.caches.colCache
 }
 
+// ClearDbPragmaSettings drops the per-schema pragma settings recorded for
+// schemaUpper (DETACH destroys the C Db object that owns cache_size /
+// safety_level, so a later ATTACH under the same name starts fresh).
+func (e *Engine) ClearDbPragmaSettings(schemaUpper string) {
+	e.settings.ClearDbPragmaSettings(schemaUpper)
+}
+
 // TcCache returns the engine's table-constraint cache map.
 func (e *Engine) TcCache() map[string][]sql.TableConstraint {
 	return e.caches.tcCache
