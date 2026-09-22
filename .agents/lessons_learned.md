@@ -8027,3 +8027,64 @@ regenerated; suite net −2274 fails vs pre-tranche baseline (7230 → ~4950).
   (result mismatch|FAIL:|Error) lines, `sed 's/ ([0-9.]*s)//'` first so the
   FAIL-header duration does not diff. 10/10 packages byte-identical to base
   1a18ba0c1 while ~15 refactored functions landed in the same files.
+
+## §T30-wal — WAL/journal/lock/txn cluster (2026-09-22, fleet/w6-wal)
+
+- **WAL-mode snapshot restore must never touch the main db file.** The probe
+  pattern that found it: checkpoint → copy main-db-only → open copy. A
+  savepoint ROLLBACK TO restored its snapshot header (page count N) onto the
+  48-page checkpointed image, so the COPY reported hdrPageCount > file pages
+  → "database disk image is malformed" on the next connection while the
+  source connection worked (in WAL mode HeaderBeyondFile compares against
+  in-memory NumPages). C: the main file is checkpoint-only; rollback rewinds
+  the log / in-memory pages (waloverwrite-1.x.8).
+- **sqlite3WalClose contract on last close: PASSIVE checkpoint, then reset
+  the log.** Frigolite's Close never checkpointed, so a closed WAL db left a
+  0-byte main file with all data stranded in the -wal (walbig's header
+  probe then failed "file is not a database"; walpersist-3.3's 680KB log).
+  The 3.54 ORACLE (verified /usr/bin/sqlite3) keeps a 0-byte -wal + -shm
+  after clean close and reports journal_mode=wal on reopen (the 3.51 source
+  DELETES both when PERSIST_WAL is unset — build divergence; oracle wins).
+  Last-connection proof: C takes an EXCLUSIVE rollback lock; the in-process
+  wal-index registry refcount is the equivalent. Reopen WAL detection keys
+  on -wal EXISTENCE (pagerOpenWalIfPresent); a 0-byte -wal re-enters WAL.
+- **A checkpoint must short-read-fail when the wal-index claims frames the
+  -wal file does not hold.** C reads every backfilled frame back
+  (walCheckpoint's OsRead → SQLITE_IOERR_SHORT_READ) and skips nBackfill +
+  the szDb truncate. Frigolite tolerated the gap and truncated the main file
+  to the header page count, materializing zero pages (crash-truncate + close
+  → reopen showed phantom pages). Clamp: LastCommitFrame(frames) < nTo ⇒
+  checkpoint aborts.
+- **An interrupted COMMIT never commits.** SQLITE_INTERRUPT is a special
+  error (vdbeaux.c:3358-3383): COMMIT participates in both interrupt paths —
+  the flag at statement entry AND the SQLITE_TEST countdown inside the
+  program — and either failure rolls the whole transaction back and closes
+  it. The commit-hook veto (xCommitCallback BEFORE btree commit phases,
+  vdbeaux.c:2978) is the same shape: nonzero → SQLITE_CONSTRAINT_COMMITHOOK
+  → full rollback. Frigolite's dmlCanSkipSnapshot must treat a registered
+  commit hook like the quota layer: the "commit cannot fail after write"
+  premise is void, so the statement snapshot stays.
+- **PRAGMA locking_mode is per-pager, not connection-wide.** Bare SET
+  updates every db EXCEPT temp AND db->dfltLockMode (later ATTACHes inherit);
+  bare QUERY returns dfltLockMode; schema-qualified forms never touch the
+  default; TEMP is pinned exclusive (pager.c exclusiveMode=tempFile, sets
+  refused).
+- **Bare `PRAGMA journal_mode=X` applies to EVERY materialized btree (incl.
+  temp) but returns ONE row: main's mode.** pragma.c loops ii=nDb-1..0
+  emitting OP_JournalMode per btree; all write the SAME register and one
+  OP_ResultRow follows — last writer (main) wins the output. Any pragma
+  naming temp opens the lazy temp btree (sqlite3OpenTempDatabase,
+  pragma.c:457). journal_size_limit default is -1 (pager.h); Apple's CLI
+  build overrides it to 32768 — corpus encodes upstream.
+- **Probe-first pattern that worked across the cluster**: reproduce the
+  assertion as a pure-Go test → hexdump the file/header fields
+  (binary.BigEndian at offsets 24/28/92) → compare against
+  /usr/bin/sqlite3 → only then attribute engine vs transpiler vs harness.
+  For "got X want Y" where want embeds TCL text, check the .test source for
+  proc calls the transpiler cannot evaluate (temp_journal_mode) before
+  suspecting the engine.
+- **trans (10) left RED, adjudicated**: planner reports "SEARCH t1 USING
+  INDEX i1 (b<?)" but the executor has no index-driven row path (rows come
+  out in rowid order; C emits index-key order). Same class as the
+  adjudicated index(7) gap; count identical to baseline; owned by the
+  query-planner goal, NOT transaction DDL interplay as previously guessed.
