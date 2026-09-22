@@ -75,8 +75,7 @@ func TestP8IncrVacuum3OracleSequence(t *testing.T) {
 		if r.Error != nil {
 			t.Fatalf("%s: %s error: %v", stage, pragma, r.Error)
 		}
-		var n int64
-		n = r.Rows[0][0].(int64)
+		n := r.Rows[0][0].(int64)
 		return n
 	}
 
