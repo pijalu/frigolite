@@ -7859,3 +7859,43 @@ regenerated; suite net −2274 fails vs pre-tranche baseline (7230 → ~4950).
   tree (pre-existing map-order nondeterminism). Adjudicate with pooled 3-run
   unions per tree — union sets matched exactly between main and the branch,
   while single runs showed phantom "regressions" in both directions.
+
+## §5d.exec5 — execdml update-family closure (2026-09-22, branch fleet/q5-exec5)
+- **execdml closed: 30/23 → 0/0** (gocognit>15 / gocyclo>12 across all production
+  files; no file >1000 lines; update.go was at exactly 1000 and had to SHRINK
+  before anything else could land in it — split the OR REPLACE family into
+  update_orreplace.go first).
+- **execUpdateInner's 5 defers (CTE pop, outer-conflict restore, DML-ctx
+  restore, ResetAutoIncSeq, pushUpdateSetColumns) all stayed in the frame**:
+  every phase became a validation helper (nil *Result = continue), with two
+  cleanup-returning setup helpers (`defer e.pushUpdateCTEs(s)()`,
+  `cleanup, res := e.guardUpdateTarget(tableEntry); defer cleanup()`).
+  `return e.ctx.ResetAutoIncSeq` as a func value ≡ `defer e.ctx.ResetAutoIncSeq()`
+  (receiver evaluates at defer time either way).
+- **Duplicated guard computation collapses only when both arms call the same
+  function with the same effective value**: `if x != "" { Set(x) } else {
+  Set("") }` ≡ `Set(x)` (execUpdateInner outer-conflict). But conditions with
+  different EXPRESSIONS that look equal are not: upsertWhereAllows' shadow test
+  is `alias == "" && EqualFold(name, "excluded")` — rewriting it as
+  `dmlName == tableName && ...` breaks for "INSERT INTO excluded AS excluded"
+  (alias equal to table name). Pass the original condition verbatim.
+- **Route helpers that forward (res, handled) pairs must NOT collapse to a
+  single *Result**: execVTabUpdate can return (nil, true) and the caller must
+  `return res` (nil!) — folding into "nil means continue" changes control flow.
+  Kept `if res, handled := e.routeUpdateVTab(s); handled { return res }`.
+- **fireDeletePreupdate already existed in delete.go** (RowMap-based, update
+  hook NOT suppressed) when the conflict path needed a raw-values + NoUpdateHook
+  variant — named fireConflictDeletePreupdate and documented WHY they differ.
+- **Not-found vs error tri-state for seek/scan cell fetches**: return
+  (cell, rec, failed); failed=true aborts the fast path (full-scan fallback),
+  cell==nil with failed=false means "rowid has no cell, skip". Two booleans
+  in one struct beat a `found bool` that conflates miss with anomaly.
+- **Per-row conflict disposition loops** (runPlainUpdatePerRow) split cleanly
+  into per-row apply (FK → conflict scan → disposition) + disposition switch
+  returning (written bool, res *Result); IGNORE = (false, nil) and the loop
+  counts only written rows.
+- **Adjudication at scale**: `./testgen/fts3*` globs pull ~75 packages whose
+  failures are ALL pre-existing drift — compared per-package md5 of
+  (result mismatch|FAIL:|Error) lines, `sed 's/ ([0-9.]*s)//'` first so the
+  FAIL-header duration does not diff. 10/10 packages byte-identical to base
+  1a18ba0c1 while ~15 refactored functions landed in the same files.
