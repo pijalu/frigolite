@@ -112,14 +112,7 @@ func Test_mutex1(t *testing.T) {
 	{ // do_test "mutex1-1.4"
 		// install_mutex_counters 1 (unsupported command, not transpiled)
 	}
-	{ // do_test "mutex1-1.5"
-		// mutex_counters counters (unsupported command, not transpiled)
-		counters_total = vtab.TclVarGet("counters", "total")
-		got := tclListFlatten(counters_total)
-		want := tclListFlatten("0")
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "mutex1-1.5")
-		}
+	{ // "mutex1-1.5" — skipped: C mutex_counters instrumentation (test1.c mutex alloc counters) N-A (no-side-effects)
 	}
 	{ // do_test "mutex1-1.6"
 		// sqlite3_initialize (unsupported command, not transpiled)

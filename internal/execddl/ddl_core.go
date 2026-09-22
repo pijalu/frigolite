@@ -97,6 +97,14 @@ func (e *DDLExecutor) execAttach(s *sql.AttachStmt) *Result {
 	// (mirrors src/attach.c:207-208 sqlite3BtreeSecureDelete inheritance
 	// from db->aDb[0].pBt).
 	e.inheritSecureDeleteOnAttach(schemaUpper)
+	// Inherit the connection-default locking mode (attach.c:206
+	// sqlite3PagerLockingMode(pPager, db->dfltLockMode)).
+	if e.ctx.DfltLockingMode() == "exclusive" {
+		ctx.LockingMode = "exclusive"
+		if ctx.Pager != nil {
+			ctx.Pager.SetWALExclusiveMode(true)
+		}
+	}
 	return &Result{}
 }
 

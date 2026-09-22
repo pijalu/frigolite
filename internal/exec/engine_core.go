@@ -288,7 +288,7 @@ func (e *Engine) findTableUncached(name string) (*schema.Entry, *DatabaseContext
 	// then makes PRAGMA database_list report the temp row (pragma-6.1).
 	if sch, obj := parseSchemaName(name); sch == "" || strings.EqualFold(sch, "temp") || strings.EqualFold(sch, "temporary") {
 		if u := strings.ToUpper(obj); u == "SQLITE_TEMP_MASTER" || u == "SQLITE_TEMP_SCHEMA" {
-			e.tempBtreeOpen = true
+			e.openTempBtree()
 		}
 	}
 

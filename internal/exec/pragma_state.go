@@ -157,34 +157,138 @@ func (e *Engine) JournalSizeLimit(schema, value string) *execpragma.Result {
 	return &execpragma.Result{Rows: [][]interface{}{{ctx.Pager.JournalSizeLimit()}}}
 }
 
-// LockingMode implements PRAGMA locking_mode (getter and setter). SQLite tracks
-// it per database but the value is a connection-level lock model; the setter
-// echoes the new mode as a result row (pragma.c PragTyp_LOCKING_MODE).
+// lockingModeToken maps a PRAGMA locking_mode value to its pager.c mode
+// constant: 0 = NORMAL, 1 = EXCLUSIVE, -1 = QUERY (pragma.c getLockingMode:
+// an absent or unrecognised token is a query).
+func lockingModeToken(value string) int {
+	switch strings.ToLower(strings.TrimSpace(value)) {
+	case "normal":
+		return 0
+	case "exclusive":
+		return 1
+	default:
+		return -1
+	}
+}
+
+// dbEffectiveLockingMode reports a database context's pager locking mode
+// (pager.c Pager.exclusiveMode): an explicitly set mode wins; otherwise temp
+// and in-memory pagers are born EXCLUSIVE (pager.c:5052
+// "pPager->exclusiveMode = (u8)tempFile") and file databases default to
+// NORMAL.
+func dbEffectiveLockingMode(ctx *DatabaseContext) string {
+	if ctx.LockingMode != "" {
+		return ctx.LockingMode
+	}
+	if ctx.IsTemp || ctx.IsMemory {
+		return "exclusive"
+	}
+	return "normal"
+}
+
+// dbSetLockingMode applies a locking mode to one database context
+// (sqlite3PagerLockingMode, pager.c:7324): the set is IGNORED on temp and
+// in-memory pagers, which are always exclusive. The WAL parity flag follows
+// the mode on pagers that accepted it (wal.c: in EXCLUSIVE mode the shm lock
+// calls become no-ops).
+func dbSetLockingMode(ctx *DatabaseContext, mode int) {
+	if ctx == nil || mode < 0 || ctx.IsTemp || ctx.IsMemory {
+		return
+	}
+	name := "exclusive"
+	if mode == 0 {
+		name = "normal"
+	}
+	ctx.LockingMode = name
+	if ctx.Pager != nil {
+		ctx.Pager.SetWALExclusiveMode(mode == 1)
+	}
+}
+
+// LockingMode implements PRAGMA locking_mode (pragma.c PragTyp_LOCKING_MODE,
+// src/pragma.c:687):
+//
+//   - "PRAGMA locking_mode" (unqualified query) reports the connection
+//     default (db->dfltLockMode — the last unqualified set, else "normal").
+//   - "PRAGMA locking_mode = N" (unqualified set) sets every database EXCEPT
+//     temp (the pragma.c loop starts at aDb[2], skipping aDb[1]), sets main,
+//     and updates the connection default so later ATTACHes inherit it.
+//   - A schema-qualified form reads/writes only that database's pager; temp
+//     and memory pagers report EXCLUSIVE and ignore sets
+//     (pager.c:5052/7332).
 func (e *Engine) LockingMode(schema, value string) *execpragma.Result {
-	if value != "" {
-		m := strings.ToLower(strings.TrimSpace(value))
-		switch m {
-		case "normal", "exclusive":
-			e.lockingMode = m
-			if m == "normal" {
-				// Reverting to normal releases the never-unlocked SHARED
-				// locks held in exclusive mode (pager.c drops back to
-				// unlock-at-transaction-end).
-				e.clearPersistentShared()
+	mode := lockingModeToken(value)
+	if schema == "" && mode < 0 {
+		// Simple "PRAGMA locking_mode" — the connection default.
+		return &execpragma.Result{Rows: [][]interface{}{{e.currentLockingMode()}}}
+	}
+	if schema == "" {
+		// Unqualified set: aux databases (pragma.c:710 loops from aDb[2]),
+		// then main (pragma.c:716), then the connection default
+		// (pragma.c:714 dfltLockMode). Temp is deliberately skipped.
+		for _, dbCtx := range e.dbList {
+			if dbCtx == nil || dbCtx == e.mainDB || dbCtx.IsTemp {
+				continue
 			}
-			// WAL parity (wal.c walLockShared/walLockExclusive): in
-			// locking_mode=EXCLUSIVE the shm lock calls become no-ops.
-			for _, dbCtx := range e.dbList {
-				if dbCtx != nil && dbCtx.Pager != nil {
-					dbCtx.Pager.SetWALExclusiveMode(m == "exclusive")
-				}
-			}
-		default:
-			// Unrecognised token: leave the current mode unchanged (no error),
-			// matching SQLite's lenient handling of invalid pragma values.
+			dbSetLockingMode(dbCtx, mode)
+		}
+		dbSetLockingMode(e.mainDB, mode)
+		e.lockingMode = lockingModeName(mode)
+		if mode == 0 {
+			// Reverting to normal releases the never-unlocked SHARED locks
+			// held in exclusive mode (pager.c drops back to
+			// unlock-at-transaction-end).
+			e.clearPersistentShared()
+		}
+		return &execpragma.Result{Rows: [][]interface{}{{lockingModeName(mode)}}}
+	}
+	// Qualified form: read (or set) only that database's pager.
+	dbCtx := e.pragmaDBCtx(schema)
+	if dbCtx == nil {
+		return &execpragma.Result{Rows: [][]interface{}{{e.currentLockingMode()}}}
+	}
+	if mode >= 0 {
+		dbSetLockingMode(dbCtx, mode)
+		if mode == 0 {
+			e.clearPersistentShared()
 		}
 	}
-	return &execpragma.Result{Rows: [][]interface{}{{e.currentLockingMode()}}}
+	return &execpragma.Result{Rows: [][]interface{}{{dbEffectiveLockingMode(dbCtx)}}}
+}
+
+// lockingModeName renders a pager.c locking-mode constant ("normal" or
+// "exclusive").
+func lockingModeName(mode int) string {
+	if mode == 1 {
+		return "exclusive"
+	}
+	return "normal"
+}
+
+// SoftHeapLimit implements PRAGMA soft_heap_limit (pragma.c
+// PragTyp_SOFT_HEAP_LIMIT): any parseable value (the "=N" and "(N)" forms
+// both arrive as value) calls sqlite3_soft_heap_limit64(N), where N < 0
+// leaves the limit unchanged; the pragma always returns the current limit.
+func (e *Engine) SoftHeapLimit(value string) *execpragma.Result {
+	if value != "" {
+		if n, err := parseDecOrHexInt64(value); err == nil {
+			if n >= 0 {
+				e.softHeapLimit = n
+			}
+		}
+	}
+	return &execpragma.Result{Rows: [][]interface{}{{e.softHeapLimit}}}
+}
+
+// parseDecOrHexInt64 parses a pragma value like sqlite3DecOrHexToI64:
+// optional 0x hex prefix, otherwise decimal. Values that look numeric but
+// overflow report an error (the caller then leaves the setting unchanged).
+func parseDecOrHexInt64(s string) (int64, error) {
+	s = strings.TrimSpace(s)
+	if strings.HasPrefix(s, "0x") || strings.HasPrefix(s, "0X") {
+		return strconv.ParseInt(s[2:], 16, 64)
+	}
+	return strconv.ParseInt(s, 10, 64)
 }
 
 // currentLockingMode returns the active locking mode (default "normal").

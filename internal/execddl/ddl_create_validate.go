@@ -251,6 +251,10 @@ func (e *DDLExecutor) resolveCreateTableSchema(s *sql.CreateTableStmt) (*Databas
 		// CREATE TEMP TABLE (no prefix): route to the temp schema.
 		if tc := e.ctx.GetDB("temp"); tc != nil {
 			ctx = tc
+			// Addressing the temp schema materializes the lazy temp btree
+			// (aDb[1].pBt), which picks up the recorded page size
+			// (build.c:5338 sqlite3CreateTempDatabase).
+			e.ctx.OpenTempBtree()
 		}
 	}
 	return ctx, tableName, nil

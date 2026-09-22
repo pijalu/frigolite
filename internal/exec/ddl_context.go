@@ -39,6 +39,14 @@ func (e *Engine) ResetDBList() {
 	e.dbList = []*DatabaseContext{e.mainDB}
 }
 
+// OpenTempBtree marks the temp btree open (see openTempBtree).
+func (e *Engine) OpenTempBtree() { e.openTempBtree() }
+
+// DfltLockingMode returns the connection-default locking mode
+// (pragma.c db->dfltLockMode) — the value a newly attached database inherits
+// (attach.c:206).
+func (e *Engine) DfltLockingMode() string { return e.currentLockingMode() }
+
 // DQSAllowDDL reports whether double-quoted strings are allowed in DDL.
 func (e *Engine) DQSAllowDDL() bool {
 	return e.settings.dqsDDL || (e.settings.writableSchema && e.settings.dqsDML)

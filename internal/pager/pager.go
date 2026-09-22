@@ -39,7 +39,18 @@ type Pager struct {
 	dirty            map[uint32]bool
 	readOnly         bool
 	numPages         uint32
-	header           []byte
+	// pendingFileTruncate records a pager_truncate_image shrink that must
+	// reach the database FILE at COMMIT: mid-transaction the file keeps the
+	// pre-truncate images (the savepoint-snapshot restore re-reads evicted
+	// pages from disk), so the physical shrink is deferred to the commit
+	// path (src/pager.c pager_truncate_image is in-memory only; the file
+	// is cut to nPage during commit).
+	pendingFileTruncate bool
+	// deferFileShrink is set for the duration of a TruncateDeferFile call
+	// (the savepoint-restorable dbpage path); truncatePages consults it to
+	// decide between the deferred and the immediate file shrink.
+	deferFileShrink bool
+	header          []byte
 	// fileSize caches the database file's size in bytes so flushPage can
 	// decide whether a page write needs a Truncate without an Fstat syscall
 	// per page (the dominant cost of per-commit flushes: 8000 FTS inserts

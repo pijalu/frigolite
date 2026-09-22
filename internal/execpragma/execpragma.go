@@ -53,6 +53,12 @@ type EngineState interface {
 	// the setter echoes the new value as a result row.
 	LockingMode(schema, value string) *Result
 
+	// SoftHeapLimit implements PRAGMA soft_heap_limit (pragma.c
+	// PragTyp_SOFT_HEAP_LIMIT): any parseable value calls
+	// sqlite3_soft_heap_limit64(N) (-1 leaves the limit unchanged) and the
+	// pragma always returns the current limit.
+	SoftHeapLimit(value string) *Result
+
 	// Synchronous implements PRAGMA synchronous (getter/setter) per
 	// schema (pragma.c PragTyp_SYNCHRONOUS): the getter reports the
 	// stored safety_level-1 (default 2 = FULL); the setter rejects
@@ -538,9 +544,9 @@ var pragmaHandlers = map[string]Handler{
 	"READ_UNCOMMITTED": pragmaGetOnly(func(st EngineState) *Result {
 		return &Result{Rows: [][]interface{}{{int64(0)}}}
 	}),
-	"SOFT_HEAP_LIMIT": pragmaGetOnly(func(st EngineState) *Result {
-		return &Result{Rows: [][]interface{}{{int64(0)}}}
-	}),
+	"SOFT_HEAP_LIMIT": func(st EngineState, s *sql.PragmaStmt) *Result {
+		return st.SoftHeapLimit(s.Value)
+	},
 	"THREADS": pragmaGetOnly(func(st EngineState) *Result {
 		return &Result{Rows: [][]interface{}{{int64(1)}}}
 	}),

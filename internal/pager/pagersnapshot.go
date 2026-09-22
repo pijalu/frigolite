@@ -87,6 +87,9 @@ func (p *Pager) Restore(s *PagerState) {
 		p.header = append([]byte(nil), s.header...)
 	}
 	p.restoreFileImageLocked(s)
+	// The rollback reinstated the pre-truncate page count, so a deferred
+	// file shrink recorded by truncatePages no longer applies.
+	p.pendingFileTruncate = false
 }
 
 // restoreFileImageLocked aligns the database FILE with the snapshot image:

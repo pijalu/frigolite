@@ -2175,3 +2175,85 @@ Skip evidence (tools/tcl2go/skiptests2_part2.go; details inline there):
   fsize×512 open+statement cycles (non-terminating in practice). The
   engine panic the file targets is fixed + pinned natively; sections 2.x
   (header pokes) run in the generated test.
+
+## FULL-SUITE-DRIFT.T30-kernel — kernel/pager/btree singles (2026-09-22)
+
+Engine fixes (each oracle-adjudicated, oracle = /usr/bin/sqlite3 3.54 plus a
+C program built against the sqlite 3.51 amalgamation for interleaved-callback
+semantics; pins in frigolite_w6_kernel_pin_test.go):
+
+- `zeroblob()` value semantics — CAST(zeroblob AS TEXT) is the empty string
+  (text view NUL-truncated), CAST AS BLOB expands, DISTINCT dedupes zeroblob
+  against an equal materialized blob (zeroblob-3.1), prefix_length bails on
+  blob arguments (prefixes-3.3), and query results materialize ZeroBlob
+  cells into zero bytes at the API boundary (sqlite3_column_blob parity).
+- `PRAGMA soft_heap_limit` — round-trip setter per pragma.c
+  PragTyp_SOFT_HEAP_LIMIT (default 0; N < 0 leaves the limit unchanged;
+  always returns the current limit).
+- `PRAGMA locking_mode` — pragma.c PragTyp_LOCKING_MODE semantics: the
+  unqualified query reports the connection default, the unqualified set
+  applies to every database EXCEPT temp (aDb[2..]) and updates the default,
+  qualified forms read/write one database; temp/memory pagers are born
+  EXCLUSIVE and ignore sets; ATTACH inherits the default (attach.c:206).
+- temp database page size — PRAGMA page_size records db->nextPagesize and
+  the lazily-opened temp btree applies it on first use (build.c:5338).
+- `btreeCellSizeCheck` port — storage.ValidateCellSizeCheck runs at the
+  balance_deeper child-init point (btree.c:9104 getAndInitPage), rejecting
+  cell-pointer arrays whose entries point outside [iCellFirst, iCellLast].
+
+Evidence-skips (assertion-level unless noted; regenerated via tcl2go):
+
+- `mutex1-1.5` — mutex_counters is test1.c C mutex-alloc instrumentation.
+- `softheap1-1.0` — want literal is the untranspiled C command text baked
+  into the expected list ("sqlite3_soft_heap_limit -1").
+- `softheap1-2.0` — want 5000 produced only by the untranspiled
+  sqlite3_soft_heap_limit C-API call; the pragma round-trip is pinned.
+- `sqllimits1-5.14.4/5.14.6` — ENGINE CORRECT (Stmt.Bind enforces
+  SQLITE_LIMIT_LENGTH → "string or blob too big" → SQLITE_TOOBIG, pinned in
+  TestW6_BindTooBig); the generated catch-of-C-API wrapper assigns res from
+  a synthesized empty error, dropping the code string tclBindStmt returns.
+  Emitter artifact (catch-of-C-API class) — reported for the emitter owner.
+- `bigrow-2.2` — the b value ends with a space; TCL `[list $::big1]` keeps
+  it, the harness want via tclListFlatten drops it. Harness rendering
+  artifact; the engine result is pinned in TestW6_Bigrow22.
+- `btreefault-2.2` — dbsqlfuzz crash regression: a nested DELETE of the
+  outer scan's row suppresses later join rows (outer-cursor nullification;
+  C oracle emits exactly [25 a 25 b]). Same class as delete-9.2: the
+  semantics live in sqlite3_step-per-row cursor interleaving, unobservable
+  through the materializing Go API. Streaming-executor follow-up reported
+  to the coordinator.
+- `corrupt-7.3` — the corruption writes cellPtr[0]:=788 at page offset
+  1024+8, the byte offset of rowid 10's record BODY under the reference
+  build's exact cell layout; frigolite's file-format-conforming layout puts
+  different bytes there, so the assertion is layout-bound. The engine
+  contract (oversize cell validation at balance_deeper) is implemented and
+  the surrounding corrupt-7.1/7.2 keep running.
+- `e_blobclose-2.3.3/2.3.5` — val() is a transpiled stub of a TCL proc that
+  closes the blob handle mid-statement and captures PRAGMA lock_status
+  output (C-harness handle choreography). The blob lock transitions are
+  covered by 2.1.x/2.2.x, which run.
+
+Whole-file skips (skipTestFiles):
+
+- `ptrchng` — every assertion drives pointer_change(), a test1.c C-only SQL
+  function (MemPage pointer-encoding mutation).
+- `rowhash` — the substantive do_keyset_test assertions are an untranspiled
+  proc and the 2.4+ loops dereference a nil *tclListBuilder (list_builder
+  object untranslated); engine contract covered by the index-lookup family.
+- `chunksize` — the tn.2 assertions require the SQLITE_FCNTL_CHUNK_SIZE VFS
+  fcntl (file_control_chunksize_test, test1.c); no SQL surface. The do_test
+  name is runtime-concatenated (do_test $tn.2), so per-assertion keys cannot
+  match.
+
+Hand-patches to generated files (regeneration caveat; emitter owner to
+absorb):
+
+- `testgen/pager1/pager1_test.go` — two emitter var-uniqueness bugs
+  ("no new variables on left side of :=" at _items0/_items1 redeclarations
+  in the same scope) alpha-renamed to _itemsA/_itemsB. pager1 was a BUILD
+  failure; it now runs 158 assertions green.
+- `testgen/shortread1/shortread1_test.go` — 1.3's emitter skip dropped the
+  WHOLE multi-statement execsql because it contains PRAGMA freelist_count
+  ("VACUUM-dependent" heuristic), removing the INSERT that 1.4's count(*)=2
+  depends on; the INSERT is restored (sqlite3_release_memory is incidental).
+  The engine passes the full shape natively (TestW6_ShortRead1).

@@ -635,6 +635,32 @@ var skipTestFiles = map[string]string{
 	"pushdown": "VDBE codeCursorHint() opcode P4 introspection + MySQL push-down index seek not implemented N-A P7.PUSHDOWN (evidence frigolite_pushdown_test.go)",
 
 	"rollbackfault": "VFS/fault-injection harness N-A",
+
+	// FULL-SUITE-DRIFT.T30-kernel (2026-09-22): three whole-file C-seam
+	// classes in the kernel singles batch. See NA_EVIDENCE §T30-kernel.
+	// ptrchng: every do_test drives pointer_change() — a test1.c SQL
+	// function that mutates the encoding of a MemPage pointer pair to
+	// exercise sqlite3_value transforms. It exists only in the C test
+	// build ("no such function: pointer_change" from the engine), so no
+	// assertion in the file is engine-visible.
+	"ptrchng": "N/A: pointer_change() is a test1.c C-only SQL function (MemPage pointer-encoding mutation); every assertion depends on it (NA_EVIDENCE T30-kernel)",
+	// rowhash: the substantive assertions (do_keyset_test rowhash-2.x)
+	// are an untranspiled TCL proc (`unsupported command` comments) and
+	// the 2.4+ loops build their key lists with a list_builder object the
+	// transpiler declares as a nil *tclListBuilder — the emitted
+	// L.Append("0") panics before any assertion runs. The engine-visible
+	// contract (index lookups over generated rowid sets) is covered by the
+	// index-lookup family (in*.test, rowid*.test) and pin tests.
+	"rowhash": "N/A: do_keyset_test proc + list_builder C-harness object untranspiled (nil *tclListBuilder panics in the emitted loop); engine contract covered by index-lookup family (NA_EVIDENCE T30-kernel)",
+	// chunksize: the file's substantive assertions (tn.2) require
+	// file_control_chunksize_test db main 32768 — the SQLITE_FCNTL_CHUNK_SIZE
+	// VFS fcntl (test1.c) — and assert the file grows in 32768-byte chunks.
+	// Without the C fcntl the file grows in page-size increments (got 2048
+	// vs want 32768); the fcntl has no SQL surface. The tn.0/tn.1 setup
+	// assertions (journal_mode, CREATE/INSERT) are covered by journal*.test
+	// and the pager family. The do_test name is runtime-concatenated
+	// (do_test $tn.2) so per-assertion keys cannot match.
+	"chunksize": "N/A: SQLITE_FCNTL_CHUNK_SIZE VFS fcntl (file_control_chunksize_test C command) has no SQL surface; file grows in page-size increments without it (NA_EVIDENCE T30-kernel)",
 	// P7.LOCK-C re-skips (evidence-based). scanstatus.test calls
 	// sqlite3_stmt_scanstatus / sqlite3_db_scanstatus (guarded by `ifcapable
 	// scanstatus`) for per-statement rows-visited/sorted metrics. Frigolite has

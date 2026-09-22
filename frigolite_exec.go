@@ -12,6 +12,7 @@ import (
 	"github.com/pijalu/frigolite/internal/recover"
 	"github.com/pijalu/frigolite/internal/schema"
 	"github.com/pijalu/frigolite/internal/sql"
+	"github.com/pijalu/frigolite/internal/value"
 )
 
 // execResult converts an exec.Result to a public Result.
@@ -175,6 +176,7 @@ func (db *DB) Query(sqlStr string) *Result {
 			r.SQL = sqlStr
 			return r
 		}
+		expandResultZeroBlobs(res)
 		allRows = append(allRows, res.Rows...)
 		if allColumns == nil {
 			allColumns = res.Columns
@@ -190,6 +192,20 @@ func (db *DB) Query(sqlStr string) *Result {
 		Columns: allColumns,
 		Rows:    allRows,
 		SQL:     sqlStr,
+	}
+}
+
+// expandResultZeroBlobs materializes zeroblob(N) cells into their expanded
+// zero bytes before a result leaves the engine (vdbeapi.c
+// sqlite3_column_blob expands the MEM_Zero flag on access; the value a host
+// application observes is always the N zero bytes, never a lazy marker).
+func expandResultZeroBlobs(res *exec.Result) {
+	for _, row := range res.Rows {
+		for i, v := range row {
+			if z, ok := v.(value.ZeroBlob); ok {
+				row[i] = z.Bytes()
+			}
+		}
 	}
 }
 

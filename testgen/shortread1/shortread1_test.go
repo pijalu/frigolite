@@ -83,7 +83,22 @@ func Test_shortread1(t *testing.T) {
 	}
 	{ // do_test "shortread1-1.3"
 		// sqlite3_release_memory [expr {1024*9}] (unsupported command, not transpiled)
-		// execsql skipped: PRAGMA freelist_count is VACUUM-dependent (P8.VACUUM)
+		// FULL-SUITE-DRIFT.T30-kernel hand-patch: the emitter skipped the WHOLE
+		// multi-statement execsql because it contains PRAGMA freelist_count
+		// ("VACUUM-dependent" heuristic), dropping the engine-visible INSERT
+		// that shortread1-1.4's count(*)=2 depends on. sqlite3_release_memory
+		// is incidental (the engine has no pagecache purge to model). The
+		// multi-statement shape passes natively (TestW6_ShortRead1).
+		r = db.Query("\n    INSERT INTO t1 VALUES(hex(randomblob(5000)));\n    PRAGMA freelist_count;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    INSERT INTO t1 VALUES(hex(randomblob(5000)));\n    PRAGMA freelist_count;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "0"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
 	}
 	{ // do_test "shortread1-1.4"
 		r = db.Query("\n    COMMIT;\n    SELECT count(*) FROM t1;\n  ")

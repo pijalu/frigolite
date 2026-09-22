@@ -19,7 +19,16 @@ import (
 // database file to n pages (src/dbpage.c INSERT with NULL data truncates via
 // sqlite3PagerTruncateImage).
 func (p *Pager) Truncate(n uint32) error {
-	return p.truncatePages(n, true)
+	return p.truncatePages(n, true, false)
+}
+
+// TruncateDeferFile is Truncate for the savepoint-restorable page-write path
+// (sqlite_dbpage writes inside a SAVEPOINT): the in-memory image is cut
+// immediately but the database FILE is shrunk at COMMIT (pager_truncate_image
+// parity), so a savepoint-snapshot restore can re-read the pre-statement page
+// images from disk (dbpage-720).
+func (p *Pager) TruncateDeferFile(n uint32) error {
+	return p.truncatePages(n, true, true)
 }
 
 // TruncateNoFreelistAdjust is Truncate for the auto-vacuum/incremental
@@ -33,15 +42,16 @@ func (p *Pager) Truncate(n uint32) error {
 // btree.c:4026-4028), so the header count must stay in lockstep with
 // the chain length.
 func (p *Pager) TruncateNoFreelistAdjust(n uint32) error {
-	return p.truncatePages(n, false)
+	return p.truncatePages(n, false, false)
 }
 
-func (p *Pager) truncatePages(n uint32, adjustFreelistCount bool) error {
+func (p *Pager) truncatePages(n uint32, adjustFreelistCount, deferFileShrink bool) error {
 	if p.readOnly {
 		return fmt.Errorf("pager: read-only")
 	}
 	p.mu.Lock()
 	defer p.mu.Unlock()
+	p.deferFileShrink = deferFileShrink
 	// C-parity (P8.INCRVACUUM phase16): the freelist chain on disk is the
 	// only bookkeeping. For the plain Truncate path, chain entries above
 	// the truncation point are removed (and the count kept in lockstep) by
@@ -59,8 +69,24 @@ func (p *Pager) truncatePages(n uint32, adjustFreelistCount bool) error {
 		p.numPages = n
 	}
 	if p.file != nil {
-		if err := p.shrinkDatabaseFileLocked(n); err != nil {
-			return err
+		if p.deferFileShrink {
+			// Savepoint-restorable page writes (sqlite_dbpage inside a
+			// SAVEPOINT): defer the physical shrink to COMMIT —
+			// pager_truncate_image parity. The eager shrink destroyed the
+			// pre-statement page images above the truncation point, so a
+			// savepoint-snapshot restore (SAVEPOINT / dbpage INSERT NULL /
+			// ROLLBACK TO) re-read zeroed pages from disk and
+			// integrity_check reported "database disk image is malformed"
+			// (dbpage-720).
+			p.pendingFileTruncate = true
+		} else {
+			// Eager shrink for the auto-vacuum drain path
+			// (TruncateNoFreelistAdjust, P8.INCRVACUUM phase16 design):
+			// its commit machinery depends on the on-disk image following
+			// the truncation immediately.
+			if err := p.shrinkDatabaseFileLocked(n); err != nil {
+				return err
+			}
 		}
 	}
 	// Adjust the on-disk freelist count for the truncated free pages.
@@ -285,6 +311,16 @@ func (p *Pager) flushAllCtx(multiDB bool) error {
 		if err := p.flushFilePagesLocked(multiDB); err != nil {
 			return err
 		}
+	}
+	// COMMIT is where a deferred pager_truncate_image shrink reaches the
+	// file: cut it to the committed page count (pager.c
+	// sqlite3PagerCommitPhaseOne truncates the file to nPage).
+	if p.pendingFileTruncate && p.file != nil {
+		if err := p.shrinkDatabaseFileLocked(p.numPages); err != nil {
+			p.pendingFileTruncate = false
+			return err
+		}
+		p.pendingFileTruncate = false
 	}
 	// Clear the dirty set in all cases (an in-memory pager has no file to
 	// write, but COMMIT/autocommit must still release the "exclusive" lock
