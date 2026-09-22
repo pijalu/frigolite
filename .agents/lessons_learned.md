@@ -7732,6 +7732,30 @@ regenerated; suite net −2274 fails vs pre-tranche baseline (7230 → ~4950).
   (TestBackupConformance, orafixture, walconformance .db). staticcheck repo-wide is
   stable: 76 pre-existing findings, identical base vs current.
 
+## §5d.root — root-package certification closure (2026-09-22, branch fleet/q5-root)
+- **Re-enumerate gates BEFORE planning extractions — fleet goal payloads can carry stale
+  counts.** Q5-ROOT was tasked with "89 remaining gocognit(>15) findings" in the root
+  package; direct measurement (`find . -maxdepth 1 -name '*.go' ! -name '*_test.go' |
+  xargs gocognit -over 15`) showed 0 — the work was already landed by §5d.templates
+  (ccae8722e split frigolite.go 1472→401 + config/error/exec/hooks/register/snapshot/status
+  files; 3f71c2509 decomposed Step 49→6, copyLocked 51→7, copyTable 37→6, vacuum/blob).
+  True pre-cleanup state was 10 gocognit>15 + 12 gocyclo>12 findings, not 89. Certification
+  (not re-refactoring) was the correct move; had the count been trusted, we would have
+  hunted findings that did not exist.
+- **`tools/orafixture` is generated/untracked too**: fresh worktrees fail
+  TestNativeBtreeDividerFixtureReference and TestNativeWalCheckpointPassiveFixtureReference
+  with "stat .../tools/orafixture: directory not found" while the primary checkout passes.
+  Extends the gitignore-fixture trap above (backupconformance/*.db, walconformance/*.db,
+  tcl2go corpus) — now three classes of env-only failures.
+- **`go test ... | tail -N` proves presence of failures, never absence**: any failure
+  header above the tail window is invisible, so a truncated run can NEVER certify a
+  failure SET. Full-log capture (`> file 2>&1`, no pipe) + `grep '^--- FAIL'` is the
+  minimum evidence for the identical-failure-set contract.
+- Final certified state of the root package (19 production files): gocognit>15 = 0,
+  gocyclo>12 = 0, scoped staticcheck = 0, max file 789 lines (< 1000 hard cap);
+  `go test . -timeout 45m` failure set == baseline exactly (7 top-level FAILs, all
+  pre-existing env/stable entries above).
+
 ## FULL-SUITE-DRIFT.T29-engine4 discoveries (2026-09-20, fleet agent ENGINE4)
 
 - **Trigger firing is pTabSchema-scoped, not name-scoped (trigger.c
