@@ -428,6 +428,26 @@ var skipTestsMoreTail = map[string]string{
 	// autocommit and explicit COMMIT) is implemented and pinned in
 	// frigolite_hookveto_pin_test.go.
 	"hook-3.8":     "commit-hook proc redefined after registration (dynamic TCL proc body dispatch) N-A (no-side-effects)",
+	// interrupt-1.3 / interrupt-2.1 cascade from interrupt-1.2's non-transpiled
+	// `interrupt_test` proc driver (it re-executes the SQL with progressively
+	// later ::sqlite_interrupt_count values until the statement succeeds; the
+	// DROP TABLE at 1.2 therefore never runs, so t1 survives into 1.3 and
+	// 2.1's CREATE TABLE fails). ENGINE CORRECTNESS for the proc's contract —
+	// interrupted writes undone, an interrupted COMMIT never commits and
+	// closes the transaction (special-error rollback, vdbeaux.c:3358-3383) —
+	// is pinned natively in frigolite_interrupt_pin_test.go.
+	"interrupt-1.3": "cascade of untranspiled interrupt_test proc driver (interrupt-1.2 DROP never runs) (no-side-effects)",
+	"interrrupt-2.1": "cascade of untranspiled interrupt_test proc driver (interrupt-1.2 DROP never runs) (no-side-effects)",
+	// interrupt-3.x additionally depends on 2.1's t1 population: with the
+	// proc driver untranspiled, t1 is EMPTY, so the loop's INSERT copies no
+	// rows, the countdown is not consumed inside 3.x.2's INSERT (in C every
+	// opcode dispatch decrements), and the whole-transaction special-error
+	// rollback that empties temp.sqlite_master (3.x.3/3.x.4) never triggers.
+	"interrupt-3.$i.1": "cascade of untranspiled interrupt_test proc driver (empty t1 -> countdown never fires inside 3.x.2) (no-side-effects)",
+	"interrupt-3.$i.2": "cascade of untranspiled interrupt_test proc driver (empty t1 -> countdown never fires inside 3.x.2) (no-side-effects)",
+	"interrupt-3.$i.3": "cascade of untranspiled interrupt_test proc driver (empty t1 -> countdown never fires inside 3.x.2) (no-side-effects)",
+	"interrupt-3.$i.4": "cascade of untranspiled interrupt_test proc driver (empty t1 -> countdown never fires inside 3.x.2) (no-side-effects)",
+	"interrupt-3.$i.5": "cascade of untranspiled interrupt_test proc driver (empty t1 -> countdown never fires inside 3.x.2) (no-side-effects)",
 	"hook-5.2.1":   "rollback-hook log across commit/rollback of an attached db N-A (multi-connection)",
 	"hook-6.2":     "commit+rollback hook combined log N-A",
 	"hook-7.1.4":   "preupdate old/new rendering for NULL/absent columns N-A (exact SQLite rendering)",

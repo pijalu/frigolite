@@ -22,6 +22,19 @@ func (e *Engine) execCommit() *Result {
 	if !e.tx.inTransaction {
 		return &Result{Error: fmt.Errorf("cannot commit - no transaction is active")}
 	}
+	// The SQLITE_TEST interrupt countdown (vdbe.c's per-opcode decrement)
+	// fires within the COMMIT program: an interrupted COMMIT never commits.
+	// SQLITE_INTERRUPT is a special error (src/vdbeaux.c:3358-3383), so the
+	// abort path rolls the whole transaction back — a later bare COMMIT
+	// fails with "cannot commit - no transaction is active" (interrupt-3.x).
+	if e.interruptCount > 0 {
+		e.interruptCount--
+		if e.interruptCount == 0 {
+			e.interrupted = true
+			e.execRollback()
+			return &Result{Error: fmt.Errorf("interrupted")}
+		}
+	}
 	// Deferred foreign key constraints are checked at COMMIT. On a violation
 	// the COMMIT fails and the transaction stays open (SQLite semantics:
 	// "cannot start a transaction within a transaction" after a failed
