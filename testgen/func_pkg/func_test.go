@@ -7,6 +7,7 @@ package func_pkg
 import (
 "fmt"
 "github.com/pijalu/frigolite"
+"github.com/pijalu/frigolite/internal/function"
 "github.com/pijalu/frigolite/internal/vtab"
 "os"
 "strconv"
@@ -91,7 +92,7 @@ func Test_func(t *testing.T) {
 	_ = rep // pre-declared from TCL source
 	var midargs string
 	_ = midargs // pre-declared from TCL source
-	var midres strings.Builder
+	var midres string
 	_ = midres // pre-declared from TCL source
 	var limit string
 	_ = limit // pre-declared from TCL source
@@ -1586,6 +1587,11 @@ func Test_func(t *testing.T) {
 			db.RegisterFunction("[string repeat X 256]", func(args []interface{}) (interface{}, error) { return nil, nil }, 0, -1)
 		}
 	}
+	// test_error (test-build fixture UDF, test_func.c)
+	db.RegisterFunction("test_error", func(args []interface{}) (interface{}, error) {
+		if len(args) == 0 || args[0] == nil { return nil, fmt.Errorf("") }
+		return nil, fmt.Errorf("%s", function.ValueText(args[0]))
+	}, 1, 2)
 	{ // do_test "func-15.1"
 		_res = db.Exec("select test_error(NULL)")
 		if _res.Error == nil {
@@ -2248,6 +2254,14 @@ func Test_func(t *testing.T) {
 						},
 					}
 				}, 0, 1)
+			// legacy_count (test-build fixture UDF, test1.c)
+			db.RegisterAggregate("legacy_count", func() frigolite.AggregateFunction {
+				state := struct{ n int64 }{}
+				return &frigolite.AggregateFuncs{
+					StepFn: func(args []interface{}) error { state.n++; return nil },
+					FinalFn: func() (interface{}, error) { return state.n, nil },
+				}
+			}, 0, -1)
 			r = db.Query("\n      SELECT legacy_count() FROM t6;\n    ")
 			if r.Error != nil {
 				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT legacy_count() FROM t6;\n    ")
@@ -2329,7 +2343,7 @@ func Test_func(t *testing.T) {
 		midargs = ""
 		_ = midargs // suppress unused warning
 		vtab.TclVarSet("midres", "", "")
-		midres.Reset()
+		midres = ""
 		_ = midres // suppress unused warning
 		limit = strconv.Itoa(db.Limit("SQLITE_LIMIT_FUNCTION_ARG"))
 		_ = limit // suppress unused warning
@@ -2343,8 +2357,8 @@ func Test_func(t *testing.T) {
 		_ = i // suppress unused warning
 		for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; limit_n, _limit_e := strconv.Atoi(limit); if _limit_e != nil { return false }; return i_n < limit_n }() {
 			midargs += ",'/" + i + "'"
-			midres.WriteString("/" + i)
-			result = "md5  \"this${midres}program${midres}is${midres}free${midres}software${midres}\""
+			midres += "/" + i
+			result = tclMD5("this" + midres + "program" + midres + "is" + midres + "free" + midres + "software" + midres)
 			_ = result // suppress unused warning
 			vtab.TclVarSet("sql", "", "SELECT md5sum(t1" + midargs + ") FROM tbl1")
 			sql = "SELECT md5sum(t1" + midargs + ") FROM tbl1"
@@ -2453,6 +2467,11 @@ func Test_func(t *testing.T) {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
+		// test_isolation (test-build fixture UDF, test_func.c)
+		db.RegisterFunction("test_isolation", func(args []interface{}) (interface{}, error) {
+			if len(args) < 2 { return nil, nil }
+			return args[1], nil
+		}, 2, 2)
 		{ // do_test "func-25.1"
 			r = db.Query("SELECT test_isolation(t1,t1) FROM tbl1")
 			if r.Error != nil {
@@ -2889,5 +2908,4 @@ func Test_func(t *testing.T) {
 				i = strconv.Itoa(_n + 1)
 			}
 		}
-
 }

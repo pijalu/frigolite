@@ -510,6 +510,13 @@ func (tp *transpiler) emitDBEvalCallbackConn(dbConn string, rest []tcl.RawWord) 
 	if sqlExpr == `""` {
 		return
 	}
+	// `db eval {SQL} {body}` vs `db eval {SQL} ARRAYVAR {body}` (misc2-7.2:
+	// the middle `{}` word names the column-name array — an empty name binds
+	// no array; the BODY is then the third word).
+	bodyText := rest[1].Text
+	if len(rest) >= 3 {
+		bodyText = rest[2].Text
+	}
 	rowsVar := fmt.Sprintf("_dbevalRows%d", tp.varCount)
 	tp.varCount++
 	rbFlag := fmt.Sprintf("_dbevalRb%d", tp.varCount)
@@ -546,7 +553,7 @@ func (tp *transpiler) emitDBEvalCallbackConn(dbConn string, rest []tcl.RawWord) 
 	tp.indent++
 	tp.emitLine("switch %s.Columns[_ci] {", rowsVar)
 	tp.indent++
-	for _, col := range dbEvalCallbackColumns(rest[1].Text) {
+	for _, col := range dbEvalCallbackColumns(bodyText) {
 		goVar := tclVarToGo(col)
 		if !isValidGoIdent(goVar) || goVar == "" {
 			continue
@@ -594,7 +601,7 @@ func (tp *transpiler) emitDBEvalCallbackConn(dbConn string, rest []tcl.RawWord) 
 		preparedState:       tp.preparedState,
 		varConstValues:      tp.varConstValues,
 	}
-	bodyTP.processCommands(parseCommands(rest[1].Text))
+	bodyTP.processCommands(parseCommands(bodyText))
 	tp.varCount = bodyTP.varCount
 	tp.indent = bodyTP.indent
 	tp.varConstValues = bodyTP.varConstValues

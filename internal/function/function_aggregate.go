@@ -287,9 +287,41 @@ func (a *avgAgg) Final() (interface{}, error) {
 	return r / float64(a.count), nil
 }
 
+// collatedArg is satisfied by the argument collation markers the evaluator
+// keeps for min()/max() calls (execexpr.CollatedValue): min()/max() take
+// their comparison collation from the LEFTMOST argument that carries one
+// (func.c minmaxStep: sqlite3GetFuncCollSeq, fed by the SQLITE_FUNC_NEEDCOLL
+// argument scan in expr.c). Declared through an interface so internal/
+// function does not import internal/execexpr.
+type collatedArg interface {
+	AggCollation() string
+	AggValue() interface{}
+}
+
+// aggArgValue unwraps a potentially collated aggregate argument into its raw
+// value and collation name.
+func aggArgValue(v interface{}) (interface{}, string) {
+	if c, ok := v.(collatedArg); ok {
+		return c.AggValue(), c.AggCollation()
+	}
+	return v, ""
+}
+
+// minMaxCompare compares two raw values under the aggregate's resolved
+// collation (BINARY when empty).
+func minMaxCompare(a, b interface{}, collation string) int {
+	if collation != "" {
+		return util.CompareValuesCollate(a, b, collation)
+	}
+	return util.CompareValues(a, b)
+}
+
 type minAgg struct {
 	min interface{}
 	set bool
+	// coll is the comparison collation taken from the first collation-bearing
+	// argument value (the leftmost argument with a collation).
+	coll string
 }
 
 func (m *minAgg) Step(args []interface{}) error {
@@ -297,8 +329,15 @@ func (m *minAgg) Step(args []interface{}) error {
 		if arg == nil {
 			continue
 		}
-		if !m.set || util.CompareValues(arg, m.min) < 0 {
-			m.min = arg
+		v, coll := aggArgValue(arg)
+		if v == nil {
+			continue
+		}
+		if coll != "" && m.coll == "" {
+			m.coll = coll
+		}
+		if !m.set || minMaxCompare(v, m.min, m.coll) < 0 {
+			m.min = v
 			m.set = true
 		}
 	}
@@ -312,6 +351,9 @@ func (m *minAgg) Final() (interface{}, error) {
 type maxAgg struct {
 	max interface{}
 	set bool
+	// coll is the comparison collation taken from the first collation-bearing
+	// argument value (the leftmost argument with a collation).
+	coll string
 }
 
 func (m *maxAgg) Step(args []interface{}) error {
@@ -319,8 +361,15 @@ func (m *maxAgg) Step(args []interface{}) error {
 		if arg == nil {
 			continue
 		}
-		if !m.set || util.CompareValues(m.max, arg) < 0 {
-			m.max = arg
+		v, coll := aggArgValue(arg)
+		if v == nil {
+			continue
+		}
+		if coll != "" && m.coll == "" {
+			m.coll = coll
+		}
+		if !m.set || minMaxCompare(m.max, v, m.coll) < 0 {
+			m.max = v
 			m.set = true
 		}
 	}
@@ -350,8 +399,15 @@ func (g *groupConcatAgg) Step(args []interface{}) error {
 		return nil
 	}
 	sep := ","
-	if len(args) > 1 && args[1] != nil {
-		sep = textOfEncoding(args[1], g.enc)
+	if len(args) > 1 {
+		if args[1] == nil {
+			// func.c groupConcatStep: a NULL separator argument appends
+			// nothing (zSep NULL skips the append) — the values concatenate
+			// with no separator (func-24.5: group_concat(t1,NULL)).
+			sep = ""
+		} else {
+			sep = textOfEncoding(args[1], g.enc)
+		}
 	}
 	g.values = append(g.values, textOfEncoding(args[0], g.enc))
 	g.seps = append(g.seps, sep)
@@ -386,13 +442,20 @@ type md5sumAgg struct {
 }
 
 func (m *md5sumAgg) Step(args []interface{}) error {
-	if len(args) == 0 || args[0] == nil {
+	if len(args) == 0 {
 		return nil
 	}
-	if m.h == nil {
-		m.h = md5.New()
+	// test_md5.c md5step: EVERY argument's text is hashed per row; a NULL
+	// argument contributes nothing (sqlite3_value_text returns NULL).
+	for _, arg := range args {
+		if arg == nil {
+			continue
+		}
+		if m.h == nil {
+			m.h = md5.New()
+		}
+		io.WriteString(m.h, textOfEncoding(arg, m.enc))
 	}
-	io.WriteString(m.h, textOfEncoding(args[0], m.enc))
 	return nil
 }
 

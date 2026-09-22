@@ -527,9 +527,10 @@ func matchGroupByExpr(groupBy []sql.Expr, col sql.Expr) int {
 // sort the output groups, matching SQLite's key-order GROUP BY output). The
 // key honors the expression's collation so values equal under that collation
 // (e.g. 'abc'/'aBC' under NOCASE) group together.
-func (e *SelectEngine) computeGroupByKeyValues(groupBy []sql.Expr, row Row) (string, []interface{}) {
+func (e *SelectEngine) computeGroupByKeyValues(groupBy []sql.Expr, row Row) (string, []interface{}, []string) {
 	parts := make([]string, len(groupBy))
 	values := make([]interface{}, len(groupBy))
+	colls := make([]string, len(groupBy))
 	for i, expr := range groupBy {
 		v, err := e.ctx.EvalExpr(expr, row)
 		if err != nil || v == nil {
@@ -540,9 +541,10 @@ func (e *SelectEngine) computeGroupByKeyValues(groupBy []sql.Expr, row Row) (str
 			uv := unwrapGroupByValue(v)
 			parts[i] = collationGroupKey(uv, coll)
 			values[i] = uv
+			colls[i] = coll
 		}
 	}
-	return strings.Join(parts, "\x00"), values
+	return strings.Join(parts, "\x00"), values, colls
 }
 
 // groupByExprCollation extracts the collation marker from a GROUP BY

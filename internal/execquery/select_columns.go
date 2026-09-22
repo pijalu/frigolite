@@ -580,8 +580,19 @@ func resolveOrderByValue(obExpr sql.Expr, rows [][]interface{}, resultCols []str
 }
 
 func (e *SelectEngine) lessRows(orderBy []sql.OrderByTerm, rowMaps []RowMap, rows [][]interface{}, resultCols []string, i, j int) bool {
-	for _, ob := range orderBy {
-		cmp := e.compareOrderByTerm(ob, rowMaps, rows, resultCols, i, j)
+	return e.lessRowsColls(orderBy, nil, rowMaps, rows, resultCols, i, j)
+}
+
+// lessRowsColls is lessRows with per-term prepare-time collations
+// (orderByTermDeclaredCollations) applied when neither the term nor the
+// compared values carry one.
+func (e *SelectEngine) lessRowsColls(orderBy []sql.OrderByTerm, termColls []string, rowMaps []RowMap, rows [][]interface{}, resultCols []string, i, j int) bool {
+	for k, ob := range orderBy {
+		var termColl string
+		if k < len(termColls) {
+			termColl = termColls[k]
+		}
+		cmp := e.compareOrderByTerm(ob, termColl, rowMaps, rows, resultCols, i, j)
 		if cmp < 0 {
 			return true
 		}
@@ -596,19 +607,19 @@ func (e *SelectEngine) lessRows(orderBy []sql.OrderByTerm, rowMaps []RowMap, row
 // resolving alias references, applying the column's declared collation via
 // the row maps, and falling back to expression evaluation when a value is
 // missing from the output row.
-func (e *SelectEngine) compareOrderByTerm(ob sql.OrderByTerm, rowMaps []RowMap, rows [][]interface{}, resultCols []string, i, j int) int {
+func (e *SelectEngine) compareOrderByTerm(ob sql.OrderByTerm, termColl string, rowMaps []RowMap, rows [][]interface{}, resultCols []string, i, j int) int {
 	obExpr := normalizeOrderByExpr(ob.Expr)
 	ref, isRef := stripCollate(obExpr).(*sql.ColumnRef)
 	if !isRef || ref.Table != "" || ref.Name == "*" {
-		return e.compareOrderByFallback(ob, obExpr, rowMaps, rows, resultCols, i, j)
+		return e.compareOrderByFallback(ob, obExpr, termColl, rowMaps, rows, resultCols, i, j)
 	}
 	left, lok := resolveOrderByValue(obExpr, rows, resultCols, i)
 	right, rok := resolveOrderByValue(obExpr, rows, resultCols, j)
 	left, right = e.resolveOrderByRowValues(ref.Name, obExpr, rowMaps, rows, resultCols, i, j, left, right)
 	if !lok || !rok {
-		return e.compareOrderByFallback(ob, obExpr, rowMaps, rows, resultCols, i, j)
+		return e.compareOrderByFallback(ob, obExpr, termColl, rowMaps, rows, resultCols, i, j)
 	}
-	return e.compareOrderByValues(left, right, ob)
+	return e.compareOrderByValues(left, right, ob, termColl)
 }
 
 // orderByAliasColumnName resolves an ORDER BY name that is a SELECT-list
@@ -676,7 +687,7 @@ func (e *SelectEngine) resolveOrderByRowValues(name string, obExpr sql.Expr, row
 // compareOrderByFallback compares rows i and j for an ORDER BY term that is
 // not a simple unqualified column reference (or whose output-row values are
 // missing): evaluate the expression against the row maps.
-func (e *SelectEngine) compareOrderByFallback(ob sql.OrderByTerm, obExpr sql.Expr, rowMaps []RowMap, rows [][]interface{}, resultCols []string, i, j int) int {
+func (e *SelectEngine) compareOrderByFallback(ob sql.OrderByTerm, obExpr sql.Expr, termColl string, rowMaps []RowMap, rows [][]interface{}, resultCols []string, i, j int) int {
 	// Resolve a non-column ORDER BY expression by its rendered text: when it
 	// matches a result column name (e.g. "10+sum(a) OVER (ORDER BY a)" is the
 	// SELECT-list expression), use the output row value — the window pass
@@ -689,7 +700,7 @@ func (e *SelectEngine) compareOrderByFallback(ob sql.OrderByTerm, obExpr sql.Exp
 		if j < len(rows) && pos < len(rows[j]) {
 			right = rows[j][pos]
 		}
-		return e.compareOrderByValues(left, right, ob)
+		return e.compareOrderByValues(left, right, ob, termColl)
 	}
 	left, lok := resolveOrderByValue(obExpr, rows, resultCols, i)
 	right, rok := resolveOrderByValue(obExpr, rows, resultCols, j)
@@ -710,7 +721,7 @@ func (e *SelectEngine) compareOrderByFallback(ob sql.OrderByTerm, obExpr sql.Exp
 			right, _ = e.ctx.EvalExpr(ob.Expr, combinedOutputRowMap(rowMaps[j], resultCols, rowAt(rows, j)))
 		}
 	}
-	return e.compareOrderByValues(left, right, ob)
+	return e.compareOrderByValues(left, right, ob, termColl)
 }
 
 // combinedOutputRowMap merges a source row map with the output row's values
@@ -776,7 +787,7 @@ func nullOrderByCmp(leftNull, rightNull bool, ob sql.OrderByTerm) (int, bool) {
 	return -1, true
 }
 
-func (e *SelectEngine) compareOrderByValues(left, right interface{}, ob sql.OrderByTerm) int {
+func (e *SelectEngine) compareOrderByValues(left, right interface{}, ob sql.OrderByTerm, termColl string) int {
 	if cmp, isNull := nullOrderByCmp(execexpr.IsSQLNull(left), execexpr.IsSQLNull(right), ob); isNull {
 		return cmp
 	}
@@ -791,6 +802,14 @@ func (e *SelectEngine) compareOrderByValues(left, right interface{}, ob sql.Orde
 				coll = orderByTermCollation(aliasExpr)
 			}
 		}
+	}
+	// Prepare-time declared collation of the term's expression (SQLite
+	// sqlite3ExprCollSeq): an ordinal or alias term whose result column is a
+	// COLLATE-declared column sorts with that collation even when the
+	// compared output values carry no collation marker (collate2-1.2:
+	// ORDER BY 1 over "SELECT b ... b COLLATE NOCASE").
+	if coll == "" {
+		coll = termColl
 	}
 	if coll != "" {
 		// An explicit COLLATE in the ORDER BY term (or one inherited from a

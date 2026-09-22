@@ -79,7 +79,7 @@ func mergeRowMaps(base, fr RowMap) RowMap {
 }
 
 func (e *DMLExecutor) buildUpdateChange(cell *storage.Cell, rec *storage.Record, colIndex map[string]int, colDefs []sql.ColumnDef, s *sql.UpdateStmt, row Row, deferSetEval bool) (*updateChange, error) {
-	values, oldValues := updateChangeValueSlots(rec, colIndex)
+	values, oldValues := e.updateChangeValueSlots(rec, colIndex, colDefs)
 	ch := &updateChange{rowID: cell.RowID, oldValues: oldValues}
 	if deferSetEval {
 		// Defer SET evaluation to the apply loop (per-row interleaving). The
@@ -176,7 +176,7 @@ func (e *DMLExecutor) applyOneUpdateAssignment(a sql.Assignment, row Row, colInd
 // updateChangeValueSlots allocates the values array for an update change,
 // large enough to hold all columns (not just those present in the record),
 // plus a copy of the original record values.
-func updateChangeValueSlots(rec *storage.Record, colIndex map[string]int) ([]interface{}, []interface{}) {
+func (e *DMLExecutor) updateChangeValueSlots(rec *storage.Record, colIndex map[string]int, colDefs []sql.ColumnDef) ([]interface{}, []interface{}) {
 	maxIdx := len(rec.Values)
 	for _, idx := range colIndex {
 		if idx+1 > maxIdx {
@@ -186,9 +186,35 @@ func updateChangeValueSlots(rec *storage.Record, colIndex map[string]int) ([]int
 	values := make([]interface{}, maxIdx)
 	copy(values, rec.Values)
 
+	// Rows written before ALTER TABLE ADD COLUMN have fewer record values
+	// than column definitions: the added columns read back their DEFAULT
+	// (sqlite3AddColumn's read-time default), so the rewritten record
+	// stores it instead of NULL (tkt3992: UPDATE keeps c=3).
+	if len(rec.Values) < len(colDefs) {
+		e.applyRecordDefaults(values, rec.Values, colDefs)
+	}
+
 	oldValues := make([]interface{}, len(rec.Values))
 	copy(oldValues, rec.Values)
+	if len(rec.Values) < len(colDefs) {
+		oldValues = make([]interface{}, maxIdx)
+		copy(oldValues, rec.Values)
+		e.applyRecordDefaults(oldValues, rec.Values, colDefs)
+	}
 	return values, oldValues
+}
+
+// applyRecordDefaults fills slots beyond the stored record's value count with
+// the column defaults (mirroring the SELECT scan's read-time default).
+func (e *DMLExecutor) applyRecordDefaults(values []interface{}, recValues []interface{}, colDefs []sql.ColumnDef) {
+	for i := len(recValues); i < len(colDefs) && i < len(values); i++ {
+		cd := &colDefs[i]
+		if cd.Default != nil && !cd.Dropped {
+			if dv, err := e.ctx.EvalExpr(cd.Default, nil); err == nil {
+				values[i] = util.ApplyColumnAffinity(dv, cd.Type)
+			}
+		}
+	}
 }
 
 // evalRowIDAssignment evaluates a SET rowid/_rowid_/oid assignment, returning

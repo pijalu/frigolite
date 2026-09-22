@@ -3,6 +3,7 @@ package execquery
 
 import (
 	"fmt"
+	"os"
 	"sort"
 	"strings"
 
@@ -25,7 +26,18 @@ func (e *SelectEngine) partitionByGroupKey(groupBy []sql.Expr, rowMaps []RowMap)
 	keyVals := make(map[string][]interface{})
 	var keyOrder []string
 	for _, row := range rowMaps {
-		key, vals := e.computeGroupByKeyValues(groupBy, row)
+		key, vals, colls := e.computeGroupByKeyValues(groupBy, row)
+		if os.Getenv("DBG_GB") != "" {
+			fmt.Printf("GB key=%q vals=%v colls=%q\n", key, vals, colls)
+		}
+		if _, exists := groups[key]; !exists {
+			// Values equal under a term's collation share a group even when
+			// their textual keys differ (collate5-4.2: '1' and '1.0' under a
+			// COLLATE NUMERIC column).
+			if merged := e.equivalentGroupKey(keyOrder, keyVals, vals, colls); merged != "" {
+				key = merged
+			}
+		}
 		if _, exists := groups[key]; !exists {
 			keyOrder = append(keyOrder, key)
 			keyVals[key] = vals
@@ -33,6 +45,45 @@ func (e *SelectEngine) partitionByGroupKey(groupBy []sql.Expr, rowMaps []RowMap)
 		groups[key] = append(groups[key], row)
 	}
 	return groups, keyVals, keyOrder
+}
+
+// equivalentGroupKey returns an existing group key whose values compare
+// equal under the per-term collations, or "". Terms without a collation must
+// match textually (their serialized keys are exact).
+func (e *SelectEngine) equivalentGroupKey(keyOrder []string, keyVals map[string][]interface{}, vals []interface{}, colls []string) string {
+	for _, k := range keyOrder {
+		existing := keyVals[k]
+		if len(existing) != len(vals) {
+			continue
+		}
+		equal := true
+		for i := range vals {
+			coll := ""
+			if i < len(colls) {
+				coll = colls[i]
+			}
+			uv := util.UnwrapColumnValue(vals[i])
+			ev := util.UnwrapColumnValue(existing[i])
+			if coll == "" {
+				if fmt.Sprintf("%v", uv) != fmt.Sprintf("%v", ev) {
+					equal = false
+					break
+				}
+				continue
+			}
+			if c := e.ctx.CompareValuesCollate(uv, ev, coll); c != 0 {
+				if os.Getenv("DBG_GB") != "" {
+					fmt.Printf("EQK coll=%q %v vs %v -> %d\n", coll, uv, ev, c)
+				}
+				equal = false
+				break
+			}
+		}
+		if equal {
+			return k
+		}
+	}
+	return ""
 }
 
 // evalAggCallArgs evaluates the arguments of an aggregate function call for a
@@ -43,6 +94,7 @@ func (e *SelectEngine) partitionByGroupKey(groupBy []sql.Expr, rowMaps []RowMap)
 // placeholder error.
 func (e *SelectEngine) evalAggCallArgs(fn *sql.FuncCall, row RowMap) []interface{} {
 	args := make([]interface{}, len(fn.Args))
+	keepColl := isMinMaxFunc(fn)
 	for i, arg := range fn.Args {
 		restore := e.ctx.EnterAuxAggArg()
 		v, err := e.ctx.EvalExpr(arg, row)
@@ -60,10 +112,25 @@ func (e *SelectEngine) evalAggCallArgs(fn *sql.FuncCall, row RowMap) []interface
 			// and CollatedValue collation markers so aggregates receive the
 			// raw scalar (a COLLATE'd argument like c1 COLLATE nocase must
 			// not leak the marker into the aggregate's input).
-			args[i] = unwrapCollatedValue(util.UnwrapColumnValue(v))
+			// MIN()/MAX() are the exception: their comparison collation comes
+			// from the LEFTMOST argument with one (func.c minmaxStep's
+			// sqlite3GetFuncCollSeq via the NEEDCOLL scan), so the marker is
+			// kept — minAgg/maxAgg Step peel it after reading the collation.
+			uv := util.UnwrapColumnValue(v)
+			if keepColl {
+				args[i] = uv
+			} else {
+				args[i] = unwrapCollatedValue(uv)
+			}
 		}
 	}
 	return args
+}
+
+// isMinMaxFunc reports whether the call is a min() or max() invocation, the
+// two aggregates that resolve a comparison collation from their arguments.
+func isMinMaxFunc(fn *sql.FuncCall) bool {
+	return strings.EqualFold(fn.Name, "MIN") || strings.EqualFold(fn.Name, "MAX")
 }
 
 // orderByExprs projects a slice of ORDER BY terms to their expression slice.
@@ -108,7 +175,10 @@ func distinctKey(args []interface{}) string {
 		if a == nil {
 			key += "\x00"
 		} else {
-			key += fmt.Sprintf("%v", a) + "\x00"
+			// Peel collation markers (kept for min/max DISTINCT) so equal
+			// values dedup regardless of the per-row wrapper identity.
+			raw, _ := execexpr.ExtractValue(a)
+			key += fmt.Sprintf("%v", raw) + "\x00"
 		}
 	}
 	return key

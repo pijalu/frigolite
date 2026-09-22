@@ -581,7 +581,11 @@ func buildTriggerNewRow(colDefs []sql.ColumnDef, values []interface{}) RowMap {
 	newRow := make(RowMap)
 	for i, v := range values {
 		if i < len(colDefs) {
-			newRow[colDefs[i].Name] = v
+			// Wrap with the column's declared affinity/collation (like scanned
+			// rows) so trigger WHEN/body comparisons apply the column's
+			// collation: new.a='a' under a COLLATE nocase column must match
+			// 'A' (collate6-1.3/1.7).
+			newRow[colDefs[i].Name] = wrapValueForRowMap(v, colDefs[i])
 		}
 	}
 	return newRow

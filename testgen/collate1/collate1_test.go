@@ -105,26 +105,32 @@ func Test_collate1(t *testing.T) {
 	if bisHex { return 1 }
 	return strings.Compare(a, b)
 })
-	db.RegisterFunction("hex", func(args []interface{}) (interface{}, error) { return nil, nil }, 0, -1)
+	// db function hex {format 0x%X} (TCL format UDF)
+	db.RegisterFunction("hex", func(args []interface{}) (interface{}, error) {
+		if len(args) == 0 || args[0] == nil { return nil, nil }
+		return tclFormat("0x%X", tclStr(args[0])), nil
+	}, 1, -1)
 	db.RegisterCollation("numeric", func(a, b string) int {
-	if a == b { return 0 }
 	af, aerr := strconv.ParseFloat(a, 64)
 	bf, berr := strconv.ParseFloat(b, 64)
 	if aerr == nil && berr == nil {
-		if af < bf { return -1 }
-		return 1
+		if af == bf { return 0 }
+		if af > bf { return 1 }
+		return -1
 	}
+	if a == b { return 0 }
 	return strings.Compare(a, b)
 })
 	// proc numeric_collate collation redefined — re-register (TCL late binding)
 	db.RegisterCollation("numeric_collate", func(a, b string) int {
-	if a == b { return 0 }
 	af, aerr := strconv.ParseFloat(a, 64)
 	bf, berr := strconv.ParseFloat(b, 64)
 	if aerr == nil && berr == nil {
-		if af < bf { return -1 }
-		return 1
+		if af == bf { return 0 }
+		if af > bf { return 1 }
+		return -1
 	}
+	if a == b { return 0 }
 	return strings.Compare(a, b)
 })
 	{ // do_test "collate1-1.0"

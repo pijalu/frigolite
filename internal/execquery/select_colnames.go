@@ -563,16 +563,20 @@ func (e *SelectEngine) sortRowsWithMaps(result *Result, orderBy []sql.OrderByTer
 	// descending rowid). A temp-b-tree sort has no defined tie order, so
 	// without the index the stable scan order is kept.
 	tie := e.orderByIndexRowidTie(s, orderBy)
+	// Prepare-time collation of each term's expression (sqlite3ExprCollSeq):
+	// ordinal/alias terms over COLLATE-declared columns sort with the
+	// column's collation (collate2-1.2, collate8-1.11).
+	termColls := e.orderByTermDeclaredCollations(s, orderBy)
 	// Sort indices, then reorder both slices in-place
 	indices := make([]int, n)
 	for i := range indices {
 		indices[i] = i
 	}
 	sort.SliceStable(indices, func(i, j int) bool {
-		if e.lessRows(orderBy, rowMaps, result.Rows, result.Columns, indices[i], indices[j]) {
+		if e.lessRowsColls(orderBy, termColls, rowMaps, result.Rows, result.Columns, indices[i], indices[j]) {
 			return true
 		}
-		if e.lessRows(orderBy, rowMaps, result.Rows, result.Columns, indices[j], indices[i]) {
+		if e.lessRowsColls(orderBy, termColls, rowMaps, result.Rows, result.Columns, indices[j], indices[i]) {
 			return false
 		}
 		return tie.ordersRowsBefore(rowMaps, indices[i], indices[j])

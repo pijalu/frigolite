@@ -98,17 +98,9 @@ func Test_sort5(t *testing.T) {
 	db, err = frigolite.Open("test.db")
 	if err != nil { t.Fatal(err) }
 	tcl_nullvalue = "{}" // fresh connection resets nullvalue
-	{ // "1.0"
-		r = db.Query("\n  PRAGMA mmap_size = 10000000;\n  PRAGMA cache_size = 10;\n  CREATE TABLE t1(a, b);\n")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  PRAGMA mmap_size = 10000000;\n  PRAGMA cache_size = 10;\n  CREATE TABLE t1(a, b);\n")
-			return
-		}
-		got := flatten(r)
-		want := "0"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
+	{ // "sort5-1.0" — skipped: VFS-coupled: mmap_size reads 0 only under the testvfs iversion-1 install (no xMmap); a standard VFS reports the requested size, which the engine honors (SQL side effects only)
+		_res = db.Exec("\n  PRAGMA mmap_size = 10000000;\n  PRAGMA cache_size = 10;\n  CREATE TABLE t1(a, b);\n")
+		_ = _res.Error // tolerate unsupported-feature errors in skipped tests
 	}
 	{ // do_test "1.1"
 		_res = db.Exec("BEGIN")
@@ -191,24 +183,9 @@ func Test_sort5(t *testing.T) {
 			if func() bool { r := db.Query("PRAGMA page_size"); if r.Error != nil || len(r.Rows) == 0 || len(r.Rows[0]) == 0 { return false }; l, err := strconv.ParseFloat(tclRenderCell(r.Rows[0][0]), 64); if err != nil { return false }; rr, rerr := strconv.ParseFloat("$pgsz", 64); if rerr != nil { return false }; return l != rr }() {
 				continue
 			}
-			{ // do_test "2." + tn + ".1"
-				vtab.TclVarSet("iTemp", "", "0")
-				iTemp = "0" // TCL namespace variable
-				_ = iTemp // suppress unused warning
-				{
-					var _catchErr error
-					_ = _catchErr // suppress unused warning
-					_r = ""
-					// array unset (not transpiled)
-				}
-				r = db.Query("\n      WITH x(i, j) AS (\n        SELECT 1, randomblob(100)\n        UNION ALL\n        SELECT i+1, randomblob(100) FROM x WHERE i<10000\n      )\n      SELECT * FROM x ORDER BY j;\n    ")
-				if r.Error != nil {
-					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      WITH x(i, j) AS (\n        SELECT 1, randomblob(100)\n        UNION ALL\n        SELECT i+1, randomblob(100) FROM x WHERE i<10000\n      )\n      SELECT * FROM x ORDER BY j;\n    ")
-				}
-				// expr [array names F]!="" (not evaluated)
-				if _r != bTemp {
-					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", _r, bTemp, "2." + tn + ".1")
-				}
+			{ // "sort5-2." + tn + ".1" — skipped: VFS-coupled: sorter spill detection counts testvfs xWrite callbacks (temp-file PMA writes); not observable without a pluggable VFS ((SQL side effects only))
+				_res = db.Exec("\n      WITH x(i, j) AS (\n        SELECT 1, randomblob(100)\n        UNION ALL\n        SELECT i+1, randomblob(100) FROM x WHERE i<10000\n      )\n      SELECT * FROM x ORDER BY j;\n    ")
+				_ = _res.Error // tolerate unsupported-feature errors in skipped tests
 			}
 		}
 }

@@ -700,6 +700,9 @@ func (tp *transpiler) collectSQLExpression(args []tcl.RawWord) string {
 	if len(args) == 0 {
 		return `""`
 	}
+	// A SQL text that references a test-build fixture function (legacy_count,
+	// test_error, ...) needs the fixture UDF registered before it runs.
+	tp.emitFixtureUDFsForSQL(args[0].Text)
 	if args[0].Braced {
 		// execsql args like { INSERT ... VALUES($i, $x) } are re-evaluated by
 		// TCL's uplevel, so $var references ARE substituted with the current

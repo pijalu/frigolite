@@ -33,6 +33,7 @@ type transpiler struct {
 	dqsDML              bool                    // current SQLITE_DBCONFIG_DQS_DML state (default true)
 	unsetVars           map[string]bool         // TCL vars unset via `unset`; `$var` renders as SQL NULL
 	dbVarFuncs          map[string]bool         // `db function NAME proc` registrations: NAME reads a TCL var
+	fixtureUDFsEmitted  map[string]bool         // test-build fixture UDFs already registered (legacy_count/test_error)
 	constFuncs          map[string]string       // `proc NAME {args} { return CONST }`: NAME returns CONST
 	stringConstFuncs    map[string]string       // `proc NAME {} { return "LIT" }`: NAME returns a fixed string
 	identityFuncs       map[string]bool         // `proc NAME {x} { return $x }`: NAME returns its first argument

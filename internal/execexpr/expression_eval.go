@@ -381,15 +381,14 @@ func (ev *Evaluator) evalCallArgs(fn *function.Func, f *sql.FuncCall, row Row) (
 }
 
 // keepCollatedArgs reports whether a call's raw argument values must keep
-// their CollatedValue markers: scalar MIN()/MAX() (two or more arguments)
-// resolve the function's collating sequence from the LEFTMOST argument that
-// has one — an explicit COLLATE operator or a column's declared collation
-// (expr.c SQLITE_FUNC_NEEDCOLL argument scan feeding OP_CollSeq). Markers are
-// peeled again inside evalScalarMinMax, so the function result stays clean.
+// their CollatedValue markers: MIN()/MAX() resolve their comparison collation
+// from the LEFTMOST argument that has one — an explicit COLLATE operator or a
+// column's declared collation (expr.c SQLITE_FUNC_NEEDCOLL argument scan
+// feeding OP_CollSeq). This covers both the scalar form (two or more
+// arguments) and the aggregate form (one argument, whose step function is
+// minmaxStep/sqlite3GetFuncCollSeq). Markers are peeled again inside
+// evalScalarMinMax and inside minAgg/maxAgg Step, so results stay clean.
 func keepCollatedArgs(f *sql.FuncCall) bool {
-	if len(f.Args) < 2 {
-		return false
-	}
 	return strings.EqualFold(f.Name, "MIN") || strings.EqualFold(f.Name, "MAX")
 }
 

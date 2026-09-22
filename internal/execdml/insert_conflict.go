@@ -251,7 +251,10 @@ func buildBeforeTriggerRow(colDefs []sql.ColumnDef, values []interface{}, ipkWas
 			if ipkWasNil && i == ipkIndex {
 				newRow[colDefs[i].Name] = int64(-1)
 			} else {
-				newRow[colDefs[i].Name] = v
+				// Wrap with the column's declared affinity/collation like a
+				// scanned row (collate6: new.a='a' compares with the
+				// column's collation).
+				newRow[colDefs[i].Name] = wrapValueForRowMap(v, colDefs[i])
 			}
 		}
 	}

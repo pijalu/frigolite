@@ -116,6 +116,18 @@ func (e *SelectEngine) resolveCompoundOrderByTerms(s *sql.SelectStmt, orderBy []
 				continue
 			}
 		}
+		// A table-qualified ORDER BY reference (tkt2822-6.5/6.6: ORDER BY
+		// t6b.x, QX over "SELECT p PX ... UNION ALL SELECT x XX ... FROM
+		// t6b") resolves to the result column that member contributes.
+		// SQLite matches columns through sqlite3ExprCompare, which compares
+		// the RESOLVED table name and column name — an unqualified member
+		// column "q" selected "FROM t6a" compares equal to the term t6a.q.
+		if ok && ref.Table != "" {
+			if pos := e.compoundMemberQualifiedColumnPosition(s, ref); pos > 0 {
+				ob.Expr = &sql.NumericLit{Value: strconv.Itoa(pos)}
+				continue
+			}
+		}
 		// A compound ORDER BY expression that matches a member's SELECT
 		// expression (e.g. ORDER BY x*z where the first member is
 		// "SELECT x*z FROM d1") resolves to that result column.
@@ -124,6 +136,55 @@ func (e *SelectEngine) resolveCompoundOrderByTerms(s *sql.SelectStmt, orderBy []
 		}
 	}
 	return orderBy
+}
+
+// compoundMemberQualifiedColumnPosition returns the 1-based result position
+// of a table-qualified ORDER BY reference among a compound chain's member
+// result columns, or 0. A member column matches when its name equals the
+// reference's name and its qualifier (an explicit table qualifier, or the
+// member's FROM/alias table when unqualified) matches the reference's table.
+func (e *SelectEngine) compoundMemberQualifiedColumnPosition(s *sql.SelectStmt, ref *sql.ColumnRef) int {
+	cur := s
+	for cur != nil {
+		for i, col := range cur.Columns {
+			cr, ok := col.Expr.(*sql.ColumnRef)
+			if !ok || cr.Name == "*" || !strings.EqualFold(cr.Name, ref.Name) {
+				continue
+			}
+			if cr.Table != "" {
+				if strings.EqualFold(cr.Table, ref.Table) {
+					return i + 1
+				}
+				continue
+			}
+			if memberFromMatchesTable(cur, ref.Table) {
+				return i + 1
+			}
+		}
+		cur = cur.Union
+	}
+	return 0
+}
+
+// memberFromMatchesTable reports whether a compound member's FROM scope (the
+// head table's name or alias, or any joined table's name or alias) matches
+// the given qualifier.
+func memberFromMatchesTable(m *sql.SelectStmt, table string) bool {
+	if m == nil || table == "" {
+		return false
+	}
+	match := func(name, alias string) bool {
+		return strings.EqualFold(name, table) || (alias != "" && strings.EqualFold(alias, table))
+	}
+	if match(m.From.Name, m.From.As) {
+		return true
+	}
+	for _, j := range m.Joins {
+		if match(j.Table.Name, j.Table.As) {
+			return true
+		}
+	}
+	return false
 }
 
 // compoundMemberExprPosition returns the 1-based result position of expr when

@@ -29,6 +29,30 @@ func (e *SelectEngine) findIndexOnCols(tableName string, cols []string) string {
 	return e.findIndexOnColsForQuery(tableName, cols, nil)
 }
 
+// emptyIndexNameToken stands in for an index whose schema name is the empty
+// string: the planner's "" sentinel means "no index", so an empty (but valid)
+// index name cannot flow through the name-based plumbing directly. The token
+// is not a valid identifier and can never collide with a real index name
+// (tkt-78e04e52ea: CREATE INDEX "" ON t2(x)).
+const emptyIndexNameToken = "\x00empty index name"
+
+// indexNameToken maps a schema index name to the planner token.
+func indexNameToken(name string) string {
+	if name == "" {
+		return emptyIndexNameToken
+	}
+	return name
+}
+
+// displayIndexName maps a planner token back to the schema name for EQP
+// rendering: an empty index name prints as nothing ("USING COVERING INDEX  (x=?)").
+func displayIndexName(name string) string {
+	if name == emptyIndexNameToken {
+		return ""
+	}
+	return name
+}
+
 // findIndexOnColsForQuery is like findIndexOnCols but additionally checks
 // that partial indexes are implied by the query's WHERE clause.
 func (e *SelectEngine) findIndexOnColsForQuery(tableName string, cols []string, where sql.Expr) string {
@@ -48,7 +72,7 @@ func (e *SelectEngine) findIndexOnColsForQuery(tableName string, cols []string, 
 			if where != nil && !e.partialIndexImplied(entry, where) {
 				continue
 			}
-			return entry.Name
+			return indexNameToken(entry.Name)
 		}
 	}
 	// Also check the implicit PRIMARY KEY index of a WITHOUT ROWID table,
@@ -128,7 +152,7 @@ func (e *SelectEngine) partialIndexWhereColumns(idxName string) []string {
 		return nil
 	}
 	for _, entry := range entries {
-		if entry.Type != "index" || entry.Name != idxName {
+		if entry.Type != "index" || entry.Name != displayIndexName(idxName) {
 			continue
 		}
 		wm := indexWhereRe.FindStringSubmatch(entry.SQL)
@@ -289,7 +313,7 @@ func (e *SelectEngine) joinScanNode(t queryTable, s *sql.SelectStmt) []planNode 
 // SQLite uses COVERING INDEX when no temp table is needed to resolve the
 // output), or "INDEX <name>". When s is nil, falls back to all-table-cols.
 func (e *SelectEngine) indexUsingLabel(tableName, idx string, s *sql.SelectStmt) string {
-	using := "INDEX " + idx
+	using := "INDEX " + displayIndexName(idx)
 	if idx == "PRIMARY KEY" {
 		using = "PRIMARY KEY"
 	} else {
@@ -301,7 +325,7 @@ func (e *SelectEngine) indexUsingLabel(tableName, idx string, s *sql.SelectStmt)
 			covered = e.indexCoversCols(idx, tableName, selectOutputCols(s))
 		}
 		if covered {
-			using = "COVERING INDEX " + idx
+			using = "COVERING INDEX " + displayIndexName(idx)
 		}
 	}
 	return using
@@ -440,7 +464,7 @@ func (e *SelectEngine) findIndexOnColumn(tableName, colName string, where ...sql
 			if whereExpr != nil && !e.partialIndexImplied(entry, whereExpr) {
 				continue
 			}
-			return entry.Name
+			return indexNameToken(entry.Name)
 		}
 	}
 	return ""

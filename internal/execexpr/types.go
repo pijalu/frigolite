@@ -61,6 +61,15 @@ type CollatedValue struct {
 	Explicit bool
 }
 
+// AggCollation exposes the marker's collation to lower layers (internal/
+// function) through an interface, so aggregate min()/max() can take their
+// comparison collation from the kept marker without importing execexpr
+// (func.c minmaxStep: sqlite3GetFuncCollSeq, fed by the NEEDCOLL scan).
+func (cv *CollatedValue) AggCollation() string { return cv.Collation }
+
+// AggValue returns the marker's raw value.
+func (cv *CollatedValue) AggValue() interface{} { return cv.Value }
+
 // ExprContext is the capability interface expression evaluation needs from
 // the execution engine. The Engine implements it; the Evaluator depends on
 // this interface rather than on the concrete engine type (DIP).

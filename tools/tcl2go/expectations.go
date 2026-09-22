@@ -50,6 +50,13 @@ var wantOverrides = map[string]string{
 	// pages on DROP, reporting fewer. The engine value (115 in this build)
 	// is the honest high-water mark — pin it, not the oracle truncation.
 	"memdb1:130": "115",
+	// misc3-2.5: stale TCL expectation. The corpus want
+	// {1.0000000000000e-225} (13 zeros = %.14e-shaped) was recorded against
+	// a 2004-era printf; SQLite 3.54 (the oracle: /usr/bin/sqlite3) formats
+	// %.15e with 15 digits after the point:
+	//   SELECT format('%.15e',2.0e-250*0.5e25) → 1.000000000000000e-225
+	// The engine's own printf matches the oracle digit-for-digit.
+	"misc3:misc3-2.5": "1.000000000000000e-225",
 }
 
 // genCurrentTestFile is the TCL test file base name currently being

@@ -242,8 +242,12 @@ func Test_misc2(t *testing.T) {
 			for _ri := 0; _ri < len(_dbevalRows0.Rows) && _dbevalErr2 == nil; _ri++ {
 				for _ci := 0; _ci < len(_dbevalRows0.Columns); _ci++ {
 					switch _dbevalRows0.Columns[_ci] {
+						case "rowid":
+							rowid = tclStr(_dbevalRows0.Rows[_ri][_ci])
 					}
 				}
+				_res = db.Exec("DELETE FROM t1 WHERE rowid=" + rowid)
+				if _res.Error != nil { _catchErr = _res.Error }
 				if _dbevalRb1 { _dbevalErr2 = errors.New("abort due to ROLLBACK") }
 				if _dbevalInt3 { _dbevalErr2 = errors.New("interrupted"); db.ClearInterrupt() }
 			}
@@ -475,8 +479,12 @@ func Test_misc2(t *testing.T) {
 			for _ri := 0; _ri < len(_dbevalRows24.Rows) && _dbevalErr26 == nil; _ri++ {
 				for _ci := 0; _ci < len(_dbevalRows24.Columns); _ci++ {
 					switch _dbevalRows24.Columns[_ci] {
+						case "rowid":
+							rowid = tclStr(_dbevalRows24.Rows[_ri][_ci])
 					}
 				}
+				_res = db.Exec("DELETE FROM t1 WHERE rowid=" + rowid)
+				if _res.Error != nil { _catchErr = _res.Error }
 				if _dbevalRb25 { _dbevalErr26 = errors.New("abort due to ROLLBACK") }
 				if _dbevalInt27 { _dbevalErr26 = errors.New("interrupted"); db.ClearInterrupt() }
 			}

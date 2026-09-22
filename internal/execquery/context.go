@@ -107,6 +107,12 @@ type SelectContext interface {
 	TriggerDepth() int
 	CurrentDMLCtx() *DatabaseContext
 
+	// RollbackAborted reports whether a nested statement (an eval() UDF or a
+	// trigger body) has run ROLLBACK while this statement was still running:
+	// SQLite aborts the enclosing statement with SQLITE_ABORT_ROLLBACK, so
+	// the scan must stop producing rows (misc8-1.7).
+	RollbackAborted() bool
+
 	// Schema lookup.
 	FindTable(name string) (*schema.Entry, *DatabaseContext, error)
 	FindView(name string) (*schema.Entry, *DatabaseContext, error)
@@ -537,5 +543,5 @@ func (e *SelectEngine) ValidateDMLSubqueries(stmt sql.Stmt) error {
 
 // CompareOrderByValues compares two values under an ORDER BY term.
 func (e *SelectEngine) CompareOrderByValues(left, right interface{}, ob sql.OrderByTerm) int {
-	return e.compareOrderByValues(left, right, ob)
+	return e.compareOrderByValues(left, right, ob, "")
 }

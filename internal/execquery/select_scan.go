@@ -477,6 +477,12 @@ func (st *scanState) processRow(cursor *btree.Cursor, payload []byte, rowID int6
 			return false, err
 		}
 	}
+	// A nested eval()/trigger ROLLBACK aborts the enclosing statement
+	// (SQLITE_ABORT_ROLLBACK): stop the scan — the statement's remaining
+	// rows are never produced and the outermost Exec surfaces the abort.
+	if st.e.ctx.RollbackAborted() {
+		return false, nil
+	}
 	return advanceCursor(cursor)
 }
 

@@ -1289,15 +1289,17 @@ func tclLsearch(list string, value string) int {
 func tclLRange(list string, start, end interface{}) string {
 	items := tclSplitList(list)
 	s, _ := strconv.Atoi(fmt.Sprintf("%v", start))
-	// "end" means the last element (TCL lrange semantics); a numeric end is
-	// clamped to the list bounds.
+	// "end" means the last element (TCL lrange semantics).
 	e := len(items) - 1
 	if es, ok := end.(string); ok && es != "end" {
 		e, _ = strconv.Atoi(es)
 	}
 	if s < 0 { s = 0 }
-	if e < 0 || e >= len(items) { e = len(items) - 1 }
-	if s > e || s >= len(items) { return "" }
+	if e >= len(items) { e = len(items) - 1 }
+	// A negative numeric end is BELOW the start (tclsh 9 lrange: indices are
+	// literal, only the "end" keyword counts from the tail) — the range is
+	// empty, not the whole list (tkt-38cb5df375.51.7: lrange ... 0 [expr 0-1]).
+	if e < 0 || s > e || s >= len(items) { return "" }
 	return tclList(items[s : e+1])
 }
 
@@ -6123,6 +6125,12 @@ func tclParseInt64(s string) int64 {
 // of the first row as a TCL string. Blob results convert to their raw bytes
 // (never fmt's decimal slice rendering); NULL becomes "".
 func tclDbOne(db *frigolite.DB, sql string) string {
+	// A TCL connection method ("db last_insert_rowid") is not SQL: translate
+	// the supported methods to their SQL equivalents (func-7.1 compares
+	// last_insert_rowid() against [db last_insert_rowid]).
+	if s := strings.TrimSpace(strings.TrimPrefix(strings.TrimSpace(sql), "db ")); s == "last_insert_rowid" {
+		sql = "SELECT last_insert_rowid()"
+	}
 	r := db.Query(sql)
 	if r.Error != nil || len(r.Rows) == 0 || len(r.Rows[0]) == 0 {
 		return ""

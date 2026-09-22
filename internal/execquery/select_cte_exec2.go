@@ -70,13 +70,46 @@ func (e *SelectEngine) execSelectOverMaterializedRowids(s *sql.SelectStmt, colDe
 }
 
 // finalizeMaterializedRows applies DISTINCT, ORDER BY, LIMIT/OFFSET and the
-// simple set-operation merge to a materialized (non-window) result. This is
-// the materialized-path tail; the general path's finalizeSelectResult handles
+// set-operation merge to a materialized (non-window) result. This is the
+// materialized-path tail; the general path's finalizeSelectResult handles
 // compound chains via mergeCompoundChain instead of mergeUnionRows.
+//
+// For a compound head (SELECT ... FROM (subquery) UNION ALL ...) the trailing
+// ORDER BY/LIMIT/OFFSET sort and limit the MERGED result: the chain is merged
+// first (each member executing as a cleared copy), and the tail's clauses are
+// applied afterwards — applying them per-arm truncated the last arm
+// pre-merge (tkt-38cb5df375).
 func (e *SelectEngine) finalizeMaterializedRows(result *Result, s *sql.SelectStmt, allRowMaps []RowMap) *Result {
 	// Apply DISTINCT
 	if s.Distinct {
 		result.Rows, allRowMaps = e.distinctRows(result.Rows, allRowMaps, e.selectOutputCollations(s), s)
+	}
+
+	// Handle UNION / INTERSECT / EXCEPT before ORDER BY / LIMIT: both clauses
+	// attach to the tail member but govern the merged result.
+	if s.Union != nil {
+		colls := e.selectOutputCollations(s)
+		merged, orderBy, limit, offset, merr := e.mergeCompoundChain(result.Rows, s, colls, len(result.Columns))
+		if merr != nil {
+			return &Result{Error: merr}
+		}
+		result.Rows = merged
+		rowMaps := rebuildRowMapsFromRows(result.Rows, result.Columns)
+		if len(orderBy) > 0 {
+			resolved, rerr := e.resolveFinalOrderBy(s, orderBy, len(result.Columns), colls)
+			if rerr != nil {
+				return &Result{Error: rerr}
+			}
+			if serr := e.sortRowsWithMaps(result, resolved, rowMaps, s); serr != nil {
+				return &Result{Error: serr}
+			}
+		}
+		lExpr, oExpr, lerr := e.evalLimitOffsetExprs(limit, offset)
+		if lerr != nil {
+			return &Result{Error: lerr}
+		}
+		result.Rows = applyLimitOffset(result.Rows, lExpr, oExpr)
+		return result
 	}
 
 	// Apply ORDER BY
@@ -95,11 +128,6 @@ func (e *SelectEngine) finalizeMaterializedRows(result *Result, s *sql.SelectStm
 		return &Result{Error: lerr}
 	}
 	result.Rows = applyLimitOffset(result.Rows, lExpr, oExpr)
-
-	// Handle UNION / INTERSECT / EXCEPT
-	if s.Union != nil {
-		result.Rows = e.mergeUnionRows(result.Rows, s.Union, s.SetOp, s.UnionAll, e.selectOutputCollations(s))
-	}
 
 	return result
 }

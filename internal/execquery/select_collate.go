@@ -53,6 +53,14 @@ func (e *SelectEngine) validateSortKeyCollations(s *sql.SelectStmt, resolve func
 		if err := e.checkTermCollation(orderTermExpr(s, ob.Expr), resolve); err != nil {
 			return err
 		}
+		// An explicit COLLATE on the term names a collation that must exist
+		// (collate1-6.3: ORDER BY 1 COLLATE """ → no such collation
+		// sequence: """"); orderTermExpr strips it, so check it directly.
+		if name := orderTermExplicitCollation(ob.Expr); name != "" {
+			if err := e.ctx.CheckCollationString(name); err != nil {
+				return err
+			}
+		}
 	}
 	for _, g := range s.GroupBy {
 		if err := e.checkTermCollation(orderTermExpr(s, g), resolve); err != nil {
@@ -60,6 +68,15 @@ func (e *SelectEngine) validateSortKeyCollations(s *sql.SelectStmt, resolve func
 		}
 	}
 	return nil
+}
+
+// orderTermExplicitCollation returns the collation named by an explicit
+// top-level COLLATE operator on an ORDER BY/GROUP BY term, or "".
+func orderTermExplicitCollation(expr sql.Expr) string {
+	if b, ok := expr.(*sql.BinaryOp); ok && strings.EqualFold(b.Operator, "COLLATE") {
+		return collateOperandName(b.Right)
+	}
+	return ""
 }
 
 // checkTermCollation resolves one ORDER BY/GROUP BY term's collation and
@@ -116,6 +133,13 @@ func (e *SelectEngine) validateCompoundOrderByCollations(s *sql.SelectStmt, coll
 				return err
 			}
 		}
+		// An explicit COLLATE on the compound ORDER BY term names a
+		// collation that must exist (collate1-6.4).
+		if name := orderTermExplicitCollation(ob.Expr); name != "" {
+			if err := e.ctx.CheckCollationString(name); err != nil {
+				return err
+			}
+		}
 	}
 	return nil
 }
@@ -147,8 +171,16 @@ func (e *SelectEngine) schemaCollationResolver(s *sql.SelectStmt) func(sql.Colum
 	}
 	return func(ref sql.ColumnRef) string {
 		if ref.Table != "" {
-			if m, ok := byTable[strings.ToLower(ref.Table)]; ok {
+			table := strings.ToLower(ref.Table)
+			if m, ok := byTable[table]; ok {
 				return m[strings.ToLower(ref.Name)]
+			}
+			// A schema-qualified reference (main.collate1t1.a, collate1-3.3):
+			// match on the trailing table name alone.
+			if dot := strings.LastIndex(table, "."); dot >= 0 {
+				if m, ok := byTable[table[dot+1:]]; ok {
+					return m[strings.ToLower(ref.Name)]
+				}
 			}
 			return ""
 		}
@@ -318,6 +350,76 @@ func orderTermExpr(s *sql.SelectStmt, expr sql.Expr) sql.Expr {
 		}
 	}
 	return expr
+}
+
+// orderByTermDeclaredCollations computes, per ORDER BY term, the
+// schema-declared collation its expression resolves to at prepare time
+// (expr.c sqlite3ExprCollSeq): an ordinal maps to that result column's
+// expression, a bare name matching a select alias maps to the aliased
+// expression, and any other expression resolves against the FROM tables.
+// A term with its own explicit COLLATE resolves to "" — that explicit
+// collation is applied unconditionally by compareOrderByValues. The results
+// feed sortRowsWithMaps so an ordinal/alias term over a COLLATE-declared
+// column sorts with the column's collation even when the output values carry
+// no collation marker (collate2-1.2: ORDER BY 1 over "SELECT b ... b
+// COLLATE NOCASE"; collate8-1.11: ORDER BY "x" over "SELECT a AS x").
+func (e *SelectEngine) orderByTermDeclaredCollations(s *sql.SelectStmt, orderBy []sql.OrderByTerm) []string {
+	if s == nil || len(s.Columns) == 0 || len(orderBy) == 0 {
+		return nil
+	}
+	// A compound query's ORDER BY collations were already attached by
+	// applyCompoundOrderByCollations (explicit COLLATE wrappers).
+	if s.Union != nil {
+		return nil
+	}
+	resolve := e.schemaCollationResolver(s)
+	colls := make([]string, len(orderBy))
+	for i := range orderBy {
+		if orderByTermCollation(orderBy[i].Expr) != "" {
+			continue
+		}
+		expr := orderTermExpr(s, orderBy[i].Expr)
+		// An ordinal over a bare "SELECT *" maps to the expanded FROM
+		// column (collate1-3.1: ORDER BY 1 over a column declared
+		// COLLATE hex).
+		if nl, ok := stripCollate(orderBy[i].Expr).(*sql.NumericLit); ok {
+			if n, err := strconv.Atoi(nl.Value); err == nil && n >= 1 {
+				if ref, ok := expr.(*sql.ColumnRef); ok && ref.Name == "*" && s.From.Name != "" {
+					if names, err := e.resolveTableColumnNames(s, s.From.Name); err == nil && n <= len(names) {
+						expr = &sql.ColumnRef{Name: names[n-1]}
+					}
+				}
+			}
+		}
+		// A bare or unary-plus term that names a select alias resolves to
+		// the aliased expression's collation (collate8-1.15: ORDER BY +x
+		// over "SELECT a AS x").
+		for {
+			if uo, ok := expr.(*sql.UnaryOp); ok && uo.Operator == "+" {
+				expr = uo.Operand
+			} else if ref, ok := expr.(*sql.ColumnRef); ok && ref.Table == "" {
+				aliased := false
+				for _, col := range s.Columns {
+					if col.As != "" && strings.EqualFold(col.As, ref.Name) {
+						expr = col.Expr
+						aliased = true
+						break
+					}
+				}
+				if !aliased {
+					break
+				}
+				// The alias expression may itself be "+a"; keep unwrapping.
+				continue
+			} else {
+				break
+			}
+		}
+		if name, _ := e.schemaExprCollation(expr, resolve); name != "" {
+			colls[i] = name
+		}
+	}
+	return colls
 }
 
 // compoundChainHasDedup reports whether any set operation along the compound

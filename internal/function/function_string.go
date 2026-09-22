@@ -85,7 +85,12 @@ func fnTRIM(args []interface{}) (interface{}, error) {
 	if args[0] == nil {
 		return nil, nil
 	}
-	if len(args) > 1 && args[1] != nil {
+	if len(args) > 1 {
+		// func.c trimFunc: a NULL trim-set argument returns NULL
+		// (func-22.22: typeof(trim('hello',NULL)) == "null").
+		if args[1] == nil {
+			return nil, nil
+		}
 		return sqliteTrim(toString(args[0]), toString(args[1]), "both"), nil
 	}
 	return strings.TrimSpace(toString(args[0])), nil
@@ -95,7 +100,10 @@ func fnLTRIM(args []interface{}) (interface{}, error) {
 	if args[0] == nil {
 		return nil, nil
 	}
-	if len(args) > 1 && args[1] != nil {
+	if len(args) > 1 {
+		if args[1] == nil {
+			return nil, nil
+		}
 		return sqliteTrim(toString(args[0]), toString(args[1]), "left"), nil
 	}
 	return strings.TrimLeft(toString(args[0]), " \t\n\r"), nil
@@ -105,7 +113,10 @@ func fnRTRIM(args []interface{}) (interface{}, error) {
 	if args[0] == nil {
 		return nil, nil
 	}
-	if len(args) > 1 && args[1] != nil {
+	if len(args) > 1 {
+		if args[1] == nil {
+			return nil, nil
+		}
 		return sqliteTrim(toString(args[0]), toString(args[1]), "right"), nil
 	}
 	return strings.TrimRight(toString(args[0]), " \t\n\r"), nil

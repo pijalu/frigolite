@@ -314,6 +314,13 @@ func compareSameClass(a, b interface{}, ta valueClass, collation string, lookup 
 // matches an exact integer string ('123' = 123 is FALSE for '123.0').
 func compareNumericText(a, b interface{}, typeOrder int, numAff rune) int {
 	s := toStr(b)
+	if numAff == 'T' {
+		// The numeric operand carries TEXT affinity (the IN/comparison
+		// affinity applied to both sides): applying it converts the numeric
+		// to TEXT, so both compare as strings — 1.0 = '1' with x TEXT is
+		// "1.0" vs "1", never equal (tkt-9a8b09f8e6).
+		return stringCompareFn(formatNumeric(a), s, "", nil)
+	}
 	if _, ok := a.(int64); ok && numAff == 0 {
 		if isExactIntString(s) {
 			n, err := strconv.ParseInt(s, 10, 64)
@@ -425,6 +432,11 @@ func sqlite3IntFloatCompare(i int64, r float64) int {
 // matches an exact integer string ('123.0' = 123 is FALSE).
 func compareTextNumeric(a, b interface{}, typeOrder int, numAff rune) int {
 	s := toStr(a)
+	if numAff == 'T' {
+		// Mirror of compareNumericText: the numeric side converts to TEXT
+		// under the applied TEXT affinity and compares as a string.
+		return stringCompareFn(s, formatNumeric(b), "", nil)
+	}
 	if _, ok := b.(int64); ok && numAff == 0 {
 		// Bare integer operand: only exact integer strings convert.
 		if isExactIntString(s) {
@@ -709,7 +721,6 @@ func stringCompareFn(a, b, collation string, lookup func(string) (CollationFunc,
 		return binaryCompare(a, b)
 	}
 }
-
 
 // binaryCompare compares strings byte-wise like SQLite's BINARY collation:
 // memcmp over the common prefix, then shorter string sorts first.

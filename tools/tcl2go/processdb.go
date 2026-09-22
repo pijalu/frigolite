@@ -775,6 +775,26 @@ func (tp *transpiler) processDBFunction(rest []tcl.RawWord) {
 		tp.emitLine("// db func eval %s (db-eval passthrough — built-in eval used)", procName)
 		return
 	}
+	// `db function hex {format 0x%X}` — an inline TCL body that is a single
+	// `format <literal-fmt> <arg>` command: emit a format-based closure. A
+	// nil stub would null out every value the test stores through it
+	// (collate1-1.x: hex(45) must return "0x2D", not NULL).
+	if len(rest) >= 2 {
+		body := strings.TrimSpace(rest[1].Text)
+		body = strings.TrimPrefix(body, "{")
+		body = strings.TrimSuffix(body, "}")
+		if cmds := tcl.ParseCommands(strings.TrimSpace(body)); len(cmds) == 1 && len(cmds[0]) >= 2 && cmds[0][0].Text == "format" {
+			fmtLit := cmds[0][1].Text
+			if !strings.ContainsAny(fmtLit, "$[") {
+				tp.emitLine("// db function %s {format %s} (TCL format UDF)", name, fmtLit)
+				tp.emitLine("%s.RegisterFunction(%q, func(args []interface{}) (interface{}, error) {", tp.dbVar, name)
+				tp.emitLine("\tif len(args) == 0 || args[0] == nil { return nil, nil }")
+				tp.emitLine("\treturn tclFormat(%q, tclStr(args[0])), nil", fmtLit)
+				tp.emitLine("}, 1, -1)")
+				return
+			}
+		}
+	}
 	// A TCL proc whose body accumulates into a global variable (a counter or
 	// a log): selectH.test's counter (global selectH_cnt; incr ... $amt;
 	// return $amt-var), subquery.test's callcnt (incr ::callcnt; return $n)
@@ -1786,4 +1806,72 @@ func (tp *transpiler) emitTclVarUDF(name, goVar, tclVar, shape string) {
 		tp.emitLine("\treturn nil, nil")
 	}
 	tp.emitLine("}, 0, -1)")
+}
+
+// fixtureUDFSQLMarkers maps the test-build fixture SQL functions (test1.c /
+// test_func.c register these in SQLite's test builds) to their registration
+// emitters. The stock engine does not ship them, so a test file whose SQL
+// references one needs a Go UDF registered before the statement runs.
+var fixtureUDFSQLMarkers = []struct {
+	name  string
+	match func(sqlText string) bool
+	emit  func(tp *transpiler)
+}{
+	{
+		name:  "legacy_count",
+		match: func(sqlText string) bool { return strings.Contains(sqlText, "legacy_count(") },
+		emit: func(tp *transpiler) {
+			// test1.c legacyCountStep/Finalize: a plain row counter.
+			tp.emitLine("// legacy_count (test-build fixture UDF, test1.c)")
+			tp.emitLine("%s.RegisterAggregate(%q, func() frigolite.AggregateFunction {", tp.dbVar, "legacy_count")
+			tp.emitLine("\tstate := struct{ n int64 }{}")
+			tp.emitLine("\treturn &frigolite.AggregateFuncs{")
+			tp.emitLine("\t\tStepFn: func(args []interface{}) error { state.n++; return nil },")
+			tp.emitLine("\t\tFinalFn: func() (interface{}, error) { return state.n, nil },")
+			tp.emitLine("\t}")
+			tp.emitLine("}, 0, -1)")
+		},
+	},
+	{
+		name:  "test_isolation",
+		match: func(sqlText string) bool { return strings.Contains(sqlText, "test_isolation(") },
+		emit: func(tp *transpiler) {
+			// test_func.c test_isolation(a, b): type conversions are applied
+			// to the first argument, the second is returned unchanged.
+			tp.emitLine("// test_isolation (test-build fixture UDF, test_func.c)")
+			tp.emitLine("%s.RegisterFunction(%q, func(args []interface{}) (interface{}, error) {", tp.dbVar, "test_isolation")
+			tp.emitLine("\tif len(args) < 2 { return nil, nil }")
+			tp.emitLine("\treturn args[1], nil")
+			tp.emitLine("}, 2, 2)")
+		},
+	},
+	{
+		name:  "test_error",
+		match: func(sqlText string) bool { return strings.Contains(sqlText, "test_error(") },
+		emit: func(tp *transpiler) {
+			// test_func.c test_error: raises its first argument as an SQL
+			// error (test_error(NULL) raises the empty message).
+			tp.emitLine("// test_error (test-build fixture UDF, test_func.c)")
+			tp.emitLine("%s.RegisterFunction(%q, func(args []interface{}) (interface{}, error) {", tp.dbVar, "test_error")
+			tp.emitLine("\tif len(args) == 0 || args[0] == nil { return nil, fmt.Errorf(\"\") }")
+			tp.emitLine("\treturn nil, fmt.Errorf(\"%%s\", function.ValueText(args[0]))")
+			tp.emitLine("}, 1, 2)")
+		},
+	},
+}
+
+// emitFixtureUDFsForSQL emits registrations for test-build fixture UDFs the
+// SQL text depends on, once per connection-transpiler instance, before the
+// statement's execution.
+func (tp *transpiler) emitFixtureUDFsForSQL(sqlText string) {
+	for _, fx := range fixtureUDFSQLMarkers {
+		if tp.fixtureUDFsEmitted == nil {
+			tp.fixtureUDFsEmitted = map[string]bool{}
+		}
+		if tp.fixtureUDFsEmitted[fx.name] || !fx.match(sqlText) {
+			continue
+		}
+		tp.fixtureUDFsEmitted[fx.name] = true
+		fx.emit(tp)
+	}
 }

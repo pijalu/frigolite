@@ -219,7 +219,7 @@ func (tp *transpiler) processSetBracketValue(goName, cmdText string) bool {
 		return tp.setMakeExprValue(goName, cmdText, cmdParts[0])
 	}
 	if isRegexpCmd(cmdParts) {
-		return tp.setRegexpValue(goName, cmdParts)
+		return tp.setRegexpValue(goName, cmdText, cmdParts)
 	}
 	if tp.inlineQueryFuncValue(goName, cmdParts) {
 		return true
@@ -765,16 +765,40 @@ func (tp *transpiler) setMakeExprValue(goName, cmdText, cmdName string) bool {
 	return true
 }
 
-// setRegexpValue handles `set VAR [regexp PATTERN [db one {SQL}]]` — evaluate
-// the capability regexp against the engine's answer. UTF-16 encoding is not
-// supported (PRAGMA encoding is always UTF-8), so isutf16 = "0".
-func (tp *transpiler) setRegexpValue(goName string, cmdParts []string) bool {
-	setTo := "0"
-	pattern := strings.Trim(cmdParts[1], `"`)
-	if !strings.Contains(pattern, "16") {
-		// Non-UTF16 capability check: no reliable answer; leave 0.
-		setTo = "0"
+// setRegexpValue handles `set VAR [regexp PATTERN TARGET]` — a runtime
+// regexp match against TARGET when the target is transpilable (misc3-6.11:
+// `set y [regexp { 123456789012 } $x]` over an EXPLAIN listing). Only the
+// encoding-capability shape ([db one {PRAGMA encoding}]) keeps the literal
+// "0": UTF-16 encoding is not supported (PRAGMA encoding is always UTF-8).
+func (tp *transpiler) setRegexpValue(goName, cmdText string, cmdParts []string) bool {
+	pattern := ""
+	target := ""
+	// tclCmdWords is brace-aware: `regexp { 123456789012 } $x` yields
+	// words[1] = the pattern WITH its inner spaces (naive Fields splits the
+	// braced pattern into separate words).
+	words := tclCmdWords(cmdText)
+	if len(words) >= 2 {
+		pattern = strings.Trim(words[1], "{}")
 	}
+	if len(words) >= 3 {
+		target = strings.TrimSpace(words[2])
+	}
+	if pattern == "" {
+		pattern = strings.Trim(cmdParts[1], `"{}`)
+	}
+	if target == "" && len(cmdParts) >= 3 {
+		target = strings.TrimSpace(cmdParts[2])
+	}
+	if target != "" && !strings.Contains(target, "PRAGMA encoding") {
+		if !tp.isVarDeclared(goName) {
+			tp.emitLine("var %s string", goName)
+			tp.vars = append(tp.vars, goName)
+		}
+		tp.emitLine("%s = tclRegexpMatch(%q, %s)", goName, pattern, tp.buildStringExpr(target))
+		tp.emitLine("_ = %s // suppress unused warning", goName)
+		return true
+	}
+	setTo := "0"
 	tp.emitLine("%s = %q // capability regexp %q not matched (engine default)", goName, setTo, pattern)
 	if !tp.isVarDeclared(goName) {
 		tp.emitLine("var %s string", goName)

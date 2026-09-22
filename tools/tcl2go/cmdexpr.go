@@ -42,6 +42,7 @@ func buildCmdExprHandlers() map[string]cmdExprHandler {
 		"vals":                (*transpiler).cmdExprVals,
 		"expr":                (*transpiler).cmdExprEval,
 		"strftime":            (*transpiler).cmdExprStrftime,
+		"md5":                 (*transpiler).cmdExprMd5,
 		"format":              (*transpiler).cmdExprFormat,
 		"subst":               (*transpiler).cmdExprSubst,
 		"set":                 (*transpiler).cmdExprSet,
@@ -1490,4 +1491,14 @@ func (tp *transpiler) hoistedHexioReadExpr(w tcl.RawWord) (string, bool) {
 	}
 	return fmt.Sprintf("strconv.FormatInt(tclHexioReadInt(%s, %s, %s)%s, 10)",
 		tp.goStringLiteral(tcl.RawWord{Text: m[1]}), m[2], m[3], m[4]), true
+}
+
+// cmdExprMd5 translates the test build's md5 command (md5.c): the lowercase
+// hex MD5 of the argument string (func-24.7 compares md5sum aggregates
+// against [md5 ...]).
+func (tp *transpiler) cmdExprMd5(cmdName, cmdText string, args []string) string {
+	if len(args) != 1 {
+		return ""
+	}
+	return "tclMD5(" + tp.buildStringExpr(args[0]) + ")"
 }

@@ -473,6 +473,7 @@ func (e *SelectEngine) indexCoversAllTableCols(tableName string, indexCols []str
 // indexColumns returns the key column names of a named index ("" slice when
 // the index is not found).
 func (e *SelectEngine) indexColumns(idx string) []string {
+	idx = displayIndexName(idx)
 	entries, err := e.ctx.Schema().GetEntries("")
 	if err != nil {
 		return nil
@@ -785,6 +786,7 @@ func (e *SelectEngine) indexColumnCollation(tableName, indexName, colName string
 	if err != nil {
 		return ""
 	}
+	indexName = displayIndexName(indexName)
 	for _, entry := range entries {
 		if entry.Type != "index" || entry.Name != indexName {
 			continue

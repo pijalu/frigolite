@@ -76,24 +76,26 @@ func Test_collate5(t *testing.T) {
 	_ = testprefix // suppress unused warning
 	db.RegisterCollation("TEXT", func(a, b string) int { return strings.Compare(a, b) })
 	db.RegisterCollation("numeric", func(a, b string) int {
-	if a == b { return 0 }
 	af, aerr := strconv.ParseFloat(a, 64)
 	bf, berr := strconv.ParseFloat(b, 64)
 	if aerr == nil && berr == nil {
-		if af < bf { return -1 }
-		return 1
+		if af == bf { return 0 }
+		if af > bf { return 1 }
+		return -1
 	}
+	if a == b { return 0 }
 	return strings.Compare(a, b)
 })
 	// proc numeric_collate collation redefined — re-register (TCL late binding)
 	db.RegisterCollation("numeric_collate", func(a, b string) int {
-	if a == b { return 0 }
 	af, aerr := strconv.ParseFloat(a, 64)
 	bf, berr := strconv.ParseFloat(b, 64)
 	if aerr == nil && berr == nil {
-		if af < bf { return -1 }
-		return 1
+		if af == bf { return 0 }
+		if af > bf { return 1 }
+		return -1
 	}
+	if a == b { return 0 }
 	return strings.Compare(a, b)
 })
 	{ // do_test "collate5-1.0"
@@ -170,7 +172,16 @@ func Test_collate5(t *testing.T) {
 		}
 	}
 	{ // do_test "collate5-2.1.1"
-		strings.ToUpper(tclExecSQL(db, "\n    SELECT a FROM collate5t1 UNION select a FROM collate5t2;\n  "))
+		r = db.Query("\n    SELECT a FROM collate5t1 UNION select a FROM collate5t2;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a FROM collate5t1 UNION select a FROM collate5t2;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "A B N"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
 	}
 	{ // do_test "collate5-2.1.2"
 		r = db.Query("\n    SELECT a FROM collate5t2 UNION select a FROM collate5t1;\n  ")
@@ -185,7 +196,16 @@ func Test_collate5(t *testing.T) {
 		}
 	}
 	{ // do_test "collate5-2.1.3"
-		strings.ToLower(tclExecSQL(db, "\n    SELECT a, b FROM collate5t1 UNION select a, b FROM collate5t2;\n  "))
+		r = db.Query("\n    SELECT a, b FROM collate5t1 UNION select a, b FROM collate5t2;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a, b FROM collate5t1 UNION select a, b FROM collate5t2;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "A Apple A apple B Banana b banana N {}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
 	}
 	{ // do_test "collate5-2.1.4"
 		r = db.Query("\n    SELECT a, b FROM collate5t2 UNION select a, b FROM collate5t1;\n  ")
@@ -200,7 +220,16 @@ func Test_collate5(t *testing.T) {
 		}
 	}
 	{ // do_test "collate5-2.2.1"
-		strings.ToUpper(tclExecSQL(db, "\n    SELECT a FROM collate5t1 EXCEPT select a FROM collate5t2;\n  "))
+		r = db.Query("\n    SELECT a FROM collate5t1 EXCEPT select a FROM collate5t2;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a FROM collate5t1 EXCEPT select a FROM collate5t2;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "N"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
 	}
 	{ // do_test "collate5-2.2.2"
 		r = db.Query("\n    SELECT a FROM collate5t2 EXCEPT select a FROM collate5t1 WHERE a != 'a';\n  ")
@@ -215,7 +244,16 @@ func Test_collate5(t *testing.T) {
 		}
 	}
 	{ // do_test "collate5-2.2.3"
-		strings.ToLower(tclExecSQL(db, "\n    SELECT a, b FROM collate5t1 EXCEPT select a, b FROM collate5t2;\n  "))
+		r = db.Query("\n    SELECT a, b FROM collate5t1 EXCEPT select a, b FROM collate5t2;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a, b FROM collate5t1 EXCEPT select a, b FROM collate5t2;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "A Apple N {}"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
 	}
 	{ // do_test "collate5-2.2.4"
 		r = db.Query("\n    SELECT a, b FROM collate5t2 EXCEPT select a, b FROM collate5t1 \n      where a != 'a';\n  ")
@@ -230,7 +268,16 @@ func Test_collate5(t *testing.T) {
 		}
 	}
 	{ // do_test "collate5-2.3.1"
-		strings.ToUpper(tclExecSQL(db, "\n    SELECT a FROM collate5t1 INTERSECT select a FROM collate5t2;\n  "))
+		r = db.Query("\n    SELECT a FROM collate5t1 INTERSECT select a FROM collate5t2;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a FROM collate5t1 INTERSECT select a FROM collate5t2;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "A B"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
 	}
 	{ // do_test "collate5-2.3.2"
 		r = db.Query("\n    SELECT a FROM collate5t2 INTERSECT select a FROM collate5t1 WHERE a != 'a';\n  ")
@@ -245,7 +292,16 @@ func Test_collate5(t *testing.T) {
 		}
 	}
 	{ // do_test "collate5-2.3.3"
-		strings.ToLower(tclExecSQL(db, "\n    SELECT a, b FROM collate5t1 INTERSECT select a, b FROM collate5t2;\n  "))
+		r = db.Query("\n    SELECT a, b FROM collate5t1 INTERSECT select a, b FROM collate5t2;\n  ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT a, b FROM collate5t1 INTERSECT select a, b FROM collate5t2;\n  ")
+			return
+		}
+		got := flatten(r)
+		want := "a apple B banana"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
 	}
 	{ // do_test "collate5-2.3.4"
 		r = db.Query("\n    SELECT a, b FROM collate5t2 INTERSECT select a, b FROM collate5t1;\n  ")

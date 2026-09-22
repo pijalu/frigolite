@@ -481,6 +481,14 @@ type orBranchPlan = execquery.OrBranchPlan
 type indexPragmaColumn = execquery.IndexPragmaColumn
 
 // LastInsertRowID returns the rowid of the last inserted row.
+// RollbackAborted reports whether a nested statement (eval() UDF or trigger
+// body) has run ROLLBACK while an enclosing statement is still executing
+// (SQLITE_ABORT_ROLLBACK — the enclosing statement must stop producing rows).
+// Implements execquery.SelectContext.
+func (e *Engine) RollbackAborted() bool {
+	return e.tx.rollbackAborted
+}
+
 func (e *Engine) LastInsertRowID() int64 {
 	return e.lastRowID
 }

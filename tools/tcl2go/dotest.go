@@ -1289,29 +1289,81 @@ func (tp *transpiler) emitSkippedDoTestSideEffects(name, reason string, args []t
 	}
 	bodyCmds := tp.parseBracedBody(args, 1)
 
-	// Collect the SQL-running commands (the DDL/DML side effects).
+	// Collect the SQL-running commands (the DDL/DML side effects) and the
+	// file-manipulation side effects (mkdir/copy/delete).
 	type sideEffect struct{ connVar, sqlExpr string }
 	var effects []sideEffect
+	var fileEffects []string
 	for _, cmd := range bodyCmds {
 		connVar, sqlExpr, ok := tp.sqlSideEffectCmd(cmd)
 		if !ok {
+			if fe := fileSideEffectExpr(cmd, tp); fe != "" {
+				fileEffects = append(fileEffects, fe)
+			}
 			continue
 		}
 		effects = append(effects, sideEffect{connVar, sqlExpr})
 	}
-	if len(effects) == 0 {
+	if len(effects) == 0 && len(fileEffects) == 0 {
 		return false
 	}
 	nameExpr := tp.goStringLiteral(tcl.RawWord{Text: name})
-	tp.emitLine("{ // %s — skipped: %s (SQL side effects only)", nameExpr, reason)
+	skipLabel := "(SQL side effects only)"
+	if len(fileEffects) > 0 {
+		skipLabel = "file side effects only"
+	}
+	tp.emitLine("{ // %s — skipped: %s (%s)", nameExpr, reason, skipLabel)
 	tp.indent++
 	for _, eff := range effects {
 		tp.emitLine("_res = %s.Exec(%s)", eff.connVar, eff.sqlExpr)
 		tp.emitLine("_ = _res.Error // tolerate unsupported-feature errors in skipped tests")
 	}
+	for _, fe := range fileEffects {
+		tp.emitLine("%s", fe)
+	}
 	tp.indent--
 	tp.emitLine("}")
 	return true
+}
+
+// fileSideEffectExpr renders a file-manipulation command (mkdir/copy/delete)
+// as its Go side effect for skipped tests whose later statements need the
+// files to exist (misc7 23.1: `file mkdir tst` + `forcecopy test.db
+// tst/test.db` set up a read-only-directory test, but the following
+// `sqlite3 db tst/test.db` fails when the skip drops the setup). Permission
+// changes (`file attributes`) are NOT rendered: the read-only bit is the
+// VFS-coupled part the skip exists for.
+func fileSideEffectExpr(cmd []tcl.RawWord, tp *transpiler) string {
+	if len(cmd) == 0 {
+		return ""
+	}
+	switch cmd[0].Text {
+	case "file":
+		if len(cmd) >= 3 && cmd[1].Text == "mkdir" {
+			return fmt.Sprintf("os.MkdirAll(%s, 0755)", tp.goStringLiteral(cmd[2]))
+		}
+		if len(cmd) >= 4 && cmd[1].Text == "copy" {
+			return fmt.Sprintf("tclFileCopy(%s, %s)", tp.goStringLiteral(cmd[2]), tp.goStringLiteral(cmd[3]))
+		}
+		if len(cmd) >= 3 && cmd[1].Text == "delete" {
+			paths := cmd[2:]
+			if len(paths) > 0 && paths[0].Text == "-force" {
+				paths = paths[1:]
+			}
+			if len(paths) > 0 {
+				return fmt.Sprintf("_ = os.Remove(%s)", tp.goStringLiteral(paths[0]))
+			}
+		}
+	case "forcedelete":
+		if len(cmd) >= 2 {
+			return fmt.Sprintf("_ = os.Remove(%s)", tp.goStringLiteral(cmd[1]))
+		}
+	case "forcecopy":
+		if len(cmd) >= 3 {
+			return fmt.Sprintf("tclFileCopy(%s, %s)", tp.goStringLiteral(cmd[1]), tp.goStringLiteral(cmd[2]))
+		}
+	}
+	return ""
 }
 
 // sqlSideEffectCmd classifies one body command as a SQL side effect,

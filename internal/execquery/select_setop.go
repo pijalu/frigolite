@@ -433,6 +433,16 @@ func (e *SelectEngine) mergeCompoundChain(rows [][]interface{}, s *sql.SelectStm
 		}
 		memberCopy := *member
 		memberCopy.Union = nil
+		// A compound member never applies the compound's trailing ORDER BY/
+		// LIMIT/OFFSET to itself: the parser attaches those to the tail member
+		// as the compound-level clauses, and they belong to the MERGED result
+		// (extracted below from the tail). Executing the tail with its own
+		// LIMIT truncated that arm pre-merge (tkt-38cb5df375: "... UNION ALL
+		// SELECT 9 FROM (...) LIMIT 1" dropped arm-2 rows instead of limiting
+		// the union to one row).
+		memberCopy.OrderBy = nil
+		memberCopy.Limit = nil
+		memberCopy.Offset = nil
 		prevCompound := e.inCompoundMember
 		e.inCompoundMember = true
 		memberResult := e.execSelect(&memberCopy)
@@ -468,6 +478,11 @@ func compoundTrailingClauses(last *sql.SelectStmt) ([]sql.OrderByTerm, sql.Expr,
 func (e *SelectEngine) execValuesGroup(head *sql.SelectStmt) *Result {
 	memberCopy := *head
 	memberCopy.Union = nil
+	// Values-group members never carry the compound's trailing clauses; clear
+	// them on the copies so a trailing-LIMIT tail tuple cannot self-apply.
+	memberCopy.OrderBy = nil
+	memberCopy.Limit = nil
+	memberCopy.Offset = nil
 	res := e.execSelect(&memberCopy)
 	if res.Error != nil {
 		return res
@@ -477,6 +492,9 @@ func (e *SelectEngine) execValuesGroup(head *sql.SelectStmt) *Result {
 		next := cur.Union
 		nextCopy := *next
 		nextCopy.Union = nil
+		nextCopy.OrderBy = nil
+		nextCopy.Limit = nil
+		nextCopy.Offset = nil
 		nres := e.execSelect(&nextCopy)
 		if nres.Error != nil {
 			return nres
@@ -525,13 +543,18 @@ func (e *SelectEngine) intersectRows(a, b [][]interface{}, colls []string) [][]i
 	for _, row := range b {
 		bSet[rowKey(row, colls)] = true
 	}
-	// Find a rows that are also in b
+	// The surviving representative of each distinct key is arm a's LAST
+	// row for it (SQLite's INTERSECT keeps the accumulator's final entry —
+	// collate5-2.3.x: INTERSECT of 'a'/'A' yields 'A', the later of the
+	// nocase-equal rows).
+	last := make(map[string]int)
+	for i, row := range a {
+		last[rowKey(row, colls)] = i
+	}
 	var result [][]interface{}
-	seen := make(map[string]bool)
-	for _, row := range a {
+	for i, row := range a {
 		key := rowKey(row, colls)
-		if bSet[key] && !seen[key] {
-			seen[key] = true
+		if bSet[key] && last[key] == i {
 			result = append(result, row)
 		}
 	}
@@ -548,14 +571,28 @@ func (e *SelectEngine) exceptRows(a, b [][]interface{}, colls []string) [][]inte
 	for _, row := range b {
 		bSet[rowKey(row, colls)] = true
 	}
-	var result [][]interface{}
-	seen := make(map[string]bool)
-	for _, row := range a {
+	// The surviving representative of each distinct key is the LAST row
+	// inserted (SQLite's EXCEPT temp b-tree overwrites on duplicate keys —
+	// collate5-2.2.1: EXCEPT yields 'N', the later of the nocase-equal
+	// 'n'/'N').
+	last := make(map[string]int)
+	for i, row := range a {
 		key := rowKey(row, colls)
-		if !bSet[key] && !seen[key] {
-			seen[key] = true
-			result = append(result, row)
+		if bSet[key] {
+			continue
 		}
+		last[key] = i
+	}
+	var result [][]interface{}
+	for i, row := range a {
+		key := rowKey(row, colls)
+		if bSet[key] {
+			continue
+		}
+		if last[key] != i {
+			continue
+		}
+		result = append(result, row)
 	}
 	return result
 }

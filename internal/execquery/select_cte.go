@@ -159,6 +159,15 @@ func (e *SelectEngine) execSelectFromSubquery(s *sql.SelectStmt) *Result {
 	// (SQLite SF_NestedFrom): see SelectEngine.derivedScope.
 	savedDerived := e.derivedScope
 	e.derivedScope = true
+	// The materialized scope is NOT the enclosing scan's table: a leaked
+	// currentScanTable (the outer scan's alias) would let the subquery's own
+	// WHERE resolve qualified references against the DERIVED rows'
+	// unqualified keys — "b=out.b" comparing b with itself and never
+	// filtering (tkt-54844eea3f-1.2). The outer scope stays reachable
+	// through the pushed outer rows.
+	savedScanTable := e.currentScanTable
+	e.currentScanTable = ""
+	defer func() { e.currentScanTable = savedScanTable }()
 	subqResult := e.execSelect(s.From.Subquery)
 	e.derivedScope = savedDerived
 	if subqResult.Error != nil {

@@ -415,25 +415,44 @@ func (e *SelectEngine) fromTableColumnNames(tableEntry *schema.Entry) map[string
 // to an inner column (filter1-6.1: COUNT(a) FILTER(WHERE x)) makes the
 // aggregate inner-owned.
 func (e *SelectEngine) aggColumnArgsRefInner(col sql.SelectColumn, colNames map[string]bool) bool {
-	fn, ok := col.Expr.(*sql.FuncCall)
-	if !ok {
+	return e.exprAggArgsRefInner(col.Expr, colNames)
+}
+
+// exprAggArgsRefInner reports whether the expression contains an aggregate
+// call whose arguments reference a colNames column. The aggregate may be
+// WRAPPED in scalar calls and operators (abs(max(t1.a))-min(b), randexpr1's
+// generated IN subqueries): a top-level FuncCall assertion missed every
+// wrapped aggregate and mispromoted the enclosing query to an aggregate
+// query (one row even when the WHERE filtered everything).
+func (e *SelectEngine) exprAggArgsRefInner(expr sql.Expr, colNames map[string]bool) bool {
+	if expr == nil {
 		return false
 	}
-	for _, arg := range fn.Args {
-		if exprHasColRefInMap(arg, colNames) {
+	if fn, ok := expr.(*sql.FuncCall); ok {
+		if reg, found := e.ctx.Functions().Find(fn.Name); found && reg.Type == function.TypeAggregate {
+			for _, arg := range fn.Args {
+				if exprHasColRefInMap(arg, colNames) {
+					return true
+				}
+			}
+			for _, ob := range fn.OrderBy {
+				if exprHasColRefInMap(ob.Expr, colNames) {
+					return true
+				}
+			}
+			// A FILTER referencing a FROM-table column binds the aggregate to
+			// the inner rows even when the arguments are outer-only
+			// (filter1-6.1: COUNT(a) FILTER(WHERE x) with x in the FROM table).
+			if fn.Filter != nil && exprHasColRefInMap(fn.Filter, colNames) {
+				return true
+			}
+		}
+		// A scalar wrapper (abs(...)) keeps the walk going into its children.
+	}
+	for _, child := range aggValidateChildExprs(expr) {
+		if e.exprAggArgsRefInner(child, colNames) {
 			return true
 		}
-	}
-	for _, ob := range fn.OrderBy {
-		if exprHasColRefInMap(ob.Expr, colNames) {
-			return true
-		}
-	}
-	// A FILTER referencing a FROM-table column binds the aggregate to the
-	// inner rows even when the arguments are outer-only (filter1-6.1:
-	// COUNT(a) FILTER(WHERE x) with x in the FROM table).
-	if fn.Filter != nil && exprHasColRefInMap(fn.Filter, colNames) {
-		return true
 	}
 	return false
 }
@@ -616,6 +635,19 @@ func aggValidateChildExprs(expr sql.Expr) []sql.Expr {
 		return []sql.Expr{v.Operand, v.Low, v.High}
 	case *sql.CaseExpr:
 		return caseExprChildren(v)
+	case *sql.CastExpr:
+		// CAST is a scalar wrapper: an aggregate inside it (cast(avg(f) AS
+		// integer)) is still an aggregate of this query's FROM scope and must
+		// participate in the inner/outer reference analysis (randexpr1).
+		if v.Operand == nil {
+			return nil
+		}
+		return []sql.Expr{v.Operand}
+	case *sql.ParenExpr:
+		if v.Expr == nil {
+			return nil
+		}
+		return []sql.Expr{v.Expr}
 	}
 	return nil
 }

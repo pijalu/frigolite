@@ -187,10 +187,12 @@ func fnABS(args []interface{}) (interface{}, error) {
 			return -v, nil
 		}
 		return v, nil
-	case float64:
-		return math.Abs(v), nil
 	default:
-		return 0, nil
+		// func.c absFunc: every non-INTEGER value (REAL, TEXT, BLOB) takes
+		// the double path — abs('abc') coerces to 0.0 and the result is REAL
+		// (func-4.4.2), never an INTEGER 0.
+		f, _ := toFloat64(args[0])
+		return math.Abs(f), nil
 	}
 }
 
@@ -230,8 +232,10 @@ func fnRANDOM(args []interface{}) (interface{}, error) {
 
 func fnRANDOMBLOB(args []interface{}) (interface{}, error) {
 	n := int(toInt64(args[0]))
-	if n <= 0 {
-		return []byte{}, nil
+	// func.c randomBlob: a non-positive size yields a 1-byte blob
+	// (func-9.5: length(randomblob(-5)) == 1).
+	if n < 1 {
+		n = 1
 	}
 	buf := make([]byte, n)
 	for i := 0; i < n; i++ {

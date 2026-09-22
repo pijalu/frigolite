@@ -276,6 +276,12 @@ func tclParseInt64(s string) int64 {
 // of the first row as a TCL string. Blob results convert to their raw bytes
 // (never fmt's decimal slice rendering); NULL becomes "".
 func tclDbOne(db *frigolite.DB, sql string) string {
+	// A TCL connection method ("db last_insert_rowid") is not SQL: translate
+	// the supported methods to their SQL equivalents (func-7.1 compares
+	// last_insert_rowid() against [db last_insert_rowid]).
+	if s := strings.TrimSpace(strings.TrimPrefix(strings.TrimSpace(sql), "db ")); s == "last_insert_rowid" {
+		sql = "SELECT last_insert_rowid()"
+	}
 	r := db.Query(sql)
 	if r.Error != nil || len(r.Rows) == 0 || len(r.Rows[0]) == 0 {
 		return ""

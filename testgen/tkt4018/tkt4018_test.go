@@ -124,17 +124,9 @@ func Test_tkt4018(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO t1 VALUES(1, 2)")
 		}
 	}
-	{ // do_test "tkt4018-2.2"
-		r = db.Query("\n    BEGIN;\n    SELECT * FROM t1 ORDER BY a;\n  ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    BEGIN;\n    SELECT * FROM t1 ORDER BY a;\n  ")
-			return
-		}
-		got := flatten(r)
-		want := "1 2 3 4"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
+	{ // "tkt4018-2.2" — skipped: VFS/process-coupled: want depends on tkt4018-1.4's INSERT run by a spawned interpreter (testsql → ./tf_main.tcl); cross-process lock handoff is not transpilable ((SQL side effects only))
+		_res = db.Exec("\n    BEGIN;\n    SELECT * FROM t1 ORDER BY a;\n  ")
+		_ = _res.Error // tolerate unsupported-feature errors in skipped tests
 	}
 	{ // do_test "tkt4018-2.3"
 		if db2 != nil { db2.Close() }
