@@ -2213,3 +2213,35 @@ regressC: ~21 packages (9 adjudicated fts5 architectural/slow + 12
 deep-engine/VFS-flavored singles: avfs, bigrow, btreefault, chunksize,
 corrupt, fts3corrupt, mutex1, prefixes, ptrchng, shortread1, walbig,
 walpersist + fts4merge 4.1/4.2).
+
+## T29 + T30 (2026-09-20..22): post-regeneration drift tranches
+
+- **T29-engine4** (fleet/engine4, merged): temp triggers bound to their
+  ON-table schema (trigger.c pTabSchema); sum/total/avg numeric-type
+  classification (func.c sumStep sqlite3_value_numeric_type; blobs = 0.0);
+  DROP TABLE temp-trigger cascade; WR collated-PK DELETE identity
+  (unwrapDMLValue peels CollatedValue+ColumnValue). without_rowid3 fully
+  green.
+- **T29-execqfix** (fleet/execq-fix 0842fb7c4, merged): bisect correction —
+  the ~100-post-regen reds are NOT a §5d regression; the regeneration
+  activated previously-unemitted assertions. Fixed 6 exposed gap classes:
+  HAVING on the single empty group (resolve.c), collated min/max (expr.c
+  NEEDCOLL leftmost-collation rule), index-scan rowid tie-break
+  (ASC/DESC), INSERT OR REPLACE overriding trigger OR-IGNORE +
+  tx.nestedRollback stale-restore guard, CTAS target-schema resolution +
+  unqualified stored SQL, view SQL schema-prefix stripping. 6 packages
+  green; without_rowid4 improved 6→4.
+- **§5d COMPLETE** (waves 1-4, 11 cluster agents + root certification):
+  every production package gocognit≤15/gocyclo≤12/staticcheck-clean; zero
+  files >1000 lines. tcl2go byte-identity maintained (one regen-sync
+  commit + one benign order-flip). The tcl2go1 "faux merge" incident
+  (single-parent merge swallowed the refactor) and the execq stale-corpus
+  clobber are documented in lessons.
+- **T30 wave (IN FLIGHT)**: w5-fts3 (fts3aa-ad/d/near/unicode/corrupt —
+  §5d reader-refactor residue), w5-vtab (vtab1/3/5/6/D/H/shared,
+  tabfunc01 — vtab quality-refactor residue), w5-query (index6/7, limit,
+  in4, selectA/B/C, whereF, window6/C, skipscan5, analyze7, expr, cast,
+  check, existsexpr, intpkey, rowhash — index-scan NULL order, compound
+  LIMIT/OFFSET, bind application, typeof), w5-tkt (tkt×7 + misc×5 +
+  collate×5 + minmax3/sort5/randexpr1/func_pkg — regression-vs-gap-vs-
+  emitter triage). Post-wave: kernel/VFS singles tail (~40 packages).

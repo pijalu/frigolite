@@ -67,24 +67,32 @@ each) under a self-imposed "verify-time budget". Fix = optimize engine.
 
 ## 2. Current State (checkpoint 2026-09-16)
 
-- **Live full-suite baseline (2026-09-19/20, census stamp 2026-09-19T23:22:27Z,
-  concurrency 3 + §5g-6 serial adjudication of all 17 timeout-suspects
-  (9 slow-but-green → pass incl. fts4merge4 at ~585s; 8 confirmed fail in
-  adjudicated classes), ledger re-seeded + `tools/status --check` PASS:
-  1053 PASS (77.3%), 20 FAIL, 280 SKIPPED** of 1,362 testgen packages.
-  Movement vs the 2026-09-14 baseline (887/216/260): **+166 pass, −196
-  fail** via the T23-T28 tranche waves (22 fleet goals: tkt_hash,
-  btree corruption fixes ×3, 9 T26 cluster goals, harness fidelity
-  (2,922 subtests), skip-audit (−11 skips, 10 un-skipped), LIKE optimizer,
-  automerge convergence, FTS flush model, PERF.T1/T2 (speed family
-  0.24-0.91s from 445s), 3 regression tranches). Remaining 20 fails: 9
-  adjudicated fts5 architectural (circref/content/contentless×3/hash/
-  leftjoin/misc/unindexed), fts4merge 4.1/4.2 (pending FTS blockID
-  desync fix), 7 fts5 slow-class (serially confirmed, P9.PERF owners),
-  12 deep-engine/VFS singles (avfs, bigrow, btreefault, chunksize,
-  corrupt, fts3corrupt, mutex1, prefixes, ptrchng, shortread1, walbig,
-  walpersist). PERF residue: index btrees remain byte-ordered (O(index)
-  value-scans not O(log n) seeks); next tranche documented in T28 log.
+- **Live full-suite baseline (2026-09-22, census 2026-09-19T23:22:27Z superseded — see below):
+  953 PASS, 113 FAIL, 280 SKIPPED, 17 timeout-suspects (serially adjudicated
+  set: 9 slow-but-green, 8 confirmed slow-class)** of 1,362 testgen packages.
+  **Corpus regeneration event (2026-09-20, §5g-4)**: the tcl2go emitter was
+  made flatten()-symmetric (want/got rendering) and escape-faithful, and the
+  full corpus was regenerated — activating PREVIOUSLY-UNEMITTED assertions
+  corpus-wide. The regenerated corpus is STRICTER: ~113 packages carry at
+  least one newly-exposed failing assertion against the engine (real
+  engine-visible contracts, being fixed in the T30 wave — NOT skip
+  candidates). Prior-census numbers on the OLD corpus (2026-09-14:
+  887/216/260; 2026-09-19T23:22Z: 1053/20/280) are not directly comparable.
+- **Session progress (2026-09-16..22, 30+ fleet goals)**: T23 tkt_hash;
+  T25 btree corruption family (overflow-chain freeing, fragmentation,
+  ptrmap re-parenting, rebalance five-defect class); 9 T26 cluster goals
+  (alter, corrupt, select/where/join, harness +2,922 subtests, singles,
+  dml/index, fts3/4, tkt, misc); skip-audit (257 skips audited, 10
+  packages un-skipped); LIKE optimizer (range synthesis + elision);
+  automerge convergence (oracle byte-parity); FTS per-statement flush
+  (fts4merge4 fully green); P9.PERF T1+T2 (speed family 445s→0.24-0.91s;
+  rowid point-lookup ~950x; UPDATE index-maintenance correctness fix);
+  3 regression tranches; T29 engine bugs (temp-trigger over-fire, sum()
+  typing, DROP cascade, FK/trigger order, HAVING-empty-group, collated
+  min/max, index-scan tie-breaks, OR-conflict/nested-rollback, CTAS
+  schema resolution). §5d COMPLETE: every production package
+  gocognit≤15/gocyclo≤12/staticcheck-clean, zero files over 1,000 lines
+  (was 573+529 findings, 15 over-cap files).
 - **DRIFT ALERT (2026-09-03)**: the per-goal ✅ marks in §4 are
   *point-in-time goal-closure claims* — each goal's "no regression" gate only
   re-runs its own verify command, so transpiler regenerations and engine
