@@ -46,6 +46,17 @@ func (e *Engine) execCommit() *Result {
 	if err := e.fts5ApplySecureUpgrades(); err != nil {
 		return &Result{Error: err}
 	}
+	// Commit hook: vdbeCommit invokes db->xCommitCallback BEFORE the btree
+	// commit phases and before any transaction teardown (src/vdbeaux.c:2978-
+	// 2982) — the hook observes the transaction's uncommitted changes. A
+	// nonzero return aborts the COMMIT with SQLITE_CONSTRAINT_COMMITHOOK
+	// ("constraint failed") and — via the sqlite3VdbeHalt abort path — rolls
+	// the whole transaction back (execRollback needs the still-open
+	// transaction state, so this check precedes commitClearTxState).
+	if e.commitHook != nil && e.runCommitHook() {
+		e.execRollback()
+		return &Result{Error: fmt.Errorf("constraint failed")}
+	}
 	e.commitClearTxState()
 	if res := e.flushFTSSegmentsGuarded(); res != nil {
 		return res
@@ -74,13 +85,6 @@ func (e *Engine) execCommit() *Result {
 	}
 	if res := e.commitFlushAllPagers(); res != nil {
 		return res
-	}
-	// Fire the commit hook after the commit completes (sqlite3_commit_hook).
-	// A nonzero return aborts the COMMIT: the transaction is rolled back and
-	// the COMMIT statement fails with "constraint failed".
-	if e.commitHook != nil && e.runCommitHook() {
-		e.execRollback()
-		return &Result{Error: fmt.Errorf("constraint failed")}
 	}
 	return &Result{}
 }

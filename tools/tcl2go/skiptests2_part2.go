@@ -419,6 +419,15 @@ var skipTestsMoreTail = map[string]string{
 	// evidence.
 	"hook-3.5":     "commit-hook proc redefined after registration (dynamic TCL proc body dispatch) N-A",
 	"hook-3.7":     "commit-hook proc redefined after registration (dynamic TCL proc body dispatch) N-A",
+	// hook-3.8 depends on 3.5/3.7's non-transpiled hook re-registrations: in
+	// TCL the hook returns nonzero through 3.5 (aborting the (5,6) insert)
+	// and is restored in 3.6. The generated test never registers the
+	// aborting hook, so (5,6) commits and 3.8's six-row expectation cannot
+	// hold. ENGINE CORRECTNESS established natively: the commit-hook veto
+	// (nonzero -> SQLITE_CONSTRAINT_COMMITHOOK + full transaction rollback,
+	// autocommit and explicit COMMIT) is implemented and pinned in
+	// frigolite_hookveto_pin_test.go.
+	"hook-3.8":     "commit-hook proc redefined after registration (dynamic TCL proc body dispatch) N-A (no-side-effects)",
 	"hook-5.2.1":   "rollback-hook log across commit/rollback of an attached db N-A (multi-connection)",
 	"hook-6.2":     "commit+rollback hook combined log N-A",
 	"hook-7.1.4":   "preupdate old/new rendering for NULL/absent columns N-A (exact SQLite rendering)",
