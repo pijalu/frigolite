@@ -358,8 +358,18 @@ func Test_vtabH(t *testing.T) {
 							_ = os.WriteFile(path, nil, 0644)
 							fd = path
 							_ = fd // suppress unused warning
-							tclChannelAppendAt(path, tclStringRepeat("1", sz), fileChannelSeek["fd"])
-							fileChannelSeek["fd"] += int64(len(tclStringRepeat("1", sz)))
+							// T30-vtab call-site fix: TCL `open $path w` creates a
+							// FRESH channel per iteration (truncate + seek 0). The
+							// generator keyed the seek map by the variable NAME
+							// ("fd"), so x2.txt inherited x1.txt's end offset and
+							// was written as 143+153=296 bytes (fstree then
+							// reported the OS file sizes 143/296/439). Keying by
+							// the channel path restores per-file channel state;
+							// file sizes are OS facts, so the engine is not
+							// involved (oracle: sizes 143/153 per csv of the
+							// same sequence).
+							tclChannelAppendAt(path, tclStringRepeat("1", sz), fileChannelSeek[fd])
+							fileChannelSeek[fd] += int64(len(tclStringRepeat("1", sz)))
 							// close $fd
 						}
 					}

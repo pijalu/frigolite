@@ -8027,3 +8027,92 @@ regenerated; suite net −2274 fails vs pre-tranche baseline (7230 → ~4950).
   (result mismatch|FAIL:|Error) lines, `sed 's/ ([0-9.]*s)//'` first so the
   FAIL-header duration does not diff. 10/10 packages byte-identical to base
   1a18ba0c1 while ~15 refactored functions landed in the same files.
+
+## T30-vtab — FULL-SUITE-DRIFT corpus-regen cluster (2026-09-22, branch fleet/w5-vtab)
+
+- **Bisect first, blame second**: the §5d.fts5vtab.vtab quality refactor
+  (5a6df6984) was the assigned prime suspect; `git bisect run` over the 7
+  green-at-baseline packages proved ALL 7 green at 5a6df6984 and first-bad =
+  3fcb5cea4 (the testgen regeneration that activated got/want checks). Same
+  census lesson as T29: regen activation exposes latent gaps; the quality
+  refactor itself was clean.
+- **Engine gaps fixed C-faithfully (each with a pure-Go repro checked against
+  /usr/bin/sqlite3 3.54 BEFORE any generated-file edit):**
+  1. `assignIPKRowID` (execdml/insert_select.go) filled a generated rowid into
+     ANY NULL `PRIMARY KEY` column — the INTEGER-only + not-DESC + rowid-table
+     contract of `isIPKRowidAliasCol`/`fillIPKRowID` is mandatory (a plain
+     `a PRIMARY KEY` is an ordinary unique column; oracle keeps NULL).
+  2. Lowercase `natural join` degraded to CROSS: normalizedJoinType's default
+     branch returned the RAW keyword text and joinTypeOf's case-sensitive
+     switch fell through to "CROSS". Bare NATURAL is the only mask reaching
+     that branch — render the normalized keyword (parse/parser_core.go).
+  3. NULL operand of IN/NOT-IN must be detected through ColumnValue/CollatedValue
+     wrappers: materialized vtab/CTE rows wrap NULL columns in non-nil
+     wrappers, so a raw `operand == nil` check misses them (execexpr
+     expression_eval.go; vtab1-14.013 — plain-table path agreed, vtab path
+     didn't).
+  4. ORDER BY <ordinal> resolves to the result column's EXPRESSION, so its
+     declared collation applies exactly like ORDER BY <name>
+     (select.c sqlite3ResolveSortRefs; execquery resolveOrderByOrdinalTerms
+     rewrites only bare-column select items — ORDER BY str already worked).
+  5. echo module xBegin: added vtab.Transactor (Begin) + Engine.EchoVTabBegin +
+     DML hooks in insert/update/delete echo branches. test8.c echoBegin's
+     echo_module_begin_fail veto must abort the statement BEFORE the
+     write-through; bare SQLITE_ERROR renders as "SQL logic error".
+  6. MULTI-INDEX OR row order (vtabD-1.8): echo materializer reorders an
+     eligible all-equality OR WHERE branch by branch (where.c
+     whereLoopAddOr/RowSet semantics), scoped to index-leading columns —
+     range/other OR shapes keep scan order (coordinator scope directive).
+  7. Echo materializers must substitute the rowid for NULL rowid-alias
+     columns read from source records (execdml.FillRowidAliasNulls, used by
+     BOTH internal/exec materializeEchoVTab and execddl echoSourceRows; the
+     echo DECLARE drops PRIMARY KEY so alias flags come from the SOURCE
+     schema). vtab6-8.x (IPK columns through echo) hinged on this.
+  8. csv module: fields are TEXT verbatim (csvtabColumn →
+     sqlite3_result_text) and ColumnTypes() must return the schema= declared
+     types (csv.c appends " TEXT" only to GENERATED columns). The old
+     numeric coercion + blanket TEXT hid the BLOB-affinity contract
+     (csv01-2.3: d BLOB holds '12', d=12 matches nothing).
+  9. rtree constraint classification (rtree.c xFilter):
+     sqlite3_value_numeric_type first; NULL → RTREE_FALSE for every op;
+     non-numeric text/blob → RTREE_TRUE for < / <=, RTREE_FALSE otherwise;
+     numeric text keeps the op with coercion. Applied to coordinate AND id
+     constraints.
+  10. `sqlite3IntFloatCompare` (internal/value) truncated the fraction:
+      integer parts equal must fall through to a double comparison of
+      float64(i) vs r (1 = 1.005 was TRUE engine-wide!). General-purpose
+      comparator bug found from rtree_i32-24.2; oracle-verified.
+- **Transpiler-side findings (only after engine proven oracle-correct):**
+  - `tclIncrMod` always increments by +1 but is also emitted for
+    `incr x -1` (vtab3's auth deny counter never fired; engine repro of the
+    full authorizer sequence matched oracle). Fixed the generated call site;
+    the tcl2go helper/template needs a real `incr x n` form (NOT done here —
+    emitter ownership).
+  - vtabH file writes keyed `fileChannelSeek["fd"]` by variable NAME, so
+    x2.txt inherited x1.txt's channel seek (OS file size 143+153=296 — the
+    engine was irrelevant). Fixed the generated call site to key by channel
+    path.
+  - vtab1 t2152b cluster: sqlite3_exec/`db eval` STOP at the first error —
+    oracle CLI also keeps t2152b when `DROP TABLE t2152a` fails. The C
+    test's clean state depended on re-stepping a prepared CREATE VIRTUAL
+    TABLE (unrepresentable); the generated .4 now runs the two drops as
+    separately-tolerated statements to reproduce the C END-STATE.
+  - vtab1 11-3/11-5: `::echo_glob_overload` is never emitted, so echo's
+    xFindFunction glob override can never engage; wants corrected to the
+    plain-glob oracle-equivalent values with evidence comments.
+  - tabfunc01-1370: TCL want `{}` predates series.c's step-zero
+    normalization (iOStep==0 → 1); oracle 3.54 returns one row 0. Want
+    corrected with evidence; engine hidden-constraint path also normalizes
+    step 0 (series.c parity).
+  - vtab_shared-1.9: the `dbSelect eval {...}` callback body is
+    un-transpilable; hand-ported in the generated test (close other
+    connection after row a==1, reopen under the same name) + native
+    supersession pin frigolite_vtab_shared_native_test.go. Cross-connection
+    COMMITTED-write visibility (shared cache / pager invalidation) is
+    explicitly NOT exercised — queued G7 territory.
+- **Bisect hygiene**: `git bisect start BAD GOOD` in a DETACHED worktree
+  resolves HEAD to the worktree's checkout — pass explicit commit ids. And
+  never `git checkout <paths>` to shed temporary debug edits in a tree that
+  carries uncommitted WORK: it discards the work too (cost one re-apply of
+  three files; python heredoc re-application with `assert old in s` made it
+  cheap and exact).

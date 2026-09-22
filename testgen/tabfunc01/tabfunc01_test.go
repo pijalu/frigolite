@@ -1539,7 +1539,12 @@ func Test_tabfunc01(t *testing.T) {
 				return
 			}
 			got := flatten(r)
-			want := tclListFlatten("{}")
+			// T30-vtab want fix: the TCL expectation predates series.c's
+			// step-zero normalization (`if( pCur->iOStep==0 )
+			// pCur->iOStep = 1;`, ext/misc/series.c xFilter) — current SQLite
+			// (oracle 3.54 verified) returns the single row 0 for
+			// generate_series(0,0,0), so the faithful expectation is "0".
+			want := "0"
 			got = tclListFlattenCollapse(got)
 			if got != want {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)

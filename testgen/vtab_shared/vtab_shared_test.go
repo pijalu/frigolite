@@ -5,6 +5,7 @@
 package vtab_shared
 
 import (
+"fmt"
 "github.com/pijalu/frigolite"
 "github.com/pijalu/frigolite/internal/vtab"
 "os"
@@ -152,14 +153,50 @@ func Test_vtab_shared(t *testing.T) {
 		_ = dbClose // suppress unused warning
 		_ = _idx0
 			{ // do_test "vtab_shared-1.9." + iTest
+				// T30-vtab hand-port of the un-transpiled `dbSelect eval`
+				// callback body: iterate t1 rows, close the OTHER connection
+				// after the row whose a==1 has been read, then reopen it
+				// under the same name (the `sqlite3 $dbClose test.db` tail).
+				// Oracle parity: SQLite (3.54, echo module) returns all six
+				// values; the surviving/reopened connection stays usable.
+				var dbSel, dbCl *frigolite.DB
+				if dbSelect == "db" {
+					dbSel = db
+				} else {
+					dbSel = db2
+				}
+				if dbClose == "db" {
+					dbCl = db
+				} else {
+					dbCl = db2
+				}
 				res = ""
-				_ = res // suppress unused warning
-				// $dbSelect eval { SELECT * FROM t1 } {\n      if {$a == 1} {$dbClose close}\n      lappe...... (unsupported command, not transpiled)
-				// sqlite3 $dbClose test.db (dynamic connection name)
-				_dbtmp1, err := frigolite.Open("test.db")
-				if err != nil { t.Logf("open dynamic connection failed: %v (not fatal)", err) }
-				_ = _dbtmp1
-				db.RegisterEchoModule()
+				r1 := dbSel.Query(" SELECT * FROM t1 ")
+				if r1.Error != nil {
+					t.Errorf("query error: %v\n  body: do_test %s", r1.Error, "vtab_shared-1.9." + iTest)
+				} else {
+					var parts []string
+					for _, row := range r1.Rows {
+						a, b, c := row[0], row[1], row[2]
+						if a == 1 {
+							dbCl.Close()
+						}
+						parts = append(parts, fmt.Sprintf("%v %v %v", a, b, c))
+					}
+					res = strings.Join(parts, " ")
+				}
+				// sqlite3 $dbClose test.db — reopen under the same name.
+				if dbClose == "db" {
+					db, err = frigolite.Open("test.db")
+					tclConnRegister("db", db)
+					if err != nil { t.Fatal(err) }
+					db.RegisterEchoModule()
+				} else {
+					db2, err = frigolite.Open("test.db")
+					tclConnRegister("db2", db2)
+					if err != nil { t.Fatal(err) }
+					db2.RegisterEchoModule()
+				}
 				got := tclListFlatten(res)
 				want := tclListFlatten("1 2 3 4 5 6")
 				if got != want {
