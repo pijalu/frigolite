@@ -8,6 +8,7 @@ package execquery
 
 import (
 	"fmt"
+	"math"
 	"strconv"
 	"strings"
 
@@ -50,8 +51,30 @@ func (e *SelectEngine) planSingleTable(t queryTable, s *sql.SelectStmt) string {
 		}
 	}
 
-	// Threshold: if estimated rows is less than ~10% of table, use SEARCH
-	threshold := float64(nRow) * 0.10
+	// INTEGER PRIMARY KEY / rowid equality is a direct table-btree seek:
+	// SQLite renders "SEARCH <t> USING INTEGER PRIMARY KEY (rowid=?)" and
+	// bestIndexForQuery only knows secondary b-tree indexes (intpkey-1.12.2
+	// "WHERE a==4" over t1(a INTEGER PRIMARY KEY) plans "SEARCH t1").
+	if s.Where != nil {
+		if detail := e.ipkSearchDetail(tableName, s.Where); detail != "" {
+			return detail
+		}
+	}
+	return e.finishSingleTablePlan(t, s, tableName, bestIndex, conditions, bestEstimate, float64(nRow))
+}
+
+// finishSingleTablePlan applies the threshold and fallback plans after the
+// best secondary index is known: an index seek when selective (or when no
+// sqlite_stat1 row prices it — SQLite's default cost model prices an index
+// range seek at one tenth of a full scan, so the seek always wins,
+// intpkey-2.5 "WHERE b>'a'" plans "SEARCH t1 USING INDEX i1 (b>?)" without
+// any ANALYZE), else index-assisted ORDER BY/GROUP BY/DISTINCT or COUNT
+// covering plans, else a full SCAN.
+func (e *SelectEngine) finishSingleTablePlan(t queryTable, s *sql.SelectStmt, tableName, bestIndex, conditions string, bestEstimate, nRow float64) string {
+	threshold := nRow * 0.10
+	if bestIndex != "" && bestIndex != "PRIMARY KEY" && len(e.stat1Tokens(bestIndex)) == 0 {
+		threshold = math.MaxFloat64
+	}
 	if bestIndex != "" && (bestIndex == "PRIMARY KEY" || bestEstimate < threshold) {
 		return e.searchPlan(tableName, bestIndex, conditions, s)
 	}
