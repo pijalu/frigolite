@@ -752,7 +752,13 @@ func (e *Engine) execDepthLeave() {
 // is a "special" error → sqlite3RollbackAll). interrupt-3.x: the following
 // bare ROLLBACK must fail with "cannot rollback - no transaction is active".
 func (e *Engine) failInterruptedStmt(stmt sql.Stmt) *Result {
-	if e.isDMLStmt(stmt) && e.tx.inTransaction {
+	// COMMIT/ROLLBACK statements are not read-only either (sqlite3VdbeReadOnly
+	// scans the program for write opcodes), so an interrupt flagged at their
+	// entry forces the same whole-transaction rollback: an interrupted COMMIT
+	// never commits (vdbeaux.c:3358-3383 special errors → sqlite3RollbackAll).
+	_, isCommit := stmt.(*sql.CommitStmt)
+	_, isRollback := stmt.(*sql.RollbackStmt)
+	if (e.isDMLStmt(stmt) || isCommit || isRollback) && e.tx.inTransaction {
 		e.execRollback()
 	}
 	return &Result{Error: fmt.Errorf("interrupted")}

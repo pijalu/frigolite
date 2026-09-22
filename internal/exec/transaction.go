@@ -22,6 +22,19 @@ func (e *Engine) execCommit() *Result {
 	if !e.tx.inTransaction {
 		return &Result{Error: fmt.Errorf("cannot commit - no transaction is active")}
 	}
+	// The SQLITE_TEST interrupt countdown (vdbe.c's per-opcode decrement)
+	// fires within the COMMIT program: an interrupted COMMIT never commits.
+	// SQLITE_INTERRUPT is a special error (src/vdbeaux.c:3358-3383), so the
+	// abort path rolls the whole transaction back — a later bare COMMIT
+	// fails with "cannot commit - no transaction is active" (interrupt-3.x).
+	if e.interruptCount > 0 {
+		e.interruptCount--
+		if e.interruptCount == 0 {
+			e.interrupted = true
+			e.execRollback()
+			return &Result{Error: fmt.Errorf("interrupted")}
+		}
+	}
 	// Deferred foreign key constraints are checked at COMMIT. On a violation
 	// the COMMIT fails and the transaction stays open (SQLite semantics:
 	// "cannot start a transaction within a transaction" after a failed
@@ -45,6 +58,17 @@ func (e *Engine) execCommit() *Result {
 	// the committing transaction.
 	if err := e.fts5ApplySecureUpgrades(); err != nil {
 		return &Result{Error: err}
+	}
+	// Commit hook: vdbeCommit invokes db->xCommitCallback BEFORE the btree
+	// commit phases and before any transaction teardown (src/vdbeaux.c:2978-
+	// 2982) — the hook observes the transaction's uncommitted changes. A
+	// nonzero return aborts the COMMIT with SQLITE_CONSTRAINT_COMMITHOOK
+	// ("constraint failed") and — via the sqlite3VdbeHalt abort path — rolls
+	// the whole transaction back (execRollback needs the still-open
+	// transaction state, so this check precedes commitClearTxState).
+	if e.commitHook != nil && e.runCommitHook() {
+		e.execRollback()
+		return &Result{Error: fmt.Errorf("constraint failed")}
 	}
 	e.commitClearTxState()
 	if res := e.flushFTSSegmentsGuarded(); res != nil {
@@ -74,13 +98,6 @@ func (e *Engine) execCommit() *Result {
 	}
 	if res := e.commitFlushAllPagers(); res != nil {
 		return res
-	}
-	// Fire the commit hook after the commit completes (sqlite3_commit_hook).
-	// A nonzero return aborts the COMMIT: the transaction is rolled back and
-	// the COMMIT statement fails with "constraint failed".
-	if e.commitHook != nil && e.runCommitHook() {
-		e.execRollback()
-		return &Result{Error: fmt.Errorf("constraint failed")}
 	}
 	return &Result{}
 }

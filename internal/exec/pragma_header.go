@@ -3,6 +3,7 @@ package exec
 
 import (
 	"fmt"
+	"github.com/pijalu/frigolite/internal/lockreg"
 	"strconv"
 	"strings"
 
@@ -561,6 +562,12 @@ func (e *Engine) lockStatusFor(ctx *DatabaseContext) string {
 	// ROLLBACK TO.
 	if e.tx.inTransaction && e.tx.reservedDbs != nil && e.tx.reservedDbs[strings.ToUpper(ctx.Name)] {
 		return "reserved"
+	}
+	// A prepared SELECT stepped but not yet reset/finalized holds its read
+	// transaction open: pager.c SHARED (lock_status "shared", lock-7.2 —
+	// sqlite3_step returning SQLITE_ROW leaves the statement mid-run).
+	if key := e.LockKeyForDB(ctx.Name); key != "" && lockreg.Global.ReadTxHeld(key, e.connID) {
+		return "shared"
 	}
 	return "unlocked"
 }

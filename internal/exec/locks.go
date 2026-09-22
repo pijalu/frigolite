@@ -435,8 +435,14 @@ func (e *Engine) CrossConnLockError(stmt sql.Stmt) error {
 	// locking_mode=EXCLUSIVE: the first access to the database establishes a
 	// SHARED lock that is never released between transactions (pager.c keeps
 	// the pager lock while lockingMode is EXCLUSIVE), blocking every other
-	// connection's EXCLUSIVE upgrade.
-	if strings.EqualFold(e.currentLockingMode(), "exclusive") {
+	// connection's EXCLUSIVE upgrade. The addressed database's own mode
+	// governs (pragma.c resolves pDb first); an empty schema is MAIN
+	// (aDb[0], the pDb fallback when pId2 is empty).
+	lockSchema := schemaName
+	if lockSchema == "" {
+		lockSchema = "MAIN"
+	}
+	if strings.EqualFold(e.schemaLockingMode(lockSchema), "exclusive") {
 		lockreg.Global.SetPersistentShared(key, e.connID, true)
 	}
 	switch e.lockStyle {

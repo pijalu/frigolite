@@ -354,6 +354,7 @@ type engineSettings struct {
 	mainSecureDelete       int64            // MAIN's per-schema PRAGMA secure_delete value (seeded from defaultSecureDelete on Open)
 	defaultSecureDelete    int64            // connection-wide default (the SQLITE_FAST_SECURE_DELETE build option equivalent)
 	synchronousLevels      map[string]int64 // per-schema PRAGMA synchronous stored safety_level (btree.c: level-1 is reported; default 3 = FULL)
+	lockingModes           map[string]string // per-schema PRAGMA locking_mode (pager.c Pager.exclusiveMode; TEMP is pinned exclusive)
 	tempStore              int              // PRAGMA temp_store (0=default, 1=file, 2=memory)
 	tempStoreDirectory     string           // PRAGMA temp_store_directory value ("" = unset, mirrors sqlite3_temp_directory)
 	cacheSizes             map[string]int64
@@ -955,6 +956,7 @@ func newEngineSettings() engineSettings {
 		mainSecureDelete:    2, // SQLITE_FAST_SECURE_DELETE equivalent (test/securedel.test DEFAULT_SECDEL=2)
 		defaultSecureDelete: 2, // Mirrors SQLite's SQLITE_FAST_SECURE_DELETE build option
 		synchronousLevels:   make(map[string]int64),
+		lockingModes:        make(map[string]string),
 	}
 }
 

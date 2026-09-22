@@ -86,7 +86,18 @@ func (p *Pager) Restore(s *PagerState) {
 	if s.header != nil {
 		p.header = append([]byte(nil), s.header...)
 	}
-	p.restoreFileImageLocked(s)
+	// In WAL mode the main database file is updated ONLY by Checkpoint
+	// (wal.c: "the main database is updated only by checkpointing"): a
+	// rollback rewinds the log's mxFrame (sqlite3WalSavepointUndo) or plays
+	// pages back in memory and never writes the main file. restoreFileImage-
+	// Locked's truncate + header persist would leave the main file carrying
+	// a rolled-forward header (offset 28 page count) over checkpoint-era
+	// pages — the next connection opening a copy of the main file alone
+	// reports "database disk image is malformed" (waloverwrite-1.x.8). The
+	// in-memory page/header restore above is the whole rollback there.
+	if p.wal == nil {
+		p.restoreFileImageLocked(s)
+	}
 }
 
 // restoreFileImageLocked aligns the database FILE with the snapshot image:
