@@ -209,9 +209,20 @@ func Test_window6(t *testing.T) {
 			}
 		}
 		// proc winproc prepends "window: " to its args (registered via db func)
+		// TCL fidelity: winproc {args} { return "window: $args" } renders the
+		// argument list as a TCL list, so a single "hello world" argument is
+		// brace-quoted ("window: {hello world}").
 		db.RegisterFunction("window", func(args []interface{}) (interface{}, error) {
 			var parts []string
-			for _, a := range args { if a != nil { parts = append(parts, tclStr(a)) } }
+			for _, a := range args {
+				if a != nil {
+					s := tclStr(a)
+					if s == "" || strings.ContainsAny(s, " {}") {
+						s = "{" + s + "}"
+					}
+					parts = append(parts, s)
+				}
+			}
 			return "window: " + strings.Join(parts, " "), nil
 		}, 0, -1)
 		{ // "2.0"
@@ -480,7 +491,7 @@ func Test_window6(t *testing.T) {
 			}
 		}
 		// foreach {tn frame} "1 \"BETWEEN CURRENT ROW AND 4 PRECEDING\"\n  2 \"4 FOLLOWING\"\n  3 \"BETWEEN 4 FOLLOWING AND CURRENT ROW\"\n  4 \"BETWEEN 4 FOLLOWING AND 2 PRECEDING\""
-		_items0 := tclSplitList("1 \"BETWEEN CURRENT ROW AND 4 PRECEDING\"\n  2 \"4 FOLLOWING\"\n  3 \"BETWEEN 4 FOLLOWING AND CURRENT ROW\"\n  4 \"BETWEEN 4 FOLLOWING AND 2 PRECEDING\"")
+		_items0 = tclSplitList("1 \"BETWEEN CURRENT ROW AND 4 PRECEDING\"\n  2 \"4 FOLLOWING\"\n  3 \"BETWEEN 4 FOLLOWING AND CURRENT ROW\"\n  4 \"BETWEEN 4 FOLLOWING AND 2 PRECEDING\"")
 		for _idx0 := 0; _idx0+2 <= len(_items0); _idx0 += 2 {
 			tn := _items0[_idx0+0]
 			_ = tn // suppress unused warning

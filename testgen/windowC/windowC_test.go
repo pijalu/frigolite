@@ -129,10 +129,16 @@ func Test_windowC(t *testing.T) {
 								t.Errorf("query error: %v\n  sql: %s", r.Error, "\n          SELECT group_concat('val', x) OVER ( ORDER BY i " + win + " ) AS val FROM x1\n          ")
 								return
 							}
-							got := flatten(r)
-							want := "{}"
-							if got != want {
-								t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+							// TCL fidelity: the original db-eval body checks every returned val
+							// (first and last three characters are "val") and the do_test result
+							// itself is empty; the transpiler dropped the body, leaving a bogus
+							// "{}" comparison. The body check is restored natively.
+							for _, row := range r.Rows {
+								val, _ := row[0].(string)
+								if len(val) < 3 || val[:3] != "val" || val[len(val)-3:] != "val" {
+									t.Errorf("unexpected return value: %q (type %s, frame %s)", val, _type, win)
+									break
+								}
 							}
 						}
 					}

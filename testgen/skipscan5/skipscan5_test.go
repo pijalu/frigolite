@@ -294,7 +294,7 @@ func Test_skipscan5(t *testing.T) {
 					}
 				}
 				// foreach {tn q res} "1 \"b BETWEEN -10000 AND -8000\"       {/*ANY(a) AND b>? AND b<?*/}\n  2 \"b BETWEEN -10000 AND 'qqq'\"       {/*SCAN t3*/}\n  3 \"b < X'5555'\"                      {/*SCAN t3*/}\n  4 \"b > X'5555'\"                      {/*ANY(a) AND b>?*/}\n  5 \"b > 'zzz'\"                        {/*ANY(a) AND b>?*/}\n  6 \"b < 'zzz'\"                        {/*SCAN t3*/}"
-				_items1 := tclSplitList("1 \"b BETWEEN -10000 AND -8000\"       {/*ANY(a) AND b>? AND b<?*/}\n  2 \"b BETWEEN -10000 AND 'qqq'\"       {/*SCAN t3*/}\n  3 \"b < X'5555'\"                      {/*SCAN t3*/}\n  4 \"b > X'5555'\"                      {/*ANY(a) AND b>?*/}\n  5 \"b > 'zzz'\"                        {/*ANY(a) AND b>?*/}\n  6 \"b < 'zzz'\"                        {/*SCAN t3*/}")
+				_items1 = tclSplitList("1 \"b BETWEEN -10000 AND -8000\"       {/*ANY(a) AND b>? AND b<?*/}\n  2 \"b BETWEEN -10000 AND 'qqq'\"       {/*SCAN t3*/}\n  3 \"b < X'5555'\"                      {/*SCAN t3*/}\n  4 \"b > X'5555'\"                      {/*ANY(a) AND b>?*/}\n  5 \"b > 'zzz'\"                        {/*ANY(a) AND b>?*/}\n  6 \"b < 'zzz'\"                        {/*SCAN t3*/}")
 				for _idx1 := 0; _idx1+3 <= len(_items1); _idx1 += 3 {
 					tn := _items1[_idx1+0]
 					_ = tn // suppress unused warning
