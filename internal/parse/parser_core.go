@@ -613,8 +613,16 @@ func normalizedJoinType(mask int, kws []string) (string, error) {
 	case mask&jtInner != 0:
 		return natural + "INNER", nil
 	default:
-		if len(kws) > 0 {
-			return kws[0], nil
+		// Bare NATURAL (the only combination that reaches here — every
+		// other keyword sets LEFT/RIGHT/CROSS/INNER, and OUTER alone or
+		// with INNER is rejected above). The rendered type must be the
+		// normalized keyword, not the source text: "natural join" and
+		// "NATURAL JOIN" are the same join (select.c sqlite3JoinType ORs
+		// the keyword codes; the case-sensitive joinTypeOf dispatcher in
+		// exec would otherwise see an unknown type). Keyword casing is
+		// preserved verbatim only in the "unknown join type" error text.
+		if mask&jtNatural != 0 {
+			return "NATURAL", nil
 		}
 		return "", nil
 	}

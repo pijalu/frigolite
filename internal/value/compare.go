@@ -248,6 +248,16 @@ func sqlite3IntFloatCompare(i int64, r float64) int {
 	if ri > i {
 		return -1 // i < r
 	}
+	// Integer parts are equal (truncation folded r's fraction): C compares
+	// the fractional remainder by widening i back to double — 1 < 1.005
+	// (util.c sqlite3IntFloatCompare tail), so they are not equal.
+	s := float64(i)
+	if s < r {
+		return -1
+	}
+	if s > r {
+		return 1
+	}
 	return 0 // equal
 }
 

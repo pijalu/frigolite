@@ -1,6 +1,7 @@
 package vtab
 
 import (
+	"errors"
 	"strconv"
 	"strings"
 )
@@ -203,6 +204,22 @@ func (v *echoVTab) BindSchema(dbName, tableName string) error {
 	return nil
 }
 
+// Begin implements Transactor (test8.c echoBegin): a write statement routed
+// to this echo table first starts the module-level transaction. When the
+// echo_module_begin_fail TCL variable holds this table's SOURCE name the
+// start fails (bare SQLITE_ERROR, no message — the core then reports
+// "SQL logic error" and the statement writes nothing), vtab1.10-3.
+func (v *echoVTab) Begin() error {
+	if f := TclVarGet("echo_module_begin_fail", ""); f != "" && f == v.zSrc {
+		return errEchoBeginFail
+	}
+	return nil
+}
+
+// errEchoBeginFail mirrors echoBegin's bare SQLITE_ERROR return: no module
+// message, so the core substitutes sqlite3ErrStr(SQLITE_ERROR).
+var errEchoBeginFail = errors.New("SQL logic error")
+
 // Columns implements ColumnInfo: the declared schema mirrors the source table
 // (sqlite3_declare_vtab parity). A no-argument constructor has no columns.
 func (v *echoVTab) Columns() []string { return v.cols }
@@ -302,6 +319,7 @@ var (
 	_ ColumnTypeInfo  = (*echoVTab)(nil)
 	_ PlanBestIndexer = (*echoVTab)(nil)
 	_ SchemaBoundVTab = (*echoVTab)(nil)
+	_ Transactor      = (*echoVTab)(nil)
 	_ VirtualTable    = (*echoVTab)(nil)
 	_ error           = (*SilentConstructorError)(nil)
 )

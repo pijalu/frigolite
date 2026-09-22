@@ -105,6 +105,17 @@ type Disconnecter interface {
 	Disconnect()
 }
 
+// Transactor is the optional xBegin contract (sqlite3_module xBegin): the
+// core calls it once per statement, before the first write routed to the
+// virtual table, so a module-level transaction start can veto the whole
+// statement — a Begin error aborts the DML before any row is written and
+// surfaces as "SQL logic error" when the module sets no message (vtab.c
+// sqlite3VtabBegin; test8.c echoBegin's echo_module_begin_fail veto,
+// vtab1.10-3).
+type Transactor interface {
+	Begin() error
+}
+
 // Module creates virtual table instances.
 type Module interface {
 	Create(args []string) (VirtualTable, error)
@@ -324,6 +335,11 @@ func (v *generateSeriesVTab) SetHiddenConstraint(col string, val interface{}) er
 	case "stop":
 		v.stop, v.stopGiven = n, true
 	case "step":
+		// series.c xFilter: a zero STEP degenerates to 1, same as the
+		// argument form (if( pCur->iOStep==0 ) pCur->iOStep = 1;).
+		if n == 0 {
+			n = 1
+		}
 		v.step, v.stepGiven = n, true
 	default:
 		return fmt.Errorf("no such column: %s", col)

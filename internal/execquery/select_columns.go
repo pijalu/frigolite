@@ -592,6 +592,42 @@ func (e *SelectEngine) lessRows(orderBy []sql.OrderByTerm, rowMaps []RowMap, row
 	return false
 }
 
+// resolveOrderByOrdinalTerms rewrites a numeric ORDER BY ordinal term to its
+// result column's expression when that expression is a plain unqualified
+// column reference. The comparator reads such terms from the row maps, whose
+// values carry the column's declared collation — ORDER BY 1 must sort by the
+// output column's collation exactly like ORDER BY <name> (select.c
+// sqlite3ResolveSortRefs: the sort reference takes the result column's
+// collating sequence). Other expressions keep the positional fallback.
+func (e *SelectEngine) resolveOrderByOrdinalTerms(s *sql.SelectStmt, orderBy []sql.OrderByTerm) []sql.OrderByTerm {
+	if s == nil {
+		return orderBy
+	}
+	changed := false
+	out := orderBy
+	for k := range orderBy {
+		nl, ok := stripCollate(orderBy[k].Expr).(*sql.NumericLit)
+		if !ok {
+			continue
+		}
+		pos, err := strconv.Atoi(nl.Value)
+		if err != nil || pos < 1 || pos > len(s.Columns) {
+			continue
+		}
+		ref, ok := s.Columns[pos-1].Expr.(*sql.ColumnRef)
+		if !ok || ref.Table != "" || ref.Name == "*" {
+			continue
+		}
+		if !changed {
+			out = make([]sql.OrderByTerm, len(orderBy))
+			copy(out, orderBy)
+			changed = true
+		}
+		out[k].Expr = ref
+	}
+	return out
+}
+
 // compareOrderByTerm compares rows i and j for a single ORDER BY term,
 // resolving alias references, applying the column's declared collation via
 // the row maps, and falling back to expression evaluation when a value is

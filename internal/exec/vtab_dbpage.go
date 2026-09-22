@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/pijalu/frigolite/internal/btree"
+	"github.com/pijalu/frigolite/internal/execdml"
 	"github.com/pijalu/frigolite/internal/execquery"
 	"github.com/pijalu/frigolite/internal/pager"
 	"github.com/pijalu/frigolite/internal/parse"
@@ -382,7 +383,7 @@ func (e *Engine) materializeEchoVTabModule(entry *schema.Entry, modName string, 
 	if err := planEchoVTabBestIndex(vt, entry.Name, opts); err != nil {
 		return nil, nil, nil, err, true
 	}
-	return e.materializeEchoVTab(entry, modArgs[0])
+	return e.materializeEchoVTab(entry, modArgs[0], opts.Where)
 }
 
 // EchoJoinBestIndexPlan implements execquery.SelectContext: it offers the
@@ -451,7 +452,7 @@ func planEchoVTabBestIndex(vt vtab.VirtualTable, name string, opts execquery.Vta
 // source table: echoConnect (SQLite test8.c) declares the source table's
 // columns and echoCursor reads the source b-tree rows, rowid included.
 // Returns ok=false when the source table or its columns cannot be resolved.
-func (e *Engine) materializeEchoVTab(entry *schema.Entry, srcArg string) ([]sql.ColumnDef, [][]interface{}, []int64, error, bool) {
+func (e *Engine) materializeEchoVTab(entry *schema.Entry, srcArg string, where sql.Expr) ([]sql.ColumnDef, [][]interface{}, []int64, error, bool) {
 	defs := e.echoColumnDefs(entry.Name, srcArg)
 	if len(defs) == 0 {
 		return nil, nil, nil, nil, false
@@ -472,6 +473,16 @@ func (e *Engine) materializeEchoVTab(entry *schema.Entry, srcArg string) ([]sql.
 		return nil, nil, nil, cerr, true
 	}
 	rows, rowids := scanBTreeRecords(cursor)
+	// btree.c stores NULL in the record for a rowid-alias column (INTEGER
+	// PRIMARY KEY); the echo module reads its source through SQL
+	// ("SELECT rowid, * FROM <source>", test8.c echoCursor), so the alias
+	// column reaches the statement as the rowid. The alias flags come from
+	// the SOURCE table's schema: the echo declaration (names+types only,
+	// test8.c echoDeclareVtab) drops the PRIMARY KEY.
+	execdml.FillRowidAliasNulls(e.parseColumnDefs(srcEntry.Name, srcEntry.SQL), rows, rowids)
+	// MULTI-INDEX OR row order (where.c whereLoopAddOr): an eligible
+	// equality-OR WHERE emerges branch by branch, not in source scan order.
+	rows, rowids = e.orderRowsByOrBranches(entry.Name, srcEntry, defs, where, rows, rowids)
 	return defs, rows, rowids, nil, true
 }
 
