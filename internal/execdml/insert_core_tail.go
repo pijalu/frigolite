@@ -82,7 +82,7 @@ func (e *DMLExecutor) unsafeSchemaFuncInStmt(stmt sql.Stmt) string {
 // fireTrigger fires a single trigger matching the given event and timing.
 // Returns a Result with an error if execution fails, or nil on success
 // (including when the trigger does not match or its WHEN clause is false).
-func (e *DMLExecutor) fireTrigger(t *schema.Entry, event, timing string, newRow, oldRow RowMap) *Result {
+func (e *DMLExecutor) fireTrigger(t *schema.Entry, owning *DatabaseContext, event, timing string, newRow, oldRow RowMap) *Result {
 	if res := e.triggerGuardError(t); res != nil {
 		return res
 	}
@@ -129,7 +129,6 @@ func (e *DMLExecutor) fireTrigger(t *schema.Entry, event, timing string, newRow,
 	// on the same table does not re-fire the SAME trigger (recursive_triggers
 	// OFF); OTHER triggers on the table still fire. The key is the trigger's
 	// owning schema + name (a temp trigger keyed by its stored schema).
-	owning := e.triggerOwningCtx(t)
 	chainKey := owning.Name + "." + t.Name
 	e.ctx.SetTriggerTables(append(e.ctx.TriggerTables(), chainKey))
 	defer func() { tt := e.ctx.TriggerTables(); e.ctx.SetTriggerTables(tt[:len(tt)-1]) }()
@@ -137,7 +136,7 @@ func (e *DMLExecutor) fireTrigger(t *schema.Entry, event, timing string, newRow,
 	// Record the trigger's owning database so body DML resolves unqualified
 	// references correctly (temp triggers may reference any database).
 	prevTriggerCtx := e.currentTriggerCtx
-	e.currentTriggerCtx = e.triggerOwningCtx(t)
+	e.currentTriggerCtx = owning
 	defer func() { e.currentTriggerCtx = prevTriggerCtx }()
 
 	// Set NEW and OLD row values for trigger body execution

@@ -259,6 +259,40 @@ func (e *Engine) walBeginStmtWrite(stmt sql.Stmt) error {
 	return nil
 }
 
+// noteStmtReadLock records the SHARED lock a read statement takes on its
+// target database inside an explicit transaction (pager.c
+// sqlite3PagerSharedLock, PRAGMA lock_status "shared"). A deferred BEGIN
+// holds no lock; the mark lands on the statement's first read. Temp
+// databases are skipped: the in-memory temp pager holds no file lock.
+func (e *Engine) noteStmtReadLock(stmt sql.Stmt) {
+	if !e.tx.inTransaction {
+		return
+	}
+	s, ok := stmt.(*sql.SelectStmt)
+	if !ok || s.From.Name == "" {
+		return
+	}
+	key := e.stmtLockKey(stmt, "", false)
+	if key == "" {
+		return
+	}
+	for _, ctx := range e.dbList {
+		if ctx == nil || ctx.Pager == nil {
+			continue
+		}
+		if strings.EqualFold(ctx.Name, "TEMP") || strings.EqualFold(ctx.Name, "TEMPORARY") {
+			continue
+		}
+		if lockKey(ctx, e.connID) == key {
+			if e.tx.readDbs == nil {
+				e.tx.readDbs = make(map[string]bool)
+			}
+			e.tx.readDbs[strings.ToUpper(ctx.Name)] = true
+			return
+		}
+	}
+}
+
 // stmtWritePager resolves the statement's target database pager (and its
 // context) for the eager WAL write transaction: the lock key's database when
 // resolvable, else the main pager.

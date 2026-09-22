@@ -361,6 +361,15 @@ type engineSettings struct {
 	dataVersion            int64
 }
 
+// ClearDbPragmaSettings drops the per-schema pragma settings recorded for
+// schemaUpper (DETACH destroys the Db object that owns them).
+func (s *engineSettings) ClearDbPragmaSettings(schemaUpper string) {
+	delete(s.cacheSizes, schemaUpper)
+	delete(s.synchronousLevels, schemaUpper)
+	delete(s.secureDeletes, schemaUpper)
+	delete(s.autoVacuumModes, schemaUpper)
+}
+
 // tableCaches groups the per-table and statement caches that previously lived
 // as individual fields on the Engine.
 type tableCaches struct {
@@ -391,6 +400,12 @@ type txState struct {
 	// db whose pages a savepoint rollback already restored
 	// (savepoint-10.2.5→10.2.8).
 	reservedDbs map[string]bool
+	// readDbs remembers every attached database the open transaction has
+	// READ through a statement with a btree data source: a deferred BEGIN
+	// holds no lock, the first read statement acquires SHARED
+	// (pager.c sqlite3PagerSharedLock), reported by PRAGMA lock_status as
+	// "shared" until COMMIT / ROLLBACK.
+	readDbs map[string]bool
 	// execDepth counts nested Exec calls (triggers, the eval() extension).
 	// rollbackAborted is set when a nested statement runs ROLLBACK that
 	// undoes schema changes, which aborts the enclosing statement with "abort

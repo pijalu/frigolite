@@ -278,18 +278,7 @@ func Test_altertab(t *testing.T) {
 	}
 	// proc definition (not transpiled)
 	db.RegisterFunction("squish", func(args []interface{}) (interface{}, error) { return nil, nil }, 0, -1)
-	{ // do_test "4.2"
-		r = db.Query(" SELECT squish(sql) FROM sqlite_master WHERE name = 'tr1' ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT squish(sql) FROM sqlite_master WHERE name = 'tr1' ")
-			return
-		}
-		got := flatten(r)
-		want := tclListFlatten("squish {\n  CREATE TRIGGER tr1 AFTER INSERT ON \"t11\" BEGIN\n    SELECT \"t11\".x, * FROM \"t11\", \"t22\";\n    INSERT INTO \"t22\" VALUES(new.x, new.y);\n  END\n}")
-		got = tclListFlattenCollapse(got)
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
+	{ // "altertab-4.2" — skipped: transpiler squish() stub: the TCL whitespace-collapse proc is registered to return NULL, so the generated want (a squish-wrapped literal) can never match; engine contract (modern ALTER TABLE RENAME rewrites the trigger ON-table token quoted plus body refs) pinned by frigolite_w6_misc_pin_test.go (no-side-effects)
 	}
 	db.Close()
 	os.Remove("test.db")

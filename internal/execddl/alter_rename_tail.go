@@ -71,14 +71,79 @@ func (e *DDLExecutor) entryRenameAllowed(schemaMgr *schema.Manager, entry *schem
 }
 
 // triggerEntryRenameAllowed retargets a trigger whose TblName is the renamed
-// table and reports whether its SQL should be rewritten.
+// table and reports whether its SQL should be rewritten. In legacy mode the
+// ON-table token is still rewritten (quoted) before skipping the rewrite.
 func (e *DDLExecutor) triggerEntryRenameAllowed(schemaMgr *schema.Manager, entry *schema.Entry, oldName, newName string) bool {
-	if strings.EqualFold(entry.TblName, baseTableName(oldName)) {
+	legacy := e.ctx.LegacyAlterTable()
+	onRenamedTable := strings.EqualFold(entry.TblName, baseTableName(oldName))
+	if onRenamedTable {
 		entry.TblName = newName
+		// alter.c renameTableFunc finds the trigger's own ON-table token in
+		// BOTH legacy and modern modes — only the body walk is gated on
+		// isLegacy — and renameEditSql's bQuote=1 substitutes the double-
+		// quoted new name. So `ALTER TABLE t1 RENAME TO t11` under
+		// legacy_alter_table=1 rewrites the stored SQL's ON clause to
+		// ON "t11" while leaving the body untouched (alterlegacy-4.2).
+		if legacy {
+			if newSQL := renameTriggerTargetToken(entry.SQL, oldName, newName); newSQL != entry.SQL {
+				entry.SQL = newSQL
+			}
+		}
 		_ = schemaMgr.RemoveEntryOfType(entry.Name, entry.Type)
 		_ = schemaMgr.AddEntry(entry)
 	}
-	return !e.ctx.LegacyAlterTable()
+	return !legacy
+}
+
+// renameTriggerTargetToken rewrites the ON-table name of a trigger's stored
+// CREATE TRIGGER SQL to the double-quoted new table name, leaving the trigger
+// body byte-identical (alter.c legacy rename path). The ON clause sits between
+// the trigger declaration and BEGIN; the parser does not carry token
+// positions for the trigger's table, so the name is located textually.
+func renameTriggerTargetToken(sqlText, oldName, newName string) string {
+	beginIdx := indexSQLKeyword(sqlText, "BEGIN")
+	head := sqlText
+	if beginIdx >= 0 {
+		head = sqlText[:beginIdx]
+	}
+	// Optional schema prefix, then the table token (quoted or bare).
+	re := regexp.MustCompile(`(?is)\bON\s+(?:(?:"[^"]*"|\[[^]]*\]|` + "`[^`]*`" + `|[A-Za-z_][A-Za-z0-9_$]*)\s*\.\s*)?("[^"]*"|\[[^]]*\]|` + "`[^`]*`" + `|[A-Za-z_][A-Za-z0-9_$]*)`)
+	loc := re.FindStringSubmatchIndex(head)
+	if loc == nil || loc[2] < 0 {
+		return sqlText
+	}
+	table := dequoteSQLToken(sqlText[loc[2]:loc[3]])
+	if !strings.EqualFold(table, baseTableName(oldName)) {
+		return sqlText
+	}
+	return sqlText[:loc[2]] + `"` + newName + `"` + sqlText[loc[3]:]
+}
+
+// indexSQLKeyword finds the first case-insensitive whole-word occurrence of
+// the given keyword, or -1.
+func indexSQLKeyword(sqlText, keyword string) int {
+	re := regexp.MustCompile(`(?i)\b` + keyword + `\b`)
+	loc := re.FindStringIndex(sqlText)
+	if loc == nil {
+		return -1
+	}
+	return loc[0]
+}
+
+// dequoteSQLToken removes surrounding double quotes, brackets, or backticks
+// and undoes doubled inner quotes.
+func dequoteSQLToken(tok string) string {
+	if len(tok) >= 2 {
+		switch {
+		case tok[0] == '"' && tok[len(tok)-1] == '"':
+			return strings.ReplaceAll(tok[1:len(tok)-1], `""`, `"`)
+		case tok[0] == '[' && tok[len(tok)-1] == ']':
+			return tok[1 : len(tok)-1]
+		case tok[0] == '`' && tok[len(tok)-1] == '`':
+			return strings.ReplaceAll(tok[1:len(tok)-1], "``", "`")
+		}
+	}
+	return tok
 }
 
 // indexEntryRenameAllowed retargets an index whose TblName is the renamed
@@ -173,6 +238,15 @@ func replaceTableNameInSQL(sql, oldName, newName string) string {
 	re2 := regexp.MustCompile(`(?i)"` + quotedOldBare + `"`)
 	if re2.MatchString(sql) {
 		return re2.ReplaceAllString(sql, quotedNew)
+	}
+	// Single-quoted identifier form: SQLite accepts '...' as an identifier
+	// in CREATE TABLE / REFERENCES positions, and stores it verbatim
+	// (e_fkey-56.x: CREATE TABLE 'p 1 "parent one"'(...) renames the stored
+	// SQL to CREATE TABLE "p"(...) — the replacement is the quoted new
+	// name, renameEditSql bQuote=1 semantics).
+	re3 := regexp.MustCompile(`(?i)'` + quotedOldBare + `'`)
+	if re3.MatchString(sql) {
+		return re3.ReplaceAllString(sql, quotedNew)
 	}
 	emptyInSpans := emptyINOperandSpans(sql)
 	quotedSpans := quotedSpansOf(sql)

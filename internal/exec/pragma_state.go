@@ -230,6 +230,15 @@ func (e *Engine) PageCount(schema string) int64 {
 	if ctx == nil || ctx.Pager == nil {
 		return 0
 	}
+	// The TEMP database holds no committed content until a temp object is
+	// created: its lazily-allocated page 1 alone is an empty database, and
+	// sqlite3BtreeLastPage reports 0 pages for it (pragma-14.2:
+	// temp.page_count=0 while main=2).
+	if strings.EqualFold(ctx.Name, "TEMP") || strings.EqualFold(ctx.Name, "TEMPORARY") {
+		if !e.hasTempTables() && ctx.Pager.NumPages() <= 1 {
+			return 0
+		}
+	}
 	return int64(ctx.Pager.NumPages())
 }
 
@@ -542,10 +551,16 @@ func (e *Engine) IndexList(table string) *execpragma.Result {
 
 // TableInfo implements PRAGMA table_info / table_xinfo via the table-valued
 // materialization path.
-func (e *Engine) TableInfo(xinfo bool, table string) ([]sql.ColumnDef, [][]interface{}, error) {
+func (e *Engine) TableInfo(xinfo bool, schema, table string) ([]sql.ColumnDef, [][]interface{}, error) {
 	name := "pragma_table_info"
 	if xinfo {
 		name = "pragma_table_xinfo"
+	}
+	// A schema qualifier (PRAGMA main.table_info(t)) restricts the lookup to
+	// that schema: with trial in BOTH temp and main, temp.table_info reports
+	// the temp column and main.table_info the main one (pragma-6.6.3/6.6.4).
+	if schema != "" {
+		table = schema + "." + table
 	}
 	return e.materializeTableInfo(sql.TableRef{
 		Name: name,

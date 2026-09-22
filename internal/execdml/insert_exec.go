@@ -191,6 +191,7 @@ func (e *DMLExecutor) tupleErrorResult(err error, tableEntry *schema.Entry, colD
 	if e.uniqueRollbackConflict(err, tableEntry, colDefs) {
 		res.SetRollbackTxOnError()
 	}
+	applyRaiseUndoScope(res, err)
 	return res
 }
 

@@ -903,6 +903,7 @@ func (e *Engine) execEntry(stmt sql.Stmt) *Result {
 	if err := e.CrossConnLockError(stmt); err != nil {
 		return &Result{Error: err}
 	}
+	e.noteStmtReadLock(stmt)
 	// WAL write gate (P7.WAL-G7 slice 2, sqlite3WalBeginWriteTransaction
 	// parity): writing statements open the WAL write transaction BEFORE the
 	// btree phase reads pages, so the WRITER shm lock freezes the snapshot

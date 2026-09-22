@@ -537,6 +537,9 @@ func (s *RollbackStmt) stmt() {}
 type PragmaStmt struct {
 	Name  string
 	Value string // optional value
+	// HasValue distinguishes `PRAGMA name = value` (true, even when value
+	// is the empty string literal '') from the bare getter `PRAGMA name`.
+	HasValue bool
 	// Schema is the optional schema qualifier (PRAGMA main.foreign_key_check
 	// sets Schema="main", Name="foreign_key_check").
 	Schema string

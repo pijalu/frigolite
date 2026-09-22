@@ -68,24 +68,24 @@ type EngineState interface {
 	// temp_store_directory (pragma.c PragTyp_TEMP_STORE_DIRECTORY): the
 	// getter returns the stored directory (NULL when unset); the setter
 	// probes the path and invalidates the temp storage when file-backed.
-	TempStoreDirectory(value string) *Result
+	TempStoreDirectory(hasValue bool, value string) *Result
 
 	// WalCheckpoint implements PRAGMA wal_checkpoint (PASSIVE|FULL|RESTART|
 	// TRUNCATE): it folds the WAL into the main database and resets the WAL.
 	WalCheckpoint(schema, value string) *Result
 
 	// PageCount returns the current number of pages in the named schema's
-		// database (PRAGMA page_count).
-		PageCount(schema string) int64
+	// database (PRAGMA page_count).
+	PageCount(schema string) int64
 
-		// MaxPageCount returns or sets PRAGMA max_page_count (the cap on the
-		// pager's allocate-page count, mirroring pager.c::mxPgno).
-		MaxPageCount(schema, value string) *Result
+	// MaxPageCount returns or sets PRAGMA max_page_count (the cap on the
+	// pager's allocate-page count, mirroring pager.c::mxPgno).
+	MaxPageCount(schema, value string) *Result
 
-		// FreelistCount returns the current on-disk freelist count (PRAGMA
-		// freelist_count: bytes 36-39 of the database header, the number of
-		// free pages reachable from the trunk chain).
-		FreelistCount(schema string) int64
+	// FreelistCount returns the current on-disk freelist count (PRAGMA
+	// freelist_count: bytes 36-39 of the database header, the number of
+	// free pages reachable from the trunk chain).
+	FreelistCount(schema string) int64
 
 	// Cache pragmas.
 	CacheSize(schema, value string) *Result
@@ -121,7 +121,7 @@ type EngineState interface {
 	IndexList(table string) *Result
 
 	// Table pragmas.
-	TableInfo(xinfo bool, table string) ([]sql.ColumnDef, [][]interface{}, error)
+	TableInfo(xinfo bool, schema, table string) ([]sql.ColumnDef, [][]interface{}, error)
 
 	// Integrity pragmas.
 	QuickCheck(table string) *Result
@@ -336,7 +336,7 @@ var pragmaHandlers = map[string]Handler{
 
 	// --- Table pragmas (value is a table name) ---
 	"TABLE_INFO": func(st EngineState, s *sql.PragmaStmt) *Result {
-		cols, rows, err := st.TableInfo(false, s.Value)
+		cols, rows, err := st.TableInfo(false, s.Schema, s.Value)
 		if err != nil {
 			return &Result{Error: err}
 		}
@@ -347,7 +347,7 @@ var pragmaHandlers = map[string]Handler{
 		return &Result{Columns: names, Rows: rows}
 	},
 	"TABLE_XINFO": func(st EngineState, s *sql.PragmaStmt) *Result {
-		cols, rows, err := st.TableInfo(true, s.Value)
+		cols, rows, err := st.TableInfo(true, s.Schema, s.Value)
 		if err != nil {
 			return &Result{Error: err}
 		}
@@ -490,19 +490,25 @@ var pragmaHandlers = map[string]Handler{
 		}
 		// SQLite names the result column "page_count" (pragma.c PragTyp_PAGE_COUNT).
 		return &Result{Columns: []string{"page_count"}, Rows: [][]interface{}{{st.PageCount(s.Schema)}}}
-			},
-			"MAX_PAGE_COUNT": func(st EngineState, s *sql.PragmaStmt) *Result {
-				return st.MaxPageCount(s.Schema, s.Value)
-			},
-			"FREELIST_COUNT": pragmaGetOnly(func(st EngineState) *Result {
+	},
+	"MAX_PAGE_COUNT": func(st EngineState, s *sql.PragmaStmt) *Result {
+		return st.MaxPageCount(s.Schema, s.Value)
+	},
+	"FREELIST_COUNT": func(st EngineState, s *sql.PragmaStmt) *Result {
 		// P8.INCRVACUUM.phase7: read the actual on-disk freelist count
 		// from the header instead of returning a hard-coded 0. The
 		// previous hard-coded 0 hid the mismatch between the in-memory
 		// freelist state and the on-disk chain — the integrity check
 		// would report "Freelist: size is N but should be M" while
 		// PRAGMA freelist_count itself showed 0, masking the bug.
-		return &Result{Rows: [][]interface{}{{st.FreelistCount("")}}}
-	}),
+		//
+		// The pragma is schema-qualified (PRAGMA aux.freelist_count reads
+		// the aux file's header — pragma2-3.1) and read-only: a value-
+		// bearing form ignores the value and still returns the count row
+		// (pragma2-3.2/3.3: "PRAGMA freelist_count = 500" yields the
+		// current count like the bare getter).
+		return &Result{Rows: [][]interface{}{{st.FreelistCount(s.Schema)}}}
+	},
 	"AUTO_VACUUM": func(st EngineState, s *sql.PragmaStmt) *Result {
 		return st.AutoVacuum(s.Schema, s.Value)
 	},
@@ -621,7 +627,6 @@ var pragmaHandlers = map[string]Handler{
 	// storage when file-backed, so pre-existing temp tables vanish
 	// (pragma-9.10).
 	"TEMP_STORE_DIRECTORY": func(st EngineState, s *sql.PragmaStmt) *Result {
-		return st.TempStoreDirectory(s.Value)
+		return st.TempStoreDirectory(s.HasValue, s.Value)
 	},
-
 }

@@ -6,7 +6,6 @@ package exec
 import (
 	"fmt"
 	"os"
-	"strconv"
 	"strings"
 
 	"github.com/pijalu/frigolite/internal/execpragma"
@@ -170,17 +169,19 @@ func (e *Engine) invalidateTempStorage() error {
 func (e *Engine) TempStore(value string) *execpragma.Result {
 	if value != "" {
 		var ts int
-		switch strings.ToLower(strings.TrimSpace(value)) {
-		case "file":
+		// getTempStore (pragma.c:141): only a LEADING digit 0..2 selects a
+		// store numerically; "file"→1, "memory"→2, anything else (including
+		// 3+) → 0 (pragma-9.14: temp_store=3 reads back 0).
+		v := strings.TrimSpace(value)
+		switch {
+		case len(v) > 0 && v[0] >= '0' && v[0] <= '2':
+			ts = int(v[0] - '0')
+		case strings.EqualFold(v, "file"):
 			ts = 1
-		case "memory":
+		case strings.EqualFold(v, "memory"):
 			ts = 2
-		case "default", "0":
-			ts = 0
 		default:
-			if n, err := strconv.Atoi(strings.TrimSpace(value)); err == nil {
-				ts = n
-			}
+			ts = 0
 		}
 		if ts != e.settings.tempStore {
 			if err := e.invalidateTempStorage(); err != nil {
@@ -200,12 +201,12 @@ func (e *Engine) TempStore(value string) *execpragma.Result {
 // writable directory" on failure) and, when the temp storage is
 // file-backed per the SQLITE_TEMP_STORE matrix, discards the temp
 // storage — so temp tables created before the change vanish (pragma-9.10).
-func (e *Engine) TempStoreDirectory(value string) *execpragma.Result {
-	if value == "" {
-		// Getter: returnSingleText(v, sqlite3_temp_directory) — one row,
-		// NULL when the directory was never set.
+func (e *Engine) TempStoreDirectory(hasValue bool, value string) *execpragma.Result {
+	if !hasValue {
+		// Getter: returnSingleText(v, sqlite3_temp_directory) emits NO row
+		// when the directory is unset (NULL) — not a NULL row.
 		if e.settings.tempStoreDirectory == "" {
-			return &execpragma.Result{Rows: [][]interface{}{{nil}}}
+			return &execpragma.Result{}
 		}
 		return &execpragma.Result{Rows: [][]interface{}{{e.settings.tempStoreDirectory}}}
 	}
@@ -300,7 +301,10 @@ func (e *Engine) setSynchronous(schema, value string) *execpragma.Result {
 	}
 	// pragma.c: else-if iDb!=1 — the temp database's level is not settable.
 	if upper := strings.ToUpper(schema); upper != "TEMP" && upper != "TEMPORARY" {
-		lvl := parseSafetyLevel(value)
+		// sqlite3Pragma stores (getSafetyLevel+1) & PAGER_SYNCHRONOUS_MASK
+		// (0x07) and the getter reports stored-1, so synchronous=8 rounds to
+		// 0 and synchronous=10 to 2 (pragma-1.14.3/1.14.4).
+		lvl := (parseSafetyLevel(value) + 1) & 0x07
 		if upper == "" || upper == "MAIN" {
 			e.settings.synchronousLevels["MAIN"] = int64(lvl)
 		} else {

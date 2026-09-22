@@ -62,6 +62,13 @@ type Aggregator interface {
 // Registry holds all registered functions.
 type Registry struct {
 	funcs map[string]*Func
+	// userSet tracks application-registered names (the
+	// sqlite3_create_function class of registrations). SQLite's
+	// sqlite3FindFunction consults the connection's user function hash
+	// BEFORE the builtin table, and sqlite3CreateFunc destroys an existing
+	// definition of the same name — so a user registration replaces a
+	// builtin (or engine-state function) of that name entirely.
+	userSet map[string]bool
 	// encoding is the database text encoding ("UTF-8", "UTF-16le",
 	// "UTF-16be"). SQLite tags every column value read from disk with the
 	// database encoding (vdbe.c OP_Column: pDest->enc = encoding, including
@@ -72,7 +79,7 @@ type Registry struct {
 
 // NewRegistry creates a new function registry with default functions.
 func NewRegistry() *Registry {
-	r := &Registry{funcs: make(map[string]*Func), encoding: "UTF-8"}
+	r := &Registry{funcs: make(map[string]*Func), userSet: make(map[string]bool), encoding: "UTF-8"}
 	r.registerDefaults()
 	return r
 }
@@ -146,13 +153,30 @@ func (r *Registry) register(f *Func) {
 // functions like SQLite's internal sqlite_rename_quotefix). Application
 // functions are not "builtin" in pragma_function_list.
 func (r *Registry) Register(name string, fn func(args []interface{}) (interface{}, error), minArgs, maxArgs int) {
+	r.noteUser(name)
 	r.register(&Func{Name: name, Type: TypeScalar, MinArgs: minArgs, MaxArgs: maxArgs, ScalarFn: fn})
+}
+
+// noteUser records name as application-registered (userSet).
+func (r *Registry) noteUser(name string) {
+	if r.userSet == nil {
+		r.userSet = make(map[string]bool)
+	}
+	r.userSet[strings.ToUpper(name)] = true
+}
+
+// IsUserRegistered reports whether name was registered by the application
+// (as opposed to a builtin): such registrations shadow the engine-state and
+// builtin dispatch (sqlite3FindFunction's user-hash-first order).
+func (r *Registry) IsUserRegistered(name string) bool {
+	return r.userSet[strings.ToUpper(name)]
 }
 
 // RegisterFlags adds a scalar function with SQLite function-safety flags
 // (SQLITE_INNOCUOUS / SQLITE_DIRECTONLY), which control whether the function
 // may appear in schema objects under PRAGMA trusted_schema (trustschema1).
 func (r *Registry) RegisterFlags(name string, fn func(args []interface{}) (interface{}, error), minArgs, maxArgs int, innocuous, directOnly bool) {
+	r.noteUser(name)
 	r.register(&Func{Name: name, Type: TypeScalar, MinArgs: minArgs, MaxArgs: maxArgs, ScalarFn: fn, Innocuous: innocuous, DirectOnly: directOnly})
 }
 
@@ -162,6 +186,7 @@ func (r *Registry) RegisterFlags(name string, fn func(args []interface{}) (inter
 // SQLite aggregates without a window-value callback: they may not be used as
 // window functions (resolve.c).
 func (r *Registry) RegisterAggregate(name string, minArgs, maxArgs int, newAgg func() Aggregator) {
+	r.noteUser(name)
 	r.register(&Func{Name: name, Type: TypeAggregate, MinArgs: minArgs, MaxArgs: maxArgs, AggregateFn: newAgg, ClassicAggregate: true})
 }
 
