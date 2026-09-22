@@ -226,6 +226,12 @@ func (e *DMLExecutor) optimizeFTSShadow(tableName string) {
 	// OPTIMIZE deletes (fts3DeleteSegment per source): purge them so only the
 	// merged output's own leaf blocks remain (fts4growth 5.x parity).
 	_ = e.ctx.Exec(&sql.DeleteStmt{Table: tableName + "_segments"})
+	e.optimizeWriteMergedGroups(tableName, existingLevels, maxLevel)
+}
+
+// optimizeWriteMergedGroups writes one merged level-0 segment per language
+// group over the purged segdir, then refreshes the segment caches.
+func (e *DMLExecutor) optimizeWriteMergedGroups(tableName string, existingLevels map[int64]bool, maxLevel int64) {
 	var ftsTable *fts.FTS3Table
 	if t, ok := e.ctx.FTSTables()[tableName]; ok {
 		ftsTable = t
@@ -250,9 +256,14 @@ func (e *DMLExecutor) optimizeFTSShadow(tableName string) {
 	for _, g := range groups {
 		e.optimizeMergeGroup(st, ftsTable, g)
 	}
-	// The optimize deleted every %_segdir row and replaced them with one;
-	// the segdir-idx cache is stale and must be rescanned next time. The
-	// %_segments block counter is advanced past the new blocks.
+	e.optimizeRefreshSegmentCache(tableName, st)
+}
+
+// optimizeRefreshSegmentCache refreshes the FTS segment caches after an
+// optimize. The optimize deleted every %_segdir row and replaced them with
+// one; the segdir-idx cache is stale and must be rescanned next time. The
+// %_segments block counter is advanced past the new blocks.
+func (e *DMLExecutor) optimizeRefreshSegmentCache(tableName string, st *ftsOptimizeState) {
 	if t, ok := e.ctx.FTSTables()[tableName]; ok && t != nil {
 		t.SetNextBlockID(st.nextBlock)
 		t.InvalidateSegmentCache()

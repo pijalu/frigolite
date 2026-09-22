@@ -427,16 +427,29 @@ func (e *DMLExecutor) applyOuterOrConflict(stmt sql.Stmt) {
 		// violation (verified against sqlite3: INSERT OR ABORT of a fresh
 		// key fires the body step and errors). IGNORE/REPLACE outers never
 		// override an explicit step policy.
-		if !s.IsReplace && (s.OrConflict == "" || (!strings.EqualFold(s.OrConflict, outer) && (strings.EqualFold(outer, "ABORT") || strings.EqualFold(outer, "FAIL") || strings.EqualFold(outer, "ROLLBACK")))) {
+		if !s.IsReplace && (s.OrConflict == "" || outerConflictOverridesStep(s.OrConflict, outer)) {
 			s.OrConflict = outer
 			s.OrIgnore = strings.EqualFold(outer, "IGNORE")
 			s.OrFail = strings.EqualFold(outer, "FAIL")
 		}
 	case *sql.UpdateStmt:
-		if s.OnConflict == "" || (!strings.EqualFold(s.OnConflict, outer) && (strings.EqualFold(outer, "ABORT") || strings.EqualFold(outer, "FAIL") || strings.EqualFold(outer, "ROLLBACK"))) {
+		if s.OnConflict == "" || outerConflictOverridesStep(s.OnConflict, outer) {
 			s.OnConflict = outer
 		}
 	}
+}
+
+// isStrictOuterConflict reports whether an outer ON CONFLICT policy is one
+// of the strict modes (ABORT/FAIL/ROLLBACK) that override an explicit body
+// step clause.
+func isStrictOuterConflict(outer string) bool {
+	return strings.EqualFold(outer, "ABORT") || strings.EqualFold(outer, "FAIL") || strings.EqualFold(outer, "ROLLBACK")
+}
+
+// outerConflictOverridesStep reports whether a strict outer policy overrides
+// a step's explicit (and different) ON CONFLICT clause.
+func outerConflictOverridesStep(stepClause, outer string) bool {
+	return stepClause != "" && !strings.EqualFold(stepClause, outer) && isStrictOuterConflict(outer)
 }
 
 // execTriggerBody runs a trigger's parsed statements, handling RAISE(IGNORE)

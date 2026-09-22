@@ -167,23 +167,35 @@ func dmlRowidConst(v interface{}) (rowid int64, matches bool, planned bool) {
 	case int:
 		return int64(n), true, true
 	case float64:
-		if n == math.Trunc(n) && n >= -9.223372036854776e18 && n < 9.223372036854776e18 {
+		if inRowidRange(n) {
 			return int64(n), true, true
 		}
 		return 0, false, true
 	case string:
-		f, err := strconv.ParseFloat(strings.TrimSpace(n), 64)
-		if err != nil {
-			return 0, false, true // non-numeric text never equals an integer rowid
-		}
-		if f == math.Trunc(f) && f >= -9.223372036854776e18 && f < 9.223372036854776e18 {
-			return int64(f), true, true
-		}
-		return 0, false, true
+		return dmlRowidConstFromText(n)
 	case nil:
 		return 0, false, true // rowid = NULL matches nothing
 	}
 	return 0, false, false
+}
+
+// inRowidRange reports whether an integral float lies in the int64 rowid
+// range.
+func inRowidRange(f float64) bool {
+	return f == math.Trunc(f) && f >= -9.223372036854776e18 && f < 9.223372036854776e18
+}
+
+// dmlRowidConstFromText converts a text constant to a matching rowid.
+// Non-numeric or non-integral text never equals an integer rowid.
+func dmlRowidConstFromText(n string) (rowid int64, matches bool, planned bool) {
+	f, err := strconv.ParseFloat(strings.TrimSpace(n), 64)
+	if err != nil {
+		return 0, false, true // non-numeric text never equals an integer rowid
+	}
+	if inRowidRange(f) {
+		return int64(f), true, true
+	}
+	return 0, false, true
 }
 
 // seekIndexFor finds the index driving a col = <const> candidate lookup: a

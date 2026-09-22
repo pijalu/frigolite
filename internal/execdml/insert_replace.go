@@ -116,16 +116,11 @@ func (e *DMLExecutor) scanReplaceSecondaryConflict(tableEntry *schema.Entry, col
 		if cerr != nil || cell == nil {
 			break
 		}
-		rec, derr := storage.DecodeRecord(cell.Payload)
-		if derr != nil || rec == nil {
+		res, skip, ok := e.replaceSecondaryCellConflict(cell, keyer, tableEntry, colDefs, values, strictCols, ignoreCols)
+		if !ok {
 			break
 		}
-		// WITHOUT ROWID cells are PK-first storage order; the scan compares
-		// declared positions, so remap first (as findNextReplaceConflict does).
-		if keyer.wr {
-			e.ctx.RemapWRRecordToDeclared(rec, tableEntry.SQL, colDefs)
-		}
-		if res, skip := replaceSecondaryRowConflict(tableEntry, rec.Values, values, colDefs, strictCols, ignoreCols); res != nil || skip {
+		if res != nil || skip {
 			return res, skip
 		}
 		if okN, nerr := cursor.Next(); nerr != nil || !okN {
@@ -133,6 +128,24 @@ func (e *DMLExecutor) scanReplaceSecondaryConflict(tableEntry *schema.Entry, col
 		}
 	}
 	return nil, false
+}
+
+// replaceSecondaryCellConflict tests one scanned cell against the tracked
+// secondary constraint: strict columns produce the UNIQUE error, IGNORE
+// columns skip the row. ok=false ends the scan (the record could not be
+// decoded). WITHOUT ROWID cells are PK-first storage order; the scan
+// compares declared positions, so remap first (as findNextReplaceConflict
+// does).
+func (e *DMLExecutor) replaceSecondaryCellConflict(cell *storage.Cell, keyer conflictKeyer, tableEntry *schema.Entry, colDefs []sql.ColumnDef, values []interface{}, strictCols, ignoreCols map[int]bool) (*Result, bool, bool) {
+	rec, derr := storage.DecodeRecord(cell.Payload)
+	if derr != nil || rec == nil {
+		return nil, false, false
+	}
+	if keyer.wr {
+		e.ctx.RemapWRRecordToDeclared(rec, tableEntry.SQL, colDefs)
+	}
+	res, skip := replaceSecondaryRowConflict(tableEntry, rec.Values, values, colDefs, strictCols, ignoreCols)
+	return res, skip, true
 }
 
 // replaceSecondaryRowConflict tests one existing row against the tracked
@@ -344,25 +357,16 @@ func (e *DMLExecutor) replaceConflictAtRowID(pg *pager.Pager, tableEntry *schema
 
 // deleteReplaceConflictRow fires BEFORE/AFTER DELETE triggers, deletes the
 // row, and applies foreign-key actions for one REPLACE conflict.
-
-// deleteReplaceConflictRow fires BEFORE/AFTER DELETE triggers, deletes the
-// row, and applies foreign-key actions for one REPLACE conflict.
-
-// deleteReplaceConflictRow fires BEFORE/AFTER DELETE triggers, deletes the
-// row, and applies foreign-key actions for one REPLACE conflict.
-// deleteReplaceConflictRow fires BEFORE/AFTER DELETE triggers, deletes the
-// row, and applies foreign-key actions for one REPLACE conflict.
 func (e *DMLExecutor) deleteReplaceConflictRow(tree *btree.BTree, tableEntry *schema.Entry, colDefs []sql.ColumnDef, conflictRowID int64, conflictValues []interface{}, hasTriggers bool) *Result {
 	// Read the row for trigger OLD values.
 	oldRow := buildRowMapFromValues(conflictValues, colDefs, conflictRowID)
-	if hasTriggers {
-		if trigResult := e.fireBeforeDeleteTriggers(tableEntry.Name, oldRow); trigResult.Error != nil {
+	res, skip := e.maybeFireReplaceBeforeDeleteTrigger(tableEntry, oldRow, hasTriggers)
+	if res != nil || skip {
+		if skip {
 			// RAISE(IGNORE) in a BEFORE DELETE trigger skips this row's delete.
-			if trigResult.Error == errRaiseIgnore {
-				return nil
-			}
-			return trigResult
+			return nil
 		}
+		return res
 	}
 	// WITHOUT ROWID rows are PK-keyed index cells sharing synthetic RowID 0:
 	// match the conflicting row's OLD PK instead of the rowid.
@@ -377,26 +381,11 @@ func (e *DMLExecutor) deleteReplaceConflictRow(tree *btree.BTree, tableEntry *sc
 	e.ctx.InvalidateRowIDCache(e.dmlPager(tableEntry.Name), tableEntry.RootPage)
 	// Fire the preupdate hook for the deleted conflicting row (REPLACE
 	// deletes the old row, then the INSERT fires for the new one).
-	delRowID := conflictRowID
-	if hasWithoutRowidKeyword(strings.ToUpper(tableEntry.SQL)) {
-		delRowID = 0
-	}
-	if res := e.ctx.FirePreupdate(PreupdateEvent{
-		Type:  "DELETE",
-		DB:    e.schemaNameForPager(e.dmlPager(tableEntry.Name)),
-		Table: tableEntry.Name,
-		RowID: delRowID, RowID2: delRowID,
-		RowidTable:   !hasWithoutRowidKeyword(strings.ToUpper(tableEntry.SQL)),
-		NoUpdateHook: true,
-		Old:          conflictValues,
-		New:          nil,
-	}); res != nil {
+	if res := e.fireConflictDeletePreupdate(tableEntry, conflictRowID, conflictValues); res != nil {
 		return res
 	}
-	if hasTriggers {
-		if trigResult := e.fireAfterDeleteTriggers(tableEntry.Name, oldRow); trigResult.Error != nil {
-			return trigResult
-		}
+	if res := e.maybeFireReplaceAfterDeleteTrigger(tableEntry, oldRow, hasTriggers); res != nil {
+		return res
 	}
 	// Foreign key actions for the deleted conflicting row: CASCADE children
 	// are deleted, SET NULL / SET DEFAULT children update their FK column.
@@ -406,6 +395,35 @@ func (e *DMLExecutor) deleteReplaceConflictRow(tree *btree.BTree, tableEntry *sc
 		if fkResult := e.ctx.FkParentDeleteReplace(tableEntry, colDefs, oldRow); fkResult.Error != nil {
 			return fkResult
 		}
+	}
+	return nil
+}
+
+// maybeFireReplaceBeforeDeleteTrigger fires BEFORE DELETE triggers for one
+// REPLACE conflict row when the table has triggers. res non-nil aborts the
+// statement; skipRow reports RAISE(IGNORE), which cancels this row's delete
+// without an error.
+func (e *DMLExecutor) maybeFireReplaceBeforeDeleteTrigger(tableEntry *schema.Entry, oldRow RowMap, hasTriggers bool) (*Result, bool) {
+	if !hasTriggers {
+		return nil, false
+	}
+	if trigResult := e.fireBeforeDeleteTriggers(tableEntry.Name, oldRow); trigResult.Error != nil {
+		if trigResult.Error == errRaiseIgnore {
+			return nil, true
+		}
+		return trigResult, false
+	}
+	return nil, false
+}
+
+// maybeFireReplaceAfterDeleteTrigger fires AFTER DELETE triggers for one
+// REPLACE conflict row when the table has triggers.
+func (e *DMLExecutor) maybeFireReplaceAfterDeleteTrigger(tableEntry *schema.Entry, oldRow RowMap, hasTriggers bool) *Result {
+	if !hasTriggers {
+		return nil
+	}
+	if trigResult := e.fireAfterDeleteTriggers(tableEntry.Name, oldRow); trigResult.Error != nil {
+		return trigResult
 	}
 	return nil
 }

@@ -39,25 +39,11 @@ func (e *DMLExecutor) insertSelectWrittenRow(tableEntry *schema.Entry, colDefs [
 	}
 	// Track root page changes (after splits).
 	dmlPg := e.dmlPager(tableEntry.Name)
-	if tree.RootPage() != e.ctx.RootPagePg(dmlPg, tableEntry.Name, tableEntry.RootPage) {
-		e.ctx.UpdateRootPagePg(dmlPg, tableEntry.Name, tree.RootPage())
-	}
+	e.persistTreeRootPage(dmlPg, tableEntry.Name, tableEntry.RootPage, tree)
 	e.ctx.BumpRowIDCache(e.dmlPager(tableEntry.Name), tableEntry.RootPage, rowID)
 
 	// Fire the preupdate hook with the new row's values (INSERT ... SELECT).
-	puRowID := rowID
-	if hasWithoutRowidKeyword(strings.ToUpper(tableEntry.SQL)) {
-		puRowID = 0
-	}
-	if res := e.ctx.FirePreupdate(PreupdateEvent{
-		Type:  "INSERT",
-		DB:    e.schemaNameForPager(e.dmlPager(tableEntry.Name)),
-		Table: tableEntry.Name,
-		RowID: puRowID, RowID2: puRowID,
-		RowidTable: !hasWithoutRowidKeyword(strings.ToUpper(tableEntry.SQL)),
-		Old:        nil,
-		New:        append([]interface{}(nil), values...),
-	}); res != nil {
+	if res := e.fireInsertPreupdate(tableEntry, rowID, values); res != nil {
 		return res, nil
 	}
 
@@ -75,15 +61,41 @@ func (e *DMLExecutor) insertSelectWrittenRow(tableEntry *schema.Entry, colDefs [
 	}
 
 	// Handle RETURNING clause — evaluate against the row that was written.
-	if s.HasReturning {
-		rrow := buildRowMapFromValues(values, colDefs, rowID)
-		rv, err := e.evalReturningStrict(s.Returning, rrow, colDefs, tableEntry.Name)
-		if err != nil {
-			return &Result{Error: err}, nil
-		}
-		return nil, rv
+	return e.evalInsertSelectReturning(s, tableEntry, colDefs, values, rowID)
+}
+
+// fireInsertPreupdate fires the preupdate INSERT hook with the new row's
+// values (WITHOUT ROWID tables report the synthetic rowid 0 — SQLite uses
+// the key columns instead).
+func (e *DMLExecutor) fireInsertPreupdate(tableEntry *schema.Entry, rowID int64, values []interface{}) *Result {
+	wr := hasWithoutRowidKeyword(strings.ToUpper(tableEntry.SQL))
+	puRowID := rowID
+	if wr {
+		puRowID = 0
 	}
-	return nil, nil
+	return e.ctx.FirePreupdate(PreupdateEvent{
+		Type:  "INSERT",
+		DB:    e.schemaNameForPager(e.dmlPager(tableEntry.Name)),
+		Table: tableEntry.Name,
+		RowID: puRowID, RowID2: puRowID,
+		RowidTable: !wr,
+		Old:        nil,
+		New:        append([]interface{}(nil), values...),
+	})
+}
+
+// evalInsertSelectReturning evaluates an INSERT ... SELECT RETURNING clause
+// against the row that was written.
+func (e *DMLExecutor) evalInsertSelectReturning(s *sql.InsertStmt, tableEntry *schema.Entry, colDefs []sql.ColumnDef, values []interface{}, rowID int64) (*Result, []interface{}) {
+	if !s.HasReturning {
+		return nil, nil
+	}
+	rrow := buildRowMapFromValues(values, colDefs, rowID)
+	rv, err := e.evalReturningStrict(s.Returning, rrow, colDefs, tableEntry.Name)
+	if err != nil {
+		return &Result{Error: err}, nil
+	}
+	return nil, rv
 }
 
 // errRowSkipped signals that an INSERT row was skipped (INSERT OR IGNORE or a
