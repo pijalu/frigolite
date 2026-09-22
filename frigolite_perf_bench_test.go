@@ -261,3 +261,44 @@ func BenchmarkPerfLookupByRowid(b *testing.B) {
 		}
 	}
 }
+
+// BenchmarkPerfIndexSeekUpdate drives indexed point-lookup UPDATEs through
+// the DML seek path (planDMLSeek → index candidate collection): the
+// P9.PERF.T3 before/after measure for replacing the value-scan byte
+// prefilter with the btree KeyInfo record-compare seek. 500 statements x
+// 20k-row index visits per iteration make the O(index) candidate-scan cost
+// the dominant term.
+func BenchmarkPerfIndexSeekUpdate(b *testing.B) {
+	dir := b.TempDir()
+	db := perfBenchOpen(b, dir)
+	defer db.Close()
+	perfBenchLoad(b, db, "t2", 20000) // t2 carries index i2a on (a)
+	var sb strings.Builder
+	for i := 1; i <= 500; i++ {
+		fmt.Fprintf(&sb, "UPDATE t2 SET b=1 WHERE a=%d;\n", i)
+	}
+	sql := sb.String()
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		perfBenchExec(b, db, sql)
+	}
+}
+
+// BenchmarkPerfIndexSeekMiss is the pure candidate-collection measure: the
+// same point-lookup shape as BenchmarkPerfIndexSeekUpdate with probes that
+// match no row, so every iteration is exactly the index candidate scan.
+func BenchmarkPerfIndexSeekMiss(b *testing.B) {
+	dir := b.TempDir()
+	db := perfBenchOpen(b, dir)
+	defer db.Close()
+	perfBenchLoad(b, db, "t2", 20000)
+	var sb strings.Builder
+	for i := 1; i <= 500; i++ {
+		fmt.Fprintf(&sb, "UPDATE t2 SET b=1 WHERE a=%d;\n", -i)
+	}
+	sql := sb.String()
+	b.ResetTimer()
+	for i := 0; i < b.N; i++ {
+		perfBenchExec(b, db, sql)
+	}
+}

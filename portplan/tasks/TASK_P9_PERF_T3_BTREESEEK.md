@@ -177,7 +177,26 @@ WHERE still evaluates on every candidate.
 3. Final: `go test . -timeout 45m` baseline set not grown; quality gates on
    changed files; `BenchmarkPerfIndexSeek*` before/after numbers recorded.
 
-## 6. Next-tranche handoff (documented, not built here)
+## 6. Measured results (2026-09-22, branch fleet/q5-btreeseek)
+
+`go test -run '^$' -bench BenchmarkPerfIndexSeek -benchtime 3x -count 3 .`
+(500 point-lookup statements per op against a 20k-row t2 with index i2a(a);
+medians of 3):
+
+| Benchmark | before (prefilter walk) | after (record-compare seek) | delta |
+|---|---|---|---|
+| `PerfIndexSeekMiss` (pure candidate scan, no matches) | 390.3 ms/op | 210.9 ms/op | **1.85x** (~18 ns saved per index entry visited) |
+| `PerfIndexSeekUpdate` (1 matching row per statement) | 1853.5 ms/op | 1805.3 ms/op | ~3% (within noise: dominated by the sibling index i2b(b)'s maintenance walk — the T2 batch-delete path, untouched here) |
+
+Correctness: `go test ./internal/btree/... ./internal/execdml/...` green
+(new unit tests include a randomized order-agnostic oracle against
+decode+CompareValues); the 7-package testgen battery shows an IDENTICAL
+failure-signature set vs base main (autovacuum/index/intpkey red at base —
+pre-existing drift, execquery scan-class turf, reported to the coordinator);
+full-battery and `go test . -timeout 45m` runs recorded in the tranche
+report.
+
+## 7. Next-tranche handoff (documented, not built here)
 
 - Flip option (b): install a KeyInfo comparator on index trees at
   INSERT/CREATE INDEX (pattern: `WRRecordComparator` + `SetKeyCompare`),
