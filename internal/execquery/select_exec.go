@@ -416,7 +416,7 @@ func (e *SelectEngine) finalizeSelectResult(result *Result, s *sql.SelectStmt, r
 		rowMaps = rebuildRowMapsFromRows(result.Rows, result.Columns)
 	}
 	if len(orderBy) > 0 {
-		resolved, rerr := e.resolveFinalOrderBy(s, orderBy, len(result.Columns), colls)
+		resolved, rerr := e.resolveFinalOrderBy(s, orderBy, result.Columns, colls)
 		if rerr != nil {
 			return &Result{Error: rerr}
 		}
@@ -437,8 +437,10 @@ func (e *SelectEngine) finalizeSelectResult(result *Result, s *sql.SelectStmt, r
 // first member with a defined collation wins — with1 10.8.4.x): an ordinal
 // or bare term without its own COLLATE must sort with the compound column's
 // collation, so it is wrapped in COLLATE when the column defines one.
-func (e *SelectEngine) resolveFinalOrderBy(s *sql.SelectStmt, orderBy []sql.OrderByTerm, width int, colls []string) ([]sql.OrderByTerm, error) {
-	if err := validateOrderBy(orderBy, width); err != nil {
+// resultCols carries the compound's output column names (used to resolve bare
+// term names to their result positions).
+func (e *SelectEngine) resolveFinalOrderBy(s *sql.SelectStmt, orderBy []sql.OrderByTerm, resultCols []string, colls []string) ([]sql.OrderByTerm, error) {
+	if err := validateOrderBy(orderBy, len(resultCols)); err != nil {
 		return nil, err
 	}
 	if s.Union == nil {
@@ -448,7 +450,7 @@ func (e *SelectEngine) resolveFinalOrderBy(s *sql.SelectStmt, orderBy []sql.Orde
 		return nil, err
 	}
 	orderBy = e.resolveCompoundOrderByTerms(s, orderBy)
-	return e.applyCompoundOrderByCollations(orderBy, colls), nil
+	return e.applyCompoundOrderByCollations(orderBy, resultCols, colls), nil
 }
 
 // execSelectViewWithOuter executes a view and applies the outer SELECT's
