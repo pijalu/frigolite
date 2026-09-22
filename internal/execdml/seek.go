@@ -276,17 +276,29 @@ func (e *DMLExecutor) seekCandidateRowIDs(tableName string, rootPage uint32, pla
 	return e.scanIndexCandidates(plan)
 }
 
-// scanIndexCandidates walks the driving index's entries, collecting the
-// rowids whose first key value matches the probe (see seekCandidateRowIDs).
+// scanIndexCandidates resolves the plan's probe keys through the driving
+// index's b-tree (P9.PERF.T3): each probe value becomes a
+// btree.UnpackedIndexKey under the index's KeyInfo and btree.IndexKeyRowIDs
+// collects candidate rowids with record-format comparisons — value-order
+// semantics, so an INTEGER probe also matches a stored REAL with the same
+// value (the old byte-encoding prefilter required equal encodings and could
+// miss that pair). The walk is order-agnostic (stored byte order scatters
+// value-equal entries), and any comparator/page error falls back to the
+// full scan via ok=false.
 func (e *DMLExecutor) scanIndexCandidates(plan *dmlSeekPlan) (rowIDs []int64, ok bool) {
 	idxTree := btree.NewBTree(plan.index.Ctx.Pager, plan.index.RootPage, false)
-	cursor, err := idxTree.OpenCursor()
-	if err != nil {
-		return nil, false
-	}
-	rowIDs, ok = walkIndexForCandidates(cursor, newDMLKeyProbes(plan), plan)
-	if !ok {
-		return nil, false
+	seen := make(map[int64]bool)
+	for _, probe := range dmlIndexSeekProbes(plan) {
+		ids, err := idxTree.IndexKeyRowIDs(probe)
+		if err != nil {
+			return nil, false
+		}
+		for _, id := range ids {
+			if !seen[id] {
+				seen[id] = true
+				rowIDs = append(rowIDs, id)
+			}
+		}
 	}
 	// The table scan visits rows in rowid order; sort the candidates so the
 	// trigger/preupdate/LIMIT order is unchanged (index byte order does not
@@ -295,65 +307,25 @@ func (e *DMLExecutor) scanIndexCandidates(plan *dmlSeekPlan) (rowIDs []int64, ok
 	return rowIDs, true
 }
 
-// walkIndexForCandidates iterates the index entries, collecting the rowids of
-// entries whose first key value matches the probe.
-func walkIndexForCandidates(cursor *btree.Cursor, probeKeys []dmlKeyProbe, plan *dmlSeekPlan) ([]int64, bool) {
-	var rowIDs []int64
-	seen := make(map[int64]bool)
-	for {
-		payload, _, err := cursor.ReadCellData()
-		if err != nil {
-			return nil, false
-		}
-		if dmlPayloadKeyMatches(payload, probeKeys) {
-			var ok bool
-			rowIDs, ok = dmlAppendCandidate(payload, plan, seen, rowIDs)
-			if !ok {
-				return nil, false
-			}
-		}
-		next, err := cursor.Next()
-		if err != nil {
-			return nil, false
-		}
-		if !next {
-			break
-		}
-	}
-	return rowIDs, true
-}
-
-// dmlAppendCandidate decodes one index entry and, when its first key value
-// matches the probe, appends the entry's rowid. ok=false signals an
-// undecodable payload (the caller falls back to the full scan).
-func dmlAppendCandidate(payload []byte, plan *dmlSeekPlan, seen map[int64]bool, rowIDs []int64) ([]int64, bool) {
-	rid, matched, scanOK := dmlMatchIndexPayload(payload, plan, seen)
-	if !scanOK {
-		return nil, false
-	}
-	if matched {
-		rowIDs = append(rowIDs, rid)
-	}
-	return rowIDs, true
-}
-
-// dmlProbeMatches reports whether an index key value matches either probe
-// candidate (affinity-applied or raw constant). The full WHERE re-evaluation
-// remains the exact filter; this only needs to be a superset.
-func dmlProbeMatches(keyVal interface{}, probe [2]interface{}) bool {
-	k := util.UnwrapColumnValue(keyVal)
-	if k == nil {
-		return false
-	}
-	for _, p := range probe {
+// dmlIndexSeekProbes builds the record-format probe keys for a plan: the
+// affinity-applied constant first, the raw constant second (deduplicated
+// when the two compare equal). The KeyInfo carries the index's leading-key
+// collation (BINARY for every currently eligible index — see
+// dmlIndexProbeEligible) and ASC sort order.
+func dmlIndexSeekProbes(plan *dmlSeekPlan) []*btree.UnpackedIndexKey {
+	ki := btree.NewKeyInfo(1, []string{seekKeyCollation(plan.index.SQL, 0)}, nil)
+	var probes []*btree.UnpackedIndexKey
+	for _, p := range plan.probe {
 		if p == nil {
 			continue
 		}
-		if util.CompareValues(k, execexpr.UnwrapCollatedValue(util.UnwrapColumnValue(p))) == 0 {
-			return true
+		v := execexpr.UnwrapCollatedValue(util.UnwrapColumnValue(p))
+		if len(probes) == 1 && util.CompareValues(probes[0].Values[0], v) == 0 {
+			continue // the affinity-applied and raw constants are value-equal
 		}
+		probes = append(probes, btree.NewUnpackedIndexKey(ki, []interface{}{v}))
 	}
-	return false
+	return probes
 }
 
 func sortInt64Ascending(v []int64) {
@@ -387,102 +359,4 @@ func (e *DMLExecutor) fetchSeekRow(tree *btree.BTree, tableName string, rootPage
 	row := e.ctx.BuildRowMap(rec, colDefs, realRowID)
 	row[trueRowidKey] = realRowID
 	return row, true, nil
-}
-
-// dmlKeyProbe is the record-element encoding of an index probe value: the
-// serial type varint and body bytes a stored key with the same value must
-// carry (record element encodings are canonical per value).
-type dmlKeyProbe struct {
-	st   uint64
-	body []byte
-	ok   bool
-}
-
-// newDMLKeyProbe encodes one value into a single-element record and extracts
-// its element encoding.
-func newDMLKeyProbe(v interface{}) dmlKeyProbe {
-	payload, err := storage.EncodeRecord([]interface{}{v})
-	if err != nil {
-		return dmlKeyProbe{}
-	}
-	hdrSize, n1 := util.GetVarint(payload)
-	if n1 == 0 || int(hdrSize) > len(payload) {
-		return dmlKeyProbe{}
-	}
-	st, n2 := util.GetVarint(payload[n1:])
-	if n2 == 0 {
-		return dmlKeyProbe{}
-	}
-	keyLen, err := storage.SerialTypeLength(st)
-	if err != nil {
-		return dmlKeyProbe{}
-	}
-	bodyStart := int(hdrSize)
-	if bodyStart+int(keyLen) != len(payload) {
-		return dmlKeyProbe{}
-	}
-	return dmlKeyProbe{st: st, body: payload[bodyStart:], ok: true}
-}
-
-// dmlPayloadKeyMatches reports whether an index cell payload's first element
-// encoding matches any probe candidate (a superset of value equality).
-func dmlPayloadKeyMatches(payload []byte, probes []dmlKeyProbe) bool {
-	hdrSize, n1 := util.GetVarint(payload)
-	if n1 == 0 {
-		return true // undecodable shape: let the full decode decide
-	}
-	st, n2 := util.GetVarint(payload[n1:])
-	if n2 == 0 {
-		return true
-	}
-	keyLen, err := storage.SerialTypeLength(st)
-	if err != nil {
-		return true
-	}
-	bodyStart := int(hdrSize)
-	if bodyStart+int(keyLen) > len(payload) {
-		return true
-	}
-	for _, kp := range probes {
-		if kp.st == st && len(kp.body) == int(keyLen) && string(kp.body) == string(payload[bodyStart:bodyStart+int(keyLen)]) {
-			return true
-		}
-	}
-	return false
-}
-
-// dmlMatchIndexPayload decodes one index entry and reports its rowid when the
-// first key value matches the probe. scanOK=false signals an unreadable
-// payload (the caller falls back to the full scan); matched=false with
-// scanOK=true is a plain miss (rid is 0).
-func dmlMatchIndexPayload(payload []byte, plan *dmlSeekPlan, seen map[int64]bool) (rid int64, matched, scanOK bool) {
-	rec, err := storage.DecodeRecord(payload)
-	if err != nil || rec == nil || len(rec.Values) < 2 {
-		return 0, false, false
-	}
-	if !dmlProbeMatches(rec.Values[0], plan.probe) {
-		return 0, false, true
-	}
-	if id, ok := util.UnwrapColumnValue(rec.Values[len(rec.Values)-1]).(int64); ok && !seen[id] {
-		seen[id] = true
-		return id, true, true
-	}
-	return 0, false, true
-}
-
-// newDMLKeyProbes builds the byte-level prefilter probes for a plan: equal
-// values always produce the same record element encoding (serial type + body
-// bytes), so an entry whose first element's encoding differs from BOTH probe
-// candidates cannot match and is skipped without decoding the record.
-func newDMLKeyProbes(plan *dmlSeekPlan) []dmlKeyProbe {
-	probeKeys := make([]dmlKeyProbe, 0, 2)
-	for _, p := range plan.probe {
-		if p == nil {
-			continue
-		}
-		if kp := newDMLKeyProbe(execexpr.UnwrapCollatedValue(util.UnwrapColumnValue(p))); kp.ok {
-			probeKeys = append(probeKeys, kp)
-		}
-	}
-	return probeKeys
 }

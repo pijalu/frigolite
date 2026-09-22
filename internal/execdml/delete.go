@@ -664,10 +664,10 @@ func (e *DMLExecutor) fireDeletePreupdate(tableEntry *schema.Entry, dbCtx *Datab
 		delRowID = 0
 	}
 	return e.ctx.FirePreupdate(PreupdateEvent{
-		Type:       "DELETE",
-		DB:         e.schemaNameForPager(dbCtx.Pager),
-		Table:      tableEntry.Name,
-		RowID:      delRowID, RowID2: delRowID,
+		Type:  "DELETE",
+		DB:    e.schemaNameForPager(dbCtx.Pager),
+		Table: tableEntry.Name,
+		RowID: delRowID, RowID2: delRowID,
 		RowidTable: !hasWithoutRowidKeyword(strings.ToUpper(tableEntry.SQL)),
 		Old:        oldVals,
 		New:        nil,
