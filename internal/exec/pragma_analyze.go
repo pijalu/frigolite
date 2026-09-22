@@ -728,4 +728,3 @@ func (e *Engine) clearStatsForTable(tblName string) *Result {
 		return stat1RowMatchesTbl(row, tblName)
 	})
 }
-

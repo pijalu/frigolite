@@ -732,6 +732,7 @@ func (e *Engine) stmtWritesDatabase(stmt sql.Stmt) bool {
 	}
 	return false
 }
+
 // execAfterWrite performs Exec's post-commit work for a successful DML
 // statement: reload the in-memory FTS index when the statement wrote an FTS
 // table's SHADOW tables directly (outside the FTS flush) — SQLite always

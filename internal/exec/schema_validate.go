@@ -96,101 +96,117 @@ func (e *Engine) validateLoadedSchemaCtx(ctx *DatabaseContext) error {
 		return err
 	}
 	mxPage := ctx.Pager.NumPages()
-	// Rootpage -> index name per table, for the duplicate check
-	// (sqlite3IndexHasDuplicateRootPage is scoped to sibling indexes
-	// of one table; different tables may legally share nothing, but
-	// the C check would still be table-scoped — mirror that).
-	idxRoots := map[string]map[uint32]string{}
-	registerIndex := func(tblName, name string, root uint32) {
-		if root == 0 {
-			return
-		}
-		m, ok := idxRoots[tblName]
-		if !ok {
-			m = map[uint32]string{}
-			idxRoots[tblName] = m
-		}
-		if _, dup := m[root]; !dup {
-			m[root] = name
-			return
-		}
-	}
-	dupIndex := func(tblName string, root uint32, name string) bool {
-		m := idxRoots[tblName]
-		other, ok := m[root]
-		return ok && other != name
-	}
 	// Pass 1: register every index rootpage (explicit + autoindex rows).
-	for _, ent := range entries {
-		if ent.Type == schema.TypeIndex {
-			registerIndex(ent.TblName, ent.Name, ent.RootPage)
-		}
-	}
+	idxRoots := schemaIndexRoots(entries)
 	// Pass 2: validate each row (sqlite3InitCallback).
 	for _, ent := range entries {
-		// Triggers and views carry rootpage 0 legitimately (argv[3]==0
-		// with SQL text is the trigger/view shape). The argv[3]==0
-		// generic-corrupt branch applies only to rows that should have
-		// a rootpage; frigolite represents vtab entries with rootpage 0
-		// too, so a zero rootpage is never by itself an error here.
-		if ent.RootPage == 0 {
+		if err := e.validateSchemaEntryRow(ent, mxPage, idxRoots); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// schemaIndexRoots registers every index's rootpage per table (pass 1),
+// for the duplicate check (sqlite3IndexHasDuplicateRootPage is scoped to
+// sibling indexes of one table; different tables may legally share nothing,
+// but the C check would still be table-scoped — mirror that).
+func schemaIndexRoots(entries []*schema.Entry) map[string]map[uint32]string {
+	idxRoots := map[string]map[uint32]string{}
+	for _, ent := range entries {
+		if ent.Type != schema.TypeIndex || ent.RootPage == 0 {
 			continue
 		}
-		// Rootpage beyond the database page count (src/prepare.c:134-140:
-		// db->init.newTnum > pData->mxPage when mxPage>0). With PRAGMA
-		// writable_schema ON the oracle tolerates an out-of-range rootpage on
-		// a parseable CREATE row: the object stays registered and the later
-		// DDL that allocates the page heals the file (fkey6-6.2 reopens a
-		// 1-page db whose hand-inserted t1 row claims rootpage 2 and CREATE
-		// TABLE t2 succeeds; a plain read reports the generic WriteSchema
-		// corrupt from the btree access itself). The named "invalid rootpage"
-		// still fires with writable_schema OFF (oracle: "malformed database
-		// schema (t1) - invalid rootpage").
-		if mxPage > 0 && ent.RootPage > mxPage && !e.settings.writableSchema {
+		m, ok := idxRoots[ent.TblName]
+		if !ok {
+			m = map[uint32]string{}
+			idxRoots[ent.TblName] = m
+		}
+		if _, dup := m[ent.RootPage]; !dup {
+			m[ent.RootPage] = ent.Name
+		}
+	}
+	return idxRoots
+}
+
+// duplicateSchemaIndexRoot reports whether root is already registered to a
+// DIFFERENT index of the same table.
+func duplicateSchemaIndexRoot(idxRoots map[string]map[uint32]string, tblName string, root uint32, name string) bool {
+	other, ok := idxRoots[tblName][root]
+	return ok && other != name
+}
+
+// validateSchemaEntryRow validates one schema row (sqlite3InitCallback).
+func (e *Engine) validateSchemaEntryRow(ent *schema.Entry, mxPage uint32, idxRoots map[string]map[uint32]string) error {
+	// Triggers and views carry rootpage 0 legitimately (argv[3]==0
+	// with SQL text is the trigger/view shape). The argv[3]==0
+	// generic-corrupt branch applies only to rows that should have
+	// a rootpage; frigolite represents vtab entries with rootpage 0
+	// too, so a zero rootpage is never by itself an error here.
+	if ent.RootPage == 0 {
+		return nil
+	}
+	// Rootpage beyond the database page count (src/prepare.c:134-140:
+	// db->init.newTnum > pData->mxPage when mxPage>0). With PRAGMA
+	// writable_schema ON the oracle tolerates an out-of-range rootpage on
+	// a parseable CREATE row: the object stays registered and the later
+	// DDL that allocates the page heals the file (fkey6-6.2 reopens a
+	// 1-page db whose hand-inserted t1 row claims rootpage 2 and CREATE
+	// TABLE t2 succeeds; a plain read reports the generic WriteSchema
+	// corrupt from the btree access itself). The named "invalid rootpage"
+	// still fires with writable_schema OFF (oracle: "malformed database
+	// schema (t1) - invalid rootpage").
+	if mxPage > 0 && ent.RootPage > mxPage && !e.settings.writableSchema {
+		return e.schemaCorrupt(ent.Name, "invalid rootpage")
+	}
+	trimmed := strings.TrimLeft(ent.SQL, " \t\r\n\f")
+	kind := ""
+	if len(trimmed) >= 2 {
+		up := strings.ToUpper(trimmed[:2])
+		if up == "CR" {
+			kind = "create"
+		}
+	}
+	switch {
+	case kind == "create":
+		// The stored CREATE text must parse (src/prepare.c:144-158:
+		// sqlite3Prepare on argv[4]; a parse error corrupts the
+		// schema with the parser's message). Parse results are
+		// memoized per SQL text.
+		return e.validateCreateSchemaRow(ent, idxRoots)
+	case ent.SQL == "" && ent.Type == schema.TypeIndex:
+		// Autoindex row (SQL column blank): src/prepare.c:177-184 —
+		// tnum < 2 or duplicate rootpage is corrupt. (> mxPage was
+		// already checked above.) Oracle-verified (corruptN-4.2 with
+		// `sqlite3 -bail`): /usr/bin/sqlite3 3.51 reports the generic
+		// WriteSchema corrupt even with writable_schema ON — the
+		// apparently-successful REPLACE in default CLI mode was the
+		// continue-on-error behavior masking the first statement's
+		// failure.
+		if ent.RootPage < 2 || duplicateSchemaIndexRoot(idxRoots, ent.TblName, ent.RootPage, ent.Name) {
 			return e.schemaCorrupt(ent.Name, "invalid rootpage")
 		}
-		trimmed := strings.TrimLeft(ent.SQL, " \t\r\n\f")
-		kind := ""
-		if len(trimmed) >= 2 {
-			up := strings.ToUpper(trimmed[:2])
-			if up == "CR" {
-				kind = "create"
-			}
+	}
+	return nil
+}
+
+// validateCreateSchemaRow parses the stored CREATE text (memoized) and
+// checks explicit index rows for duplicate sibling rootpages.
+func (e *Engine) validateCreateSchemaRow(ent *schema.Entry, idxRoots map[string]map[uint32]string) error {
+	if _, ok := e.schemaParseOK[ent.SQL]; !ok {
+		_, perr := parse.ParseSQLSchema(ent.SQL)
+		if e.schemaParseOK == nil {
+			e.schemaParseOK = map[string]error{}
 		}
-		switch {
-		case kind == "create":
-			// The stored CREATE text must parse (src/prepare.c:144-158:
-			// sqlite3Prepare on argv[4]; a parse error corrupts the
-			// schema with the parser's message). Parse results are
-			// memoized per SQL text.
-			if _, ok := e.schemaParseOK[ent.SQL]; !ok {
-				_, perr := parse.ParseSQLSchema(ent.SQL)
-				if e.schemaParseOK == nil {
-					e.schemaParseOK = map[string]error{}
-				}
-				e.schemaParseOK[ent.SQL] = perr
-			}
-			if perr := e.schemaParseOK[ent.SQL]; perr != nil {
-				return e.schemaCorrupt(ent.Name, perr.Error())
-			}
-			if ent.Type == schema.TypeIndex && dupIndex(ent.TblName, ent.RootPage, ent.Name) {
-				// build.c:4388-4392: a CREATE INDEX row whose tnum equals
-				// a sibling index of the same table is "invalid rootpage".
-				return e.schemaCorrupt(ent.Name, "invalid rootpage")
-			}
-		case ent.SQL == "" && ent.Type == schema.TypeIndex:
-			// Autoindex row (SQL column blank): src/prepare.c:177-184 —
-			// tnum < 2 or duplicate rootpage is corrupt. (> mxPage was
-			// already checked above.) Oracle-verified (corruptN-4.2 with
-			// `sqlite3 -bail`): /usr/bin/sqlite3 3.51 reports the generic
-			// WriteSchema corrupt even with writable_schema ON — the
-			// apparently-successful REPLACE in default CLI mode was the
-			// continue-on-error behavior masking the first statement's
-			// failure.
-			if ent.RootPage < 2 || dupIndex(ent.TblName, ent.RootPage, ent.Name) {
-				return e.schemaCorrupt(ent.Name, "invalid rootpage")
-			}
-		}
+		e.schemaParseOK[ent.SQL] = perr
+	}
+	if perr := e.schemaParseOK[ent.SQL]; perr != nil {
+		return e.schemaCorrupt(ent.Name, perr.Error())
+	}
+	if ent.Type == schema.TypeIndex && duplicateSchemaIndexRoot(idxRoots, ent.TblName, ent.RootPage, ent.Name) {
+		// build.c:4388-4392: a CREATE INDEX row whose tnum equals
+		// a sibling index of the same table is "invalid rootpage".
+		return e.schemaCorrupt(ent.Name, "invalid rootpage")
 	}
 	return nil
 }

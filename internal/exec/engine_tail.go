@@ -17,7 +17,6 @@ import (
 	"github.com/pijalu/frigolite/internal/quota"
 	"github.com/pijalu/frigolite/internal/schema"
 	"github.com/pijalu/frigolite/internal/sql"
-
 )
 
 func (e *Engine) getDB(name string) *DatabaseContext {
