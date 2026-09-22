@@ -564,6 +564,11 @@ func (e *Engine) quickCheckConstraints(te *schema.Entry, colDefs []sql.ColumnDef
 			emit(fmt.Sprintf("CHECK constraint failed in %s", te.Name))
 		}
 	}
+	e.quickCheckTableChecks(te, row, emit)
+}
+
+// quickCheckTableChecks reports failing table-level CHECK constraints.
+func (e *Engine) quickCheckTableChecks(te *schema.Entry, row RowMap, emit func(string)) {
 	for _, tc := range e.tableConstraints(te.Name, te.SQL) {
 		if tc.Type != sql.ConstraintCheck || tc.Expr == nil {
 			continue

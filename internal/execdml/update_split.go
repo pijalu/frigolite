@@ -253,15 +253,7 @@ func (e *DMLExecutor) runUpdatePipeline(s *sql.UpdateStmt, tableEntry *schema.En
 	// skipping the row (IGNORE) — notnull-2.6..2.9.
 	changes, pres := e.preCheckUpdate(s, tableEntry, colDefs, changes)
 	if pres.Error != nil {
-		// ON CONFLICT FAIL keeps the rows updated before the violation
-		// (SQLite's per-row loop writes incrementally — check-6.5/6.6
-		// "UPDATE OR FAIL t1 SET x=7-x" keeps the first row's change).
-		if pres.KeepPriorRowsOnError() && len(changes) > 0 {
-			if ares := e.dispatchUpdate(s, tableEntry, colDefs, changes); ares.Error != nil {
-				return ares
-			}
-		}
-		return pres
+		return e.finishFailingUpdatePrecheck(s, tableEntry, colDefs, changes, pres)
 	}
 
 	// Handle RETURNING clause — evaluate against updated rows before applying
@@ -734,6 +726,20 @@ func (e *DMLExecutor) finishUpdate(s *sql.UpdateStmt, colDefs []sql.ColumnDef, r
 		return &Result{Columns: columns, Rows: returningRows}
 	}
 	return result
+}
+
+// finishFailingUpdatePrecheck returns the failed NOT NULL/CHECK pre-check
+// result. Under ON CONFLICT FAIL the changes validated before the violation
+// were already written in SQLite's per-row loop and survive the failed
+// statement (check-6.5/6.6 "UPDATE OR FAIL t1 SET x=7-x" keeps the first
+// row's change), so they are applied before the error is surfaced.
+func (e *DMLExecutor) finishFailingUpdatePrecheck(s *sql.UpdateStmt, tableEntry *schema.Entry, colDefs []sql.ColumnDef, changes []updateChange, pres *Result) *Result {
+	if pres.KeepPriorRowsOnError() && len(changes) > 0 {
+		if ares := e.dispatchUpdate(s, tableEntry, colDefs, changes); ares.Error != nil {
+			return ares
+		}
+	}
+	return pres
 }
 
 // execUpdateView routes UPDATE on a view through INSTEAD OF UPDATE triggers.
