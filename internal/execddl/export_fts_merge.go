@@ -271,15 +271,17 @@ func syncSegdirRowID(cursor, allocated int64) int64 {
 // level, writing up to nMerge leaf pages. The merged output accumulates the
 // consumed segments' doc IDs; fully-consumed input segments are deleted, a
 func nSegCap(nMin, foundCount, hintSeg int) int {
+	// SQLite: nSeg = MIN(MAX(nMin, found), nHintSeg) — no lower bound. The
+	// FIND_MERGE_LEVEL path's HAVING cnt>=MAX(2,nMin) guarantees >=2 there;
+	// a hint entry may legitimately cap the merge to a single segment
+	// (nHintSeg=1), which must not be re-raised (fts3corrupt 6.10: the
+	// hint x'cf0f01' = (level 1999, nSeg 1) engages the merge).
 	nSeg := nMin
 	if foundCount > nSeg {
 		nSeg = foundCount
 	}
 	if hintSeg < nSeg {
 		nSeg = hintSeg
-	}
-	if nSeg < 2 {
-		nSeg = 2
 	}
 	return nSeg
 }

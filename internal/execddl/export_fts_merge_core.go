@@ -11,10 +11,15 @@ package execddl
 //
 // The per-call/per-iteration state lives in ftsMergeRun (export_fts_merge_run.go);
 // each phase below is one of its methods, in the original execution order.
-func (e *DDLExecutor) MergeFTS(tableName string, nMerge, nMin int) {
+// MergeFTS implements the FTS 'merge=N[,M]' special command (fts3_write.c
+// sqlite3Fts3Incrmerge). A non-nil error is a corruption detected while
+// reading the source/output segdir rows ("database disk image is malformed"),
+// which the 'merge=' special insert surfaces to the statement (fts3corrupt
+// 6.10). The flush-time automerge caller ignores it, like SQLite's xSync.
+func (e *DDLExecutor) MergeFTS(tableName string, nMerge, nMin int) error {
 	ftsTable, ok := e.ctx.FTSTables()[tableName]
 	if !ok || ftsTable == nil {
-		return
+		return nil
 	}
 	if nMin < 2 {
 		nMin = 2
@@ -34,17 +39,21 @@ func (e *DDLExecutor) MergeFTS(tableName string, nMerge, nMin int) {
 	if blob := e.readFTSStatRow(tableName, 1); blob != nil {
 		r.hintList = ftsParseHintList(blob)
 	}
+	for _, h := range r.hintList {
+		println("  hint level:", h.level, "nseg:", h.nSeg)
+	}
 	// Loop over levels: consume a level, then move up (SQLite's outer while
 	// loop in sqlite3Fts3Incrmerge). nMerge is the leaf-page quota; the quota
 	// (nRem) decreases by (1 + leaf pages written) each iteration and the
 	// loop exits when it is exhausted.
 	for r.nRem > 0 {
 		if r.iterate() == mergeStop {
-			return
+			return r.mergeErr
 		}
 		// mergeRetry loops again: the hinted level was consumed and the
 		// hint cleared, so the next iteration re-runs FIND_MERGE_LEVEL.
 	}
+	return r.mergeErr
 }
 
 // iterate runs ONE MergeFTS level-consumption iteration: pick the level,

@@ -4,13 +4,49 @@ import (
 	"fmt"
 	"strings"
 	"unicode"
+
+	"github.com/pijalu/frigolite/internal/vtab"
 )
 
 // This file holds the FTS3/4 MATCH query parser (query.go holds the AST
-// nodes and their per-document evaluation): ParseMatchQuery and the
-// hand-written recursive-descent parser (fts3_expr.c getNextString /
-// getNextToken semantics — case-sensitive keywords, both quote styles,
-// column-first '^' markers, tokenizer-skipped separator bytes).
+// nodes and their per-document evaluation): ParseMatchQuery and the two
+// parser modes of fts3_expr.c:
+//
+//   - the LEGACY (default) syntax, a faithful port of fts3ExprParse's
+//     round-based loop — opPrecedence/insertBinaryOperator with
+//     NEAR(1) < OR(2) < implicit-AND(3) precedence, no parenthesis
+//     grouping, no AND/NOT keywords ('AND' is a plain term), the unary
+//     '-' implicit-NOT chain (ParseContext.pNotBranch), and buffer
+//     resumption at each token's END byte (a keyword buried behind a
+//     delimiter — "hello) OR world" — is just a term); and
+//   - the parenthesis (SQLITE_ENABLE_FTS3_PARENTHESIS) syntax, the
+//     recursive-descent parser kept from the earlier port (fts3_expr.c
+//     getNextString/getNextToken semantics — case-sensitive keywords,
+//     both quote styles, column-first '^' markers, tokenizer-skipped
+//     separator bytes).
+
+// fts3EnableParentheses is the release-default query syntax: false parses
+// MATCH queries with the legacy syntax, true with the parenthesis syntax.
+var fts3EnableParentheses = false
+
+// fts3ParenthesesEnabled reports whether the parenthesis (enhanced) syntax is
+// active for this query. It mirrors the C SQLITE_TEST control variable
+// sqlite3_fts3_enable_parentheses (fts3_expr.c: "Setting this variable to
+// zero causes the module to use the old syntax. If it is set to non-zero the
+// new syntax is activated. This is so both syntaxes can be tested using a
+// single build"): the TCL suite — and the generated corpus, through the
+// harness variable registry — sets the scalar around the blocks that exercise
+// each syntax (e_fts3 1.5.x, fts3expr, fts3corrupt6). Unset falls back to the
+// release default (legacy).
+func fts3ParenthesesEnabled() bool {
+	if v := vtab.TclVarGet("sqlite_fts3_enable_parentheses", ""); v != "" {
+		return v != "0"
+	}
+	if v := vtab.TclVarGet("sqlite3_fts3_enable_parentheses", ""); v != "" {
+		return v != "0"
+	}
+	return fts3EnableParentheses
+}
 
 func ParseMatchQuery(query string) (QueryNode, error) {
 	// SQLite parses the MATCH query with an implicit strlen length
@@ -20,6 +56,9 @@ func ParseMatchQuery(query string) (QueryNode, error) {
 	// the query's post-quote tail is dropped at a \x00 byte).
 	if idx := strings.IndexByte(query, 0); idx >= 0 {
 		query = query[:idx]
+	}
+	if !fts3ParenthesesEnabled() {
+		return parseLegacyMatchQuery(strings.TrimSpace(query))
 	}
 	p := &queryParser{
 		input: strings.TrimSpace(query),
@@ -57,6 +96,392 @@ type emptyQueryNode struct{}
 func (n *emptyQueryNode) MatchDoc(idx *InvertedIndex, docID int64) bool { return false }
 
 func (n *emptyQueryNode) String() string { return "" }
+
+// FTSQUERY_* mirror the fts3Int.h operator codes (FTSQUERY_NEAR=1 ..
+// FTSQUERY_PHRASE=5). In parenthesis mode opPrecedence returns the code
+// itself, so the numeric order (NEAR < NOT < AND < OR) IS the precedence.
+const (
+	ftsqueryNear   = 1
+	ftsqueryNot    = 2
+	ftsqueryAnd    = 3
+	ftsqueryOr     = 4
+	ftsqueryPhrase = 5
+)
+
+// exprNode is the parse-tree node shim used while building the expression —
+// the Go analogue of fts3_expr.c's Fts3Expr with its pParent/pLeft/pRight
+// links, which insertBinaryOperator climbs and rewrites. convertExpr lowers
+// the finished tree to the parent-less QueryNode AST.
+type exprNode struct {
+	eType  int // one of the ftsquery* codes
+	nNear  int // NEAR distance ("NEAR/n"; default 10)
+	phrase QueryNode
+
+	pLeft, pRight, pParent *exprNode
+}
+
+// opPrecedence ports fts3_expr.c opPrecedence: lower values bind tighter.
+// Legacy mode (parentheses disabled): NEAR=1, OR=2, AND=3 — "the OR operator
+// has a higher precedence than the AND operator". Parenthesis mode: the
+// FTSQUERY_* code itself (NEAR < NOT < AND < OR).
+func opPrecedence(p *exprNode) int {
+	if fts3ParenthesesEnabled() {
+		return p.eType
+	}
+	switch p.eType {
+	case ftsqueryNear:
+		return 1
+	case ftsqueryOr:
+		return 2
+	}
+	return 3
+}
+
+// insertBinaryOperator ports fts3_expr.c insertBinaryOperator: climb from the
+// most recently inserted node through parents of <= precedence and splice the
+// new operator node in above them.
+func insertBinaryOperator(ppHead **exprNode, pPrev, pNew *exprNode) {
+	pSplit := pPrev
+	for pSplit.pParent != nil && opPrecedence(pSplit.pParent) <= opPrecedence(pNew) {
+		pSplit = pSplit.pParent
+	}
+	if pSplit.pParent != nil {
+		pSplit.pParent.pRight = pNew
+		pNew.pParent = pSplit.pParent
+	} else {
+		*ppHead = pNew
+	}
+	pNew.pLeft = pSplit
+	pSplit.pParent = pNew
+}
+
+// convertExpr lowers the exprNode tree to the QueryNode AST. A C NOT node is
+// binary — NOT(X, Y) evaluates as "X AND NOT Y" (fts3eval.c
+// FTSQUERY_NOT handling) — and is expressed here as AndNode{X, NotNode{Y}},
+// which is exactly how the legacy '-' NOT chains (pNotBranch) evaluate.
+func convertExpr(p *exprNode) QueryNode {
+	if p == nil {
+		return nil
+	}
+	switch p.eType {
+	case ftsqueryPhrase:
+		return p.phrase
+	case ftsqueryAnd:
+		return &AndNode{Left: convertExpr(p.pLeft), Right: convertExpr(p.pRight)}
+	case ftsqueryOr:
+		return &OrNode{Left: convertExpr(p.pLeft), Right: convertExpr(p.pRight)}
+	case ftsqueryNear:
+		return &NearNode{Left: convertExpr(p.pLeft), Right: convertExpr(p.pRight), Distance: p.nNear}
+	case ftsqueryNot:
+		return &AndNode{Left: convertExpr(p.pLeft), Right: &NotNode{Inner: convertExpr(p.pRight)}}
+	}
+	return nil
+}
+
+// legacyParser carries the lexer state across fts3ExprParse rounds.
+type legacyParser struct {
+	input string
+	pos   int
+	isNot bool // ParseContext.isNot: the next phrase had a unary "-" attached
+}
+
+// parseLegacyMatchQuery is the port of fts3_expr.c fts3ExprParse (legacy
+// syntax, sqlite3_fts3_enable_parentheses==0): a single loop of getNextNode
+// rounds — keyword, quoted phrase, or bare token — wired together with
+// implicit-AND insertion, precedence-climbing operator insertion and the
+// '-' implicit-NOT branch chain.
+func parseLegacyMatchQuery(query string) (QueryNode, error) {
+	p := &legacyParser{input: query}
+	var pRet, pPrev, pNotBranch *exprNode
+	isRequirePhrase := true
+	syntaxErr := fmt.Errorf("malformed MATCH expression: [%s]", query)
+	parseErr := error(nil)
+
+	pos := 0
+	for parseErr == nil {
+		node, consumed, done, nerr := p.legacyNextNode(pos)
+		if nerr != nil {
+			parseErr = nerr
+			break
+		}
+		if done {
+			break
+		}
+		pos += consumed
+		if node == nil {
+			continue
+		}
+
+		if node.eType == ftsqueryPhrase && p.isNot {
+			// Legacy "-token": create an implicit NOT operator and chain it
+			// in front of the previous NOT branch (fts3ExprParse's
+			// pNotBranch handling). The main tree continues from pPrev —
+			// the negated phrase does not participate in it.
+			pNot := &exprNode{eType: ftsqueryNot, pRight: node}
+			node.pParent = pNot
+			if pNotBranch != nil {
+				pNot.pLeft = pNotBranch
+				pNotBranch.pParent = pNot
+			}
+			pNotBranch = pNot
+			node = pPrev
+		} else {
+			eType := node.eType
+			isPhrase := eType == ftsqueryPhrase || node.pLeft != nil
+
+			// A binary operator where a phrase (or bracketed expression)
+			// is required is a syntax error.
+			if !isPhrase && isRequirePhrase {
+				parseErr = syntaxErr
+				break
+			}
+
+			// Juxtaposed phrases: insert an implicit AND.
+			if isPhrase && !isRequirePhrase {
+				pAnd := &exprNode{eType: ftsqueryAnd}
+				insertBinaryOperator(&pRet, pPrev, pAnd)
+				pPrev = pAnd
+			}
+
+			// NEAR operands must be phrases: "(x) NEAR y" / "x NEAR (y)"
+			// are errors (fts3ExprParse's NEAR operand test).
+			if pPrev != nil &&
+				((eType == ftsqueryNear && !isPhrase && pPrev.eType != ftsqueryPhrase) ||
+					(eType != ftsqueryPhrase && isPhrase && pPrev.eType == ftsqueryNear)) {
+				parseErr = syntaxErr
+				break
+			}
+
+			if isPhrase {
+				if pRet != nil {
+					pPrev.pRight = node
+					node.pParent = pPrev
+				} else {
+					pRet = node
+				}
+			} else {
+				insertBinaryOperator(&pRet, pPrev, node)
+			}
+			isRequirePhrase = !isPhrase
+		}
+		pPrev = node
+	}
+
+	// "rc==SQLITE_DONE && pRet && isRequirePhrase" — a trailing operator
+	// ("one OR") is a syntax error.
+	if parseErr == nil && pRet != nil && isRequirePhrase {
+		parseErr = syntaxErr
+	}
+	if parseErr == nil && pNotBranch != nil {
+		// Attach the main tree as the leftmost leaf of the '-' NOT chain:
+		// "-a -b c" becomes NOT(b, NOT(a, c)) — i.e. (c AND NOT a) AND NOT b.
+		if pRet == nil {
+			parseErr = syntaxErr
+		} else {
+			pIter := pNotBranch
+			for pIter.pLeft != nil {
+				pIter = pIter.pLeft
+			}
+			pIter.pLeft = pRet
+			pRet.pParent = pIter
+			pRet = pNotBranch
+		}
+	}
+	if parseErr != nil {
+		return nil, parseErr
+	}
+	if pRet == nil {
+		// No tokens at all — the FTS cursor sits at EOF and matches nothing
+		// (MATCH '' semantics).
+		return &emptyQueryNode{}, nil
+	}
+	return convertExpr(pRet), nil
+}
+
+// legacyNextNode ports getNextNode for one round starting at start. It returns
+// the next expression node (nil for a tokenless round), the number of bytes
+// consumed, done=true at end of input, and a syntax error for an unterminated
+// quote.
+func (p *legacyParser) legacyNextNode(start int) (node *exprNode, consumed int, done bool, err error) {
+	p.isNot = false
+	zIn := start
+	nIn := len(p.input) - start
+	// Skip whitespace before the keyword/quote/token checks (fts3isspace).
+	for nIn > 0 && isFTS3Space(p.input[zIn]) {
+		zIn++
+		nIn--
+	}
+	if nIn == 0 {
+		return nil, 0, true, nil
+	}
+
+	// Keyword check — OR and NEAR always; AND/NOT only in parenthesis mode
+	// (aKeyword[].parenOnly). The following byte must be whitespace, a quote,
+	// a parenthesis or end of input, else the word is a term ("ORacle").
+	for _, kw := range []struct {
+		text      string
+		code      int
+		parenOnly bool
+	}{{"OR", ftsqueryOr, false}, {"AND", ftsqueryAnd, true}, {"NOT", ftsqueryNot, true}, {"NEAR", ftsqueryNear, false}} {
+		if kw.parenOnly && !fts3ParenthesesEnabled() {
+			continue
+		}
+		if nIn >= len(kw.text) && p.input[zIn:zIn+len(kw.text)] == kw.text {
+			nKey := len(kw.text)
+			nNear := 10 // SQLITE_FTS3_DEFAULT_NEAR_PARAM
+			if kw.code == ftsqueryNear {
+				if zIn+4 < len(p.input) && p.input[zIn+4] == '/' && zIn+5 < len(p.input) && p.input[zIn+5] >= '0' && p.input[zIn+5] <= '9' {
+					d, adv := fts3ReadInt(p.input, zIn+5)
+					if adv >= 0 {
+						nNear = d
+						nKey += 1 + adv
+					}
+					// adv < 0 mirrors sqlite3Fts3ReadInt's overflow -1: the
+					// distance is not consumed, nNear keeps the default and
+					// the keyword boundary test fails below, so "NEAR/<huge>"
+					// is left to the bare-token round (a plain term).
+				}
+			}
+			cNext := byte(0)
+			if zIn+nKey < len(p.input) {
+				cNext = p.input[zIn+nKey]
+			}
+			if isFTS3Space(cNext) || cNext == '"' || cNext == '(' || cNext == ')' || cNext == 0 {
+				return &exprNode{eType: kw.code, nNear: nNear}, (zIn - start) + nKey, false, nil
+			}
+		}
+	}
+
+	// Quoted phrase: find the closing quote (no escaping exists).
+	if p.input[zIn] == '"' {
+		ii := 1
+		for ii < nIn && p.input[zIn+ii] != '"' {
+			ii++
+		}
+		consumed = (zIn - start) + ii + 1
+		if ii == nIn {
+			return nil, 0, false, fmt.Errorf("unterminated string literal")
+		}
+		phrase, perr := p.parsePhraseFrom(zIn + 1)
+		if perr != nil {
+			return nil, 0, false, perr
+		}
+		return &exprNode{eType: ftsqueryPhrase, phrase: phrase}, consumed, false, nil
+	}
+
+	// Bare-token round (getNextToken). The tokenizer sees the buffer from
+	// the ROUND start (not the whitespace-skipped position), so the byte
+	// directly before the token decides the '-' (legacy) and '^' (FTS4)
+	// qualifiers.
+	buf := p.input[start:]
+	// Column filter: a table column name immediately followed by ':' at the
+	// whitespace-skipped position scopes the token (getNextNode's azCol
+	// loop). Parsed syntactically as a column reference here; the schema
+	// resolves the index later (ColumnRefNode).
+	colName := ""
+	colLen := 0
+	if w := scanWordAt(p.input, zIn); w != "" && zIn+len(w) < len(p.input) && p.input[zIn+len(w)] == ':' {
+		colName = asciiLowerBytes(w)
+		colLen = (zIn - start) + len(w) + 1
+	}
+	buf = p.input[start+colLen:]
+	i := 0
+	for i < len(buf) && !isWordCharAt(buf, i) {
+		// findBarredChar: a '"' stops a tokenless round so the next round
+		// can parse the quoted phrase (legacy mode bars only '"').
+		if buf[i] == '"' {
+			return nil, colLen + i, false, nil
+		}
+		i++
+	}
+	if i >= len(buf) {
+		// No token in the remainder: consume it entirely (getNextToken's
+		// SQLITE_DONE branch, *pnConsumed = n).
+		return nil, len(p.input) - start, false, nil
+	}
+	tokStart := i
+	wordStart := i
+	tokEnd := i
+	for tokEnd < len(buf) && isWordCharAt(buf, tokEnd) {
+		tokEnd++
+	}
+	// Unary qualifiers immediately before the token: '-' marks NOT (legacy
+	// only), '^' marks column-first (FTS4). The walk only moves the
+	// qualifier scan point — the token text never includes those bytes
+	// (the C token text comes from the tokenizer, iStart just walks back).
+	first := false
+	for tokStart > 0 {
+		if !fts3ParenthesesEnabled() && buf[tokStart-1] == '-' {
+			p.isNot = true
+			tokStart--
+		} else if buf[tokStart-1] == '^' {
+			first = true
+			tokStart--
+		} else {
+			break
+		}
+	}
+	isPrefix := tokEnd < len(buf) && buf[tokEnd] == '*'
+	word := buf[wordStart:tokEnd]
+	if isPrefix {
+		tokEnd++
+	}
+	var phrase QueryNode
+	if isPrefix {
+		phrase = &PrefixNode{Prefix: asciiLowerBytes(word), First: first}
+	} else {
+		phrase = &TermNode{Term: asciiLowerBytes(word), First: first}
+	}
+	if colName != "" {
+		phrase = &ColumnRefNode{ColumnName: colName, Inner: phrase}
+	}
+	return &exprNode{eType: ftsqueryPhrase, phrase: phrase}, colLen + tokEnd, false, nil
+}
+
+// scanWordAt returns the run of token characters at pos (empty when none).
+func scanWordAt(input string, pos int) string {
+	e := pos
+	for e < len(input) && isWordCharAt(input, e) {
+		e++
+	}
+	return input[pos:e]
+}
+
+// fts3ReadInt ports sqlite3Fts3ReadInt (fts3.c): digits only; on overflow
+// past 0x7FFFFFFF it returns (-1 bytes consumed, caller keeps its default) —
+// the C returns -1 without writing the output.
+func fts3ReadInt(s string, i int) (int, int) {
+	start := i
+	val := 0
+	for i < len(s) && s[i] >= '0' && s[i] <= '9' {
+		val = val*10 + int(s[i]-'0')
+		if val > 0x7FFFFFFF {
+			return 0, -1
+		}
+		i++
+	}
+	if i == start {
+		return 0, 0
+	}
+	return val, i - start
+}
+
+// isFTS3Space ports fts3isspace.
+func isFTS3Space(c byte) bool {
+	switch c {
+	case ' ', '\t', '\n', '\v', '\f', '\r':
+		return true
+	}
+	return false
+}
+
+// parsePhraseFrom parses a quoted phrase whose opening quote sits at
+// quotePos-1 in the input — quotePos is the byte after the opening quote
+// (the legacy path's wrapper around the shared phrase lexer).
+func (p *legacyParser) parsePhraseFrom(quotePos int) (QueryNode, error) {
+	shared := &queryParser{input: p.input, pos: quotePos - 1}
+	return shared.parsePhrase()
+}
 
 type queryParser struct {
 	input string

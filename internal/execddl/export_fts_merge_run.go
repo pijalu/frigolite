@@ -303,6 +303,17 @@ func (r *ftsMergeRun) loadHintContinuation() {
 		return
 	}
 	last := outRows[len(outRows)-1]
+	// fts3IncrmergeLoad/fts3IncrmergeWriter read the OUTPUT-level segdir
+	// row directly; a NULL/zero-length root blob is FTS_CORRUPT_VTAB there
+	// ("aRoot==0: return nRoot ? SQLITE_NOMEM : FTS_CORRUPT_VTAB") — unlike
+	// the plain MATCH reader path, where an empty root reads as an empty
+	// segment. A hand-inserted empty-root row at the output level therefore
+	// fails the merge with "database disk image is malformed" (fts3corrupt
+	// 6.10).
+	if len(fts.RootBlobBytes(last.root)) == 0 {
+		r.mergeErr = fmt.Errorf("database disk image is malformed")
+		return
+	}
 	if last.rowidKnown && last.rowid != r.mc.OutRowID {
 		r.mc = nil
 		return
@@ -370,6 +381,14 @@ func (r *ftsMergeRun) loadGeometryFallback() {
 		return
 	}
 	c := cand[len(cand)-1]
+	// Output-level empty-root corruption (fts3IncrmergeLoad /
+	// fts3IncrmergeWriter read the row's root blob immediately: aRoot==0
+	// with nRoot==0 is FTS_CORRUPT_VTAB) — checked BEFORE any geometry
+	// gate, like the C (fts3corrupt 6.10).
+	if len(fts.RootBlobBytes(c.root)) == 0 {
+		r.mergeErr = fmt.Errorf("database disk image is malformed")
+		return
+	}
 	start := segdirRowStart(c)
 	le := int(r.e.segdirRowLeavesEnd(c.leavesEndBlock))
 	endFirst := int(segdirEndBlockFirst(c.endBlock))

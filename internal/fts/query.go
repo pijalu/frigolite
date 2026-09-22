@@ -164,14 +164,16 @@ func (n *NearNode) MatchDoc(idx *InvertedIndex, docID int64) bool {
 
 // nearPairWithin reports whether one left occurrence and one right occurrence
 // pair within the NEAR distance. fts3PoslistPhraseMerge pairs positions
-// directionally: right occurrences within Distance+len(right), left
-// occurrences within Distance+len(left) — including two occurrences at the
-// SAME offset (identical phrases, fts3corrupt6 2.1 "(1 NEAR 1)").
+// directionally and STRICTLY: right occurrences strictly after left within
+// Distance+len(right), left occurrences strictly after right within
+// Distance+len(left). The same offset never pairs with itself, so "four NEAR
+// four" needs two distinct occurrences (fts3near 1.14: a single 'four' per
+// document matches nothing).
 func nearPairWithin(a, b nearPos, distance, leftLen, rightLen int) bool {
-	if b.pos >= a.pos && b.pos-a.pos <= distance+rightLen {
+	if b.pos > a.pos && b.pos-a.pos <= distance+rightLen {
 		return true
 	}
-	return a.pos >= b.pos && a.pos-b.pos <= distance+leftLen
+	return a.pos > b.pos && a.pos-b.pos <= distance+leftLen
 }
 
 // nearPos is a phrase occurrence position: the last token offset plus the

@@ -192,7 +192,7 @@ type DMLContext interface {
 	// ('integrity-check') and PRAGMA integrity_check(t)).
 	RunFTSIntegrityCheck(tableName string) *Result
 	ValidateFreelistForGrowth() error
-	MergeFTS(tableName string, nMerge, nMin int)
+	MergeFTS(tableName string, nMerge, nMin int) error
 	// WriteFTSShadowRow / NextFTSBlockID support the FTS optimize command in
 	// the DML layer (the DDLExecutor owns the %_segdir/%_segments writes).
 	WriteFTSShadowRow(tableName string, level, idx int, blocks []fts.SegmentBlock, root []byte)

@@ -847,6 +847,15 @@ func tokenizeQueryLeaf(node QueryNode, stem func(string) string) QueryNode {
 	return nil
 }
 
+// RestrictQueryColumn wraps every query node that is NOT already column-scoped
+// in a ColumnNode for colIdx — the exported form used by execddl's
+// matchinfo/offsets phrase extraction, applying the same restriction
+// MatchQueryColumn applies for matching (fts3.c fts3FilterMethod parses the
+// query with the MATCH left-hand column as iDefaultCol).
+func RestrictQueryColumn(node QueryNode, colIdx int) QueryNode {
+	return restrictQueryColumn(node, colIdx)
+}
+
 // restrictQueryColumn wraps every query node that is NOT already column-scoped
 // (a ColumnNode from an explicit col: prefix) in a ColumnNode for colIdx. This
 // mirrors SQLite: `body MATCH 'title:linux driver'` restricts only the

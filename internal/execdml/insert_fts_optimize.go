@@ -143,7 +143,9 @@ func (e *DMLExecutor) handleFTSMerge(tableName, s string) (bool, *Result) {
 	if res := e.ctx.ValidateFTSSegments(tableName, true); res != nil {
 		return true, res
 	}
-	e.ctx.MergeFTS(tableName, nMerge, nMin)
+	if err := e.ctx.MergeFTS(tableName, nMerge, nMin); err != nil {
+		return true, &Result{Error: err}
+	}
 	return true, nil
 }
 

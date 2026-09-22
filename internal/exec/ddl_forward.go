@@ -78,7 +78,7 @@ func (e *Engine) ValidateFTSShadowRoots(tableName string) *Result {
 
 // MergeFTS runs the FTS 'merge=N[,M]' special command (N = max leaf pages,
 // M = min segments per level).
-func (e *Engine) MergeFTS(tableName string, nMerge, nMin int) {
+func (e *Engine) MergeFTS(tableName string, nMerge, nMin int) error {
 	// The merge's internal %_segdir/%_segments/%_stat writes (creating the
 	// output, truncating sources) are a single logical operation: they skip
 	// the per-write pager snapshot (inFTSFlush) so a large merge does not
@@ -88,8 +88,9 @@ func (e *Engine) MergeFTS(tableName string, nMerge, nMin int) {
 	// nested inside the flush-time automerge keeps the outer flush's flag.
 	wasFlush := e.tx.inFTSFlush
 	e.tx.inFTSFlush = true
-	e.ddl.MergeFTS(tableName, nMerge, nMin)
+	err := e.ddl.MergeFTS(tableName, nMerge, nMin)
 	e.tx.inFTSFlush = wasFlush
+	return err
 }
 
 // WriteFTSShadowRow inserts one %_segdir row (FTS optimize support).

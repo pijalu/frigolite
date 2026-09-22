@@ -99,6 +99,19 @@ func (e *DDLExecutor) deleteFTSDoc(tableName string, ftsTable *fts.FTS3Table, do
 	// FROM t1 WHERE docid=1 leaves only docids 3 and 4).
 	e.deleteFTSContentRow(tableName, docID)
 	e.deleteFTSDocsizeRow(tableName, docID)
+	// Deleting this row may leave the table empty: in that case delete the
+	// contents of all the shadow tables and throw away any data in the
+	// pending-terms hash — fts3_write.c fts3DeleteByRowid's isEmpty branch
+	// (fts3IsEmpty + fts3DeleteAll; fts3d-1.segments: after DELETE FROM t1
+	// and a re-INSERT, exactly ONE level-0 segdir remains because the
+	// delete-all wiped the index instead of writing marker segments).
+	// content=<table> tables are never considered empty (fts3IsEmpty's
+	// zContentTbl shortcut), so their deletes keep the marker path.
+	if ftsTable.ContentTable() == "" && ftsTable.DocCount() == 0 {
+		ftsTable.Clear()
+		e.clearFTSShadowIndex(tableName)
+		e.writeFTSStat(tableName, ftsTable)
+	}
 	return true, nil
 }
 

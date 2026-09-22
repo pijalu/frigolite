@@ -390,8 +390,8 @@ func (e *DDLExecutor) setFTSMatchInfoFromWhere(s *sql.SelectStmt, tableName stri
 	if s.Where == nil {
 		return
 	}
-	if query, ok := e.ftsMatchQueryString(s.Where, tableName); ok {
-		if phrases := e.ftsMatchPhrases(ftsTable, query); phrases != nil {
+	if query, colName, ok := e.ftsMatchQueryTarget(s.Where, tableName); ok {
+		if phrases := e.ftsMatchPhrases(ftsTable, query, colName); phrases != nil {
 			e.ctx.SetFTSMatchInfo(tableName, true, phrases)
 		}
 	}
@@ -449,7 +449,19 @@ func (e *DDLExecutor) validateFTSSnippetAuxContent(s *sql.SelectStmt, tableName 
 // (query, false). A MATCH whose RHS is a column (joined value) has no
 // constant query (fts3matchinfo 10.1).
 func (e *DDLExecutor) ftsMatchQueryString(where sql.Expr, tableName string) (string, bool) {
+	q, _, ok := e.ftsMatchQueryTarget(where, tableName)
+	return q, ok
+}
+
+// ftsMatchQueryTarget extracts the constant MATCH query string and the
+// left-hand side COLUMN name of an FTS table's MATCH constraint. colName is
+// empty when the MATCH left side is the table itself (`t1 MATCH 'q'`);
+// `subject MATCH 'q'` yields "subject" (fts3.c fts3FilterMethod parses the
+// query with that column as iDefaultCol, scoping every term without its own
+// col: prefix).
+func (e *DDLExecutor) ftsMatchQueryTarget(where sql.Expr, tableName string) (string, string, bool) {
 	var found string
+	var colName string
 	execquery.WalkExprFull(where, func(n sql.Expr) {
 		bop, ok := n.(*sql.BinaryOp)
 		if !ok || (bop.Operator != "MATCH" && bop.Operator != "NOT MATCH") {
@@ -458,12 +470,17 @@ func (e *DDLExecutor) ftsMatchQueryString(where sql.Expr, tableName string) (str
 		if t := ftsMatchTableNameFor(bop, e.ctx.FTSTables()); !strings.EqualFold(t, tableName) {
 			return
 		}
+		if colRef, ok := bop.Left.(*sql.ColumnRef); ok {
+			if !strings.EqualFold(colRef.Name, tableName) {
+				colName = colRef.Name
+			}
+		}
 		e.resolveMatchQueryRHS(bop, &found)
 	})
 	if found == "" {
-		return "", false
+		return "", "", false
 	}
-	return found, true
+	return found, colName, true
 }
 
 // resolveMatchQueryRHS extracts the constant query string from one MATCH
@@ -500,10 +517,14 @@ func (e *DDLExecutor) resolveMatchQueryRHS(bop *sql.BinaryOp, found *string) {
 }
 
 // ftsMatchPhrases parses and resolves a MATCH query string against an FTS
-// table, returning the phrase structure for matchinfo(). Returns nil when the
-// query fails to parse (SQLite treats an unparseable MATCH as matching
-// nothing, so matchinfo has no phrases to report).
-func (e *DDLExecutor) ftsMatchPhrases(ftsTable *fts.FTS3Table, query string) []fts.MatchPhrase {
+// table, returning the phrase structure for matchinfo()/offsets()/snippet().
+// colName is the MATCH left-hand side column (`subject MATCH '...'`) — when
+// non-empty every term without its own col: prefix is scoped to that column,
+// exactly as fts3.c fts3FilterMethod parses with iDefaultCol set (so the aux
+// functions only report the constrained column's hits; fts3ac 2.4/2.5).
+// Returns nil when the query fails to parse (SQLite treats an unparseable
+// MATCH as matching nothing, so matchinfo has no phrases to report).
+func (e *DDLExecutor) ftsMatchPhrases(ftsTable *fts.FTS3Table, query, colName string) []fts.MatchPhrase {
 	node, err := fts.ParseMatchQuery(query)
 	if err != nil {
 		return nil
@@ -513,6 +534,14 @@ func (e *DDLExecutor) ftsMatchPhrases(ftsTable *fts.FTS3Table, query string) []f
 	}
 	node = fts.TokenizeQueryNode(node, ftsTable.Tokenizer())
 	node = fts.ResolveQuery(node, ftsTable.ColumnNames())
+	if colName != "" {
+		for i, name := range ftsTable.ColumnNames() {
+			if strings.EqualFold(name, colName) {
+				node = fts.RestrictQueryColumn(node, i)
+				break
+			}
+		}
+	}
 	return fts.ExtractPhrases(node)
 }
 

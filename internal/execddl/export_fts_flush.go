@@ -383,7 +383,7 @@ func (e *DDLExecutor) autoIncrMergeAfterFlush(tableName string, ftsTable *fts.FT
 		A += A / 2
 
 		if A > 64 {
-			e.MergeFTS(tableName, A, am)
+			_ = e.MergeFTS(tableName, A, am)
 		}
 	}
 }
