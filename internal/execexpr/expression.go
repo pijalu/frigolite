@@ -1,6 +1,7 @@
 package execexpr
 
 import (
+	"errors"
 	"fmt"
 	"github.com/pijalu/frigolite/internal/function"
 	"github.com/pijalu/frigolite/internal/sql"
@@ -187,6 +188,30 @@ func (ev *Evaluator) evalSubqueryOrExists(expr interface{}, row Row) (interface{
 // this single exported instance.
 var ErrRaiseIgnore = fmt.Errorf("RAISE(IGNORE)")
 
+// RaiseError is the error produced by RAISE(kind, message) inside a trigger
+// program for the ABORT, FAIL, and ROLLBACK kinds. The kind decides the
+// undo scope of the failed statement (vdbe.c OP_Halt P2 handling): ABORT
+// undoes the statement's own changes, FAIL keeps the changes made so far,
+// ROLLBACK undoes the whole transaction. Error() returns exactly the RAISE
+// message, so text-based classification and error-code mapping are unchanged.
+type RaiseError struct {
+	Kind string // "ABORT", "FAIL" or "ROLLBACK" (upper case)
+	Msg  string // the RAISE message text
+}
+
+// Error returns the RAISE message text.
+func (e *RaiseError) Error() string { return e.Msg }
+
+// RaiseErrorOf unwraps err (through wraps) into *RaiseError when present,
+// or returns nil.
+func RaiseErrorOf(err error) *RaiseError {
+	var re *RaiseError
+	if errors.As(err, &re) {
+		return re
+	}
+	return nil
+}
+
 // evalRaiseExpr evaluates the RAISE() special function. RAISE() is only valid
 // inside a trigger program; outside one it is a syntax/semantic error. Within
 // a trigger, RAISE(IGNORE) aborts the current statement (signaled via
@@ -208,7 +233,11 @@ func (ev *Evaluator) evalRaiseExpr(v *sql.RaiseExpr, row Row) (interface{}, erro
 			msg = fmt.Sprintf("%v", val)
 		}
 	}
-	return nil, fmt.Errorf("%s", msg)
+	kind := strings.ToUpper(v.Kind)
+	if kind != "FAIL" && kind != "ROLLBACK" {
+		kind = "ABORT"
+	}
+	return nil, &RaiseError{Kind: kind, Msg: msg}
 }
 
 // evalRaiseFuncCall handles RAISE() when it reaches expression evaluation as
@@ -244,7 +273,10 @@ func (ev *Evaluator) evalRaiseFuncCall(f *sql.FuncCall, row Row) (interface{}, e
 			msg = fmt.Sprintf("%v", val)
 		}
 	}
-	return nil, fmt.Errorf("%s", msg)
+	if kind != "FAIL" && kind != "ROLLBACK" {
+		kind = "ABORT"
+	}
+	return nil, &RaiseError{Kind: kind, Msg: msg}
 }
 
 func (ev *Evaluator) evalSubquery(v *sql.Subquery, row Row) (interface{}, error) {

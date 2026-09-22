@@ -402,6 +402,10 @@ type txState struct {
 	// db whose pages a savepoint rollback already restored
 	// (savepoint-10.2.5→10.2.8).
 	reservedDbs map[string]bool
+	// readDbs remembers every attached database that took a SHARED read
+	// mark during the transaction; clearReservedDbs releases these
+	// per-transaction read marks alongside the RESERVED marks.
+	readDbs map[string]bool
 	// execDepth counts nested Exec calls (triggers, the eval() extension).
 	// rollbackAborted is set when a nested statement runs ROLLBACK that
 	// undoes schema changes, which aborts the enclosing statement with "abort

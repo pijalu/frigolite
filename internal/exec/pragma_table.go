@@ -1,6 +1,7 @@
 package exec
 
 import (
+	"os"
 	"fmt"
 	"strings"
 
@@ -703,7 +704,126 @@ func (e *Engine) materializeTableInfoWithRow(ref sql.TableRef, row Row) ([]sql.C
 		// Unknown table or view: pragma_table_info returns zero rows.
 		return cols, nil, nil
 	}
-	return cols, tableInfoRows(colDefs, xinfo), nil
+	return cols, tableInfoRows(colDefs, xinfo, e.tableInfoPkOrdinals(tableName, colDefs)), nil
+}
+
+// tableInfoPkOrdinals extracts the 1-based ordinal of every PRIMARY KEY
+// column from the table's CREATE SQL (sqlite3PragTyp_TABLE_INFO's pk field
+// reports the column's position in the key, not a 0/1 flag): a table-level
+// PRIMARY KEY(e,b,c) numbers e=1, b=2, c=3 (pragma-6.2.2) and duplicate
+// entries shift later positions (pragma-6.8: PRIMARY KEY(a,b,a,c) numbers
+// a=1, b=2, c=4). Column-level PRIMARY KEY flags number in declaration
+// order. nil means the PK shape could not be parsed (callers fall back to
+// the 0/1 flag).
+func (e *Engine) tableInfoPkOrdinals(tableName string, colDefs []sql.ColumnDef) map[string]int64 {
+	te, _, err := e.findTable(tableName)
+	if os.Getenv("W6DEBUG") != "" {
+		fmt.Fprintf(os.Stderr, "W6DBG pkOrd table=%q err=%v sql=%q ord=%v\n", tableName, err, te.SQL, primaryKeyOrdinalsFromSQL(te.SQL))
+	}
+	if err != nil || te == nil || te.SQL == "" {
+		return nil
+	}
+	return primaryKeyOrdinalsFromSQL(te.SQL)
+}
+
+// primaryKeyOrdinalsFromSQL parses the PRIMARY KEY declaration of a
+// CREATE TABLE statement into per-column 1-based ordinals.
+func primaryKeyOrdinalsFromSQL(sqlText string) map[string]int64 {
+	open := strings.Index(sqlText, "(")
+	if open < 0 {
+		return nil
+	}
+	depth := 0
+	close := -1
+	for i := open; i < len(sqlText); i++ {
+		switch sqlText[i] {
+		case '(':
+			depth++
+		case ')':
+			depth--
+			if depth == 0 {
+				close = i
+			}
+		}
+		if close >= 0 {
+			break
+		}
+	}
+	if close < 0 {
+		return nil
+	}
+	var pkList []string
+	var colLevel int
+	for _, term := range splitTopLevelCommas(sqlText[open+1 : close]) {
+		f := strings.Fields(strings.TrimSpace(term))
+		if len(f) == 0 {
+			continue
+		}
+		trimmed := strings.TrimSpace(term)
+		up := strings.ToUpper(trimmed)
+		switch {
+		case strings.HasPrefix(up, "PRIMARY") || strings.HasPrefix(up, "CONSTRAINT"):
+			// Table-level PRIMARY KEY(...) — capture the key list order.
+			pOpen := strings.Index(up, "(")
+			if pOpen < 0 {
+				continue
+			}
+			pClose := strings.LastIndex(trimmed, ")")
+			if pClose <= pOpen {
+				continue
+			}
+			for _, k := range strings.Split(trimmed[pOpen+1 : pClose], ",") {
+				k = strings.TrimSpace(strings.SplitN(strings.TrimSpace(k), " ", 2)[0])
+				k = strings.Trim(k, `"`)
+				if k != "" {
+					pkList = append(pkList, k)
+				}
+			}
+		case strings.Contains(up, "PRIMARY KEY"):
+			name := strings.Trim(f[0], `"`)
+			colLevel++
+			pkList = append(pkList, name)
+		}
+	}
+	if len(pkList) == 0 {
+		return nil
+	}
+	ord := make(map[string]int64, len(pkList))
+	pos := int64(0)
+	for _, k := range pkList {
+		pos++
+		key := strings.ToUpper(k)
+		if _, dup := ord[key]; !dup {
+			ord[key] = pos
+		}
+	}
+	_ = colLevel
+	return ord
+}
+
+// splitTopLevelCommas splits s on commas that sit outside any parentheses.
+func splitTopLevelCommas(s string) []string {
+	var parts []string
+	depth := 0
+	cur := strings.Builder{}
+	for i := 0; i < len(s); i++ {
+		switch s[i] {
+		case '(':
+			depth++
+		case ')':
+			if depth > 0 {
+				depth--
+			}
+		case ',':
+			if depth == 0 {
+				parts = append(parts, cur.String())
+				cur.Reset()
+				continue
+			}
+		}
+		cur.WriteByte(s[i])
+	}
+	return append(parts, cur.String())
 }
 
 // tableInfoTableName resolves the first argument of pragma_table_info(xinfo)
@@ -783,11 +903,13 @@ func (e *Engine) tableInfoTableColDefs(te *schema.Entry) ([]sql.ColumnDef, bool,
 }
 
 // tableInfoRows renders column definitions as pragma_table_info(xinfo) rows.
-func tableInfoRows(colDefs []sql.ColumnDef, xinfo bool) [][]interface{} {
+// pkOrd maps PK columns to their 1-based key position (nil falls back to the
+// 0/1 flag rendering).
+func tableInfoRows(colDefs []sql.ColumnDef, xinfo bool, pkOrd map[string]int64) [][]interface{} {
 	rows := make([][]interface{}, 0, len(colDefs))
 	cid := int64(0)
 	for _, cd := range colDefs {
-		row, skip := tableInfoRow(cd, cid, xinfo)
+		row, skip := tableInfoRow(cd, cid, xinfo, pkOrd)
 		if skip {
 			continue
 		}
@@ -799,7 +921,7 @@ func tableInfoRows(colDefs []sql.ColumnDef, xinfo bool) [][]interface{} {
 
 // tableInfoRow renders one column definition as a pragma_table_info(xinfo)
 // row. skip is true for dropped columns and (in table_info) hidden columns.
-func tableInfoRow(cd sql.ColumnDef, cid int64, xinfo bool) (row []interface{}, skip bool) {
+func tableInfoRow(cd sql.ColumnDef, cid int64, xinfo bool, pkOrd map[string]int64) (row []interface{}, skip bool) {
 	// Skip dropped columns (removed via ALTER TABLE DROP COLUMN).
 	if cd.Dropped {
 		return nil, true
@@ -809,7 +931,7 @@ func tableInfoRow(cd sql.ColumnDef, cid int64, xinfo bool) (row []interface{}, s
 	if !xinfo && isHiddenColumnDef(cd) {
 		return nil, true
 	}
-	notnull, pk, typeName, dflt := tableInfoRowFields(cd)
+	notnull, pk, typeName, dflt := tableInfoRowFields(cd, pkOrd)
 	if xinfo {
 		hiddenFlag := int64(0)
 		if isHiddenColumnDef(cd) {
@@ -823,11 +945,15 @@ func tableInfoRow(cd sql.ColumnDef, cid int64, xinfo bool) (row []interface{}, s
 // tableInfoRowFields renders a column definition's row fields: notnull and pk
 // as 0/1, the declared type (NONE-affinity sentinel rendered as empty), and
 // the rendered DEFAULT expression.
-func tableInfoRowFields(cd sql.ColumnDef) (notnull, pk int64, typeName string, dflt interface{}) {
+func tableInfoRowFields(cd sql.ColumnDef, pkOrd map[string]int64) (notnull, pk int64, typeName string, dflt interface{}) {
 	if cd.NotNull {
 		notnull = 1
 	}
-	if cd.PrimaryKey {
+	if ord, ok := pkOrd[strings.ToUpper(cd.Name)]; ok {
+		// The parsed ordinal is authoritative: table-level PRIMARY KEY
+		// columns carry no column-level PrimaryKey flag.
+		pk = ord
+	} else if cd.PrimaryKey {
 		pk = 1
 	}
 	// The NONE-affinity sentinel (an expression-derived view column with
@@ -854,7 +980,76 @@ func renderDefaultValue(d sql.Expr) string {
 			}
 		}
 	}
-	return sql.ExprString(d)
+	return compactExprText(sql.ExprString(d))
+}
+
+// compactExprText removes whitespace around SQL operators outside quoted
+// spans: SQLite renders DEFAULT expressions via sqlite3ExprPrint, which
+// glues binary operators to their operands — DEFAULT (5+3) reports "5+3",
+// not "5 + 3" (pragma-6.2.2).
+func compactExprText(s string) string {
+	var b strings.Builder
+	inSingle, inDouble, inBacktick, inBracket := false, false, false, false
+	for i := 0; i < len(s); i++ {
+		c := s[i]
+		switch {
+		case inSingle:
+			if c == '\'' {
+				inSingle = false
+			}
+		case inDouble:
+			if c == '"' {
+				inDouble = false
+			}
+		case inBacktick:
+			if c == '`' {
+				inBacktick = false
+			}
+		case inBracket:
+			if c == ']' {
+				inBracket = false
+			}
+		case c == '\'':
+			inSingle = true
+		case c == '"':
+			inDouble = true
+		case c == '`':
+			inBacktick = true
+		case c == '[':
+			inBracket = true
+		}
+		if (c == ' ' || c == '\t' || c == '\n' || c == '\r') && !inSingle && !inDouble && !inBacktick && !inBracket {
+			prev := byte(0)
+			if b.Len() > 0 {
+				prev = b.String()[b.Len()-1]
+			}
+			if isExprOperatorByte(prev) {
+				continue // operator on the left glues to its right operand
+			}
+			// Look ahead: whitespace before an operator is dropped.
+			j := i + 1
+			for j < len(s) && (s[j] == ' ' || s[j] == '\t') {
+				j++
+			}
+			if j < len(s) && isExprOperatorByte(s[j]) {
+				continue
+			}
+			b.WriteByte(c)
+			continue
+		}
+		b.WriteByte(c)
+	}
+	return b.String()
+}
+
+// isExprOperatorByte reports whether c is a binary-operator byte whose sides
+// SQLite's expression printer renders without surrounding spaces.
+func isExprOperatorByte(c byte) bool {
+	switch c {
+	case '+', '-', '*', '/', '%', '|', '&', '=', '<', '>':
+		return true
+	}
+	return false
 }
 
 // pragmaArgsCorrelated reports whether a table-valued pragma reference has

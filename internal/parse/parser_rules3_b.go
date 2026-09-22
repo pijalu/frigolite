@@ -429,9 +429,10 @@ func rule254(ruleNo int, p *Parser) interface{} {
 		name, schema = schema, name
 	}
 	return &sql.PragmaStmt{
-		Name:   name,
-		Value:  value,
-		Schema: schema,
+		Name:     name,
+		Value:    value,
+		Schema:   schema,
+		HasValue: true,
 	}
 
 }
@@ -447,9 +448,10 @@ func rule255(ruleNo int, p *Parser) interface{} {
 		name, schema = schema, name
 	}
 	return &sql.PragmaStmt{
-		Name:   name,
-		Value:  value,
-		Schema: schema,
+		Name:     name,
+		Value:    value,
+		Schema:   schema,
+		HasValue: true,
 	}
 
 }
@@ -465,9 +467,10 @@ func rule256(ruleNo int, p *Parser) interface{} {
 		name, schema = schema, name
 	}
 	return &sql.PragmaStmt{
-		Name:   name,
-		Value:  value,
-		Schema: schema,
+		Name:     name,
+		Value:    value,
+		Schema:   schema,
+		HasValue: true,
 	}
 
 }
