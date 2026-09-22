@@ -4,6 +4,49 @@
 - P6.VTAB zipfile: statement-level OR conflict handling must be delegated to module xUpdate semantics when uniqueness key is non-rowid. Added optional ConflictAwareUpdater path in execdml; zipfile UpdateRowConflict handles IGNORE/REPLACE against name collisions. Generic delete/retry cannot identify zipfile name-keyed conflicts.
 # Lessons Learned — Frigolite
 
+## P9.PERF.T3 — index-seek infrastructure (2026-09-22, fleet agent Q5-BTREESEEK)
+
+- **Byte order groups records by serial-type MAGNITUDE first — value-equal
+  entries are not byte-contiguous even within one uniform index.** Concrete
+  live example (2-col records col1+rowid): byte order is ('a',5) <
+  ('aa',5) < ('b',5) < ('a',300) — a longer TEXT serial-type varint
+  (0x1d > 0x19) outranks every body byte, and a 2-byte int serial (02)
+  outranks any 1-byte int body. So no binary value seek can ever be sound on
+  the engine's serial-type-byte-ordered index trees; any correct value probe
+  must be an exhaustive walk (or wait for value-ordered storage). Verified
+  empirically while debugging: SeekIndexKey's first match can be the tree's
+  first entry with later matches scattered behind non-matches.
+- **The record comparator (IndexRecordCompare) is the sqlite3VdbeRecordCompare
+  port and the value-order oracle**: per-field, probe-class-driven branches,
+  lazy serial-type decoding (no DecodeRecord), int==real cross-type equality
+  (INT 5 == REAL 5.0 — the old byte-encoding prefilter REQUIRED equal
+  encodings and could MISS a stored REAL 5.0 against an INT 5 probe; the
+  comparator closes that latent candidate gap). Collations NOCASE/RTRIM and
+  DESC/NULLS-LAST sort flags are carried in KeyInfo so lifting the
+  BINARY-only eligibility gate later is a one-line change.
+- **Per-entry cost on seek walks: parse the cell header directly**
+  (payload-len varint → storage.LocalPayloadSize local slice) instead of
+  DecodeCell+readOverflow per entry; materialize the full payload ONLY when
+  the comparison is undecided beyond the local fragment
+  (ErrIndexRecordTruncated sentinel → reassemble → re-compare; truncated on
+  an already-complete payload = corrupt). Pure candidate scan improved 1.85x
+  (390→211 ms per 500 probes over a 20k-entry index).
+- **Test-fixture traps that cost real debugging time**: (1) an index tree
+  must be rooted at page >= 2 — the rootPage==1 split path is schema-only
+  and writes an interior-TABLE page (0x05) for an index tree, which the seek
+  walk correctly rejects; (2) an index record's TRAILING element is the
+  rowid — fixtures that put a payload string last break trailing-rowid
+  extraction; (3) `go test` failure-set comparisons need message-signature
+  normalization (strip got/want content) — identical counts can hide
+  different failures and identical failures can have different printed
+  values.
+- **autovacuum/index/intpkey testgen packages are red at base main
+  (7b2363fc6, 95 failing assertions, identical sets)** — pre-existing drift
+  from the T29-era regeneration, execquery scan-order turf (e.g. intpkey-2.5
+  `WHERE b>'a'` must emit rows in full index-key value order, not rowid
+  order). Reported to the coordinator for w5-query; T3's gate was
+  failure-set-neutrality, proven by signature diff.
+
 ## T29-execqfix — FULL-SUITE-DRIFT census regression triage (2026-09-22, branch fleet/execq-fix)
 
 - **A census "flip point" merge can be green at BOTH parents and at the merge
