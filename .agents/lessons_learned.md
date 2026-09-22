@@ -4,6 +4,53 @@
 - P6.VTAB zipfile: statement-level OR conflict handling must be delegated to module xUpdate semantics when uniqueness key is non-rowid. Added optional ConflictAwareUpdater path in execdml; zipfile UpdateRowConflict handles IGNORE/REPLACE against name collisions. Generic delete/retry cannot identify zipfile name-keyed conflicts.
 # Lessons Learned — Frigolite
 
+## §5d.exec4b — internal/exec closure sweep (2026-09-22, branch q5-exec4b)
+
+- **A verified sibling-branch commit can be adopted wholesale by cherry-pick when
+  its parent IS your HEAD.** a406d1339 (the vtab_eponymous phase-pipeline split,
+  materializeVtabModule 132/66→7) was committed on a branch not merged into
+  q5-exec4b, but `git merge-base --is-ancestor <parent> HEAD` held, so the
+  cherry-pick applied byte-clean with zero re-verification cost. Check
+  `git branch --contains <sha>` before re-implementing any prior art.
+- **gocyclo is the binding constraint for switch dispatchers; gocognit for
+  nested ifs.** A 14-case limit switch was gocognit 28 (nesting doubles the
+  per-case ifs) but still 17 after extracting the ifs — only splitting the
+  plain settings-backed cases into a second function gets gocyclo ≤12 (each
+  case costs 1 gocyclo, so a dispatcher must own ≤11 cases + guards).
+- **Multi-return "phase" helpers with (value, ok) or (value, handled) shapes
+  beat closures** for loops that break on state: consumeVTabRowidRange's
+  `apply` closure became a rowidRangeState struct with tightenHi/tightenLo/
+  forceEmpty methods; the freelist trunk walk became (next, pages, errored,
+  stop) with `stop` meaning "break with errored=true" — the leaf-too-big case
+  sets errored but CONTINUES, so a single bool return would have changed
+  behavior. Tri-state returns are where subtle break-vs-continue regressions
+  hide.
+- **Deduplicate repeated inline guard blocks only when outcomes align**: the
+  transaction lock release triple (registerWriteTx(false)/ReleaseExclusive/
+  releaseSharedTx) appeared twice in execRollback and once in execCommit —
+  releaseTransactionLocks covers all three; the FTS flush-with-rowid-guard
+  block was byte-identical between execCommit and execFlushAutocommit —
+  flushFTSSegmentsGuarded covers both. When outcomes differ (MCVT's cerr→err
+  vs ciOK→false paths), wrap in a helper returning the distinguishing flag
+  instead of collapsing.
+- **A leaked temp-dir path inside "got:" lines breaks naive failure-set diffs**
+  — filter or expect a 2-line diff of /var/folders paths to mean IDENTICAL.
+- **Extraction rules that held for all ~45 functions this tranche**: (1) a
+  func-literal converted to a method drops one nesting level everywhere inside
+  (countStatementFromTerms 22→2 without touching logic); (2) receiver-less
+  helpers for pure map/expr walks (schemaIndexRoots, duplicateSchemaIndexRoot)
+  keep them testable and clarify the captured-state surface; (3) keep defer
+  registrations in the caller frame (Exec's PopCTEScope defer) — extract only
+  the check bodies; (4) package-level `var debugX = os.Getenv(...)` may replace
+  repeated inline os.Getenv reads when a sibling var (debugClosure) already
+  uses that pattern.
+- **gofmt drift accumulates across fleet edits** (blank line before doc
+  comments, blank line after imports): run `gofmt -l internal/<pkg>/` before
+  committing; `gofmt -w` the package — whitespace-only, zero review burden.
+- **python3 line-number slicing of Go files is off-by-one-prone** (comment
+  lines vs closing braces); slice by content (`next(i for i,l in enumerate(...)
+  if l.startswith('// ...'))`) and assert both boundaries before writing.
+
 ## MANDATORY RULES (2026-09 update)
 
 - **No skipping missing engine features.** If a testgen package fails because
