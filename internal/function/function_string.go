@@ -697,6 +697,12 @@ func fnPREFIXLENGTH(args []interface{}) (interface{}, error) {
 	if _, isBlob := args[1].([]byte); isBlob {
 		return int64(0), nil
 	}
+	if _, isZero := args[0].(value.ZeroBlob); isZero {
+		return int64(0), nil
+	}
+	if _, isZero := args[1].(value.ZeroBlob); isZero {
+		return int64(0), nil
+	}
 	a := toString(args[0])
 	b := toString(args[1])
 	// Count the common prefix in characters (Unicode code points), matching

@@ -277,6 +277,32 @@ func (e *Engine) schemaLockingMode(schema string) string {
 	return e.currentLockingMode("")
 }
 
+// SoftHeapLimit implements PRAGMA soft_heap_limit (pragma.c
+// PragTyp_SOFT_HEAP_LIMIT): any parseable value (the "=N" and "(N)" forms
+// both arrive as value) calls sqlite3_soft_heap_limit64(N), where N < 0
+// leaves the limit unchanged; the pragma always returns the current limit.
+func (e *Engine) SoftHeapLimit(value string) *execpragma.Result {
+	if value != "" {
+		if n, err := parseDecOrHexInt64(value); err == nil {
+			if n >= 0 {
+				e.softHeapLimit = n
+			}
+		}
+	}
+	return &execpragma.Result{Rows: [][]interface{}{{e.softHeapLimit}}}
+}
+
+// parseDecOrHexInt64 parses a pragma value like sqlite3DecOrHexToI64:
+// optional 0x hex prefix, otherwise decimal. Values that look numeric but
+// overflow report an error (the caller then leaves the setting unchanged).
+func parseDecOrHexInt64(s string) (int64, error) {
+	s = strings.TrimSpace(s)
+	if strings.HasPrefix(s, "0x") || strings.HasPrefix(s, "0X") {
+		return strconv.ParseInt(s[2:], 16, 64)
+	}
+	return strconv.ParseInt(s, 10, 64)
+}
+
 // currentLockingMode returns the addressed default locking mode (default
 // "normal"): the bare-query form reports db->dfltLockMode.
 func (e *Engine) currentLockingMode(schema string) string {

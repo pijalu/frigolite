@@ -37,6 +37,15 @@ func (t *BTree) balanceDeeperRootLeaf(pg *pager.Page, page *storage.BTreePage, n
 	if err := t.copyLeafRootToChild(child, pg, page, coff); err != nil {
 		return nil, err
 	}
+	// The balance do-loop's next step runs getAndInitPage on the fresh child
+	// (src/btree.c:9104); btreeInitPage with the cell-size check enabled
+	// validates every cell pointer of the copied content, so a root whose
+	// pointer array was rewritten to point at record bodies is rejected
+	// here — the INSERT forcing balance_deeper is where corrupt.test 7.3
+	// expects "database disk image is malformed".
+	if err := storage.ValidateCellSizeCheck(child.Data, int(t.pageSize), 0); err != nil {
+		return nil, err
+	}
 	if err := t.rewriteRootLeafAsInterior(pg, child.PageNum, coff); err != nil {
 		return nil, err
 	}

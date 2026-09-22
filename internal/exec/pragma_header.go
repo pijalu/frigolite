@@ -304,6 +304,10 @@ func (e *Engine) execPragmaPageSize(ctx *DatabaseContext, value string) *Result 
 		if n < 512 || n > 65536 || (n&(n-1)) != 0 {
 			return &Result{}
 		}
+		// Record the requested page size for databases created later —
+		// the temp database applies it when its btree is first opened
+		// (pragma.c:608 db->nextPagesize; build.c:5338).
+		e.nextPageSize = uint32(n)
 		if e.tx.inTransaction {
 			return &Result{}
 		}

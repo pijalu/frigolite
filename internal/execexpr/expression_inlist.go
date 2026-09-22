@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/pijalu/frigolite/internal/sql"
 	"github.com/pijalu/frigolite/internal/util"
+	"github.com/pijalu/frigolite/internal/value"
 	"math"
 	"strconv"
 	"strings"
@@ -436,9 +437,16 @@ func castToReal(val interface{}) (interface{}, error) {
 // castToText converts a value to TEXT like SQLite's CAST(x AS TEXT): a blob
 // decodes as UTF-8 text (byte copy), a REAL renders like SQLite
 // (CAST(123.0 AS TEXT) is '123.0'), and other values use their text form.
+// A zeroblob's text view is the empty string: the expanded zero bytes are
+// NUL-terminated, so the C-string text read stops at the first NUL
+// (vdbemem.c sqlite3VdbeMemCast SQLITE_AFF_TEXT; oracle 3.54:
+// length(CAST(zeroblob(100) AS TEXT))=0, CAST(zeroblob(100) AS TEXT)='').
 func castToText(val interface{}) (interface{}, error) {
 	if b, ok := val.([]byte); ok {
 		return string(b), nil
+	}
+	if _, ok := val.(value.ZeroBlob); ok {
+		return "", nil
 	}
 	if f, ok := val.(float64); ok {
 		return util.FormatSQLiteReal(f), nil
@@ -449,10 +457,13 @@ func castToText(val interface{}) (interface{}, error) {
 // castToBlob converts a value to BLOB like SQLite's CAST(x AS BLOB): a TEXT
 // value becomes its byte content, other types become their canonical text
 // form's bytes (CAST(123 AS BLOB) is X'313233'), and a blob passes through.
+// A zeroblob expands to its N zero bytes (sqlite3VdbeMemExpandBlob).
 func castToBlob(val interface{}) (interface{}, error) {
 	switch x := val.(type) {
 	case []byte:
 		return x, nil
+	case value.ZeroBlob:
+		return x.Bytes(), nil
 	case string:
 		return []byte(x), nil
 	case int64:

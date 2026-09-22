@@ -101,19 +101,6 @@ func (e *SelectEngine) scanAggExprRefs(exprs []sql.Expr, innerColNames map[strin
 	return
 }
 
-// distinctKey builds a deduplication key for already-evaluated aggregate args.
-func distinctKey(args []interface{}) string {
-	var key string
-	for _, a := range args {
-		if a == nil {
-			key += "\x00"
-		} else {
-			key += fmt.Sprintf("%v", a) + "\x00"
-		}
-	}
-	return key
-}
-
 // aggRowPassesFilter reports whether row satisfies the aggregate's optional
 // FILTER clause. A nil FILTER passes every row.
 func (e *SelectEngine) aggRowPassesFilter(v *sql.FuncCall, row RowMap) bool {

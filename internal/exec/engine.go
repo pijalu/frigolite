@@ -192,8 +192,19 @@ type Engine struct {
 	caches tableCaches
 	// lockingMode tracks this connection's file-locking model as set by
 	// PRAGMA locking_mode (default "normal"; "exclusive" holds the EXCLUSIVE
-	// lock for the connection's lifetime). It is a connection-level setting.
+	// lock for the connection's lifetime). It is the connection-level DEFAULT
+	// (pragma.c db->dfltLockMode): the unqualified query reports it and a
+	// later ATTACH inherits it; per-database modes live on DatabaseContext.
 	lockingMode string
+	// softHeapLimit mirrors sqlite3_soft_heap_limit64's connection value
+	// (default 0); PRAGMA soft_heap_limit gets/sets it (util.c mutex
+	// instrumentation aside, the SQL-visible contract is the round-trip).
+	softHeapLimit int64
+	// nextPageSize records the last PRAGMA page_size=N assignment
+	// (pragma.c:608 db->nextPagesize). The lazily-created temp database
+	// applies it when its btree is first opened (build.c:5338
+	// sqlite3CreateTempDatabase → sqlite3BtreeSetPageSize).
+	nextPageSize uint32
 	// tx holds transaction state (BEGIN/COMMIT/ROLLBACK/SAVEPOINT).
 	tx txState
 	// progress holds the progress-handler state.

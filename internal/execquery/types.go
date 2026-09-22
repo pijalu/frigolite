@@ -130,6 +130,12 @@ type DatabaseContext struct {
 	// applied immediately (tables already exist) and is applied by the next
 	// VACUUM (pragma.c pNextPagesize; 0 = none pending).
 	PendingPageSize uint32
+	// LockingMode is this database's pager locking mode ("normal" /
+	// "exclusive") as set by a schema-qualified or unqualified
+	// PRAGMA locking_mode (pragma.c PragTyp_LOCKING_MODE). "" means unset:
+	// temp and in-memory databases are born EXCLUSIVE
+	// (pager.c:5052 exclusiveMode=tempFile), file databases NORMAL.
+	LockingMode string
 }
 
 // StructRow is an index-based Row that stores values in a slice

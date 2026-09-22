@@ -152,6 +152,11 @@ func (e *Engine) invalidateTempStorage() error {
 	if fresh == nil {
 		return fmt.Errorf("out of memory")
 	}
+	// The recreated temp btree picks up the recorded page size
+	// (build.c:5338 sqlite3CreateTempDatabase applies db->nextPagesize).
+	if e.nextPageSize != 0 && fresh.Pager != nil {
+		fresh.Pager.SetPageSize(e.nextPageSize)
+	}
 	e.databases["TEMP"] = fresh
 	e.databases["TEMPORARY"] = fresh
 	for i, c := range e.dbList {

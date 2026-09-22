@@ -44,6 +44,14 @@ type DDLContext interface {
 	TextEncoding() string
 	CheckProgress() error
 
+	// OpenTempBtree marks the temp database's btree open (aDb[1].pBt),
+	// applying the recorded page size on first open (build.c:5338).
+	OpenTempBtree()
+	// DfltLockingMode returns the connection-default locking mode
+	// ("normal"/"exclusive", pragma.c db->dfltLockMode) that a newly
+	// attached database inherits (attach.c:206
+	// sqlite3PagerLockingMode(pPager, db->dfltLockMode)).
+	DfltLockingMode() string
 	// Settings.
 	LegacyAlterTable() bool
 	WritableSchema() bool

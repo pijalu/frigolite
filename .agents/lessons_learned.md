@@ -99,6 +99,60 @@
   fresh worktree + class split via the coordinator; never keep diagnosing
   against a moving tree.
 
+## T30-kernel — kernel/pager/btree singles (2026-09-22, branch fleet/w6-kernel)
+
+- **Establish interleaved-callback oracle semantics with a C program against
+  the sqlite amalgamation, not the CLI.** btreefault-2.2 (nested DELETE while
+  a SELECT streams) needs sqlite3_step-per-row interleaving; /usr/bin/sqlite3
+  cannot express it. `cc -I. -o /tmp/oracle /tmp/prog.c sqlite3.c` against
+  /Users/muaddib/dev/sqlite/sqlite3.c + sqlite3_exec's callback reproduced the
+  [25 a 25 b] contract in minutes.
+- **SQLite's pager_truncate_image is IN-MEMORY ONLY; the file is cut at
+  commit.** An eager `shrinkDatabaseFileLocked` mid-transaction destroyed the
+  pre-statement page images that the savepoint-snapshot Restore re-reads from
+  disk (dbpage-720: SAVEPOINT / dbpage INSERT NULL / ROLLBACK TO → "database
+  disk image is malformed"). The deferred shrink is ONLY for the dbpage path
+  (TruncateDeferFile): the auto-vacuum drain (TruncateNoFreelistAdjust,
+  P8.INCRVACUUM phase16) DEPENDS on the eager shrink — deferring it broke 1
+  more autovacuum assertion. Pager.Snapshot deliberately does not warm the
+  cache (sqllimits1-7.5 quadratic), so Restore's disk re-read must stay valid.
+- **zeroblob's text view is the EMPTY string** (sqlite3_value_text NUL-
+  truncates the expanded zero bytes): length(CAST(zeroblob(100) AS TEXT))=0.
+  Anything rendering a value via fmt "%v" falls through to "{100}" — check
+  every toString/castToText/distinctKey/rowValueKey site when adding a lazy
+  value type. Also expand ZeroBlob → []byte at the root Query boundary
+  (sqlite3_column_blob parity) so host-side renderers never see the marker.
+- **PRAGMA locking_mode per-database matrix (pragma.c:687)**: unqualified
+  query → dfltLockMode; unqualified set → aux dbs (aDb[2..], temp SKIPPED) +
+  main + dflt; qualified → one pager only; temp/memory pagers are born
+  EXCLUSIVE (pager.c:5052 exclusiveMode=tempFile) and IGNORE sets
+  (pager.c:7332 !tempFile guard); ATTACH inherits dfltLockMode (attach.c:206).
+- **PRAGMA page_size=N records db->nextPagesize for databases created LATER**
+  (pragma.c:608); the lazy temp btree applies it at creation (build.c:5338).
+  Frigolite creates its temp context eagerly, so the application point is
+  "first temp address" (openTempBtree), not context construction.
+- **The catch-of-C-API emitter wrapper loses the returned code**: it writes
+  `_catchErr = fmt.Errorf("")` and takes res from the error MESSAGE, so any
+  C-API command whose TCL result is a code (sqlite3_bind_text →
+  SQLITE_TOOBIG) compares {} against the code. The ENGINE side (Stmt.Bind
+  limit check + ErrorCodeFor mapping) was already correct — prove that with a
+  native pin before classifying.
+- **tclListFlatten(want) drops the trailing space of a list's last element**;
+  when the expected value itself ends with a space ([list $::big1]), TCL
+  passes and the harness cannot. Harness rendering artifact class.
+- **Emitter over-broad skip heuristics can swallow engine-visible statements**:
+  shortread1-1.3's INSERT was dropped because its multi-statement execsql
+  contained PRAGMA freelist_count ("VACUUM-dependent"). When a testgen failure
+  has NO engine repro, diff the generated body against the TCL body line by
+  line for silently dropped statements.
+- **NEVER use `git stash` in a fleet worktree**: refs/stash is shared across
+  ALL worktrees of the repo, so sibling agents' stash pushes/pops interleave —
+  a `stash pop` can apply someone else's WIP into your tree and your WIP into
+  theirs, and a "baseline" measurement may silently include foreign changes.
+  Use a throwaway `git worktree add /tmp/x HEAD` for A/B baselines instead.
+  This tranche lost the skip-map edits to an interleave and spent a long A/B
+  chasing an 80-vs-81 autovacuum delta that was foreign-work contamination.
+
 ## T29-execqfix — FULL-SUITE-DRIFT census regression triage (2026-09-22, branch fleet/execq-fix)
 
 - **A census "flip point" merge can be green at BOTH parents and at the merge

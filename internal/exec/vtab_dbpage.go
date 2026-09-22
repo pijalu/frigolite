@@ -51,7 +51,10 @@ func (s dbpagePageSource) WritePage(pgno uint32, data []byte) error {
 }
 
 // TruncatePages drops all pages after n (src/dbpage.c INSERT with NULL data).
-func (s dbpagePageSource) TruncatePages(n uint32) error { return s.p.Truncate(n) }
+// TruncatePages drops all pages after n. The deferred-file variant keeps the
+// pre-statement page images on disk until COMMIT, so a SAVEPOINT ... ROLLBACK
+// TO around the write can restore them (dbpage-720).
+func (s dbpagePageSource) TruncatePages(n uint32) error { return s.p.TruncateDeferFile(n) }
 
 // enginePageSources resolves ATTACHed schema names to their pagers.
 type enginePageSources struct {
