@@ -38,6 +38,12 @@ func (e *DMLExecutor) execDelete(s *sql.DeleteStmt) *Result {
 	if _, ok := e.ctx.EchoVTabSource(s.Table); !ok {
 		return e.execDeleteInner(s)
 	}
+	// The echo module's xBegin runs before the statement's first write
+	// (vtab.c sqlite3VtabBegin): a failed module transaction start vetoes
+	// the whole statement (test8.c echoBegin, vtab1.10-3).
+	if err, ok := e.ctx.EchoVTabBegin(s.Table); ok && err != nil {
+		return &Result{Error: err}
+	}
 	e.echoWriteDepth++
 	res := e.execDeleteInner(s)
 	if res.Error != nil {

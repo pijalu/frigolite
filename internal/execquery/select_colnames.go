@@ -545,6 +545,7 @@ func (e *SelectEngine) sortRowsWithMaps(result *Result, orderBy []sql.OrderByTer
 	if n <= 1 {
 		return nil
 	}
+	orderBy = e.resolveOrderByOrdinalTerms(s, orderBy)
 	// Pre-evaluate ORDER BY expressions that are not plain unqualified column
 	// references (the comparator would otherwise discard evaluation errors).
 	// Every evaluation runs BEFORE any result is written back: a stored key

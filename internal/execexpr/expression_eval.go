@@ -230,7 +230,15 @@ func (ev *Evaluator) evalInListOperand(v *sql.InList, operand interface{}, row R
 	if len(v.List) == 0 {
 		return inListEmptyResult(v.Negated), nil
 	}
-	if operand == nil {
+	// A wrapped NULL counts as a NULL operand: materialized row sets (virtual
+	// tables, CTEs, subqueries) carry every column in a
+	// ColumnValue/CollatedValue wrapper, so a NULL column arrives as a
+	// non-nil wrapper around nil. NULL IN (non-empty) is unknown (NULL).
+	unwrapped := util.UnwrapColumnValue(operand)
+	if cv, ok := unwrapped.(*CollatedValue); ok {
+		unwrapped = cv.Value
+	}
+	if operand == nil || unwrapped == nil {
 		// A NULL operand with a subquery that returns zero rows behaves like
 		// an empty list: FALSE for IN, TRUE for NOT IN (no elements to
 		// compare against). Any non-empty list leaves the result unknown.

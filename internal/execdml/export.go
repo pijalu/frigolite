@@ -80,6 +80,37 @@ func IsIPKRowidAliasCol(cd sql.ColumnDef) bool {
 	return isIPKRowidAliasCol(cd)
 }
 
+// FillRowidAliasNulls substitutes the rowid for NULL rowid-alias columns in
+// materialized rows. SQLite stores NULL in the record for the alias column
+// (btree.c: the alias IS the rowid) and substitutes the rowid at read time;
+// a materializer that decodes source records directly — the echo module reads
+// its source through "SELECT rowid, * FROM <source>", test8.c echoCursor —
+// must apply the same substitution or the alias column reads NULL through the
+// virtual table (vtab6-8.x). srcDefs are the SOURCE table's column
+// definitions; positions map 1:1 onto each row's values.
+func FillRowidAliasNulls(srcDefs []sql.ColumnDef, rows [][]interface{}, rowids []int64) {
+	aliasCols := make([]int, 0, 1)
+	for i := range srcDefs {
+		if isIPKRowidAliasCol(srcDefs[i]) {
+			aliasCols = append(aliasCols, i)
+		}
+	}
+	if len(aliasCols) == 0 {
+		return
+	}
+	for i, row := range rows {
+		var rid int64
+		if i < len(rowids) {
+			rid = rowids[i]
+		}
+		for _, ci := range aliasCols {
+			if ci < len(row) && row[ci] == nil {
+				row[ci] = rid
+			}
+		}
+	}
+}
+
 // NullIPKAliasForWrite returns a copy of values with the INTEGER PRIMARY KEY
 // rowid-alias column set to NULL for on-disk encoding. SQLite stores NULL in
 // the record for the alias column (btree.c: the alias IS the rowid, which is

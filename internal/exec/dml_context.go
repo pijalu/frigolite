@@ -15,6 +15,7 @@ import (
 	"github.com/pijalu/frigolite/internal/sql"
 	"github.com/pijalu/frigolite/internal/storage"
 	"github.com/pijalu/frigolite/internal/util"
+	"github.com/pijalu/frigolite/internal/vtab"
 )
 
 // This file implements the execdml.DMLContext capability interface on the
@@ -208,6 +209,36 @@ func (e *Engine) RestorePager(pg *pager.Pager, snap *pager.PagerState) {
 // EchoVTabSource resolves the source table of an echo virtual table.
 func (e *Engine) EchoVTabSource(name string) (string, bool) {
 	return e.echoVTabSource(name)
+}
+
+// EchoVTabBegin runs the echo module's xBegin (vtab.Transactor Begin) for a
+// write statement targeting name (vtab.c sqlite3VtabBegin fires OP_VBegin
+// before the statement's first vtab write): ok is false when name is not an
+// echo vtab; a non-nil err vetoes the statement (test8.c echoBegin's
+// echo_module_begin_fail → bare SQLITE_ERROR → "SQL logic error",
+// vtab1.10-3).
+func (e *Engine) EchoVTabBegin(name string) (error, bool) {
+	entry, _, err := e.findTable(name)
+	if err != nil || entry == nil || entry.RootPage != 0 {
+		return nil, false
+	}
+	modName, modArgs, isVtab := vtabModuleFromSQL(entry.SQL)
+	if !isVtab || !isEchoModule(modName, modArgs) {
+		return nil, false
+	}
+	module, found := e.vtabs.Find(modName)
+	if !found {
+		return fmt.Errorf("no such module: %s", modName), true
+	}
+	vt, cerr := createVtabModule(module, modArgs, nil)
+	if cerr != nil {
+		return cerr, true
+	}
+	t, can := vt.(vtab.Transactor)
+	if !can {
+		return nil, true
+	}
+	return t.Begin(), true
 }
 
 // RewriteEchoInsert rewrites an INSERT into an echo virtual table.
