@@ -29,6 +29,16 @@ func (e *Engine) execReindex(s *sql.ReindexStmt) *Result {
 		}
 	}
 	seen := make(map[string]string) // index name -> table
+	if err := e.checkReindexIndexTables(seen); err != nil {
+		return &Result{Error: err}
+	}
+	return &Result{}
+}
+
+// checkReindexIndexTables verifies that duplicate index names across attached
+// databases resolve to the same table (SQLite's integrity rule behind
+// REINDEX's name-keyed index lookup); a mismatch is a malformed image.
+func (e *Engine) checkReindexIndexTables(seen map[string]string) error {
 	for _, ctx := range e.databases {
 		entries, err := ctx.Schema.GetEntries(schema.TypeIndex)
 		if err != nil {
@@ -37,13 +47,13 @@ func (e *Engine) execReindex(s *sql.ReindexStmt) *Result {
 		for _, ent := range entries {
 			if prev, ok := seen[strings.ToUpper(ent.Name)]; ok {
 				if !strings.EqualFold(prev, ent.TblName) {
-					return &Result{Error: fmt.Errorf("database disk image is malformed")}
+					return fmt.Errorf("database disk image is malformed")
 				}
 			}
 			seen[strings.ToUpper(ent.Name)] = ent.TblName
 		}
 	}
-	return &Result{}
+	return nil
 }
 
 func (e *Engine) execAnalyze(s *sql.AnalyzeStmt) *Result {

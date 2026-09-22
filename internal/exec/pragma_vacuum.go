@@ -44,17 +44,53 @@ func (e *Engine) IncrementalVacuum(schema string, limit int64) *execpragma.Resul
 	if !ctx.Pager.AutoVacuum() {
 		return &execpragma.Result{}
 	}
-	ps := ctx.Pager.PageSize()
-	// C reads nOrig via btreePagecount(pBt->nPage) — the in-memory page
-	// count, which during an open write transaction legitimately leads
-	// the on-disk file (uncommitted appends live in the page cache).
-	nOrig := ctx.Pager.NumPages()
-	nFree := ctx.Pager.FreelistCount()
-	nFin := finalDbSize(nOrig, nFree, ps)
-	// btree.c sqlite3BtreeIncrVacuum corruption guard.
-	if nOrig < nFin || nFree >= nOrig {
+	nFin, ok := incrVacuumPrecheck(ctx)
+	if !ok {
 		return &execpragma.Result{Error: fmt.Errorf("database disk image is malformed")}
 	}
+	// With an empty freelist there is no work: SQLITE_DONE, no rows.
+	if ctx.Pager.FreelistCount() == 0 {
+		return &execpragma.Result{}
+	}
+	rows := e.runIncrVacuumLoop(ctx, nFin, limit)
+	if len(rows) == 0 {
+		return &execpragma.Result{}
+	}
+	return &execpragma.Result{Rows: rows}
+}
+
+// incrVacuumPrecheck performs btree.c sqlite3BtreeIncrVacuum's corruption
+// guards and reports the post-drain target size. ok=false marks a malformed
+// image. C reads nOrig via btreePagecount(pBt->nPage) — the in-memory page
+// count, which during an open write transaction legitimately leads the
+// on-disk file (uncommitted appends live in the page cache).
+func incrVacuumPrecheck(ctx *DatabaseContext) (nFin uint32, ok bool) {
+	ps := ctx.Pager.PageSize()
+	nOrig := ctx.Pager.NumPages()
+	nFree := ctx.Pager.FreelistCount()
+	nFin = finalDbSize(nOrig, nFree, ps)
+	// btree.c sqlite3BtreeIncrVacuum corruption guard.
+	if nOrig < nFin || nFree >= nOrig {
+		return 0, false
+	}
+	return nFin, true
+}
+
+// runIncrVacuumLoop drives the VDBE's OP_IncrVacuum loop (one
+// incrVacuumStep per iteration) until SQLITE_DONE or the N-step limit,
+// collecting one zero-column row per successful step (pragma.c
+// PragTyp_INCREMENTAL_VACUUM emits OP_ResultRow with p2=0 — a ZERO-COLUMN
+// row per step, invisible to every row consumer; TCL's db eval appends
+// nothing for a column-less row).
+//
+// C runs the steps inside the open transaction: every page write and
+// every tail-page truncation is protected by the rollback journal —
+// truncatePages journals each removed tail page's before-image and
+// rollbackFromJournalLocked restores the file length via the journal
+// header's dbOrigSize (pager.c's nTrunc playback) — so ROLLBACK undoes
+// the drain exactly like any other write. The former in-transaction
+// no-op (P8.INCRVACUUM.phase7 divergence) is retired.
+func (e *Engine) runIncrVacuumLoop(ctx *DatabaseContext, nFin uint32, limit int64) [][]interface{} {
 	// lockBtree (btree.c:3401) runs on every statement start in SQLite and
 	// rejects a header page count above the file's page count before
 	// sqlite3BtreeIncrVacuum ever runs. The pragma path here can be the
@@ -65,28 +101,8 @@ func (e *Engine) IncrementalVacuum(schema string, limit int64) *execpragma.Resul
 	// misreport every in-transaction vacuum as corrupt (C has no such
 	// check; it trusts the in-memory btree state).
 	if !e.tx.inTransaction && !e.settings.writableSchema && ctx.Pager.HeaderBeyondFile() {
-		return &execpragma.Result{Error: fmt.Errorf("database disk image is malformed")}
+		return nil
 	}
-	// With an empty freelist there is no work: SQLITE_DONE, no rows.
-	if nFree == 0 {
-		return &execpragma.Result{}
-	}
-	// C runs the steps inside the open transaction: every page write and
-	// every tail-page truncation is protected by the rollback journal —
-	// truncatePages journals each removed tail page's before-image and
-	// rollbackFromJournalLocked restores the file length via the journal
-	// header's dbOrigSize (pager.c's nTrunc playback) — so ROLLBACK undoes
-	// the drain exactly like any other write. The former in-transaction
-	// no-op (P8.INCRVACUUM.phase7 divergence) is retired.
-	// btree.c sqlite3BtreeIncrVacuum + pragma.c PragTyp_INCREMENTAL_VACUUM:
-	// the VDBE loops OP_IncrVacuum — one incrVacuumStep per iteration —
-	// until SQLITE_DONE or the N-step limit. Each step (truncate a free
-	// tail page, or relocate the live last page onto the lowest free
-	// page) maintains the freelist count, the freelist chain, and the
-	// header page count itself; the pragma adds no bookkeeping of its
-	// own (a DecrementFreelistCount here would double-count against
-	// Truncate's own truncatedFree adjustment — "Freelist: size is N
-	// but should be M").
 	total := int64(0)
 	var rows [][]interface{}
 	for total < limit {
@@ -107,17 +123,9 @@ func (e *Engine) IncrementalVacuum(schema string, limit int64) *execpragma.Resul
 			break // SQLITE_DONE — no more work
 		}
 		total += int64(steps)
-		// pragma.c PragTyp_INCREMENTAL_VACUUM emits OP_ResultRow with
-		// p2=0 — a ZERO-COLUMN row per successful step, invisible to
-		// every row consumer (TCL's db eval appends nothing for a
-		// column-less row). Mirror that: one empty row per step, no
-		// column names.
 		rows = append(rows, []interface{}{})
 	}
-	if total == 0 {
-		return &execpragma.Result{}
-	}
-	return &execpragma.Result{Rows: rows}
+	return rows
 }
 
 // runIncrVacuumStep performs a single btree.c incrVacuumStep: the last

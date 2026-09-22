@@ -536,14 +536,8 @@ func (e *Engine) lockStatusFor(ctx *DatabaseContext) string {
 	// Open incremental-blob handles hold a lock on their database: a
 	// read-write handle holds RESERVED, a read-only handle holds SHARED
 	// (SQLite vdbe blob locks).
-	if e.blobLocks != nil {
-		name := strings.ToUpper(ctx.Name)
-		if n := e.blobLocks[name].write; n > 0 {
-			return "reserved"
-		}
-		if n := e.blobLocks[name].read; n > 0 {
-			return "shared"
-		}
+	if status := e.blobLockStatus(ctx); status != "" {
+		return status
 	}
 	// A database whose pager has unflushed dirty pages was written by the
 	// current transaction. SQLite lock states (pager.c WRITER_* state
@@ -557,12 +551,8 @@ func (e *Engine) lockStatusFor(ctx *DatabaseContext) string {
 	// pushes past the threshold and escalates to EXCLUSIVE (cache-2.3.1
 	// reserved vs 2.3.3 exclusive). pragma2-4.4's 128-page bulk UPDATE
 	// with cache_size=50 + spill=ON exceeds the threshold → exclusive.
-	dirty := ctx != nil && ctx.Pager != nil && ctx.Pager.HasDirtyPages()
-	if e.tx.inTransaction && dirty {
-		if e.settings.cacheSpillEnabled && int64(ctx.Pager.DirtyPageCount()) > e.effectiveSpillFor(ctx) {
-			return "exclusive"
-		}
-		return "reserved"
+	if status, classified := e.txDirtyLockStatus(ctx); classified {
+		return status
 	}
 	// A database the transaction wrote EARLIER keeps its WRITER lock even if
 	// a savepoint rollback has since restored its pages (pager.c: only
@@ -572,12 +562,46 @@ func (e *Engine) lockStatusFor(ctx *DatabaseContext) string {
 	if e.tx.inTransaction && e.tx.reservedDbs != nil && e.tx.reservedDbs[strings.ToUpper(ctx.Name)] {
 		return "reserved"
 	}
+	return "unlocked"
+}
+
+// txDirtyLockStatus classifies a dirty-paged database's lock state:
+// RESERVED while the transaction's writes stay in cache, EXCLUSIVE once the
+// dirty pages spill past the cache_spill threshold (pager.c WRITER_CACHEMOD
+// → WRITER_DBMOD), or EXCLUSIVE outright for an autocommit write (held until
+// the statement's implicit commit flushes). classified=false when the
+// database has no dirty pages for the current state.
+func (e *Engine) txDirtyLockStatus(ctx *DatabaseContext) (status string, classified bool) {
+	dirty := ctx != nil && ctx.Pager != nil && ctx.Pager.HasDirtyPages()
+	if e.tx.inTransaction && dirty {
+		if e.settings.cacheSpillEnabled && int64(ctx.Pager.DirtyPageCount()) > e.effectiveSpillFor(ctx) {
+			return "exclusive", true
+		}
+		return "reserved", true
+	}
 	if !e.tx.inTransaction && dirty {
 		// A write outside an explicit transaction (autocommit) holds an
 		// exclusive lock until the statement's implicit commit flushes.
-		return "exclusive"
+		return "exclusive", true
 	}
-	return "unlocked"
+	return "", false
+}
+
+// blobLockStatus reports the incremental-blob handle lock state of the
+// database ("" when none): a read-write handle holds RESERVED, a read-only
+// handle holds SHARED (SQLite vdbe blob locks).
+func (e *Engine) blobLockStatus(ctx *DatabaseContext) string {
+	if e.blobLocks == nil {
+		return ""
+	}
+	name := strings.ToUpper(ctx.Name)
+	if n := e.blobLocks[name].write; n > 0 {
+		return "reserved"
+	}
+	if n := e.blobLocks[name].read; n > 0 {
+		return "shared"
+	}
+	return ""
 }
 
 // blobLockCounts tracks open incremental-blob handles per schema for

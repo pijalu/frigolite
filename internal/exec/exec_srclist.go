@@ -4,45 +4,53 @@ import (
 	"github.com/pijalu/frigolite/internal/sql"
 )
 
-func countStatementFromTerms(stmt sql.Stmt) int {
-	count := 0
-	var countSelect func(*sql.SelectStmt)
-	countSelect = func(s *sql.SelectStmt) {
-		if s == nil {
-			return
-		}
-		if s.From.Name != "" || s.From.Subquery != nil {
-			count++
-		}
-		count += len(s.Joins)
-		for _, cte := range s.CTEs {
-			countSelect(cte.Select)
-		}
-		if s.From.Subquery != nil {
-			countSelect(s.From.Subquery)
-		}
-		for i := range s.Joins {
-			if s.Joins[i].Table.Subquery != nil {
-				countSelect(s.Joins[i].Table.Subquery)
-			}
-		}
-		for _, col := range s.Columns {
-			countSelectExprSubqueries(col.Expr, countSelect)
-		}
-		countSelectExprSubqueries(s.Where, countSelect)
-		for _, g := range s.GroupBy {
-			countSelectExprSubqueries(g, countSelect)
-		}
-		countSelectExprSubqueries(s.Having, countSelect)
-		for _, ob := range s.OrderBy {
-			countSelectExprSubqueries(ob.Expr, countSelect)
-		}
-		if s.Union != nil {
-			countSelect(s.Union)
+// statementFromTermCounter accumulates the FROM-term count of one statement
+// (SQLite selects the read-statement limit's unit).
+type statementFromTermCounter struct {
+	count int
+}
+
+// countSelect counts one SELECT's FROM terms and recurses into CTEs, FROM
+// and JOIN subqueries, expression subqueries, and UNION chains.
+func (c *statementFromTermCounter) countSelect(s *sql.SelectStmt) {
+	if s == nil {
+		return
+	}
+	if s.From.Name != "" || s.From.Subquery != nil {
+		c.count++
+	}
+	c.count += len(s.Joins)
+	for _, cte := range s.CTEs {
+		c.countSelect(cte.Select)
+	}
+	if s.From.Subquery != nil {
+		c.countSelect(s.From.Subquery)
+	}
+	for i := range s.Joins {
+		if s.Joins[i].Table.Subquery != nil {
+			c.countSelect(s.Joins[i].Table.Subquery)
 		}
 	}
-	countSelectExprSubqueriesInStmt(stmt, countSelect)
-	return count
+	for _, col := range s.Columns {
+		countSelectExprSubqueries(col.Expr, c.countSelect)
+	}
+	countSelectExprSubqueries(s.Where, c.countSelect)
+	for _, g := range s.GroupBy {
+		countSelectExprSubqueries(g, c.countSelect)
+	}
+	countSelectExprSubqueries(s.Having, c.countSelect)
+	for _, ob := range s.OrderBy {
+		countSelectExprSubqueries(ob.Expr, c.countSelect)
+	}
+	if s.Union != nil {
+		c.countSelect(s.Union)
+	}
+}
+
+func countStatementFromTerms(stmt sql.Stmt) int {
+	c := &statementFromTermCounter{}
+	countSelectExprSubqueriesInStmt(stmt, c.countSelect)
+	return c.count
 }
 
 // countSelectExprSubqueries walks an expression tree invoking countSelect for

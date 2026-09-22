@@ -209,6 +209,15 @@ func (e *Engine) TempStoreDirectory(value string) *execpragma.Result {
 		}
 		return &execpragma.Result{Rows: [][]interface{}{{e.settings.tempStoreDirectory}}}
 	}
+	return e.setTempStoreDirectory(value)
+}
+
+// setTempStoreDirectory applies a PRAGMA temp_store_directory assignment:
+// it probes the path with an access(READWRITE) check ("not a writable
+// directory" on failure) and, when the temp storage is file-backed per the
+// SQLITE_TEMP_STORE matrix, discards the temp storage — so temp tables
+// created before the change vanish (pragma-9.10).
+func (e *Engine) setTempStoreDirectory(value string) *execpragma.Result {
 	v := strings.TrimSpace(value)
 	if len(v) >= 2 && v[0] == '\'' && v[len(v)-1] == '\'' {
 		v = v[1 : len(v)-1]
@@ -221,9 +230,7 @@ func (e *Engine) TempStoreDirectory(value string) *execpragma.Result {
 	// file-backed (build flag 1 with temp_store<=1, or flag 2 with
 	// temp_store==1). The engine never materializes temp files on disk,
 	// so the probe is the only contract check.
-	if tempStoreBuildFlag == 0 ||
-		(tempStoreBuildFlag == 1 && e.settings.tempStore <= 1) ||
-		(tempStoreBuildFlag == 2 && e.settings.tempStore == 1) {
+	if e.tempStoreFileBacked() {
 		if err := e.invalidateTempStorage(); err != nil {
 			return &execpragma.Result{Error: err}
 		}
@@ -234,6 +241,14 @@ func (e *Engine) TempStoreDirectory(value string) *execpragma.Result {
 	}
 	e.settings.tempStoreDirectory = v
 	return &execpragma.Result{}
+}
+
+// tempStoreFileBacked reports whether the SQLITE_TEMP_STORE matrix makes the
+// temp storage file-backed for the current temp_store setting.
+func (e *Engine) tempStoreFileBacked() bool {
+	return tempStoreBuildFlag == 0 ||
+		(tempStoreBuildFlag == 1 && e.settings.tempStore <= 1) ||
+		(tempStoreBuildFlag == 2 && e.settings.tempStore == 1)
 }
 
 // tempDirAcceptable mirrors the sqlite3OsAccess(READWRITE) probe of
@@ -260,22 +275,10 @@ func tempDirAcceptable(path string) bool {
 // otherwise stores (getSafetyLevel+1)&PAGER_SYNCHRONOUS_MASK.
 func (e *Engine) Synchronous(schema, value string) *execpragma.Result {
 	if value != "" {
-		if !e.tx.inTransaction {
-			// pragma.c: else-if iDb!=1 — the temp database's level is not
-			// settable.
-			if upper := strings.ToUpper(schema); upper != "TEMP" && upper != "TEMPORARY" {
-				lvl := parseSafetyLevel(value)
-				if upper == "" || upper == "MAIN" {
-					e.settings.synchronousLevels["MAIN"] = int64(lvl)
-				} else {
-					e.settings.synchronousLevels[upper] = int64(lvl)
-				}
-			}
-			return &execpragma.Result{}
-		}
-		//lint:ignore ST1005 message text matches the SQLite oracle verbatim
-		return &execpragma.Result{Error: fmt.Errorf("Safety level may not be changed inside a transaction")}
+		return e.setSynchronous(schema, value)
 	}
+	// The getter reports the addressed database's stored safety_level-1
+	// (default 3-1 = 2 = FULL).
 	upper := strings.ToUpper(schema)
 	if upper == "" || upper == "MAIN" {
 		upper = "MAIN"
@@ -285,6 +288,26 @@ func (e *Engine) Synchronous(schema, value string) *execpragma.Result {
 		lvl = 3 // default safety_level: FULL+1 → getter reports 2
 	}
 	return &execpragma.Result{Rows: [][]interface{}{{lvl - 1}}}
+}
+
+// setSynchronous applies a PRAGMA synchronous assignment: rejected inside a
+// transaction, a silent no-op on the temp database (pragma.c: iDb!=1 gate),
+// and otherwise stores (getSafetyLevel+1)&PAGER_SYNCHRONOUS_MASK.
+func (e *Engine) setSynchronous(schema, value string) *execpragma.Result {
+	if e.tx.inTransaction {
+		//lint:ignore ST1005 message text matches the SQLite oracle verbatim
+		return &execpragma.Result{Error: fmt.Errorf("Safety level may not be changed inside a transaction")}
+	}
+	// pragma.c: else-if iDb!=1 — the temp database's level is not settable.
+	if upper := strings.ToUpper(schema); upper != "TEMP" && upper != "TEMPORARY" {
+		lvl := parseSafetyLevel(value)
+		if upper == "" || upper == "MAIN" {
+			e.settings.synchronousLevels["MAIN"] = int64(lvl)
+		} else {
+			e.settings.synchronousLevels[upper] = int64(lvl)
+		}
+	}
+	return &execpragma.Result{}
 }
 
 // journalModeChangeLockError reports "database is locked" when a WAL-involving

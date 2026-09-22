@@ -229,14 +229,32 @@ func (e *Engine) collationExists(name string) bool {
 // targeted tables (or every table when target is empty) that is NOT
 // registered on this connection, or "" when all resolve.
 func (e *Engine) unknownSchemaCollation(target string) string {
-	tables := []string{}
+	var tables []string
 	if target != "" {
-		name := target
-		if idx := strings.IndexByte(name, '.'); idx >= 0 {
-			name = name[idx+1:]
-		}
-		tables = []string{name}
+		tables = []string{reindexTargetObject(target)}
 	}
+	if name := e.unknownTableCollation(tables); name != "" {
+		return name
+	}
+	if target == "" {
+		return e.unknownMasterCollation()
+	}
+	return ""
+}
+
+// reindexTargetObject strips the schema qualifier from a REINDEX target
+// ("schema.table" → "table").
+func reindexTargetObject(target string) string {
+	if idx := strings.IndexByte(target, '.'); idx >= 0 {
+		return target[idx+1:]
+	}
+	return target
+}
+
+// unknownTableCollation walks every database's table entries (optionally
+// restricted to a single table) and reports the first unregistered key
+// collation; "" when all resolve.
+func (e *Engine) unknownTableCollation(tables []string) string {
 	for _, ctx := range e.databases {
 		entries, err := ctx.Schema.GetEntries(schema.TypeTable)
 		if err != nil {
@@ -246,24 +264,33 @@ func (e *Engine) unknownSchemaCollation(target string) string {
 			if len(tables) > 0 && !strings.EqualFold(ent.Name, tables[0]) {
 				continue
 			}
-			// Reverse declaration order: SQLite iterates a table's indexes
-			// newest-first, so the LAST-declared collation column is checked
-			// first (reindex-3.3: t2's columns a(c1),b(c2) → c2 reported).
-			cols := extractSchemaCollations(ent.SQL)
-			for i := len(cols) - 1; i >= 0; i-- {
-				if !e.collationExists(cols[i]) {
-					return cols[i]
-				}
+			if name := e.firstUnknownCollation(extractSchemaCollations(ent.SQL)); name != "" {
+				return name
 			}
 		}
 	}
-	if target == "" {
-		if ent, err := e.MainDB().Schema.FindTable("sqlite_master"); err == nil && ent != nil {
-			for _, col := range extractSchemaCollations(ent.SQL) {
-				if !e.collationExists(col) {
-					return col
-				}
-			}
+	return ""
+}
+
+// unknownMasterCollation checks the sqlite_master declaration's collations
+// (only consulted for the untargeted whole-schema REINDEX); "" when all
+// resolve.
+func (e *Engine) unknownMasterCollation() string {
+	ent, err := e.MainDB().Schema.FindTable("sqlite_master")
+	if err != nil || ent == nil {
+		return ""
+	}
+	return e.firstUnknownCollation(extractSchemaCollations(ent.SQL))
+}
+
+// firstUnknownCollation returns the first collation name NOT registered on
+// this connection, or "". Reverse declaration order: SQLite iterates a
+// table's indexes newest-first, so the LAST-declared collation column is
+// checked first (reindex-3.3: t2's columns a(c1),b(c2) → c2 reported).
+func (e *Engine) firstUnknownCollation(cols []string) string {
+	for i := len(cols) - 1; i >= 0; i-- {
+		if !e.collationExists(cols[i]) {
+			return cols[i]
 		}
 	}
 	return ""
@@ -273,32 +300,38 @@ func (e *Engine) unknownSchemaCollation(target string) string {
 // statement's COLLATE clauses (upper-cased for the existence check).
 func extractSchemaCollations(sqlText string) []string {
 	var out []string
-	up := sqlText
 	i := 0
 	for {
-		j := strings.Index(up[i:], "COLLATE ")
-		if j < 0 {
+		tok, next, ok := nextSchemaCollation(sqlText, i)
+		if !ok {
 			break
 		}
-		i += j + len("COLLATE ")
-		rest := strings.TrimSpace(up[i:])
-		k := 0
-		for k < len(rest) && (rest[k] == ' ' || rest[k] == '\t' || rest[k] == '\n' || rest[k] == '\r') {
-			k++
+		if tok != "" {
+			out = append(out, tok)
 		}
-		start := i + k
-		end := start
-		for end < len(up) {
-			ch := up[end]
-			if ch == ' ' || ch == ',' || ch == ')' || ch == ';' || ch == '\n' || ch == '\r' || ch == '\t' {
-				break
-			}
-			end++
-		}
-		if end > start {
-			out = append(out, up[start:end])
-		}
-		i = end
+		i = next
 	}
 	return out
+}
+
+// nextSchemaCollation scans up for the next "COLLATE " clause and returns
+// its collation token plus the scan position just past it (ok=false when no
+// further clause exists).
+func nextSchemaCollation(up string, i int) (token string, next int, ok bool) {
+	j := strings.Index(up[i:], "COLLATE ")
+	if j < 0 {
+		return "", 0, false
+	}
+	i += j + len("COLLATE ")
+	rest := strings.TrimSpace(up[i:])
+	k := len(rest) - len(strings.TrimLeft(rest, " \t\n\r"))
+	start := i + k
+	end := len(up)
+	if idx := strings.IndexAny(up[start:], " ,);\n\r\t"); idx >= 0 {
+		end = start + idx
+	}
+	if end > start {
+		return up[start:end], end, true
+	}
+	return "", end, true
 }
