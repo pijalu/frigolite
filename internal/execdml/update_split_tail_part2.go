@@ -85,8 +85,7 @@ func (e *DMLExecutor) buildUpdateChange(cell *storage.Cell, rec *storage.Record,
 		// Defer SET evaluation to the apply loop (per-row interleaving). The
 		// row map is retained so the SET expressions can be re-evaluated
 		// against the original row values.
-		rm, ok := row.(RowMap)
-		if ok {
+		if rm, ok := row.(RowMap); ok {
 			ch.rowMap = rm
 		}
 		ch.values = values
@@ -95,46 +94,9 @@ func (e *DMLExecutor) buildUpdateChange(cell *storage.Cell, rec *storage.Record,
 
 	// Detect an explicit rowid assignment (SET rowid = N / _rowid_ / oid):
 	// the row is deleted at the old rowid and re-inserted at the new one.
-	var newRowID *int64
-
-	for _, a := range s.Assignments {
-		colIdx := -1
-		if ci, ok := colIndex[strings.ToLower(a.Column)]; ok {
-			colIdx = ci
-		}
-		isIPKAssign := colIdx >= 0 && colIdx < len(colDefs) && isIPKRowidAliasCol(colDefs[colIdx])
-		if isIPKAssign {
-			// SET <ipk-column> (an INTEGER PRIMARY KEY rowid alias, e.g. b in
-			// t11(a, b INTEGER PRIMARY KEY)): validate the value like any IPK
-			// assignment (NULL/REAL '4.1'/TEXT 'hello'/BLOB → "datatype
-			// mismatch", e_createtable-5.9.2), set the column value, and move
-			// the row to the new rowid (e_createtable-5.7.2.4: UPDATE t11 SET
-			// b = 8 moves rowid to 8).
-			nrid, err := e.applyIPKRowidAssignment(a, row, colIndex, colDefs, values)
-			if err != nil {
-				return nil, err
-			}
-			if nrid != nil {
-				newRowID = nrid
-			}
-			continue
-		}
-		if execquery.IsRowIDName(a.Column) && !execquery.RowHasRowIDColumn(colDefs) {
-			// SET rowid = N changes the cell's rowid, not a column value (only
-			// when the table has no column named rowid/oid/_rowid_; a declared
-			// rowid column is a normal column assignment).
-			rid, err := e.evalRowIDAssignment(a, row, colDefs, values)
-			if err != nil {
-				return nil, err
-			}
-			if rid != nil {
-				newRowID = rid
-			}
-			continue
-		}
-		if err := e.applyUpdateColumnSet(a, row, colIndex, colDefs, values); err != nil {
-			return nil, err
-		}
+	newRowID, err := e.applyUpdateAssignments(s, row, colIndex, colDefs, values)
+	if err != nil {
+		return nil, err
 	}
 	// Recompute generated columns (b AS(expr)) after the SET assignments
 	// change base columns, matching SQLite (UPDATE recomputes generated
@@ -155,46 +117,60 @@ func (e *DMLExecutor) materializeChangeValues(ch *updateChange, s *sql.UpdateStm
 	if ch.rowMap == nil || len(s.Assignments) == 0 {
 		return nil
 	}
-	row := RowMap(ch.rowMap)
-	var newRowID *int64
-	values := ch.values
-	for _, a := range s.Assignments {
-		colIdx := -1
-		if ci, ok := colIndex[strings.ToLower(a.Column)]; ok {
-			colIdx = ci
-		}
-		isIPKAssign := colIdx >= 0 && colIdx < len(colDefs) && isIPKRowidAliasCol(colDefs[colIdx])
-		if isIPKAssign {
-			nrid, err := e.applyIPKRowidAssignment(a, row, colIndex, colDefs, values)
-			if err != nil {
-				return err
-			}
-			if nrid != nil {
-				newRowID = nrid
-			}
-			continue
-		}
-		if execquery.IsRowIDName(a.Column) && !execquery.RowHasRowIDColumn(colDefs) {
-			rid, err := e.evalRowIDAssignment(a, row, colDefs, values)
-			if err != nil {
-				return err
-			}
-			if rid != nil {
-				newRowID = rid
-			}
-			continue
-		}
-		if err := e.applyUpdateColumnSet(a, row, colIndex, colDefs, values); err != nil {
-			return err
-		}
+	newRowID, err := e.applyUpdateAssignments(s, RowMap(ch.rowMap), colIndex, colDefs, ch.values)
+	if err != nil {
+		return err
 	}
-	if err := e.recomputeUpdateGenerated(colDefs, values); err != nil {
+	if err := e.recomputeUpdateGenerated(colDefs, ch.values); err != nil {
 		return err
 	}
 	ch.newRowID = newRowID
-	ch.values = values
 	ch.rowMap = nil // values now materialized
 	return nil
+}
+
+// applyUpdateAssignments applies every SET assignment to values, returning
+// the new rowid when the SET clause moves the row (SET rowid/IPK column).
+func (e *DMLExecutor) applyUpdateAssignments(s *sql.UpdateStmt, row Row, colIndex map[string]int, colDefs []sql.ColumnDef, values []interface{}) (*int64, error) {
+	var newRowID *int64
+	for _, a := range s.Assignments {
+		nrid, err := e.applyOneUpdateAssignment(a, row, colIndex, colDefs, values)
+		if err != nil {
+			return nil, err
+		}
+		if nrid != nil {
+			newRowID = nrid
+		}
+	}
+	return newRowID, nil
+}
+
+// applyOneUpdateAssignment applies one SET assignment, dispatching on the
+// target: an INTEGER PRIMARY KEY rowid-alias column (validated IPK
+// assignment moving the row), a rowid/oid/_rowid_ pseudo-column (only when
+// the table declares no column shadowing that name), or a normal column.
+// The returned rowid is non-nil when the assignment moves the row.
+func (e *DMLExecutor) applyOneUpdateAssignment(a sql.Assignment, row Row, colIndex map[string]int, colDefs []sql.ColumnDef, values []interface{}) (*int64, error) {
+	colIdx := -1
+	if ci, ok := colIndex[strings.ToLower(a.Column)]; ok {
+		colIdx = ci
+	}
+	if colIdx >= 0 && colIdx < len(colDefs) && isIPKRowidAliasCol(colDefs[colIdx]) {
+		// SET <ipk-column> (an INTEGER PRIMARY KEY rowid alias, e.g. b in
+		// t11(a, b INTEGER PRIMARY KEY)): validate the value like any IPK
+		// assignment (NULL/REAL '4.1'/TEXT 'hello'/BLOB → "datatype
+		// mismatch", e_createtable-5.9.2), set the column value, and move
+		// the row to the new rowid (e_createtable-5.7.2.4: UPDATE t11 SET
+		// b = 8 moves rowid to 8).
+		return e.applyIPKRowidAssignment(a, row, colIndex, colDefs, values)
+	}
+	if execquery.IsRowIDName(a.Column) && !execquery.RowHasRowIDColumn(colDefs) {
+		// SET rowid = N changes the cell's rowid, not a column value (only
+		// when the table has no column named rowid/oid/_rowid_; a declared
+		// rowid column is a normal column assignment).
+		return e.evalRowIDAssignment(a, row, colDefs, values)
+	}
+	return nil, e.applyUpdateColumnSet(a, row, colIndex, colDefs, values)
 }
 
 // updateChangeValueSlots allocates the values array for an update change,

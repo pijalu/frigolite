@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/pijalu/frigolite/internal/btree"
 	"github.com/pijalu/frigolite/internal/execquery"
 	"github.com/pijalu/frigolite/internal/fts"
 	"github.com/pijalu/frigolite/internal/fts5"
@@ -167,11 +168,8 @@ func (e *DMLExecutor) collectUpdateChanges(tableName string, rootPage uint32, co
 	// ("t1.a") in the WHERE clause resolve to the row map. With a target
 	// alias ("UPDATE t1 AS xyz"), the alias is the effective qualifier —
 	// SQLite binds xyz.a and rejects t1.a (update.test 11.3/11.4).
+	scanName := updateScanName(s, tableName)
 	prevScan := e.ctx.CurrentScanTable()
-	scanName := tableName
-	if strings.TrimSpace(s.Alias) != "" {
-		scanName = strings.TrimSpace(s.Alias)
-	}
 	e.ctx.SetCurrentScanTable(scanName)
 	defer func() { e.ctx.SetCurrentScanTable(prevScan) }()
 
@@ -186,13 +184,39 @@ func (e *DMLExecutor) collectUpdateChanges(tableName string, rootPage uint32, co
 		}
 	}
 
+	changes, rowMaps, err := e.scanUpdateChanges(cursor, createSQL, colIndex, colDefs, s, deferSetEval)
+	if err != nil {
+		return nil, err
+	}
+
+	// Apply UPDATE ... ORDER BY ... LIMIT (a SQLite extension). SQLite's
+	// semantics (EVIDENCE-OF: R-10927-26133): the ORDER BY clause is used
+	// only to determine which rows fall within the LIMIT; the order in which
+	// rows are modified is NOT influenced by ORDER BY (rows are processed in
+	// natural rowid order).
+	changes = e.applyUpdateOrderLimit(changes, rowMaps, s)
+	return changes, nil
+}
+
+// updateScanName returns the UPDATE's effective scan-table qualifier — the
+// alias when present, the table name otherwise.
+func updateScanName(s *sql.UpdateStmt, tableName string) string {
+	if alias := strings.TrimSpace(s.Alias); alias != "" {
+		return alias
+	}
+	return tableName
+}
+
+// scanUpdateChanges walks the target table's btree once, evaluating the
+// WHERE per row and building the matching changes.
+func (e *DMLExecutor) scanUpdateChanges(cursor *btree.Cursor, createSQL string, colIndex map[string]int, colDefs []sql.ColumnDef, s *sql.UpdateStmt, deferSetEval bool) ([]updateChange, []RowMap, error) {
 	var changes []updateChange
 	var rowMaps []RowMap
 	for {
 		// SQLITE_TEST interrupt countdown: one op per row examined
 		// (src/vdbe.c per-opcode decrement of sqlite3_interrupt_count).
 		if err := e.ctx.CheckProgress(); err != nil {
-			return nil, err
+			return nil, nil, err
 		}
 		cell, err := cursor.ReadCell()
 		if err != nil {
@@ -207,7 +231,7 @@ func (e *DMLExecutor) collectUpdateChanges(tableName string, rootPage uint32, co
 		row := e.ctx.BuildRowMap(rec, colDefs, cell.RowID)
 		ch, matchRow, matched, err := e.matchUpdateRow(s, cell, rec, colIndex, colDefs, row, deferSetEval)
 		if err != nil {
-			return nil, err
+			return nil, nil, err
 		}
 		if matched {
 			ch.seq = len(changes)
@@ -220,14 +244,7 @@ func (e *DMLExecutor) collectUpdateChanges(tableName string, rootPage uint32, co
 			break
 		}
 	}
-
-	// Apply UPDATE ... ORDER BY ... LIMIT (a SQLite extension). SQLite's
-	// semantics (EVIDENCE-OF: R-10927-26133): the ORDER BY clause is used
-	// only to determine which rows fall within the LIMIT; the order in which
-	// rows are modified is NOT influenced by ORDER BY (rows are processed in
-	// natural rowid order).
-	changes = e.applyUpdateOrderLimit(changes, rowMaps, s)
-	return changes, nil
+	return changes, rowMaps, nil
 }
 
 // seekUpdateChanges collects UPDATE changes through a point-lookup plan,
@@ -235,22 +252,12 @@ func (e *DMLExecutor) collectUpdateChanges(tableName string, rootPage uint32, co
 // change building) over the candidate rows only. ok=false falls back to the
 // full scan (no plan, or a candidate lookup/evaluation anomaly).
 func (e *DMLExecutor) seekUpdateChanges(tableName string, rootPage uint32, colDefs []sql.ColumnDef, s *sql.UpdateStmt, deferSetEval bool, scanName string) ([]updateChange, []RowMap, bool) {
-	var tableEntry *schema.Entry
-	te, _, ferr := e.ctx.FindTable(tableName)
-	if ferr != nil || te == nil {
-		return nil, nil, false
-	}
-	tableEntry = te
-	colIndex := buildColumnIndex(colDefs)
-	plan := e.planDMLSeek(tableEntry, colDefs, s.Where, scanName, e.currentDMLCtx)
-	if plan == nil {
-		return nil, nil, false
-	}
-	rowIDs, ok := e.seekCandidateRowIDs(tableName, rootPage, plan)
+	tableEntry, rowIDs, ok := e.planUpdateSeek(tableName, rootPage, colDefs, s, scanName)
 	if !ok {
 		return nil, nil, false
 	}
 	tree := e.dmlTableBTree(tableName, rootPage)
+	colIndex := buildColumnIndex(colDefs)
 	var changes []updateChange
 	var rowMaps []RowMap
 	for _, rowID := range rowIDs {
@@ -259,26 +266,13 @@ func (e *DMLExecutor) seekUpdateChanges(tableName string, rootPage uint32, colDe
 		if err := e.ctx.CheckProgress(); err != nil {
 			return nil, nil, false
 		}
-		cursor, err := tree.OpenCursor()
-		if err != nil {
+		cell, rec, failed := e.seekUpdateCandidateRow(tree, rowID, tableEntry, colDefs)
+		if failed {
 			return nil, nil, false
 		}
-		found, err := cursor.SeekToRowID(rowID)
-		if err != nil {
-			return nil, nil, false
+		if cell == nil {
+			continue // the rowid has no cell (deleted before this visit)
 		}
-		if !found {
-			continue
-		}
-		cell, err := cursor.ReadCell()
-		if err != nil {
-			return nil, nil, false
-		}
-		rec, err := storage.DecodeRecord(cell.Payload)
-		if err != nil {
-			return nil, nil, false
-		}
-		e.ctx.RemapWRRecordToDeclared(rec, tableEntry.SQL, colDefs)
 		row := e.ctx.BuildRowMap(rec, colDefs, cell.RowID)
 		ch, matchRow, matched, err := e.matchUpdateRow(s, cell, rec, colIndex, colDefs, row, deferSetEval)
 		if err != nil {
@@ -291,6 +285,51 @@ func (e *DMLExecutor) seekUpdateChanges(tableName string, rootPage uint32, colDe
 		}
 	}
 	return changes, rowMaps, true
+}
+
+// planUpdateSeek resolves the table and builds the point-lookup plan's
+// candidate rowids. ok=false keeps the full scan.
+func (e *DMLExecutor) planUpdateSeek(tableName string, rootPage uint32, colDefs []sql.ColumnDef, s *sql.UpdateStmt, scanName string) (*schema.Entry, []int64, bool) {
+	te, _, ferr := e.ctx.FindTable(tableName)
+	if ferr != nil || te == nil {
+		return nil, nil, false
+	}
+	plan := e.planDMLSeek(te, colDefs, s.Where, scanName, e.currentDMLCtx)
+	if plan == nil {
+		return nil, nil, false
+	}
+	rowIDs, ok := e.seekCandidateRowIDs(tableName, rootPage, plan)
+	if !ok {
+		return nil, nil, false
+	}
+	return te, rowIDs, true
+}
+
+// seekUpdateCandidateRow fetches one planned candidate: cell+record on hit
+// (failed=false, cell non-nil), a miss to skip (failed=false, cell nil), or
+// an anomaly falling back to the full scan (failed=true).
+func (e *DMLExecutor) seekUpdateCandidateRow(tree *btree.BTree, rowID int64, tableEntry *schema.Entry, colDefs []sql.ColumnDef) (cell *storage.Cell, rec *storage.Record, failed bool) {
+	cursor, err := tree.OpenCursor()
+	if err != nil {
+		return nil, nil, true
+	}
+	found, err := cursor.SeekToRowID(rowID)
+	if err != nil {
+		return nil, nil, true
+	}
+	if !found {
+		return nil, nil, false
+	}
+	cell, err = cursor.ReadCell()
+	if err != nil {
+		return nil, nil, true
+	}
+	rec, err = storage.DecodeRecord(cell.Payload)
+	if err != nil {
+		return nil, nil, true
+	}
+	e.ctx.RemapWRRecordToDeclared(rec, tableEntry.SQL, colDefs)
+	return cell, rec, false
 }
 
 // applyUpdateOrderLimit applies UPDATE ... ORDER BY ... LIMIT: sort a copy of
