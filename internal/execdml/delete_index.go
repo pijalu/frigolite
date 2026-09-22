@@ -28,21 +28,30 @@ func (e *DMLExecutor) maintainIndexesOnDelete(tableEntry *schema.Entry, colDefs 
 		// reproduce the exact index payload that maintainIndexesOnInsert
 		// wrote for this rowid.
 		values := e.rowMapColumnValues(row, colDefs)
-		for _, def := range defs {
-			inIndex, werr := e.indexRowIncluded(def, row)
-			if werr != nil {
-				return werr
-			}
-			if !inIndex {
-				continue
-			}
-			indexValues, kerr := e.indexKeyValuesForRow(def, colDefs, colIndex, values, row)
-			if kerr != nil {
-				return kerr
-			}
-			if err := e.deleteIndexCell(def, append(indexValues, rowID)); err != nil {
-				return err
-			}
+		if err := e.deleteRowFromIndexes(defs, colDefs, colIndex, row, values, rowID); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// deleteRowFromIndexes removes one deleted row's entries from every index it
+// participates in (partial-index membership evaluated per index).
+func (e *DMLExecutor) deleteRowFromIndexes(defs []indexDef, colDefs []sql.ColumnDef, colIndex map[string]int, row RowMap, values []interface{}, rowID int64) error {
+	for _, def := range defs {
+		inIndex, werr := e.indexRowIncluded(def, row)
+		if werr != nil {
+			return werr
+		}
+		if !inIndex {
+			continue
+		}
+		indexValues, kerr := e.indexKeyValuesForRow(def, colDefs, colIndex, values, row)
+		if kerr != nil {
+			return kerr
+		}
+		if err := e.deleteIndexCell(def, append(indexValues, rowID)); err != nil {
+			return err
 		}
 	}
 	return nil

@@ -22,27 +22,9 @@ func WithoutRowidStorageOrder(createSQL string, colDefs []sql.ColumnDef) []int {
 	for i, cd := range colDefs {
 		byName[strings.ToLower(cd.Name)] = i
 	}
-	var pkIdx []int
-	for _, name := range tableLevelPKColumns(createSQL) {
-		if di, ok := byName[strings.ToLower(name)]; ok {
-			dup := false
-			for _, p := range pkIdx {
-				if p == di {
-					dup = true
-					break
-				}
-			}
-			if !dup {
-				pkIdx = append(pkIdx, di)
-			}
-		}
-	}
+	pkIdx := tableLevelPKIndices(createSQL, colDefs, byName)
 	if len(pkIdx) == 0 {
-		for i, cd := range colDefs {
-			if cd.PrimaryKey {
-				pkIdx = append(pkIdx, i)
-			}
-		}
+		pkIdx = columnLevelPKIndices(colDefs)
 	}
 	inPK := make(map[int]bool, len(pkIdx))
 	for _, i := range pkIdx {
@@ -56,6 +38,40 @@ func WithoutRowidStorageOrder(createSQL string, colDefs []sql.ColumnDef) []int {
 		}
 	}
 	return order
+}
+
+// tableLevelPKIndices maps a table-level PRIMARY KEY(...) column list to
+// declared column indices (first occurrence of each column, key order).
+func tableLevelPKIndices(createSQL string, colDefs []sql.ColumnDef, byName map[string]int) []int {
+	var pkIdx []int
+	for _, name := range tableLevelPKColumns(createSQL) {
+		if di, ok := byName[strings.ToLower(name)]; ok {
+			pkIdx = appendUniqueColIndex(pkIdx, di)
+		}
+	}
+	return pkIdx
+}
+
+// columnLevelPKIndices returns the declared indices of column-level PRIMARY
+// KEY declarations.
+func columnLevelPKIndices(colDefs []sql.ColumnDef) []int {
+	var pkIdx []int
+	for i, cd := range colDefs {
+		if cd.PrimaryKey {
+			pkIdx = append(pkIdx, i)
+		}
+	}
+	return pkIdx
+}
+
+// appendUniqueColIndex appends di unless already present.
+func appendUniqueColIndex(idx []int, di int) []int {
+	for _, p := range idx {
+		if p == di {
+			return idx
+		}
+	}
+	return append(idx, di)
 }
 
 // tableLevelPKColumns extracts the PRIMARY KEY(...) column list from CREATE
@@ -174,24 +190,39 @@ func WRRecordComparator(npk int, colDefs []sql.ColumnDef, order []int) func(a, b
 		if ra == nil || rb == nil {
 			return util.CompareValues(a, b)
 		}
-		for s := 0; s < npk && s < len(ra.Values) && s < len(rb.Values); s++ {
-			va, vb := ra.Values[s], rb.Values[s]
-			if aff := affs[s]; aff != 0 {
-				va = &util.ColumnValue{Value: util.UnwrapColumnValue(va), Affinity: aff}
-				vb = &util.ColumnValue{Value: util.UnwrapColumnValue(vb), Affinity: aff}
-			}
-			if c := util.CompareValues(va, vb); c != 0 {
-				return c
-			}
+		if c := compareWRPKPrefix(ra, rb, affs, npk); c != 0 {
+			return c
 		}
-		if len(ra.Values) != len(rb.Values) {
-			if len(ra.Values) < len(rb.Values) {
-				return -1
-			}
-			return 1
-		}
-		return util.CompareValues(a, b)
+		return wrRecordTiebreak(ra, rb, a, b)
 	}
+}
+
+// compareWRPKPrefix orders two decoded records by their leading PK slots,
+// wrapping each pair with the slot's column affinity before comparing.
+func compareWRPKPrefix(ra, rb *storage.Record, affs []rune, npk int) int {
+	for s := 0; s < npk && s < len(ra.Values) && s < len(rb.Values); s++ {
+		va, vb := ra.Values[s], rb.Values[s]
+		if aff := affs[s]; aff != 0 {
+			va = &util.ColumnValue{Value: util.UnwrapColumnValue(va), Affinity: aff}
+			vb = &util.ColumnValue{Value: util.UnwrapColumnValue(vb), Affinity: aff}
+		}
+		if c := util.CompareValues(va, vb); c != 0 {
+			return c
+		}
+	}
+	return 0
+}
+
+// wrRecordTiebreak orders records with equal PK prefixes: shorter record
+// first, then raw payload bytes.
+func wrRecordTiebreak(ra, rb *storage.Record, a, b []byte) int {
+	if len(ra.Values) != len(rb.Values) {
+		if len(ra.Values) < len(rb.Values) {
+			return -1
+		}
+		return 1
+	}
+	return util.CompareValues(a, b)
 }
 
 // reorderToDeclared returns storage-order values mapped back to declared
@@ -269,25 +300,30 @@ func WRCellMatchesPKKeys(cell *storage.Cell, keys [][]interface{}, order []int, 
 	}
 	decl := ReorderToDeclared(rec.Values, order)
 	for _, key := range keys {
-		if len(key) != len(pkIdx) {
-			continue
-		}
-		match := true
-		for k, ci := range pkIdx {
-			var have interface{}
-			if ci < len(decl) {
-				have = decl[ci]
-			}
-			if !wrValuesEqual(have, key[k], colDefs[ci]) {
-				match = false
-				break
-			}
-		}
-		if match {
+		if wrPKKeyMatchesDecl(key, pkIdx, decl, colDefs) {
 			return true
 		}
 	}
 	return false
+}
+
+// wrPKKeyMatchesDecl reports whether one declared-order PK projection key
+// matches the cell's declared-order values slot-by-slot (per-column
+// collation via wrValuesEqual; a key shorter than the PK never matches).
+func wrPKKeyMatchesDecl(key []interface{}, pkIdx []int, decl []interface{}, colDefs []sql.ColumnDef) bool {
+	if len(key) != len(pkIdx) {
+		return false
+	}
+	for k, ci := range pkIdx {
+		var have interface{}
+		if ci < len(decl) {
+			have = decl[ci]
+		}
+		if !wrValuesEqual(have, key[k], colDefs[ci]) {
+			return false
+		}
+	}
+	return true
 }
 
 // wrValuesEqual compares two column values with the column's declared

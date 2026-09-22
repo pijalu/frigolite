@@ -166,21 +166,7 @@ func wrKeyMatchesCell(cell *storage.Cell, keys []wrOldKey, createSQL string, col
 	}
 	decl := ReorderToDeclared(rec.Values, order)
 	for _, key := range keys {
-		if len(key.vals) != len(idx) {
-			continue
-		}
-		match := true
-		for k, ci := range idx {
-			var have interface{}
-			if ci < len(decl) {
-				have = decl[ci]
-			}
-			if !wrValuesEqual(have, key.vals[k], colDefs[ci]) {
-				match = false
-				break
-			}
-		}
-		if match {
+		if wrPKKeyMatchesDecl(key.vals, idx, decl, colDefs) {
 			return true
 		}
 	}

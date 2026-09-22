@@ -530,24 +530,26 @@ func (e *DMLExecutor) fetchOrPlanRows(cursor *btree.Cursor, ordered []branchMatc
 // found or the WHERE rejects the row.
 func (e *DMLExecutor) fetchOrPlanRow(cursor *btree.Cursor, m branchMatch, s *sql.SelectStmt, tableEntry *schema.Entry, colDefs []sql.ColumnDef) (RowMap, bool, *Result) {
 	if m.rowID == 0 && tableEntry != nil {
-		rec, err := storage.DecodeRecord([]byte(m.rawKey))
-		if err != nil || rec == nil {
-			return nil, false, nil
-		}
-		e.ctx.RemapWRRecordToDeclared(rec, tableEntry.SQL, colDefs)
-		row := e.ctx.BuildRowMap(rec, colDefs, 0)
-		if s.Where != nil {
-			pass, err := e.ctx.RowPassesWhere(s.Where, row, cursor)
-			if err != nil {
-				return nil, false, &Result{Error: err}
-			}
-			if !pass {
-				return nil, false, nil
-			}
-		}
-		return row, true, nil
+		return e.fetchOrPlanWRRow(cursor, m, s, tableEntry, colDefs)
 	}
-	found, err := cursor.SeekToRowID(m.rowID)
+	return e.fetchOrPlanRowidRow(cursor, m.rowID, s, colDefs)
+}
+
+// fetchOrPlanWRRow fetches one WITHOUT ROWID candidate (its rowid is the
+// synthetic 0 and rawKey holds the encoded PK-first record).
+func (e *DMLExecutor) fetchOrPlanWRRow(cursor *btree.Cursor, m branchMatch, s *sql.SelectStmt, tableEntry *schema.Entry, colDefs []sql.ColumnDef) (RowMap, bool, *Result) {
+	rec, err := storage.DecodeRecord([]byte(m.rawKey))
+	if err != nil || rec == nil {
+		return nil, false, nil
+	}
+	e.ctx.RemapWRRecordToDeclared(rec, tableEntry.SQL, colDefs)
+	row := e.ctx.BuildRowMap(rec, colDefs, 0)
+	return e.orRowAfterWhere(cursor, s, row)
+}
+
+// fetchOrPlanRowidRow fetches one candidate by rowid seek.
+func (e *DMLExecutor) fetchOrPlanRowidRow(cursor *btree.Cursor, rowID int64, s *sql.SelectStmt, colDefs []sql.ColumnDef) (RowMap, bool, *Result) {
+	found, err := cursor.SeekToRowID(rowID)
 	if err != nil || !found {
 		return nil, false, nil
 	}
@@ -560,14 +562,22 @@ func (e *DMLExecutor) fetchOrPlanRow(cursor *btree.Cursor, m branchMatch, s *sql
 		return nil, false, nil
 	}
 	row := e.ctx.BuildRowMap(rec, colDefs, rowID)
-	if s.Where != nil {
-		pass, err := e.ctx.RowPassesWhere(s.Where, row, cursor)
-		if err != nil {
-			return nil, false, &Result{Error: err}
-		}
-		if !pass {
-			return nil, false, nil
-		}
+	return e.orRowAfterWhere(cursor, s, row)
+}
+
+// orRowAfterWhere applies the branch's full WHERE as a safety filter to a
+// fetched candidate row: res non-nil reports an evaluation error, ok=false
+// rejects the row.
+func (e *DMLExecutor) orRowAfterWhere(cursor *btree.Cursor, s *sql.SelectStmt, row RowMap) (RowMap, bool, *Result) {
+	if s.Where == nil {
+		return row, true, nil
+	}
+	pass, err := e.ctx.RowPassesWhere(s.Where, row, cursor)
+	if err != nil {
+		return nil, false, &Result{Error: err}
+	}
+	if !pass {
+		return nil, false, nil
 	}
 	return row, true, nil
 }
