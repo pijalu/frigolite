@@ -248,12 +248,18 @@ func rewriteAccumulators(lines, codeOf []string, rewrite map[string]string) stri
 		code := codeOf[i]
 		comment := goLineComment(ln)
 		if v := declStringName(code); v != "" && rewrite[v] != "" {
-			decl := "strings.Builder"
-			if rewrite[v] == "list" {
-				decl = "*tclListBuilder"
-			}
 			indent := ln[:len(ln)-len(strings.TrimLeft(ln, "\t"))]
-			b.WriteString(fmt.Sprintf("%svar %s %s%s\n", indent, v, decl, comment))
+			if rewrite[v] == "list" {
+				// A rewritten list builder must be born NON-NIL: TCL
+				// `lappend` auto-creates the variable, so the generated
+				// code has no `V = ""` store whose rewrite would insert
+				// `V = &tclListBuilder{}` — a plain `var V *tclListBuilder`
+				// stays nil and the first V.Append panics (fts4unicode 1.x
+				// `lappend mappings ...`).
+				b.WriteString(fmt.Sprintf("%svar %s = &tclListBuilder{}%s\n", indent, v, comment))
+			} else {
+				b.WriteString(fmt.Sprintf("%svar %s strings.Builder%s\n", indent, v, comment))
+			}
 			continue
 		}
 		if out, ok := rewriteWrite(ln, code, comment, rewrite, i); ok {

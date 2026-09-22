@@ -85,7 +85,7 @@ func Test_fts4unicode(t *testing.T) {
 	_ = map_x // pre-declared from TCL source
 	var k string
 	_ = k // pre-declared from TCL source
-	var mappings *tclListBuilder
+	var mappings = &tclListBuilder{}
 	_ = mappings // pre-declared from TCL source
 	var doc string
 	_ = doc // pre-declared from TCL source
@@ -212,7 +212,7 @@ func Test_fts4unicode(t *testing.T) {
 	_r = _list9
 	map_x = _r
 	_ = map_x // suppress unused warning
-	for _, k := range tclSplitList("array names map") {
+	for _, k := range tclSplitList("a e i o u y h w x") {
 	_ = k // suppress unused warning
 		mappings.Append(strings.ToUpper(k), tclLIndex((func() string { switch k { case "a": return map_a; case "e": return map_e; case "i": return map_i; case "o": return map_o; case "u": return map_u; case "y": return map_y; case "h": return map_h; case "w": return map_w; case "x": return map_x; default: return "" } }()), "0"))
 		mappings.Append(k, tclLIndex((func() string { switch k { case "a": return map_a; case "e": return map_e; case "i": return map_i; case "o": return map_o; case "u": return map_u; case "y": return map_y; case "h": return map_h; case "w": return map_w; case "x": return map_x; default: return "" } }()), "1"))

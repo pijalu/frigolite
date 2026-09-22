@@ -46,6 +46,58 @@
   `WHERE b>'a'` must emit rows in full index-key value order, not rowid
   order). Reported to the coordinator for w5-query; T3's gate was
   failure-set-neutrality, proven by signature diff.
+## T30-fts3b — FULL-SUITE-DRIFT fts3 engine + emitter tranche (2026-09-23, branch fleet/w5-fts3b)
+
+- **The FTS3 MATCH-syntax oracle of record is a LEGACY-syntax sqlite3 build,
+  not /usr/bin/sqlite3.** The SQLite TCL suite pins
+  `sqlite_fts3_enable_parentheses 0` (tester.tcl:2619): OR binds TIGHTER than
+  implicit AND ('one two OR three' = one AND (two OR three)), AND/NOT are
+  plain terms, parentheses are not special. System binaries are built with
+  SQLITE_ENABLE_FTS3_PARENTHESIS (enhanced syntax) and disagree. Build the
+  TCL-fidelity oracle once:
+  `clang -O1 -DSQLITE_ENABLE_FTS3 -DSQLITE_ENABLE_FTS4 -DSQLITE_THREAD_SAFE=0
+  -I<sqlite> -o /tmp/sqlite3_legacy <sqlite>/sqlite3.c <sqlite>/shell.c -lm`.
+  Resolution rule used throughout T30: corpus wants > enhanced-mode oracle
+  output ⇒ suspect syntax-mode, verify with the legacy oracle before touching
+  the engine.
+- **Some fts3-corruption expectations are TESTMODE-only.** fts3corrupt-2.2
+  (UPDATE t1_segdir SET root='' then MATCH must error malformed): release
+  oracles (3.51 legacy, 3.51 enhanced, 3.54 enhanced) all return silent EOF.
+  The corpus (regenerated from the testmode suite) is the contract of record —
+  frigolite's validateFTSSegdirRow now flags a zero-length NON-NULL root as
+  malformed while NULL stays the "empty segment" marker (fts3corrupt4 6.1).
+- **NEAR self-pairing is the corpus trap that keeps on giving.** C
+  fts3PoslistPhraseMerge pairs only when iPos2 > iPos1 (the iPos2==iPos1+nToken
+  exact clause is subsumed for nToken>=1). An earlier `>=` over-fit kept
+  fts3corrupt6 2.1 green while breaking fts3near (filter matched rows whose
+  phrases had no participating pair → offsets() emitted NULL rows). When a
+  filter path and its aux-function path (offsets/matchinfo) can disagree, the
+  aux output is the oracle for the filter.
+- **fts3DeleteByRowid has an empty-table shortcut** (fts3IsEmpty →
+  fts3DeleteAll): deleting the LAST document discards pending delete markers
+  AND all shadow tables, so DELETE-all leaves %_segdir EMPTY and the
+  re-INSERT lands at (level 0, idx 0). Symptom class: segdir listing "got
+  [0 0 0 1 0 2 ...], want [0 0]".
+- **tcl2go dynamic-variable reads**: `[set $lang]` (dynamic var read) must
+  emit `vtab.TclVarGet(name, "")` — tclVarToGo("$lang") indexes the string
+  value as if it were the variable. `[array names ARR]` is resolvable at
+  generation time from tp.arrayKeys (trackArrayKey collects literal-key
+  `set arr(K) V`). perfappend's list-builder rewrite must declare builders
+  initialized (`var V = &tclListBuilder{}`): TCL lappend auto-creates the
+  variable so there is no `V = ""` store to rewrite into an init, and a nil
+  builder panics on first Append (fts4unicode mappings).
+- **Emitter regen must be scoped and drift-checked**: run the single-file
+  regen (`go run ./tools/tcl2go/ -testdir <dir> -outdir testgen NAME.test`),
+  then git-status to confirm ONLY target packages changed; a full regen with
+  an older emitter silently rewrites the whole corpus backwards (106 files of
+  unrelated churn observed when this worktree's tools lagged the corpus
+  vintage).
+- **Concurrent-agent worktree collision**: if test results change mid-run
+  with no local edits, `git status` immediately — a sibling agent editing the
+  shared worktree flips engine behavior under you (fts3aa went fail→pass
+  mid-session from another agent's uncommitted parser work). Resolution:
+  fresh worktree + class split via the coordinator; never keep diagnosing
+  against a moving tree.
 
 ## T29-execqfix — FULL-SUITE-DRIFT census regression triage (2026-09-22, branch fleet/execq-fix)
 
