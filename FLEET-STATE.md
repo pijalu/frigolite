@@ -1,0 +1,60 @@
+# Fleet State — clear snapshot at fleet stop (2026-09-23)
+
+Main: `f2f0be9aa` — pushed. Build green; 18/18 wave-3 packages verified on main.
+
+## Merged into main this session (30+ goals, all pushed)
+
+T23 tkt_hash · T25 btree corruption (3 tranches) · T26 ×9 (alter, corrupt,
+select/where/join, harness +2,922 subtests, singles, dml/index, fts3/4,
+tkt, misc) · skip-audit · LIKE optimizer · automerge convergence · FTS
+flush model (fts4merge4 green) · P9.PERF T1/T2/T3 · T29 engine4 + execqfix
+(9 engine gap classes) · T28 regressions ×3 · T30-wal (10/11) ·
+T30-fts3b (5 pkgs) · T30-vtab (7 pkgs) · T30-query (6 pkgs) — all
+verified green on main at merge time.
+
+## WIP branches (stopped mid-run — resume from these)
+
+| Branch | State | Resume notes |
+|---|---|---|
+| `fleet/w5-fts3` | WIP commit 3ea152df1 | fts3aa/ac MATCH legacy-mode precedence (query_parse.go dual parser, fts3aa/ac 12/12 passing) + porter copy_stemmer done; fts3near/d/corrupt MOVED to w5-fts3b (merged). Remaining: verify no regression from the move; zz_debug_test.go is scratch (remove). |
+| `fleet/w5-tkt` | WIP commit 380a22c5d | tkt×7 + misc×5 + collate×5 + minmax3/sort5/randexpr1/func_pkg triage in progress (frigolite_w5dbg_test.go is scratch — remove or finish). |
+| `fleet/w6-kernel` | WIP commit 6eb865e53 | 18 kernel/pager singles (avfs, bigrow, btreefault, chunksize, mutex1, pager1, pagesize, prefixes, ptrchng, shortread1, softheap1, sqllimits1, rowhash, exclusive, zeroblob, e_blobclose, dbpage, corrupt). 16 files of engine work in the WIP commit — build state unverified. |
+| `fleet/w6-misc` | WIP commit b603018db | 16 misc singles (alterlegacy, altertab, attach, autovacuum, backup, csv01, e_fkey, incrvacuum, pragma, pragma2, reindex, trigger3, trigger6, unionall, vacuum_into, vtab_shared). Pin test present; build state unverified. |
+
+## Remaining fail list (113 at last census, pre-T30-wave; T30 merges closed
+18 of them — expect ~95 + new-regen-exposure)
+
+Full list in `tools/status/ledger.json` (fail states). Big classes:
+- fts5 adjudicated architectural ×9 (circref/content/contentless×3/hash/
+  leftjoin/misc/unindexed) — adjudicated, stay.
+- Kernel singles (see w6-kernel branch).
+- Newly-exposed query classes (see w5-query — merged, closed 6).
+- tkt/misc/collate residue (see w5-tkt branch).
+
+## Known infra issues for the next session
+
+- The `git stash` cross-worktree hazard: banned in fleet protocol; use patches.
+- Agent spawn mortality ~30% (rate limits/EPIPE): resume pattern = new agent,
+  same worktree, `git merge main`, assess WIP.
+- `go run ./tools/tcl2go/` requires the ori corpus (missing in fresh
+  worktrees — regen checks are vacuous there; verify in main).
+- Census parallelism can cross-contaminate: adjudicate suspicious flips
+  serially per package.
+
+## Verified-verdicts ledger for T30 agents (engine-first directive)
+
+- w5-fts3(+b): 8/8 failures were ENGINE bugs (MATCH legacy precedence,
+  offsets column-filter, porter copy_stemmer, NEAR strictness, segdir
+  flush, CORRUPT_VTAB ×4) + 2 transpiler (fts3ab [set $lang], fts4unicode
+  `array names`); legacy default-flag oracle built at /tmp/w5/sqlite3-legacy
+  (volatile) — Apple /usr/bin/sqlite3 has ENABLE_FTS3_PARENTHESIS and is
+  NOT ground truth for fts3 MATCH syntax.
+- w5-vtab: 7 ENGINE bugs (INSERT..SELECT rowid leak into non-INTEGER PK,
+  case-sensitive natural join, echo xBegin, NULL NOT IN vtab path,
+  ORDER BY declared collation, MULTI-INDEX OR, series step=0) + 6
+  transpiler attributions.
+- w6-wal: 10/11 green (WAL close-checkpointing, walpersist 0-byte -wal
+  contract, waloverwrite snapshot restore, per-pager locking_mode, commit
+  veto rollback, interrupted COMMIT, lock shared-read contract,
+  journal_size_limit −1 default); trans adjudicated: index-key-order row
+  emission (planner goal, pairs with PERF.T4).
