@@ -220,6 +220,21 @@ func (p *Pager) Close() error {
 	// removes the registry entry — the next attach re-runs the DMS truncate
 	// + recovery from the "-wal").
 	if p.wal != nil {
+		// sqlite3WalClose (wal.c L2487) port: when this connection is the
+		// last one attached to the database (C proves that with an EXCLUSIVE
+		// rollback-journal lock on the db file; the in-process wal-index
+		// registry refcount is the single-process equivalent), checkpoint
+		// the whole log into the main database file (PASSIVE — the exclusive
+		// lock guarantees no readers), then reset the "-wal" to ZERO bytes.
+		// That is the target-oracle (sqlite3 3.54) clean-close behavior,
+		// verified against /usr/bin/sqlite3: after a clean close the "-wal"
+		// exists at 0 bytes and the "-shm" is retained, so a later reopen
+		// re-enters WAL mode (pagerOpenWalIfPresent: wal file present →
+		// sqlite3PagerOpenWal) and PRAGMA journal_mode still reports "wal".
+		// (The wal.c 3.51 source deletes both when the PERSIST_WAL file
+		// control is unset; the 3.54 oracle keeps a reset log instead.)
+		// A failed or contended checkpoint leaves the log untouched.
+		p.walCloseCheckpoint()
 		walErr := p.wal.Close()
 		p.wal = nil
 		if walErr != nil && flushErr == nil {
@@ -254,6 +269,34 @@ func (p *Pager) Close() error {
 }
 
 func (p *Pager) PageSize() uint32 { return p.pageSize }
+
+// walCloseCheckpoint ports sqlite3WalClose's finalization (wal.c L2508): when
+// this connection is the last one attached to the database (C proves that
+// with an EXCLUSIVE rollback-journal lock on the db file; the in-process
+// wal-index registry refcount is the single-process equivalent), checkpoint
+// the whole log into the main database file (PASSIVE — the exclusive lock
+// guarantees no readers), then reset the "-wal" to ZERO bytes. That is the
+// target-oracle (sqlite3 3.54) clean-close behavior, verified against
+// /usr/bin/sqlite3: after a clean close the "-wal" exists at 0 bytes and the
+// "-shm" is retained, so a later reopen re-enters WAL mode
+// (pagerOpenWalIfPresent: wal file present → sqlite3PagerOpenWal) and
+// PRAGMA journal_mode still reports "wal". (The wal.c 3.51 source deletes
+// both files when the PERSIST_WAL file control is unset; the 3.54 oracle
+// keeps a reset log instead.) A failed or contended checkpoint leaves the
+// log untouched. Caller holds p.mu.
+func (p *Pager) walCloseCheckpoint() {
+	w := p.wal
+	if w == nil || w.wi == nil || w.wi.RefCount() != 1 {
+		return
+	}
+	busy, _, _, err := w.checkpoint(WalCkptPassive)
+	if err != nil || busy != 0 {
+		return
+	}
+	if w.file != nil {
+		_ = w.file.Truncate(0)
+	}
+}
 
 // UsableSize returns the number of usable bytes per page (page size minus
 // the reserved-space count from header byte 20). SQLite's payload
