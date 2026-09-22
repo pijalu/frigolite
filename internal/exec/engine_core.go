@@ -317,7 +317,13 @@ func (e *Engine) findTableUncached(name string) (*schema.Entry, *DatabaseContext
 	if schemaName != "" {
 		return e.findTableQualified(name, schemaName, objName)
 	}
+	return e.findTableUnqualified(name)
+}
 
+// findTableUnqualified resolves an unqualified table name after the
+// trigger-scoped and cached lookups missed: schema-pin restricted resolution,
+// temp-first shadowing, then main and the attached databases.
+func (e *Engine) findTableUnqualified(name string) (*schema.Entry, *DatabaseContext, error) {
 	// A schema pin (view being expanded in its own schema) restricts
 	// unqualified name resolution to that schema, matching SQLite's
 	// sqlite3FixSrcList: the body of a non-temp view cannot see temp/other
@@ -769,16 +775,7 @@ func (e *Engine) Exec(stmt sql.Stmt) *Result {
 	// Statement-scoped auxdata (stmtrand() sequence state) dies when the next
 	// outermost statement starts, mirroring SQLite freeing auxdata at
 	// sqlite3_reset. Nested statements (triggers) share the outer aux.
-	if e.tx.execDepth == 1 {
-		// Statement-boundary reset of the correlated-subquery row scope
-		// (see SelectEngine.ResetStatementCorrelatedScope): a stale
-		// outerRow from a prior statement must not reach this one's
-		// FROM-less / join-ON validation (insert2-4.1) — but the reset
-		// happens BEFORE any DML outer-row scope for THIS statement is
-		// installed (with1-4.3).
-		e.selectEngine.ResetStatementCorrelatedScope()
-		e.expr.ResetStatementAux()
-	}
+	e.resetOuterStatementScopes()
 	// Operator-overload probing is statement-scoped: materialization of a
 	// opted-in vtab during THIS statement re-arms it.
 	e.overloadProbe = false
@@ -850,13 +847,34 @@ func (e *Engine) Exec(stmt sql.Stmt) *Result {
 		// transaction back instead of committing it). The quota layer makes
 		// any writing statement's flush fallible (SQLITE_FULL), including
 		// DDL — restore whenever a snapshot exists.
-		if len(snaps) > 0 {
-			e.restoreAllPagers(snaps)
-			e.restoreAllFTS()
-		}
+		e.restoreStatementSnapsIfAny(snaps)
 		return res
 	}
 	return e.execAfterWrite(stmt, res, isDML)
+}
+
+// resetOuterStatementScopes resets the outermost statement's scopes: the
+// correlated-subquery row scope and the statement-scoped auxdata. Statement-
+// boundary reset of the correlated-subquery row scope (see
+// SelectEngine.ResetStatementCorrelatedScope): a stale outerRow from a prior
+// statement must not reach this one's FROM-less / join-ON validation
+// (insert2-4.1) — but the reset happens BEFORE any DML outer-row scope for
+// THIS statement is installed (with1-4.3).
+func (e *Engine) resetOuterStatementScopes() {
+	if e.tx.execDepth != 1 {
+		return
+	}
+	e.selectEngine.ResetStatementCorrelatedScope()
+	e.expr.ResetStatementAux()
+}
+
+// restoreStatementSnapsIfAny restores the failed statement's pager and FTS
+// snapshots when any exist.
+func (e *Engine) restoreStatementSnapsIfAny(snaps []pagerSnap) {
+	if len(snaps) > 0 {
+		e.restoreAllPagers(snaps)
+		e.restoreAllFTS()
+	}
 }
 
 // execEntry performs Exec's statement-entry gates: the prepared-read write
@@ -977,4 +995,3 @@ func (e *Engine) execSnapshotDML(stmt sql.Stmt, isDML bool) []pagerSnap {
 	}
 	return snaps
 }
-

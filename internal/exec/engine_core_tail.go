@@ -408,26 +408,35 @@ func (e *Engine) execRollbackOnError(stmt sql.Stmt, res *Result, snaps []pagerSn
 	isDiskFull := res.Error != nil && strings.Contains(res.Error.Error(), "database or disk is full")
 	if isDML && res.Error != nil && !res.KeepPriorRowsOnError() &&
 		(!isOrFail || res.ForceRollbackOnError()) {
-		forceTxRollback := isOrRollback || res.RollbackTxOnError() ||
-			((isInterrupted || isDiskFull) && e.tx.inTransaction)
-		if forceTxRollback && e.tx.inTransaction {
-			// OR ROLLBACK (or a per-constraint ON CONFLICT ROLLBACK, or an
-			// interrupted write) aborts the statement AND rolls back the whole
-			// transaction (SQLite: "the current transaction is rolled back").
-			// execRollback restores the BEGIN snapshots, closes the transaction,
-			// and invalidates caches.
-			e.execRollback()
-		} else {
-			e.restoreAllPagers(snaps)
-			e.restoreAllFTS()
-		}
-		e.caches.nextRowIDCache = make(map[rowidCacheKey]int64)
-
-		e.caches.autoIncSeq = make(map[rowidCacheKey]int64)
-		res.Changes = 0
-		res.LastInsertRowID = 0
+		e.undoFailedDML(res, snaps, isOrRollback, isInterrupted, isDiskFull)
 	}
 	return res
+}
+
+// undoFailedDML backs out a failed DML statement: a full transaction
+// rollback for OR ROLLBACK / a per-constraint ON CONFLICT ROLLBACK / a
+// special error (SQLITE_INTERRUPT / SQLITE_FULL) inside an explicit
+// transaction, else a statement-snapshot restore. Counters reset either way
+// (the failed statement wrote nothing observable).
+func (e *Engine) undoFailedDML(res *Result, snaps []pagerSnap, isOrRollback, isInterrupted, isDiskFull bool) {
+	forceTxRollback := isOrRollback || res.RollbackTxOnError() ||
+		((isInterrupted || isDiskFull) && e.tx.inTransaction)
+	if forceTxRollback && e.tx.inTransaction {
+		// OR ROLLBACK (or a per-constraint ON CONFLICT ROLLBACK, or an
+		// interrupted write) aborts the statement AND rolls back the whole
+		// transaction (SQLite: "the current transaction is rolled back").
+		// execRollback restores the BEGIN snapshots, closes the transaction,
+		// and invalidates caches.
+		e.execRollback()
+	} else {
+		e.restoreAllPagers(snaps)
+		e.restoreAllFTS()
+	}
+	e.caches.nextRowIDCache = make(map[rowidCacheKey]int64)
+
+	e.caches.autoIncSeq = make(map[rowidCacheKey]int64)
+	res.Changes = 0
+	res.LastInsertRowID = 0
 }
 
 // stmtConflictClass classifies a failed DML statement's explicit ON CONFLICT
@@ -552,22 +561,14 @@ func (e *Engine) execFlushAutocommit(stmt sql.Stmt, res *Result, isDML bool) *Re
 	// Fire the commit hook before the autocommit flush. The hook observes the
 	// statement's uncommitted changes (SQLite runs the hook during the
 	// transaction's commit phase); a nonzero return aborts the commit.
-	if e.commitHook != nil && e.statementWrote(stmt, res, isDML) {
-		if e.runCommitHook() {
-			return &Result{Error: fmt.Errorf("constraint failed")}
-		}
+	if res := e.autocommitCommitHook(stmt, res, isDML); res != nil {
+		return res
 	}
 	// PRAGMA count_changes: a DML statement returns a single row with the
 	// changed-row count (SQLite's legacy behavior when the pragma is on). For
 	// INSERT ... ON CONFLICT, count_changes counts only rows actually written
 	// as new inserts (upsert DO UPDATE / DO NOTHING rows are excluded).
-	if isDML && e.settings.countChanges && len(res.Rows) == 0 {
-		count := res.Changes
-		if res.InsertedChanges > 0 {
-			count = res.InsertedChanges
-		}
-		res.Rows = [][]interface{}{{count}}
-	}
+	e.applyCountChanges(res, isDML)
 	// Autocommit statement: bump the change counter of every database that
 	// was written so other connections observe the change.
 	e.bumpChangeCounters()
@@ -588,13 +589,8 @@ func (e *Engine) execFlushAutocommit(stmt sql.Stmt, res *Result, isDML bool) *Re
 	// sqlite3_autovacuum_pages callback would keep firing once per read
 	// until the freelist ran dry (autovacuum2-1.3 expects exactly one
 	// callback invocation for BEGIN/DELETE/COMMIT).
-	for _, dbCtx := range e.dbList {
-		if dbCtx != nil && dbCtx.Pager != nil && dbCtx.Pager.HasDirtyPages() {
-			if autovacErr := e.runAutoVacuumCommitAll(); autovacErr != nil {
-				return &Result{Error: autovacErr}
-			}
-			break
-		}
+	if err := e.autovacuumDrainIfDirty(); err != nil {
+		return &Result{Error: err}
 	}
 	// Flush attached database pagers so a later connection on the attached
 	// file sees the writes immediately. The MAIN pager is flushed only for
@@ -603,21 +599,7 @@ func (e *Engine) execFlushAutocommit(stmt sql.Stmt, res *Result, isDML bool) *Re
 	e.flushAttachedPagers()
 	// Flush pending FTS3 segments for the autocommit statement (a single
 	// INSERT without an explicit transaction writes its segment immediately).
-	// Mark the flush so its internal shadow-table writes skip the per-write
-	// pager snapshot (they are part of this statement's rollback scope).
-	e.tx.inFTSFlush = true
-	// The FTS flush executes internal %_segdir/%_segments/%_stat writes
-	// through nested Exec calls, which would clobber the connection's
-	// last_insert_rowid with the shadow tables' rowids (a %_stat REPLACE at
-	// id=0 sets it to 0). SQLite's FTS xUpdate runs inside OP_VUpdate, whose
-	// `db->lastRowid = rowid` fires AFTER the module's internal writes
-	// (src/vdbe.c case OP_VUpdate), so the statement's own final rowid wins.
-	// Preserve the pre-flush value and restore it after the flush.
-	savedRowID := e.lastRowID
-	flushRes := e.FlushFTSSegments()
-	e.lastRowID = savedRowID
-	e.tx.inFTSFlush = false
-	if flushRes != nil {
+	if flushRes := e.flushFTSSegmentsGuarded(); flushRes != nil {
 		return flushRes
 	}
 	// Flush the main pager so the file reflects autocommit writes and
@@ -636,6 +618,50 @@ func (e *Engine) execFlushAutocommit(stmt sql.Stmt, res *Result, isDML bool) *Re
 				fmt.Fprintf(os.Stderr, "QDBG4 main flush err=%v stmt=%T\n", err, stmt)
 			}
 			return &Result{Error: err}
+		}
+	}
+	return nil
+}
+
+// autocommitCommitHook fires the commit hook for a writing autocommit
+// statement (the hook observes the statement's uncommitted changes — SQLite
+// runs it during the transaction's commit phase). A nonzero return aborts
+// the commit with "constraint failed"; a non-writing statement (plain
+// SELECT) skips the hook.
+func (e *Engine) autocommitCommitHook(stmt sql.Stmt, res *Result, isDML bool) *Result {
+	if e.commitHook == nil || !e.statementWrote(stmt, res, isDML) {
+		return nil
+	}
+	if e.runCommitHook() {
+		return &Result{Error: fmt.Errorf("constraint failed")}
+	}
+	return nil
+}
+
+// applyCountChanges implements PRAGMA count_changes: a DML statement returns
+// a single row with the changed-row count (SQLite's legacy behavior when the
+// pragma is on). For INSERT ... ON CONFLICT, count_changes counts only rows
+// actually written as new inserts (upsert DO UPDATE / DO NOTHING rows are
+// excluded).
+func (e *Engine) applyCountChanges(res *Result, isDML bool) {
+	if !isDML || !e.settings.countChanges || len(res.Rows) != 0 {
+		return
+	}
+	count := res.Changes
+	if res.InsertedChanges > 0 {
+		count = res.InsertedChanges
+	}
+	res.Rows = [][]interface{}{{count}}
+}
+
+// autovacuumDrainIfDirty drains one auto-vacuum batch when any database has
+// dirty pages (btree.c autoVacuumCommit runs from sqlite3BtreeCommitPhaseOne,
+// which a read-only transaction never enters — the dirty gate keeps read-only
+// statements from draining another callback-capped batch).
+func (e *Engine) autovacuumDrainIfDirty() error {
+	for _, dbCtx := range e.dbList {
+		if dbCtx != nil && dbCtx.Pager != nil && dbCtx.Pager.HasDirtyPages() {
+			return e.runAutoVacuumCommitAll()
 		}
 	}
 	return nil
@@ -706,6 +732,7 @@ func (e *Engine) stmtWritesDatabase(stmt sql.Stmt) bool {
 	}
 	return false
 }
+
 // execAfterWrite performs Exec's post-commit work for a successful DML
 // statement: reload the in-memory FTS index when the statement wrote an FTS
 // table's SHADOW tables directly (outside the FTS flush) — SQLite always

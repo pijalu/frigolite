@@ -236,23 +236,7 @@ func (e *Engine) walBeginStmtWrite(stmt sql.Stmt) error {
 	if !write {
 		return nil
 	}
-	key := e.stmtLockKey(stmt, schemaName, true)
-	var p *pager.Pager
-	var ctx *DatabaseContext
-	if key == "" {
-		p = e.pager
-	} else {
-		for _, dbc := range e.dbList {
-			if dbc != nil && dbc.Pager != nil && lockKey(dbc, e.connID) == key {
-				p = dbc.Pager
-				ctx = dbc
-				break
-			}
-		}
-	}
-	if p == nil {
-		p = e.pager
-	}
+	p, ctx := e.stmtWritePager(stmt, schemaName)
 	if p == nil {
 		return nil
 	}
@@ -273,6 +257,22 @@ func (e *Engine) walBeginStmtWrite(stmt sql.Stmt) error {
 		}
 	}
 	return nil
+}
+
+// stmtWritePager resolves the statement's target database pager (and its
+// context) for the eager WAL write transaction: the lock key's database when
+// resolvable, else the main pager.
+func (e *Engine) stmtWritePager(stmt sql.Stmt, schemaName string) (*pager.Pager, *DatabaseContext) {
+	key := e.stmtLockKey(stmt, schemaName, true)
+	if key == "" {
+		return e.pager, nil
+	}
+	for _, dbc := range e.dbList {
+		if dbc != nil && dbc.Pager != nil && lockKey(dbc, e.connID) == key {
+			return dbc.Pager, dbc
+		}
+	}
+	return e.pager, nil
 }
 
 // walEndStmtRead ends the outermost statement's WAL read snapshot on every
@@ -476,44 +476,58 @@ func (e *Engine) crossConnLockCheck(stmt sql.Stmt, key, schemaName string, write
 		}
 		return nil
 	default: // LockStyleDefault — fine-grained SHARED/RESERVED/PENDING/EXCLUSIVE matrix
-		walMode := e.stmtWALMode(stmt, schemaName)
-		if _, ok := lockreg.Global.ExclusiveLockedByOther(key, e.connID); ok {
-			return fmt.Errorf("database is locked")
-		}
-		// A read transaction holds SHARED on the file (pager.c holds the
-		// SHARED lock for the whole read txn): another connection's write
-		// must reserve (RESERVED→EXCLUSIVE upgrade blocked by the reader) —
-		// attach2-4.4: db2's autocommit INSERT fails while db holds
-		// BEGIN + SELECT on the same file. Autocommit writes go through
-		// the COMMIT upgrade path, so they are refused up front; writes
-		// inside an explicit transaction take RESERVED (allowed) and fail
-		// later at COMMIT (attach2-4.10) via commitLockError.
-		// WAL mode exempts this rule: readers never block writers (the
-		// WRITER shm byte is the only writer serialization — C's wal.c
-		// protocol has no reader/writer exclusion).
-		if write && !walMode && !e.tx.inTransaction && lockreg.Global.SharedTxByOther(key, e.connID) {
-			return fmt.Errorf("database is locked")
-		}
-		// PENDING blocks only NEW SHARED acquisitions by other connections. A
-		// connection that already holds a transaction-level SHARED lock on the file
-		// keeps reading (src/os_unix.c unixLock: the PENDING check applies on the
-		// SHARED acquire path, not to an already-held SHARED) — lock2-1.6.
-		if lockreg.Global.PendingByOther(key, e.connID) && !lockreg.Global.SharedTxByConn(key, e.connID) {
-			return fmt.Errorf("database is locked")
-		}
-		if write && lockreg.Global.WriteTxByOther(key, e.connID) {
-			return fmt.Errorf("database is locked")
-		}
-		// Another connection's persistent SHARED (locking_mode=EXCLUSIVE)
-		// blocks the EXCLUSIVE upgrade: immediately for an autocommit write
-		// (the statement cannot commit), at COMMIT for a write inside an
-		// explicit transaction (RESERVED is still acquirable —
-		// exclusive.test 2.5 vs 2.6/2.7).
-		if write && !e.tx.inTransaction && lockreg.Global.PersistentSharedByOther(key, e.connID) {
-			return fmt.Errorf("database is locked")
-		}
-		return nil
+		return e.crossConnFineGrainedCheck(stmt, key, schemaName, write)
 	}
+}
+
+// crossConnFineGrainedCheck applies the default lock style's fine-grained
+// SHARED/RESERVED/PENDING/EXCLUSIVE matrix for one key.
+func (e *Engine) crossConnFineGrainedCheck(stmt sql.Stmt, key, schemaName string, write bool) error {
+	walMode := e.stmtWALMode(stmt, schemaName)
+	if _, ok := lockreg.Global.ExclusiveLockedByOther(key, e.connID); ok {
+		return fmt.Errorf("database is locked")
+	}
+	// A read transaction holds SHARED on the file (pager.c holds the
+	// SHARED lock for the whole read txn): another connection's write
+	// must reserve (RESERVED→EXCLUSIVE upgrade blocked by the reader) —
+	// attach2-4.4: db2's autocommit INSERT fails while db holds
+	// BEGIN + SELECT on the same file. Autocommit writes go through
+	// the COMMIT upgrade path, so they are refused up front; writes
+	// inside an explicit transaction take RESERVED (allowed) and fail
+	// later at COMMIT (attach2-4.10) via commitLockError.
+	// WAL mode exempts this rule: readers never block writers (the
+	// WRITER shm byte is the only writer serialization — C's wal.c
+	// protocol has no reader/writer exclusion).
+	if write && !walMode && !e.tx.inTransaction && lockreg.Global.SharedTxByOther(key, e.connID) {
+		return fmt.Errorf("database is locked")
+	}
+	// PENDING blocks only NEW SHARED acquisitions by other connections. A
+	// connection that already holds a transaction-level SHARED lock on the file
+	// keeps reading (src/os_unix.c unixLock: the PENDING check applies on the
+	// SHARED acquire path, not to an already-held SHARED) — lock2-1.6.
+	if lockreg.Global.PendingByOther(key, e.connID) && !lockreg.Global.SharedTxByConn(key, e.connID) {
+		return fmt.Errorf("database is locked")
+	}
+	if write {
+		return e.crossConnWriteRefused(key)
+	}
+	return nil
+}
+
+// crossConnWriteRefused applies the write-only rules of the fine-grained
+// matrix: another connection's write transaction, or its persistent SHARED
+// (locking_mode=EXCLUSIVE), blocks this connection's write. The persistent
+// SHARED blocks immediately for an autocommit write (the statement cannot
+// commit), at COMMIT for a write inside an explicit transaction (RESERVED is
+// still acquirable — exclusive.test 2.5 vs 2.6/2.7).
+func (e *Engine) crossConnWriteRefused(key string) error {
+	if lockreg.Global.WriteTxByOther(key, e.connID) {
+		return fmt.Errorf("database is locked")
+	}
+	if !e.tx.inTransaction && lockreg.Global.PersistentSharedByOther(key, e.connID) {
+		return fmt.Errorf("database is locked")
+	}
+	return nil
 }
 
 // clearPersistentShared releases this connection's persistent SHARED marks
@@ -585,29 +599,36 @@ func (e *Engine) commitLockError() error {
 	// COMMIT's upgrade is RESERVED→EXCLUSIVE: the busy handler runs between
 	// retries (pager.c sqlite3PagerSetBusyHandler transition table).
 	for count := 0; ; count++ {
-		blocked := false
-		for _, k := range keys {
-			if e.lockStyle == LockStyleExclusive || e.lockStyle == LockStyleDotfile {
-				if lockreg.Global.ConnLockedByOther(k, e.connID) {
-					blocked = true
-					break
-				}
-				continue
-			}
-			if lockreg.Global.PersistentSharedByOther(k, e.connID) ||
-				lockreg.Global.SharedTxByOther(k, e.connID) ||
-				lockreg.Global.ReadTxByOther(k, e.connID) {
-				blocked = true
-				break
-			}
-		}
-		if !blocked {
+		if !e.commitUpgradeBlocked(keys) {
 			return nil
 		}
 		if !e.busyRetry(count) {
 			return fmt.Errorf("database is locked")
 		}
 	}
+}
+
+// commitUpgradeBlocked reports whether any key a COMMIT must upgrade is held
+// against this connection: for the unix-flock / unix-dotfile styles (which
+// collapse every lock level into a single EXCLUSIVE mutex) ANY other holder
+// blocks; the default style is refused by another connection's persistent
+// SHARED, transaction-level SHARED (read transaction) or prepared read lock
+// (src/pager.c sqlite3PagerSharedLock EXCLUSIVE upgrade refusal).
+func (e *Engine) commitUpgradeBlocked(keys []string) bool {
+	for _, k := range keys {
+		if e.lockStyle == LockStyleExclusive || e.lockStyle == LockStyleDotfile {
+			if lockreg.Global.ConnLockedByOther(k, e.connID) {
+				return true
+			}
+			continue
+		}
+		if lockreg.Global.PersistentSharedByOther(k, e.connID) ||
+			lockreg.Global.SharedTxByOther(k, e.connID) ||
+			lockreg.Global.ReadTxByOther(k, e.connID) {
+			return true
+		}
+	}
+	return false
 }
 
 // commitDirtyKeys returns the registry keys a COMMIT must upgrade — the

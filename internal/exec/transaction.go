@@ -46,56 +46,15 @@ func (e *Engine) execCommit() *Result {
 	if err := e.fts5ApplySecureUpgrades(); err != nil {
 		return &Result{Error: err}
 	}
-	e.tx.txSchemaChanged = false
-	e.tx.inTransaction = false
-	e.settings.deferForeignKeys = false
-	e.constraints.ResetFKDirty()
-	e.dml.ClearTxnWrittenFiles()
-	e.tx.ddlBuffer = nil
-	e.tx.txSnapshots = nil
-	e.tx.txFTSnapshots = nil
-	e.clearReservedDbs()
-	e.dml.ClearTxnWrittenFiles()
-	// Flush pending FTS3 segments (SQLite's FTS3 flushes the pending-terms
-	// hash at COMMIT, writing one segment per transaction). Mark the flush so
-	// its internal shadow-table writes (and the auto-incr-merge they trigger)
-	// skip the per-write pager snapshot — they are part of this COMMIT's
-	// rollback scope, and copying the whole pager per %_segments block insert
-	// is O(n^2) across the automerge's many flushes (fts4merge4 2.2.x).
-	e.tx.inFTSFlush = true
-	// The FTS flush's internal %_segdir/%_segments/%_stat writes run through
-	// nested Exec calls and would clobber last_insert_rowid with the shadow
-	// tables' rowids (SQLite's OP_VUpdate sets db->lastRowid = the FTS docid
-	// AFTER the module's internal writes; at COMMIT the flush is part of the
-	// statement so the docid value set by the last INSERT survives — see
-	// execFlushAutocommit's identical guard). Preserve and restore.
-	savedRowID := e.lastRowID
-	res := e.FlushFTSSegments()
-	e.lastRowID = savedRowID
-	e.tx.inFTSFlush = false
-	if res != nil {
+	e.commitClearTxState()
+	if res := e.flushFTSSegmentsGuarded(); res != nil {
 		return res
 	}
 	// COMMIT ends all open savepoints (SQLite: committing a transaction
 	// releases every savepoint it contains; a later ROLLBACK TO or RELEASE
 	// of a pre-COMMIT savepoint fails).
 	e.tx.savepointStack = nil
-	// Release cross-connection lock marks (write transactions and BEGIN
-	// EXCLUSIVE) acquired during the transaction.
-	e.registerWriteTx(false)
-	e.ReleaseExclusive()
-	// Clear the transaction-level SHARED lock and any PENDING mark so another
-	// connection's COMMIT can now upgrade to EXCLUSIVE (lock2-1.8).
-	e.releaseSharedTx()
-	// A commit that wrote data bumps the file change counter (header offset
-	// 24) of every written database so other connections observe the change
-	// via PRAGMA data_version and schema re-reads. This connection's own
-	// data_version stays at its cached value.
-	for _, dbCtx := range e.dbList {
-		if dbCtx != nil && dbCtx.Pager != nil && dbCtx.Pager.HasDirtyPages() {
-			e.updateFileChangeCounter(dbCtx)
-		}
-	}
+	e.commitReleaseLocksAndCounters()
 	// Auto-vacuum commit (P8.INCRVACUUM phase 4, btree.c autoVacuumCommit
 	// ~line 4174): for FULL mode, drain the on-disk freelist BEFORE writing
 	// the commit marker, honoring the optional per-batch callback
@@ -113,16 +72,97 @@ func (e *Engine) execCommit() *Result {
 	if err := e.runAutoVacuumCommitAll(); err != nil {
 		return &Result{Error: err}
 	}
-	// Release locks: after COMMIT all databases return to unlocked.
-	// Flush each pager so HasDirtyPages() becomes false (lock_status reads
-	// "unlocked" after the commit). The main pager is in dbList. When
-	// more than one USER database is being flushed together (an
-	// ATTACH'd database is also part of the commit), pass multiDB=true
-	// so PERSIST-mode journals are truncated to 0 (the super-journal
-	// path in pager.c zeroJournalHdr hasSuper==true branch). The temp
-	// database is in dbList but is an in-memory pager that never
-	// produces a rollback journal file, so it does NOT count toward
-	// the multi-DB total.
+	if res := e.commitFlushAllPagers(); res != nil {
+		return res
+	}
+	// Fire the commit hook after the commit completes (sqlite3_commit_hook).
+	// A nonzero return aborts the COMMIT: the transaction is rolled back and
+	// the COMMIT statement fails with "constraint failed".
+	if e.commitHook != nil && e.runCommitHook() {
+		e.execRollback()
+		return &Result{Error: fmt.Errorf("constraint failed")}
+	}
+	return &Result{}
+}
+
+// commitClearTxState clears the engine's transaction-scoped state once the
+// COMMIT is allowed to proceed (inTransaction, FK deferral, dirty-file and
+// DDL buffers, snapshots, RESERVED marks).
+func (e *Engine) commitClearTxState() {
+	e.tx.txSchemaChanged = false
+	e.tx.inTransaction = false
+	e.settings.deferForeignKeys = false
+	e.constraints.ResetFKDirty()
+	e.dml.ClearTxnWrittenFiles()
+	e.tx.ddlBuffer = nil
+	e.tx.txSnapshots = nil
+	e.tx.txFTSnapshots = nil
+	e.clearReservedDbs()
+	e.dml.ClearTxnWrittenFiles()
+}
+
+// flushFTSSegmentsGuarded flushes pending FTS3 segments within the current
+// statement/transaction rollback scope (SQLite's FTS3 flushes the
+// pending-terms hash at COMMIT / statement end, writing one segment per
+// transaction). The flush is marked (inFTSFlush) so its internal
+// shadow-table writes (and the auto-incr-merge they trigger) skip the
+// per-write pager snapshot — they are part of the enclosing scope, and
+// copying the whole pager per %_segments block insert is O(n^2) across the
+// automerge's many flushes (fts4merge4 2.2.x).
+//
+// The FTS flush's internal %_segdir/%_segments/%_stat writes run through
+// nested Exec calls and would clobber last_insert_rowid with the shadow
+// tables' rowids (SQLite's OP_VUpdate sets db->lastRowid = the FTS docid
+// AFTER the module's internal writes; at COMMIT the flush is part of the
+// statement so the docid value set by the last INSERT survives — see
+// execFlushAutocommit's identical guard). Preserve and restore.
+func (e *Engine) flushFTSSegmentsGuarded() *Result {
+	e.tx.inFTSFlush = true
+	savedRowID := e.lastRowID
+	res := e.FlushFTSSegments()
+	e.lastRowID = savedRowID
+	e.tx.inFTSFlush = false
+	if res != nil {
+		return res
+	}
+	return nil
+}
+
+// commitReleaseLocksAndCounters releases the cross-connection lock marks
+// (write transactions and BEGIN EXCLUSIVE) acquired during the transaction,
+// clears the transaction-level SHARED lock and any PENDING mark so another
+// connection's COMMIT can now upgrade to EXCLUSIVE (lock2-1.8), and bumps
+// the file change counter (header offset 24) of every written database so
+// other connections observe the change via PRAGMA data_version and schema
+// re-reads. This connection's own data_version stays at its cached value.
+func (e *Engine) commitReleaseLocksAndCounters() {
+	e.releaseTransactionLocks()
+	for _, dbCtx := range e.dbList {
+		if dbCtx != nil && dbCtx.Pager != nil && dbCtx.Pager.HasDirtyPages() {
+			e.updateFileChangeCounter(dbCtx)
+		}
+	}
+}
+
+// releaseTransactionLocks drops this connection's cross-connection lock
+// marks: the write-transaction registration, the BEGIN EXCLUSIVE mark and
+// the transaction-level SHARED lock.
+func (e *Engine) releaseTransactionLocks() {
+	e.registerWriteTx(false)
+	e.ReleaseExclusive()
+	e.releaseSharedTx()
+}
+
+// commitFlushAllPagers flushes every database's pager so HasDirtyPages()
+// becomes false (lock_status reads "unlocked" after the commit): after
+// COMMIT all databases return to unlocked. The main pager is in dbList.
+// When more than one USER database is being flushed together (an ATTACH'd
+// database is also part of the commit), the pagers are flushed with
+// multiDB=true so PERSIST-mode journals are truncated to 0 (the
+// super-journal path in pager.c zeroJournalHdr hasSuper==true branch). The
+// temp database is in dbList but is an in-memory pager that never produces
+// a rollback journal file, so it does NOT count toward the multi-DB total.
+func (e *Engine) commitFlushAllPagers() *Result {
 	multiDB := false
 	nonNilPagers := 0
 	for _, dbCtx := range e.dbList {
@@ -145,14 +185,7 @@ func (e *Engine) execCommit() *Result {
 			}
 		}
 	}
-	// Fire the commit hook after the commit completes (sqlite3_commit_hook).
-	// A nonzero return aborts the COMMIT: the transaction is rolled back and
-	// the COMMIT statement fails with "constraint failed".
-	if e.commitHook != nil && e.runCommitHook() {
-		e.execRollback()
-		return &Result{Error: fmt.Errorf("constraint failed")}
-	}
-	return &Result{}
+	return nil
 }
 
 // commitLockGate enforces the cross-connection COMMIT lock: a writer must
@@ -322,9 +355,7 @@ func (e *Engine) execRollback() *Result {
 	if !e.tx.inTransaction {
 		// Clear externally emulated BEGIN EXCLUSIVE marks even when the
 		// transaction parser did not open an engine transaction.
-		e.registerWriteTx(false)
-		e.ReleaseExclusive()
-		e.releaseSharedTx()
+		e.releaseTransactionLocks()
 		return &Result{Error: fmt.Errorf("cannot rollback - no transaction is active")}
 	}
 	// A ROLLBACK issued from a nested statement (the eval() extension, a
@@ -342,13 +373,11 @@ func (e *Engine) execRollback() *Result {
 	e.settings.deferForeignKeys = false
 	e.constraints.ResetFKDirty()
 	// Release cross-connection lock marks (write transactions and BEGIN
-	// EXCLUSIVE) acquired during the transaction.
-	e.registerWriteTx(false)
-	e.ReleaseExclusive()
-	// Clear the transaction-level SHARED lock and any PENDING mark (a failed
-	// COMMIT leaves the connection PENDING; ROLLBACK releases it so another
-	// writer can proceed).
-	e.releaseSharedTx()
+	// EXCLUSIVE) acquired during the transaction, and clear the
+	// transaction-level SHARED lock and any PENDING mark (a failed COMMIT
+	// leaves the connection PENDING; ROLLBACK releases it so another writer
+	// can proceed).
+	e.releaseTransactionLocks()
 	// ROLLBACK cancels EVERY savepoint opened in the transaction
 	// (lang_savepoint.html: "the transaction is rolled back and all
 	// savepoints are cancelled"). A stale stack made a later RELEASE of a
@@ -362,6 +391,24 @@ func (e *Engine) execRollback() *Result {
 		e.tx.ddlBuffer[i]()
 	}
 	e.tx.ddlBuffer = nil
+	e.restoreTxSnapshots()
+	// The rolled-back deletes' pending format-upgrade requests are dropped
+	// with them (sqlite3Fts5StorageRollback discards the pending data).
+	e.fts5DiscardSecureUpgrades()
+	e.invalidateTableCaches()
+	for _, dbCtx := range e.dbList {
+		dbCtx.Schema.InvalidateCache()
+	}
+	// Fire the rollback hook after the rollback completes
+	// (sqlite3_rollback_hook).
+	e.fireRollbackHook()
+	return &Result{}
+}
+
+// restoreTxSnapshots restores the page-level and in-memory FTS states taken
+// at BEGIN, undoing DML writes the buffers do not cover, and clears the
+// snapshot registries.
+func (e *Engine) restoreTxSnapshots() {
 	// Restore page-level state taken at BEGIN to undo DML writes.
 	for name, ctx := range e.databases {
 		if snap, ok := e.tx.txSnapshots[name]; ok {
@@ -386,17 +433,6 @@ func (e *Engine) execRollback() *Result {
 		}
 	}
 	e.tx.txFTS5Snapshots = nil
-	// The rolled-back deletes' pending format-upgrade requests are dropped
-	// with them (sqlite3Fts5StorageRollback discards the pending data).
-	e.fts5DiscardSecureUpgrades()
-	e.invalidateTableCaches()
-	for _, dbCtx := range e.dbList {
-		dbCtx.Schema.InvalidateCache()
-	}
-	// Fire the rollback hook after the rollback completes
-	// (sqlite3_rollback_hook).
-	e.fireRollbackHook()
-	return &Result{}
 }
 
 // savepointEntry records the pager state at a SAVEPOINT so ROLLBACK TO can
@@ -503,13 +539,7 @@ func (e *Engine) execSavepointCreate(s *sql.SavepointStmt) *Result {
 // deferred FK constraints only when the release pops the OUTERMOST savepoint
 // (a nested RELEASE just merges into the enclosing savepoint).
 func (e *Engine) execSavepointRelease(s *sql.SavepointStmt) *Result {
-	idx := -1
-	for i := len(e.tx.savepointStack) - 1; i >= 0; i-- {
-		if strings.EqualFold(e.tx.savepointStack[i].name, s.Name) {
-			idx = i
-			break
-		}
-	}
+	idx := e.findSavepoint(s.Name)
 	if idx < 0 {
 		return &Result{Error: fmt.Errorf("no such savepoint: %s", s.Name)}
 	}
@@ -527,49 +557,71 @@ func (e *Engine) execSavepointRelease(s *sql.SavepointStmt) *Result {
 			return &Result{Error: err}
 		}
 	}
-	// Releasing the savepoint that implicitly started the transaction is
-	// equivalent to COMMIT (SQLite lang_savepoint.html: releasing the
-	// outermost savepoint that started the transaction commits it). End the
-	// transaction so the next bare SAVEPOINT starts a fresh implicit
-	// transaction whose RELEASE re-checks deferred FKs (e_fkey-37.x).
 	if startsTransaction {
-		// Releasing the outermost savepoint commits: flush the fts5
-		// secure-delete format upgrade (fts5SavepointMethod's flush).
-		if err := e.fts5ApplySecureUpgrades(); err != nil {
-			e.tx.savepointStack = append(e.tx.savepointStack, popped...)
-			return &Result{Error: err}
-		}
-		e.tx.inTransaction = false
-		e.settings.deferForeignKeys = false
-		e.constraints.ResetFKDirty()
-		e.tx.ddlBuffer = nil
-		e.tx.txSnapshots = nil
-		e.clearReservedDbs()
-		for _, dbCtx := range e.dbList {
-			if dbCtx != nil && dbCtx.Pager != nil {
-				if err := dbCtx.Pager.FlushWithContext(false); err != nil {
-					return &Result{Error: err}
-				}
+		return e.releaseImplicitTxSavepoint(popped)
+	}
+	return &Result{}
+}
+
+// releaseImplicitTxSavepoint commits the transaction implicitly started by a
+// bare SAVEPOINT when its outermost savepoint is released (SQLite
+// lang_savepoint.html: releasing the outermost savepoint that started the
+// transaction commits it). popped is pushed back on the flush failure so the
+// savepoints remain open (R-37736-42616).
+func (e *Engine) releaseImplicitTxSavepoint(popped []savepointEntry) *Result {
+	// Releasing the outermost savepoint commits: flush the fts5
+	// secure-delete format upgrade (fts5SavepointMethod's flush).
+	if err := e.fts5ApplySecureUpgrades(); err != nil {
+		e.tx.savepointStack = append(e.tx.savepointStack, popped...)
+		return &Result{Error: err}
+	}
+	e.tx.inTransaction = false
+	e.settings.deferForeignKeys = false
+	e.constraints.ResetFKDirty()
+	e.tx.ddlBuffer = nil
+	e.tx.txSnapshots = nil
+	e.clearReservedDbs()
+	for _, dbCtx := range e.dbList {
+		if dbCtx != nil && dbCtx.Pager != nil {
+			if err := dbCtx.Pager.FlushWithContext(false); err != nil {
+				return &Result{Error: err}
 			}
 		}
 	}
 	return &Result{}
 }
 
+// findSavepoint locates a savepoint by name (case-insensitive, innermost
+// first); -1 when the name is not on the stack.
+func (e *Engine) findSavepoint(name string) int {
+	for i := len(e.tx.savepointStack) - 1; i >= 0; i-- {
+		if strings.EqualFold(e.tx.savepointStack[i].name, name) {
+			return i
+		}
+	}
+	return -1
+}
+
 // execSavepointRollback restores the pager state at the named savepoint and
 // pops savepoints above it (the named savepoint stays for reuse).
 func (e *Engine) execSavepointRollback(s *sql.SavepointStmt) *Result {
-	idx := -1
-	for i := len(e.tx.savepointStack) - 1; i >= 0; i-- {
-		if strings.EqualFold(e.tx.savepointStack[i].name, s.Name) {
-			idx = i
-			break
-		}
-	}
+	idx := e.findSavepoint(s.Name)
 	if idx < 0 {
 		return &Result{Error: fmt.Errorf("no such savepoint: %s", s.Name)}
 	}
 	sp := e.tx.savepointStack[idx]
+	e.restoreSavepointState(sp)
+	// Pop savepoints above the named one (the named one stays).
+	e.tx.savepointStack = e.tx.savepointStack[:idx+1]
+	return &Result{}
+}
+
+// restoreSavepointState undoes everything recorded after the savepoint:
+// buffered DDL closures, pager pages, and the in-memory FTS indexes, then
+// invalidates the derived caches. (fts5RollbackToMethod →
+// sqlite3Fts5StorageRollback drops the deletes' pending format-upgrade
+// requests with the rolled-back rows.)
+func (e *Engine) restoreSavepointState(sp savepointEntry) {
 	// Undo DDL performed after the savepoint.
 	for i := len(e.tx.ddlBuffer) - 1; i >= sp.ddlLen; i-- {
 		e.tx.ddlBuffer[i]()
@@ -595,16 +647,11 @@ func (e *Engine) execSavepointRollback(s *sql.SavepointStmt) *Result {
 			snap.table.Restore(snap.state)
 		}
 	}
-	// Deletes rolled back by ROLLBACK TO take their pending format-upgrade
-	// requests with them (fts5RollbackToMethod → sqlite3Fts5StorageRollback).
 	e.fts5DiscardSecureUpgrades()
 	e.invalidateTableCaches()
 	for _, dbCtx := range e.dbList {
 		dbCtx.Schema.InvalidateCache()
 	}
-	// Pop savepoints above the named one (the named one stays).
-	e.tx.savepointStack = e.tx.savepointStack[:idx+1]
-	return &Result{}
 }
 
 // fts5ApplySecureUpgrades persists every fts5 table's pending secure-delete

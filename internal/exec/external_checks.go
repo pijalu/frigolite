@@ -102,13 +102,23 @@ func checkDBFileCtx(ctx *DatabaseContext, writableSchema bool, pinWAL bool) (cha
 			ctx.Schema.InvalidateCache()
 		}
 	}
+	return changed, validateDBHeader(ctx, writableSchema)
+}
+
+// validateDBHeader post-checks the refreshed header: magic/page-size
+// validation ("file is not a database") and the leading-header corruption
+// check. PRAGMA writable_schema=ON suppresses the nPage>nPageFile report —
+// btree.c lockBtree's escape hatch (src/btree.c:3415-3418): with the flag
+// set the btree tolerates a header leading the file (incrvacuum-17.1 runs
+// incremental_vacuum against such an image and expects success).
+func validateDBHeader(ctx *DatabaseContext, writableSchema bool) error {
 	if verr := ctx.Pager.ValidateHeader(); verr != nil {
-		return changed, verr
+		return verr
 	}
 	if !writableSchema && ctx.Pager.HeaderBeyondFile() {
-		return changed, fmt.Errorf("database disk image is malformed")
+		return fmt.Errorf("database disk image is malformed")
 	}
-	return changed, nil
+	return nil
 }
 
 // stmtSkipsWalReadPin reports whether a statement class must NOT open the

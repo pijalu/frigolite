@@ -9,6 +9,7 @@ import (
 	"github.com/pijalu/frigolite/internal/execquery"
 	"github.com/pijalu/frigolite/internal/function"
 	"github.com/pijalu/frigolite/internal/pager"
+	"github.com/pijalu/frigolite/internal/schema"
 	"github.com/pijalu/frigolite/internal/sql"
 )
 
@@ -87,60 +88,57 @@ func (e *Engine) JournalMode(schema, value string) *execpragma.Result {
 		return &execpragma.Result{Error: fmt.Errorf("no such database: %s", schema)}
 	}
 	if value != "" {
-		m := strings.ToLower(strings.TrimSpace(value))
-		// pager.c sqlite3PagerSetJournalMode: a WAL-involving mode change
-		// (to or from WAL) opens/closes the WAL via the exclusive-lock path;
-		// any other connection's lock blocks it. Rollback↔rollback changes
-		// take no lock (tkt-fc62af4523.3).
-		if m == "wal" || strings.EqualFold(ctx.Pager.JournalMode(), "wal") {
-			if err := e.journalModeChangeLockError(schema); err != nil {
-				return &execpragma.Result{Error: err}
-			}
-		}
-		if e.InTransaction() && ctx.Pager.HasDirtyPages() {
-			// Defer the switch until the transaction ends (pager.c
-			// pendingJournalMode / btreeEndTransaction). When the pager
-			// is in PAGER_WRITER_CACHEMOD (already wrote dirty pages
-			// under the open transaction), sqlite3PagerOkToChangeJournalMode
-			// (pager.c:7456) returns false and OP_JournalMode (vdbe.c:8021)
-			// reports the CURRENT (active) mode — not the requested one
-			// (test/jrnlmode3.c 3.3). A bare BEGIN IMMEDIATE with no writes
-			// yet still allows the change (test/jrnlmode.c 8.21: the
-			// setter echoes the new mode). The pending change is applied
-			// by ApplyPendingJournalMode at COMMIT/ROLLBACK
-			// (internal/exec/transaction.go).
-			ctx.Pager.SetPendingJournalMode(m)
-			cur := ctx.Pager.JournalMode()
-			if cur == "" {
-				cur = "delete"
-			}
-			return &execpragma.Result{Rows: [][]interface{}{{cur}}}
-		}
-		if err := ctx.Pager.SetJournalMode(m); err != nil {
-			// WAL on an in-memory pager: SQLite's memdb keeps the prior
-			// mode (memdb1.test 420 expects the WAL assignment to echo
-			// "delete", the pre-existing mode — the request is a no-op
-			// because :memory: has no WAL file). Echo the current mode.
-			if strings.Contains(err.Error(), "in-memory") {
-				cur := ctx.Pager.JournalMode()
-				if cur == "" {
-					cur = "delete"
-				}
-				return &execpragma.Result{Rows: [][]interface{}{{cur}}}
-			}
-			return &execpragma.Result{Error: err}
-		}
-		mode := ctx.Pager.JournalMode()
-		if mode == "" {
-			mode = "delete"
-		}
-		return &execpragma.Result{Rows: [][]interface{}{{mode}}}
+		return e.setJournalMode(ctx, schema, strings.ToLower(strings.TrimSpace(value)))
 	}
-	mode := ctx.Pager.JournalMode()
+	return journalModeResult(ctx.Pager.JournalMode())
+}
+
+// journalModeResult echoes a journal mode as the pragma's single-cell row
+// (an empty pager mode renders as "delete", the rollback-journal default).
+func journalModeResult(mode string) *execpragma.Result {
 	if mode == "" {
 		mode = "delete"
 	}
 	return &execpragma.Result{Rows: [][]interface{}{{mode}}}
+}
+
+// setJournalMode applies a journal_mode assignment to one database's pager.
+func (e *Engine) setJournalMode(ctx *DatabaseContext, schema, m string) *execpragma.Result {
+	// pager.c sqlite3PagerSetJournalMode: a WAL-involving mode change
+	// (to or from WAL) opens/closes the WAL via the exclusive-lock path;
+	// any other connection's lock blocks it. Rollback↔rollback changes
+	// take no lock (tkt-fc62af4523.3).
+	if m == "wal" || strings.EqualFold(ctx.Pager.JournalMode(), "wal") {
+		if err := e.journalModeChangeLockError(schema); err != nil {
+			return &execpragma.Result{Error: err}
+		}
+	}
+	if e.InTransaction() && ctx.Pager.HasDirtyPages() {
+		// Defer the switch until the transaction ends (pager.c
+		// pendingJournalMode / btreeEndTransaction). When the pager
+		// is in PAGER_WRITER_CACHEMOD (already wrote dirty pages
+		// under the open transaction), sqlite3PagerOkToChangeJournalMode
+		// (pager.c:7456) returns false and OP_JournalMode (vdbe.c:8021)
+		// reports the CURRENT (active) mode — not the requested one
+		// (test/jrnlmode3.c 3.3). A bare BEGIN IMMEDIATE with no writes
+		// yet still allows the change (test/jrnlmode.c 8.21: the
+		// setter echoes the new mode). The pending change is applied
+		// by ApplyPendingJournalMode at COMMIT/ROLLBACK
+		// (internal/exec/transaction.go).
+		ctx.Pager.SetPendingJournalMode(m)
+		return journalModeResult(ctx.Pager.JournalMode())
+	}
+	if err := ctx.Pager.SetJournalMode(m); err != nil {
+		// WAL on an in-memory pager: SQLite's memdb keeps the prior
+		// mode (memdb1.test 420 expects the WAL assignment to echo
+		// "delete", the pre-existing mode — the request is a no-op
+		// because :memory: has no WAL file). Echo the current mode.
+		if strings.Contains(err.Error(), "in-memory") {
+			return journalModeResult(ctx.Pager.JournalMode())
+		}
+		return &execpragma.Result{Error: err}
+	}
+	return journalModeResult(ctx.Pager.JournalMode())
 }
 
 // JournalSizeLimit implements PRAGMA journal_size_limit (getter and setter),
@@ -359,72 +357,88 @@ func (e *Engine) MmapSize(schema, value string) *execpragma.Result {
 func (e *Engine) AutoVacuum(schema, value string) *execpragma.Result {
 	ctx := e.pragmaDBCtx(schema)
 	if value != "" {
-		n, err := strconv.Atoi(strings.TrimSpace(value))
-		if err != nil {
-			switch strings.ToLower(strings.TrimSpace(value)) {
-			case "none", "off":
-				n = 0
-			case "full":
-				n = 1
-			case "incremental":
-				n = 2
-			default:
-				// Invalid value: SQLite silently ignores it (logs a
-				// warning via sqlite3_log, but does NOT return an error to
-				// the caller). incrvacuum-1.4 / 1.7 / 2.1.x depend on
-				// this — they set invalid values and expect the next
-				// `pragma auto_vacuum` to return the previous mode.
-				return &execpragma.Result{}
-			}
-		}
-		if n < 0 || n > 2 {
-			// Out-of-range number: same as above (silently ignored).
-			return &execpragma.Result{}
-		}
-		if e.settings.autoVacuumModes == nil {
-			e.settings.autoVacuumModes = make(map[string]int64)
-		}
-		name := "main"
-		if ctx != nil && ctx.Name != "" {
-			name = ctx.Name
-		}
-		e.settings.autoVacuumModes[name] = int64(n)
-		// Apply the mode to the pager — but only while the database file
-		// is still empty (btree.c sqlite3BtreeSetAutoVacuum:3206: once
-		// the file has content, BTS_PAGESIZE_FIXED makes a differing
-		// mode change return SQLITE_READONLY, silently swallowed by
-		// pragma.c, and the request is only recorded in db->nextAutovac
-		// for the next VACUUM). For any non-empty file the persisted
-		// header wins anyway (lockBtree:3419 re-reads the mode from
-		// meta[4] at every open). Applying the mode immediately to a
-		// non-empty database built without pointer-map pages mixes
-		// geometries: the next commit drains/vacuum-moves pages of a
-		// file whose page 2 is a data root, and corrupts it
-		// (autovacuum-3.6/3.7).
-		if ctx != nil && ctx.Pager != nil && ctx.Pager.NumPages() <= 1 {
-			ctx.Pager.SetAutoVacuum(n > 0)
-		}
-		return &execpragma.Result{}
+		return e.setAutoVacuum(ctx, value)
 	}
 	// Read path: report the EFFECTIVE mode (the pager's flag — restored
 	// from header[52:56] at Open and applied at set-time only for empty
 	// files), never a deferred request. SQLite reports
 	// sqlite3BtreeGetAutoVacuum (the in-memory btree flag), which lags a
 	// deferred auto_vacuum= assignment until VACUUM.
-	name := "main"
-	if ctx != nil && ctx.Name != "" {
-		name = ctx.Name
-	}
-	mode := int64(0)
-	if ctx != nil && ctx.Pager != nil && ctx.Pager.AutoVacuum() {
-		mode = 1
-		if e.settings.autoVacuumModes != nil {
-			if m, ok := e.settings.autoVacuumModes[name]; ok && m != 0 {
-				mode = m // FULL (1) vs INCREMENTAL (2)
-			}
+	return &execpragma.Result{Rows: [][]interface{}{{e.autoVacuumEffectiveMode(ctx)}}}
+}
+
+// setAutoVacuum applies a PRAGMA auto_vacuum assignment. Invalid values are
+// silently ignored (SQLite logs but does not error — incrvacuum-1.4/1.7/2.1.x
+// depend on the previous mode surviving).
+func (e *Engine) setAutoVacuum(ctx *DatabaseContext, value string) *execpragma.Result {
+	n, err := strconv.Atoi(strings.TrimSpace(value))
+	if err != nil {
+		switch strings.ToLower(strings.TrimSpace(value)) {
+		case "none", "off":
+			n = 0
+		case "full":
+			n = 1
+		case "incremental":
+			n = 2
+		default:
+			// Invalid value: SQLite silently ignores it (logs a
+			// warning via sqlite3_log, but does NOT return an error to
+			// the caller). incrvacuum-1.4 / 1.7 / 2.1.x depend on
+			// this — they set invalid values and expect the next
+			// `pragma auto_vacuum` to return the previous mode.
+			return &execpragma.Result{}
 		}
 	}
-	return &execpragma.Result{Rows: [][]interface{}{{mode}}}
+	if n < 0 || n > 2 {
+		// Out-of-range number: same as above (silently ignored).
+		return &execpragma.Result{}
+	}
+	if e.settings.autoVacuumModes == nil {
+		e.settings.autoVacuumModes = make(map[string]int64)
+	}
+	e.settings.autoVacuumModes[e.autoVacuumSchemaName(ctx)] = int64(n)
+	// Apply the mode to the pager — but only while the database file
+	// is still empty (btree.c sqlite3BtreeSetAutoVacuum:3206: once
+	// the file has content, BTS_PAGESIZE_FIXED makes a differing
+	// mode change return SQLITE_READONLY, silently swallowed by
+	// pragma.c, and the request is only recorded in db->nextAutovac
+	// for the next VACUUM). For any non-empty file the persisted
+	// header wins anyway (lockBtree:3419 re-reads the mode from
+	// meta[4] at every open). Applying the mode immediately to a
+	// non-empty database built without pointer-map pages mixes
+	// geometries: the next commit drains/vacuum-moves pages of a
+	// file whose page 2 is a data root, and corrupts it
+	// (autovacuum-3.6/3.7).
+	if ctx != nil && ctx.Pager != nil && ctx.Pager.NumPages() <= 1 {
+		ctx.Pager.SetAutoVacuum(n > 0)
+	}
+	return &execpragma.Result{}
+}
+
+// autoVacuumSchemaName resolves the auto_vacuum settings key for the pragma
+// target ("main" when the database is unresolved).
+func (e *Engine) autoVacuumSchemaName(ctx *DatabaseContext) string {
+	if ctx != nil && ctx.Name != "" {
+		return ctx.Name
+	}
+	return "main"
+}
+
+// autoVacuumEffectiveMode reports the connection's effective auto_vacuum
+// mode for the target: the pager's live flag (0/1) refined to FULL (1) vs
+// INCREMENTAL (2) by the recorded setting.
+func (e *Engine) autoVacuumEffectiveMode(ctx *DatabaseContext) int64 {
+	mode := int64(0)
+	if ctx == nil || ctx.Pager == nil || !ctx.Pager.AutoVacuum() {
+		return mode
+	}
+	mode = 1
+	if e.settings.autoVacuumModes != nil {
+		if m, ok := e.settings.autoVacuumModes[e.autoVacuumSchemaName(ctx)]; ok && m != 0 {
+			mode = m // FULL (1) vs INCREMENTAL (2)
+		}
+	}
+	return mode
 }
 
 // --- Report pragmas ---
@@ -564,6 +578,20 @@ func (e *Engine) TableColumnMetadata(schemaName, table, column string) (*ColumnM
 	}
 	colDefs := e.parseColumnDefs(entry.Name, entry.SQL)
 	// A column named rowid/oid/_rowid_ shadows the implicit alias.
+	if md, ok := declaredColumnMetadata(ctx, colDefs, column); ok {
+		return md, nil
+	}
+	// Implicit rowid alias: rowid/oid/_rowid_ on a rowid table reports as
+	// INTEGER PRIMARY KEY (unless a WITHOUT ROWID table, which has no rowid).
+	if execquery.IsRowIDName(column) {
+		return rowidColumnMetadata(entry, ctx, colDefs, table, column)
+	}
+	return nil, fmt.Errorf("no such table column: %s.%s", table, column)
+}
+
+// declaredColumnMetadata reports one declared column's metadata ("BINARY"
+// collation when the column declares none).
+func declaredColumnMetadata(ctx *DatabaseContext, colDefs []sql.ColumnDef, column string) (*ColumnMetadata, bool) {
 	for _, cd := range colDefs {
 		if strings.EqualFold(cd.Name, column) {
 			coll := cd.Collate
@@ -577,33 +605,34 @@ func (e *Engine) TableColumnMetadata(schemaName, table, column string) (*ColumnM
 				PrimaryKey: cd.PrimaryKey,
 				AutoIncr:   cd.AutoInc,
 				SchemaName: ctx.Name,
-			}, nil
+			}, true
 		}
 	}
-	// Implicit rowid alias: rowid/oid/_rowid_ on a rowid table reports as
-	// INTEGER PRIMARY KEY (unless a WITHOUT ROWID table, which has no rowid).
-	if execquery.IsRowIDName(column) {
-		if hasWithoutRowidKeyword(strings.ToUpper(entry.SQL)) {
-			return nil, fmt.Errorf("no such table column: %s.%s", table, column)
-		}
-		// A table with an INTEGER PRIMARY KEY AUTOINCREMENT column reports
-		// autoincrement=1 for its rowid alias (colmeta.test 101/102).
-		autoIncr := false
-		for _, cd := range colDefs {
-			if cd.AutoInc {
-				autoIncr = true
-				break
-			}
-		}
-		return &ColumnMetadata{
-			DeclType:   "INTEGER",
-			Collation:  "BINARY",
-			PrimaryKey: true,
-			AutoIncr:   autoIncr,
-			SchemaName: ctx.Name,
-		}, nil
+	return nil, false
+}
+
+// rowidColumnMetadata reports the implicit rowid alias's metadata
+// (INTEGER PRIMARY KEY). A WITHOUT ROWID table has no rowid; a table with an
+// INTEGER PRIMARY KEY AUTOINCREMENT column reports autoincrement=1 for its
+// rowid alias (colmeta.test 101/102).
+func rowidColumnMetadata(entry *schema.Entry, ctx *DatabaseContext, colDefs []sql.ColumnDef, table, column string) (*ColumnMetadata, error) {
+	if hasWithoutRowidKeyword(strings.ToUpper(entry.SQL)) {
+		return nil, fmt.Errorf("no such table column: %s.%s", table, column)
 	}
-	return nil, fmt.Errorf("no such table column: %s.%s", table, column)
+	autoIncr := false
+	for _, cd := range colDefs {
+		if cd.AutoInc {
+			autoIncr = true
+			break
+		}
+	}
+	return &ColumnMetadata{
+		DeclType:   "INTEGER",
+		Collation:  "BINARY",
+		PrimaryKey: true,
+		AutoIncr:   autoIncr,
+		SchemaName: ctx.Name,
+	}, nil
 }
 
 // --- Integrity pragmas ---

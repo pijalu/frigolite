@@ -47,69 +47,12 @@ func (e *Engine) consumeVTabRowidRange(vt vtab.VirtualTable, where sql.Expr) sql
 	// INTEGER-PK column when the module declares one (unionvtab pTab->iPK —
 	// xBestIndex consumes constraints on that column like rowid ones;
 	// unionvtab.test 3.10 filters on the IPK column, 5.1 on a non-PK one).
-	rowidNames := map[string]bool{"rowid": true, "_rowid_": true, "oid": true}
-	var cols []string
-	if ci, ok := vt.(vtab.ColumnInfo); ok {
-		cols = ci.Columns()
-	}
-	if rn, ok := vt.(vtab.RowidColumner); ok {
-		if i := rn.RowidColumn(); i >= 0 && i < len(cols) {
-			rowidNames[strings.ToLower(cols[i])] = true
-		}
-	}
+	rowidNames := vtabRowidNames(vt)
+	state := &rowidRangeState{}
 	consumed := map[sql.Expr]bool{}
-	var lo, hi *int64
-	var loIncl, hiIncl bool
-	apply := func(v int64, op string) {
-		switch op {
-		case "<":
-			if v == math.MinInt64 {
-				// Nothing is < MinInt64: force an empty selection
-				// (hi below every possible source min).
-				zero := int64(0)
-				mone := int64(-1)
-				lo, hi = &zero, &mone
-				break
-			}
-			nv := v - 1
-			if hi == nil || nv < *hi {
-				hi = &nv
-			}
-			hiIncl = true
-		case "<=":
-			nv := v
-			if hi == nil || nv < *hi {
-				hi = &nv
-			}
-			hiIncl = true
-		case ">":
-			if v == math.MaxInt64 {
-				// Nothing is > MaxInt64: force an empty selection.
-				zero := int64(0)
-				mone := int64(-1)
-				lo, hi = &zero, &mone
-				break
-			}
-			nv := v + 1
-			if lo == nil || nv > *lo {
-				lo = &nv
-			}
-			loIncl = true
-		case ">=":
-			nv := v
-			if lo == nil || nv > *lo {
-				lo = &nv
-			}
-			loIncl = true
-		case "=":
-			nv := v
-			lo, hi = &nv, &nv
-			loIncl, hiIncl = true, true
-		}
-	}
 	for _, conj := range splitAndConjuncts(where) {
 		if bt, isBt := conj.(*sql.Between); isBt {
-			e.consumeRowidBetween(bt, rowidNames, apply, consumed)
+			e.consumeRowidBetween(bt, rowidNames, state.apply, consumed)
 			continue
 		}
 		bo, isOp := conj.(*sql.BinaryOp)
@@ -117,20 +60,110 @@ func (e *Engine) consumeVTabRowidRange(vt vtab.VirtualTable, where sql.Expr) sql
 			continue
 		}
 		op := strings.ToUpper(bo.Operator)
-		if op != "<" && op != "<=" && op != ">" && op != ">=" && op != "=" {
+		if !isRowidRangeOp(op) {
 			continue
 		}
-		e.consumeRowidComparison(bo, op, rowidNames, apply, consumed)
+		e.consumeRowidComparison(bo, op, rowidNames, state.apply, consumed)
 	}
 	// Arm the range on EVERY call — with no consumed conjunct lo/hi stay nil
 	// (the unconstrained full range, C idxNum==0). The consumed range lives
 	// on the per-table cached instance, so skipping the arm would leak the
 	// previous statement's selection into this scan.
-	rc.ConsumeRowidRange(lo, loIncl, hi, hiIncl)
+	rc.ConsumeRowidRange(state.lo, state.loIncl, state.hi, state.hiIncl)
 	if len(consumed) == 0 {
 		return nil
 	}
 	return removeConsumed(where, consumed)
+}
+
+// isRowidRangeOp reports whether op is one of the comparison operators the
+// interval builder understands.
+func isRowidRangeOp(op string) bool {
+	switch op {
+	case "<", "<=", ">", ">=", "=":
+		return true
+	}
+	return false
+}
+
+// vtabRowidNames collects the rowid alias names of a virtual table: the
+// implicit rowid names plus the declared rowid column (RowidColumner), if
+// any (unionvtab pTab->iPK — xBestIndex consumes constraints on that column
+// like rowid ones).
+func vtabRowidNames(vt vtab.VirtualTable) map[string]bool {
+	names := map[string]bool{"rowid": true, "_rowid_": true, "oid": true}
+	var cols []string
+	if ci, ok := vt.(vtab.ColumnInfo); ok {
+		cols = ci.Columns()
+	}
+	if rn, ok := vt.(vtab.RowidColumner); ok {
+		if i := rn.RowidColumn(); i >= 0 && i < len(cols) {
+			names[strings.ToLower(cols[i])] = true
+		}
+	}
+	return names
+}
+
+// rowidRangeState accumulates the rowid interval learned from consumed
+// conjuncts (unionvtab source selection). lo/hi nil means unconstrained.
+type rowidRangeState struct {
+	lo, hi         *int64
+	loIncl, hiIncl bool
+}
+
+// apply folds one comparison bound into the interval ("<"/"<=" tighten hi,
+// ">"/">=" tighten lo, "=" pins both).
+func (s *rowidRangeState) apply(v int64, op string) {
+	switch op {
+	case "<":
+		if v == math.MinInt64 {
+			// Nothing is < MinInt64: force an empty selection
+			// (hi below every possible source min).
+			s.forceEmpty()
+			break
+		}
+		s.tightenHi(v - 1)
+	case "<=":
+		s.tightenHi(v)
+	case ">":
+		if v == math.MaxInt64 {
+			// Nothing is > MaxInt64: force an empty selection.
+			s.forceEmpty()
+			break
+		}
+		s.tightenLo(v + 1)
+	case ">=":
+		s.tightenLo(v)
+	case "=":
+		nv := v
+		s.lo, s.hi = &nv, &nv
+		s.loIncl, s.hiIncl = true, true
+	}
+}
+
+// tightenHi lowers the upper bound to v (inclusive); no-op when the existing
+// bound is already tighter.
+func (s *rowidRangeState) tightenHi(v int64) {
+	if s.hi == nil || v < *s.hi {
+		s.hi = &v
+	}
+	s.hiIncl = true
+}
+
+// tightenLo raises the lower bound to v (inclusive); no-op when the existing
+// bound is already tighter.
+func (s *rowidRangeState) tightenLo(v int64) {
+	if s.lo == nil || v > *s.lo {
+		s.lo = &v
+	}
+	s.loIncl = true
+}
+
+// forceEmpty selects an impossible interval ([0, -1]): no source can match.
+func (s *rowidRangeState) forceEmpty() {
+	zero := int64(0)
+	mone := int64(-1)
+	s.lo, s.hi = &zero, &mone
 }
 
 // consumeRowidComparison feeds one `rowid <op> literal` (either orientation)
@@ -244,17 +277,27 @@ func dropRowidRangeConjuncts(where sql.Expr, rowidNames map[string]bool) sql.Exp
 				return &sql.BinaryOp{Operator: "AND", Left: l, Right: r}
 			}
 		}
-		op := strings.ToUpper(w.Operator)
-		if op == "<" || op == "<=" || op == ">" || op == ">=" || op == "=" {
-			if lr, ok := w.Left.(*sql.ColumnRef); ok && rowidNames[strings.ToLower(lr.Name)] && isFilterLiteral(w.Right) {
-				return nil
-			}
-			if rr, ok := w.Right.(*sql.ColumnRef); ok && rowidNames[strings.ToLower(rr.Name)] && isFilterLiteral(w.Left) {
-				return nil
-			}
+		if isRowidRangeConjunct(w.Operator, w.Left, w.Right, rowidNames) {
+			return nil
 		}
 	}
 	return where
+}
+
+// isRowidRangeConjunct reports whether a comparison conjunct drops given a
+// rowid/IPK alias on either side and a scan-start literal on the other
+// (a column-vs-column comparison must stay a filter).
+func isRowidRangeConjunct(op string, left, right sql.Expr, rowidNames map[string]bool) bool {
+	if !isRowidRangeOp(strings.ToUpper(op)) {
+		return false
+	}
+	if lr, ok := left.(*sql.ColumnRef); ok && rowidNames[strings.ToLower(lr.Name)] && isFilterLiteral(right) {
+		return true
+	}
+	if rr, ok := right.(*sql.ColumnRef); ok && rowidNames[strings.ToLower(rr.Name)] && isFilterLiteral(left) {
+		return true
+	}
+	return false
 }
 
 // dropVTabRowidConjuncts strips rowid/IPK range conjuncts for modules that
@@ -264,16 +307,6 @@ func (e *Engine) dropVTabRowidConjuncts(vt vtab.VirtualTable, where sql.Expr) (s
 	if !ok || rc == nil || where == nil {
 		return nil, false
 	}
-	names := map[string]bool{"rowid": true, "_rowid_": true, "oid": true}
-	var cols []string
-	if ci, ok := vt.(vtab.ColumnInfo); ok {
-		cols = ci.Columns()
-	}
-	if rn, ok := vt.(vtab.RowidColumner); ok {
-		if i := rn.RowidColumn(); i >= 0 && i < len(cols) {
-			names[strings.ToLower(cols[i])] = true
-		}
-	}
-	cleaned := dropRowidRangeConjuncts(where, names)
+	cleaned := dropRowidRangeConjuncts(where, vtabRowidNames(vt))
 	return cleaned, true
 }

@@ -409,49 +409,63 @@ func isFreelistOwnedSet(pg *pager.Pager) map[uint32]bool {
 	seen := map[uint32]bool{}
 	const maxIter = 100000
 	for iter := 0; trunk != 0 && iter < maxIter; iter++ {
-		if seen[trunk] {
+		nextTrunk, ok := collectFreelistTrunkPages(pg, trunk, seen, out)
+		if !ok {
 			return out
-		}
-		seen[trunk] = true
-		out[trunk] = true
-		page, err := pg.ReadPage(trunk)
-		if err != nil {
-			return out
-		}
-		coff := 0
-		if trunk == 1 {
-			coff = 100
-		}
-		data := page.Data
-		if coff+4 > len(data) {
-			return out
-		}
-		nextTrunk := binary.BigEndian.Uint32(data[coff : coff+4])
-		// SQLite freelist trunk format: offset 4-7 = leaf count (4 bytes),
-		// offset 8+ = leaf page numbers (4 bytes each). The leaf array
-		// can have zero-valued slots when leaves have been popped
-		// (popFromFreePagesChainLocked moves the last leaf into the
-		// freed slot and zeros the last slot; if subsequent ops also
-		// pop and shift, the array can end up with holes). Skip zero
-		// slots rather than breaking so trailing leaves are still
-		// recognized as freelist pages.
-		leafCount := binary.BigEndian.Uint32(data[coff+4 : coff+8])
-		for i := uint32(0); i < leafCount; i++ {
-			off := coff + 8 + int(i)*4
-			if off+4 > len(data) {
-				break // leaf array truncated; the chain walk continues
-			}
-			leaf := binary.BigEndian.Uint32(data[off : off+4])
-			if leaf == 0 {
-				continue
-			}
-			if seen[leaf] {
-				return out
-			}
-			seen[leaf] = true
-			out[leaf] = true
 		}
 		trunk = nextTrunk
 	}
 	return out
+}
+
+// collectFreelistTrunkPages marks one trunk page and its leaves as
+// freelist-owned (adding them to both `seen` and `out`). ok is false when
+// the walk must abort (duplicate trunk, unreadable page, truncated header
+// area, or a duplicated leaf), leaving the verdicts collected so far in
+// place — isFreelistPage's per-page semantics. nextTrunk is the chain's
+// next trunk page number.
+func collectFreelistTrunkPages(pg *pager.Pager, trunk uint32, seen, out map[uint32]bool) (nextTrunk uint32, ok bool) {
+	if seen[trunk] {
+		return 0, false
+	}
+	seen[trunk] = true
+	out[trunk] = true
+	page, err := pg.ReadPage(trunk)
+	if err != nil {
+		return 0, false
+	}
+	coff := 0
+	if trunk == 1 {
+		coff = 100
+	}
+	data := page.Data
+	if coff+4 > len(data) {
+		return 0, false
+	}
+	nextTrunk = binary.BigEndian.Uint32(data[coff : coff+4])
+	// SQLite freelist trunk format: offset 4-7 = leaf count (4 bytes),
+	// offset 8+ = leaf page numbers (4 bytes each). The leaf array
+	// can have zero-valued slots when leaves have been popped
+	// (popFromFreePagesChainLocked moves the last leaf into the
+	// freed slot and zeros the last slot; if subsequent ops also
+	// pop and shift, the array can end up with holes). Skip zero
+	// slots rather than breaking so trailing leaves are still
+	// recognized as freelist pages.
+	leafCount := binary.BigEndian.Uint32(data[coff+4 : coff+8])
+	for i := uint32(0); i < leafCount; i++ {
+		off := coff + 8 + int(i)*4
+		if off+4 > len(data) {
+			break // leaf array truncated; the chain walk continues
+		}
+		leaf := binary.BigEndian.Uint32(data[off : off+4])
+		if leaf == 0 {
+			continue
+		}
+		if seen[leaf] {
+			return 0, false
+		}
+		seen[leaf] = true
+		out[leaf] = true
+	}
+	return nextTrunk, true
 }

@@ -80,20 +80,7 @@ func (e *Engine) FirePreupdate(ev execdml.PreupdateEvent) *Result {
 	// the affinity transform integral INTEGERs back to REAL for REAL
 	// columns, e.g. bind2.test's IntReal round-trip). Apply the table's
 	// declared affinities here so every consumer sees faithful values.
-	if entry, _, err := e.findTable(ev.Table); err == nil && entry != nil {
-		if cols := entry.Columns; cols != nil {
-			for i := range e.preupdate.Old {
-				if i < len(cols) {
-					e.preupdate.Old[i] = value.ApplyColumnAffinity(e.preupdate.Old[i], cols[i].Type)
-				}
-			}
-			for i := range e.preupdate.New {
-				if i < len(cols) {
-					e.preupdate.New[i] = value.ApplyColumnAffinity(e.preupdate.New[i], cols[i].Type)
-				}
-			}
-		}
-	}
+	e.applyPreupdateAffinity()
 	if e.preupdateHook != nil {
 		e.preupdateHook()
 	}
@@ -101,6 +88,30 @@ func (e *Engine) FirePreupdate(ev execdml.PreupdateEvent) *Result {
 		e.updateHook(ev.Type, ev.DB, ev.Table, ev.RowID)
 	}
 	return nil
+}
+
+// applyPreupdateAffinity rewrites the current preupdate event's old/new
+// values with the target table's declared column affinities so every
+// consumer sees faithful values.
+func (e *Engine) applyPreupdateAffinity() {
+	entry, _, err := e.findTable(e.preupdate.Table)
+	if err != nil || entry == nil {
+		return
+	}
+	cols := entry.Columns
+	if cols == nil {
+		return
+	}
+	for i := range e.preupdate.Old {
+		if i < len(cols) {
+			e.preupdate.Old[i] = value.ApplyColumnAffinity(e.preupdate.Old[i], cols[i].Type)
+		}
+	}
+	for i := range e.preupdate.New {
+		if i < len(cols) {
+			e.preupdate.New[i] = value.ApplyColumnAffinity(e.preupdate.New[i], cols[i].Type)
+		}
+	}
 }
 
 // FireUpdateHook reports a row-level INSERT/UPDATE/DELETE on a ROWID table to

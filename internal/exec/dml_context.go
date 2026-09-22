@@ -462,29 +462,34 @@ func (e *Engine) SQLiteSequenceSeqFor(pg *pager.Pager, tableName string) (int64,
 			return 0, false, nil
 		}
 		tree := btree.NewBTree(pg, entry.RootPage, true)
-		cursor, err := tree.OpenCursor()
-		if err != nil {
-			return 0, false, err
-		}
-		for {
-			cell, err := cursor.ReadCell()
-			if err != nil {
-				return 0, false, nil
-			}
-			rec, err := storage.DecodeRecord(cell.Payload)
-			if err == nil && len(rec.Values) >= 2 {
-				if name, ok := rec.Values[0].(string); ok && name == tableName {
-					seq, _ := toInt64(rec.Values[1])
-					return seq, true, nil
-				}
-			}
-			ok, err := cursor.Next()
-			if err != nil || !ok {
-				return 0, false, nil
-			}
-		}
+		return readSQLiteSequenceSeq(tree, tableName)
 	}
 	return 0, false, nil
+}
+
+// readSQLiteSequenceSeq scans the sqlite_sequence btree for tableName's row.
+func readSQLiteSequenceSeq(tree *btree.BTree, tableName string) (int64, bool, error) {
+	cursor, err := tree.OpenCursor()
+	if err != nil {
+		return 0, false, err
+	}
+	for {
+		cell, err := cursor.ReadCell()
+		if err != nil {
+			return 0, false, nil
+		}
+		rec, err := storage.DecodeRecord(cell.Payload)
+		if err == nil && len(rec.Values) >= 2 {
+			if name, ok := rec.Values[0].(string); ok && name == tableName {
+				seq, _ := toInt64(rec.Values[1])
+				return seq, true, nil
+			}
+		}
+		ok, err := cursor.Next()
+		if err != nil || !ok {
+			return 0, false, nil
+		}
+	}
 }
 
 // WriteSQLiteSequence writes (tableName, seq) to the real sqlite_sequence
@@ -501,68 +506,85 @@ func (e *Engine) WriteSQLiteSequence(pg *pager.Pager, tableName string, seq int6
 			return nil
 		}
 		tree := btree.NewBTree(pg, entry.RootPage, true)
-		// Locate the row by name.
-		cursor, err := tree.OpenCursor()
-		if err != nil {
-			return err
-		}
-		var rowid int64 = -1
-		var oldSeq int64
-		for {
-			cell, err := cursor.ReadCell()
-			if err != nil {
-				break
-			}
-			rec, derr := storage.DecodeRecord(cell.Payload)
-			if derr == nil && len(rec.Values) >= 2 {
-				if name, ok := rec.Values[0].(string); ok && name == tableName {
-					rowid = cell.RowID
-					oldSeq, _ = toInt64(rec.Values[1])
-					break
-				}
-			}
-			ok, err := cursor.Next()
-			if err != nil || !ok {
-				break
-			}
-		}
-		record, rerr := storage.EncodeRecord([]interface{}{tableName, seq})
-		if rerr != nil {
-			return rerr
-		}
-		if rowid < 0 {
-			// No row yet: insert (name, seq) with the next available rowid.
-			cursor, err := tree.OpenCursor()
-			if err != nil {
-				return err
-			}
-			last := int64(0)
-			for {
-				cell, err := cursor.ReadCell()
-				if err != nil {
-					break
-				}
-				if cell.RowID > last {
-					last = cell.RowID
-				}
-				ok, err := cursor.Next()
-				if err != nil || !ok {
-					break
-				}
-			}
-			return tree.InsertCell(&storage.Cell{Type: storage.CellTableLeaf, RowID: last + 1, Payload: record})
-		}
-		if seq > oldSeq {
-			if _, err := tree.DeleteCellsWhere(func(cell *storage.Cell) bool {
-				return cell.RowID == rowid
-			}); err != nil {
-				return err
-			}
-			return tree.InsertCell(&storage.Cell{Type: storage.CellTableLeaf, RowID: rowid, Payload: record})
-		}
-		return nil
+		return writeSQLiteSequenceTree(tree, tableName, seq)
 	}
 	return nil
+}
+
+// writeSQLiteSequenceTree writes (tableName, seq) into one sqlite_sequence
+// btree: the row is inserted when absent; otherwise it is replaced only when
+// seq exceeds the stored value (SQLite's autoIncrementEnd, insert.c).
+func writeSQLiteSequenceTree(tree *btree.BTree, tableName string, seq int64) error {
+	// Locate the row by name.
+	rowid, oldSeq, found := findSQLiteSequenceRow(tree, tableName)
+	record, rerr := storage.EncodeRecord([]interface{}{tableName, seq})
+	if rerr != nil {
+		return rerr
+	}
+	if !found {
+		// No row yet: insert (name, seq) with the next available rowid.
+		return insertSQLiteSequenceRow(tree, record)
+	}
+	if seq > oldSeq {
+		if _, err := tree.DeleteCellsWhere(func(cell *storage.Cell) bool {
+			return cell.RowID == rowid
+		}); err != nil {
+			return err
+		}
+		return tree.InsertCell(&storage.Cell{Type: storage.CellTableLeaf, RowID: rowid, Payload: record})
+	}
+	return nil
+}
+
+// findSQLiteSequenceRow locates tableName's row in the sqlite_sequence
+// btree; found is false (rowid -1) when the row is absent or the scan hits
+// an unreadable page.
+func findSQLiteSequenceRow(tree *btree.BTree, tableName string) (rowid int64, oldSeq int64, found bool) {
+	cursor, err := tree.OpenCursor()
+	if err != nil {
+		return -1, 0, false
+	}
+	for {
+		cell, err := cursor.ReadCell()
+		if err != nil {
+			return -1, 0, false
+		}
+		rec, derr := storage.DecodeRecord(cell.Payload)
+		if derr == nil && len(rec.Values) >= 2 {
+			if name, ok := rec.Values[0].(string); ok && name == tableName {
+				seq, _ := toInt64(rec.Values[1])
+				return cell.RowID, seq, true
+			}
+		}
+		ok, err := cursor.Next()
+		if err != nil || !ok {
+			return -1, 0, false
+		}
+	}
+}
+
+// insertSQLiteSequenceRow appends a (name, seq) record with the next
+// available rowid (max existing rowid + 1).
+func insertSQLiteSequenceRow(tree *btree.BTree, record []byte) error {
+	cursor, err := tree.OpenCursor()
+	if err != nil {
+		return err
+	}
+	last := int64(0)
+	for {
+		cell, err := cursor.ReadCell()
+		if err != nil {
+			break
+		}
+		if cell.RowID > last {
+			last = cell.RowID
+		}
+		ok, err := cursor.Next()
+		if err != nil || !ok {
+			break
+		}
+	}
+	return tree.InsertCell(&storage.Cell{Type: storage.CellTableLeaf, RowID: last + 1, Payload: record})
 }
 
 // toInt64 converts a record value to int64 for sequence arithmetic.

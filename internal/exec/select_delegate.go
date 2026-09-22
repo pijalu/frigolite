@@ -4,6 +4,7 @@ import (
 	"strings"
 
 	"github.com/pijalu/frigolite/internal/btree"
+	"github.com/pijalu/frigolite/internal/pager"
 	"github.com/pijalu/frigolite/internal/schema"
 	"github.com/pijalu/frigolite/internal/sql"
 	"github.com/pijalu/frigolite/internal/storage"
@@ -141,22 +142,38 @@ func (e *Engine) isolateMemdbSelect(schemaName string) func() {
 	if !strings.HasPrefix(ctx.FilePath, "file:") {
 		return nil
 	}
-	snap, ok := e.tx.txSnapshots[schemaName]
-	if !ok || snap == nil {
-		if schemaName != "" {
-			snap, ok = e.tx.txSnapshots["MAIN"]
-			if !ok || snap == nil {
-				return nil
-			}
-			ctx = e.GetDB("MAIN")
-			if ctx == nil || ctx.Pager == nil {
-				return nil
-			}
-		} else {
-			return nil
-		}
+	snap, snapCtx, ok := e.memdbIsolationTarget(schemaName)
+	if !ok {
+		return nil
+	}
+	if snapCtx != nil {
+		ctx = snapCtx
 	}
 	live := ctx.Pager.Snapshot()
 	ctx.Pager.Restore(snap)
 	return func() { ctx.Pager.Restore(live) }
+}
+
+// memdbIsolationTarget resolves the BEGIN snapshot the memdb isolation
+// restores: the named schema's own snapshot, or MAIN's when the alias names
+// the shared store without a snapshot of its own. ctx is non-nil only in the
+// MAIN fallback (the context must be re-resolved there); ok is false when no
+// isolation applies.
+func (e *Engine) memdbIsolationTarget(schemaName string) (snap *pager.PagerState, ctx *DatabaseContext, ok bool) {
+	snap, ok = e.tx.txSnapshots[schemaName]
+	if ok && snap != nil {
+		return snap, nil, true
+	}
+	if schemaName == "" {
+		return nil, nil, false
+	}
+	snap, ok = e.tx.txSnapshots["MAIN"]
+	if !ok || snap == nil {
+		return nil, nil, false
+	}
+	ctx = e.GetDB("MAIN")
+	if ctx == nil || ctx.Pager == nil {
+		return nil, nil, false
+	}
+	return snap, ctx, true
 }

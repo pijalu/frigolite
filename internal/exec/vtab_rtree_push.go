@@ -50,58 +50,110 @@ func (e *Engine) rtreePushConjunct(sink vtab.ConstraintSink, cols map[string]int
 	// set via the sink, but are NOT consumed — C leaves
 	// aConstraintUsage[].omit = 0 so the core re-checks the true polygon
 	// predicate per candidate row.
-	if fc, isFunc := conj.(*sql.FuncCall); isFunc && len(fc.Args) == 2 {
-		if gs, can := sink.(vtab.GeopolyFuncSink); can {
-			if cr, isRef := fc.Args[0].(*sql.ColumnRef); isRef {
-				if col, found := cols[strings.ToLower(cr.Name)]; found && !exprHasColumnRef(fc.Args[1]) {
-					if val, err := e.evalExpr(fc.Args[1], nil); err == nil {
-						gs.PushGeopolyFunc(fc.Name, col, util.UnwrapColumnValue(val))
-					}
-				}
-			}
-			return false, nil
-		}
+	if e.rtreePushGeopolyFunc(sink, cols, conj) {
+		return false, nil
 	}
 	bo, isOp := conj.(*sql.BinaryOp)
 	if !isOp || !rtreePushableOp(bo.Operator) {
 		return e.rtreePushInConjunct(sink, cols, conj), nil
 	}
-	op := strings.ToUpper(bo.Operator)
-	if cr, isRef := bo.Left.(*sql.ColumnRef); isRef {
-		if col, found := cols[strings.ToLower(cr.Name)]; found {
-			// Only a column-free value operand may be pushed and consumed:
-			// a column reference (join/CTE/outer column — `rt0.b = v0.x`,
-			// `id = r.x`) evaluates per joined row, so binding it here with
-			// no current row would push col=NULL and drop the conjunct from
-			// the residual WHERE (where.c marks such terms usable=false and
-			// the core keeps them).
-			if exprHasColumnRef(bo.Right) {
-				return false, nil
+	return rtreePushComparison(e, sink, cols, bo, strings.ToUpper(bo.Operator))
+}
+
+// rtreePushGeopolyFunc handles a 2-argument overloaded geopoly function
+// conjunct (geopoly_overlap/_within) whose first argument is the declared
+// shape column: it pushes the second argument's constant value onto the
+// GeopolyFuncSink and reports true (the conjunct is then left unconsumed by
+// the caller). Non-function conjuncts and non-geopoly sinks report false and
+// fall through to the regular comparison handling.
+func (e *Engine) rtreePushGeopolyFunc(sink vtab.ConstraintSink, cols map[string]int, conj sql.Expr) bool {
+	fc, isFunc := conj.(*sql.FuncCall)
+	if !isFunc || len(fc.Args) != 2 {
+		return false
+	}
+	gs, can := sink.(vtab.GeopolyFuncSink)
+	if !can {
+		return false
+	}
+	if cr, isRef := fc.Args[0].(*sql.ColumnRef); isRef {
+		if col, found := cols[strings.ToLower(cr.Name)]; found && !exprHasColumnRef(fc.Args[1]) {
+			if val, err := e.evalExpr(fc.Args[1], nil); err == nil {
+				gs.PushGeopolyFunc(fc.Name, col, util.UnwrapColumnValue(val))
 			}
-			if val, err := e.evalExpr(bo.Right, nil); err == nil {
-				sink.PushRTreeConstraint(col, op, util.UnwrapColumnValue(val))
-				return true, nil
-			}
-			return false, nil
 		}
+	}
+	return true
+}
+
+// rtreePushComparison pushes a column-vs-constant comparison onto the sink
+// (column on either side; the operator is mirrored for constant-on-left).
+// Reports whether the conjunct is consumed.
+func rtreePushComparison(e *Engine, sink vtab.ConstraintSink, cols map[string]int, bo *sql.BinaryOp, op string) (bool, error) {
+	if pushed := rtreePushColumnLeft(e, sink, cols, bo, op); pushed {
+		return true, nil
 	}
 	// Constant on the left: mirror the operator.
-	if cr, isRef := bo.Right.(*sql.ColumnRef); isRef {
-		if col, found := cols[strings.ToLower(cr.Name)]; found {
-			if exprHasColumnRef(bo.Left) {
-				return false, nil
-			}
-			flipped := map[string]string{"<": ">", ">": "<", "<=": ">=", ">=": "<="}[op]
-			if flipped == "" {
-				flipped = op
-			}
-			if val, err := e.evalExpr(bo.Left, nil); err == nil {
-				sink.PushRTreeConstraint(col, flipped, util.UnwrapColumnValue(val))
-				return true, nil
-			}
-		}
+	if pushed := rtreePushColumnRightMirrored(e, sink, cols, bo, op); pushed {
+		return true, nil
 	}
 	return false, nil
+}
+
+// rtreePushColumnLeft pushes `col <op> value` when the comparison's LEFT
+// side is a declared column with a column-free right operand. Reports
+// whether the constraint was pushed.
+func rtreePushColumnLeft(e *Engine, sink vtab.ConstraintSink, cols map[string]int, bo *sql.BinaryOp, op string) bool {
+	cr, isRef := bo.Left.(*sql.ColumnRef)
+	if !isRef {
+		return false
+	}
+	col, found := cols[strings.ToLower(cr.Name)]
+	if !found {
+		return false
+	}
+	// Only a column-free value operand may be pushed and consumed:
+	// a column reference (join/CTE/outer column — `rt0.b = v0.x`,
+	// `id = r.x`) evaluates per joined row, so binding it here with
+	// no current row would push col=NULL and drop the conjunct from
+	// the residual WHERE (where.c marks such terms usable=false and
+	// the core keeps them).
+	if exprHasColumnRef(bo.Right) {
+		return false
+	}
+	val, err := e.evalExpr(bo.Right, nil)
+	if err != nil {
+		return false
+	}
+	sink.PushRTreeConstraint(col, op, util.UnwrapColumnValue(val))
+	return true
+}
+
+// rtreePushColumnRightMirrored pushes `value <flipped-op> col` when the
+// comparison's RIGHT side is a declared column with a column-free left
+// operand ("<" mirrors to ">", "=" mirrors to itself). Reports whether the
+// constraint was pushed.
+func rtreePushColumnRightMirrored(e *Engine, sink vtab.ConstraintSink, cols map[string]int, bo *sql.BinaryOp, op string) bool {
+	cr, isRef := bo.Right.(*sql.ColumnRef)
+	if !isRef {
+		return false
+	}
+	col, found := cols[strings.ToLower(cr.Name)]
+	if !found {
+		return false
+	}
+	if exprHasColumnRef(bo.Left) {
+		return false
+	}
+	flipped := map[string]string{"<": ">", ">": "<", "<=": ">=", ">=": "<="}[op]
+	if flipped == "" {
+		flipped = op
+	}
+	val, err := e.evalExpr(bo.Left, nil)
+	if err != nil {
+		return false
+	}
+	sink.PushRTreeConstraint(col, flipped, util.UnwrapColumnValue(val))
+	return true
 }
 
 // exprHasColumnRef reports whether the expression tree contains any column
@@ -115,26 +167,24 @@ func exprHasColumnRef(expr sql.Expr) bool {
 	case *sql.UnaryOp:
 		return exprHasColumnRef(t.Operand)
 	case *sql.FuncCall:
-		for _, a := range t.Args {
-			if exprHasColumnRef(a) {
-				return true
-			}
-		}
-		return false
+		return exprAnyColumnRef(t.Args)
 	case *sql.Between:
 		return exprHasColumnRef(t.Operand) || exprHasColumnRef(t.Low) || exprHasColumnRef(t.High)
 	case *sql.InList:
-		if exprHasColumnRef(t.Operand) {
-			return true
-		}
-		for _, item := range t.List {
-			if exprHasColumnRef(item) {
-				return true
-			}
-		}
-		return false
+		return exprHasColumnRef(t.Operand) || exprAnyColumnRef(t.List)
 	case *sql.ParenExpr:
 		return exprHasColumnRef(t.Expr)
+	}
+	return false
+}
+
+// exprAnyColumnRef reports whether any expression in the list contains a
+// column reference.
+func exprAnyColumnRef(exprs []sql.Expr) bool {
+	for _, e := range exprs {
+		if exprHasColumnRef(e) {
+			return true
+		}
 	}
 	return false
 }
