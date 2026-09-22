@@ -32,42 +32,27 @@ func (e *DMLExecutor) execUpdate(s *sql.UpdateStmt) *Result {
 }
 
 // execUpdateInner is execUpdate's statement pipeline (the echo write-through
-// wrapper above re-routes its errors).
+// wrapper above re-routes its errors). The defers below pin THIS frame: the
+// CTE pop, the outer-conflict restore, the DML-context restore, the
+// AUTOINCREMENT reset, and the SET-column push must all unwind at statement
+// end, so the phases they guard are extracted as validation helpers rather
+// than defer-owning steps.
 func (e *DMLExecutor) execUpdateInner(s *sql.UpdateStmt) *Result {
 	// The UPDATE's WITH clause (CTEs) applies to its FROM tables and SET
 	// expressions, including the view/INSTEAD-OF path. Push the CTEs onto
 	// the scope stack so UPDATE ... FROM input resolves input as a CTE
 	// (upfrom2-3.1) even when the target is a view.
-	if len(s.CTEs) > 0 {
-		e.ctx.PushCTEScope(s.CTEs)
-		defer e.ctx.PopCTEScope()
-	}
+	defer e.pushUpdateCTEs(s)()
 	// Echo virtual tables write through to their source table (vtabA-3.1).
 	e.redirectEchoVTab(s)
-	// Generic updatable virtual tables (sqlite_dbpage etc.) route before the
-	// b-tree paths: their rows come from xFilter, not a root page.
-	if res := e.rejectUnsafeVTabUse(s.Table); res != nil {
-		return res
-	}
-	if res, handled := e.execVTabUpdate(s); handled {
+	if res, handled := e.routeUpdateVTab(s); handled {
 		return res
 	}
 	if err := e.ctx.Authorize(auth.ActionUpdate, s.Table, "", "", ""); err != nil {
 		return &Result{Error: err}
 	}
-	tableEntry, dbCtx, err := e.ctx.FindTable(s.Table)
-	if err != nil {
-		// Not a table — route through INSTEAD OF UPDATE triggers on a view.
-		return e.updateOnMissingTable(s, err)
-	}
-	// Alias masking: with "UPDATE t1 AS a", the original table name is not a
-	// valid qualifier in WHERE/SET (wherelimit-0.5.2).
-	exprs := make([]sql.Expr, 0, len(s.Assignments)+1)
-	for _, a := range s.Assignments {
-		exprs = append(exprs, a.Value)
-	}
-	exprs = append(exprs, s.Where)
-	if res := e.validateDMLAliasQualifier(s.Table, s.Alias, exprs); res != nil {
+	tableEntry, dbCtx, res := e.openUpdateTarget(s)
+	if res != nil {
 		return res
 	}
 
@@ -76,11 +61,7 @@ func (e *DMLExecutor) execUpdateInner(s *sql.UpdateStmt) *Result {
 	// Only the outermost DML statement sets it.
 	outerPrev := e.ctx.OuterOrConflict()
 	if e.ctx.TriggerDepth() == 0 && outerPrev == "" {
-		if s.OnConflict != "" {
-			e.ctx.SetOuterOrConflict(s.OnConflict)
-		} else {
-			e.ctx.SetOuterOrConflict("")
-		}
+		e.ctx.SetOuterOrConflict(s.OnConflict)
 		defer e.ctx.SetOuterOrConflict(outerPrev)
 	}
 
@@ -92,53 +73,129 @@ func (e *DMLExecutor) execUpdateInner(s *sql.UpdateStmt) *Result {
 	}
 	defer func() { e.currentDMLCtx = prevDMLCtx }()
 
-	// Protect system and pragma virtual tables from modification.
-	if e.ctx.IsNonModifiableTable(tableEntry) {
-		return &Result{Error: fmt.Errorf("table %s may not be modified", tableEntry.Name)}
+	cleanup, res := e.guardUpdateTarget(tableEntry)
+	if res != nil {
+		return res
 	}
-
-	// Direct modification of sqlite_sequence changes AUTOINCREMENT sequences;
-	// clear the in-memory cache so the next INSERT reads the real table fresh.
-	if isSQLiteSequenceName(tableEntry.Name) {
-		defer e.ctx.ResetAutoIncSeq()
-	}
+	defer cleanup()
 
 	colDefs := e.ctx.ParseColumnDefs(tableEntry.Name, tableEntry.SQL)
-	// Prepare-time name resolution (resolve.c parity): WHERE and SET value
-	// expressions must resolve every column and function. UPDATE...FROM is
-	// skipped — its WHERE references the joined tables' columns.
-	if s.From.Name == "" {
-		qualifiers := []string{s.Table}
-		if s.Alias != "" {
-			qualifiers = append(qualifiers, s.Alias)
-		}
-		exprs := make([]sql.Expr, 0, len(s.Assignments)+1)
-		for _, a := range s.Assignments {
-			exprs = append(exprs, a.Value)
-		}
-		exprs = append(exprs, s.Where)
-		if res := e.validateDMLExprs(qualifiers, colDefs, !hasWithoutRowidKeyword(strings.ToUpper(tableEntry.SQL)), exprs); res != nil {
-			return res
-		}
+	if res := e.validateUpdateExprResolution(s, tableEntry, colDefs); res != nil {
+		return res
+	}
+	if res, handled := e.routeUpdateFTS(tableEntry, colDefs, s); handled {
+		return res
+	}
+	if res := e.validateUpdateIndexCollations(s, tableEntry, colDefs); res != nil {
+		return res
 	}
 
+	// Record which columns this UPDATE statement's SET clause assigns, so
+	// UPDATE OF <cols> triggers fire only when a listed column is in the set.
+	// Cleared on return (the engine is single-threaded per connection).
+	defer e.pushUpdateSetColumns(s)()
+
+	return e.runUpdatePipeline(s, tableEntry, colDefs)
+}
+
+// pushUpdateCTEs pushes the UPDATE's WITH-clause CTEs onto the scope stack
+// and returns the restore func (no-op when the statement has no WITH clause).
+func (e *DMLExecutor) pushUpdateCTEs(s *sql.UpdateStmt) func() {
+	if len(s.CTEs) == 0 {
+		return func() {}
+	}
+	e.ctx.PushCTEScope(s.CTEs)
+	return func() { e.ctx.PopCTEScope() }
+}
+
+// routeUpdateVTab routes generic updatable virtual tables (sqlite_dbpage
+// etc.) before the b-tree paths: their rows come from xFilter, not a root
+// page. handled=false keeps the b-tree UPDATE pipeline.
+func (e *DMLExecutor) routeUpdateVTab(s *sql.UpdateStmt) (*Result, bool) {
+	if res := e.rejectUnsafeVTabUse(s.Table); res != nil {
+		return res, true
+	}
+	return e.execVTabUpdate(s)
+}
+
+// openUpdateTarget resolves the UPDATE's target table and enforces alias
+// masking: with "UPDATE t1 AS a", the original table name is not a valid
+// qualifier in WHERE/SET (wherelimit-0.5.2). A missing table routes through
+// INSTEAD OF UPDATE triggers on a view.
+func (e *DMLExecutor) openUpdateTarget(s *sql.UpdateStmt) (*schema.Entry, *execquery.DatabaseContext, *Result) {
+	tableEntry, dbCtx, err := e.ctx.FindTable(s.Table)
+	if err != nil {
+		return nil, nil, e.updateOnMissingTable(s, err)
+	}
+	if res := e.validateDMLAliasQualifier(s.Table, s.Alias, updateTargetExprs(s)); res != nil {
+		return nil, nil, res
+	}
+	return tableEntry, dbCtx, nil
+}
+
+// updateTargetExprs collects the UPDATE's WHERE and SET value expressions
+// (the expressions qualified-name validation walks).
+func updateTargetExprs(s *sql.UpdateStmt) []sql.Expr {
+	exprs := make([]sql.Expr, 0, len(s.Assignments)+1)
+	for _, a := range s.Assignments {
+		exprs = append(exprs, a.Value)
+	}
+	return append(exprs, s.Where)
+}
+
+// guardUpdateTarget protects system and pragma virtual tables from
+// modification, and schedules the AUTOINCREMENT cache reset for direct
+// sqlite_sequence edits (the next INSERT must read the real table fresh).
+// It returns the cleanup func to defer (a no-op in the common case).
+func (e *DMLExecutor) guardUpdateTarget(tableEntry *schema.Entry) (func(), *Result) {
+	if e.ctx.IsNonModifiableTable(tableEntry) {
+		return func() {}, &Result{Error: fmt.Errorf("table %s may not be modified", tableEntry.Name)}
+	}
+	if isSQLiteSequenceName(tableEntry.Name) {
+		return e.ctx.ResetAutoIncSeq, nil
+	}
+	return func() {}, nil
+}
+
+// validateUpdateExprResolution performs prepare-time name resolution
+// (resolve.c parity): WHERE and SET value expressions must resolve every
+// column and function. UPDATE...FROM is skipped — its WHERE references the
+// joined tables' columns.
+func (e *DMLExecutor) validateUpdateExprResolution(s *sql.UpdateStmt, tableEntry *schema.Entry, colDefs []sql.ColumnDef) *Result {
+	if s.From.Name != "" {
+		return nil
+	}
+	qualifiers := []string{s.Table}
+	if s.Alias != "" {
+		qualifiers = append(qualifiers, s.Alias)
+	}
+	return e.validateDMLExprs(qualifiers, colDefs, !hasWithoutRowidKeyword(strings.ToUpper(tableEntry.SQL)), updateTargetExprs(s))
+}
+
+// routeUpdateFTS sends virtual-table updates to the FTS engines: fts5
+// updates route through the fts5 engine; FTS3/4 updates go directly to the
+// FTS table (SQLite's fts3UpdateMethod handles docid and content column
+// updates). handled=false keeps the b-tree UPDATE pipeline.
+func (e *DMLExecutor) routeUpdateFTS(tableEntry *schema.Entry, colDefs []sql.ColumnDef, s *sql.UpdateStmt) (*Result, bool) {
 	// Route fts5 virtual table updates through the fts5 engine.
 	if t5, ok := e.ctx.FTS5Tables()[tableEntry.Name]; ok {
-		return e.execFTS5Update(t5, colDefs, s)
+		return e.execFTS5Update(t5, colDefs, s), true
 	}
-
 	// Route FTS virtual table updates directly to the FTS table (SQLite's
 	// fts3UpdateMethod handles docid and content column updates).
 	if ftsTable, ok := e.ctx.FTSTables()[tableEntry.Name]; ok {
-		return e.ctx.ExecFTSUpdate(tableEntry.Name, ftsTable, colDefs, s)
+		return e.ctx.ExecFTSUpdate(tableEntry.Name, ftsTable, colDefs, s), true
 	}
+	return nil, false
+}
 
-	// Index maintenance collations resolve at prepare time (build.c
-	// sqlite3LocateCollSeq). SQLite maintains an index only when the
-	// statement assigns one of its key columns (or a column its expression
-	// keys / partial predicate reference), so "SET c1 = ..." fails while
-	// "SET c2 = ..." succeeds after a reopen without the collation
-	// (collate3-3.2/3.3). Assigning the rowid rebuilds every index.
+// validateUpdateIndexCollations enforces that index maintenance collations
+// resolve at prepare time (build.c sqlite3LocateCollSeq). SQLite maintains
+// an index only when the statement assigns one of its key columns (or a
+// column its expression keys / partial predicate reference), so "SET c1 =
+// ..." fails while "SET c2 = ..." succeeds after a reopen without the
+// collation (collate3-3.2/3.3). Assigning the rowid rebuilds every index.
+func (e *DMLExecutor) validateUpdateIndexCollations(s *sql.UpdateStmt, tableEntry *schema.Entry, colDefs []sql.ColumnDef) *Result {
 	changed := make(map[string]bool, len(s.Assignments)+len(s.SetParenColumns))
 	rowidAssigned := false
 	for _, a := range s.Assignments {
@@ -151,21 +208,20 @@ func (e *DMLExecutor) execUpdateInner(s *sql.UpdateStmt) *Result {
 	for _, col := range s.SetParenColumns {
 		changed[strings.ToLower(col)] = true
 	}
-	if len(changed) > 0 {
-		var maintained map[string]bool
-		if !rowidAssigned {
-			maintained = changed
-		}
-		if res := e.validateIndexCollations(tableEntry, colDefs, maintained); res != nil {
-			return res
-		}
+	if len(changed) == 0 {
+		return nil
 	}
+	var maintained map[string]bool
+	if !rowidAssigned {
+		maintained = changed
+	}
+	return e.validateIndexCollations(tableEntry, colDefs, maintained)
+}
 
-	// Record which columns this UPDATE statement's SET clause assigns, so
-	// UPDATE OF <cols> triggers fire only when a listed column is in the set.
-	// Cleared on return (the engine is single-threaded per connection).
-	defer e.pushUpdateSetColumns(s)()
-
+// runUpdatePipeline drives a resolved b-tree UPDATE from prepare through
+// collect, constraint pre-checks, apply (dispatch), AFTER triggers, and the
+// RETURNING/schema-cookie epilogue.
+func (e *DMLExecutor) runUpdatePipeline(s *sql.UpdateStmt, tableEntry *schema.Entry, colDefs []sql.ColumnDef) *Result {
 	if res := e.prepareUpdate(s, tableEntry, colDefs); res != nil {
 		return res
 	}
@@ -387,52 +443,84 @@ func (e *DMLExecutor) resolveUpdateNotNullConflicts(s *sql.UpdateStmt, tableEntr
 	stmtClause := strings.ToUpper(s.OnConflict)
 	kept := make([]updateChange, 0, len(changes))
 	for _, ch := range changes {
-		for {
-			row := buildRowMapFromValues(ch.values, colDefs, ch.rowID)
-			res := e.checkRowUpdateConstraints(ch.values, row, tableEntry, colDefs, withoutRowid, pkCols)
-			if res.Error == nil {
-				kept = append(kept, ch)
-				break
-			}
-			errStr := res.Error.Error()
-			if !strings.Contains(errStr, "NOT NULL constraint failed") {
-				return changes, res // CHECK (and other) violations stand
-			}
-			cd := violatedNotNullColumn(errStr, colDefs)
-			if cd == nil {
-				return changes, res
-			}
-			action := stmtClause
-			if action == "" {
-				action = cd.OnConflict
-			}
-			switch action {
-			case "IGNORE":
-				// Skip the whole row: the change is dropped.
-			case "REPLACE":
-				if cd.Default == nil {
-					// REPLACE without a DEFAULT uses ABORT semantics
-					// (SQLite ON CONFLICT clause documentation).
-					return changes, res
-				}
-				dv, derr := e.ctx.EvalExpr(cd.Default, nil)
-				if derr != nil {
-					return changes, &Result{Error: derr}
-				}
-				values := append([]interface{}(nil), ch.values...)
-				values[cdIndex(colDefs, cd.Name)] = dv
-				if gerr := e.computeGeneratedValues(colDefs, values); gerr != nil {
-					return changes, &Result{Error: gerr}
-				}
-				ch.values = values
-				continue // re-validate the substituted row
-			default:
-				return changes, res
-			}
-			break
+		r := e.resolveChangeNotNullConflicts(ch, tableEntry, colDefs, withoutRowid, pkCols, stmtClause)
+		if r.res != nil {
+			return changes, r.res
 		}
+		if r.drop {
+			// Skip the whole row: the change is dropped.
+			continue
+		}
+		kept = append(kept, *r.keep)
 	}
 	return kept, &Result{}
+}
+
+// notNullResolution is one change's NOT NULL/CHECK constraint outcome: keep
+// the (possibly DEFAULT-substituted) change, drop it, or abort the statement.
+type notNullResolution struct {
+	keep *updateChange
+	drop bool
+	res  *Result
+}
+
+// resolveChangeNotNullConflicts validates one change, re-validating after
+// every DEFAULT substitution until the row passes or its outcome is decided.
+func (e *DMLExecutor) resolveChangeNotNullConflicts(ch updateChange, tableEntry *schema.Entry, colDefs []sql.ColumnDef, withoutRowid bool, pkCols map[int]bool, stmtClause string) notNullResolution {
+	for {
+		row := buildRowMapFromValues(ch.values, colDefs, ch.rowID)
+		res := e.checkRowUpdateConstraints(ch.values, row, tableEntry, colDefs, withoutRowid, pkCols)
+		if res.Error == nil {
+			return notNullResolution{keep: &ch}
+		}
+		errStr := res.Error.Error()
+		if !strings.Contains(errStr, "NOT NULL constraint failed") {
+			return notNullResolution{res: res} // CHECK (and other) violations stand
+		}
+		cd := violatedNotNullColumn(errStr, colDefs)
+		if cd == nil {
+			return notNullResolution{res: res}
+		}
+		action := stmtClause
+		if action == "" {
+			action = cd.OnConflict
+		}
+		switch action {
+		case "IGNORE":
+			return notNullResolution{drop: true}
+		case "REPLACE":
+			values, sub := e.substituteNotNullDefault(ch, cd, colDefs, res)
+			if sub != nil {
+				return notNullResolution{res: sub}
+			}
+			ch.values = values
+			continue // re-validate the substituted row
+		default:
+			return notNullResolution{res: res}
+		}
+	}
+}
+
+// substituteNotNullDefault substitutes a NOT NULL-violating column's DEFAULT
+// under the REPLACE action and recomputes generated columns. A column without
+// a DEFAULT yields ABORT semantics (SQLite ON CONFLICT clause documentation):
+// the original violation Result is returned and values is nil.
+func (e *DMLExecutor) substituteNotNullDefault(ch updateChange, cd *sql.ColumnDef, colDefs []sql.ColumnDef, res *Result) ([]interface{}, *Result) {
+	if cd.Default == nil {
+		// REPLACE without a DEFAULT uses ABORT semantics
+		// (SQLite ON CONFLICT clause documentation).
+		return nil, res
+	}
+	dv, derr := e.ctx.EvalExpr(cd.Default, nil)
+	if derr != nil {
+		return nil, &Result{Error: derr}
+	}
+	values := append([]interface{}(nil), ch.values...)
+	values[cdIndex(colDefs, cd.Name)] = dv
+	if gerr := e.computeGeneratedValues(colDefs, values); gerr != nil {
+		return nil, &Result{Error: gerr}
+	}
+	return values, nil
 }
 
 // violatedNotNullColumn extracts the column definition named by a
@@ -660,13 +748,13 @@ func (e *DMLExecutor) execUpdateView(s *sql.UpdateStmt, viewEntry *schema.Entry)
 	if len(viewCols) == 0 {
 		return &Result{}
 	}
-	// Convert each view row into a RowMap keyed by the view's column names.
-	// Collect matched (old,new) pairs first so UPDATE ... ORDER BY ... LIMIT
-	// applies to the trigger rows (SQLite processes only the LIMIT window).
 	colDefs := make([]sql.ColumnDef, len(viewCols))
 	for i, c := range viewCols {
 		colDefs[i] = sql.ColumnDef{Name: c}
 	}
+	// Convert each view row into a RowMap keyed by the view's column names.
+	// Collect matched (old,new) pairs first so UPDATE ... ORDER BY ... LIMIT
+	// applies to the trigger rows (SQLite processes only the LIMIT window).
 	pairs, err := e.collectViewUpdatePairs(s, viewResult.Rows, viewCols)
 	if err != nil {
 		return &Result{Error: err}
@@ -676,35 +764,50 @@ func (e *DMLExecutor) execUpdateView(s *sql.UpdateStmt, viewEntry *schema.Entry)
 	if err != nil {
 		return &Result{Error: err}
 	}
+	if res := e.fireInsteadOfUpdateTriggers(viewEntry.Name, pairs); res != nil {
+		return res
+	}
+	// RETURNING on a view UPDATE projects the matched (old,new) pairs with
+	// the NEW values (SQLite: the RETURNING row uses the SET-clause values;
+	// window1 73.2 "UPDATE t2 SET c=99 WHERE b=4 RETURNING *" → 4 99).
+	if s.HasReturning {
+		return e.viewUpdateReturning(s, viewEntry, pairs, colDefs)
+	}
+	// The view update itself counts 0 changes (SQLite: INSTEAD OF trigger
+	// interception is not counted); the trigger body's DML counts via its
+	// own Exec.
+	return &Result{}
+}
+
+// fireInsteadOfUpdateTriggers fires the INSTEAD OF UPDATE triggers for each
+// matched view row pair.
+func (e *DMLExecutor) fireInsteadOfUpdateTriggers(viewName string, pairs []viewUpdatePair) *Result {
 	for _, p := range pairs {
 		// A view is modified exclusively through INSTEAD OF triggers; the
 		// declared timing is INSTEAD (parseTriggerHeader), so fire with that
 		// timing — "BEFORE" would skip the trigger and silently drop the
 		// update (fts4upfrom 1.3: UPDATE on a view with INSTEAD OF UPDATE
 		// triggers writes through to the underlying table).
-		if res := e.fireTriggers(viewEntry.Name, "UPDATE", "INSTEAD", p.newRow, p.oldRow); res != nil && res.Error != nil {
+		if res := e.fireTriggers(viewName, "UPDATE", "INSTEAD", p.newRow, p.oldRow); res != nil && res.Error != nil {
 			return res
 		}
 	}
-	// RETURNING on a view UPDATE projects the matched (old,new) pairs with
-	// the NEW values (SQLite: the RETURNING row uses the SET-clause values;
-	// window1 73.2 "UPDATE t2 SET c=99 WHERE b=4 RETURNING *" → 4 99).
-	if s.HasReturning {
-		var returningRows [][]interface{}
-		for _, p := range pairs {
-			values, err := e.evalReturningStrict(s.Returning, p.newRow, colDefs, viewEntry.Name)
-			if err != nil {
-				return &Result{Error: err}
-			}
-			returningRows = append(returningRows, values)
+	return nil
+}
+
+// viewUpdateReturning evaluates an UPDATE-on-view RETURNING clause against
+// the matched (old,new) pairs' NEW rows.
+func (e *DMLExecutor) viewUpdateReturning(s *sql.UpdateStmt, viewEntry *schema.Entry, pairs []viewUpdatePair, colDefs []sql.ColumnDef) *Result {
+	var returningRows [][]interface{}
+	for _, p := range pairs {
+		values, err := e.evalReturningStrict(s.Returning, p.newRow, colDefs, viewEntry.Name)
+		if err != nil {
+			return &Result{Error: err}
 		}
-		columns := e.ctx.BuildColumnNames([]sql.SelectColumn{s.Returning}, colDefs, nil)
-		return &Result{Columns: columns, Rows: returningRows}
+		returningRows = append(returningRows, values)
 	}
-	// The view update itself counts 0 changes (SQLite: INSTEAD OF trigger
-	// interception is not counted); the trigger body's DML counts via its
-	// own Exec.
-	return &Result{}
+	columns := e.ctx.BuildColumnNames([]sql.SelectColumn{s.Returning}, colDefs, nil)
+	return &Result{Columns: columns, Rows: returningRows}
 }
 
 // viewUpdatePair records a matched (old,new) row pair for an UPDATE on a
