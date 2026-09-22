@@ -535,15 +535,9 @@ func (e *Engine) SetLimit(name string, n int) int {
 		// Raises above the compile-time default are capped (main.c
 		// sqlite3_limit: newLimit > aHardLimit → hard max). sqllimits1-4.4
 		// sets 0x7fffffff and reads back SQLITE_MAX_EXPR_DEPTH=1000.
-		if n > 1000 {
-			n = 1000
-		}
-		e.settings.exprDepthLimit = n
+		e.settings.exprDepthLimit = clampHardMax(n, 1000)
 	case "SQLITE_LIMIT_TRIGGER_DEPTH":
-		if n > 1000 {
-			n = 1000
-		}
-		e.triggers.SetDepthLimit(n)
+		e.triggers.SetDepthLimit(clampHardMax(n, 1000))
 	case "SQLITE_LIMIT_ATTACHED":
 		// SQLite: db->aLimit[] is writable both ways; raises cap at the
 		// hard max (main.c: newLimit > aHardLimit → hard max).
@@ -551,64 +545,61 @@ func (e *Engine) SetLimit(name string, n int) int {
 		// back SQLITE_MAX_ATTACHED=10. A LOWERED limit stays lowered
 		// until raised again (test order: 2.8 halves db's limit to 5,
 		// then 4.8 raises it back to 10).
-		if n > execddl.MaxAttachedDatabases {
-			n = execddl.MaxAttachedDatabases
-		}
-		e.settings.attachedLimit = n
-	case "SQLITE_LIMIT_COLUMN":
-		if n > sqliteMaxColumnDefault {
-			n = sqliteMaxColumnDefault
-		}
-		e.settings.columnLimit = n
+		e.settings.attachedLimit = clampHardMax(n, execddl.MaxAttachedDatabases)
 	case "SQLITE_LIMIT_LENGTH":
-		if n > sqliteMaxLengthDefault {
-			n = sqliteMaxLengthDefault
-		}
-		if n < 30 {
-			n = 30
-		}
-		e.settings.lengthLimit = n
-	case "SQLITE_LIMIT_SQL_LENGTH":
-		if n > sqliteMaxLengthDefault {
-			n = sqliteMaxLengthDefault
-		}
-		e.settings.sqlLengthLimit = n
-	case "SQLITE_LIMIT_COMPOUND_SELECT":
-		if n > sqliteMaxCompoundSelectDefault {
-			n = sqliteMaxCompoundSelectDefault
-		}
-		e.settings.compoundSelectLimit = n
-	case "SQLITE_LIMIT_VDBE_OP":
-		if n > sqliteMaxVDBEOpDefault {
-			n = sqliteMaxVDBEOpDefault
-		}
-		e.settings.vdbeOpLimit = n
-	case "SQLITE_LIMIT_FUNCTION_ARG":
-		if n > sqliteMaxFunctionArgDefault {
-			n = sqliteMaxFunctionArgDefault
-		}
-		e.settings.functionArgLimit = n
-	case "SQLITE_LIMIT_LIKE_PATTERN_LENGTH":
-		if n > sqliteMaxLikePatternDefault {
-			n = sqliteMaxLikePatternDefault
-		}
-		e.settings.likePatternLimit = n
-	case "SQLITE_LIMIT_VARIABLE_NUMBER":
-		if n > sqliteMaxVariableNumberDefault {
-			n = sqliteMaxVariableNumberDefault
-		}
-		e.settings.variableNumberLimit = n
-	case "SQLITE_LIMIT_WORKER_THREADS":
-		if n > sqliteMaxWorkerThreadsDefault {
-			n = sqliteMaxWorkerThreadsDefault
-		}
-		e.settings.workerThreadsLimit = n
+		e.settings.lengthLimit = clampMin(clampHardMax(n, sqliteMaxLengthDefault), 30)
 	case "SQLITE_LIMIT_SCHEMA":
 		e.settings.schemaLimit = n
 	default:
-		return e.Limit(name)
+		if !e.setClampedLimit(name, n) {
+			return e.Limit(name)
+		}
 	}
 	return prior
+}
+
+// setClampedLimit installs a plain cap-at-hard-max limit: the LIMIT_* names
+// whose only rule is newLimit > aHardLimit → hard max (src/limit.h defaults
+// exercised by sqllimits1.test). Reports whether name is a known limit.
+func (e *Engine) setClampedLimit(name string, n int) bool {
+	switch strings.ToUpper(name) {
+	case "SQLITE_LIMIT_COLUMN":
+		e.settings.columnLimit = clampHardMax(n, sqliteMaxColumnDefault)
+	case "SQLITE_LIMIT_SQL_LENGTH":
+		e.settings.sqlLengthLimit = clampHardMax(n, sqliteMaxLengthDefault)
+	case "SQLITE_LIMIT_COMPOUND_SELECT":
+		e.settings.compoundSelectLimit = clampHardMax(n, sqliteMaxCompoundSelectDefault)
+	case "SQLITE_LIMIT_VDBE_OP":
+		e.settings.vdbeOpLimit = clampHardMax(n, sqliteMaxVDBEOpDefault)
+	case "SQLITE_LIMIT_FUNCTION_ARG":
+		e.settings.functionArgLimit = clampHardMax(n, sqliteMaxFunctionArgDefault)
+	case "SQLITE_LIMIT_LIKE_PATTERN_LENGTH":
+		e.settings.likePatternLimit = clampHardMax(n, sqliteMaxLikePatternDefault)
+	case "SQLITE_LIMIT_VARIABLE_NUMBER":
+		e.settings.variableNumberLimit = clampHardMax(n, sqliteMaxVariableNumberDefault)
+	case "SQLITE_LIMIT_WORKER_THREADS":
+		e.settings.workerThreadsLimit = clampHardMax(n, sqliteMaxWorkerThreadsDefault)
+	default:
+		return false
+	}
+	return true
+}
+
+// clampHardMax caps a new limit at its compile-time hard max (main.c
+// sqlite3_limit: newLimit > aHardLimit → hard max).
+func clampHardMax(n, hardMax int) int {
+	if n > hardMax {
+		return hardMax
+	}
+	return n
+}
+
+// clampMin floors a limit (LENGTH's SQLITE_MIN_LENGTH 30 floor).
+func clampMin(n, min int) int {
+	if n < min {
+		return min
+	}
+	return n
 }
 
 // sqliteMaxColumnDefault is the SQLite compile-time default SQLITE_MAX_COLUMN.
@@ -643,32 +634,43 @@ func (e *Engine) Limit(name string) int {
 		return e.settings.exprDepthLimit
 	case "SQLITE_LIMIT_TRIGGER_DEPTH":
 		return e.triggers.DepthLimit()
-	case "SQLITE_LIMIT_COLUMN":
-		return e.settings.columnLimit
-	case "SQLITE_LIMIT_LENGTH":
-		return e.settings.lengthLimit
-	case "SQLITE_LIMIT_SQL_LENGTH":
-		return e.settings.sqlLengthLimit
-	case "SQLITE_LIMIT_COMPOUND_SELECT":
-		return e.settings.compoundSelectLimit
-	case "SQLITE_LIMIT_VDBE_OP":
-		return e.settings.vdbeOpLimit
-	case "SQLITE_LIMIT_FUNCTION_ARG":
-		return e.settings.functionArgLimit
-	case "SQLITE_LIMIT_LIKE_PATTERN_LENGTH":
-		return e.settings.likePatternLimit
-	case "SQLITE_LIMIT_VARIABLE_NUMBER":
-		return e.settings.variableNumberLimit
-	case "SQLITE_LIMIT_WORKER_THREADS":
-		return e.settings.workerThreadsLimit
 	case "SQLITE_LIMIT_SCHEMA":
 		return e.settings.schemaLimit
 	default:
+		if v, ok := e.plainLimitSetting(name); ok {
+			return v
+		}
 		// Out-of-range limit ids (sqllimits1-1.20..1.23
 		// SQLITE_LIMIT_TOOSMALL/TOOBIG): sqlite3_limit returns -1
 		// without touching state (src/main.c sqlite3_limit default).
 		return -1
 	}
+}
+
+// plainLimitSetting reads the settings-backed limits whose value is stored
+// verbatim (no compile-time fallback). ok is false for names outside the set.
+func (e *Engine) plainLimitSetting(name string) (int, bool) {
+	switch strings.ToUpper(name) {
+	case "SQLITE_LIMIT_COLUMN":
+		return e.settings.columnLimit, true
+	case "SQLITE_LIMIT_LENGTH":
+		return e.settings.lengthLimit, true
+	case "SQLITE_LIMIT_SQL_LENGTH":
+		return e.settings.sqlLengthLimit, true
+	case "SQLITE_LIMIT_COMPOUND_SELECT":
+		return e.settings.compoundSelectLimit, true
+	case "SQLITE_LIMIT_VDBE_OP":
+		return e.settings.vdbeOpLimit, true
+	case "SQLITE_LIMIT_FUNCTION_ARG":
+		return e.settings.functionArgLimit, true
+	case "SQLITE_LIMIT_LIKE_PATTERN_LENGTH":
+		return e.settings.likePatternLimit, true
+	case "SQLITE_LIMIT_VARIABLE_NUMBER":
+		return e.settings.variableNumberLimit, true
+	case "SQLITE_LIMIT_WORKER_THREADS":
+		return e.settings.workerThreadsLimit, true
+	}
+	return 0, false
 }
 
 // authorize checks whether an operation is allowed by the authorizer.

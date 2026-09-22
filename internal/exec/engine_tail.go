@@ -88,15 +88,7 @@ func (e *Engine) isStoragelessVirtualTable(entry *schema.Entry) bool {
 func (e *Engine) findTrigger(name string) (*schema.Entry, *DatabaseContext, error) {
 	schemaName, objName := parseSchemaName(name)
 	if schemaName != "" {
-		ctx := e.getDB(schemaName)
-		if ctx == nil {
-			return nil, nil, fmt.Errorf("no such trigger: %s", name)
-		}
-		entry, err := ctx.Schema.FindTrigger(objName)
-		if err != nil {
-			return nil, nil, err
-		}
-		return entry, ctx, nil
+		return e.findTriggerQualified(name, schemaName, objName)
 	}
 
 	// An unqualified trigger name searches the temp schema first (temp
@@ -126,6 +118,20 @@ func (e *Engine) findTrigger(name string) (*schema.Entry, *DatabaseContext, erro
 	}
 
 	return nil, nil, fmt.Errorf("no such trigger: %s", name)
+}
+
+// findTriggerQualified resolves a schema-qualified trigger name strictly
+// within that schema ("no such trigger" when the schema is unknown).
+func (e *Engine) findTriggerQualified(name, schemaName, objName string) (*schema.Entry, *DatabaseContext, error) {
+	ctx := e.getDB(schemaName)
+	if ctx == nil {
+		return nil, nil, fmt.Errorf("no such trigger: %s", name)
+	}
+	entry, err := ctx.Schema.FindTrigger(objName)
+	if err != nil {
+		return nil, nil, err
+	}
+	return entry, ctx, nil
 }
 
 // findIndex searches for an index across all attached databases.
@@ -258,7 +264,7 @@ func (e *Engine) dmlCanSkipSnapshot(stmt sql.Stmt) bool {
 	if !ok {
 		return false // UPDATE/DELETE can fail mid-scan after earlier writes
 	}
-	if ins.Select != nil || ins.HasReturning || ins.IsReplace || len(ins.Values) != 1 {
+	if !isSimpleSingleValuesInsert(ins) {
 		return false
 	}
 	if ins.OnConflict != nil {
@@ -271,6 +277,13 @@ func (e *Engine) dmlCanSkipSnapshot(stmt sql.Stmt) bool {
 		return false // a trigger could fail after the insert
 	}
 	return true
+}
+
+// isSimpleSingleValuesInsert reports whether the INSERT is the snapshot-free
+// shape: a single-row VALUES insert with no source SELECT, no RETURNING, no
+// REPLACE form, and no multi-row values list.
+func isSimpleSingleValuesInsert(ins *sql.InsertStmt) bool {
+	return ins.Select == nil && !ins.HasReturning && !ins.IsReplace && len(ins.Values) == 1
 }
 
 // stmtTargetsFTSContent reports whether a statement writes to an FTS table's
@@ -427,25 +440,8 @@ func (e *Engine) execOtherDDL(stmt sql.Stmt) *Result {
 	// PRAGMA lock_status would wrongly block another connection's writes
 	// (lock7-1.4).
 	e.registerWriteUnlessReadOnly(stmt)
-	// PRAGMA query_only rejects all write statements, including DDL. PRAGMA
-	// statements are exempt (the query_only pragma itself must toggle).
-	if e.settings.queryOnly {
-		if _, isPragma := stmt.(*sql.PragmaStmt); !isPragma {
-			return &Result{Error: fmt.Errorf("attempt to write a readonly database")}
-		}
-	}
-	// A pager opened read-only (permission fallback) rejects DDL writes the
-	// same way (sqlite3PagerBegin SQLITE_READONLY); PRAGMA statements stay
-	// exempt so journal_mode can still be observed. ATTACH/DETACH are also
-	// exempt: the read-only flag applies to the MAIN database only, and
-	// SQLite permits attaching a separate writable file to a read-only
-	// connection (misc7-7.3: OpenReadOnly + ATTACH test2.db AS aux).
-	if e.mainReadOnly() {
-		if _, isPragma := stmt.(*sql.PragmaStmt); !isPragma {
-			if _, isAttach := stmt.(*sql.AttachStmt); !isAttach {
-				return &Result{Error: fmt.Errorf("attempt to write a readonly database")}
-			}
-		}
+	if err := e.ddlWriteRefused(stmt); err != nil {
+		return &Result{Error: err}
 	}
 	// Invalidate table cache on any DDL operation to ensure consistency
 	e.invalidateTableCache()
@@ -459,10 +455,7 @@ func (e *Engine) execOtherDDL(stmt sql.Stmt) *Result {
 		// ANALYZE's sqlite_stat1 writes are schema maintenance, not
 		// application DML: they do not accumulate into total_changes
 		// (e_totalchanges-2.3). REINDEX likewise.
-		e.tx.internalWrites++
-		res := e.execAnalyze(s)
-		e.tx.internalWrites--
-		return res
+		return e.execAnalyzeInternal(s)
 	case *sql.PragmaStmt:
 		return e.execPragma(s)
 	case *sql.AlterTableStmt:
@@ -472,14 +465,53 @@ func (e *Engine) execOtherDDL(stmt sql.Stmt) *Result {
 	case *sql.AttachStmt:
 		return e.execAttachOrDetach(s)
 	case *sql.ReindexStmt:
-		e.tx.internalWrites++
-		res := e.execReindex(s)
-		e.tx.internalWrites--
-		return res
+		return e.execReindexInternal(s)
 	default:
 		// Begin, Rollback, Vacuum, Reindex, Savepoint — all no-ops
 		return &Result{}
 	}
+}
+
+// ddlWriteRefused applies the write gates of the DDL/pragma dispatch: PRAGMA
+// query_only and a pager opened read-only (permission fallback). PRAGMA
+// statements stay exempt so journal_mode can still be observed. ATTACH/DETACH
+// are exempt from the read-only pager: the flag applies to the MAIN database
+// only, and SQLite permits attaching a separate writable file to a read-only
+// connection (misc7-7.3: OpenReadOnly + ATTACH test2.db AS aux).
+func (e *Engine) ddlWriteRefused(stmt sql.Stmt) error {
+	if _, isPragma := stmt.(*sql.PragmaStmt); isPragma {
+		return nil
+	}
+	// PRAGMA query_only rejects all write statements, including DDL.
+	if e.settings.queryOnly {
+		return fmt.Errorf("attempt to write a readonly database")
+	}
+	// A read-only pager rejects DDL writes the same way
+	// (sqlite3PagerBegin SQLITE_READONLY).
+	if e.mainReadOnly() {
+		if _, isAttach := stmt.(*sql.AttachStmt); !isAttach {
+			return fmt.Errorf("attempt to write a readonly database")
+		}
+	}
+	return nil
+}
+
+// execAnalyzeInternal runs ANALYZE with its sqlite_stat writes marked
+// internal (not accumulated into total_changes).
+func (e *Engine) execAnalyzeInternal(s *sql.AnalyzeStmt) *Result {
+	e.tx.internalWrites++
+	res := e.execAnalyze(s)
+	e.tx.internalWrites--
+	return res
+}
+
+// execReindexInternal runs REINDEX with its index rebuilds marked internal
+// (not accumulated into total_changes).
+func (e *Engine) execReindexInternal(s *sql.ReindexStmt) *Result {
+	e.tx.internalWrites++
+	res := e.execReindex(s)
+	e.tx.internalWrites--
+	return res
 }
 
 // execCreateStmt dispatches a CREATE statement to its executor.
