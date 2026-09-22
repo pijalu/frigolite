@@ -28,16 +28,6 @@ func (tp *transpiler) buildListStringExpr(s string) string {
 	return tp.renderListStringExpr(parts)
 }
 
-// buildListStringExprNoCmd is buildListStringExpr with TCL command
-// substitution disabled: [...] is kept as literal text (subst -nocommands
-// semantics). Used for BRACED foreach lists, whose elements keep [...]
-// literally (fts4unicode.test section 9: `tokenize=unicode61
-// [tokenchars= .]` must reach the SQL parser as a bracket-quoted identifier,
-// not be rendered through tclListElem).
-func (tp *transpiler) buildListStringExprNoCmd(s string) string {
-	parts := parseStringPartsMode(s, false, true)
-	return tp.renderListStringExpr(parts)
-}
 
 // buildStringExprNoCmd is like buildStringExpr but treats [...] as literal
 // text instead of TCL command substitution. It implements the semantics of

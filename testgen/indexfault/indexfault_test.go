@@ -174,8 +174,8 @@ func Test_indexfault(t *testing.T) {
 	custom_ifail = "-1" // TCL namespace variable
 	_ = custom_ifail // suppress unused warning
 	vtab.TclVarSet("custom_nfail", "", "-1")
-	vtab.TclVarSet("custom_injectstop", "", "-1")
 	vtab.TclVarSet("install_custom_faultsim", "", "-1")
+	vtab.TclVarSet("custom_injectstop", "", "-1")
 	custom_nfail = "-1" // TCL namespace variable
 	_ = custom_nfail // suppress unused warning
 	// proc definition (not transpiled)

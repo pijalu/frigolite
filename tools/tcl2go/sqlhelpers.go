@@ -139,43 +139,7 @@ func skipBalancedParen(s string) (string, bool) {
 	return "", false
 }
 
-// rowProducingQuery reports whether a statement is a top-level query that
-// produces result rows (SELECT / WITH / VALUES / EXPLAIN). Unlike
-// isQueryStmt, it excludes PRAGMA: PRAGMA setters (auto_vacuum=OFF,
-// page_size, cache_size) and PRAGMA calls inside a VACUUM-heavy body are
-// side effects the engine can run, not row-producing queries whose result
-// order would be VACUUM-dependent.
-func rowProducingQuery(stmt string) bool {
-	stmt = strings.TrimSpace(stmt)
-	for strings.HasPrefix(stmt, "--") {
-		if nl := strings.IndexByte(stmt, '\n'); nl >= 0 {
-			stmt = strings.TrimSpace(stmt[nl+1:])
-		} else {
-			stmt = ""
-		}
-	}
-	if len(stmt) < 6 {
-		return false
-	}
-	upper := strings.ToUpper(stmt[:min(len(stmt), 10)])
-	return strings.HasPrefix(upper, "SELECT") ||
-		strings.HasPrefix(upper, "WITH") ||
-		strings.HasPrefix(upper, "VALUES") ||
-		strings.HasPrefix(upper, "EXPLAIN")
-}
 
-// bodyHasRowProducingQuery reports whether a multi-statement SQL body
-// contains a row-producing query (SELECT / WITH / VALUES / EXPLAIN). Used to
-// decide whether a VACUUM-heavy body can be split: bodies with such queries
-// may have VACUUM-dependent result order and are kept fully skipped.
-func bodyHasRowProducingQuery(sql string) bool {
-	for _, st := range splitSQLStatements(sql) {
-		if rowProducingQuery(st) {
-			return true
-		}
-	}
-	return false
-}
 
 func min(a, b int) int {
 	if a < b {
