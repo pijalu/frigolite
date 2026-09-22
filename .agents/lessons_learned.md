@@ -108,6 +108,77 @@
   lines vs closing braces); slice by content (`next(i for i,l in enumerate(...)
   if l.startswith('// ...'))`) and assert both boundaries before writing.
 
+## T30-fts3 — FULL-SUITE-DRIFT fts3/fts4 cluster (2026-09-22, branch fleet/w5-fts3)
+
+- **Apple's /usr/bin/sqlite3 is NOT oracle ground truth for fts3 MATCH
+  syntax**: it ships SQLITE_ENABLE_FTS3_PARENTHESIS, which switches
+  fts3_expr.c to the enhanced syntax (AND binds tighter than OR). Default
+  builds use the LEGACY syntax where **OR binds tighter than the implicit
+  AND** ('one two OR three' = one AND (two OR three)), AND/NOT are plain
+  terms, and '(' ')' are tokenizer delimiters. Build the oracle from the
+  reference tree with default flags: `cc -DSQLITE_ENABLE_FTS3
+  -DSQLITE_ENABLE_FTS4 shell.c sqlite3.c -o oracle` (see /tmp/w5 recipe).
+- **Old-engine+new-corpus is the decisive regression experiment**: copying
+  the regenerated testgen/<pkg> dirs into a worktree at the blamed parent
+  commit settles engine-regression vs latent-gap instantly. All 8 T30
+  packages failed on the OLD engine too → latent gaps, no bisect of the
+  §5d reader refactor needed.
+- **Legacy fts3 parser mechanics ported (query_parse.go parseLegacyMatchQuery)**:
+  (1) precedence via opPrecedence/insertBinaryOperator — NEAR=1 < OR=2 <
+  implicit-AND=3 legacy; NEAR<NOT<AND<OR paren mode (the FTSQUERY_* enum
+  values themselves); (2) the '-' unary NOT builds a left-nested pNotBranch
+  chain and the main tree attaches at its leftmost leaf at END — '-a -b c'
+  = ((c AND NOT a) AND NOT b); (3) buffer resumption is at each token's END
+  byte, so a keyword buried behind a delimiter ('hello) OR world') is just a
+  term; (4) keyword boundary = space/quote/paren/NUL; (5) '-'/'^' must sit
+  immediately before the token start ('- term' is a plain term);
+  (6) FTS3 varints (doclists AND the merge hint blob) are LITTLE-endian
+  7-bit groups — cf0f = 1999, not 10127.
+- **Both syntaxes are runtime-selectable** exactly like the C: the parser
+  consults the harness variable sqlite_fts3_enable_parentheses (set by the
+  generated tests via vtab.TclVarSet — the emitted form of TCL `set
+  sqlite_fts3_enable_parentheses 1`), defaulting to legacy (release
+  builds). e_fts3/fts3expr*/fts3corrupt6/... captured enhanced-syntax
+  expectations and stay green through this read; do NOT "simplify" by
+  picking one global mode.
+- **fts3PoslistPhraseMerge pairs strictly** (iPos2>iPos1 or iPos1>iPos2,
+  never equal): 'four NEAR four' on single-instance docs matches nothing,
+  'A NEAR/2 A' on 'A A A' matches (distinct instances). The old >= allowed
+  same-offset self-pairing and over-matched.
+- **fts3DeleteByRowid's isEmpty branch**: the delete that empties the table
+  runs fts3DeleteAll (wipe %_segdir/%_segments/%_docsize/%_stat + pending
+  hash) instead of writing delete-marker segments — DELETE-all + re-insert
+  leaves ONE level-0 segdir (fts3d).
+- **Aux functions need the SQL-side column restriction**: ftsMatchPhrases
+  must apply restrictQueryColumn for `subject MATCH 'q'` (fts3FilterMethod
+  iDefaultCol) or offsets()/matchinfo report other-column hits
+  (fts3ac-2.4/2.5).
+- **fts3_porter.c copy_stemmer**: tokens <3 or >20 bytes, or containing
+  non-[a-zA-Z] bytes, skip Porter and keep first+last 10 bytes (first+last
+  3 with digits) after ASCII case folding ('123456789'→'123789';
+  26-char word → first10+last10). A textbook Porter implementation misses
+  the truncation and breaks prefix-equivalent matching (fts3ad).
+- **merge=1 corruption surfacing**: fts3IncrmergeLoad/Writer read the
+  OUTPUT-level segdir row's root blob directly; aRoot==0 with nRoot==0 is
+  FTS_CORRUPT_VTAB there (unlike the plain MATCH reader, where an empty
+  root reads as an empty segment — verified: root='' then MATCH gives 0
+  rows, NO error). The merge error must propagate to the merge= statement.
+  nSegCap has no 2-floor: a hint entry (nHintSeg=1) legally engages a
+  1-segment merge.
+- **Parser must not pre-lowercase bare terms**: the table tokenizer
+  re-tokenizes each term afterwards, and a langid-aware tokenizer needs the
+  original case (fts4langid 4.1.3 'Quick'@lid=1). Case folding belongs to
+  the tokenizer, as in C.
+- **Known unpassable generated assertions (emitter findings, engine proven
+  oracle-correct)**: fts3corrupt 2.2/3.2/4.3 (TCL `binary format` crafted
+  corrupt roots emitted as root='' — oracle gives 0 rows, no error);
+  fts3corrupt6 2.1 (NEAR over a corrupt position list degrades to AND in C
+  — our strict pairing rejects it; degradation path not implemented);
+  fts3ab setup (tcl2go dropped `[set $lang]` indirection → stores literal
+  column-name strings); fts4unicode (nil *tclListBuilder + `array names
+  map` emitted as a literal string). fts3near 2.7's captured want is
+  impossible for its data (byte 10 in a 7-byte doc) — same emitter class.
+
 ## MANDATORY RULES (2026-09 update)
 
 - **No skipping missing engine features.** If a testgen package fails because
