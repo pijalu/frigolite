@@ -181,6 +181,19 @@ func buildCmdExprHandlers() map[string]cmdExprHandler {
 					return fmt.Sprintf("tclArrayGetFlat(%s)", tclVarToGo(base)+"Map")
 				}
 			}
+			// [array names ARR]: the keys of a literal-key array are known
+			// at generation time (trackArrayKey records every `set arr(K)
+			// V`), so emit them as a literal TCL list string. TCL's `array
+			// names` returns keys in unspecified order; consumers either
+			// sort them or use them as a mapping table (fts4unicode 1.x
+			// builds the `mappings` table for `string map` from
+			// `[array names map]`).
+			if len(args) == 2 && args[0] == "names" {
+				base := strings.TrimPrefix(strings.TrimSpace(args[1]), "::")
+				if keys, ok := tp.arrayKeys[base]; ok && len(keys) > 0 {
+					return strconv.Quote(strings.Join(keys, " "))
+				}
+			}
 			return fmt.Sprintf("%q", cmdText)
 		},
 		"info": func(tp *transpiler, cmdName, cmdText string, args []string) string {
@@ -263,7 +276,7 @@ func buildCmdExprHandlers() map[string]cmdExprHandler {
 		"sqlite3_errcode": func(tp *transpiler, cmdName, cmdText string, args []string) string {
 			return cmdExprErrcode(tp, cmdName, cmdText, args)
 		},
-		"sqlite3_set_errmsg": sqlite3SetErrmsgExpr,
+		"sqlite3_set_errmsg":  sqlite3SetErrmsgExpr,
 		"sqlite3_bind_int":    sqlite3BindExpr,
 		"sqlite3_bind_int64":  sqlite3BindExpr,
 		"sqlite3_bind_text":   sqlite3BindExpr,
@@ -589,9 +602,17 @@ func (tp *transpiler) cmdExprSubst(cmdName, cmdText string, args []string) strin
 }
 
 // cmdExprSet handles `[set var]` — returns the value of a variable, exactly
-// like $var.
+// like $var. A DYNAMIC name (`[set $lang]`) reads the variable whose NAME the
+// expression evaluates to at runtime: emit a registry lookup against the
+// vtab TCL-variable mirror (the named variable is registered there by every
+// `set` emitter — fts3ab 1.0's fill_multilanguage_fulltext_t1 builds its
+// rows from `[lindex [set $lang] $j]`, picking words from the english/
+// spanish/german variables as lang iterates).
 func (tp *transpiler) cmdExprSet(cmdName, cmdText string, args []string) string {
 	if len(args) >= 1 {
+		if strings.HasPrefix(args[0], "$") {
+			return fmt.Sprintf("vtab.TclVarGet(%s, \"\")", tclVarToGo(args[0]))
+		}
 		return tclVarToGo(args[0])
 	}
 	return `""`
