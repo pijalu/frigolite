@@ -488,6 +488,18 @@ var skipTestsMoreTail = map[string]string{
 	"jrnlmode-1.5":  "unrendered TCL proc call [temp_journal_mode] in expected list (no-side-effects)",
 	"jrnlmode-1.7":  "unrendered TCL proc call [temp_journal_mode] in expected list (no-side-effects)",
 	"jrnlmode-1.7.2": "unrendered TCL proc call [temp_journal_mode] in expected list (no-side-effects)",
+	// journal2-1.7/1.9/1.15: C's expected outcomes derive from the testvfs
+	// fault-injection procs (journal_op makes xDelete of test.db-journal
+	// fail -> db2's DELETE-mode INSERT commits nothing at 1.5; tvfs
+	// tvfs_error_on_write makes 1.13's COMMIT fail leaving t2 at 64 rows).
+	// The transpiler cannot re-emit those dynamic TCL proc bodies, and the
+	// injected VFS faults are not engine-visible state: with no fault the
+	// inserts legitimately succeed. The engine-visible journal-op contract
+	// (xOpen/xClose/xDelete event capture) is exercised by the
+	// non-generated journal_op_hook_test.go installed hook.
+	"journal2-1.7":  "testvfs fault-injection procs (journal_op xDelete / tvfs_error_on_write) not transpiled (no-side-effects)",
+	"journal2-1.9":  "testvfs fault-injection procs (journal_op xDelete / tvfs_error_on_write) not transpiled (no-side-effects)",
+	"journal2-1.15": "testvfs fault-injection procs (journal_op xDelete / tvfs_error_on_write) not transpiled (no-side-effects)",
 	"hook-5.2.1":   "rollback-hook log across commit/rollback of an attached db N-A (multi-connection)",
 	"hook-6.2":     "commit+rollback hook combined log N-A",
 	"hook-7.1.4":   "preupdate old/new rendering for NULL/absent columns N-A (exact SQLite rendering)",
