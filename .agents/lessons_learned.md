@@ -4,6 +4,101 @@
 - P6.VTAB zipfile: statement-level OR conflict handling must be delegated to module xUpdate semantics when uniqueness key is non-rowid. Added optional ConflictAwareUpdater path in execdml; zipfile UpdateRowConflict handles IGNORE/REPLACE against name collisions. Generic delete/retry cannot identify zipfile name-keyed conflicts.
 # Lessons Learned — Frigolite
 
+## P9.PERF.T3 — index-seek infrastructure (2026-09-22, fleet agent Q5-BTREESEEK)
+
+- **Byte order groups records by serial-type MAGNITUDE first — value-equal
+  entries are not byte-contiguous even within one uniform index.** Concrete
+  live example (2-col records col1+rowid): byte order is ('a',5) <
+  ('aa',5) < ('b',5) < ('a',300) — a longer TEXT serial-type varint
+  (0x1d > 0x19) outranks every body byte, and a 2-byte int serial (02)
+  outranks any 1-byte int body. So no binary value seek can ever be sound on
+  the engine's serial-type-byte-ordered index trees; any correct value probe
+  must be an exhaustive walk (or wait for value-ordered storage). Verified
+  empirically while debugging: SeekIndexKey's first match can be the tree's
+  first entry with later matches scattered behind non-matches.
+- **The record comparator (IndexRecordCompare) is the sqlite3VdbeRecordCompare
+  port and the value-order oracle**: per-field, probe-class-driven branches,
+  lazy serial-type decoding (no DecodeRecord), int==real cross-type equality
+  (INT 5 == REAL 5.0 — the old byte-encoding prefilter REQUIRED equal
+  encodings and could MISS a stored REAL 5.0 against an INT 5 probe; the
+  comparator closes that latent candidate gap). Collations NOCASE/RTRIM and
+  DESC/NULLS-LAST sort flags are carried in KeyInfo so lifting the
+  BINARY-only eligibility gate later is a one-line change.
+- **Per-entry cost on seek walks: parse the cell header directly**
+  (payload-len varint → storage.LocalPayloadSize local slice) instead of
+  DecodeCell+readOverflow per entry; materialize the full payload ONLY when
+  the comparison is undecided beyond the local fragment
+  (ErrIndexRecordTruncated sentinel → reassemble → re-compare; truncated on
+  an already-complete payload = corrupt). Pure candidate scan improved 1.85x
+  (390→211 ms per 500 probes over a 20k-entry index).
+- **Test-fixture traps that cost real debugging time**: (1) an index tree
+  must be rooted at page >= 2 — the rootPage==1 split path is schema-only
+  and writes an interior-TABLE page (0x05) for an index tree, which the seek
+  walk correctly rejects; (2) an index record's TRAILING element is the
+  rowid — fixtures that put a payload string last break trailing-rowid
+  extraction; (3) `go test` failure-set comparisons need message-signature
+  normalization (strip got/want content) — identical counts can hide
+  different failures and identical failures can have different printed
+  values.
+- **autovacuum/index/intpkey testgen packages are red at base main
+  (7b2363fc6, 95 failing assertions, identical sets)** — pre-existing drift
+  from the T29-era regeneration, execquery scan-order turf (e.g. intpkey-2.5
+  `WHERE b>'a'` must emit rows in full index-key value order, not rowid
+  order). Reported to the coordinator for w5-query; T3's gate was
+  failure-set-neutrality, proven by signature diff.
+## T30-fts3b — FULL-SUITE-DRIFT fts3 engine + emitter tranche (2026-09-23, branch fleet/w5-fts3b)
+
+- **The FTS3 MATCH-syntax oracle of record is a LEGACY-syntax sqlite3 build,
+  not /usr/bin/sqlite3.** The SQLite TCL suite pins
+  `sqlite_fts3_enable_parentheses 0` (tester.tcl:2619): OR binds TIGHTER than
+  implicit AND ('one two OR three' = one AND (two OR three)), AND/NOT are
+  plain terms, parentheses are not special. System binaries are built with
+  SQLITE_ENABLE_FTS3_PARENTHESIS (enhanced syntax) and disagree. Build the
+  TCL-fidelity oracle once:
+  `clang -O1 -DSQLITE_ENABLE_FTS3 -DSQLITE_ENABLE_FTS4 -DSQLITE_THREAD_SAFE=0
+  -I<sqlite> -o /tmp/sqlite3_legacy <sqlite>/sqlite3.c <sqlite>/shell.c -lm`.
+  Resolution rule used throughout T30: corpus wants > enhanced-mode oracle
+  output ⇒ suspect syntax-mode, verify with the legacy oracle before touching
+  the engine.
+- **Some fts3-corruption expectations are TESTMODE-only.** fts3corrupt-2.2
+  (UPDATE t1_segdir SET root='' then MATCH must error malformed): release
+  oracles (3.51 legacy, 3.51 enhanced, 3.54 enhanced) all return silent EOF.
+  The corpus (regenerated from the testmode suite) is the contract of record —
+  frigolite's validateFTSSegdirRow now flags a zero-length NON-NULL root as
+  malformed while NULL stays the "empty segment" marker (fts3corrupt4 6.1).
+- **NEAR self-pairing is the corpus trap that keeps on giving.** C
+  fts3PoslistPhraseMerge pairs only when iPos2 > iPos1 (the iPos2==iPos1+nToken
+  exact clause is subsumed for nToken>=1). An earlier `>=` over-fit kept
+  fts3corrupt6 2.1 green while breaking fts3near (filter matched rows whose
+  phrases had no participating pair → offsets() emitted NULL rows). When a
+  filter path and its aux-function path (offsets/matchinfo) can disagree, the
+  aux output is the oracle for the filter.
+- **fts3DeleteByRowid has an empty-table shortcut** (fts3IsEmpty →
+  fts3DeleteAll): deleting the LAST document discards pending delete markers
+  AND all shadow tables, so DELETE-all leaves %_segdir EMPTY and the
+  re-INSERT lands at (level 0, idx 0). Symptom class: segdir listing "got
+  [0 0 0 1 0 2 ...], want [0 0]".
+- **tcl2go dynamic-variable reads**: `[set $lang]` (dynamic var read) must
+  emit `vtab.TclVarGet(name, "")` — tclVarToGo("$lang") indexes the string
+  value as if it were the variable. `[array names ARR]` is resolvable at
+  generation time from tp.arrayKeys (trackArrayKey collects literal-key
+  `set arr(K) V`). perfappend's list-builder rewrite must declare builders
+  initialized (`var V = &tclListBuilder{}`): TCL lappend auto-creates the
+  variable so there is no `V = ""` store to rewrite into an init, and a nil
+  builder panics on first Append (fts4unicode mappings).
+- **Emitter regen must be scoped and drift-checked**: run the single-file
+  regen (`go run ./tools/tcl2go/ -testdir <dir> -outdir testgen NAME.test`),
+  then git-status to confirm ONLY target packages changed; a full regen with
+  an older emitter silently rewrites the whole corpus backwards (106 files of
+  unrelated churn observed when this worktree's tools lagged the corpus
+  vintage).
+- **Concurrent-agent worktree collision**: if test results change mid-run
+  with no local edits, `git status` immediately — a sibling agent editing the
+  shared worktree flips engine behavior under you (fts3aa went fail→pass
+  mid-session from another agent's uncommitted parser work). Resolution:
+  fresh worktree + class split via the coordinator; never keep diagnosing
+  against a moving tree.
+
 ## T29-execqfix — FULL-SUITE-DRIFT census regression triage (2026-09-22, branch fleet/execq-fix)
 
 - **A census "flip point" merge can be green at BOTH parents and at the merge
@@ -8098,3 +8193,163 @@ regenerated; suite net −2274 fails vs pre-tranche baseline (7230 → ~4950).
   (result mismatch|FAIL:|Error) lines, `sed 's/ ([0-9.]*s)//'` first so the
   FAIL-header duration does not diff. 10/10 packages byte-identical to base
   1a18ba0c1 while ~15 refactored functions landed in the same files.
+
+## §T30-wal — WAL/journal/lock/txn cluster (2026-09-22, fleet/w6-wal)
+
+- **WAL-mode snapshot restore must never touch the main db file.** The probe
+  pattern that found it: checkpoint → copy main-db-only → open copy. A
+  savepoint ROLLBACK TO restored its snapshot header (page count N) onto the
+  48-page checkpointed image, so the COPY reported hdrPageCount > file pages
+  → "database disk image is malformed" on the next connection while the
+  source connection worked (in WAL mode HeaderBeyondFile compares against
+  in-memory NumPages). C: the main file is checkpoint-only; rollback rewinds
+  the log / in-memory pages (waloverwrite-1.x.8).
+- **sqlite3WalClose contract on last close: PASSIVE checkpoint, then reset
+  the log.** Frigolite's Close never checkpointed, so a closed WAL db left a
+  0-byte main file with all data stranded in the -wal (walbig's header
+  probe then failed "file is not a database"; walpersist-3.3's 680KB log).
+  The 3.54 ORACLE (verified /usr/bin/sqlite3) keeps a 0-byte -wal + -shm
+  after clean close and reports journal_mode=wal on reopen (the 3.51 source
+  DELETES both when PERSIST_WAL is unset — build divergence; oracle wins).
+  Last-connection proof: C takes an EXCLUSIVE rollback lock; the in-process
+  wal-index registry refcount is the equivalent. Reopen WAL detection keys
+  on -wal EXISTENCE (pagerOpenWalIfPresent); a 0-byte -wal re-enters WAL.
+- **A checkpoint must short-read-fail when the wal-index claims frames the
+  -wal file does not hold.** C reads every backfilled frame back
+  (walCheckpoint's OsRead → SQLITE_IOERR_SHORT_READ) and skips nBackfill +
+  the szDb truncate. Frigolite tolerated the gap and truncated the main file
+  to the header page count, materializing zero pages (crash-truncate + close
+  → reopen showed phantom pages). Clamp: LastCommitFrame(frames) < nTo ⇒
+  checkpoint aborts.
+- **An interrupted COMMIT never commits.** SQLITE_INTERRUPT is a special
+  error (vdbeaux.c:3358-3383): COMMIT participates in both interrupt paths —
+  the flag at statement entry AND the SQLITE_TEST countdown inside the
+  program — and either failure rolls the whole transaction back and closes
+  it. The commit-hook veto (xCommitCallback BEFORE btree commit phases,
+  vdbeaux.c:2978) is the same shape: nonzero → SQLITE_CONSTRAINT_COMMITHOOK
+  → full rollback. Frigolite's dmlCanSkipSnapshot must treat a registered
+  commit hook like the quota layer: the "commit cannot fail after write"
+  premise is void, so the statement snapshot stays.
+- **PRAGMA locking_mode is per-pager, not connection-wide.** Bare SET
+  updates every db EXCEPT temp AND db->dfltLockMode (later ATTACHes inherit);
+  bare QUERY returns dfltLockMode; schema-qualified forms never touch the
+  default; TEMP is pinned exclusive (pager.c exclusiveMode=tempFile, sets
+  refused).
+- **Bare `PRAGMA journal_mode=X` applies to EVERY materialized btree (incl.
+  temp) but returns ONE row: main's mode.** pragma.c loops ii=nDb-1..0
+  emitting OP_JournalMode per btree; all write the SAME register and one
+  OP_ResultRow follows — last writer (main) wins the output. Any pragma
+  naming temp opens the lazy temp btree (sqlite3OpenTempDatabase,
+  pragma.c:457). journal_size_limit default is -1 (pager.h); Apple's CLI
+  build overrides it to 32768 — corpus encodes upstream.
+- **Probe-first pattern that worked across the cluster**: reproduce the
+  assertion as a pure-Go test → hexdump the file/header fields
+  (binary.BigEndian at offsets 24/28/92) → compare against
+  /usr/bin/sqlite3 → only then attribute engine vs transpiler vs harness.
+  For "got X want Y" where want embeds TCL text, check the .test source for
+  proc calls the transpiler cannot evaluate (temp_journal_mode) before
+  suspecting the engine.
+- **trans (10) left RED, adjudicated**: planner reports "SEARCH t1 USING
+  INDEX i1 (b<?)" but the executor has no index-driven row path (rows come
+  out in rowid order; C emits index-key order). Same class as the
+  adjudicated index(7) gap; count identical to baseline; owned by the
+  query-planner goal, NOT transaction DDL interplay as previously guessed.
+## T30-vtab — FULL-SUITE-DRIFT corpus-regen cluster (2026-09-22, branch fleet/w5-vtab)
+
+- **Bisect first, blame second**: the §5d.fts5vtab.vtab quality refactor
+  (5a6df6984) was the assigned prime suspect; `git bisect run` over the 7
+  green-at-baseline packages proved ALL 7 green at 5a6df6984 and first-bad =
+  3fcb5cea4 (the testgen regeneration that activated got/want checks). Same
+  census lesson as T29: regen activation exposes latent gaps; the quality
+  refactor itself was clean.
+- **Engine gaps fixed C-faithfully (each with a pure-Go repro checked against
+  /usr/bin/sqlite3 3.54 BEFORE any generated-file edit):**
+  1. `assignIPKRowID` (execdml/insert_select.go) filled a generated rowid into
+     ANY NULL `PRIMARY KEY` column — the INTEGER-only + not-DESC + rowid-table
+     contract of `isIPKRowidAliasCol`/`fillIPKRowID` is mandatory (a plain
+     `a PRIMARY KEY` is an ordinary unique column; oracle keeps NULL).
+  2. Lowercase `natural join` degraded to CROSS: normalizedJoinType's default
+     branch returned the RAW keyword text and joinTypeOf's case-sensitive
+     switch fell through to "CROSS". Bare NATURAL is the only mask reaching
+     that branch — render the normalized keyword (parse/parser_core.go).
+  3. NULL operand of IN/NOT-IN must be detected through ColumnValue/CollatedValue
+     wrappers: materialized vtab/CTE rows wrap NULL columns in non-nil
+     wrappers, so a raw `operand == nil` check misses them (execexpr
+     expression_eval.go; vtab1-14.013 — plain-table path agreed, vtab path
+     didn't).
+  4. ORDER BY <ordinal> resolves to the result column's EXPRESSION, so its
+     declared collation applies exactly like ORDER BY <name>
+     (select.c sqlite3ResolveSortRefs; execquery resolveOrderByOrdinalTerms
+     rewrites only bare-column select items — ORDER BY str already worked).
+  5. echo module xBegin: added vtab.Transactor (Begin) + Engine.EchoVTabBegin +
+     DML hooks in insert/update/delete echo branches. test8.c echoBegin's
+     echo_module_begin_fail veto must abort the statement BEFORE the
+     write-through; bare SQLITE_ERROR renders as "SQL logic error".
+  6. MULTI-INDEX OR row order (vtabD-1.8): echo materializer reorders an
+     eligible all-equality OR WHERE branch by branch (where.c
+     whereLoopAddOr/RowSet semantics), scoped to index-leading columns —
+     range/other OR shapes keep scan order (coordinator scope directive).
+  7. Echo materializers must substitute the rowid for NULL rowid-alias
+     columns read from source records (execdml.FillRowidAliasNulls, used by
+     BOTH internal/exec materializeEchoVTab and execddl echoSourceRows; the
+     echo DECLARE drops PRIMARY KEY so alias flags come from the SOURCE
+     schema). vtab6-8.x (IPK columns through echo) hinged on this.
+  8. csv module: fields are TEXT verbatim (csvtabColumn →
+     sqlite3_result_text) and ColumnTypes() must return the schema= declared
+     types (csv.c appends " TEXT" only to GENERATED columns). The old
+     numeric coercion + blanket TEXT hid the BLOB-affinity contract
+     (csv01-2.3: d BLOB holds '12', d=12 matches nothing).
+  9. rtree constraint classification (rtree.c xFilter):
+     sqlite3_value_numeric_type first; NULL → RTREE_FALSE for every op;
+     non-numeric text/blob → RTREE_TRUE for < / <=, RTREE_FALSE otherwise;
+     numeric text keeps the op with coercion. Applied to coordinate AND id
+     constraints.
+  10. `sqlite3IntFloatCompare` (internal/value) truncated the fraction:
+      integer parts equal must fall through to a double comparison of
+      float64(i) vs r (1 = 1.005 was TRUE engine-wide!). General-purpose
+      comparator bug found from rtree_i32-24.2; oracle-verified.
+- **Transpiler-side findings (only after engine proven oracle-correct):**
+  - `tclIncrMod` always increments by +1 but is also emitted for
+    `incr x -1` (vtab3's auth deny counter never fired; engine repro of the
+    full authorizer sequence matched oracle). Fixed the generated call site;
+    the tcl2go helper/template needs a real `incr x n` form (NOT done here —
+    emitter ownership).
+  - vtabH file writes keyed `fileChannelSeek["fd"]` by variable NAME, so
+    x2.txt inherited x1.txt's channel seek (OS file size 143+153=296 — the
+    engine was irrelevant). Fixed the generated call site to key by channel
+    path.
+  - vtab1 t2152b cluster: sqlite3_exec/`db eval` STOP at the first error —
+    oracle CLI also keeps t2152b when `DROP TABLE t2152a` fails. The C
+    test's clean state depended on re-stepping a prepared CREATE VIRTUAL
+    TABLE (unrepresentable); the generated .4 now runs the two drops as
+    separately-tolerated statements to reproduce the C END-STATE.
+  - vtab1 11-3/11-5: `::echo_glob_overload` is never emitted, so echo's
+    xFindFunction glob override can never engage; wants corrected to the
+    plain-glob oracle-equivalent values with evidence comments.
+  - tabfunc01-1370: TCL want `{}` predates series.c's step-zero
+    normalization (iOStep==0 → 1); oracle 3.54 returns one row 0. Want
+    corrected with evidence; engine hidden-constraint path also normalizes
+    step 0 (series.c parity).
+  - vtab_shared-1.9: the `dbSelect eval {...}` callback body is
+    un-transpilable; hand-ported in the generated test (close other
+    connection after row a==1, reopen under the same name) + native
+    supersession pin frigolite_vtab_shared_native_test.go. Cross-connection
+    COMMITTED-write visibility (shared cache / pager invalidation) is
+    explicitly NOT exercised — queued G7 territory.
+- **Bisect hygiene**: `git bisect start BAD GOOD` in a DETACHED worktree
+  resolves HEAD to the worktree's checkout — pass explicit commit ids. And
+  never `git checkout <paths>` to shed temporary debug edits in a tree that
+  carries uncommitted WORK: it discards the work too (cost one re-apply of
+  three files; python heredoc re-application with `assert old in s` made it
+  cheap and exact).
+## FULL-SUITE-DRIFT.T30-query — testgen regen drift cluster (2026-09-22, branch fleet/w5-query)
+- **Corpus-regen "failures" split into engine bugs vs generated-code artifacts**: for T30-query, 18 packages decomposed into 10 engine classes (all fixed C-faithfully) + 6 artifact classes (repaired in the generated files, since tools/tcl2go is outside the agent's ownership — each entry documented in NA_EVIDENCE.md as a generator fix candidate).
+- **compound ORDER BY collation**: resolve.c resolveCompoundOrderBy converts each term to a result-column ordinal per member (leftmost-first alias/output-name match) PRESERVING the COLLATE node, and select.c sqlite3MultiSelectCollSeq takes the first member (leftmost-first) that defines a collation for that result column. Our port searched the COLLATION list for the column NAME and dropped COLLATE wrappers on rewrites.
+- **compound trailing clauses**: the parser attaches ORDER BY/LIMIT/OFFSET to the LAST member; they belong to the COMPOUND — member execution must strip them (per-arm LIMIT/OFFSET = limit-7.x), and every compound merge tail (general AND materialized/FROM-subquery path) must funnel through ONE finalize (finalizeMaterializedRows previously merged via mergeUnionRows applying NO trailing clauses at all — limit-9.4).
+- **ANALYZE stat1**: needTableCnt (analyze.c) — the NULL-idx table-count row is emitted iff the table has NO indexes or ALL of them are PARTIAL. Partial-index stat rows count only rows satisfying the partial WHERE (analyze.c scans the index b-tree). WITHOUT ROWID records store PK columns first — map declared indices through WithoutRowidStorageOrder before any key extraction (computePKStat/computeIndexStat were reading declared slots).
+- **Partial index usability**: whereIndexUsable — an "X IS NOT NULL" index predicate is implied by any =/</<=/>/>=/!=/IN/BETWEEN/LIKE/GLOB constraint on X (exprImpliesNonNullRow).
+- **EQP SEARCH detail**: explainIndexRange lists one constraint per INDEX column only; bound parameters are constraints; a fully constrained index prefix seeks directly (skip-scan mode 2 requires an unconstrained GAP between constrained columns); a WITHOUT ROWID table's index implicitly carries the PK columns → COVERING; INTEGER PRIMARY KEY/rowid equality plans "SEARCH t1 USING INTEGER PRIMARY KEY (rowid=?)".
+- **Index-driven row order**: without maintained index b-trees, a WHERE-driven index scan must still EMIT rows in index-key order (collation per index column, NULLs first, rowid ties via stable sort); a rowid/IPK constraint makes the table b-tree drive (rowid order beats the secondary index); the no-stats default (seek = scan/10) always prefers the index. Keep the decision and the plan text on one code path.
+- **IN affinity**: sqlite3CodeSubselect applies the LEFT operand's affinity to the LIST ITEMS only — different from binary comparison affinity (both sides). '1.0' IN (b NUMERIC 1) matches nothing while '1.0' = b matches.
+- **int64 boundary literals**: -9223372036854775808 with any leading zeros is INTEGER MinInt64 (parser folds -+2^63); positive 2^63 stays REAL. CAST(x AS NUMERIC) parses the numeric PREFIX, integer-form prefixes parse as INTEGER, integral reals fold to INTEGER, blobs convert to TEXT first, lone signs are 0.
+- **Generated-artifact tells**: TCL `\y` word boundary transpiled as literal 'y' in want regexes; `db eval {...}` bodies dropped leaving `want := "{}"` comparisons; TCL procs registered as nil-returning stubs; double `:=` on tclSplitList variables breaking builds. Repair in generated files + document; pin the engine contract natively.

@@ -25,6 +25,7 @@ type CSVModule struct{}
 // csvVTab is one instance holding all parsed rows in memory.
 type csvVTab struct {
 	columns      []string
+	types        []string
 	rows         [][]interface{}
 	withoutRowid bool
 }
@@ -143,9 +144,11 @@ func csvBuildColumns(params map[string]string, records [][]string) (*csvVTab, []
 			return nil, nil, fmt.Errorf("csv: empty input with header")
 		}
 		v.columns = quotedNames(records[0])
+		v.types = textTypes(len(v.columns))
 		records = records[1:]
 	default:
 		v.columns = csvDefaultNames(nCol, records)
+		v.types = textTypes(len(v.columns))
 	}
 	return v, records, nil
 }
@@ -171,13 +174,24 @@ func csvParseColumnCount(params map[string]string) (int, error) {
 	return n, nil
 }
 
+// textTypes renders n declared "TEXT" types (csv.c appends " TEXT" to every
+// generated column).
+func textTypes(n int) []string {
+	types := make([]string, n)
+	for i := range types {
+		types[i] = "TEXT"
+	}
+	return types
+}
+
 // csvApplySchema applies a declared schema and its WITHOUT ROWID marker.
 func csvApplySchema(v *csvVTab, schema string) error {
-	names, err := columnNamesFromSchema(schema)
+	names, types, err := columnDefsFromSchema(schema)
 	if err != nil {
 		return err
 	}
 	v.columns = names
+	v.types = types
 	if strings.Contains(strings.ToUpper(schema), "WITHOUT ROWID") {
 		v.withoutRowid = true
 		if verr := validateWithoutRowidSchema(schema); verr != nil {
@@ -206,32 +220,22 @@ func csvDefaultNames(nCol int, records [][]string) []string {
 
 // csvAppendRows normalizes row widths to the column count (missing trailing
 // fields become NULL; extras are dropped) like csv.c's field accounting.
-// Fields that parse as numbers are stored as numbers: the engine does
-// not apply column affinity when filtering materialized virtual-table
-// rows, so keeping them as TEXT would break numeric predicates that
-// SQLite answers correctly via the declared TEXT affinity.
+// Fields are kept as TEXT verbatim: csv.c yields every field via
+// sqlite3_result_text (csvtabColumn), so numeric-looking predicates are
+// answered by the DECLARED column affinity applied by the core
+// (csv01-2.3: d BLOB holds '12' and d=12 matches nothing, while the
+// TEXT-affinity default columns match numerics — affinity conversion —
+// exactly as SQLite does).
 func csvAppendRows(v *csvVTab, records [][]string) {
 	for _, r := range records {
 		row := make([]interface{}, len(v.columns))
 		for i := 0; i < len(v.columns); i++ {
 			if i < len(r) {
-				row[i] = coerceCSVField(r[i])
+				row[i] = r[i]
 			}
 		}
 		v.rows = append(v.rows, row)
 	}
-}
-
-// coerceCSVField converts a CSV field to int64/float64 when it is exactly a
-// number, else keeps the text.
-func coerceCSVField(f string) interface{} {
-	if n, err := strconv.ParseInt(strings.TrimSpace(f), 10, 64); err == nil {
-		return n
-	}
-	if fl, err := strconv.ParseFloat(strings.TrimSpace(f), 64); err == nil {
-		return fl
-	}
-	return f
 }
 
 // parseBoolParam interprets header=true/false/1/0/yes/no and bare presence.
@@ -328,13 +332,24 @@ func splitTopLevel(body string) []string {
 // style schema argument: the identifier before the first space of each
 // top-level comma-separated term inside the outermost parentheses.
 func columnNamesFromSchema(schema string) ([]string, error) {
+	names, _, err := columnDefsFromSchema(schema)
+	return names, err
+}
+
+// columnDefsFromSchema extracts column names and declared types from a
+// "CREATE TABLE x(a INT, b TEXT)" style schema argument: the identifier
+// before the first space of each top-level comma-separated term inside the
+// outermost parentheses, with the remaining fields as the declared type
+// ("" for a bare column — build.c sqlite3AddColumn gives an empty type
+// BLOB affinity).
+func columnDefsFromSchema(schema string) ([]string, []string, error) {
 	open := strings.Index(schema, "(")
 	close := strings.LastIndex(schema, ")")
 	if open < 0 || close <= open {
-		return nil, fmt.Errorf("csv: invalid schema=%q", schema)
+		return nil, nil, fmt.Errorf("csv: invalid schema=%q", schema)
 	}
 	// Strip a trailing WITHOUT ROWID clause if the paren scan caught it.
-	var names []string
+	var names, types []string
 	for _, p := range splitTopLevel(schema[open+1 : close]) {
 		f := strings.Fields(strings.TrimSpace(p))
 		if len(f) == 0 {
@@ -344,25 +359,26 @@ func columnNamesFromSchema(schema string) ([]string, error) {
 			continue // table-level constraint tail, not a column
 		}
 		names = append(names, strings.Trim(f[0], `"`+"`"))
+		types = append(types, strings.Join(f[1:], " "))
 	}
 	if len(names) == 0 {
-		return nil, fmt.Errorf("csv: schema=%q declares no columns", schema)
+		return nil, nil, fmt.Errorf("csv: schema=%q declares no columns", schema)
 	}
-	return names, nil
+	return names, types, nil
 }
 
 // Columns implements ColumnInfo.
 func (v *csvVTab) Columns() []string { return v.columns }
 
-// ColumnTypes implements ColumnTypeInfo: every csv column is declared TEXT
-// (csv.c appends " TEXT" to generated columns), so comparisons apply TEXT
-// affinity — WHERE c1=10 matches the stored '10'.
+// ColumnTypes implements ColumnTypeInfo: the schema= declaration's types
+// (sqlite3_declare_vtab parity), or "TEXT" for generated columns — csv.c
+// appends " TEXT" to every generated column, so comparisons apply TEXT
+// affinity — WHERE c1=10 matches the stored '10' (csv01-1.0).
 func (v *csvVTab) ColumnTypes() []string {
-	types := make([]string, len(v.columns))
-	for i := range types {
-		types[i] = "TEXT"
+	if len(v.types) == len(v.columns) {
+		return v.types
 	}
-	return types
+	return textTypes(len(v.columns))
 }
 
 // BestIndex accepts the default full-scan plan; WHERE filtering happens at

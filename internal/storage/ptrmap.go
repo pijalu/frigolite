@@ -156,8 +156,9 @@ func IsPtrmapPageNo(pgno, pageSize uint32) bool {
 // zero (uninitialized) or if the offset is out of range.
 //
 // On-disk format (5 bytes per entry, big-endian):
-//   byte 0: parent type (1=root, 2=freelist, 3=overflow, 4=btnode, 5=hasrowid)
-//   bytes 1-4: parent page number (uint32)
+//
+//	byte 0: parent type (1=root, 2=freelist, 3=overflow, 4=btnode, 5=hasrowid)
+//	bytes 1-4: parent page number (uint32)
 func PtrmapEntry(pageData []byte, pgno, pageSize uint32) (parentType byte, parentPgno uint32, err error) {
 	if pgno < 2 {
 		return 0, 0, fmt.Errorf("storage: PtrmapEntry: pgno %d < 2", pgno)

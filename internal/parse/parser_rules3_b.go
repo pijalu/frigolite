@@ -66,6 +66,12 @@ func rule216(ruleNo int, p *Parser) interface{} {
 		if nl, ok := operand.(*sql.NumericLit); ok && nl.Value == "9223372036854775808" {
 			return &sql.NumericLit{Value: "-9223372036854775808"}
 		}
+		// Leading zeros do not change the magnitude (SQLite numerals are
+		// decimal, never octal): -00000009223372036854775808 folds too
+		// (expr-8.41 typeof is integer).
+		if nl, ok := operand.(*sql.NumericLit); ok && strings.TrimLeft(nl.Value, "0") == "9223372036854775808" {
+			return &sql.NumericLit{Value: "-9223372036854775808"}
+		}
 		// SQLite folds the sign into hex literals too, so the "hex
 		// literal too big" error message carries the minus sign
 		// (e.g. "-0x08000000000000000").

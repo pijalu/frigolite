@@ -206,7 +206,7 @@ func (e *DMLExecutor) fts5SpecialInsert(t5 *fts5.Table, cmdVal interface{}, user
 // (max existing + 1). A NONE/EXTERNAL content table without columnsize has
 // no backing store to allocate a rowid from: fts5StorageNewRowid returns
 // SQLITE_MISMATCH and the user must provide the rowid explicitly
-// (fts5columnsize 2.1: content='' inserts).
+// (fts5columnsize 2.1: content=” inserts).
 func (e *DMLExecutor) fts5InsertRowid(t5 *fts5.Table, fixedRowID *int64) (int64, *Result) {
 	if fixedRowID != nil {
 		return *fixedRowID, nil

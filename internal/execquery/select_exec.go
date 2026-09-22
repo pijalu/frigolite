@@ -18,16 +18,7 @@ import (
 // execSelectScanPhase runs the table scan, WITHOUT ROWID PK ordering, and
 // system-table filtering, returning the scanned rows, row maps, and any error.
 func (e *SelectEngine) execSelectScanPhase(s *sql.SelectStmt, cursor *btree.Cursor, colDefs []sql.ColumnDef, tableEntry *schema.Entry) ([][]interface{}, []RowMap, error) {
-	needMaps := SelectNeedsRowMaps(e, s, tableEntry.Name)
-	isWithoutRowidTable := len(s.Joins) == 0 && len(s.OrderBy) == 0 &&
-		e.ctx.HasWithoutRowidKeyword(strings.ToUpper(tableEntry.SQL))
-	var withoutRowidPKCols []string
-	if isWithoutRowidTable {
-		withoutRowidPKCols = PKColumnNames(tableEntry.SQL, colDefs)
-		if len(withoutRowidPKCols) > 0 {
-			needMaps = true
-		}
-	}
+	needMaps, withoutRowidPKCols := e.prepareScanOutputs(s, tableEntry, colDefs)
 	allRows, allRowMaps, err := e.scanTableRowsWithSQL(cursor, s, colDefs, needMaps, tableEntry.SQL)
 	if err != nil {
 		return nil, nil, err
@@ -46,6 +37,28 @@ func (e *SelectEngine) execSelectScanPhase(s *sql.SelectStmt, cursor *btree.Curs
 		allRows, allRowMaps = e.filterSystemTables(allRows, allRowMaps, colDefs)
 	}
 	return allRows, allRowMaps, nil
+}
+
+// prepareScanOutputs computes whether the scan must build row maps and the
+// WITHOUT ROWID PRIMARY KEY column list that dictates scan output order. The
+// index-order reorder sorts by the index key through the scan's row maps, so
+// they must be built even for star outputs when it applies.
+func (e *SelectEngine) prepareScanOutputs(s *sql.SelectStmt, tableEntry *schema.Entry, colDefs []sql.ColumnDef) (needMaps bool, withoutRowidPKCols []string) {
+	needMaps = SelectNeedsRowMaps(e, s, tableEntry.Name)
+	if e.indexScanOrderIndex(s) != "" {
+		needMaps = true
+	}
+	if len(s.Joins) > 0 || len(s.OrderBy) > 0 {
+		return needMaps, nil
+	}
+	if !e.ctx.HasWithoutRowidKeyword(strings.ToUpper(tableEntry.SQL)) {
+		return needMaps, nil
+	}
+	withoutRowidPKCols = PKColumnNames(tableEntry.SQL, colDefs)
+	if len(withoutRowidPKCols) > 0 {
+		needMaps = true
+	}
+	return needMaps, withoutRowidPKCols
 }
 
 // execSelectPostScan processes scanned rows: outer-row aggregates, correlated
@@ -416,7 +429,7 @@ func (e *SelectEngine) finalizeSelectResult(result *Result, s *sql.SelectStmt, r
 		rowMaps = rebuildRowMapsFromRows(result.Rows, result.Columns)
 	}
 	if len(orderBy) > 0 {
-		resolved, rerr := e.resolveFinalOrderBy(s, orderBy, len(result.Columns), colls)
+		resolved, rerr := e.resolveFinalOrderBy(s, orderBy, result.Columns, colls)
 		if rerr != nil {
 			return &Result{Error: rerr}
 		}
@@ -437,8 +450,10 @@ func (e *SelectEngine) finalizeSelectResult(result *Result, s *sql.SelectStmt, r
 // first member with a defined collation wins — with1 10.8.4.x): an ordinal
 // or bare term without its own COLLATE must sort with the compound column's
 // collation, so it is wrapped in COLLATE when the column defines one.
-func (e *SelectEngine) resolveFinalOrderBy(s *sql.SelectStmt, orderBy []sql.OrderByTerm, width int, colls []string) ([]sql.OrderByTerm, error) {
-	if err := validateOrderBy(orderBy, width); err != nil {
+// resultCols carries the compound's output column names (used to resolve bare
+// term names to their result positions).
+func (e *SelectEngine) resolveFinalOrderBy(s *sql.SelectStmt, orderBy []sql.OrderByTerm, resultCols []string, colls []string) ([]sql.OrderByTerm, error) {
+	if err := validateOrderBy(orderBy, len(resultCols)); err != nil {
 		return nil, err
 	}
 	if s.Union == nil {
@@ -448,7 +463,7 @@ func (e *SelectEngine) resolveFinalOrderBy(s *sql.SelectStmt, orderBy []sql.Orde
 		return nil, err
 	}
 	orderBy = e.resolveCompoundOrderByTerms(s, orderBy)
-	return e.applyCompoundOrderByCollations(orderBy, colls), nil
+	return e.applyCompoundOrderByCollations(orderBy, resultCols, colls), nil
 }
 
 // execSelectViewWithOuter executes a view and applies the outer SELECT's

@@ -61,10 +61,13 @@ func openPager(path string, pageSize uint32, forceReadOnly bool) (*Pager, error)
 		// closing it never materializes the file.
 		openedEmpty: info.Size() == 0,
 		path:        cleanPath,
-		// SQLite's default PRAGMA journal_size_limit cap is 32768 bytes
-		// (pragma.c journalSizeLimit). A PERSIST journal is truncated to this
-		// many bytes after a commit; negative means unlimited, 0 means zero.
-		journalSizeLimit: 32768,
+		// SQLite's default PRAGMA journal_size_limit is -1 (no truncation;
+		// pager.h SQLITE_DEFAULT_JOURNAL_SIZE_LIMIT). A PERSIST journal is
+		// truncated to the limit after a commit when one is set; negative
+		// means unlimited, 0 means zero. (Apple's sqlite3 CLI build overrides
+		// the default to 32768; the upstream source and the TCL corpus expect
+		// -1 — jrnlmode-5.2.)
+		journalSizeLimit: -1,
 	}
 	pr.readOnly = readOnlyFallback || forceReadOnly
 	// Quota layer (test_quota.c quotaOpen): a database file opened while

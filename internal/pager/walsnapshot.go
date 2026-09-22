@@ -275,7 +275,7 @@ func (p *Pager) WALSnapshotOpen(s *Snapshot) (bool, error) {
 		w.walEndReadTxn() // sqlite3BtreeCommit ends the stale read txn
 		w.snapshot = s    // sqlite3WalSnapshotOpen (wal.c L4540)
 		changed, err := p.walIndexRefreshLocked()
-		w.snapshot = nil // sqlite3PagerSnapshotOpen(pPager, 0)
+		w.snapshot = nil                  // sqlite3PagerSnapshotOpen(pPager, 0)
 		w.walUnlockShared(walLockCkpt, 1) // sqlite3PagerSnapshotUnlock
 		return changed, err
 	}

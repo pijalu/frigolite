@@ -85,6 +85,9 @@ func (e *DDLExecutor) deleteFTSDoc(tableName string, ftsTable *fts.FTS3Table, do
 	if ct := ftsTable.ContentTable(); ct != "" && !e.ctx.ContentRowExists(ct, docID) {
 		return false, nil
 	}
+	// C's fts3DeleteTerms reports bFound from the %_content row; only a
+	// found row can leave the table empty below.
+	hadContent := e.ctx.ContentRowExists(tableName+"_content", docID)
 	// C's fts3PendingTermsDocid (bDelete=1) runs per deleted document: a
 	// docid that restarts the pending sequence flushes the pending batch
 	// BEFORE this document's delete terms pend (fts4onepass-4.0).
@@ -99,20 +102,36 @@ func (e *DDLExecutor) deleteFTSDoc(tableName string, ftsTable *fts.FTS3Table, do
 	// FROM t1 WHERE docid=1 leaves only docids 3 and 4).
 	e.deleteFTSContentRow(tableName, docID)
 	e.deleteFTSDocsizeRow(tableName, docID)
-	// Deleting this row may leave the table empty: in that case delete the
-	// contents of all the shadow tables and throw away any data in the
-	// pending-terms hash — fts3_write.c fts3DeleteByRowid's isEmpty branch
-	// (fts3IsEmpty + fts3DeleteAll; fts3d-1.segments: after DELETE FROM t1
-	// and a re-INSERT, exactly ONE level-0 segdir remains because the
-	// delete-all wiped the index instead of writing marker segments).
-	// content=<table> tables are never considered empty (fts3IsEmpty's
-	// zContentTbl shortcut), so their deletes keep the marker path.
-	if ftsTable.ContentTable() == "" && ftsTable.DocCount() == 0 {
+	// fts3DeleteByRowid: a found row whose deletion empties the whole table
+	// triggers fts3DeleteAll — the pending-terms hash is discarded and every
+	// shadow table wiped — so the delete-marker flush writes nothing and the
+	// next INSERT starts a fresh (level 0, idx 0) segment (fts3d 1.segments:
+	// DELETE FROM t1 WHERE 1=1 leaves %_segdir empty; the re-INSERT lands at
+	// idx 0, not idx 4).
+	if hadContent && !e.ftsContentTableHasRows(tableName, ftsTable) {
 		ftsTable.Clear()
 		e.clearFTSShadowIndex(tableName)
-		e.writeFTSStat(tableName, ftsTable)
+		e.clearFTSContent(tableName)
 	}
 	return true, nil
+}
+
+// ftsContentTableHasRows reports whether the effective %_content table still
+// holds any document row — fts3_write.c SQL_IS_EMPTY,
+// "SELECT NOT EXISTS(SELECT docid FROM %Q.'%q_content' WHERE rowid!=?)", run
+// by fts3DeleteByRowid after the deleted document's own entry is removed.
+func (e *DDLExecutor) ftsContentTableHasRows(tableName string, ftsTable *fts.FTS3Table) bool {
+	name := tableName + "_content"
+	if ct := ftsTable.ContentTable(); ct != "" {
+		name = ct
+	}
+	entry, _, err := e.ctx.FindTable(name)
+	if err != nil || entry == nil || entry.RootPage == 0 {
+		return false
+	}
+	tree := e.ctx.TableBTreeForName(entry.Name, entry.RootPage, true)
+	lastID, lerr := tree.LastRowID()
+	return lerr == nil && lastID > 0
 }
 
 // ftsUpdateRowMatched decides whether one document participates in an FTS

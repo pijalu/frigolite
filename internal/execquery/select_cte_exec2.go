@@ -69,11 +69,21 @@ func (e *SelectEngine) execSelectOverMaterializedRowids(s *sql.SelectStmt, colDe
 	return e.finalizeMaterializedRows(result, s, allRowMaps)
 }
 
-// finalizeMaterializedRows applies DISTINCT, ORDER BY, LIMIT/OFFSET and the
-// simple set-operation merge to a materialized (non-window) result. This is
-// the materialized-path tail; the general path's finalizeSelectResult handles
-// compound chains via mergeCompoundChain instead of mergeUnionRows.
+// finalizeMaterializedRows applies DISTINCT, ORDER BY, LIMIT/OFFSET to a
+// materialized (non-window) result; compound chains delegate to
+// finalizeSelectResult so the general tail (mergeCompoundChain + compound
+// ORDER BY resolution + single trailing LIMIT/OFFSET) applies.
 func (e *SelectEngine) finalizeMaterializedRows(result *Result, s *sql.SelectStmt, allRowMaps []RowMap) *Result {
+	// Compound chains take the general tail (finalizeSelectResult): a
+	// compound's trailing ORDER BY / LIMIT / OFFSET attach to the WHOLE
+	// compound and must apply once over the merged rows — mergeCompoundChain
+	// resolves them from the last member. The previous local
+	// mergeUnionRows tail applied none of them (limit-9.4: UNION over
+	// FROM-subqueries kept every merged row; selectB ORDER BY c over EXCEPT
+	// never sorted).
+	if s.Union != nil {
+		return e.finalizeSelectResult(result, s, allRowMaps)
+	}
 	// Apply DISTINCT
 	if s.Distinct {
 		result.Rows, allRowMaps = e.distinctRows(result.Rows, allRowMaps, e.selectOutputCollations(s), s)

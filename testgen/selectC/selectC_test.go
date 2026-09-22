@@ -201,7 +201,16 @@ func Test_selectC(t *testing.T) {
 		}
 	}
 	// proc definition (not transpiled)
-	db.RegisterFunction("uppercaseconversionfunctionwithaverylongname", func(args []interface{}) (interface{}, error) { return nil, nil }, 0, -1)
+	// TCL fidelity: the original registers the TCL proc longname_toupper
+	// (string toupper); the transpiler's nil-returning stub broke the
+	// assertion's expected values.
+	db.RegisterFunction("uppercaseconversionfunctionwithaverylongname", func(args []interface{}) (interface{}, error) {
+		if len(args) == 0 || args[0] == nil {
+			return nil, nil
+		}
+		s, _ := args[0].(string)
+		return strings.ToUpper(s), nil
+	}, 0, -1)
 	{ // do_test "selectC-1.12.1"
 		r = db.Query("\n    SELECT DISTINCT upper(b) AS x\n      FROM t1\n     ORDER BY x\n  ")
 		if r.Error != nil {

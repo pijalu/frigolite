@@ -61,6 +61,11 @@ func Test_rowhash(t *testing.T) {
 	_ = j // pre-declared from TCL source
 	var L *tclListBuilder
 	_ = L // pre-declared from TCL source
+	// The transpiler drops the do_keyset_test proc (and its calls), leaving
+	// this loop with an unset list; initialize it so the surviving lappend
+	// loop does not panic on a nil builder (frigolite_rowhash_pin_test.go
+	// pins the engine contract the proc exercised).
+	L = &tclListBuilder{}
 	var argv0 string
 	_ = argv0 // pre-declared from TCL source
 	var lKey string

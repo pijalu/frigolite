@@ -95,6 +95,14 @@ func (e *DDLExecutor) validateFTSSegdirRow(tableName string, checkBlocks bool, r
 		if res := e.validateSegdirStartBlock(tableName, rec); res != nil {
 			return res
 		}
+	} else if segdirRootEmpty(rec) {
+		// A zero-length NON-NULL root (UPDATE t1_segdir SET root='') is a
+		// node buffer that cannot hold even the first varint of a leaf or
+		// interior node — the segment is corrupt (fts3corrupt 2.2/3.2:
+		// MATCH fails "database disk image is malformed"; the same rule
+		// rejects the merge=1 command's crafted level-2000 rootless row).
+		// NULL stays the "empty segment" marker per 6.1 above.
+		return &Result{Error: fmt.Errorf("database disk image is malformed")}
 	}
 	// Validate the segment blocks referenced by start_block..end_block
 	// (end_block is "<endBlock> <leafDataSize>" text or an integer —

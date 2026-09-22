@@ -710,7 +710,6 @@ func stringCompareFn(a, b, collation string, lookup func(string) (CollationFunc,
 	}
 }
 
-
 // binaryCompare compares strings byte-wise like SQLite's BINARY collation:
 // memcmp over the common prefix, then shorter string sorts first.
 func binaryCompare(a, b string) int {

@@ -110,12 +110,15 @@ var errRowSkipped = fmt.Errorf("row skipped")
 // positional/partial mapping. Returns the values, any explicit _rowid_ value,
 // and whether an explicit rowid was supplied.
 
-// assignIPKRowID sets a nil INTEGER PRIMARY KEY column to the assigned
-// rowid, returning whether it was nil and its index (a BEFORE INSERT trigger
-// sees new.<ipk> as -1).
-func assignIPKRowID(colDefs []sql.ColumnDef, values []interface{}, rowID int64) (bool, int) {
+// assignIPKRowID sets a nil INTEGER PRIMARY KEY rowid-alias column to the
+// assigned rowid, returning whether it was nil and its index (a BEFORE INSERT
+// trigger sees new.<ipk> as -1). The alias contract is fillIPKRowID's
+// (build.c sqlite3AddPrimaryKey): PRIMARY KEY + declared type INTEGER + not
+// DESC, and only for rowid tables — a plain `a PRIMARY KEY` column is an
+// ordinary unique column, so its NULL stays NULL.
+func assignIPKRowID(colDefs []sql.ColumnDef, values []interface{}, rowID int64, withoutRowid bool) (bool, int) {
 	for i, cd := range colDefs {
-		if cd.PrimaryKey && i < len(values) && values[i] == nil {
+		if !withoutRowid && isIPKRowidAliasCol(cd) && i < len(values) && values[i] == nil {
 			values[i] = rowID
 			return true, i
 		}
@@ -125,23 +128,21 @@ func assignIPKRowID(colDefs []sql.ColumnDef, values []interface{}, rowID int64) 
 
 // resolveInsertRowID determines the row ID for an INSERT ... SELECT row,
 // tracking whether the INTEGER PRIMARY KEY column was NULL (auto-assigned).
-
-// resolveInsertRowID determines the row ID for an INSERT ... SELECT row,
-// tracking whether the INTEGER PRIMARY KEY column was NULL (auto-assigned).
 func (e *DMLExecutor) resolveInsertRowID(tableEntry *schema.Entry, colDefs []sql.ColumnDef, values []interface{}, explicitRowID int64, hasExplicitRowID, isReplace bool, replaceRowID int64) (int64, bool, int) {
 	var rowID int64
 	ipkWasNil := false
 	ipkIndex := -1
+	withoutRowid := hasWithoutRowidKeyword(strings.ToUpper(tableEntry.SQL))
 	if hasExplicitRowID {
 		rowID = explicitRowID
 	} else if isReplace {
 		rowID = replaceRowID
-		ipkWasNil, ipkIndex = assignIPKRowID(colDefs, values, rowID)
+		ipkWasNil, ipkIndex = assignIPKRowID(colDefs, values, rowID, withoutRowid)
 	} else {
 		var err error
-		rowID, err = e.pkRowID(tableEntry.Name, colDefs, values, tableEntry.RootPage, hasWithoutRowidKeyword(strings.ToUpper(tableEntry.SQL)))
+		rowID, err = e.pkRowID(tableEntry.Name, colDefs, values, tableEntry.RootPage, withoutRowid)
 		if err == nil {
-			ipkWasNil, ipkIndex = assignIPKRowID(colDefs, values, rowID)
+			ipkWasNil, ipkIndex = assignIPKRowID(colDefs, values, rowID, withoutRowid)
 		}
 	}
 	return rowID, ipkWasNil, ipkIndex

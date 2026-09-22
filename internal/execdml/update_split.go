@@ -22,6 +22,12 @@ func (e *DMLExecutor) execUpdate(s *sql.UpdateStmt) *Result {
 	if _, ok := e.ctx.EchoVTabSource(s.Table); !ok {
 		return e.execUpdateInner(s)
 	}
+	// The echo module's xBegin runs before the statement's first write
+	// (vtab.c sqlite3VtabBegin): a failed module transaction start vetoes
+	// the whole statement (test8.c echoBegin, vtab1.10-3).
+	if err, ok := e.ctx.EchoVTabBegin(s.Table); ok && err != nil {
+		return &Result{Error: err}
+	}
 	e.echoWriteDepth++
 	res := e.execUpdateInner(s)
 	if res.Error != nil {
@@ -253,7 +259,7 @@ func (e *DMLExecutor) runUpdatePipeline(s *sql.UpdateStmt, tableEntry *schema.En
 	// skipping the row (IGNORE) — notnull-2.6..2.9.
 	changes, pres := e.preCheckUpdate(s, tableEntry, colDefs, changes)
 	if pres.Error != nil {
-		return pres
+		return e.finishFailingUpdatePrecheck(s, tableEntry, colDefs, changes, pres)
 	}
 
 	// Handle RETURNING clause — evaluate against updated rows before applying
@@ -445,6 +451,13 @@ func (e *DMLExecutor) resolveUpdateNotNullConflicts(s *sql.UpdateStmt, tableEntr
 	for _, ch := range changes {
 		r := e.resolveChangeNotNullConflicts(ch, tableEntry, colDefs, withoutRowid, pkCols, stmtClause)
 		if r.res != nil {
+			// ON CONFLICT FAIL: the changes validated before the violation
+			// were already written in SQLite's per-row loop and survive the
+			// failed statement (check-6.5/6.6).
+			if stmtClause == "FAIL" && len(kept) > 0 {
+				r.res.SetKeepPriorRowsOnError()
+				return kept, r.res
+			}
 			return changes, r.res
 		}
 		if r.drop {
@@ -719,6 +732,20 @@ func (e *DMLExecutor) finishUpdate(s *sql.UpdateStmt, colDefs []sql.ColumnDef, r
 		return &Result{Columns: columns, Rows: returningRows}
 	}
 	return result
+}
+
+// finishFailingUpdatePrecheck returns the failed NOT NULL/CHECK pre-check
+// result. Under ON CONFLICT FAIL the changes validated before the violation
+// were already written in SQLite's per-row loop and survive the failed
+// statement (check-6.5/6.6 "UPDATE OR FAIL t1 SET x=7-x" keeps the first
+// row's change), so they are applied before the error is surfaced.
+func (e *DMLExecutor) finishFailingUpdatePrecheck(s *sql.UpdateStmt, tableEntry *schema.Entry, colDefs []sql.ColumnDef, changes []updateChange, pres *Result) *Result {
+	if pres.KeepPriorRowsOnError() && len(changes) > 0 {
+		if ares := e.dispatchUpdate(s, tableEntry, colDefs, changes); ares.Error != nil {
+			return ares
+		}
+	}
+	return pres
 }
 
 // execUpdateView routes UPDATE on a view through INSTEAD OF UPDATE triggers.

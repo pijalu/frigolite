@@ -774,6 +774,15 @@ func (w *walWriter) backfillLocked(nFrom, nTo, mxFrame uint32) error {
 	if !ok {
 		return nil
 	}
+	// C reads every backfilled frame back from the "-wal" file
+	// (walCheckpoint's sqlite3OsRead, wal.c L2309): a frame the wal-index
+	// claims but the file does not hold (crash truncate, torn write) fails
+	// the checkpoint with SQLITE_IOERR_SHORT_READ — nBackfill and the szDb
+	// truncate are skipped (wal.c L2313-2322). Mirror that: the decoded log
+	// must cover the window's final commit frame.
+	if last := LastCommitFrame(frames); uint32(last) < nTo {
+		return fmt.Errorf("pager: checkpoint: wal frame %d missing (short read)", nTo)
+	}
 	nPage, err := p.backfillFrameRangeLocked(frames, nFrom, nTo, mxFrame, w.hdr.NPage)
 	if err != nil {
 		return err

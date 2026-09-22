@@ -55,11 +55,11 @@ func TestIsPtrmapPageNo(t *testing.T) {
 		pageSize uint32
 		want     bool
 	}{
-		{2, 1024, true},   // first ptrmap page
-		{3, 1024, false},  // data page
+		{2, 1024, true},  // first ptrmap page
+		{3, 1024, false}, // data page
 		{206, 1024, false},
-		{207, 1024, true},  // second chunk's ptrmap page
-		{412, 1024, true},  // third chunk's ptrmap page
+		{207, 1024, true}, // second chunk's ptrmap page
+		{412, 1024, true}, // third chunk's ptrmap page
 		{0, 1024, false},
 		{1, 1024, false},
 	}
@@ -82,11 +82,11 @@ func TestPtrmapEntryRoundtrip(t *testing.T) {
 		parentType byte
 		parentPgno uint32
 	}{
-		{3, PtrmapBtree, 2},          // page 3 is a btree node, parent page 2
-		{10, PtrmapBtree, 2},         // page 10 is an interior table btree node
-		{100, PtrmapOverflow1, 50},    // page 100 is an overflow page
-		{206, PtrmapFreelist, 0},     // page 206 is on the freelist (no parent)
-		{208, PtrmapBtree, 207},      // page 208 is in chunk 2, parent is chunk 2's ptrmap (207)
+		{3, PtrmapBtree, 2},        // page 3 is a btree node, parent page 2
+		{10, PtrmapBtree, 2},       // page 10 is an interior table btree node
+		{100, PtrmapOverflow1, 50}, // page 100 is an overflow page
+		{206, PtrmapFreelist, 0},   // page 206 is on the freelist (no parent)
+		{208, PtrmapBtree, 207},    // page 208 is in chunk 2, parent is chunk 2's ptrmap (207)
 	}
 	for _, tc := range tests {
 		// Find the containing ptrmap page.

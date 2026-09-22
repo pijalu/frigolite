@@ -118,7 +118,7 @@ func Test_fts3ab(t *testing.T) {
 			_ = k // suppress unused warning
 			for func() bool { j_n, _j_e := strconv.Atoi(j); if _j_e != nil { return false }; return j_n < 5 }() {
 				if tclBool(k + "&" + i) {
-					words = tclListAppend(words, tclLIndex(lang, j))
+					words = tclListAppend(words, tclLIndex(vtab.TclVarGet(lang, ""), j))
 				}
 				// incr j 1
 				{

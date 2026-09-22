@@ -207,6 +207,16 @@ func (r *Registry) ReadTxByOther(path string, self int64) bool {
 	return false
 }
 
+// ReadTxHeld reports whether THIS connection holds a prepared read lock on
+// the file (the self-side counterpart of ReadTxByOther; PRAGMA lock_status
+// reports the pager SHARED state while a stepped-but-unreset SELECT holds
+// its read transaction open — lock-7.2).
+func (r *Registry) ReadTxHeld(path string, connID int64) bool {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	return r.readTx[path][connID] > 0
+}
+
 // ClearConn removes every mark held by connID across all files (write
 // transactions, exclusive locks, all read-lock levels). Called when a
 // connection closes: close(2) drops the process's file locks, so a closed

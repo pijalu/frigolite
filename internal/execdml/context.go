@@ -143,6 +143,10 @@ type DMLContext interface {
 	InvalidateTableCaches()
 	RestorePager(pg *pager.Pager, snap *pager.PagerState)
 	EchoVTabSource(name string) (string, bool)
+	// EchoVTabBegin runs the echo module's xBegin (vtab.Transactor) for a
+	// write statement targeting name: ok is false when name is not an echo
+	// vtab; a non-nil err vetoes the statement before any row is written.
+	EchoVTabBegin(name string) (error, bool)
 	// VTabUpdaterInstance resolves a table name to an updatable virtual-table
 	// instance: the eponymous module's implicit instance or a CREATE VIRTUAL
 	// TABLE entry's module. ok=false when the name is not a virtual table.

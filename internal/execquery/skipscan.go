@@ -232,13 +232,18 @@ func skipScanSkipCountConstrainedHead(cols []string, constrainedCols map[string]
 	for nSkip < len(cols)-1 && constrainedCols[strings.ToLower(cols[nSkip])] {
 		nSkip++
 	}
-	if nSkip < len(cols)-1 {
-		start := nSkip
-		for nSkip = start; nSkip < len(cols) && !constrainedCols[strings.ToLower(cols[nSkip])]; nSkip++ {
-		}
-		if nSkip == start || nSkip >= len(cols) {
-			return -1
-		}
+	// Every column up to the last is constrained: a direct multi-column seek
+	// serves the query — there is no unconstrained gap to iterate, so no
+	// skip-scan applies (analyze7-3.6 "WHERE c=123 AND d=123" over index
+	// (c,d) is "(c=? AND d=?)", not "(ANY(c) AND d=?)").
+	if nSkip >= len(cols)-1 {
+		return -1
+	}
+	start := nSkip
+	for nSkip = start; nSkip < len(cols) && !constrainedCols[strings.ToLower(cols[nSkip])]; nSkip++ {
+	}
+	if nSkip == start || nSkip >= len(cols) {
+		return -1
 	}
 	// Need the NEXT column to be constrained for skip-scan to apply.
 	if !constrainedCols[strings.ToLower(cols[nSkip])] {

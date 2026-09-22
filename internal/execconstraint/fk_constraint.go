@@ -636,4 +636,3 @@ func fkColumnDefaultCollation(colDefs []sql.ColumnDef, col string) string {
 	}
 	return ""
 }
-

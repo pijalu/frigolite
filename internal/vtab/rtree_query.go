@@ -2,6 +2,8 @@ package vtab
 
 import (
 	"fmt"
+	"strconv"
+	"strings"
 
 	"github.com/pijalu/frigolite/internal/value"
 )
@@ -94,11 +96,57 @@ func (v *rtreeVTab[T]) resetPending() ([]rtreeConstraint[T], rtreeRowidSet, *Rtr
 // coordPasses reports whether the constraint holds for coordinate cell c
 // against the pushed literal. Both sides go through SQLite's mixed numeric
 // ordering (value.CompareValues) AFTER the column's REAL/INTEGER affinity is
-// applied to the literal — matching rtree.c's xFilter evaluation domain.
+// applied to the literal — matching rtree.c's xFilter evaluation domain. The
+// constraint is first reduced through rtreeConstraintOp (NULL / non-numeric
+// operand rewrites).
 func coordPasses[T coordType](op string, c T, value interface{}) bool {
+	op, value, always, never := rtreeConstraintOp(op, value)
+	if always {
+		return true
+	}
+	if never {
+		return false
+	}
 	lhs := coordToOut[T](c)
 	rhs := applyColumnAffinity(value, isInt32Coord[T]())
 	return numCompare(op, lhs, rhs)
+}
+
+// rtreeConstraintOp reduces one pushed constraint to its xFilter evaluation
+// form (rtree.c xFilter: eType = sqlite3_value_numeric_type(argv[ii]); a NULL
+// operand rewrites the operator to RTREE_FALSE for every comparison, while a
+// non-numeric text/blob operand rewrites it to RTREE_TRUE for < / <= — any
+// number sorts before any text — and RTREE_FALSE for every other operator).
+// Returns (op, value, alwaysTrue, alwaysFalse); the value is kept verbatim
+// for numeric text so the column-affinity coercion below sees it.
+func rtreeConstraintOp(op string, value interface{}) (string, interface{}, bool, bool) {
+	switch v := value.(type) {
+	case nil:
+		return "", nil, false, true
+	case string:
+		if !rtreeWellFormedNumber(v) {
+			return opIfRange(op)
+		}
+	case []byte:
+		return opIfRange(op)
+	}
+	return op, value, false, false
+}
+
+// opIfRange renders the RTREE_TRUE / RTREE_FALSE rewrite for a non-numeric
+// comparison operand: < / <= hold for every row, all other operators for none.
+func opIfRange(op string) (string, interface{}, bool, bool) {
+	if op == "<" || op == "<=" {
+		return "", nil, true, false
+	}
+	return "", nil, false, true
+}
+
+// rtreeWellFormedNumber reports whether s is a well-formed integer or real
+// literal (sqlite3_value_numeric_type converts exactly these to numeric).
+func rtreeWellFormedNumber(s string) bool {
+	_, err := strconv.ParseFloat(strings.TrimSpace(s), 64)
+	return err == nil
 }
 
 // isInt32Coord reports whether T is the int32 coordinate flavor.
@@ -146,9 +194,19 @@ func numCompare(op string, lhs, rhs interface{}) bool {
 
 // rowidPasses applies the op to an entry id and a pushed constant using the
 // same affinity+ordering rules as coordinate constraints (id column is
-// INTEGER-affinity).
+// INTEGER-affinity). The NULL / non-numeric operand rewrite of
+// rtreeConstraintOp applies to the id column identically (rtree.c runs every
+// xFilter argv through the same classification).
 func rowidPasses(op string, id int64, value interface{}) bool {
-	return numCompare(op, id, applyColumnAffinity(value, true))
+	op, value, always, never := rtreeConstraintOp(op, value)
+	res := numCompare(op, id, applyColumnAffinity(value, true))
+	if always {
+		res = true
+	}
+	if never {
+		res = false
+	}
+	return res
 }
 
 // filterAuxConstraints re-checks constraints pushed on AUXILIARY columns

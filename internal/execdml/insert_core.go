@@ -30,6 +30,13 @@ func (e *DMLExecutor) execInsert(s *sql.InsertStmt) *Result {
 	if _, ok := e.ctx.EchoVTabSource(s.Table); !ok {
 		return e.execInsertInner(s)
 	}
+	// The echo module's xBegin runs before the statement's first write
+	// (vtab.c sqlite3VtabBegin): a failed module transaction start vetoes
+	// the whole statement — no row is written (test8.c echoBegin /
+	// echo_module_begin_fail, vtab1.10-3).
+	if err, ok := e.ctx.EchoVTabBegin(s.Table); ok && err != nil {
+		return &Result{Error: err}
+	}
 	// A non-integer explicit rowid is rejected before the write-through
 	// reaches the source table (SQLite's OP_MustBeInt runs before xUpdate,
 	// so the error is NOT prefixed by echoError; vtab1-15.4).

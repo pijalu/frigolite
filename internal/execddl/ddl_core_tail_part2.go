@@ -34,6 +34,7 @@ func (e *DDLExecutor) echoSourceRows(srcName string) ([][]interface{}, error) {
 		return nil, cerr
 	}
 	var rows [][]interface{}
+	var rowids []int64
 	for {
 		cell, rerr := cursor.ReadCell()
 		if rerr != nil || cell == nil {
@@ -44,11 +45,18 @@ func (e *DDLExecutor) echoSourceRows(srcName string) ([][]interface{}, error) {
 			break
 		}
 		rows = append(rows, rec.Values)
+		rowids = append(rowids, cell.RowID)
 		okN, nerr := cursor.Next()
 		if nerr != nil || !okN {
 			break
 		}
 	}
+	// The echo module reads its source through SQL ("SELECT rowid, * FROM
+	// <source>", test8.c echoCursor), so a NULL rowid-alias column (INTEGER
+	// PRIMARY KEY; btree.c stores NULL in the record for the alias) reaches
+	// the statement as the rowid — substitute it here, or the alias column
+	// reads NULL through the vtab (vtab6-8.x).
+	execdml.FillRowidAliasNulls(e.ctx.ParseColumnDefs(srcEntry.Name, srcEntry.SQL), rows, rowids)
 	return rows, nil
 }
 

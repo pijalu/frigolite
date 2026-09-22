@@ -53,10 +53,17 @@ func (e *SelectEngine) validateCaseOrderBy(v *sql.CaseExpr) error {
 // applyCompoundOrderByCollations wraps compound ORDER BY terms that have no
 // explicit COLLATE with the compound result column's collation (when one is
 // defined). SQLite's compound ORDER BY inherits the result column collation
-// (first member with a defined collation wins), so an ordinal ORDER BY 1 must
-// sort with that column's collation (with1 10.8.4.1: ORDER BY 1 over
-// "SELECT a COLLATE nocase ..." sorts nocase).
-func (e *SelectEngine) applyCompoundOrderByCollations(orderBy []sql.OrderByTerm, colls []string) []sql.OrderByTerm {
+// (first member with a defined collation wins — select.c
+// sqlite3MultiSelectCollSeq), so an ordinal ORDER BY 1 must sort with that
+// column's collation (with1 10.8.4.1: ORDER BY 1 over "SELECT a COLLATE
+// nocase ..." sorts nocase) and a bare term naming a result column ("ORDER BY
+// c" over "SELECT a,b,c COLLATE nocase ...", selectA-2.7) must resolve its
+// position against the result column NAMES, not the collation list.
+// resultCols holds the compound's output column names (leftmost member); colls
+// holds the per-column collations ("" = BINARY). An explicit COLLATE on the
+// term is preserved and wins over the column collation (resolve.c
+// resolveCompoundOrderBy keeps the TK_COLLATE node).
+func (e *SelectEngine) applyCompoundOrderByCollations(orderBy []sql.OrderByTerm, resultCols []string, colls []string) []sql.OrderByTerm {
 	out := make([]sql.OrderByTerm, len(orderBy))
 	copy(out, orderBy)
 	for i := range out {
@@ -64,7 +71,7 @@ func (e *SelectEngine) applyCompoundOrderByCollations(orderBy []sql.OrderByTerm,
 		if orderByTermCollation(ob.Expr) != "" {
 			continue // explicit COLLATE already applied
 		}
-		if pos := compoundTermCollationPos(ob.Expr, colls); pos >= 1 && pos <= len(colls) && colls[pos-1] != "" {
+		if pos := compoundTermCollationPos(ob.Expr, resultCols); pos >= 1 && pos <= len(colls) && colls[pos-1] != "" {
 			ob.Expr = &sql.BinaryOp{
 				Operator: "COLLATE",
 				Left:     ob.Expr,
@@ -77,15 +84,15 @@ func (e *SelectEngine) applyCompoundOrderByCollations(orderBy []sql.OrderByTerm,
 
 // compoundTermCollationPos resolves the 1-based result-column position a
 // compound ORDER BY term sorts by: an explicit ordinal, or a bare column
-// name matched against the result columns.
-func compoundTermCollationPos(expr sql.Expr, colls []string) int {
+// name matched against the compound's result column names.
+func compoundTermCollationPos(expr sql.Expr, resultCols []string) int {
 	pos := 0
 	if nl, ok := stripCollate(expr).(*sql.NumericLit); ok {
 		if n, err := strconv.Atoi(nl.Value); err == nil && n >= 1 {
 			pos = n
 		}
 	} else if ref, ok := stripCollate(expr).(*sql.ColumnRef); ok && ref.Table == "" {
-		if p := resultColumnIndex(colls, ref.Name); p >= 0 {
+		if p := resultColumnIndex(resultCols, ref.Name); p >= 0 {
 			pos = p + 1
 		}
 	}
@@ -99,20 +106,21 @@ func compoundTermCollationPos(expr sql.Expr, colls []string) int {
 // term would evaluate to NULL against the merged result rows (which carry only
 // the first member's column names).
 func (e *SelectEngine) resolveCompoundOrderByTerms(s *sql.SelectStmt, orderBy []sql.OrderByTerm) []sql.OrderByTerm {
-	// Result column names come from the first member.
-	resultNames := make(map[string]bool)
-	e.collectMemberColumnNames(s, resultNames)
 	for i := range orderBy {
 		ob := &orderBy[i]
 		ref, ok := unwrapCollate(ob.Expr).(*sql.ColumnRef)
 		if ok && ref.Table == "" {
-			if resultNames[strings.ToLower(ref.Name)] {
-				continue
-			}
-			// Find the member whose column contributes this name and map it to
-			// its 1-based position within that member.
+			// Resolve the term against the compound members leftmost-first
+			// (resolve.c resolveCompoundOrderBy: resolveAsName against each
+			// member's output list until one matches). The declaring member's
+			// 1-based position within that member is the compound result
+			// position — including a first-member name, which is rewritten to
+			// an ordinal so the sort reads the merged result rows (selectB
+			// "SELECT * FROM (SELECT e ... UNION ALL SELECT f ...) EXCEPT
+			// SELECT c FROM t1 ORDER BY c": c is the RIGHT member's column and
+			// the merged rows only carry the left member's names).
 			if pos := e.compoundMemberColumnPosition(s, ref.Name); pos > 0 {
-				ob.Expr = &sql.NumericLit{Value: strconv.Itoa(pos)}
+				ob.Expr = replaceCollateOperand(ob.Expr, &sql.NumericLit{Value: strconv.Itoa(pos)})
 				continue
 			}
 		}
@@ -120,10 +128,23 @@ func (e *SelectEngine) resolveCompoundOrderByTerms(s *sql.SelectStmt, orderBy []
 		// expression (e.g. ORDER BY x*z where the first member is
 		// "SELECT x*z FROM d1") resolves to that result column.
 		if pos := e.compoundMemberExprPosition(s, ob.Expr); pos > 0 {
-			ob.Expr = &sql.NumericLit{Value: strconv.Itoa(pos)}
+			ob.Expr = replaceCollateOperand(ob.Expr, &sql.NumericLit{Value: strconv.Itoa(pos)})
 		}
 	}
 	return orderBy
+}
+
+// replaceCollateOperand returns expr with its innermost COLLATE operand
+// replaced by repl (or repl itself when expr carries no COLLATE). Mirrors
+// resolve.c resolveCompoundOrderBy, which converts a resolved ORDER BY term
+// to an integer column number "taking care to preserve the COLLATE clause if
+// it exists" (pParent->pLeft = pNew through the TK_COLLATE chain).
+func replaceCollateOperand(expr sql.Expr, repl sql.Expr) sql.Expr {
+	if b, ok := expr.(*sql.BinaryOp); ok && strings.EqualFold(b.Operator, "COLLATE") {
+		b.Left = replaceCollateOperand(b.Left, repl)
+		return b
+	}
+	return repl
 }
 
 // compoundMemberExprPosition returns the 1-based result position of expr when

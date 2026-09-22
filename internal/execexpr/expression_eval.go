@@ -77,9 +77,38 @@ func (ev *Evaluator) evalInListScalarItem(v *sql.InList, item sql.Expr, row Row,
 	if opIsRow && ivIsRow {
 		equal = ev.inListRowEqual(opRow, ivRow)
 	} else {
+		// SQLite applies the LEFT operand's affinity to each list item
+		// (expr.c sqlite3CodeSubselect: affinity = sqlite3ExprAffinity(pLeft)
+		// coded as OP_Affinity on the RHS record) — in4-4.17 "a IN (b)" with
+		// a TEXT-typed a coerces the item b (1) to '1', which no longer
+		// matches '1.0'.
+		if ctype := ev.inListLHSColumnType(v.Operand); ctype != "" {
+			ival = util.ApplyColumnAffinity(util.UnwrapColumnValue(ival), ctype)
+		}
 		equal = ev.inListScalarEqual(operand, ival)
 	}
 	return equal, false, nil
+}
+
+// inListLHSColumnType resolves the LEFT operand's declared column type for an
+// IN expression list. Only an unqualified column reference of the current
+// scan table resolves; anything else has no affinity to apply.
+func (ev *Evaluator) inListLHSColumnType(lhs sql.Expr) string {
+	ref, ok := lhs.(*sql.ColumnRef)
+	if !ok || ref.Table != "" {
+		return ""
+	}
+	scanTable := ev.ctx.CurrentScanTable()
+	if scanTable == "" {
+		return ""
+	}
+	defs := ev.ctx.FromSourceColumnDefs(sql.TableRef{Name: scanTable}, nil)
+	for _, cd := range defs {
+		if strings.EqualFold(cd.Name, ref.Name) {
+			return cd.Type
+		}
+	}
+	return ""
 }
 
 func addValues(a, b interface{}) (interface{}, error) {
@@ -230,7 +259,15 @@ func (ev *Evaluator) evalInListOperand(v *sql.InList, operand interface{}, row R
 	if len(v.List) == 0 {
 		return inListEmptyResult(v.Negated), nil
 	}
-	if operand == nil {
+	// A wrapped NULL counts as a NULL operand: materialized row sets (virtual
+	// tables, CTEs, subqueries) carry every column in a
+	// ColumnValue/CollatedValue wrapper, so a NULL column arrives as a
+	// non-nil wrapper around nil. NULL IN (non-empty) is unknown (NULL).
+	unwrapped := util.UnwrapColumnValue(operand)
+	if cv, ok := unwrapped.(*CollatedValue); ok {
+		unwrapped = cv.Value
+	}
+	if operand == nil || unwrapped == nil {
 		// A NULL operand with a subquery that returns zero rows behaves like
 		// an empty list: FALSE for IN, TRUE for NOT IN (no elements to
 		// compare against). Any non-empty list leaves the result unknown.

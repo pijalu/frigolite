@@ -2175,3 +2175,78 @@ Skip evidence (tools/tcl2go/skiptests2_part2.go; details inline there):
   fsize×512 open+statement cycles (non-terminating in practice). The
   engine panic the file targets is fixed + pinned natively; sections 2.x
   (header pokes) run in the generated test.
+
+## FULL-SUITE-DRIFT.T30-wal evidence classes (2026-09-22)
+
+Per-assertion evidence skips registered in `tools/tcl2go/skiptests2_part2.go`;
+every class below was engine-verified (pure-Go probe vs the sqlite3 3.54
+oracle) BEFORE the skip, per the engine-correctness-first directive.
+
+- `hook-3.8` — downstream of hook-3.5/3.7's non-transpiled commit-hook proc
+  redefinition (the aborting hook is never registered in the generated test).
+  The ENGINE veto is now implemented, not skipped: vdbeCommit invokes
+  db->xCommitCallback BEFORE the btree commit phases (vdbeaux.c:2978) and a
+  nonzero return rolls the whole transaction back; pinned in
+  frigolite_hookveto_pin_test.go.
+- `interrupt-1.3/2.1`, `interrupt-3.$i.1..5` — cascade of the untranspiled
+  `interrupt_test` proc driver (re-executes SQL with progressively later
+  ::sqlite_interrupt_count). 1.3/2.1 fail on the never-run DROP; 3.x needs
+  2.1's populated t1 so the countdown fires inside 3.x.2. The engine's
+  interrupted-COMMIT contract (special-error rollback; an interrupted COMMIT
+  never commits and closes the transaction, vdbeaux.c:3358-3383) is
+  implemented + pinned in frigolite_interrupt_pin_test.go.
+- `lock-5.5/5.7/5.9` — fixture UDF `tx_exec` (TCL body `db2 eval $sql`: SQL
+  on a SECOND connection from inside db's statement) not expressible in the
+  generated stub. Engine contract (cross-connection UDF reads succeed under
+  db's RESERVED) pinned in frigolite_lock_pin_test.go.
+- `lock-7.2` — tclStepEmulated drains queries, so a half-stepped statement is
+  inexpressible in the harness. The ENGINE contract is implemented: a
+  prepared SELECT stepped but not reset holds pager SHARED (lock_status
+  reports "shared"); pinned in frigolite_lock_pin_test.go.
+- `jrnlmode-1.0/1.2/1.5/1.7/1.7.2` — want lists embed the TCL proc call
+  `[temp_journal_mode <mode>]` (identity for TEMP_STORE<2), rendered by the
+  transpiler as the literal token "temp_journal_mode". The engine's got
+  values equal the EVALUATED C expectation (bare journal_mode SET covers
+  every materialized btree incl. temp and returns main's mode).
+- `journal2-1.7/1.9/1.15` — testvfs fault-injection procs (journal_op's
+  failing xDelete; tvfs_error_on_write) not transpiled; C's expectations
+  derive purely from the injected faults. The engine-visible journal-op
+  capture is exercised by the non-generated journal_op_hook_test.go.
+- `trace3-3.2/3.3/3.4/3.5/4.1/4.2/11.1/11.2` — same documented
+  quoted-word \d escape-fidelity class as 5.x/6.x (the 2026-09-22 regen
+  activated their pattern assertions); got values are engine-correct.
+- `trans` (10 assertions, trans-6.21..6.30-class) — REMAINS RED, adjudicated
+  ENGINE gap, NOT transpiler: the planner reports "SEARCH t1 USING INDEX
+  i1 (b<?)" but the executor has no index-driven row path and emits rows in
+  table/rowid order; C emits index-key order (trans-6.21 wants
+  "4 -5 -6 1 -2 -3"). Same class as the adjudicated index(7) latent gap;
+  owned by the query-planner goal (failure count identical to the T30
+  baseline — nothing added).
+## FULL-SUITE-DRIFT.T30-query — generated-harness artifacts fixed in place (2026-09-22)
+
+Five of T30-query's assigned packages failed on generated-code artifacts, not
+engine behavior. tools/tcl2go is outside the agent's ownership, so the
+generated files were repaired in place with minimal, TCL-faithful edits; each
+is a candidate for the corresponding generator fix (noted per entry).
+
+- `window6-2.0` — the transpiled `winproc` rendered `$args` as a plain
+  space-join instead of TCL list rendering (`window: {hello world}`). The
+  generated registration now brace-quotes elements; the want string is
+  unchanged.
+- `windowC-1.*.2.*` (30 assertions) — the `db eval` body (check that every
+  group_concat result starts and ends with "val") was dropped, leaving a
+  comparison against the literal `{}`. The body check is restored natively in
+  the generated file; engine values were verified correct in every case.
+- `rowhash` — `do_keyset_test` and its calls are untranspiled; the surviving
+  lappend loop panicked on a nil `tclListBuilder`. The loop is initialized;
+  the engine contract is pinned natively in `frigolite_rowhash_pin_test.go`
+  (OR-of-equalities across three indexes returns exactly the inserted rowids).
+- `skipscan5` — a second `:=` on the already-declared `_items1` broke the
+  build ("no new variables on left side of :="); changed to `=`.
+- `whereF-1.*` / `whereF-2.*` (6 assertions) — TCL `\y` word-boundary in the
+  want regex was transpiled as a literal `y` ("SCAN t2y"); the generated
+  patterns now use Go-regexp `\b`. The engine plans (SCAN t2 / SEARCH t1)
+  were already correct.
+- `selectC-1.12.2/1.13.2/1.14.2` — `db function ... longname_toupper`
+  (string toupper) transpiled as a nil-returning stub; the registration now
+  uppercases, matching proc longname_toupper.

@@ -169,6 +169,14 @@ func (n *NearNode) MatchDoc(idx *InvertedIndex, docID int64) bool {
 // Distance+len(left). The same offset never pairs with itself, so "four NEAR
 // four" needs two distinct occurrences (fts3near 1.14: a single 'four' per
 // document matches nothing).
+// Distance+len(left) — fts3.c's clause `iPos2>iPos1 && iPos2<=iPos1+nToken`
+// is strict for every nToken>=1 (the iPos2==iPos1+nToken exact clause is
+// subsumed, nToken counting a phrase's own tokens is never 0), so the same
+// offset never pairs with itself: "four NEAR four" needs two distinct
+// occurrences (fts3near 1.14: a single 'four' per document matches nothing).
+// This mirrors the already-strict pairing in nearPhrasePositions and
+// markNearPairings — the filter, matchinfo and offsets paths must agree or
+// offsets() emits NULL rows for docs the filter accepted (fts3near 2.6).
 func nearPairWithin(a, b nearPos, distance, leftLen, rightLen int) bool {
 	if b.pos > a.pos && b.pos-a.pos <= distance+rightLen {
 		return true

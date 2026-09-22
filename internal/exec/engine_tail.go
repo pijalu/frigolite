@@ -259,6 +259,15 @@ func (e *Engine) dmlCanSkipSnapshot(stmt sql.Stmt) bool {
 	if quota.Active() {
 		return false
 	}
+	// A registered commit hook makes every commit vetoable after the rows
+	// are written: a nonzero hook return fails the implicit COMMIT with
+	// SQLITE_CONSTRAINT_COMMITHOOK and rolls the transaction back
+	// (vdbeCommit's xCommitCallback check runs BEFORE btree commit phase
+	// one, src/vdbeaux.c:2978-2982) — the "commit cannot fail" assumption
+	// is void the same way the quota layer makes it.
+	if e.commitHook != nil {
+		return false
+	}
 	ins, ok := stmt.(*sql.InsertStmt)
 	if !ok {
 		return false // UPDATE/DELETE can fail mid-scan after earlier writes

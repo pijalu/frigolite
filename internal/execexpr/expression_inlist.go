@@ -363,9 +363,20 @@ func castToInteger(val interface{}) (interface{}, error) {
 	case int64:
 		return x, nil
 	case float64:
+		// Out-of-range doubles clamp to the int64 limits
+		// (sqlite3VdbeMemIntegerify).
+		if x >= 9223372036854775808.0 {
+			return int64(math.MaxInt64), nil
+		}
+		if x < -9223372036854775808.0 {
+			return int64(math.MinInt64), nil
+		}
 		return int64(x), nil
 	case string:
 		return castStringToInteger(x), nil
+	case []byte:
+		// A blob is first converted to TEXT (sqlite3VdbeMemCast).
+		return castStringToInteger(string(x)), nil
 	default:
 		return int64(0), nil
 	}
@@ -407,6 +418,13 @@ func castToReal(val interface{}) (interface{}, error) {
 		return float64(x), nil
 	case string:
 		if f, ok := parseNumericPrefix(x); ok {
+			return f, nil
+		}
+		return float64(0), nil
+	case []byte:
+		// A blob is first converted to TEXT (sqlite3VdbeMemCast):
+		// CAST(x'31' AS REAL) is 1.0.
+		if f, ok := parseNumericPrefix(string(x)); ok {
 			return f, nil
 		}
 		return float64(0), nil
@@ -457,18 +475,47 @@ func castToNumeric(val interface{}) (interface{}, error) {
 	case float64:
 		return x, nil
 	case string:
-		t := strings.TrimSpace(x)
-		if i, err := strconv.ParseInt(t, 10, 64); err == nil {
-			return i, nil
-		}
-		if f, err := strconv.ParseFloat(t, 64); err == nil {
-			if f == float64(int64(f)) {
-				return int64(f), nil
-			}
-			return f, nil
-		}
-		return int64(0), nil
+		return numericFromText(x), nil
+	case []byte:
+		// A blob is first converted to TEXT (sqlite3VdbeMemCast):
+		// CAST(x'3932...' AS NUMERIC) parses the numeric text.
+		return numericFromText(string(x)), nil
 	default:
 		return int64(0), nil
 	}
+}
+
+// numericFromText coerces TEXT to NUMERIC like SQLite's CAST(x AS NUMERIC):
+// the longest numeric PREFIX converts (CAST('123abc' AS NUMERIC) is 123); a
+// prefix with no fraction or exponent parses as INTEGER, anything else
+// becomes a REAL that folds to INTEGER when the value is losslessly integral
+// (CAST('123.0' AS NUMERIC) is 123, CAST('123.5abc' AS NUMERIC) is 123.5).
+func numericFromText(s string) interface{} {
+	t := strings.TrimSpace(s)
+	body := strings.TrimLeft(t, "+-")
+	d := digitRunLen(body)
+	if d == 0 && !strings.HasPrefix(body, ".") {
+		// A lone sign (or empty text) has no numeric prefix: CAST('-' AS
+		// NUMERIC) is 0.
+		return int64(0)
+	}
+	if d > 0 && (d == len(body) || (body[d] != '.' && body[d] != 'e' && body[d] != 'E')) {
+		return castStringToInteger(t)
+	}
+	if f, ok := parseNumericPrefix(t); ok {
+		if f == float64(int64(f)) {
+			return int64(f)
+		}
+		return f
+	}
+	return int64(0)
+}
+
+// digitRunLen returns the length of the leading decimal-digit run of s.
+func digitRunLen(s string) int {
+	i := 0
+	for i < len(s) && s[i] >= '0' && s[i] <= '9' {
+		i++
+	}
+	return i
 }

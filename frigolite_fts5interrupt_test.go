@@ -46,7 +46,6 @@ func TestFTS5InterruptRetryResilience(t *testing.T) {
 	checkExecOK(t, db.Exec("CREATE VIRTUAL TABLE t1 USING fts5(a)"))
 	db.Close()
 
-	const full = 1 << 20
 	committed := false
 	for budget := 1; budget <= 32 && !committed; budget++ {
 		db, err = Open(path)

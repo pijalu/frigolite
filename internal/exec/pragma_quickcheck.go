@@ -548,8 +548,14 @@ func (e *Engine) quickCheckStrict(te *schema.Entry, colDefs []sql.ColumnDef, val
 }
 
 // quickCheckConstraints reports failing CHECK constraints (column-level and
-// table-level).
+// table-level). Like INSERT and UPDATE, the evaluation is skipped while
+// PRAGMA ignore_check_constraints is ON (check-4.8 reports "ok" for a row
+// written under the pragma; check-4.8.1 reports the violation once it is
+// turned OFF again).
 func (e *Engine) quickCheckConstraints(te *schema.Entry, colDefs []sql.ColumnDef, row RowMap, emit func(string)) {
+	if e.IgnoreCheckConstraints() {
+		return
+	}
 	for _, cd := range colDefs {
 		if cd.Check == nil {
 			continue
@@ -558,6 +564,11 @@ func (e *Engine) quickCheckConstraints(te *schema.Entry, colDefs []sql.ColumnDef
 			emit(fmt.Sprintf("CHECK constraint failed in %s", te.Name))
 		}
 	}
+	e.quickCheckTableChecks(te, row, emit)
+}
+
+// quickCheckTableChecks reports failing table-level CHECK constraints.
+func (e *Engine) quickCheckTableChecks(te *schema.Entry, row RowMap, emit func(string)) {
 	for _, tc := range e.tableConstraints(te.Name, te.SQL) {
 		if tc.Type != sql.ConstraintCheck || tc.Expr == nil {
 			continue

@@ -196,17 +196,17 @@ const (
 //
 // tokenTypeToCode maps lexer token types to TK_* parser codes.
 var tokenTypeToCode = map[int]int{
-	0:  0,           // TokenEOF
-	2:  TK_ID,       // TokenIdentifier
-	3:  TK_STRING,   // TokenString
-	5:  TK_BLOB,     // TokenBlob
-	7:  TK_EQ,       // TokenEq
-	8:  TK_NE,       // TokenNeq
-	9:  TK_LT,       // TokenLt
-	10: TK_GT,       // TokenGt
-	11: TK_PTR,      // TokenArrow
-	12: TK_PTR,      // TokenDoubleArrow — same PTR terminal as '->' (SQLite
-	                 // uses one TK_PTR token; the operator text distinguishes)
+	0:  0,         // TokenEOF
+	2:  TK_ID,     // TokenIdentifier
+	3:  TK_STRING, // TokenString
+	5:  TK_BLOB,   // TokenBlob
+	7:  TK_EQ,     // TokenEq
+	8:  TK_NE,     // TokenNeq
+	9:  TK_LT,     // TokenLt
+	10: TK_GT,     // TokenGt
+	11: TK_PTR,    // TokenArrow
+	12: TK_PTR,    // TokenDoubleArrow — same PTR terminal as '->' (SQLite
+	// uses one TK_PTR token; the operator text distinguishes)
 	13: TK_LE,       // TokenLe
 	14: TK_GE,       // TokenGe
 	15: TK_PLUS,     // TokenPlus
