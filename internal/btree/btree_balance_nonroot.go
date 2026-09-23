@@ -475,9 +475,9 @@ func (t *BTree) rebalanceCoversParent(ctx *balanceNonrootContext, siblings []*pa
 	// leaf yielded separator 0), producing out-of-order dividers that
 	// then scrambled the parent rewrite (rows dropped from the tree —
 	// BUG C).
-	seps := make([]uint64, 0, nNewFull)
+	seps := make([]leafSplitResult, 0, nNewFull)
 	for i := 0; i < nNewFull-1; i++ {
-		seps = append(seps, uint64(readLastRowID(siblings[i].Data, contentOffset(siblings[i].PageNum), storage.CellTableLeaf, int(t.usableSize), int(t.pageSize))))
+		seps = append(seps, leafSplitResult{medianKey: uint64(readLastRowID(siblings[i].Data, contentOffset(siblings[i].PageNum), storage.CellTableLeaf, int(t.usableSize), int(t.pageSize)))})
 	}
 	if err := t.writeInteriorRootAt(ctx.parent.PageNum, children, seps); err != nil {
 		return err
@@ -659,15 +659,25 @@ func (t *BTree) defragmentInterior(pg *pager.Page, page *storage.BTreePage) erro
 	coff := contentOffset(pg.PageNum)
 	ptrBase := coff + cellPtrOffset(page.PageType)
 	cnt := int(page.CellCount)
-	// Interior cell layout: 4-byte left-child + varint key — the varint
-	// length determines the on-page cell size (uniform for table and index
-	// interiors in this engine; dividers carry no payload/overflow).
+	// Interior cell layout: table trees use a 4-byte left-child + rowid
+	// varint; index trees carry a full divider record (left-child + payload
+	// length + payload), so the cell extent comes from the cell format.
 	sizes := make([]int, cnt)
 	data := make([][]byte, cnt)
 	for i := 0; i < cnt; i++ {
 		off := int(binary.BigEndian.Uint16(pg.Data[ptrBase+i*2 : ptrBase+i*2+2]))
-		_, n := util.GetVarint(pg.Data[off+4:])
-		sz := 4 + n
+		sz := 0
+		if t.isTable {
+			_, n := util.GetVarint(pg.Data[off+4:])
+			sz = 4 + n
+		} else {
+			cell, err := storage.DecodeCell(pg.Data, off, storage.CellIndexInterior, int(t.usableSize))
+			if err != nil {
+				return fmt.Errorf("btree: defragmentInterior: cell %d on page %d: %w", i, pg.PageNum, err)
+			}
+			_, n := util.GetVarint(pg.Data[off+4:])
+			sz = 4 + n + len(cell.Payload)
+		}
 		if off+sz > len(pg.Data) {
 			return fmt.Errorf("btree: defragmentInterior: cell %d out of bounds on page %d", i, pg.PageNum)
 		}

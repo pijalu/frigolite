@@ -546,6 +546,11 @@ func (e *SelectEngine) sortRowsWithMaps(result *Result, orderBy []sql.OrderByTer
 		return nil
 	}
 	orderBy = e.resolveOrderByOrdinalTerms(s, orderBy)
+	// The alias-inheritance path of compareOrderByValues resolves the
+	// aliased expression's schema-declared collation through this resolver
+	// (FROM-clause tables of this SELECT level).
+	e.obCollationResolver = e.schemaCollationResolver(s)
+	defer func() { e.obCollationResolver = nil }()
 	// Pre-evaluate ORDER BY expressions that are not plain unqualified column
 	// references (the comparator would otherwise discard evaluation errors).
 	// Every evaluation runs BEFORE any result is written back: a stored key

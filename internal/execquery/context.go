@@ -249,6 +249,10 @@ type SelectEngine struct {
 	outerRowStack     []Row                    // stack of enclosing outer rows for multi-level correlation
 	outerRows         []RowMap                 // all outer rows for correlated aggregate evaluation
 	aliasStack        []map[string]sql.Expr    // output-column alias maps from enclosing SELECTs (innermost last)
+	// obCollationResolver resolves a column reference's schema-declared
+	// collation while an ORDER BY sort runs (set by sortRowsWithMaps from
+	// the SELECT's FROM clause; nil outside sorting).
+	obCollationResolver func(sql.ColumnRef) string
 	cteScopes         [][]sql.CTEDef           // CTE scopes from enclosing statements (innermost last)
 	resolvingCTEs     map[*sql.SelectStmt]bool // CTE bodies currently being resolved (circular reference detection); keyed by the CTE body AST so a same-named inner WITH shadow is a different CTE
 	currentScanTable  string                   // table name being scanned (for qualified column resolution)

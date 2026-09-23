@@ -304,8 +304,9 @@ func unwrapIndexKeyValue(v interface{}) interface{} {
 }
 
 // writeIndexCell encodes and inserts one index entry, tracking root page
-// changes after splits.
-func (e *DMLExecutor) writeIndexCell(def indexDef, indexValues []interface{}) error {
+// changes after splits. colDefs carries the table's column definitions for
+// the index keys' collation resolution.
+func (e *DMLExecutor) writeIndexCell(def indexDef, colDefs []sql.ColumnDef, indexValues []interface{}) error {
 	indexStorageValues(indexValues)
 	payload, err := storage.EncodeRecord(indexValues)
 	if err != nil {
@@ -316,6 +317,10 @@ func (e *DMLExecutor) writeIndexCell(def indexDef, indexValues []interface{}) er
 		Payload: payload,
 	}
 	idxTree := btree.NewBTree(def.Ctx.Pager, def.RootPage, false)
+	// SQLite orders index b-trees by the keys' collations at insert time
+	// (OP_IdxInsert → sqlite3BtreeIndexMoveto under the index's KeyInfo):
+	// install the collation-aware comparator before the insert.
+	installIndexOrder(idxTree, def.SQL, colDefs, e.collationLookup())
 	if err := idxTree.InsertCell(idxCell); err != nil {
 		return err
 	}

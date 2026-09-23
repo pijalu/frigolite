@@ -366,7 +366,7 @@ func (e *DMLExecutor) writeUpdateIndexEntriesFor(tableEntry *schema.Entry, colDe
 		if kerr != nil {
 			return kerr
 		}
-		if err := e.writeIndexCell(def, append(indexValues, writeRowID)); err != nil {
+		if err := e.writeIndexCell(def, colDefs, append(indexValues, writeRowID)); err != nil {
 			return err
 		}
 	}

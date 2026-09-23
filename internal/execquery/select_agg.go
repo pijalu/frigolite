@@ -840,6 +840,16 @@ func (e *SelectEngine) evalAggFuncCall(v *sql.FuncCall, rowMaps []RowMap) (inter
 	if nested := e.findAggNestedAggregates(v); nested != "" {
 		return nil, fmt.Errorf("misuse of aggregate function %s()", nested)
 	}
+	// Single-argument MIN/MAX compares its argument values under the
+	// argument's collation (func.c minmaxStep: pColl =
+	// sqlite3GetFuncCollSeq — the collation of the first argument):
+	// x COLLATE nocase and x declared COLLATE nocase both order the
+	// reduction by nocase (minmax3-4.x). Reduced here (not in the
+	// function's Step) because the collation is statement context the
+	// registry's collation-free Step signature cannot carry.
+	if (strings.EqualFold(v.Name, "MIN") || strings.EqualFold(v.Name, "MAX")) && len(v.Args) == 1 {
+		return e.evalMinMaxAggregate(v, rowMaps)
+	}
 	agg := fn.AggregateFn()
 	rows := e.sortRowMapsByOrderBy(v.OrderBy, rowMaps)
 	for _, row := range rows {
@@ -860,6 +870,51 @@ func (e *SelectEngine) evalAggFuncCall(v *sql.FuncCall, rowMaps []RowMap) (inter
 		return nil, ferr
 	}
 	return result, nil
+}
+
+// evalMinMaxAggregate reduces a single-argument MIN/MAX under the argument's
+// collation: the first evaluated argument value carrying a CollatedValue
+// marker donates the collation (explicit COLLATE operator or the column's
+// declared COLLATE clause — SQLite's sqlite3ExprCollSeq of the argument).
+// NULLs are skipped; the first extreme on ties wins (minmaxStep keeps the
+// earliest row's value).
+func (e *SelectEngine) evalMinMaxAggregate(v *sql.FuncCall, rowMaps []RowMap) (interface{}, error) {
+	isMax := strings.EqualFold(v.Name, "MAX")
+	var best interface{}
+	collation := ""
+	for _, row := range rowMaps {
+		if !e.aggRowPassesFilter(v, row) {
+			continue
+		}
+		restore := e.ctx.EnterAuxAggArg()
+		raw, err := e.ctx.EvalExpr(v.Args[0], row)
+		restore()
+		if err != nil {
+			return nil, err
+		}
+		if raw == nil {
+			continue
+		}
+		val := util.UnwrapColumnValue(raw)
+		if cv, ok := raw.(*execexpr.CollatedValue); ok {
+			val = util.UnwrapColumnValue(cv.Value)
+			if collation == "" && cv.Collation != "" {
+				collation = cv.Collation
+			}
+		}
+		if val == nil {
+			continue
+		}
+		if best == nil {
+			best = val
+			continue
+		}
+		cmp := e.ctx.CompareValuesCollate(val, best, collation)
+		if (isMax && cmp > 0) || (!isMax && cmp < 0) {
+			best = val
+		}
+	}
+	return best, nil
 }
 
 // evalDistinctAggregate evaluates an aggregate with DISTINCT over the distinct

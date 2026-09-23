@@ -34,12 +34,12 @@ func (t *BTree) InsertCell(newCell *storage.Cell) error {
 		// page 1 is the database file header page and cannot be demoted to a
 		// child. When its root splits, page 1 becomes an interior page and
 		// the split halves are moved to newly allocated pages.
-		rootPg, err := t.createInteriorRoot(t.rootPage, splits[0].medianKey, splits[0].pageNum)
+		rootPg, err := t.createInteriorRoot(t.rootPage, splits[0], splits[0].pageNum)
 		if err != nil {
 			return err
 		}
 		for i := 1; i < len(splits); i++ {
-			if err := t.addInteriorCellToPage(rootPg.PageNum, splits[i-1].pageNum, splits[i].medianKey, splits[i].pageNum); err != nil {
+			if err := t.addInteriorCellToPage(rootPg.PageNum, splits[i-1].pageNum, splits[i], splits[i].pageNum); err != nil {
 				return err
 			}
 		}
@@ -230,11 +230,11 @@ func (t *BTree) retryChildSplitApply(pg *pager.Page, parentPgno, childPageNum ui
 		if perr != nil {
 			return nil, perr
 		}
-		newInteriorNum, splitKey, serr := t.splitInteriorPage(pg, page, parentPgno)
+		newInteriorNum, splitRes, serr := t.splitInteriorPage(pg, page, parentPgno)
 		if serr != nil {
 			return nil, serr
 		}
-		outs = append(outs, leafSplitResult{pageNum: newInteriorNum, medianKey: splitKey})
+		outs = append(outs, leafSplitResult{pageNum: newInteriorNum, medianKey: splitRes.medianKey, medianPayload: splitRes.medianPayload})
 		order := childOrderAmongSplits(pg, outs)
 		done, aerr := t.applyChildSplitsToFirstFit(order, childPageNum, childSplits)
 		if aerr != nil {
