@@ -190,9 +190,24 @@ func TestP5ExplainEqpSubqueries(t *testing.T) {
 		}
 	}
 
-	// Correlated EXISTS in WHERE: SQLite emits CORRELATED SCALAR SUBQUERY 1.
-	if got := eqpFlatten(t, db, "SELECT * FROM t1 WHERE EXISTS (SELECT 1 FROM t2 WHERE t2.a=t1.a);"); !strings.Contains(got, "CORRELATED SCALAR SUBQUERY 1") {
-		t.Errorf("correlated exists: got %q, want CORRELATED SCALAR SUBQUERY 1", got)
+	// Correlated EXISTS as a top-level WHERE conjunct: SQLite 3.54 folds it
+	// through the EXISTS-to-join optimization (select.c existsToJoin), so the
+	// plan carries NO subquery parent line — the inner table appears as an
+	// "SEARCH t2 EXISTS USING ... (a=?)" join loop beside SCAN t1 (oracle
+	// /usr/bin/sqlite3 3.54: "SCAN t1" / "SEARCH t2 EXISTS USING AUTOMATIC
+	// PARTIAL COVERING INDEX (a=?)"; the BLOOM FILTER line C shows between
+	// them is compile-flag and cost-heuristic dependent, not a stable
+	// contract). A non-top-level EXISTS (e.g. under OR) still renders
+	// "CORRELATED SCALAR SUBQUERY n" via planSubqueryNodes.
+	plan := eqpFlatten(t, db, "SELECT * FROM t1 WHERE EXISTS (SELECT 1 FROM t2 WHERE t2.a=t1.a);")
+	if !strings.Contains(plan, "SEARCH t2 EXISTS USING AUTOMATIC PARTIAL COVERING INDEX (a=?)") || strings.Contains(plan, "SUBQUERY") {
+		t.Errorf("correlated exists: got %q, want folded existsToJoin plan (SEARCH t2 EXISTS..., no SUBQUERY line)", plan)
+	}
+
+	// A non-top-level correlated EXISTS (under OR) is NOT folded: it keeps
+	// the "CORRELATED SCALAR SUBQUERY 1" parent line (oracle 3.54).
+	if got := eqpFlatten(t, db, "SELECT * FROM t1 WHERE EXISTS (SELECT 1 FROM t2 WHERE t2.a=t1.a) OR b=2;"); !strings.Contains(got, "CORRELATED SCALAR SUBQUERY 1") {
+		t.Errorf("correlated exists under OR: got %q, want CORRELATED SCALAR SUBQUERY 1", got)
 	}
 
 	// Non-correlated scalar subquery in the select list: SCALAR SUBQUERY 1.

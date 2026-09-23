@@ -598,7 +598,11 @@ func (e *SelectEngine) lessRows(orderBy []sql.OrderByTerm, rowMaps []RowMap, row
 // values carry the column's declared collation — ORDER BY 1 must sort by the
 // output column's collation exactly like ORDER BY <name> (select.c
 // sqlite3ResolveSortRefs: the sort reference takes the result column's
-// collating sequence). Other expressions keep the positional fallback.
+// collating sequence). A term that already carries an explicit COLLATE is
+// kept intact — resolve.c resolveCompoundOrderBy converts a resolved compound
+// term to an integer column number "taking care to preserve the COLLATE
+// clause", and an explicit collating sequence outranks the column's declared
+// one. Other expressions keep the positional fallback.
 //
 // Compound selects are exempt: their sort is positional over the merged rows
 // by construction (resolve.c resolveCompoundOrderBy converts every term to an
@@ -620,7 +624,10 @@ func (e *SelectEngine) resolveOrderByOrdinalTerms(s *sql.SelectStmt, orderBy []s
 	changed := false
 	out := orderBy
 	for k := range orderBy {
-		nl, ok := stripCollate(orderBy[k].Expr).(*sql.NumericLit)
+		if orderByTermCollation(orderBy[k].Expr) != "" {
+			continue // explicit COLLATE wins over the declared column collation
+		}
+		nl, ok := orderBy[k].Expr.(*sql.NumericLit)
 		if !ok {
 			continue
 		}
