@@ -225,7 +225,10 @@ func TestP4Numeric_Blob(t *testing.T) {
 		{"SELECT cast(zeroblob(100) AS INTEGER)", "0"},
 		{"SELECT hex(zeroblob(2) || x'61')", "000061"},
 		{"SELECT typeof(randomblob(8)), length(randomblob(8))", "blob 8"},
-		{"SELECT length(randomblob(0))", "0"},
+		// func.c randomBlob clamps n<1 to 1 byte (oracle 3.54: length(randomblob(0))
+// == 1, length(randomblob(-5)) == 1) — the empty-blob want was wrong.
+{"SELECT length(randomblob(0))", "1"},
+{"SELECT length(randomblob(-5))", "1"},
 		{"SELECT hex(unhex('0000'))", "0000"},
 		{"SELECT hex(unhex('FFFF', ' -'))", "FFFF"},
 		{"SELECT hex(unhex('FFFF  ABCD', ' -'))", "FFFFABCD"},
