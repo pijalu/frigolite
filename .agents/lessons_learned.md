@@ -8578,6 +8578,10 @@ regenerated; suite net −2274 fails vs pre-tranche baseline (7230 → ~4950).
   prepared SELECT holds SHARED while mid-run). Method: test a failing pin at
   merge^1 and merge^2 separately — pass@parent + fail@merge = merge-resolution
   bug; and a map that is written but never read is the tell for (b).
+  Postscript: main independently landed the tkt2822 fix (compound selects are
+  exempt from the ordinal rewrite entirely); the two guards compose — the
+  exemption covers compound positional sorts, the COLLATE skip keeps an
+  explicit collating sequence authoritative for single-select ordinals.
 - **A pin can pin stale engine behavior; the oracle arbitrates.**
   TestP5ExplainEqpSubqueries' "CORRELATED SCALAR SUBQUERY 1" expectation
   predated 3.54's EXISTS-to-join fold (w5-query 57a96082e, oracle-verified
