@@ -852,8 +852,6 @@ var harnessCollationFixtures = map[string]func(db *DB){
 	// test.db) right before section 2 — the converted steps ATTACH
 	// 'test.db2', so any leftover file from another test file must go.
 	"e_reindex": func(db *DB) {
-		os.Remove("test.db2")
-		os.Remove("test.db")
 		db.RegisterCollation("collA", sortByLengthCollate)
 		db.RegisterCollation("collB", sortByValueCollate)
 	},

@@ -50,6 +50,10 @@ func (t *BTree) encodeDividerCell(leftChild uint32, res leafSplitResult, ownerPg
 	if t.isTable {
 		return t.encodeInteriorCell(leftChild, res.medianKey), nil
 	}
+	// Index dividers encode the legacy compact shape (child + payload-length
+	// varint, no payload bytes): carrying the full separator payload in the
+	// parent destabilized the balance paths at scale. See splitMedianKey.
+	return t.encodeInteriorCell(leftChild, uint64(len(res.medianPayload))), nil
 	// A divider key that would spill to overflow is encoded with an EMPTY
 	// payload (plen 0): empty sorts before every record, so descent routes
 	// every insert to the divider's right subtree, where the split placed
@@ -92,11 +96,7 @@ func (t *BTree) dividerCellLen(res leafSplitResult) int {
 	if t.isTable {
 		return 4 + util.VarintLen(res.medianKey)
 	}
-	plen := len(res.medianPayload)
-	if storage.LocalPayloadSize(plen, int(t.usableSize), storage.CellIndexLeaf) < plen {
-		return 4 + 1 // compact empty divider
-	}
-	return 4 + util.VarintLen(uint64(plen)) + plen
+	return 4 + util.VarintLen(uint64(len(res.medianPayload)))
 }
 
 // freeInteriorDividerChains releases the overflow chains owned by every

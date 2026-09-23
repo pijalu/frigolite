@@ -159,13 +159,10 @@ func (t *BTree) splitLeafMulti(pg *pager.Page, page *storage.BTreePage, parentPg
 	return t.writeSplitPartitions(pg, coff, partitions, ptrParent)
 }
 
-// partitionSplitCells partitions the sorted cells into pages. The greedy
-// pass ("longest prefix that fits", btree.c balance_nonroot's page-fill
-// loop) determines the MINIMUM page count; the boundaries are then
-// re-balanced to even cell counts — SQLite distributes cells across the new
-// pages rather than packing the left page maximally, and a maximally-packed
-// left page leaves 1-2 cell right siblings that mass deletes then empty one
-// by one (each emptied leaf triggers an O(pages) parent walk).
+// partitionSplitCells greedily partitions the sorted cells into pages: each
+// page takes the longest prefix that fits. Every page holds at least one cell
+// (a single cell whose local payload is oversized goes alone — prepareCell
+// caps the local payload so this is defensive).
 func partitionSplitCells(cells []splitEntry, coff, usableSize int) ([][]splitEntry, error) {
 	var partitions [][]splitEntry
 	cur := []splitEntry{}
@@ -187,29 +184,6 @@ func partitionSplitCells(cells []splitEntry, coff, usableSize int) ([][]splitEnt
 	flush()
 	if len(partitions) == 0 {
 		return nil, fmt.Errorf("btree: split failed: cannot balance leaf pages")
-	}
-	if len(partitions) < 2 || true {
-		return partitions, nil
-	}
-	// Even redistribution over the greedy page count.
-	total := len(cells)
-	even := make([][]splitEntry, 0, len(partitions))
-	idx := 0
-	fits := true
-	for p := 0; p < len(partitions); p++ {
-		remainingParts := len(partitions) - p
-		remainingCells := total - idx
-		take := (remainingCells + remainingParts - 1) / remainingParts
-		part := cells[idx : idx+take]
-		if !leafCellsFit(cellDatas(part), coff, usableSize) {
-			fits = false
-			break
-		}
-		even = append(even, part)
-		idx += take
-	}
-	if fits {
-		return even, nil
 	}
 	return partitions, nil
 }
@@ -292,11 +266,11 @@ func (t *BTree) splitMedianKey(partitions [][]splitEntry, pi int) (uint64, []byt
 	// the RIGHT sibling (btree.c:8820, pCell -= 4 branch) — the left
 	// subtree holds keys < medianKey and the right subtree holds
 	// keys >= medianKey (sqlite3BtreeIndexMoveto: equal keys go
-	// right). The divider cell carries that cell's full record payload
-	// (balance_nonroot copies the cell into the interior page), so
-	// interior descent and sqlite3 integrity_check see value-ordered
-	// separators.
-	return 0, partitions[pi][0].key
+	// right). The engine encodes only the payload LENGTH here (the
+	// legacy divider shape): full payload dividers destabilized the
+	// balance paths at 100k-entry scale and stay deferred with the
+	// value-ordered storage tranche.
+	return uint64(len(partitions[pi][0].cellData)), nil
 }
 
 // leafSplitResult is one new page produced by a split: the page number and

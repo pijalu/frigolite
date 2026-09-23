@@ -358,7 +358,7 @@ func DecodeCell(pageData []byte, offset int, cellType CellType, pageSize int) (*
 	case CellIndexLeaf:
 		return decodeIndexLeafCell(pageData, offset, pageSize)
 	case CellIndexInterior:
-		return decodeIndexInteriorCell(pageData, offset, pageSize)
+		return decodeIndexInteriorCell(pageData, offset)
 	default:
 		return nil, fmt.Errorf("storage: unknown cell type: %d", cellType)
 	}
@@ -462,29 +462,17 @@ func decodeIndexLeafCell(data []byte, off int, pageSize int) (*Cell, error) {
 	return c, nil
 }
 
-func decodeIndexInteriorCell(data []byte, off, pageSize int) (*Cell, error) {
+func decodeIndexInteriorCell(data []byte, off int) (*Cell, error) {
 	c := &Cell{Type: CellIndexInterior}
 	c.LeftPtr = binary.BigEndian.Uint32(data[off : off+4])
 	pos := off + 4
 	plen, n := util.GetVarint(data[pos:])
 	pos += n
-	c.PayloadLen = int(plen)
-	// Interior index cells follow the index-page payload formula: a divider
-	// whose key exceeds maxLocal stores a local portion plus an overflow
-	// pointer (the overflow chain is shared with the leaf entry).
-	local := LocalPayloadSize(c.PayloadLen, pageSize, CellIndexInterior)
-	if local > len(data)-pos {
-		local = len(data) - pos
+	payloadLen := int(plen)
+	if pos+payloadLen > len(data) {
+		payloadLen = len(data) - pos
 	}
-	c.LocalLen = local
-	c.Payload = data[pos : pos+local]
-	pos += local
-	if local < c.PayloadLen {
-		if pos+4 > len(data) {
-			return nil, fmt.Errorf("storage: truncated index interior cell (overflow pointer missing)")
-		}
-		c.Overflow = binary.BigEndian.Uint32(data[pos : pos+4])
-	}
+	c.Payload = data[pos : pos+payloadLen]
 	return c, nil
 }
 
@@ -568,28 +556,13 @@ func encodeIndexLeafCell(c *Cell) []byte {
 }
 
 func encodeIndexInteriorCell(c *Cell) []byte {
-	plen := c.PayloadLen
-	if plen == 0 {
-		plen = len(c.Payload)
-	}
-	local := c.LocalLen
-	if local == 0 {
-		local = plen
-	}
+	plen := len(c.Payload)
 	plenLen := util.VarintLen(uint64(plen))
-	total := 4 + plenLen + local
-	if local < plen {
-		total += 4
-	}
-	buf := make([]byte, total)
+	buf := make([]byte, 4+plenLen+plen)
 	binary.BigEndian.PutUint32(buf[0:4], c.LeftPtr)
 	pos := 4
 	pos += util.PutVarint(buf[pos:], uint64(plen))
-	copy(buf[pos:], c.Payload[:local])
-	pos += local
-	if local < plen {
-		binary.BigEndian.PutUint32(buf[pos:], c.Overflow)
-	}
+	copy(buf[pos:], c.Payload)
 	return buf
 }
 
