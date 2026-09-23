@@ -590,6 +590,14 @@ func (e *Engine) lockStatusFor(ctx *DatabaseContext) string {
 	if e.tx.inTransaction && e.tx.reservedDbs != nil && e.tx.reservedDbs[strings.ToUpper(ctx.Name)] {
 		return "reserved"
 	}
+	// A read statement inside an explicit transaction takes the pager SHARED
+	// lock on its target database — sqlite3PagerSharedLock runs on the
+	// statement's first read and stays held to COMMIT/ROLLBACK (noteStmtRead
+	// Lock records the mark). A deferred BEGIN alone holds no lock and stays
+	// "unlocked" (lock7; backup-8.9 "main shared" after BEGIN + a read).
+	if e.tx.inTransaction && e.tx.readDbs != nil && e.tx.readDbs[strings.ToUpper(ctx.Name)] {
+		return "shared"
+	}
 	// A prepared SELECT stepped but not yet reset/finalized holds its read
 	// transaction open: pager.c SHARED (lock_status "shared", lock-7.2 —
 	// sqlite3_step returning SQLITE_ROW leaves the statement mid-run).
