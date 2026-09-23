@@ -194,6 +194,14 @@ type UniqueIndexDef struct {
 	Where   string   // partial index predicate ("" for full indexes)
 }
 
+// FKChildScan describes one FK-check scan SQLite plans for a parent-table
+// DELETE/UPDATE: the child table to scan and the child key columns the scan
+// equates to the parent row's values (fkey.c fkScanChildren's WHERE terms).
+type FKChildScan struct {
+	Table string
+	Cols  []string
+}
+
 // OrConstraint is one constant equality inside an OR-index plan branch.
 type OrConstraint struct {
 	Col           string

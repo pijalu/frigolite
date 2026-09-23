@@ -290,10 +290,12 @@ func (e *Engine) CheckForeignKeyViolations(tableEntry *schema.Entry, colDefs []s
 	return e.constraints.CheckForeignKeyViolations(tableEntry, colDefs, values, excludeRowID)
 }
 
-// FKChildTableNames returns the names of child tables whose FOREIGN KEY
-// constraints reference the given parent table (EXPLAIN QUERY PLAN models the
-// FK-check scans SQLite plans for a parent DELETE/UPDATE).
-func (e *Engine) FKChildTableNames(tableName string) []string {
+// FKChildScans returns one entry per FOREIGN KEY constraint referencing the
+// given parent table: the child table plus its constrained child columns
+// (EXPLAIN QUERY PLAN plans each scan the way fkey.c fkScanChildren does —
+// the child scan runs through the normal planner with equality terms on the
+// child key columns).
+func (e *Engine) FKChildScans(tableName string) []execquery.FKChildScan {
 	if !e.settings.foreignKeys {
 		return nil
 	}
@@ -302,15 +304,19 @@ func (e *Engine) FKChildTableNames(tableName string) []string {
 		return nil
 	}
 	seen := map[string]bool{}
-	var names []string
+	var scans []execquery.FKChildScan
 	for _, ref := range e.constraints.ChildRefs(entry, ctx) {
-		if ref.ChildTable == "" || seen[ref.ChildTable] {
+		if ref.ChildTable == "" {
 			continue
 		}
-		seen[ref.ChildTable] = true
-		names = append(names, ref.ChildTable)
+		key := ref.ChildTable + "@" + strings.Join(ref.ChildCols, ",")
+		if seen[key] {
+			continue
+		}
+		seen[key] = true
+		scans = append(scans, execquery.FKChildScan{Table: ref.ChildTable, Cols: ref.ChildCols})
 	}
-	return names
+	return scans
 }
 
 // FkParentDelete handles ON DELETE actions when a parent row is deleted.

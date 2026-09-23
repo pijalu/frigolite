@@ -44,21 +44,57 @@ func (e *SelectEngine) execExplainQueryPlan(stmt sql.Stmt) *Result {
 // explainDMLPlan plans a DELETE/UPDATE the way SQLite does: the target table
 // renders as SEARCH when a point-lookup drives the statement — a rowid or
 // indexed leading-column equality against a literal (where.c SEARCH plans) —
-// otherwise SCAN. One SCAN node per FK child check query follows (one for a
-// DELETE, two for an UPDATE, when the table has foreign-key children;
-// e_fkey-26.x).
+// otherwise SCAN. One node set per FK child check query follows (one per FK
+// constraint for a DELETE, two for an UPDATE, when the table has foreign-key
+// children; e_fkey-26.x). Each child check is planned like the
+// "SELECT rowid FROM child WHERE fkcol = ?" query fkey.c fkScanChildren
+// builds, so an index on the child key renders a SEARCH (covering index)
+// instead of a plain SCAN.
 func (e *SelectEngine) explainDMLPlan(tableName string, where sql.Expr, childScans int) *Result {
 	detail := "SCAN " + tableName
 	if search := e.dmlSearchDetail(tableName, where); search != "" {
 		detail = search
 	}
 	nodes := []planNode{{detail: detail}}
-	for _, child := range e.ctx.FKChildTableNames(tableName) {
+	for _, child := range e.ctx.FKChildScans(tableName) {
 		for i := 0; i < childScans; i++ {
-			nodes = append(nodes, planNode{detail: "SCAN " + child})
+			nodes = append(nodes, e.fkChildScanNodes(child)...)
 		}
 	}
 	return planTreeResult(nodes)
+}
+
+// fkChildScanNodes plans one FK child check scan: equality on each child key
+// column (values arrive in registers at runtime, modeled as bind parameters)
+// over the child table, planned through the normal single-table planner.
+// Falls back to a plain SCAN node when the child key cannot be planned.
+func (e *SelectEngine) fkChildScanNodes(child FKChildScan) []planNode {
+	if len(child.Cols) == 0 {
+		return []planNode{{detail: "SCAN " + child.Table}}
+	}
+	var where sql.Expr
+	for _, col := range child.Cols {
+		eq := &sql.BinaryOp{
+			Operator: "=",
+			Left:     &sql.ColumnRef{Name: col},
+			Right:    &sql.ParameterExpr{},
+		}
+		if where == nil {
+			where = eq
+		} else {
+			where = &sql.BinaryOp{Operator: "AND", Left: where, Right: eq}
+		}
+	}
+	childSel := &sql.SelectStmt{
+		From:    sql.TableRef{Name: child.Table},
+		Columns: []sql.SelectColumn{{Expr: &sql.ColumnRef{Name: "rowid"}}},
+		Where:   where,
+	}
+	nodes := e.planSingleTableNodes(queryTable{display: child.Table, real: child.Table}, childSel)
+	if len(nodes) == 0 {
+		return []planNode{{detail: "SCAN " + child.Table}}
+	}
+	return nodes
 }
 
 // planNode is one EXPLAIN QUERY PLAN tree node: a detail line plus optional

@@ -116,10 +116,11 @@ type SelectContext interface {
 	UniqueIndexColumns(tableName string) []UniqueIndexDef
 	WithoutRowidPKColumns(tableName string, tableEntry *schema.Entry, colDefs []sql.ColumnDef, xinfo bool) []IndexPragmaColumn
 
-	// FKChildTableNames returns the child table names whose FOREIGN KEY
-	// constraints reference the given parent table (used by EXPLAIN QUERY
-	// PLAN to model FK-check scans on parent DELETE/UPDATE).
-	FKChildTableNames(tableName string) []string
+	// FKChildScans returns one entry per FOREIGN KEY constraint referencing
+	// the given parent table: the child table plus the constrained child
+	// columns (used by EXPLAIN QUERY PLAN to plan the FK-check scans SQLite
+	// generates for a parent DELETE/UPDATE — fkey.c fkScanChildren).
+	FKChildScans(tableName string) []FKChildScan
 
 	// Expression evaluation (delegates to the execexpr Evaluator).
 	EvalExpr(expr sql.Expr, row Row) (interface{}, error)
