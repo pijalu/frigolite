@@ -68,7 +68,7 @@ func incrVacuumPrecheck(ctx *DatabaseContext) (nFin uint32, ok bool) {
 	ps := ctx.Pager.PageSize()
 	nOrig := ctx.Pager.NumPages()
 	nFree := ctx.Pager.FreelistCount()
-	nFin = finalDbSize(nOrig, nFree, ps)
+	nFin = finalDbSize(nOrig, nFree, ps, ctx.Pager.PendingBytePage())
 	// btree.c sqlite3BtreeIncrVacuum corruption guard.
 	if nOrig < nFin || nFree >= nOrig {
 		return 0, false
@@ -211,7 +211,7 @@ func (e *Engine) AutoVacuumCommit(schema string) (int, error) {
 	}
 	ps := ctx.Pager.PageSize()
 	nOrig := ctx.Pager.NumPages()
-	if isPtrmapPageFor(nOrig, ps) || nOrig == pendingBytePageFor(ps) {
+	if isPtrmapPageFor(nOrig, ps) || nOrig == ctx.Pager.PendingBytePage() {
 		// btree.c autoVacuumCommit (line 4197): "It is not possible to
 		// create a database for which the final page is either a
 		// pointer-map page or the pending-byte page. If one is
@@ -223,7 +223,7 @@ func (e *Engine) AutoVacuumCommit(schema string) (int, error) {
 		return 0, nil
 	}
 	nVac := e.autovacuumBatchSize(schema, nOrig, nFree, ps)
-	nFin := finalDbSize(nOrig, nVac, ps)
+	nFin := finalDbSize(nOrig, nVac, ps, ctx.Pager.PendingBytePage())
 	if nFin > nOrig {
 		// btree.c autoVacuumCommit (line 4224): "if( nFin>nOrig ) return
 		// SQLITE_CORRUPT_BKPT". A corrupt header freelist count (e.g. the
@@ -330,11 +330,11 @@ func (e *Engine) getAutovacPagesCallback() func(schema string, fileSize, nFree, 
 // the pointer-map pages that vacuuming frees. Arithmetic is 32-bit unsigned
 // and may wrap exactly as SQLite's Pgno arithmetic does; callers compare the
 // result against nOrig with the same relational operators.
-func finalDbSize(nOrig, nFree, pageSize uint32) uint32 {
+func finalDbSize(nOrig, nFree, pageSize, pendingPage uint32) uint32 {
 	nEntry := pageSize/5 + 1
 	nPtrmap := (nFree - nOrig + PtrmapPagenoFor(nOrig, pageSize) + nEntry) / nEntry
 	nFin := nOrig - nFree - nPtrmap
-	pending := pendingBytePageFor(pageSize)
+	pending := pendingPage
 	if nOrig > pending && nFin < pending {
 		nFin--
 	}
@@ -348,13 +348,6 @@ func finalDbSize(nOrig, nFree, pageSize uint32) uint32 {
 // ptrmapPageno) for the vacuum math in this package.
 func PtrmapPagenoFor(pgno, pageSize uint32) uint32 {
 	return pager.PtrmapPageNo(pgno, pageSize)
-}
-
-// pendingBytePageFor is the page holding the PENDING_BYTE lock byte
-// (btree.c PENDING_BYTE_PAGE); vacuuming never leaves the database ending
-// on it.
-func pendingBytePageFor(pageSize uint32) uint32 {
-	return 1073741824/pageSize + 1
 }
 
 // isPtrmapPageFor reports whether pgno is itself a pointer-map page.
