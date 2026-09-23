@@ -44,6 +44,18 @@ func (e *SelectEngine) execSelectOverMaterialized(s *sql.SelectStmt, colDefs []s
 // execSelectOverMaterializedRowids is execSelectOverMaterialized with native
 // rowids from the source (virtual-table xRowid parity).
 func (e *SelectEngine) execSelectOverMaterializedRowids(s *sql.SelectStmt, colDefs []sql.ColumnDef, rows [][]interface{}, rowids []int64) *Result {
+	// A materialized FROM term is not a real-table scan: the enclosing
+	// select's scan-table name must not leak into this level's expression
+	// resolution, or a table-qualified reference to an OUTER table alias
+	// resolves against THIS level's anonymous rows' unqualified columns
+	// (tkt-54844eea3f 1.2: inside "SELECT (SELECT c FROM (SELECT * FROM t4
+	// WHERE ...) WHERE b=out.b) FROM t4 AS out", "out.b" hit the derived
+	// row's "b" through the scan-table fallback and the predicate became
+	// always-true). The materialized term's own alias is the only qualifier
+	// these rows resolve under (its row maps carry alias-qualified keys).
+	prevScanTable := e.currentScanTable
+	e.currentScanTable = materializedAlias(s)
+	defer func() { e.currentScanTable = prevScanTable }()
 	allRows := rows
 	if len(allRows) == 0 && !e.hasAggregates(s.Columns) && len(s.GroupBy) == 0 && s.Union == nil {
 		return &Result{Columns: e.buildColumnNames(s.Columns, colDefs, s), Rows: [][]interface{}{}}

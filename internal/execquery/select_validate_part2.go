@@ -149,12 +149,30 @@ func replaceCollateOperand(expr sql.Expr, repl sql.Expr) sql.Expr {
 
 // compoundMemberExprPosition returns the 1-based result position of expr when
 // it matches a compound member's SELECT expression, or 0.
+//
+// A table-qualified reference ("ORDER BY t6b.x" over "SELECT x XX ... FROM
+// t6b") matches a member column written unqualified when the member's FROM
+// binds that table or alias — resolve.c resolveCompoundOrderBy resolves the
+// duplicated term against each member's sources and then compares it against
+// that member's result list (tkt2822-6.5/6.6).
 func (e *SelectEngine) compoundMemberExprPosition(s *sql.SelectStmt, expr sql.Expr) int {
+	tref, isQualifiedRef := expr.(*sql.ColumnRef)
+	if isQualifiedRef && tref.Table == "" {
+		isQualifiedRef = false
+	}
 	cur := s
 	for cur != nil {
 		for i, col := range cur.Columns {
 			if col.Expr != nil && sql.ExprString(expr) == sql.ExprString(col.Expr) {
 				return i + 1
+			}
+			if isQualifiedRef && col.Expr != nil {
+				if cref, ok := col.Expr.(*sql.ColumnRef); ok &&
+					cref.Table == "" && cref.Name != "*" &&
+					strings.EqualFold(cref.Name, tref.Name) &&
+					compoundMemberBindsTable(cur, tref.Table) {
+					return i + 1
+				}
 			}
 		}
 		cur = cur.Union
@@ -162,17 +180,43 @@ func (e *SelectEngine) compoundMemberExprPosition(s *sql.SelectStmt, expr sql.Ex
 	return 0
 }
 
+// compoundMemberBindsTable reports whether member's FROM clause declares the
+// given table or alias (case-insensitive).
+func compoundMemberBindsTable(member *sql.SelectStmt, table string) bool {
+	if table == "" {
+		return false
+	}
+	if strings.EqualFold(member.From.Name, table) || strings.EqualFold(member.From.As, table) {
+		return true
+	}
+	for _, j := range member.Joins {
+		if strings.EqualFold(j.Table.Name, table) || strings.EqualFold(j.Table.As, table) {
+			return true
+		}
+	}
+	return false
+}
+
 // compoundMemberColumnPosition returns the 1-based position of name within the
 // compound member that declares it (columns are aligned by position across
 // members), or 0 when no member declares it.
+//
+// Within a member an AS-alias match takes precedence over a source-column
+// match (resolve.c resolveCompoundOrderBy tries resolveAsName — which only
+// matches AS-names — before the resolve-and-compare expression rule;
+// tkt2822-3.4: over "SELECT a AS b, CAST(b AS TEXT) AS a, c ... ORDER BY a"
+// the leftmost member's alias a (column 2) wins over its source column a
+// (column 1)).
 func (e *SelectEngine) compoundMemberColumnPosition(s *sql.SelectStmt, name string) int {
 	cur := s
 	for cur != nil {
 		for i, col := range cur.Columns {
-			if ref, ok := col.Expr.(*sql.ColumnRef); ok && ref.Name != "*" && strings.EqualFold(ref.Name, name) {
+			if col.As != "" && strings.EqualFold(col.As, name) {
 				return i + 1
 			}
-			if col.As != "" && strings.EqualFold(col.As, name) {
+		}
+		for i, col := range cur.Columns {
+			if ref, ok := col.Expr.(*sql.ColumnRef); ok && ref.Name != "*" && strings.EqualFold(ref.Name, name) {
 				return i + 1
 			}
 		}

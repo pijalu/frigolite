@@ -805,7 +805,19 @@ var skipTestFiles = map[string]string{
 	// branches). The remaining ~28 sub-tests pass. The parent `skipscan` TCL
 	// harness (vocab associatve arrays) and the dedicated {2,3,5,6} packages
 	// (no OR context) are fully un-skipped and passing.
-	"skipscan1":     "OR-with-skip-scan planner branch N-A (skipscan1-8.1eqp); 28/29 sub-tests pass",
+	"skipscan1": "OR-with-skip-scan planner branch N-A (skipscan1-8.1eqp); 28/29 sub-tests pass",
+	// sort5: T30-tkt2 triage (2026-09-23). All 7 remaining failures are
+	// dropped-testvfs scaffolding, not engine gaps. 1.0 wants mmap_size=0 —
+	// the artifact of the untranspiled "testvfs tvfs -iversion 1" shim
+	// (mmap-less VFS clamps the setter to 0); the stock 3.54 oracle returns
+	// no rows and the corpus elsewhere (incrvacuum-16.1) pins the echoed
+	// value frigolite already returns, so no engine behavior satisfies both.
+	// 2.1.1-2.6.1 compare progress-handler/xWrite counters ("array unset /
+	// expr [array names F] (not evaluated)") — VFS instrumentation, not
+	// engine-visible. Engine-visible contract (10k-row recursive-CTE
+	// randomblob ORDER BY sorts under cache_size=10) pinned green by
+	// TestW5Sort5LargeCTESort (frigolite_w5tkt_pin_test.go).
+	"sort5":         "testvfs -iversion 1 mmap clamp + xWrite/progress counters untranspilable - superseded by frigolite_w5tkt_pin_test.go TestW5Sort5LargeCTESort (FULL-SUITE-DRIFT.T30-tkt2)",
 	"wal2":          "N-A G7 (evidence internal/pager/walview_test.go + portplan/NA_EVIDENCE.md §P7.WAL-A)",
 	"wal3":          "N-A G7 (evidence internal/pager/walview_test.go + portplan/NA_EVIDENCE.md §P7.WAL-A)",
 	"wal4":          "N-A G7 (evidence internal/pager/walview_test.go + portplan/NA_EVIDENCE.md §P7.WAL-A)",

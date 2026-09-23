@@ -190,7 +190,16 @@ func fnABS(args []interface{}) (interface{}, error) {
 	case float64:
 		return math.Abs(v), nil
 	default:
-		return 0, nil
+		// Strings and blobs convert through sqlite3_value_double: a value
+		// that cannot be converted to a number yields REAL 0.0 (func.c
+		// absFunc default case: "Abs(X) returns 0.0 if X is a string or
+		// blob that cannot be converted to a numeric value" — func-4.4.2
+		// expects 0.0, the REAL rendering, for text values).
+		r, err := toFloat64(v)
+		if err != nil {
+			return 0.0, nil
+		}
+		return math.Abs(r), nil
 	}
 }
 
@@ -230,8 +239,11 @@ func fnRANDOM(args []interface{}) (interface{}, error) {
 
 func fnRANDOMBLOB(args []interface{}) (interface{}, error) {
 	n := int(toInt64(args[0]))
-	if n <= 0 {
-		return []byte{}, nil
+	// SQLite randomBlob: a request for fewer than 1 byte yields a 1-byte
+	// blob (func.c randomBlob: "if( n<1 ) n = 1"), not the empty blob
+	// (func-9.5: length(randomblob(-5)) == 1).
+	if n < 1 {
+		n = 1
 	}
 	buf := make([]byte, n)
 	for i := 0; i < n; i++ {
