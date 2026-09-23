@@ -42,16 +42,48 @@ func (t *BTree) encodeInteriorCell(leftChild uint32, rowID uint64) []byte {
 // b-tree's divider is a full index-interior cell carrying the separator
 // record payload (btree.c copies the right sibling's first cell into the
 // parent, src/btree.c:8820), so interior descent and sqlite3 integrity_check
-// see value-ordered separators.
-func (t *BTree) encodeDividerCell(leftChild uint32, res leafSplitResult) []byte {
+// see value-ordered separators. A payload exceeding the index-page local
+// maximum spills to a FRESH overflow chain owned by the parent page — the
+// leaf entry's chain stays untouched (balance re-parents each moved cell's
+// chain to its final owner, ptrmapPutOvflPtr src/btree.c:8025).
+func (t *BTree) encodeDividerCell(leftChild uint32, res leafSplitResult, ownerPgno uint32) ([]byte, error) {
 	if t.isTable {
-		return t.encodeInteriorCell(leftChild, res.medianKey)
+		return t.encodeInteriorCell(leftChild, res.medianKey), nil
+	}
+	// A divider key that would spill to overflow is encoded with an EMPTY
+	// payload (plen 0): empty sorts before every record, so descent routes
+	// every insert to the divider's right subtree, where the split placed
+	// the spilled-key leaf. This keeps dividers chain-free — no shared or
+	// relocated overflow bookkeeping on interior pages. (Single-leaf trees
+	// and locally-fitting dividers — the overwhelming majority — carry the
+	// full separator payload.)
+	plen := len(res.medianPayload)
+	if storage.LocalPayloadSize(plen, int(t.usableSize), storage.CellIndexLeaf) < plen {
+		buf := make([]byte, 5)
+		binary.BigEndian.PutUint32(buf, leftChild)
+		buf[4] = 0
+		return buf, nil
 	}
 	return storage.EncodeCell(&storage.Cell{
 		Type:    storage.CellIndexInterior,
 		LeftPtr: leftChild,
 		Payload: res.medianPayload,
-	})
+	}), nil
+}
+
+// mustEncodeDividerCell is encodeDividerCell for re-encode sites that
+// already validated the divider fits: an overflow-allocation failure falls
+// back to a local-only cell rather than corrupting the page.
+func (t *BTree) mustEncodeDividerCell(leftChild uint32, res leafSplitResult, ownerPgno uint32) []byte {
+	data, err := t.encodeDividerCell(leftChild, res, ownerPgno)
+	if err != nil {
+		return storage.EncodeCell(&storage.Cell{
+			Type:    storage.CellIndexInterior,
+			LeftPtr: leftChild,
+			Payload: res.medianPayload,
+		})
+	}
+	return data
 }
 
 // dividerCellLen reports the encoded size of one divider cell (the room
@@ -61,18 +93,63 @@ func (t *BTree) dividerCellLen(res leafSplitResult) int {
 		return 4 + util.VarintLen(res.medianKey)
 	}
 	plen := len(res.medianPayload)
+	if storage.LocalPayloadSize(plen, int(t.usableSize), storage.CellIndexLeaf) < plen {
+		return 4 + 1 // compact empty divider
+	}
 	return 4 + util.VarintLen(uint64(plen)) + plen
 }
 
+// freeInteriorDividerChains releases the overflow chains owned by every
+// divider cell of an interior page that is about to be REWRITTEN (balance
+// parity: balance_nonroot's apCell relocations free displaced cells'
+// overflow via freePageChain). Leaf entries reference their own chains and
+// are untouched.
+func (t *BTree) freeInteriorDividerChains(pg *pager.Page, page *storage.BTreePage) error {
+	if t.isTable || page == nil {
+		return nil
+	}
+	ptrBase := contentOffset(pg.PageNum) + cellPtrOffset(page.PageType)
+	for i := 0; i < int(page.CellCount); i++ {
+		cellOff := int(binary.BigEndian.Uint16(pg.Data[ptrBase+i*2 : ptrBase+i*2+2]))
+		cell, err := storage.DecodeCell(pg.Data, cellOff, storage.CellIndexInterior, int(t.usableSize))
+		if err != nil || cell.Overflow == 0 {
+			continue
+		}
+		if err := t.freeOverflowChain(cell.Overflow); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// dividerFullPayload reassembles an interior divider cell's full record
+// payload, following its overflow chain when the key spills.
+func (t *BTree) dividerFullPayload(pg *pager.Page, cellOff int) ([]byte, error) {
+	cell, err := storage.DecodeCell(pg.Data, cellOff, storage.CellIndexInterior, int(t.usableSize))
+	if err != nil {
+		return nil, err
+	}
+	full, err := t.readOverflow(cell)
+	if err != nil {
+		return nil, err
+	}
+	return full.Payload, nil
+}
+
 // cellDividerPayloadAt returns an INDEX interior cell's divider payload (the
-// separator record bytes) for the cell pointer at ptrBase+idx.
+// full separator record bytes, overflow chain reassembled) for the cell
+// pointer at ptrBase+idx.
 func (t *BTree) cellDividerPayloadAt(pg *pager.Page, ptrBase, idx int) []byte {
 	cellOff := int(binary.BigEndian.Uint16(pg.Data[ptrBase+idx*2 : ptrBase+idx*2+2]))
 	cell, err := storage.DecodeCell(pg.Data, cellOff, storage.CellIndexInterior, int(t.usableSize))
 	if err != nil {
 		return nil
 	}
-	return cell.Payload
+	full, err := t.readOverflow(cell)
+	if err != nil {
+		return nil
+	}
+	return full.Payload
 }
 
 // dividerLess reports whether the divider cell at cellOff sorts at or before
@@ -83,11 +160,11 @@ func (t *BTree) dividerLess(pg *pager.Page, cellOff int, newSplit leafSplitResul
 		ekey, _ := util.GetVarint(pg.Data[cellOff+4:])
 		return ekey <= newSplit.medianKey
 	}
-	cell, err := storage.DecodeCell(pg.Data, cellOff, storage.CellIndexInterior, int(t.usableSize))
+	payload, err := t.dividerFullPayload(pg, cellOff)
 	if err != nil {
 		return false
 	}
-	return t.compareKey(cell.Payload, newSplit.medianPayload) <= 0
+	return t.compareKey(payload, newSplit.medianPayload) <= 0
 }
 
 // rekeyCarrierChainIndex is rekeyCarrierChain for INDEX b-trees: dividers
@@ -105,9 +182,16 @@ func (t *BTree) rekeyCarrierChainIndex(pg *pager.Page, page *storage.BTreePage, 
 		// written in place — it would overrun the neighbor).
 		curChildOff := int(binary.BigEndian.Uint16(pg.Data[ptrBase+idx*2 : ptrBase+idx*2+2]))
 		curChild := binary.BigEndian.Uint32(pg.Data[curChildOff : curChildOff+4])
-		oldPayload := t.cellDividerPayloadAt(pg, ptrBase, idx)
-		rekeyed := t.encodeDividerCell(curChild, cs)
-		deadBytes += 4 + util.VarintLen(uint64(len(oldPayload))) + len(oldPayload)
+		// Divider cells are chain-free (see encodeDividerCell), so the
+		// replaced cell contributes only its on-page bytes.
+		oldOff := int(binary.BigEndian.Uint16(pg.Data[ptrBase+idx*2 : ptrBase+idx*2+2]))
+		if oldCell, derr := storage.DecodeCell(pg.Data, oldOff, storage.CellIndexInterior, int(t.usableSize)); derr == nil {
+			deadBytes += 4 + util.VarintLen(uint64(oldCell.PayloadLen)) + len(oldCell.Payload)
+		}
+		rekeyed, eerr := t.encodeDividerCell(curChild, cs, pg.PageNum)
+		if eerr != nil {
+			return deadBytes, eerr
+		}
 		rkStart := int(page.CellContent) - len(rekeyed)
 		if rkStart < coff+ptroff+(int(page.CellCount)+1)*2+2 {
 			return deadBytes, errInteriorFull
@@ -117,7 +201,10 @@ func (t *BTree) rekeyCarrierChainIndex(pg *pager.Page, page *storage.BTreePage, 
 		binary.BigEndian.PutUint16(pg.Data[coff+5:coff+7], uint16(rkStart))
 		page.CellContent = uint16(rkStart)
 		// Insert the new sibling cell AFTER it, carrying carrierPayload.
-		newData := t.encodeDividerCell(cs.pageNum, leafSplitResult{medianPayload: carrierPayload})
+		newData, eerr := t.encodeDividerCell(cs.pageNum, leafSplitResult{medianPayload: carrierPayload}, pg.PageNum)
+		if eerr != nil {
+			return deadBytes, eerr
+		}
 		ncStart := int(page.CellContent) - len(newData)
 		nCount := int(page.CellCount) + 1
 		ncPtrEnd := coff + ptroff + nCount*2 + 2
@@ -233,7 +320,10 @@ func (t *BTree) applyChildSplitsRightmost(pg *pager.Page, page *storage.BTreePag
 		if si > 0 {
 			leftOfCell = splits[si-1].pageNum
 		}
-		newData := t.encodeDividerCell(leftOfCell, splits[si])
+		newData, eerr := t.encodeDividerCell(leftOfCell, splits[si], pg.PageNum)
+		if eerr != nil {
+			return eerr
+		}
 		ncStart := int(page.CellContent) - len(newData)
 		nCount := int(page.CellCount) + 1
 		ncPtrEnd := coff + ptroff + nCount*2 + 2
@@ -355,7 +445,10 @@ func (t *BTree) addInteriorCellToPage(pageNum, childPageNum uint32, childSplit l
 // addInteriorCell adds a new cell to an interior page.
 func (t *BTree) addInteriorCell(pg *pager.Page, page *storage.BTreePage, leftChild uint32, childSplit leafSplitResult, rightChild uint32) error {
 	coff := contentOffset(pg.PageNum)
-	cellData := t.encodeDividerCell(leftChild, childSplit)
+	cellData, err := t.encodeDividerCell(leftChild, childSplit, pg.PageNum)
+	if err != nil {
+		return err
+	}
 	ptroff := cellPtrOffset(page.PageType)
 
 	// Compute space
@@ -564,8 +657,14 @@ func (t *BTree) collectInteriorEntries(pg *pager.Page, ptrBase int, page *storag
 			entries = append(entries, interiorEntry{leftChild: leftChild})
 			continue
 		}
-		// Clone: the payload aliases pg.Data, which the split rewrite zeroes.
-		entries = append(entries, interiorEntry{leftChild: leftChild, payload: append([]byte(nil), cell.Payload...)})
+		// Reassemble (spilled dividers) and clone: the payload aliases
+		// pg.Data, which the split rewrite zeroes.
+		full, oerr := t.readOverflow(cell)
+		if oerr != nil {
+			entries = append(entries, interiorEntry{leftChild: leftChild})
+			continue
+		}
+		entries = append(entries, interiorEntry{leftChild: leftChild, payload: append([]byte(nil), full.Payload...)})
 	}
 	return entries
 }
@@ -577,7 +676,10 @@ func (t *BTree) writeInteriorSplitLeft(pg *pager.Page, coff, ptroff, pageSize in
 	leftRightmost := entries[splitIdx-1].leftChild
 	leftCellContentEnd := pageSize // track content end in local var
 	for i := 0; i < splitIdx-1; i++ {
-		cellData := t.encodeDividerCell(entries[i].leftChild, entries[i].splitResult(t.isTable))
+		cellData, eerr := t.encodeDividerCell(entries[i].leftChild, entries[i].splitResult(t.isTable), pg.PageNum)
+		if eerr != nil {
+			return eerr
+		}
 		cellPtrEnd := coff + ptroff + i*2 + 2
 		cellStart := leftCellContentEnd - len(cellData)
 		if cellStart < cellPtrEnd {
@@ -604,7 +706,10 @@ func (t *BTree) writeInteriorSplitRight(newPg *pager.Page, newCoff, ptroff, page
 	rightCount := 0
 	rightCellContentEnd := pageSize
 	for i := splitIdx; i < len(entries); i++ {
-		cellData := t.encodeInteriorCell(entries[i].leftChild, entries[i].key)
+		cellData, eerr := t.encodeDividerCell(entries[i].leftChild, entries[i].splitResult(t.isTable), newPg.PageNum)
+		if eerr != nil {
+			return eerr
+		}
 		cellPtrEnd := newCoff + ptroff + rightCount*2 + 2
 		cellStart := rightCellContentEnd - len(cellData)
 		if cellStart < cellPtrEnd {

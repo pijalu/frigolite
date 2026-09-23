@@ -112,6 +112,13 @@ func (t *BTree) writeInteriorRootAt(dst uint32, children []uint32, seps []leafSp
 		return err
 	}
 	coff := contentOffset(dst)
+	// The rewrite replaces any existing divider cells: release their
+	// overflow chains first.
+	if old, perr := storage.ParsePage(pg.Data, int(t.pageSize), coff); perr == nil && old.CellCount > 0 && !t.isTable {
+		if ferr := t.freeInteriorDividerChains(pg, old); ferr != nil {
+			return ferr
+		}
+	}
 	for i := range pg.Data {
 		pg.Data[i] = 0
 	}
@@ -123,7 +130,10 @@ func (t *BTree) writeInteriorRootAt(dst uint32, children []uint32, seps []leafSp
 	cellCount := uint16(0)
 	contentStart := int(t.pageSize)
 	if len(seps) > 0 {
-		cellData := t.encodeDividerCell(children[0], seps[0])
+		cellData, derr := t.encodeDividerCell(children[0], seps[0], dst)
+		if derr != nil {
+			return derr
+		}
 		contentStart = int(t.pageSize) - len(cellData)
 		copy(pg.Data[contentStart:], cellData)
 		cellCount = 1
@@ -165,7 +175,10 @@ func (t *BTree) createInteriorRoot(leftChild uint32, divider leafSplitResult, ri
 	}
 
 	// One cell: {leftChild, divider}
-	cellData := t.encodeDividerCell(leftChild, divider)
+	cellData, err := t.encodeDividerCell(leftChild, divider, rootPg.PageNum)
+	if err != nil {
+		return nil, err
+	}
 	cellStart := int(t.usableSize) - len(cellData)
 	copy(rootPg.Data[cellStart:], cellData)
 	// Full header rewrite: the allocated root may be a cached buffer from
@@ -241,7 +254,10 @@ func (t *BTree) createInteriorRootAtPage1(divider leafSplitResult, rightChild ui
 	for i := rootCoff + 1; i < int(t.pageSize); i++ {
 		pg1.Data[i] = 0
 	}
-	cellData := t.encodeDividerCell(newLeft.PageNum, divider)
+	cellData, err := t.encodeDividerCell(newLeft.PageNum, divider, 1)
+	if err != nil {
+		return nil, err
+	}
 	cellStart := int(t.pageSize) - len(cellData)
 	copy(pg1.Data[cellStart:], cellData)
 	binary.BigEndian.PutUint16(pg1.Data[rootCoff+cellPtrOffset(pg1.Data[rootCoff]):], uint16(cellStart))
