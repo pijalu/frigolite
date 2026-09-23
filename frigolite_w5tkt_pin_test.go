@@ -3,6 +3,8 @@ package frigolite_test
 
 import (
 	"bytes"
+	"crypto/md5"
+	"encoding/hex"
 	"fmt"
 	"strconv"
 	"strings"
@@ -226,5 +228,47 @@ func TestW5Sort5LargeCTESort(t *testing.T) {
 		if bytes.Compare(a, b) > 0 {
 			t.Fatalf("row %d out of order", k)
 		}
+	}
+}
+
+// func.test contracts fixed for FULL-SUITE-DRIFT.T30-tkt2: md5sum hashes all
+// arguments per row; group_concat(X, NULL) concatenates with no separator;
+// abs(text) is REAL 0.0; randomblob(n<1) yields 1 byte; trim(X, NULL) is NULL.
+func TestW5FuncContracts(t *testing.T) {
+	db, err := frigolite.Open(":memory:")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer db.Close()
+	if r := db.Exec(`CREATE TABLE tbl1(t1 text); INSERT INTO tbl1 VALUES('this'),('program'),('is'),('free'),('software')`); r.Error != nil {
+		t.Fatal(r.Error)
+	}
+	cases := []struct {
+		q, want string
+	}{
+		{`SELECT group_concat(t1,NULL) FROM tbl1`, "thisprogramisfreesoftware"},
+		{`SELECT group_concat(t1) FROM tbl1`, "this,program,is,free,software"},
+		{`SELECT abs(t1) FROM tbl1`, "0 0 0 0 0"},
+		{`SELECT typeof(abs(t1)) FROM tbl1`, "real real real real real"},
+		{`SELECT length(randomblob(-5))`, "1"},
+		{`SELECT typeof(trim('hello',NULL))`, "null"},
+		{`SELECT trim('hello','')`, "hello"},
+	}
+	for _, tc := range cases {
+		r := db.Query(tc.q)
+		if r.Error != nil {
+			t.Errorf("%s: %v", tc.q, r.Error)
+			continue
+		}
+		if got := flattenRows(r.Rows); got != tc.want {
+			t.Errorf("%s\n  got:  %s\n  want: %s", tc.q, got, tc.want)
+		}
+	}
+	// md5sum digest cross-checked against the Go md5 of the exact string.
+	r := db.Query(`SELECT md5sum(t1,'/1') FROM tbl1`)
+	sum := fmt.Sprintf("%v", r.Rows[0][0])
+	h := md5.Sum([]byte("this/1program/1is/1free/1software/1"))
+	if sum != hex.EncodeToString(h[:]) {
+		t.Errorf("md5sum digest: got %s want %x", sum, h)
 	}
 }

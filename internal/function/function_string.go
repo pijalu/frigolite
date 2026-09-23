@@ -85,7 +85,14 @@ func fnTRIM(args []interface{}) (interface{}, error) {
 	if args[0] == nil {
 		return nil, nil
 	}
-	if len(args) > 1 && args[1] != nil {
+	if len(args) > 1 {
+		// A NULL trim-set makes trim() return NULL (func.c trimFunc: when
+		// sqlite3_value_text(argv[1]) is NULL the function returns without
+		// setting a result — func-22.22: typeof(trim('hello',NULL)) is
+		// "null").
+		if args[1] == nil {
+			return nil, nil
+		}
 		return sqliteTrim(toString(args[0]), toString(args[1]), "both"), nil
 	}
 	return strings.TrimSpace(toString(args[0])), nil

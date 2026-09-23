@@ -255,4 +255,20 @@ func (tp *transpiler) processSqlite3CreateAggregate(args []tcl.RawWord) {
 	tp.emitLine("\t\t\t},")
 	tp.emitLine("\t\t}")
 	tp.emitLine("\t}, 0, 1)")
+	// test1.c test_create_aggregate ALSO registers legacy_count (the
+	// deprecated sqlite3_aggregate_count() test aggregate): a 0-argument
+	// aggregate returning the number of rows stepped (func-23.1
+	// "SELECT legacy_count() FROM t6" == 3).
+	tp.emitLine("\tdb.RegisterAggregate(\"legacy_count\", func() frigolite.AggregateFunction {")
+	tp.emitLine("\t\tstate := struct{ n int }{}")
+	tp.emitLine("\t\treturn &frigolite.AggregateFuncs{")
+	tp.emitLine("\t\t\tStepFn: func(args []interface{}) error {")
+	tp.emitLine("\t\t\t\tstate.n++")
+	tp.emitLine("\t\t\t\treturn nil")
+	tp.emitLine("\t\t\t},")
+	tp.emitLine("\t\t\tFinalFn: func() (interface{}, error) {")
+	tp.emitLine("\t\t\t\treturn state.n, nil")
+	tp.emitLine("\t\t\t},")
+	tp.emitLine("\t\t}")
+	tp.emitLine("\t}, 0, 0)")
 }
