@@ -73,56 +73,79 @@ func cellSizeCheckAt(pageData []byte, pc int, pageSize int, pageType byte) (int,
 	}
 	switch pageType {
 	case PageTypeLeafTable:
-		// Payload-size varint + rowid varint + local payload (+ 4-byte
-		// overflow pointer).
-		_, n1 := util.GetVarint(pageData[pc:])
-		if pc+n1 >= len(pageData) {
-			return 0, fmt.Errorf("storage: truncated cell")
-		}
-		_, n2 := util.GetVarint(pageData[pc+n1:])
-		if n1 < 1 || n2 < 1 {
-			return 0, fmt.Errorf("storage: truncated cell")
-		}
-		plen, _ := util.GetVarint(pageData[pc:])
-		local := LocalPayloadSize(int(plen), pageSize, CellTableLeaf)
-		sz := n1 + n2 + local
-		if local < int(plen) {
-			sz += 4
-		}
-		return sz, nil
+		return tableLeafCellSize(pageData[pc:], pageSize)
 	case PageTypeInteriorTable:
-		// 4-byte left-child pointer + rowid varint.
-		_, n := util.GetVarint(pageData[pc+4:])
-		if n < 1 {
-			return 0, fmt.Errorf("storage: truncated cell")
-		}
-		return 4 + n, nil
+		return tableInteriorCellSize(pageData[pc:])
 	case PageTypeLeafIndex:
-		// Payload-size varint + local payload (+ 4-byte overflow pointer).
-		plen, n := util.GetVarint(pageData[pc:])
-		if n < 1 {
-			return 0, fmt.Errorf("storage: truncated cell")
-		}
-		local := LocalPayloadSize(int(plen), pageSize, CellIndexLeaf)
-		sz := n + local
-		if local < int(plen) {
-			sz += 4
-		}
-		return sz, nil
+		return indexLeafCellSize(pageData[pc:], pageSize)
 	case PageTypeInteriorIndex:
-		// 4-byte left-child pointer + payload-size varint + local payload
-		// (+ 4-byte overflow pointer).
-		plen, n := util.GetVarint(pageData[pc+4:])
-		if n < 1 {
-			return 0, fmt.Errorf("storage: truncated cell")
-		}
-		local := LocalPayloadSize(int(plen), pageSize, CellIndexInterior)
-		sz := 4 + n + local
-		if local < int(plen) {
-			sz += 4
-		}
-		return sz, nil
+		return indexInteriorCellSize(pageData[pc:], pageSize)
 	default:
 		return 0, fmt.Errorf("storage: unknown page type 0x%02x", pageType)
 	}
+}
+
+// tableLeafCellSize sizes a table-leaf cell: payload-size varint + rowid
+// varint + local payload (+ 4-byte overflow pointer).
+func tableLeafCellSize(cell []byte, pageSize int) (int, error) {
+	plen, n1 := util.GetVarint(cell)
+	if n1 < 1 || n1 >= len(cell) {
+		return 0, fmt.Errorf("storage: truncated cell")
+	}
+	_, n2 := util.GetVarint(cell[n1:])
+	if n2 < 1 {
+		return 0, fmt.Errorf("storage: truncated cell")
+	}
+	local := LocalPayloadSize(int(plen), pageSize, CellTableLeaf)
+	sz := n1 + n2 + local
+	if local < int(plen) {
+		sz += 4
+	}
+	return sz, nil
+}
+
+// tableInteriorCellSize sizes a table-interior cell: 4-byte left-child
+// pointer + rowid varint.
+func tableInteriorCellSize(cell []byte) (int, error) {
+	if len(cell) <= 4 {
+		return 0, fmt.Errorf("storage: truncated cell")
+	}
+	_, n := util.GetVarint(cell[4:])
+	if n < 1 {
+		return 0, fmt.Errorf("storage: truncated cell")
+	}
+	return 4 + n, nil
+}
+
+// indexLeafCellSize sizes an index-leaf cell: payload-size varint + local
+// payload (+ 4-byte overflow pointer).
+func indexLeafCellSize(cell []byte, pageSize int) (int, error) {
+	plen, n := util.GetVarint(cell)
+	if n < 1 {
+		return 0, fmt.Errorf("storage: truncated cell")
+	}
+	local := LocalPayloadSize(int(plen), pageSize, CellIndexLeaf)
+	sz := n + local
+	if local < int(plen) {
+		sz += 4
+	}
+	return sz, nil
+}
+
+// indexInteriorCellSize sizes an index-interior cell: 4-byte left-child
+// pointer + payload-size varint + local payload (+ 4-byte overflow pointer).
+func indexInteriorCellSize(cell []byte, pageSize int) (int, error) {
+	if len(cell) <= 4 {
+		return 0, fmt.Errorf("storage: truncated cell")
+	}
+	plen, n := util.GetVarint(cell[4:])
+	if n < 1 {
+		return 0, fmt.Errorf("storage: truncated cell")
+	}
+	local := LocalPayloadSize(int(plen), pageSize, CellIndexInterior)
+	sz := 4 + n + local
+	if local < int(plen) {
+		sz += 4
+	}
+	return sz, nil
 }

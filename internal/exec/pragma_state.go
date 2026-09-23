@@ -81,28 +81,12 @@ func (e *Engine) PageSize(schema, value string) *execpragma.Result {
 // applied when the transaction ends, matching SQLite (test/jrnlmode3.c 3.3/3.5).
 //
 // pragma.c PragTyp_JOURNAL_MODE emits OP_JournalMode for EVERY database with
-// a materialized btree when the pragma has no schema qualifier
-// (ii==iDb || pId2->n==0, iterating db->nDb-1..0) — but each opcode writes
-// the SAME result register and ONE OP_ResultRow follows the loop, so the
-// statement returns a single row: MAIN's resulting mode (ii=0 runs last).
-// The TEMP btree participates once materialized (aDb[1].pBt; any pragma
-// naming temp opens it — pragma.c:457 sqlite3OpenTempDatabase).
+// a materialized btree when the pragma has no schema qualifier, but the
+// statement returns a single row: MAIN's resulting mode (see
+// journalModeSetAll).
 func (e *Engine) JournalMode(schema, value string) *execpragma.Result {
 	if schema == "" && value != "" {
-		for i := len(e.dbList) - 1; i >= 0; i-- {
-			ctx := e.dbList[i]
-			if ctx == nil || ctx.Pager == nil {
-				continue
-			}
-			upper := strings.ToUpper(ctx.Name)
-			if (upper == "TEMP" || upper == "TEMPORARY") && !e.tempBtreeOpen && !e.hasTempTables() {
-				continue // lazy aDb[1].pBt: no btree materialized
-			}
-			if strings.EqualFold(ctx.Name, "main") {
-				continue // main is applied LAST below (its result is returned)
-			}
-			_ = e.setJournalMode(ctx, ctx.Name, strings.ToLower(strings.TrimSpace(value)))
-		}
+		e.journalModeSetAll(strings.ToLower(strings.TrimSpace(value)))
 	}
 	ctx := e.pragmaDBCtx(schema)
 	if ctx == nil || ctx.Pager == nil {
@@ -115,6 +99,30 @@ func (e *Engine) JournalMode(schema, value string) *execpragma.Result {
 		return e.setJournalMode(ctx, schema, strings.ToLower(strings.TrimSpace(value)))
 	}
 	return journalModeResult(ctx.Pager.JournalMode())
+}
+
+// journalModeSetAll applies an unqualified PRAGMA journal_mode assignment to
+// every materialized database except main (pragma.c PragTyp_JOURNAL_MODE's
+// ii==iDb || pId2->n==0 loop, iterating db->nDb-1..0; each opcode writes the
+// SAME result register and ONE OP_ResultRow follows the loop, so the caller
+// returns MAIN's resulting mode — main is applied last by JournalMode). The
+// TEMP btree participates once materialized (aDb[1].pBt; any pragma naming
+// temp opens it — pragma.c:457 sqlite3OpenTempDatabase).
+func (e *Engine) journalModeSetAll(m string) {
+	for i := len(e.dbList) - 1; i >= 0; i-- {
+		ctx := e.dbList[i]
+		if ctx == nil || ctx.Pager == nil {
+			continue
+		}
+		upper := strings.ToUpper(ctx.Name)
+		if (upper == "TEMP" || upper == "TEMPORARY") && !e.tempBtreeOpen && !e.hasTempTables() {
+			continue // lazy aDb[1].pBt: no btree materialized
+		}
+		if strings.EqualFold(ctx.Name, "main") {
+			continue // main is applied LAST by the caller (its result is returned)
+		}
+		_ = e.setJournalMode(ctx, ctx.Name, m)
+	}
 }
 
 // journalModeResult echoes a journal mode as the pragma's single-cell row
@@ -199,42 +207,9 @@ func (e *Engine) LockingMode(schema, value string) *execpragma.Result {
 	switch m {
 	case "normal", "exclusive":
 		if schema == "" {
-			// No schema: set every database except temp (pragma.c ii=2..nDb
-			// loop) and the connection default for future ATTACHes.
-			e.lockingMode = m
-			for _, dbCtx := range e.dbList {
-				e.setSchemaLockingMode(dbCtx.Name, m)
-			}
-			// WAL parity (wal.c walLockShared/walLockExclusive): in
-			// locking_mode=EXCLUSIVE the shm lock calls become no-ops.
-			for _, dbCtx := range e.dbList {
-				if dbCtx != nil && dbCtx.Pager != nil {
-					dbCtx.Pager.SetWALExclusiveMode(m == "exclusive")
-				}
-			}
-			if m == "normal" {
-				// Reverting to normal releases the never-unlocked SHARED
-				// locks held in exclusive mode (pager.c drops back to
-				// unlock-at-transaction-end).
-				e.clearPersistentShared()
-			}
+			e.lockingModeSetAll(m)
 		} else {
-			// Schema-qualified set: only that pager (pragma.c pId2->n!=0
-			// branch); dfltLockMode is untouched. TEMP refuses the set.
-			upper := strings.ToUpper(schema)
-			settable := upper != "TEMP" && upper != "TEMPORARY"
-			if settable {
-				e.setSchemaLockingMode(upper, m)
-				if ctx := e.GetDB(upper); ctx != nil && ctx.Pager != nil {
-					ctx.Pager.SetWALExclusiveMode(m == "exclusive")
-				}
-				if m == "normal" && upper == "MAIN" {
-					// Reverting MAIN to normal releases the never-unlocked
-					// SHARED locks held in exclusive mode (pager.c drops
-					// back to unlock-at-transaction-end).
-					e.clearPersistentShared()
-				}
-			}
+			e.lockingModeSetOne(schema, m)
 		}
 	default:
 		// Unrecognised token: leave the current mode unchanged (no error),
@@ -243,6 +218,50 @@ func (e *Engine) LockingMode(schema, value string) *execpragma.Result {
 		// just the current value).
 	}
 	return &execpragma.Result{Rows: [][]interface{}{{e.currentLockingMode(schema)}}}
+}
+
+// lockingModeSetAll applies an unqualified PRAGMA locking_mode = X: every
+// database except temp (pragma.c ii=2..nDb loop) and the connection default
+// for future ATTACHes.
+func (e *Engine) lockingModeSetAll(m string) {
+	e.lockingMode = m
+	for _, dbCtx := range e.dbList {
+		e.setSchemaLockingMode(dbCtx.Name, m)
+	}
+	// WAL parity (wal.c walLockShared/walLockExclusive): in
+	// locking_mode=EXCLUSIVE the shm lock calls become no-ops.
+	for _, dbCtx := range e.dbList {
+		if dbCtx != nil && dbCtx.Pager != nil {
+			dbCtx.Pager.SetWALExclusiveMode(m == "exclusive")
+		}
+	}
+	if m == "normal" {
+		// Reverting to normal releases the never-unlocked SHARED
+		// locks held in exclusive mode (pager.c drops back to
+		// unlock-at-transaction-end).
+		e.clearPersistentShared()
+	}
+}
+
+// lockingModeSetOne applies a schema-qualified PRAGMA <db>.locking_mode = X:
+// only that pager (pragma.c pId2->n!=0 branch); dfltLockMode is untouched.
+// TEMP refuses the set.
+func (e *Engine) lockingModeSetOne(schema, m string) {
+	upper := strings.ToUpper(schema)
+	settable := upper != "TEMP" && upper != "TEMPORARY"
+	if !settable {
+		return
+	}
+	e.setSchemaLockingMode(upper, m)
+	if ctx := e.GetDB(upper); ctx != nil && ctx.Pager != nil {
+		ctx.Pager.SetWALExclusiveMode(m == "exclusive")
+	}
+	if m == "normal" && upper == "MAIN" {
+		// Reverting MAIN to normal releases the never-unlocked
+		// SHARED locks held in exclusive mode (pager.c drops
+		// back to unlock-at-transaction-end).
+		e.clearPersistentShared()
+	}
 }
 
 // setSchemaLockingMode records the per-schema locking mode. The TEMP

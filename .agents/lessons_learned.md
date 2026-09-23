@@ -4,6 +4,35 @@
 - P6.VTAB zipfile: statement-level OR conflict handling must be delegated to module xUpdate semantics when uniqueness key is non-rowid. Added optional ConflictAwareUpdater path in execdml; zipfile UpdateRowConflict handles IGNORE/REPLACE against name collisions. Generic delete/retry cannot identify zipfile name-keyed conflicts.
 # Lessons Learned — Frigolite
 
+## W6-KERNEL-RESUME — resuming a dead agent's WIP tranche (2026-09-23)
+
+- **Resume protocol that worked**: diff `main..fleet/w6-kernel` per commit — the
+  predecessor's WORK was the committed tranche e8386a9e2 (18/18 kernel singles);
+  the "16 files of engine work" in WIP commit 6eb865e53 targeted OTHER clusters
+  (pragma-6.x pk ordinals, vacuum header metas, trigger3/6 RAISE undo scope,
+  legacy alter rename, csv declared types, tx read-lock marks). Adjudicate WIP
+  per file against YOUR package list, not against the branch name. The WIP stays
+  on fleet/w6-kernel for its owning clusters — do not merge wholesale.
+- **Cherry-pick conflict policy across a fast-moving main**: when base evolved a
+  DIFFERENT implementation of the same feature (T30-wal per-schema locking_mode
+  vs the pick's DatabaseContext.LockingMode), keep BASE's implementation and
+  graft only the missing handlers (SoftHeapLimit + its registry entry). Verify
+  the covered package at base FIRST (exclusive was already green) so the choice
+  is evidence-based, not preference.
+- **Guard-parity measurement for pre-existing residues**: autovacuum's
+  "Page N never used" class fails identically (80 result mismatches) at base and
+  post-pick — count mismatches, not just package exit codes, in a throwaway
+  worktree at the base commit.
+- **Quality gates after adopting foreign work**: the pick pushed engine.go to
+  1009 and skiptests2_part2.go to 1429 lines (hard max 1000) and added a
+  gocognit-20 function. Fix by SPLITTING cohesive sections into new files
+  (engine_limits.go, engine_raise_check.go, skiptests2_part3.go with its own
+  init-merge) — never by deleting comments/tests. Pre-existing violations
+  (metrics identical at base) are documented, not re-churned.
+- **go1.27 gofmt -l flags dozens of untouched repo files** (comment-quote
+  "normalization" of ASCII apostrophes in comments). Repo-wide toolchain
+  artifact, not a gate (quality_gate.sh has no gofmt step) — do not reformat.
+
 ## P9.PERF.T3 — index-seek infrastructure (2026-09-22, fleet agent Q5-BTREESEEK)
 
 - **Byte order groups records by serial-type MAGNITUDE first — value-equal
