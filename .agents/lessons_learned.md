@@ -8502,3 +8502,32 @@ regenerated; suite net −2274 fails vs pre-tranche baseline (7230 → ~4950).
   VACUUM bump site must match); autovacuum (80 integrity_check "Page N
   never used" mismatches under the full delete-order matrix — auto-vacuum
   page accounting; unchanged from baseline).
+## FULL-SUITE-DRIFT.T31-pinfix — root-package pin regressions (2026-09-23, branch fleet/pinfix)
+
+- **Merge resolutions that pick one side of a two-sided function change are the
+  top pin-regression source.** Both engine pins broke AT a merge commit, not on
+  a branch: (a) f2f0be9aa (w5-query merge) kept main-side cbdbe7331's
+  `resolveOrderByOrdinalTerms` (ordinal→ColumnRef rewrite in sortRowsWithMaps)
+  AND w5-query's `applyCompoundOrderByCollations` (installs the compound column
+  collation as a COLLATE node on those ordinals) — the rewrite stripped the
+  wrapper, so compound merged rows sorted BINARY (TestCompoundOrderPin). Fix:
+  the rewrite skips terms carrying an explicit COLLATE (resolve.c
+  resolveCompoundOrderBy converts a resolved term to an integer column number
+  "taking care to preserve the COLLATE clause"). (b) 301800e18 (w6-misc merge)
+  REPLACED lockStatusFor's `tx.readDbs` branch (backup-8.9 read-in-transaction
+  SHARED) with main's `lockreg.ReadTxHeld` branch (lock-7.2 prepared-read
+  SHARED) — the mark path (noteStmtReadLock/clearReservedDbs) survived but
+  nothing read the map. Fix: restore both branches; both are pager.c truths
+  (explicit-txn read holds SHARED until COMMIT/ROLLBACK; a stepped-unreset
+  prepared SELECT holds SHARED while mid-run). Method: test a failing pin at
+  merge^1 and merge^2 separately — pass@parent + fail@merge = merge-resolution
+  bug; and a map that is written but never read is the tell for (b).
+- **A pin can pin stale engine behavior; the oracle arbitrates.**
+  TestP5ExplainEqpSubqueries' "CORRELATED SCALAR SUBQUERY 1" expectation
+  predated 3.54's EXISTS-to-join fold (w5-query 57a96082e, oracle-verified
+  there). C 3.54 emits NO parent line for a top-level correlated EXISTS
+  conjunct: "SCAN t1 / SEARCH t2 EXISTS USING AUTOMATIC PARTIAL COVERING INDEX
+  (a=?)" — its BLOOM FILTER line is compile-flag/cost-heuristic dependent, NOT
+  a stable contract. Non-top-level EXISTS (under OR) and NOT EXISTS keep
+  "CORRELATED SCALAR SUBQUERY n". When a pin contradicts /usr/bin/sqlite3,
+  update the pin (citing the oracle), never the engine.
