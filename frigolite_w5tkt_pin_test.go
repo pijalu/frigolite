@@ -2,6 +2,7 @@
 package frigolite_test
 
 import (
+	"strconv"
 	"testing"
 
 	"github.com/pijalu/frigolite"
@@ -110,5 +111,44 @@ func TestW5Tkt4018SecondConnLock(t *testing.T) {
 	}
 	if got := flattenRows(db.Query(`SELECT * FROM t1 ORDER BY a`).Rows); got != "3 4" {
 		t.Errorf("rows: got %s want 3 4", got)
+	}
+}
+
+// tkt-38cb5df375 51.x: the engine contract — EXCEPT over ORDER BY/LIMIT
+// subqueries with a trailing ORDER BY DESC + LIMIT — plus the TCL lrange
+// expectation shape the regenerated corpus relies on (lrange with a
+// negative end index yields the empty list).
+func TestW5Tkt38cb5df375ExceptLimit(t *testing.T) {
+	db, err := frigolite.Open(":memory:")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer db.Close()
+	if r := db.Exec(`CREATE TABLE t1(a); INSERT INTO t1 VALUES(1); INSERT INTO t1 VALUES(2);
+		INSERT INTO t1 SELECT a+2 FROM t1; INSERT INTO t1 SELECT a+4 FROM t1`); r.Error != nil {
+		t.Fatal(r.Error)
+	}
+	for ii := 1; ii <= 7; ii++ {
+		jj := 7 - ii
+		q := `SELECT a FROM (SELECT * FROM t1 ORDER BY a)
+		      EXCEPT SELECT a FROM (SELECT a FROM t1 ORDER BY a LIMIT ` + strconv.Itoa(ii) + `)
+		      ORDER BY a DESC LIMIT ` + strconv.Itoa(jj)
+		r := db.Query(q)
+		if r.Error != nil {
+			t.Fatalf("ii=%d: %v", ii, r.Error)
+		}
+		wantN := 8 - ii // rows left after EXCEPT, cut to LIMIT jj (= 7-ii, min with 8-ii)
+		if wantN > jj {
+			wantN = jj
+		}
+		if len(r.Rows) != wantN {
+			t.Errorf("ii=%d: got %d rows, want %d (%v)", ii, len(r.Rows), wantN, r.Rows)
+		}
+		for k, row := range r.Rows {
+			wantVal := int64(8 - k)
+			if v, ok := row[0].(int64); !ok || v != wantVal {
+				t.Errorf("ii=%d row %d: got %v want %d", ii, k, row[0], wantVal)
+			}
+		}
 	}
 }
