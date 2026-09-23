@@ -449,6 +449,25 @@ func emitTestPreamble(body *strings.Builder, base string, src string, preDeclare
 	body.WriteString("\t\tt.Fatal(err)\n")
 	body.WriteString("\t}\n")
 	body.WriteString("\tdefer db.Close()\n\n")
+	// SQLite's test build auto-installs the test_func.c extension functions
+	// into EVERY connection (sqlite3_auto_extension registerTestFunctions).
+	// Generated tests reference them in catchsql/execsql bodies (func 15.x
+	// test_error, 25.1 test_isolation), so register them at connection
+	// setup with the oracle's semantics.
+	body.WriteString("\t// auto-installed test-extension functions (src/test_func.c)\n")
+	body.WriteString("\tdb.RegisterFunction(\"test_error\", func(args []interface{}) (interface{}, error) {\n")
+	body.WriteString("\t\tmsg := \"\"\n")
+	body.WriteString("\t\tif len(args) > 0 && args[0] != nil {\n")
+	body.WriteString("\t\t\tmsg = fmt.Sprintf(\"%v\", args[0])\n")
+	body.WriteString("\t\t}\n")
+	body.WriteString("\t\treturn nil, fmt.Errorf(\"%s\", msg)\n")
+	body.WriteString("\t}, 1, 2)\n")
+	body.WriteString("\tdb.RegisterFunction(\"test_isolation\", func(args []interface{}) (interface{}, error) {\n")
+	body.WriteString("\t\tif len(args) < 2 {\n")
+	body.WriteString("\t\t\treturn nil, nil\n")
+	body.WriteString("\t\t}\n")
+	body.WriteString("\t\treturn args[1], nil\n")
+	body.WriteString("\t}, 2, 2)\n\n")
 	// fts3expr.test's section 6 re-CREATEs t1 (already created by section 4)
 	// assuming a per-section fresh database the TCL harness does not
 	// provide; the sequence is only runnable if the earlier table is

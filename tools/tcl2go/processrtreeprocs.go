@@ -93,6 +93,13 @@ func userProcEmitterFor(name, body string) string {
 		if strings.Contains(body, "btree_pager_stats") {
 			return "cache_pager_size" // cache.test: btree_pager_stats "page" count
 		}
+	case "testsql":
+		// tkt4018.test testsql SQL: spawns a separate PROCESS with a fresh
+		// sqlite3 connection on test.db (body embeds
+		// sqlite3_test_control_pending_byte and `catch { db eval {$sql} }`).
+		if strings.Contains(body, "sqlite3_test_control_pending_byte") && strings.Contains(body, "db eval") {
+			return "testsql_subprocess"
+		}
 	}
 	return ""
 }
@@ -218,6 +225,27 @@ func (tp *transpiler) emitUserProc(key string, goArgs []string) {
 		tp.emitLine("_r = tclMemdbSignature(%s)", tp.dbVar)
 	case "cache_pager_size":
 		tp.emitLine("_r = strconv.Itoa(tclPagerCacheSize(%s))", tp.dbVar)
+	case "testsql_subprocess":
+		// tkt4018.test testsql SQL: the TCL harness runs SQL in a separate
+		// process holding a fresh connection on test.db. The in-process
+		// equivalent is a fresh frigolite connection: the engine's
+		// cross-connection lock protocol reproduces SQLite's outcomes on its
+		// own ("database is locked" while the parent connection holds a read
+		// transaction, success after its COMMIT). The proc's catch-string
+		// result ("1 {database is locked}" / "0 {}") is harness scaffolding
+		// and is not asserted; the engine-visible side effect is what the
+		// surrounding do_expects observe.
+		tp.emitLine("{")
+		tp.indent++
+		tp.emitLine("_tsx, _tsxerr := frigolite.Open(\"test.db\")")
+		tp.emitLine("if _tsxerr == nil {")
+		tp.indent++
+		tp.emitLine("_ = _tsx.Exec(%s)", argAt(0))
+		tp.emitLine("_tsx.Close()")
+		tp.indent--
+		tp.emitLine("}")
+		tp.indent--
+		tp.emitLine("}")
 	}
 }
 

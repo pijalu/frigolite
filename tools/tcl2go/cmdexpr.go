@@ -354,6 +354,22 @@ func (tp *transpiler) cmdExpr(cmdText string) string {
 		return `"0"`
 	}
 
+	// [md5 STRING] — the test suite's C-extension md5 command (test/md5.c,
+	// registered as a TCL command in every test through the test build):
+	// returns the lowercase hex MD5 digest of STRING. func.test 24.7 uses it
+	// to build the expected value of md5sum() over many arguments
+	// (set result [md5 "this${midres}program..."]); the harness helper
+	// tclMD5 is the faithful implementation. STRING is rendered through the
+	// string-parts path so ${var} interpolation inside the quoted word
+	// applies (TCL double-quote substitution semantics).
+	if cmdName == "md5" && len(rest) >= 1 {
+		arg := rest[len(rest)-1]
+		if strings.Contains(arg, "$") || strings.Contains(arg, "[") {
+			return fmt.Sprintf("tclMD5(%s)", tp.buildStringExpr(arg))
+		}
+		return fmt.Sprintf("tclMD5(%q)", arg)
+	}
+
 	// [detail_is_none] / [detail_is_col] / [detail_is_full] — fts5_common.tcl
 	// predicates over the foreach_detail_mode loop variable (rendered as the
 	// generated _fdmModeN Go var). Resolved to a runtime "1"/"0" so they
@@ -861,6 +877,13 @@ func (tp *transpiler) cmdExprDb(cmdName, cmdText string, args []string) string {
 			schema = "main"
 		}
 		return fmt.Sprintf("string(tclSerialize(%s, %q))", tp.dbVar, schema)
+	}
+	// [db last_insert_rowid] — the TCL binding of sqlite3_last_insert_rowid.
+	// The SQL function last_insert_rowid() reads the same connection state
+	// (func.c last_insert_rowid is a wrapper around the C API), so translate
+	// the command into a query on the same connection (func.test 7.1).
+	if strings.TrimSpace(rest) == "db last_insert_rowid" {
+		return fmt.Sprintf("tclDbOne(%s, %q)", tp.dbVar, "SELECT last_insert_rowid()")
 	}
 	// [db eval {SQL}] — flattened query result via tclExecSQL.
 	if strings.HasPrefix(rest, "db eval") {

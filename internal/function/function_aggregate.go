@@ -349,9 +349,16 @@ func (g *groupConcatAgg) Step(args []interface{}) error {
 	if len(args) == 0 || args[0] == nil {
 		return nil
 	}
-	sep := ","
+	// One argument uses the default "," separator; an explicit NULL
+	// separator contributes nothing between values (func.c groupConcatStep
+	// appends only the text of the separator argument — NULL text appends
+	// nothing; func-24.5 group_concat(t1,NULL) concatenates with no
+	// separator).
+	sep := ""
 	if len(args) > 1 && args[1] != nil {
 		sep = textOfEncoding(args[1], g.enc)
+	} else if len(args) == 1 {
+		sep = ","
 	}
 	g.values = append(g.values, textOfEncoding(args[0], g.enc))
 	g.seps = append(g.seps, sep)
@@ -386,13 +393,23 @@ type md5sumAgg struct {
 }
 
 func (m *md5sumAgg) Step(args []interface{}) error {
-	if len(args) == 0 || args[0] == nil {
+	if len(args) == 0 {
 		return nil
 	}
+	// Multi-argument calls hash the concatenation of every non-NULL
+	// argument's text, row after row (test_md5.c md5step loops over all
+	// argc values; func.test 24.7 exercises aggregates with hundreds of
+	// arguments through md5sum(t1,'/1',...,'/i')). NULL arguments
+	// contribute nothing but do not stop the loop.
 	if m.h == nil {
 		m.h = md5.New()
 	}
-	io.WriteString(m.h, textOfEncoding(args[0], m.enc))
+	for _, a := range args {
+		if a == nil {
+			continue
+		}
+		io.WriteString(m.h, textOfEncoding(a, m.enc))
+	}
 	return nil
 }
 

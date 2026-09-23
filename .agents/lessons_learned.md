@@ -8502,6 +8502,62 @@ regenerated; suite net −2274 fails vs pre-tranche baseline (7230 → ~4950).
   VACUUM bump site must match); autovacuum (80 integrity_check "Page N
   never used" mismatches under the full delete-order matrix — auto-vacuum
   page accounting; unchanged from baseline).
+
+## T30-tkt2 — tkt/func/randexpr tranche (2026-09-23, fleet agent W5-TKT-RESUME, branch fleet/tkt2)
+
+- **Compound ORDER BY resolution (tkt2822)**: resolve.c resolveCompoundOrderBy
+  tries, PER compound member in order: integer → resolveAsName (AS-aliases
+  ONLY) → resolve-term-against-member-sources then compare to that member's
+  result list. Two traps: (1) within a member an AS-alias beats a same-named
+  source column (tkt2822-3.4); (2) a qualified ref (t6b.x) matches the member
+  whose FROM binds the table. Also: compound sorts are POSITIONAL over merged
+  rows — merged row maps are keyed by OUTPUT names, so rewriting an ordinal
+  term to the leftmost member's source-column name evaluates NULL for every
+  row when an output alias renamed it (silent no-sort). The
+  resolveOrderByOrdinalTerms rewrite is for the SINGLE-select collation path
+  only.
+- **UPDATE after ALTER ADD COLUMN (tkt3992)**: rows written before ADD COLUMN
+  are short; the UPDATE row image must materialize added-column DEFAULTs like
+  reads do (OP_Column), else writeUpdateCell permanently stores NULL.
+- **tcl2go**: `testsql` (tkt4018, separate-process INSERT) now emits a fresh
+  in-process frigolite.Open("test.db") exec+close — engine's cross-connection
+  lock protocol reproduces "database is locked"/success on its own.
+  tclLRange: TCL lrange with a NEGATIVE numeric end yields the EMPTY list
+  (end < start), verified with tclsh — do not clamp negative ends to
+  len-1. `[md5 X]` (test/md5.c C-extension command) now emits tclMD5 with
+  ${var} interpolation; gen.go preamble registers test_error/test_isolation;
+  sqlite3_create_aggregate also registers legacy_count; [db
+  last_insert_rowid] → SELECT last_insert_rowid() on the same connection.
+- **Function fidelity**: md5sum hashes ALL arguments per row (test_md5.c
+  md5step loops argc; first-arg-only silently ignores the rest — func.test
+  24.7's 126 failures). abs(text) → REAL 0.0; randomblob(n<1) → 1 byte;
+  trim(X,NULL) → NULL; group_concat(X,NULL) → no separator (NULL sep appends
+  nothing).
+- **randexpr1 UNFIXED — root cause narrowed to one predicate**: the failing
+  shape is "SELECT (subquery containing a nested aggregate subquery) FROM t1
+  WHERE <false>" emitting ONE row instead of none. Trace: outer scan
+  correctly returns 0 rows, but execSelectPostScan's
+  execSelectCorrelatedAgg branch fires first: hasSubqueryWithCorrelatedAgg →
+  selectHasCorrelatedAggSubquery → selectFromAggRefsOuterOnly returns TRUE
+  at the INNERMOST level (FROM=t1, cols=max(a)*max(a)) because
+  aggRefsMatchFromTable fails to match `a` against t1's columns in the
+  NESTED execution context (standalone it matches), then the
+  len(allRowMaps)==0 branch fabricates a single output row from an empty
+  scan. Next agent: probe fromRefColumnNames/e.ctx.Schema().FindTable and
+  aggRefsMatchFromTable inside nested execution; the collapse predicate must
+  return false for uncorrelated nested aggregates. Verify against aggnested
+  1.1/1.3 (the collapse IS correct when the aggregate references columns not
+  in the subquery's own FROM).
+- **tkt_78e04e52ea UNFIXED — planner "" sentinel**: CREATE INDEX "" ON
+  t2(x) is legal; every planner chooser uses "" as the not-found sentinel
+  (findIndexOnColsForQuery, bestIndexForQuery, indexCoversCols, joinScanNode,
+  indexScanOrderIndex, orderByIndexRowidTie), so an empty-named index is
+  invisible and EQP shows SCAN. Fix needs a found-signal (sentinel name or
+  entry-based identity) plumbed through ~12 chooser/render/resolve sites
+  (indexUsingLabel must render the empty name → "COVERING INDEX  (x=?)"
+  double space; stat1Tokens/indexColumns/indexColumnCollation resolve by
+  name and need the mapping back). Engine data correctness is unaffected.
+
 ## FULL-SUITE-DRIFT.T31-pinfix — root-package pin regressions (2026-09-23, branch fleet/pinfix)
 
 - **Merge resolutions that pick one side of a two-sided function change are the
