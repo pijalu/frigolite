@@ -58,3 +58,31 @@ Full list in `tools/status/ledger.json` (fail states). Big classes:
   veto rollback, interrupted COMMIT, lock shared-read contract,
   journal_size_limit −1 default); trans adjudicated: index-key-order row
   emission (planner goal, pairs with PERF.T4).
+
+## Session continuation (single-agent, 2026-09-23)
+
+Landed:
+- fleet/w5-fts3 (merged 160952782): MATCH legacy precedence, porter
+  copy_stemmer — 8/8 fts cluster green with the fts3b merge.
+- fleet/w6-misc (merged 301800e18): pragma schema_version setter +
+  VACUUM schema-cookie = pre+1 (pragma-8.2.4), FREELIST_COUNT
+  schema-qualified handler, csv/vtab_shared emitter sync — 11/16 green.
+- collate6-1.3 fixed: trigger NEW/OLD rows now carry declared column
+  collations (wrapTriggerRowValue) — WHEN comparisons honor NOCASE;
+  body writes stay raw (collate6/trigger1/temptrigger/fts5connect green).
+
+Still open (resume order):
+1. reindex + collate1/5/8 + minmax3 + index: ONE root cause — index-key
+   MAINTENANCE ignores declared column collations (insert/REINDEX build
+   binary-ordered keys), so ORDER BY over a declared-collation PK index
+   returns binary order. Fix = KeyInfo-aware index compare using
+   internal/btree/btree_keyinfo.go (PERF.T3 comparator — the seam exists,
+   IndexRecordCompare already handles collations); wire into index insert
+   + REINDEX with oracle-verified round-trip.
+2. unionall (532/570: extra [2 2 0 {}] rows), backup (2.3s fail),
+   e_fkey (residue), autovacuum (integrity_check "Page N never used"
+   after VACUUM+autovacuum churn).
+3. w5-tkt WIP branch: tkt/misc/collate triage in progress.
+4. w6-kernel WIP branch: 16 files of kernel fixes, build unverified.
+5. Planner goal: index-key-order row emission for SEARCH plans
+   (trans-6.21..6.30, index(7)) — pairs with PERF.T4 value-ordered keys.
