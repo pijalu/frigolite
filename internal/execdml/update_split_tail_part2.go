@@ -80,6 +80,14 @@ func mergeRowMaps(base, fr RowMap) RowMap {
 
 func (e *DMLExecutor) buildUpdateChange(cell *storage.Cell, rec *storage.Record, colIndex map[string]int, colDefs []sql.ColumnDef, s *sql.UpdateStmt, row Row, deferSetEval bool) (*updateChange, error) {
 	values, oldValues := updateChangeValueSlots(rec, colIndex)
+	// Rows written before ALTER TABLE ADD COLUMN are shorter than the column
+	// list; reads materialize the added columns' DEFAULT (OP_Column supplies
+	// the default for a missing trailing column), and the UPDATE's row image
+	// must see the same values — otherwise the pre-update record slots carry
+	// NULL and writeUpdateCell permanently stores NULL into the added column
+	// (tkt3992-2.2: UPDATE after ADD COLUMN c DEFAULT 3 turned c into NULL).
+	e.applyUpdateColumnDefaults(values, colDefs, len(rec.Values))
+	e.applyUpdateColumnDefaults(oldValues, colDefs, len(rec.Values))
 	ch := &updateChange{rowID: cell.RowID, oldValues: oldValues}
 	if deferSetEval {
 		// Defer SET evaluation to the apply loop (per-row interleaving). The
@@ -189,6 +197,29 @@ func updateChangeValueSlots(rec *storage.Record, colIndex map[string]int) ([]int
 	oldValues := make([]interface{}, len(rec.Values))
 	copy(oldValues, rec.Values)
 	return values, oldValues
+}
+
+// applyUpdateColumnDefaults fills the added-column DEFAULT values into an
+// UPDATE row image read from a record shorter than the table's column list
+// (rows written before ALTER TABLE ADD COLUMN). Mirrors the read path's
+// applyColumnDefaults: only columns beyond the stored record's value count
+// are defaulted — a column present in the record, even as NULL, keeps its
+// stored value — and the column's declared affinity is applied. The row
+// image must match what a SELECT would return (OP_Column materializes the
+// default for a missing trailing column), or the rewritten cell would
+// permanently NULL the added column (tkt3992-2.2).
+func (e *DMLExecutor) applyUpdateColumnDefaults(values []interface{}, colDefs []sql.ColumnDef, recordValueCount int) {
+	for i := recordValueCount; i < len(colDefs) && i < len(values); i++ {
+		cd := &colDefs[i]
+		if cd.Default == nil || cd.Dropped {
+			continue
+		}
+		dv, err := e.evalDefaultExpr(cd.Default, cd.Name)
+		if err != nil {
+			continue
+		}
+		values[i] = util.ApplyColumnAffinity(dv, cd.Type)
+	}
 }
 
 // evalRowIDAssignment evaluates a SET rowid/_rowid_/oid assignment, returning

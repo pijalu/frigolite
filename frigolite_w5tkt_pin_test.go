@@ -48,3 +48,33 @@ func TestW5Tkt2822CompoundOrderByAlias(t *testing.T) {
 		}
 	}
 }
+
+// tkt3992-2.2: UPDATE after ALTER TABLE ADD COLUMN c DEFAULT 3 must keep the
+// added column's default (OP_Column materializes it; the rewritten cell must
+// not store NULL).
+func TestW5Tkt3992UpdateAfterAddColumn(t *testing.T) {
+	db, err := frigolite.Open(":memory:")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer db.Close()
+	for _, s := range []string{
+		`CREATE TABLE t1(a, b)`,
+		`INSERT INTO t1 VALUES(1, 2)`,
+		`ALTER TABLE t1 ADD COLUMN c DEFAULT 3`,
+	} {
+		if r := db.Exec(s); r.Error != nil {
+			t.Fatalf("%s: %v", s, r.Error)
+		}
+	}
+	if r := db.Exec(`UPDATE t1 SET a = 'one'`); r.Error != nil {
+		t.Fatalf("update: %v", r.Error)
+	}
+	r := db.Query(`SELECT * FROM t1`)
+	if r.Error != nil {
+		t.Fatal(r.Error)
+	}
+	if got := flattenRows(r.Rows); got != "one 2 3" {
+		t.Errorf("got: %s want: one 2 3", got)
+	}
+}
