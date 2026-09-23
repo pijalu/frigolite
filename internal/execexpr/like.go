@@ -306,18 +306,26 @@ func scanNumericPrefix(t string) (string, bool) {
 	if i < len(t) && (t[i] == '+' || t[i] == '-') {
 		i++
 	}
-	digits := scanDigits(t, i)
-	i = digits
+	// sqlite3AtoF's mantissa needs at least ONE digit, before OR after the
+	// dot: ".5" is a valid prefix, ".e5" and "." are not (they scan as no
+	// numeric prefix at all). `digits` here is a POSITION, so reusing it as
+	// the mantissa test wrongly accepted ".e..." (the dot left digits=1).
+	mantissa := 0
+	{
+		i0 := i
+		i = scanDigits(t, i)
+		mantissa += i - i0
+	}
 	if i < len(t) && t[i] == '.' {
 		i++
-		fracDigits := scanDigits(t, i)
-		digits = fracDigits
-		i = fracDigits
+		i0 := i
+		i = scanDigits(t, i)
+		mantissa += i - i0
 	}
-	if digits > 0 && i < len(t) && (t[i] == 'e' || t[i] == 'E') {
+	if mantissa > 0 && i < len(t) && (t[i] == 'e' || t[i] == 'E') {
 		i = scanNumericExponent(t, i)
 	}
-	if digits > 0 {
+	if mantissa > 0 {
 		return t[:i], true
 	}
 	return "", false
@@ -424,12 +432,14 @@ func parseNumericPrefix(s string) (float64, bool) {
 	}
 	if f, err := strconv.ParseFloat(prefix, 64); err == nil {
 		return f, true
+	} else if ne, isNum := err.(*strconv.NumError); isNum && ne.Err == strconv.ErrRange {
+		// Overflow: SQLite returns +/-Inf (e.g. '9e999'+0 is Inf REAL).
+		if t[0] == '-' {
+			return math.Inf(-1), true
+		}
+		return math.Inf(1), true
 	}
-	// Overflow: SQLite returns +/-Inf.
-	if t[0] == '-' {
-		return math.Inf(-1), true
-	}
-	return math.Inf(1), true
+	return 0, false
 }
 
 // sqliteCodePoints converts a byte string to code points the way SQLite's

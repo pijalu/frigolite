@@ -322,7 +322,7 @@ func (e *Engine) viewColumnDefsFromSelectGuard(sel *sql.SelectStmt, resolving ma
 		}
 		defs = append(defs, sql.ColumnDef{
 			Name:    viewColumnName(col),
-			Type:    e.viewColumnType(sel, i, srcDefs),
+			Type:    e.viewColumnType(sel, i, srcDefs, resolving),
 			Collate: viewColumnCollation(col, sel, i, srcDefs),
 		})
 	}
@@ -643,9 +643,11 @@ func (e *Engine) qualifiedSourceColumnDefs(qualifier string, sel *sql.SelectStmt
 // viewColumnType computes the declared type string of view column i, following
 // sqlite3SubqueryColumnTypes: affinity of the expression is refined across
 // compound (UNION / multi-row VALUES) members, then mapped to a type name.
-func (e *Engine) viewColumnType(sel *sql.SelectStmt, i int, srcDefs []sql.ColumnDef) string {
+// Each member's expressions resolve against THAT member's own FROM sources
+// (SQLite resolves each member's column refs in its own name context).
+func (e *Engine) viewColumnType(sel *sql.SelectStmt, i int, srcDefs []sql.ColumnDef, resolving map[string]bool) string {
 	first := sel
-	aff, pS2, m := e.viewCompoundAffinity(first, i, srcDefs)
+	aff, pS2, m := e.viewCompoundAffinity(first, i, srcDefs, resolving)
 	if aff == 0 {
 		// No affinity: the expression (e.g. a function call) has no declared
 		// affinity. SQLite's view columns default to SQLITE_AFF_NONE (not
@@ -655,7 +657,7 @@ func (e *Engine) viewColumnType(sel *sql.SelectStmt, i int, srcDefs []sql.Column
 	}
 	// Compound queries refine the affinity using the datatypes of later members.
 	if isTextOrNumericAff(aff) && (pS2.Union != nil || pS2 != first) {
-		aff = e.refineViewAffinity(aff, first, pS2, i, m)
+		aff = e.refineViewAffinity(aff, first, pS2, i, m, resolving)
 	}
 	zType := e.exprColumnType(first.Columns[i].Expr, srcDefs)
 	return viewTypeName(zType, aff)
@@ -666,18 +668,20 @@ func (e *Engine) viewColumnType(sel *sql.SelectStmt, i int, srcDefs []sql.Column
 // affinity, and the OR of the datatypes of the skipped members. Bounds-check
 // each member: a malformed/uneven compound (e.g. an expected-error case) must
 // not panic when a later member has fewer columns.
-func (e *Engine) viewCompoundAffinity(first *sql.SelectStmt, i int, srcDefs []sql.ColumnDef) (aff rune, pS2 *sql.SelectStmt, m int) {
+func (e *Engine) viewCompoundAffinity(first *sql.SelectStmt, i int, srcDefs []sql.ColumnDef, resolving map[string]bool) (aff rune, pS2 *sql.SelectStmt, m int) {
 	pS2 = first
-	aff = e.exprAffinity(first.Columns[i].Expr, srcDefs)
+	memberDefs := srcDefs
+	aff = e.exprAffinity(first.Columns[i].Expr, memberDefs)
 	for aff == 0 && pS2.Union != nil {
 		if i < len(pS2.Columns) {
-			m |= exprDataType(pS2.Columns[i].Expr)
+			m |= e.exprDataType(pS2.Columns[i].Expr, memberDefs)
 		}
 		pS2 = pS2.Union
+		memberDefs = e.viewSourceDefs(pS2, resolving)
 		if i >= len(pS2.Columns) {
 			break
 		}
-		aff = e.exprAffinity(pS2.Columns[i].Expr, srcDefs)
+		aff = e.exprAffinity(pS2.Columns[i].Expr, memberDefs)
 	}
 	return
 }
@@ -686,9 +690,12 @@ func (e *Engine) viewCompoundAffinity(first *sql.SelectStmt, i int, srcDefs []sq
 // pS2, mirroring sqlite3SubqueryColumnTypes: a TEXT affinity meeting a numeric
 // member becomes BLOB, a numeric affinity meeting a text member becomes BLOB,
 // and a CAST over a compound numeric column becomes FLEXNUM.
-func (e *Engine) refineViewAffinity(aff rune, first, pS2 *sql.SelectStmt, i, m int) rune {
+func (e *Engine) refineViewAffinity(aff rune, first, pS2 *sql.SelectStmt, i, m int, resolving map[string]bool) rune {
 	for p := pS2.Union; p != nil; p = p.Union {
-		m |= exprDataType(p.Columns[i].Expr)
+		if i >= len(p.Columns) {
+			continue
+		}
+		m |= e.exprDataType(p.Columns[i].Expr, e.viewSourceDefs(p, resolving))
 	}
 	if aff == 'T' && (m&0x01) != 0 {
 		aff = 'B'
@@ -771,20 +778,67 @@ func (e *Engine) exprColumnType(expr sql.Expr, srcDefs []sql.ColumnDef) string {
 }
 
 // exprDataType returns a bitmask of possible result datatypes for an
-// expression, mirroring sqlite3ExprDataType: 0x01 numeric, 0x02 text, 0x04 blob.
-func exprDataType(expr sql.Expr) int {
+// expression, mirroring sqlite3ExprDataType (expr.c): 0x01 numeric, 0x02
+// text, 0x04 blob. Column references and casts map through their expression
+// affinity — numeric affinity → 0x05 (numeric|blob), TEXT affinity → 0x06
+// (text|blob), no affinity → 0x07 (all three) — with the affinity resolved
+// against the OWNING member's FROM sources (srcDefs). Functions and scalar
+// subqueries are opaque (0x07); CASE ORs its branch datatypes; concat is
+// always text|blob; arithmetic and anything else default to numeric (0x01).
+func (e *Engine) exprDataType(expr sql.Expr, srcDefs []sql.ColumnDef) int {
 	switch x := expr.(type) {
+	case *sql.ColumnRef:
+		return affinityDataType(e.exprAffinity(expr, srcDefs))
+	case *sql.CastExpr:
+		return affinityDataType(value.Affinity(x.AsType))
 	case *sql.NumericLit:
 		return 0x01
 	case *sql.StringLit:
 		return 0x02
 	case *sql.BlobLit:
 		return 0x04
-	case *sql.CastExpr:
-		return exprDataType(x.Operand)
+	case *sql.NullLit:
+		return 0x00
+	case *sql.FuncCall:
+		return 0x07
+	case *sql.Subquery:
+		return 0x07
+	case *sql.CaseExpr:
+		return e.caseExprDataType(x, srcDefs)
+	case *sql.BinaryOp:
+		if x.Operator == "||" {
+			return 0x06 // concat is always text|blob
+		}
+		return 0x01
 	default:
-		return 0
+		return 0x01
 	}
+}
+
+// caseExprDataType ORs the datatypes of a CASE expression's THEN branches and
+// its ELSE (sqlite3ExprDataType's TK_CASE branch).
+func (e *Engine) caseExprDataType(x *sql.CaseExpr, srcDefs []sql.ColumnDef) int {
+	m := 0
+	for _, w := range x.Whens {
+		m |= e.exprDataType(w.Then, srcDefs)
+	}
+	if x.Else != nil {
+		m |= e.exprDataType(x.Else, srcDefs)
+	}
+	return m
+}
+
+// affinityDataType maps an expression affinity to sqlite3ExprDataType's
+// TK_COLUMN bitmask: numeric affinities → 0x05 (numeric|blob), TEXT → 0x06
+// (text|blob), anything else (NONE/BLOB) → 0x07 (all possible datatypes).
+func affinityDataType(aff rune) int {
+	switch aff {
+	case 'N', 'I', 'R':
+		return 0x05
+	case 'T':
+		return 0x06
+	}
+	return 0x07
 }
 
 // isCastExpr reports whether expr is a CAST expression.

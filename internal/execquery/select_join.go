@@ -343,8 +343,8 @@ func (e *SelectEngine) buildSubqueryRowMaps(subqResult *Result, rightDefs []sql.
 			if i >= len(rightDefs) {
 				continue
 			}
-			aff := subqueryAffinity(subqAff, i, rightDefs[i])
-			cv := &util.ColumnValue{Value: val, Affinity: aff}
+			aff := e.subqueryColumnAffinity(subqAff, i, rightDefs[i], subquery)
+			cv := &util.ColumnValue{Value: util.UnwrapColumnValue(val), Affinity: aff}
 			rightRowMap[rightDefs[i].Name] = cv
 			if synthetic {
 				// Also store under the synthetic qualified key so the USING ON
@@ -356,6 +356,7 @@ func (e *SelectEngine) buildSubqueryRowMaps(subqResult *Result, rightDefs []sql.
 	}
 	return rightMaps
 }
+
 
 // materializeViewJoin
 

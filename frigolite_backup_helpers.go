@@ -3,6 +3,7 @@ package frigolite
 import (
 	"encoding/hex"
 	"fmt"
+	"math"
 	"strconv"
 	"strings"
 )
@@ -179,6 +180,19 @@ func sqlLiteral(v interface{}) string {
 	case int64:
 		return strconv.FormatInt(val, 10)
 	case float64:
+		// The shell's dump renders non-finite REALs as parseable SQL:
+		// +/-Inf as 9.0e+999 / -9.0e+999 and NaN as NULL (vdbe NULLifies
+		// NaN on storage). strconv would render "+Inf", which the INSERT
+		// re-parses as an identifier ("no such column: Inf").
+		if math.IsInf(val, 1) {
+			return "9.0e+999"
+		}
+		if math.IsInf(val, -1) {
+			return "-9.0e+999"
+		}
+		if math.IsNaN(val) {
+			return "NULL"
+		}
 		return strconv.FormatFloat(val, 'g', -1, 64)
 	case string:
 		return "'" + strings.ReplaceAll(val, "'", "''") + "'"

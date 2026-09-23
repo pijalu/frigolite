@@ -9,6 +9,7 @@ package execquery
 import (
 	"fmt"
 	"math"
+	"sort"
 	"strconv"
 	"strings"
 
@@ -550,7 +551,25 @@ func (e *SelectEngine) refsForBestIndex(refs []indexedRef, where sql.Expr, table
 			bestRefs = append(bestRefs, ar)
 		}
 	}
+	// explainIndexRange (wherecode.c) walks the index's columns in INDEX
+	// order — a WHERE "a=? AND b=?" on index (b,a) renders "(b=? AND a=?)"
+	// (e_fkey-26.4). Sort the refs into index column order, keeping the
+	// relative order of same-column refs (multi-operator terms).
+	sort.SliceStable(bestRefs, func(i, j int) bool {
+		return indexColPos(indexCols, bestRefs[i].colName) < indexColPos(indexCols, bestRefs[j].colName)
+	})
 	return bestRefs
+}
+
+// indexColPos returns the position of colName in indexCols, or len(indexCols)
+// when absent (unknown columns sort last; callers pre-filter to index cols).
+func indexColPos(indexCols []string, colName string) int {
+	for i, c := range indexCols {
+		if strings.EqualFold(c, colName) {
+			return i
+		}
+	}
+	return len(indexCols)
 }
 
 // bestRefsContain reports whether bestRefs already has a ref with the same
