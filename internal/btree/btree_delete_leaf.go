@@ -4,6 +4,7 @@
 package btree
 
 import (
+	"os"
 	"bytes"
 	"encoding/binary"
 	"fmt"
@@ -63,6 +64,9 @@ func (t *BTree) DeleteIndexEntries(targets [][]byte) (int, error) {
 		}
 		if found > 0 {
 			deleted += found
+			if os.Getenv("FRIGOLITE_IDX_DEBUG") != "" {
+				fmt.Printf("REBAL leaf=%d found=%d\n", leafNum, found)
+			}
 			if err := t.maybeRebalanceAfterDelete(leafNum); err != nil {
 				return deleted, err
 			}

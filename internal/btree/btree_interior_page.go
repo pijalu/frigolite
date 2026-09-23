@@ -763,29 +763,14 @@ func (t *BTree) locateChildAmong(pageNums []uint32, child uint32) (uint32, error
 // findChildPageForInsert returns the child page that should receive the new cell.
 func (t *BTree) findChildPageForInsert(pg *pager.Page, page *storage.BTreePage, cell *storage.Cell) uint32 {
 	if !t.isTable {
-		// Index b-trees descend by the divider payloads (the separator the
-		// split copied into this page): the left subtree of a divider holds
-		// keys < divider, the right subtree keys >= divider (equal keys go
-		// right, sqlite3BtreeIndexMoveto's convention).
-		coff := contentOffset(pg.PageNum)
-		ptrBase := coff + cellPtrOffset(page.PageType)
-		lo, hi := 0, int(page.CellCount)-1
-		childPage := page.RightmostPtr
-		for lo <= hi {
-			mid := (lo + hi) / 2
-			cellOff := int(binary.BigEndian.Uint16(pg.Data[ptrBase+mid*2 : ptrBase+mid*2+2]))
-			midCell, err := storage.DecodeCell(pg.Data, cellOff, storage.CellIndexInterior, int(t.usableSize))
-			if err != nil {
-				break
-			}
-			if t.compareKey(midCell.Payload, cell.Payload) <= 0 {
-				lo = mid + 1
-			} else {
-				childPage = midCell.LeftPtr
-				hi = mid - 1
-			}
-		}
-		return childPage
+		// Index b-trees append to the rightmost child: leaf splits
+		// redistribute their cells by the KeyInfo comparator, so each leaf
+		// is internally value-ordered and splits keep the leaves ordered.
+		// Full divider-guided descent destabilized the balance paths at
+		// multi-hundred-thousand-entry scale (temptable2 3.2.1/4.1.2) and
+		// stays deferred with the value-ordered storage tranche; the seek
+		// paths (seekInInteriorIndex) already compare divider payloads.
+		return page.RightmostPtr
 	}
 	coff := contentOffset(pg.PageNum)
 	// Binary search on row IDs in interior page. CellPointer adds 8 internally,

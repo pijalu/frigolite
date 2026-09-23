@@ -190,7 +190,14 @@ func (t *BTree) maybeRebalanceAfterDelete(leafNum uint32) error {
 		return nil
 	}
 	if leafPage.PageType == storage.PageTypeLeafIndex {
-		return t.removeEmptyIndexLeaf(leafNum)
+		// An emptied INDEX leaf stays in place (walkable, format-valid):
+		// reclaiming it needs findParentByWalk, an O(pages) BFS through a
+		// cold page cache — per emptied leaf that is quadratic for mass
+		// deletes on value-ordered trees (temptable2 3.2.1: 2947 emptied
+		// leaves x a 60k-page walk through cache_size=10 = minutes). The
+		// root-level empty case is still handled by
+		// DeleteIndexEntries' clearEmptyRootRightmost.
+		return nil
 	}
 	// The leaf is a child of some parent. We need to find it.
 	// The btree.c approach uses the pointer map; we use the
@@ -219,16 +226,6 @@ func (t *BTree) maybeRebalanceAfterDelete(leafNum uint32) error {
 	return err
 }
 
-// removeEmptyIndexLeaf frees an index leaf that became empty and drops its
-// reference from the parent interior page: a cell-child reference loses its
-// divider cell; a rightmost-child reference promotes the last divider's
-// left child into the rightmost pointer and drops that divider (keeping the
-// ncells+1-children invariant; see the comment in the body for the btree.c
-// citation). SQLite's balance
-// propagates underflow up the tree (balance_deeper/balance_nonroot); here the
-// parent always keeps at least one child (a single removal can drop either a
-// cell-child or the rightmost child, never both), so no cascade is needed.
-// A root collapse is handled by clearEmptyRootRightmost in DeleteIndexEntry.
 func (t *BTree) removeEmptyIndexLeaf(leafNum uint32) error {
 	parentPgno, _, err := t.findParentByWalk(leafNum)
 	if err != nil {
