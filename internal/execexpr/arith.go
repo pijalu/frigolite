@@ -499,21 +499,27 @@ func isDegenerateNumericPrefix(prefix string) bool {
 // hasRealNumericPrefix reports whether a TEXT/BLOB operand's leading numeric
 // prefix is a REAL (a '.' or exponent before any non-numeric junk): SQLite's
 // numericType classifies such operands MEM_Real, which promotes arithmetic to
-// the REAL path even when the other operand is an integer.
+// the REAL path even when the other operand is an integer. A digits-only
+// prefix ("100x") stays MEM_Int, and a prefix with no mantissa digit
+// (".", ".e5", "abc") is not numeric at all — integer 0, never REAL.
 func hasRealNumericPrefix(v interface{}) bool {
-	s, ok := v.(string)
-	if !ok {
-		if b, ok2 := v.([]byte); ok2 {
-			s = string(b)
-		} else {
-			return false
-		}
+	var s string
+	switch x := v.(type) {
+	case string:
+		s = x
+	case []byte:
+		s = string(x)
+	default:
+		return false
 	}
 	if _, isInt := ToIntNumeric(v); isInt {
 		return false
 	}
-	_, isReal := parseNumericPrefix(s)
-	return isReal
+	prefix, ok := scanNumericPrefix(strings.TrimSpace(s))
+	if !ok {
+		return false
+	}
+	return strings.ContainsAny(prefix, ".eE")
 }
 
 // arithIntOperand coerces one arithmetic operand to int64 the way
