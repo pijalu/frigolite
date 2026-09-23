@@ -357,22 +357,6 @@ func (e *SelectEngine) buildSubqueryRowMaps(subqResult *Result, rightDefs []sql.
 	return rightMaps
 }
 
-// subqueryColumnAffinity resolves the affinity of derived-table output column
-// i: the subquery's expression affinity if present, else the result column
-// def's declared type, else the type computed from the subquery's SELECT body
-// (sqlite3SubqueryColumnTypes types a derived table's columns exactly like a
-// view's — compound members refine the affinity across the UNION chain).
-func (e *SelectEngine) subqueryColumnAffinity(subqAff []rune, i int, cd sql.ColumnDef, subquery *sql.SelectStmt) rune {
-	if aff := subqueryAffinity(subqAff, i, cd); aff != 0 {
-		return aff
-	}
-	if subquery != nil {
-		if defs := e.ctx.ViewColumnDefsFromSelect(subquery); i < len(defs) {
-			return util.Affinity(defs[i].Type)
-		}
-	}
-	return 0
-}
 
 // materializeViewJoin
 

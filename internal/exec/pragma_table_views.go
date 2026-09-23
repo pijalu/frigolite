@@ -804,14 +804,7 @@ func (e *Engine) exprDataType(expr sql.Expr, srcDefs []sql.ColumnDef) int {
 	case *sql.Subquery:
 		return 0x07
 	case *sql.CaseExpr:
-		m := 0
-		for _, w := range x.Whens {
-			m |= e.exprDataType(w.Then, srcDefs)
-		}
-		if x.Else != nil {
-			m |= e.exprDataType(x.Else, srcDefs)
-		}
-		return m
+		return e.caseExprDataType(x, srcDefs)
 	case *sql.BinaryOp:
 		if x.Operator == "||" {
 			return 0x06 // concat is always text|blob
@@ -820,6 +813,19 @@ func (e *Engine) exprDataType(expr sql.Expr, srcDefs []sql.ColumnDef) int {
 	default:
 		return 0x01
 	}
+}
+
+// caseExprDataType ORs the datatypes of a CASE expression's THEN branches and
+// its ELSE (sqlite3ExprDataType's TK_CASE branch).
+func (e *Engine) caseExprDataType(x *sql.CaseExpr, srcDefs []sql.ColumnDef) int {
+	m := 0
+	for _, w := range x.Whens {
+		m |= e.exprDataType(w.Then, srcDefs)
+	}
+	if x.Else != nil {
+		m |= e.exprDataType(x.Else, srcDefs)
+	}
+	return m
 }
 
 // affinityDataType maps an expression affinity to sqlite3ExprDataType's
