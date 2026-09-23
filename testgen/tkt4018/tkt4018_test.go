@@ -109,11 +109,23 @@ func Test_tkt4018(t *testing.T) {
 		}
 	}
 	{ // do_test "tkt4018-1.3"
-		// testsql {INSERT INTO t1 VALUES(3, 4)} (unsupported command, not transpiled)
+		{
+			_tsx, _tsxerr := frigolite.Open("test.db")
+			if _tsxerr == nil {
+				_ = _tsx.Exec("INSERT INTO t1 VALUES(3, 4)")
+				_tsx.Close()
+			}
+		}
 	}
 	{ // do_test "tkt4018-1.4"
 		_res = db.Exec("COMMIT")
-		// testsql {INSERT INTO t1 VALUES(3, 4)} (unsupported command, not transpiled)
+		{
+			_tsx, _tsxerr := frigolite.Open("test.db")
+			if _tsxerr == nil {
+				_ = _tsx.Exec("INSERT INTO t1 VALUES(3, 4)")
+				_tsx.Close()
+			}
+		}
 	}
 	{ // do_test "tkt4018-2.1"
 		db2, err = frigolite.Open("test.db")

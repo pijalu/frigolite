@@ -78,3 +78,37 @@ func TestW5Tkt3992UpdateAfterAddColumn(t *testing.T) {
 		t.Errorf("got: %s want: one 2 3", got)
 	}
 }
+
+// tkt4018: the engine must enforce SQLite's cross-connection lock protocol —
+// a second connection's INSERT fails with "database is locked" while the
+// first holds a read transaction, and succeeds after COMMIT (the emitter
+// relies on this to run tkt4018's separate-process testsql steps
+// in-process).
+func TestW5Tkt4018SecondConnLock(t *testing.T) {
+	dir := t.TempDir()
+	db, err := frigolite.Open(dir + "/test.db")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer db.Close()
+	if r := db.Exec(`CREATE TABLE t1(a, b); BEGIN; SELECT * FROM t1`); r.Error != nil {
+		t.Fatalf("conn1: %v", r.Error)
+	}
+	db2, err := frigolite.Open(dir + "/test.db")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer db2.Close()
+	if r := db2.Exec(`INSERT INTO t1 VALUES(3, 4)`); r.Error == nil || r.Error.Error() != "database is locked" {
+		t.Errorf("locked insert: got %v, want database is locked", r.Error)
+	}
+	if r := db.Exec(`COMMIT`); r.Error != nil {
+		t.Fatalf("commit: %v", r.Error)
+	}
+	if r := db2.Exec(`INSERT INTO t1 VALUES(3, 4)`); r.Error != nil {
+		t.Errorf("post-commit insert: %v", r.Error)
+	}
+	if got := flattenRows(db.Query(`SELECT * FROM t1 ORDER BY a`).Rows); got != "3 4" {
+		t.Errorf("rows: got %s want 3 4", got)
+	}
+}
