@@ -16,8 +16,8 @@ import (
 	"github.com/pijalu/frigolite/internal/parse"
 	"github.com/pijalu/frigolite/internal/schema"
 	"github.com/pijalu/frigolite/internal/sql"
-	"github.com/pijalu/frigolite/internal/storage"
 	"github.com/pijalu/frigolite/internal/util"
+	"github.com/pijalu/frigolite/internal/storage"
 )
 
 // --- CREATE INDEX ---
@@ -316,6 +316,22 @@ func (e *DDLExecutor) populateIndexFromRows(tableCtx *DatabaseContext, tableEntr
 		return &Result{Error: err}
 	}
 	idxTree := btree.NewBTree(tableCtx.Pager, pg.PageNum, false)
+	// SQLite builds the backfilled index b-tree in the keys' collation order
+	// (build.c sqlite3KeyInfoFromIndex drives every OP_IdxInsert of the
+	// CREATE INDEX program): install the collation-aware comparator. The
+	// schema entry (with the stored CREATE INDEX text) was added before the
+	// row scan.
+	if idxEnt, err := tableCtx.Schema.FindIndex(indexName); err == nil && idxEnt != nil {
+		if ki := execdml.IndexKeyInfo(idxEnt.SQL, colDefs, e.ctx.LookupCollation); ki != nil {
+			lookup := e.ctx.LookupCollation
+			idxTree.SetIndexKeyInfo(ki, func(name string) (util.CollationFunc, bool) {
+				if fn := lookup(name); fn != nil {
+					return util.CollationFunc(fn), true
+				}
+				return nil, false
+			})
+		}
+	}
 
 	// Track index keys to enforce UNIQUE against the existing rows: CREATE
 	// UNIQUE INDEX fails when the table already contains duplicate keys

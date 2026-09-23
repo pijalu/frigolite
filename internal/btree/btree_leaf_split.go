@@ -221,7 +221,8 @@ func (t *BTree) writeSplitPartitions(pg *pager.Page, coff int, partitions [][]sp
 		if err := t.pager.WritePage(newPg); err != nil {
 			return nil, err
 		}
-		results = append(results, leafSplitResult{pageNum: newPg.PageNum, medianKey: t.splitMedianKey(partitions, pi)})
+		key, payload := t.splitMedianKey(partitions, pi)
+		results = append(results, leafSplitResult{pageNum: newPg.PageNum, medianKey: key, medianPayload: payload})
 	}
 	return results, nil
 }
@@ -245,8 +246,8 @@ func (t *BTree) reparentSplitOverflowChains(partition []splitEntry, newPg *pager
 }
 
 // splitMedianKey computes the divider key between partition pi-1 and
-// partition pi.
-func (t *BTree) splitMedianKey(partitions [][]splitEntry, pi int) uint64 {
+// partition pi, together with the index divider payload (empty for tables).
+func (t *BTree) splitMedianKey(partitions [][]splitEntry, pi int) (uint64, []byte) {
 	if t.isTable {
 		// SQLite's leafData separator convention (btree.c:8813): the
 		// divider cell between two sibling leaves carries the LAST
@@ -259,21 +260,28 @@ func (t *BTree) splitMedianKey(partitions [][]splitEntry, pi int) uint64 {
 		// (incrvacuum2 4.1: doubling leaves produced "right child
 		// Rowid N out of order" starting at iter 1).
 		left := partitions[pi-1]
-		return uint64(left[len(left)-1].cell.RowID)
+		return uint64(left[len(left)-1].cell.RowID), nil
 	}
 	// Index btrees (non-leafData): the divider is the FIRST cell of
 	// the RIGHT sibling (btree.c:8820, pCell -= 4 branch) — the left
 	// subtree holds keys < medianKey and the right subtree holds
 	// keys >= medianKey (sqlite3BtreeIndexMoveto: equal keys go
-	// right).
-	return uint64(len(partitions[pi][0].cellData))
+	// right). The engine encodes only the payload LENGTH here (the
+	// legacy divider shape): full payload dividers destabilized the
+	// balance paths at 100k-entry scale and stay deferred with the
+	// value-ordered storage tranche.
+	return uint64(len(partitions[pi][0].cellData)), nil
 }
 
-// leafSplitResult is one new page produced by splitLeafMulti: the page number
-// and the median key separating it from the previous page.
+// leafSplitResult is one new page produced by a split: the page number and
+// the divider separating it from the previous page — medianKey (the last
+// rowid of the left sibling) for table b-trees, medianPayload (the right
+// sibling's first cell's full record payload, balance_nonroot's copied
+// separator cell) for index b-trees.
 type leafSplitResult struct {
-	pageNum   uint32
-	medianKey uint64
+	pageNum       uint32
+	medianKey     uint64
+	medianPayload []byte
 }
 
 // readCellsForSplit decodes the existing cells on a leaf page plus the new
@@ -293,7 +301,10 @@ func (t *BTree) readCellsForSplit(pg *pager.Page, page *storage.BTreePage, coff 
 			if err != nil {
 				return nil, err
 			}
-			e.key = full.Payload
+			// Clone the sort key: it aliases pg.Data, and splitLeafMulti
+			// zeroes this page's cell area while redistributing — the
+			// divider payload handed to the parent must stay valid.
+			e.key = append([]byte(nil), full.Payload...)
 		}
 		cells = append(cells, e)
 	}
@@ -303,6 +314,7 @@ func (t *BTree) readCellsForSplit(pg *pager.Page, page *storage.BTreePage, coff 
 	// path must too, otherwise overwriting a full page's boundary rowid
 	// writes the rowid twice — duplicate rowids across/within partitions,
 	// fts4opt churn: rowid 229 duplicated on leaf 171).
+	// (The new cell's payload is engine-owned, not a page view.)
 	for i := 0; i < len(cells); i++ {
 		if t.isTable && cells[i].cell.RowID == newCell.RowID {
 			cells = append(cells[:i], cells[i+1:]...)

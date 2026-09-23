@@ -596,11 +596,17 @@ func (c *Cursor) seekInInteriorIndex(pg *pager.Page, page *storage.BTreePage, ke
 
 	for lo <= hi {
 		mid := (lo + hi) / 2
-		cell, err := storage.DecodeCell(pg.Data, int(storage.CellPointer(pg.Data, contentOffset(pg.PageNum), mid, int(c.tx.pageSize))), storage.CellIndexInterior, int(c.tx.usableSize))
+		cellOff := int(storage.CellPointer(pg.Data, contentOffset(pg.PageNum), mid, int(c.tx.pageSize)))
+		cell, err := storage.DecodeCell(pg.Data, cellOff, storage.CellIndexInterior, int(c.tx.usableSize))
 		if err != nil {
 			return false, err
 		}
-		cmp := c.tx.compareKey(cell.Payload, key)
+		// Reassemble spilled dividers before comparing.
+		full, oerr := c.tx.readOverflow(cell)
+		if oerr != nil {
+			return false, oerr
+		}
+		cmp := c.tx.compareKey(full.Payload, key)
 		if cmp < 0 {
 			lo = mid + 1
 		} else {

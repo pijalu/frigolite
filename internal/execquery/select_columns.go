@@ -598,36 +598,27 @@ func (e *SelectEngine) lessRows(orderBy []sql.OrderByTerm, rowMaps []RowMap, row
 // values carry the column's declared collation — ORDER BY 1 must sort by the
 // output column's collation exactly like ORDER BY <name> (select.c
 // sqlite3ResolveSortRefs: the sort reference takes the result column's
-// collating sequence). A term that already carries an explicit COLLATE is
-// kept intact — resolve.c resolveCompoundOrderBy converts a resolved compound
-// term to an integer column number "taking care to preserve the COLLATE
-// clause", and an explicit collating sequence outranks the column's declared
-// one. Other expressions keep the positional fallback.
-//
-// Compound selects are exempt: their sort is positional over the merged rows
-// by construction (resolve.c resolveCompoundOrderBy converts every term to an
-// integer before the sorter runs), and the merged row maps are keyed by the
-// compound's OUTPUT column names — a rewrite to the leftmost member's source
-// column name would miss those maps whenever an output alias renames the
-// column ("SELECT p PX ... UNION ALL SELECT x XX ... ORDER BY 1": sorting by
-// source name "p" evaluates NULL for every row and silently disables the
-// sort, tkt2822-6.x). Compound column collations are carried separately by
-// applyCompoundOrderByCollations' COLLATE wrapper, which the positional
-// fallback honors.
+// collating sequence). Other expressions keep the positional fallback.
 func (e *SelectEngine) resolveOrderByOrdinalTerms(s *sql.SelectStmt, orderBy []sql.OrderByTerm) []sql.OrderByTerm {
 	if s == nil {
-		return orderBy
-	}
-	if s.Union != nil {
 		return orderBy
 	}
 	changed := false
 	out := orderBy
 	for k := range orderBy {
-		if orderByTermCollation(orderBy[k].Expr) != "" {
-			continue // explicit COLLATE wins over the declared column collation
+		expr := orderBy[k].Expr
+		// A trailing COLLATE operator belongs to the SORT KEY, not the
+		// result-column reference: "ORDER BY 1 COLLATE hex" must sort the
+		// resolved column under hex (expr.c keeps the COLLATE above the
+		// ordinal-resolved expression). Preserve it over the rewrite.
+		var collateName string
+		if bo, isCollate := expr.(*sql.BinaryOp); isCollate && strings.EqualFold(bo.Operator, "COLLATE") {
+			if lit, isLit := bo.Right.(*sql.StringLit); isLit {
+				collateName = lit.Value
+				expr = bo.Left
+			}
 		}
-		nl, ok := orderBy[k].Expr.(*sql.NumericLit)
+		nl, ok := expr.(*sql.NumericLit)
 		if !ok {
 			continue
 		}
@@ -635,7 +626,40 @@ func (e *SelectEngine) resolveOrderByOrdinalTerms(s *sql.SelectStmt, orderBy []s
 		if err != nil || pos < 1 || pos > len(s.Columns) {
 			continue
 		}
-		ref, ok := s.Columns[pos-1].Expr.(*sql.ColumnRef)
+		// A result column that ITSELF carries COLLATE (`SELECT c2 COLLATE hex
+		// ... ORDER BY 1`) donates its collation to the sort key; the term's
+		// own COLLATE (if any) takes precedence.
+		resultExpr := s.Columns[pos-1].Expr
+		resultCollate := ""
+		if bo, isCollate := resultExpr.(*sql.BinaryOp); isCollate && strings.EqualFold(bo.Operator, "COLLATE") {
+			if lit, isLit := bo.Right.(*sql.StringLit); isLit {
+				resultCollate = lit.Value
+				resultExpr = bo.Left
+			}
+		}
+		if collateName == "" && resultCollate != "" {
+			// The result expression is not a bare column (e.g.
+			// `(c1||'') COLLATE numeric`): keep the term positional and
+			// donate the result column's collation to the sort key.
+			ref, ok := resultExpr.(*sql.ColumnRef)
+			_ = ref
+			if !ok {
+				if _, isLit := resultExpr.(*sql.NumericLit); isLit || !ok {
+					if !changed {
+						out = make([]sql.OrderByTerm, len(orderBy))
+						copy(out, orderBy)
+						changed = true
+					}
+					out[k].Expr = &sql.BinaryOp{
+						Operator: "COLLATE",
+						Left:     resultExpr,
+						Right:    &sql.StringLit{Value: resultCollate},
+					}
+				}
+				continue
+			}
+		}
+		ref, ok := resultExpr.(*sql.ColumnRef)
 		if !ok || ref.Table != "" || ref.Name == "*" {
 			continue
 		}
@@ -645,6 +669,19 @@ func (e *SelectEngine) resolveOrderByOrdinalTerms(s *sql.SelectStmt, orderBy []s
 			changed = true
 		}
 		out[k].Expr = ref
+		if collateName != "" {
+			out[k].Expr = &sql.BinaryOp{
+				Operator: "COLLATE",
+				Left:     ref,
+				Right:    &sql.StringLit{Value: collateName},
+			}
+		} else if resultCollate != "" {
+			out[k].Expr = &sql.BinaryOp{
+				Operator: "COLLATE",
+				Left:     ref,
+				Right:    &sql.StringLit{Value: resultCollate},
+			}
+		}
 	}
 	return out
 }
@@ -654,6 +691,15 @@ func (e *SelectEngine) resolveOrderByOrdinalTerms(s *sql.SelectStmt, orderBy []s
 // the row maps, and falling back to expression evaluation when a value is
 // missing from the output row.
 func (e *SelectEngine) compareOrderByTerm(ob sql.OrderByTerm, rowMaps []RowMap, rows [][]interface{}, resultCols []string, i, j int) int {
+	// A positional term (`ORDER BY 1`) resolves against the EXPANDED result
+	// column names here: rewriting the term to the named column lets the
+	// comparator's declared-collation resolution see through SELECT *
+	// (collate1-3.1: SELECT * FROM t(a COLLATE hex) ORDER BY 1 sorts hex).
+	if nl, isLit := ob.Expr.(*sql.NumericLit); isLit {
+		if pos, err := strconv.Atoi(nl.Value); err == nil && pos >= 1 && pos <= len(resultCols) {
+			ob.Expr = &sql.ColumnRef{Name: resultCols[pos-1]}
+		}
+	}
 	obExpr := normalizeOrderByExpr(ob.Expr)
 	ref, isRef := stripCollate(obExpr).(*sql.ColumnRef)
 	if !isRef || ref.Table != "" || ref.Name == "*" {
@@ -841,11 +887,18 @@ func (e *SelectEngine) compareOrderByValues(left, right interface{}, ob sql.Orde
 	// An ORDER BY term that names a SELECT-list alias (e.g. ORDER BY y where
 	// the SELECT is "SELECT x AS y FROM d4") inherits the aliased
 	// expression's collation (SELECT x COLLATE binary AS x → ORDER BY x
-	// sorts binary).
+	// sorts binary) — resolve.c transfers the result-set expression's
+	// collation to the alias reference, explicit COLLATE first and then the
+	// schema-declared column collation (collate8-1.11: SELECT a AS x FROM
+	// t1 ORDER BY "x" sorts by a's declared COLLATE nocase). A unary + over
+	// the alias reference keeps the collation (collate8-1.15: ORDER BY +x).
 	if coll == "" {
-		if ref, ok := stripCollate(ob.Expr).(*sql.ColumnRef); ok && ref.Table == "" {
-			if aliasExpr, ok := e.aliasStackTop(ref.Name); ok {
-				coll = orderByTermCollation(aliasExpr)
+		if aliasExpr, ok := e.orderTermAliasExpr(ob.Expr); ok {
+			coll = orderByTermCollation(aliasExpr)
+			if coll == "" && e.obCollationResolver != nil {
+				if c, _ := e.schemaExprCollation(aliasExpr, e.obCollationResolver); c != "" {
+					coll = c
+				}
 			}
 		}
 	}
@@ -853,12 +906,24 @@ func (e *SelectEngine) compareOrderByValues(left, right interface{}, ob sql.Orde
 	// DECLARED collation (expr.c sqlite3ExprCollSeq → TK_COLUMN): the scan
 	// wraps declared-collation columns in CollatedValue markers, so an
 	// unwrapped-order term inherits the marker's collation (reindex-2.6:
-	// ORDER BY a with a TEXT PRIMARY KEY COLLATE c1 sorts reverse).
+	// ORDER BY a with a TEXT PRIMARY KEY COLLATE c1 sorts reverse). When
+	// the output values carry no marker (SELECT * rows), the schema
+	// resolver supplies the declared collation (collate1-3.1: a COLLATE hex
+	// column sorts ORDER BY 1 numerically).
 	if coll == "" {
 		if _, c := extractValue(left); c != "" {
 			coll = c
 		} else if _, c := extractValue(right); c != "" {
 			coll = c
+		}
+	}
+	if coll == "" && e.obCollationResolver != nil {
+		if ref, ok := normalizeOrderByExpr(ob.Expr).(*sql.ColumnRef); ok {
+			// Qualified references (ORDER BY main.t.a) resolve through the
+			// per-table collation map; unqualified through the merged one.
+			if c := e.obCollationResolver(*ref); c != "" {
+				coll = c
+			}
 		}
 	}
 	if coll != "" {
@@ -892,4 +957,33 @@ func (e *SelectEngine) eponymousModuleResolvable(name string) bool {
 	}
 	module, ok := e.ctx.VTables().Find(lower)
 	return ok && vtab.ModuleIsEponymous(module)
+}
+
+// orderTermAliasExpr resolves an ORDER BY term that names a SELECT-list
+// alias, unwrapping the COLLATE and unary+ wrappers SQLite strips before
+// alias resolution (ORDER BY "x", ORDER BY [x], ORDER BY +x all resolve the
+// alias x). Returns the aliased expression and true when the term is an
+// unqualified alias reference.
+func (e *SelectEngine) orderTermAliasExpr(obExpr sql.Expr) (sql.Expr, bool) {
+	expr := obExpr
+	for {
+		switch v := expr.(type) {
+		case *sql.UnaryOp:
+			if v.Operator != "+" {
+				return nil, false
+			}
+			expr = v.Operand
+		case *sql.BinaryOp:
+			if !strings.EqualFold(v.Operator, "COLLATE") {
+				return nil, false
+			}
+			expr = v.Left
+		default:
+			ref, ok := expr.(*sql.ColumnRef)
+			if !ok || ref.Table != "" || ref.Name == "*" {
+				return nil, false
+			}
+			return e.aliasStackTop(ref.Name)
+		}
+	}
 }

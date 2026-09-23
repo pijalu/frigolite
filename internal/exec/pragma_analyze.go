@@ -35,7 +35,142 @@ func (e *Engine) execReindex(s *sql.ReindexStmt) *Result {
 	if err := e.checkReindexIndexTables(seen); err != nil {
 		return &Result{Error: err}
 	}
+	// A collation-named target that the schema references but this
+	// connection cannot resolve fails before any rebuild (build.c
+	// sqlite3Reindex → sqlite3CheckCollationSeq: reindex-3.1, a second
+	// connection without the c1 collation registered).
+	if target := strings.TrimSpace(s.Target); target != "" {
+		obj := reindexTargetObject(target)
+		if !e.reindexTargetInAnyDb(obj) && !e.collationExists(obj) && e.LookupCollation(obj) == nil && e.schemaReferencesCollationInAnyDb(obj) {
+			return &Result{Error: fmt.Errorf("no such collation sequence: %s", obj)}
+		}
+	}
+	// Physical rebuild: clear each target index b-tree and re-insert every
+	// table row's key (build.c sqlite3Reindex's clear+insert program), so
+	// indexes rebuilt under a CHANGED collation sequence take the new order.
+	targets, err := e.reindexTargets(s.Target)
+	if err != nil {
+		return &Result{Error: err}
+	}
+	for _, t := range targets {
+		if _, err := e.dml.RebuildIndex(t.ctx, t.table, t.index); err != nil {
+			return &Result{Error: fmt.Errorf("(at rebuild %s) %w", t.index.Name, err)}
+		}
+	}
 	return &Result{}
+}
+
+// reindexIndexTarget is one rebuild unit: an index entry, its table, and the
+// database context holding both.
+type reindexIndexTarget struct {
+	ctx   *DatabaseContext
+	table *schema.Entry
+	index *schema.Entry
+}
+
+// reindexTargets resolves a REINDEX target to the index entries to rebuild:
+// every index in every schema for an empty target, the named index, the
+// table's indexes, or — when the target names a collation — every index
+// whose keys use that collation (build.c sqlite3Reindex resolution).
+func (e *Engine) reindexTargets(target string) ([]reindexIndexTarget, error) {
+	target = strings.TrimSpace(target)
+	var out []reindexIndexTarget
+	matched := false
+	for _, ctx := range e.databases {
+		indexEntries, err := ctx.Schema.GetEntries(schema.TypeIndex)
+		if err != nil {
+			continue
+		}
+		for _, idxEnt := range indexEntries {
+			if target != "" {
+				obj := reindexTargetObject(target)
+				schemaQualified := strings.ContainsRune(target, '.')
+				namedIndex := strings.EqualFold(idxEnt.Name, obj)
+				namedTable := strings.EqualFold(idxEnt.TblName, obj)
+				schemaOK := !schemaQualified || e.targetSchemaMatches(ctx, target)
+				switch {
+				case namedIndex && schemaOK:
+					// named index
+				case namedTable && schemaOK:
+					// named table: all its indexes
+				default:
+					if !e.indexUsesCollation(ctx, idxEnt, obj) {
+						continue
+					}
+				}
+			}
+			tblEnt, err := ctx.Schema.FindTable(idxEnt.TblName)
+			if err != nil || tblEnt == nil {
+				continue
+			}
+			out = append(out, reindexIndexTarget{ctx: ctx, table: tblEnt, index: idxEnt})
+			matched = true
+		}
+	}
+	if target != "" && !matched {
+		// A collation target that no index uses is still a successful
+		// no-op REINDEX (build.c matches the collation, finds nothing).
+		if e.collationExists(reindexTargetObject(target)) || e.schemaReferencesCollationInAnyDb(reindexTargetObject(target)) {
+			return nil, nil
+		}
+		return nil, fmt.Errorf("unable to identify the object to be reindexed")
+	}
+	return out, nil
+}
+
+// targetSchemaMatches reports whether a schema-qualified REINDEX target
+// ("main.t1") names the given database context.
+func (e *Engine) targetSchemaMatches(ctx *DatabaseContext, target string) bool {
+	idx := strings.IndexByte(target, '.')
+	if idx < 0 {
+		return true
+	}
+	return strings.EqualFold(target[:idx], e.schemaNameOf(ctx))
+}
+
+// schemaPrefixOf returns the schema prefix portion of a possibly-qualified
+// object name ("" when unqualified).
+func schemaPrefixOf(name string) string {
+	if idx := strings.IndexByte(name, '.'); idx >= 0 {
+		return name[:idx]
+	}
+	return ""
+}
+
+// schemaNameOf returns the registered name of a database context.
+func (e *Engine) schemaNameOf(ctx *DatabaseContext) string {
+	for name, c := range e.databases {
+		if c == ctx {
+			return name
+		}
+	}
+	return ""
+}
+
+// indexUsesCollation reports whether an index's key collations include the
+// named collation.
+func (e *Engine) indexUsesCollation(ctx *DatabaseContext, idxEnt *schema.Entry, collation string) bool {
+	if !e.collationExists(collation) && !e.schemaReferencesCollation(ctx, collation) {
+		return false
+	}
+	colDefs := e.indexTableColumnDefs(ctx, idxEnt.TblName)
+	for _, name := range execdml.IndexKeyCollations(idxEnt.SQL, colDefs) {
+		if strings.EqualFold(name, collation) {
+			return true
+		}
+	}
+	return false
+}
+
+// schemaReferencesCollationInAnyDb reports whether any stored schema SQL
+// references the collation.
+func (e *Engine) schemaReferencesCollationInAnyDb(name string) bool {
+	for _, ctx := range e.databases {
+		if e.schemaReferencesCollation(ctx, name) {
+			return true
+		}
+	}
+	return false
 }
 
 // checkReindexIndexTables verifies that duplicate index names across attached

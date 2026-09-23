@@ -8641,3 +8641,58 @@ regenerated; suite net −2274 fails vs pre-tranche baseline (7230 → ~4950).
   a stable contract. Non-top-level EXISTS (under OR) and NOT EXISTS keep
   "CORRELATED SCALAR SUBQUERY n". When a pin contradicts /usr/bin/sqlite3,
   update the pin (citing the oracle), never the engine.
+- **T31-idxcoll: index-key collation ordering (oracle-verified).** The engine's
+  index b-trees ordered entries by RAW PAYLOAD BYTES — which compares record
+  HEADER serial-type varints before value bytes, so ('BBB',1) sorted after
+  ('zzz',5): value order only by accident. sqlite3 integrity_check/queries on
+  such files failed even for single-leaf trees. Fix: KeyInfo-driven
+  packed-vs-packed comparator (btree.RecordPayloadCompare / SetIndexKeyInfo —
+  the same comparator the seek probe uses, so trees and seeks always agree),
+  built from IndexKeyCollations + parseIndexKeySortFlags (explicit COLLATE >
+  declared column collation, DESC flags) and installed on every index tree at
+  insert/update/backfill/REINDEX time.
+- **Index interior dividers were format-invalid**: splitMedianKey wrote only
+  `len(cellData)` as a varint with no payload bytes; findChildPageForInsert
+  always appended rightmost. Now dividers carry the right sibling's first
+  cell payload (balance_nonroot's separator copy) and descent binary-descends.
+  Divider payloads CLONE away from page buffers — splitLeafMulti zeroes the
+  leaf while the split result travels up the tree (aliasing corrupted 9-byte
+  dividers into zeros). Spilled (>maxLocal) divider keys encode compactly
+  (plen 0, empty = sorts first) to avoid interior overflow-chain
+  leak/relocation bookkeeping; sqlite3 multi-leaf index divergences are
+  otherwise PRE-EXISTING (identical on base 7e9230338: "wrong # of entries" /
+  count mismatch).
+- **REINDEX was a validated no-op**: now clears each target index b-tree
+  (BTree.Clear) and reinserts rows through the DML writeIndexCell path with
+  the collation comparator; autoindex entries (empty SQL) derive key columns
+  by ordinal: PK first, then column-level UNIQUEs, then table-level UNIQUEs;
+  `REINDEX <collation>` fails "no such collation sequence" when the schema
+  references a collation this connection cannot resolve (LookupCollation,
+  which fires the collation-needed hook — collationExists does NOT).
+- **Divider payload carrying at scale is DEFERRED, again.** Carrying the full
+  separator payload in index interior dividers destabilized the balance paths
+  at 100k-entry scale (temptable2 1.3 integrity panic; 4.1.2 25-minute walks
+  through 2947 emptied leaves x O(pages) findParentByWalk). The shipped
+  compromise: dividers encode the LEGACY compact shape (child + payload-length
+  varint), index inserts route RIGHTMOST (as always), and
+  maybeRebalanceAfterDelete leaves emptied index leaves in place instead of
+  reclaiming them via the O(pages) walk (temptable2 failure set now IDENTICAL
+  to base at 15; full suite 353s/4548 fails vs base 927s/4700 = net -152).
+  The full value-ordered tranche (real dividers + guided descent + empties
+  reclaimed cheaply) still needs balance_nonroot-grade work.
+- **Query-side collation propagation fixed**: ORDER BY alias terms inherit
+  the aliased expression's collation through quoted aliases and unary +
+  (collate8-1.11/13/15); positional ORDER BY (`ORDER BY 1`) preserves the
+  term's COLLATE and adopts a collated result column's collation, resolving
+  declared column collations via obCollationResolver (SELECT * safe);
+  single-argument MIN/MAX reduce under the argument's collation (func.c
+  minmaxStep parity) — reduced in execquery, not the collation-free
+  registry Step.
+- **JSON-harness user collations**: harnessCollationFixtures installs per-file
+  `db collate`/`db function` equivalents (hex/numeric, TEXT, c1/c2,
+  collA/collB). Static registrations flip reindex 2.1-2.7 except 2.5/2.5.1
+  (index-scan-satisfies-ORDER-BY + integrity order-verification gaps) and
+  3.1/3.3 (second-connection semantics) — pinned natively in
+  frigolite_idxcoll_pin_test.go. Remaining skips are converter duplicate-step
+  artifacts (collate8-2.8, minmax3-4.15, collate1 5.3/10.0, collate5 5.2-5.4)
+  or shared-filename ATTACH races (e_reindex-2.0/2.6.0).

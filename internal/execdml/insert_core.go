@@ -678,7 +678,7 @@ func (e *DMLExecutor) maintainIndexesOnInsert(tableEntry *schema.Entry, colDefs 
 		if kerr != nil {
 			return kerr
 		}
-		if err := e.writeIndexCell(def, append(indexValues, rowID)); err != nil {
+		if err := e.writeIndexCell(def, colDefs, append(indexValues, rowID)); err != nil {
 			return err
 		}
 	}

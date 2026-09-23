@@ -161,7 +161,13 @@ func (e *SelectEngine) schemaCollationResolver(s *sql.SelectStmt) func(sql.Colum
 	}
 	return func(ref sql.ColumnRef) string {
 		if ref.Table != "" {
-			if m, ok := byTable[strings.ToLower(ref.Table)]; ok {
+			table := strings.ToLower(ref.Table)
+			// A schema-qualified reference ("main.t.a") strips the schema
+			// prefix: the by-table map is keyed by table/alias name.
+			if dot := strings.LastIndexByte(table, '.'); dot >= 0 {
+				table = table[dot+1:]
+			}
+			if m, ok := byTable[table]; ok {
 				return m[strings.ToLower(ref.Name)]
 			}
 			return ""

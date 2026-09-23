@@ -97,6 +97,10 @@ type DDLContext interface {
 	TableConstraints(tableName, createSQL string) []sql.TableConstraint
 	TableColumnNames(tableName string) ([]string, error)
 	CheckCollationString(name string) error
+	// LookupCollation resolves a registered custom collation sequence by
+	// name (nil when the name is not a built-in or registered sequence).
+	// Index key comparators use it to order keys under custom collations.
+	LookupCollation(name string) func(a, b string) int
 	IsNonModifiableTable(entry *schema.Entry) bool
 	IsStoragelessVirtualTable(entry *schema.Entry) bool
 

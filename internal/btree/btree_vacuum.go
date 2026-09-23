@@ -404,6 +404,11 @@ func (t *BTree) updateOvfl1ParentPtr(parentPg *pager.Page, parentPgno, oldChild,
 		cellType = storage.CellTableLeaf
 	case storage.PageTypeLeafIndex:
 		cellType = storage.CellIndexLeaf
+	case storage.PageTypeInteriorIndex:
+		// Index interior dividers carry the separator key with their own
+		// overflow chain, so a relocated chain head may be owned by an
+		// interior page's divider cell.
+		cellType = storage.CellIndexInterior
 	default:
 		return fmt.Errorf("btree: updateOvfl1ParentPtr: parent %d is not a leaf (type 0x%02x)", parentPgno, page.PageType)
 	}
@@ -419,11 +424,19 @@ func (t *BTree) updateOvfl1ParentPtr(parentPg *pager.Page, parentPgno, oldChild,
 		}
 		// Cell size on the page: payload-length varint (+ rowid varint
 		// for table leaves) + local payload + 4-byte overflow pointer.
+		// Index interior divider cells additionally lead with the 4-byte
+		// left-child pointer.
 		_, n1 := util.GetVarint(parentPg.Data[cellOff:])
 		sz := n1 + c.LocalLen + 4
 		if cellType == storage.CellTableLeaf {
 			_, n2 := util.GetVarint(parentPg.Data[cellOff+n1:])
 			sz += n2
+		}
+		if cellType == storage.CellIndexInterior {
+			// The payload-length varint starts AFTER the 4-byte child
+			// pointer in an interior cell.
+			_, nChild := util.GetVarint(parentPg.Data[cellOff+4:])
+			sz = 4 + nChild + c.LocalLen + 4
 		}
 		ovflOff := cellOff + sz - 4
 		if ovflOff < 0 || ovflOff+4 > len(parentPg.Data) {

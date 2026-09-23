@@ -244,11 +244,11 @@ func (t *BTree) freeSurplusPages(siblings []*pager.Page, keptSet map[int]bool) e
 // autovacuum-2.4.7's DROP loop).
 func (t *BTree) rebuildParentOverKept(ctx *balanceNonrootContext, siblings []*pager.Page, kept []int, c0, ptrBase int, freeSurplus func() error) error {
 	children := make([]uint32, 0, len(kept))
-	seps := make([]uint64, 0, len(kept))
+	seps := make([]leafSplitResult, 0, len(kept))
 	for _, i := range kept {
 		children = append(children, siblings[i].PageNum)
 		if i != kept[len(kept)-1] {
-			seps = append(seps, t.cellKeyAt(ctx.parent, ptrBase, c0+i))
+			seps = append(seps, leafSplitResult{medianKey: t.cellKeyAt(ctx.parent, ptrBase, c0+i)})
 		}
 	}
 	if err := t.writeInteriorRootAt(ctx.parent.PageNum, children, seps); err != nil {
@@ -420,7 +420,7 @@ func (t *BTree) borrowLeftDivider(ctx *balanceNonrootContext, survivorPg *pager.
 	if err := t.removeInteriorCellRange(dpg, dpage, xi, 1); err != nil {
 		return false, err
 	}
-	if err := t.writeInteriorRootAt(ctx.parent.PageNum, []uint32{x, survivorPg.PageNum}, []uint64{k}); err != nil {
+	if err := t.writeInteriorRootAt(ctx.parent.PageNum, []uint32{x, survivorPg.PageNum}, []leafSplitResult{{medianKey: k}}); err != nil {
 		return false, err
 	}
 	return true, nil
@@ -433,7 +433,7 @@ func (t *BTree) borrowRightDivider(ctx *balanceNonrootContext, survivorPg *pager
 	if err := t.removeInteriorCellRange(dpg, dpage, 0, 1); err != nil {
 		return false, err
 	}
-	if err := t.writeInteriorRootAt(ctx.parent.PageNum, []uint32{survivorPg.PageNum, x}, []uint64{kPOld}); err != nil {
+	if err := t.writeInteriorRootAt(ctx.parent.PageNum, []uint32{survivorPg.PageNum, x}, []leafSplitResult{{medianKey: kPOld}}); err != nil {
 		return false, err
 	}
 	if hasKPOld {

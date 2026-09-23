@@ -7,6 +7,7 @@ package execdml
 import (
 	"strings"
 
+	"github.com/pijalu/frigolite/internal/btree"
 	"github.com/pijalu/frigolite/internal/parse"
 	"github.com/pijalu/frigolite/internal/sql"
 )
@@ -104,6 +105,26 @@ func collationNameToken(s string) string {
 		s = s[:idx]
 	}
 	return strings.TrimSuffix(strings.TrimSuffix(s, ")"), ",")
+}
+
+// parseIndexKeySortFlags extracts one flag byte per index key from a CREATE
+// INDEX key column-list: KeyInfoOrderDesc for keys suffixed DESC (expr.c
+// sqlite3ExprCollSeq / sqlite3CreateIndex sort-order flags), 0 otherwise.
+func parseIndexKeySortFlags(colText string) []byte {
+	parts := splitIndexCols(colText)
+	flags := make([]byte, len(parts))
+	for i, part := range parts {
+		upper := strings.ToUpper(part)
+		if idx := strings.LastIndex(upper, " DESC"); idx >= 0 {
+			// A plain column key ends at DESC; an expression key's DESC is
+			// also a trailing sort order (the expression is inside parens).
+			tail := strings.TrimSpace(part[idx+len(" DESC"):])
+			if tail == "" {
+				flags[i] |= btree.KeyInfoOrderDesc
+			}
+		}
+	}
+	return flags
 }
 
 // parseIndexKeyCols parses a CREATE INDEX key column-list into stripped key

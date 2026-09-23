@@ -39,12 +39,13 @@ func (t *BTree) relocateRootSplit(splits []leafSplitResult) error {
 	}
 
 	// Children in key order after the rotation; seps[i] separates child i
-	// from child i+1 (splits[i].medianKey semantics are unchanged).
+	// from child i+1 (the split dividers carry their medianKey/medianPayload
+	// unchanged).
 	children := make([]uint32, 0, len(splits)+1)
-	seps := make([]uint64, 0, len(splits))
+	seps := make([]leafSplitResult, 0, len(splits))
 	for _, s := range splits {
 		children = append(children, s.pageNum)
-		seps = append(seps, s.medianKey)
+		seps = append(seps, s)
 	}
 	children = append(children, tail.PageNum)
 	if err := t.repointRelocatedSplitChildren(children); err != nil {
@@ -105,12 +106,19 @@ func (t *BTree) repointRelocatedSplitChildren(children []uint32) error {
 // writeInteriorRootAt rewrites page dst as a fresh interior node over the
 // ordered children: cell j points at children[j] with separator seps[j], and
 // children[len-1] is the rightmost pointer.
-func (t *BTree) writeInteriorRootAt(dst uint32, children []uint32, seps []uint64) error {
+func (t *BTree) writeInteriorRootAt(dst uint32, children []uint32, seps []leafSplitResult) error {
 	pg, err := t.pager.ReadPage(dst)
 	if err != nil {
 		return err
 	}
 	coff := contentOffset(dst)
+	// The rewrite replaces any existing divider cells: release their
+	// overflow chains first.
+	if old, perr := storage.ParsePage(pg.Data, int(t.pageSize), coff); perr == nil && old.CellCount > 0 && !t.isTable {
+		if ferr := t.freeInteriorDividerChains(pg, old); ferr != nil {
+			return ferr
+		}
+	}
 	for i := range pg.Data {
 		pg.Data[i] = 0
 	}
@@ -122,7 +130,10 @@ func (t *BTree) writeInteriorRootAt(dst uint32, children []uint32, seps []uint64
 	cellCount := uint16(0)
 	contentStart := int(t.pageSize)
 	if len(seps) > 0 {
-		cellData := t.encodeInteriorCell(children[0], seps[0])
+		cellData, derr := t.encodeDividerCell(children[0], seps[0], dst)
+		if derr != nil {
+			return derr
+		}
 		contentStart = int(t.pageSize) - len(cellData)
 		copy(pg.Data[contentStart:], cellData)
 		cellCount = 1
@@ -143,13 +154,13 @@ func (t *BTree) writeInteriorRootAt(dst uint32, children []uint32, seps []uint64
 }
 
 // createInteriorRoot creates an interior page pointing to two children.
-func (t *BTree) createInteriorRoot(leftChild uint32, medianKey uint64, rightChild uint32) (*pager.Page, error) {
+func (t *BTree) createInteriorRoot(leftChild uint32, divider leafSplitResult, rightChild uint32) (*pager.Page, error) {
 	// The schema b-tree (sqlite_schema) is permanently rooted at page 1:
 	// page 1 is the database file header page and cannot be demoted to a
 	// child. When its root splits, page 1 becomes an interior page and the
 	// split halves are moved to newly allocated pages (SQLite semantics).
 	if t.rootPage == 1 {
-		return t.createInteriorRootAtPage1(medianKey, rightChild)
+		return t.createInteriorRootAtPage1(divider, rightChild)
 	}
 	rootPg, err := t.allocRootpage()
 	if err != nil {
@@ -163,8 +174,11 @@ func (t *BTree) createInteriorRoot(leftChild uint32, medianKey uint64, rightChil
 		rootPg.Data[rootCoff] = storage.PageTypeInteriorIndex
 	}
 
-	// One cell: {leftChild, medianKey}
-	cellData := t.encodeInteriorCell(leftChild, medianKey)
+	// One cell: {leftChild, divider}
+	cellData, err := t.encodeDividerCell(leftChild, divider, rootPg.PageNum)
+	if err != nil {
+		return nil, err
+	}
 	cellStart := int(t.usableSize) - len(cellData)
 	copy(rootPg.Data[cellStart:], cellData)
 	// Full header rewrite: the allocated root may be a cached buffer from
@@ -187,7 +201,7 @@ func (t *BTree) createInteriorRoot(leftChild uint32, medianKey uint64, rightChil
 // page after a split. The split's lower half currently stored in page 1 is
 // moved to a newly allocated leaf so page 1 becomes a pure interior page
 // pointing to both halves.
-func (t *BTree) createInteriorRootAtPage1(medianKey uint64, rightChild uint32) (*pager.Page, error) {
+func (t *BTree) createInteriorRootAtPage1(divider leafSplitResult, rightChild uint32) (*pager.Page, error) {
 	pg1, err := t.pager.ReadPage(1)
 	if err != nil {
 		return nil, err
@@ -229,14 +243,21 @@ func (t *BTree) createInteriorRootAtPage1(medianKey uint64, rightChild uint32) (
 		return nil, err
 	}
 
-	// Convert page 1 into an interior page: one cell {newLeft, medianKey}
+	// Convert page 1 into an interior page: one cell {newLeft, divider}
 	// and rightmostChild = rightChild. Keep the 100-byte file header.
 	rootCoff := contentOffset(1)
-	pg1.Data[rootCoff] = storage.PageTypeInteriorTable
+	if t.isTable {
+		pg1.Data[rootCoff] = storage.PageTypeInteriorTable
+	} else {
+		pg1.Data[rootCoff] = storage.PageTypeInteriorIndex
+	}
 	for i := rootCoff + 1; i < int(t.pageSize); i++ {
 		pg1.Data[i] = 0
 	}
-	cellData := t.encodeInteriorCell(newLeft.PageNum, medianKey)
+	cellData, err := t.encodeDividerCell(newLeft.PageNum, divider, 1)
+	if err != nil {
+		return nil, err
+	}
 	cellStart := int(t.pageSize) - len(cellData)
 	copy(pg1.Data[cellStart:], cellData)
 	binary.BigEndian.PutUint16(pg1.Data[rootCoff+cellPtrOffset(pg1.Data[rootCoff]):], uint16(cellStart))

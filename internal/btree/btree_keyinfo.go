@@ -96,6 +96,194 @@ func NewUnpackedIndexKey(ki *KeyInfo, values []interface{}) *UnpackedIndexKey {
 	return &UnpackedIndexKey{KeyInfo: ki, Values: values}
 }
 
+// CollationLookup resolves a custom collation sequence by name for the
+// record comparator ("" = BINARY when not found). Engines wire this to their
+// registered-collation table (sqlite3_create_collation's connection map).
+type CollationLookup func(name string) (util.CollationFunc, bool)
+
+// SetIndexKeyInfo installs a KeyInfo-driven comparator on an INDEX b-tree:
+// from this point the tree orders its entries by VALUE under the per-column
+// collations (what sqlite3VdbeRecordCompare orders sqlite3's index b-trees
+// by at insert time), not by raw payload bytes. lookup resolves custom
+// collation names; unknown names fall back to BINARY (sqlite3's default).
+func (t *BTree) SetIndexKeyInfo(ki *KeyInfo, lookup CollationLookup) {
+	t.keyCompare = func(a, b []byte) int {
+		return RecordPayloadCompare(a, b, ki, lookup)
+	}
+}
+
+// RecordPayloadCompare orders two packed index payloads under ki: a
+// field-wise comparison of the decoded records (NULL < INTEGER/REAL < TEXT
+// < BLOB, INTEGER vs REAL numerically with int==real equality, TEXT under
+// the column's collation, blobs by bytes then length; DESC columns negate
+// the field's result). It is the packed-vs-packed form of the seek's
+// IndexRecordCompare — the insert walk, split redistribution and interior
+// descent all order through it, so a tree and its seek probe always agree.
+// Undecodable records (never produced by the engine) fall back to
+// bytes.Compare.
+func RecordPayloadCompare(a, b []byte, ki *KeyInfo, lookup CollationLookup) int {
+	ra, errA := storage.DecodeRecord(a)
+	rb, errB := storage.DecodeRecord(b)
+	if errA != nil || errB != nil {
+		return bytes.Compare(a, b)
+	}
+	n := len(ra.Values)
+	if len(rb.Values) < n {
+		n = len(rb.Values)
+	}
+	for i := 0; i < n; i++ {
+		rc := CompareKeyField(util.UnwrapColumnValue(ra.Values[i]), util.UnwrapColumnValue(rb.Values[i]), ki.collationOf(i), ki.sortFlagOf(i), lookup)
+		if rc != 0 {
+			return rc
+		}
+	}
+	return len(ra.Values) - len(rb.Values)
+}
+
+// CompareKeyField compares two decoded index-key values under one column's
+// collation and sort flags — the value-level semantics of
+// sqlite3VdbeRecordCompareWithSkip's per-field branches: NULL < INTEGER <
+// REAL < TEXT < BLOB (sqlite3's type order; INTEGER/REAL compared
+// numerically), TEXT under the named collation (BINARY/NOCASE/RTRIM
+// built-ins, custom sequences through lookup, unknown = BINARY), blobs by
+// bytes with a length tiebreak. A DESC sort flag negates the result (NULL
+// therefore sorts LAST in a DESC index column, matching the C negation).
+func CompareKeyField(a, b interface{}, collation string, sortFlags byte, lookup CollationLookup) int {
+	rc := compareKeyFieldAsc(a, b, collation, lookup)
+	if sortFlags&KeyInfoOrderDesc != 0 {
+		return -rc
+	}
+	return rc
+}
+
+// compareKeyFieldAsc is CompareKeyField without the sort-flag negation.
+func compareKeyFieldAsc(a, b interface{}, collation string, lookup CollationLookup) int {
+	// NULL class ordering (either side NULL: NULL < every value).
+	switch {
+	case a == nil && b == nil:
+		return 0
+	case a == nil:
+		return -1
+	case b == nil:
+		return 1
+	}
+	ta, tb := keyFieldClassOf(a), keyFieldClassOf(b)
+	if ta != tb {
+		// Cross-class: numerics rank before text before blob.
+		if ta < tb {
+			return -1
+		}
+		return 1
+	}
+	switch ta {
+	case keyFieldNumeric:
+		return compareNumericKeyField(a, b)
+	case keyFieldText:
+		return collatedTextCompare(keyFieldTextOf(a), keyFieldTextOf(b), collation, lookup)
+	default: // keyFieldBlob
+		return compareBlobKeyField(a, b)
+	}
+}
+
+// keyFieldClass ranks the storage classes of decoded index-key values:
+// numerics (0), text (1), blobs (2). NULLs are handled by the caller.
+type keyFieldClass int
+
+const (
+	keyFieldNumeric keyFieldClass = iota
+	keyFieldText
+	keyFieldBlob
+)
+
+// keyFieldClassOf maps one decoded value to its storage class.
+func keyFieldClassOf(v interface{}) keyFieldClass {
+	switch v.(type) {
+	case int64, float64:
+		return keyFieldNumeric
+	case string:
+		return keyFieldText
+	default:
+		if _, ok := v.(util.TextCarrier); ok {
+			return keyFieldText
+		}
+		return keyFieldBlob
+	}
+}
+
+// keyFieldTextOf extracts the text form of a class-1 value.
+func keyFieldTextOf(v interface{}) string {
+	if s, ok := v.(string); ok {
+		return s
+	}
+	if tc, ok := v.(util.TextCarrier); ok {
+		return tc.CarrierText()
+	}
+	return ""
+}
+
+// compareNumericKeyField orders two numerics: int64s directly (full
+// precision), int-vs-real through the sqlite3IntFloatCompare algorithm
+// (int 5 == real 5.0).
+func compareNumericKeyField(a, b interface{}) int {
+	ia, aok := a.(int64)
+	ib, bok := b.(int64)
+	if aok && bok {
+		switch {
+		case ia < ib:
+			return -1
+		case ia > ib:
+			return 1
+		}
+		return 0
+	}
+	if aok {
+		return intFloatCompare(ia, b.(float64))
+	}
+	if bok {
+		return -intFloatCompare(ib, a.(float64))
+	}
+	fa, fb := a.(float64), b.(float64)
+	switch {
+	case fa < fb:
+		return -1
+	case fa > fb:
+		return 1
+	}
+	return 0
+}
+
+// collatedTextCompare compares two TEXT values under the named collation:
+// the built-ins BINARY/NOCASE/RTRIM and, for any other name, the lookup
+// (unknown names compare BINARY, sqlite3's default).
+func collatedTextCompare(a, b, collation string, lookup CollationLookup) int {
+	switch collation {
+	case "NOCASE":
+		return nocaseCompare([]byte(a), b)
+	case "RTRIM":
+		return rtrimCompare([]byte(a), b)
+	default:
+		if lookup != nil {
+			if fn, ok := lookup(collation); ok {
+				return fn(a, b)
+			}
+		}
+		return binaryTextCompare([]byte(a), b)
+	}
+}
+
+// keyFieldBlobOf extracts the byte form of a class-2 value.
+func keyFieldBlobOf(v interface{}) []byte {
+	if b, ok := v.([]byte); ok {
+		return b
+	}
+	return nil
+}
+
+// compareBlobKeyField orders two blobs by the common prefix then length.
+func compareBlobKeyField(a, b interface{}) int {
+	return bytes.Compare(keyFieldBlobOf(a), keyFieldBlobOf(b))
+}
+
 // collationOf returns the collation name of key column i ("" = BINARY).
 func (ki *KeyInfo) collationOf(i int) string {
 	if i < len(ki.Collations) {
