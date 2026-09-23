@@ -2,6 +2,7 @@
 package frigolite_test
 
 import (
+	"bytes"
 	"fmt"
 	"strconv"
 	"strings"
@@ -192,5 +193,38 @@ func TestW5Tkt54844DerivedTableOuterQual(t *testing.T) {
 	}
 	if got := strings.Join(parts, " "); got != "{} two {} four" {
 		t.Errorf("got: %s want: {} two {} four", got)
+	}
+}
+
+// sort5 engine-visible contract: a 10000-row recursive CTE of random blobs
+// sorts completely under a small page cache (the TCL file's 2.x group wraps
+// this in untranspilable testvfs/progress-counter scaffolding; the generated
+// package is a documented whole-file skip).
+func TestW5Sort5LargeCTESort(t *testing.T) {
+	db, err := frigolite.Open(":memory:")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer db.Close()
+	if r := db.Exec(`PRAGMA cache_size = 10`); r.Error != nil {
+		t.Fatal(r.Error)
+	}
+	r := db.Query(`WITH x(i, j) AS (
+		SELECT 1, randomblob(100)
+		UNION ALL
+		SELECT i+1, randomblob(100) FROM x WHERE i<10000
+	  ) SELECT i, j FROM x ORDER BY j`)
+	if r.Error != nil {
+		t.Fatalf("err: %v", r.Error)
+	}
+	if len(r.Rows) != 10000 {
+		t.Fatalf("rows: %d", len(r.Rows))
+	}
+	for k := 1; k < len(r.Rows); k++ {
+		a, _ := r.Rows[k-1][1].([]byte)
+		b, _ := r.Rows[k][1].([]byte)
+		if bytes.Compare(a, b) > 0 {
+			t.Fatalf("row %d out of order", k)
+		}
 	}
 }
