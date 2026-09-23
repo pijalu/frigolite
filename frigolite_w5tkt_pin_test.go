@@ -2,7 +2,9 @@
 package frigolite_test
 
 import (
+	"fmt"
 	"strconv"
+	"strings"
 	"testing"
 
 	"github.com/pijalu/frigolite"
@@ -150,5 +152,45 @@ func TestW5Tkt38cb5df375ExceptLimit(t *testing.T) {
 				t.Errorf("ii=%d row %d: got %v want %d", ii, k, row[0], wantVal)
 			}
 		}
+	}
+}
+
+// tkt-54844eea3f 1.2: a table-qualified reference to an OUTER alias (out.b)
+// inside a correlated scalar subquery over FROM (SELECT ...) must not resolve
+// against the derived rows' unqualified columns; the inner WHERE b=out.b
+// compares the derived column with the outer row. Expected {} two {} four.
+func TestW5Tkt54844DerivedTableOuterQual(t *testing.T) {
+	db, err := frigolite.Open(":memory:")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer db.Close()
+	if r := db.Exec(`CREATE TABLE t4(a, b, c);
+		INSERT INTO t4 VALUES('a', 1, 'one');
+		INSERT INTO t4 VALUES('a', 2, 'two');
+		INSERT INTO t4 VALUES('b', 1, 'three');
+		INSERT INTO t4 VALUES('b', 2, 'four')`); r.Error != nil {
+		t.Fatal(r.Error)
+	}
+	r := db.Query(`SELECT (
+		  SELECT c FROM (
+		    SELECT * FROM t4 WHERE a=out.a ORDER BY b LIMIT 10 OFFSET 1
+		  ) WHERE b=out.b
+		) FROM t4 AS out`)
+	if r.Error != nil {
+		t.Fatal(r.Error)
+	}
+	parts := make([]string, 0, 4)
+	for _, row := range r.Rows {
+		for _, v := range row {
+			if v == nil {
+				parts = append(parts, "{}")
+			} else {
+				parts = append(parts, fmt.Sprintf("%v", v))
+			}
+		}
+	}
+	if got := strings.Join(parts, " "); got != "{} two {} four" {
+		t.Errorf("got: %s want: {} two {} four", got)
 	}
 }
