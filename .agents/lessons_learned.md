@@ -8448,6 +8448,17 @@ regenerated; suite net −2274 fails vs pre-tranche baseline (7230 → ~4950).
   `REINDEX <collation>` fails "no such collation sequence" when the schema
   references a collation this connection cannot resolve (LookupCollation,
   which fires the collation-needed hook — collationExists does NOT).
+- **Divider payload carrying at scale is DEFERRED, again.** Carrying the full
+  separator payload in index interior dividers destabilized the balance paths
+  at 100k-entry scale (temptable2 1.3 integrity panic; 4.1.2 25-minute walks
+  through 2947 emptied leaves x O(pages) findParentByWalk). The shipped
+  compromise: dividers encode the LEGACY compact shape (child + payload-length
+  varint), index inserts route RIGHTMOST (as always), and
+  maybeRebalanceAfterDelete leaves emptied index leaves in place instead of
+  reclaiming them via the O(pages) walk (temptable2 failure set now IDENTICAL
+  to base at 15; full suite 353s/4548 fails vs base 927s/4700 = net -152).
+  The full value-ordered tranche (real dividers + guided descent + empties
+  reclaimed cheaply) still needs balance_nonroot-grade work.
 - **Query-side collation propagation fixed**: ORDER BY alias terms inherit
   the aliased expression's collation through quoted aliases and unary +
   (collate8-1.11/13/15); positional ORDER BY (`ORDER BY 1`) preserves the
