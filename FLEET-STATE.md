@@ -86,3 +86,40 @@ Still open (resume order):
 4. w6-kernel WIP branch: 16 files of kernel fixes, build unverified.
 5. Planner goal: index-key-order row emission for SEARCH plans
    (trans-6.21..6.30, index(7)) — pairs with PERF.T4 value-ordered keys.
+
+## Session close (2026-09-23, single-agent continuation)
+
+Landed:
+- fleet/kernel2 (merged): 18/18 kernel/pager singles green.
+- fleet/tkt2 (merged 8161628f4): tkt2822 (compound positional sort — also
+  fixed TestCompoundOrderPin), tkt3992 (UPDATE ADD COLUMN defaults),
+  tkt4018 (second-conn lock emitter), tkt_38cb5df375 (tclLRange negative
+  end), tkt_54844eea3f (derived-table outer-qual scoping), func_pkg
+  135→0 (5 engine + 4 emitter fixes), sort5 evidence-skip + native pin.
+- fleet/pinfix (merged f731f79bf): compound ORDER BY COLLATE preservation
+  in the ordinal rewrite; P5ExplainEqpSubqueries pin corrected to the
+  oracle contract (top-level correlated EXISTS has no SUBQUERY parent
+  line); lock_status tx.readDbs branch restored alongside ReadTxHeld.
+- P4Numeric randomblob pin corrected to oracle truth (n<1 → 1 byte).
+- fleet/idx-coll (merged 75451d1ed): **index keys now collation-ordered**
+  (RecordPayloadCompare under KeyInfo — previously raw payload bytes
+  including serial-type varints); REINDEX physically rebuilds; query-side
+  collation propagation (alias/positional/SELECT-*); oracle round-trips
+  verified. reindex/collate8/minmax3/e_reindex green; index improved.
+- collate6-1.3: trigger NEW rows carry declared column collations.
+
+RESUME (in order):
+1. collate1 (collate1_test.go:145 [{} {} {}] vs hex-function values) and
+   collate5 + reindex-2.6/2.7: green at fleet/idx-coll tip f5a2ea59a, red
+   on merged main — the merge interaction with main's select_columns
+   declared-collation marker patch (line ~914) is the suspect; bisect the
+   merged delta. idx-coll's own fixture registrations (hex collation +
+   hex function) may also need porting.
+2. autovacuum ("Page N never used"), backup, e_fkey residue, unionall
+   570, tkt_78e04e52ea (empty-name index found-signal), randexpr1
+   (nested correlated-agg — constraints in lessons).
+3. w6-kernel branch preserves un-adopted WIP for: pragma-6.x PK ordinals,
+   vacuum header metas, trigger3 RAISE scope, trigger6 UDF shadowing,
+   alterlegacy/e_fkey legacy renames, csv01 declared types, lock
+   read-marks — route to cluster owners.
+4. Then: final census + adjudication + PORTPLAN §2/§5d close.
