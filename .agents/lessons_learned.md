@@ -8419,3 +8419,54 @@ regenerated; suite net −2274 fails vs pre-tranche baseline (7230 → ~4950).
   VACUUM bump site must match); autovacuum (80 integrity_check "Page N
   never used" mismatches under the full delete-order matrix — auto-vacuum
   page accounting; unchanged from baseline).
+
+## FULL-SUITE-DRIFT.T30-misc2 — misc singles wave 2 (2026-09-23, branch fleet/misc2)
+
+- **Compound-view column affinity (unionall-8.4/8.7/8.10)**: sqlite3SubqueryColumnTypes
+  walks the compound chain taking the LEFTMOST member with an affinity, then refines
+  TEXT↔numeric to BLOB by the DATA TYPES of later members — each member's expressions
+  resolve against THAT member's own FROM sources, not the leftmost member's. The exec
+  viewColumnDefs machinery had the right shape but exprDataType lacked the
+  ColumnRef/CastExpr case entirely (sqlite3ExprDataType: TK_COLUMN maps affinity —
+  numeric→0x05, TEXT→0x06, else 0x07; TK_FUNCTION/TK_SELECT→0x07; CASE ORs branches;
+  concat→0x06; default→0x01). Derived tables type exactly like views: the
+  buildSubqueryRowMaps wrap must (a) strip a stale inner scan wrapper (a nested
+  ColumnValue classifies as TEXT) and (b) fall back to ViewColumnDefsFromSelect for
+  the column affinity. Affinity is comparison metadata only — values are NOT
+  converted (oracle: table_info says BLOB, typeof(b) stays 'integer', b='2' matches
+  nothing, b=2 matches).
+- **FK child-check EQP (e_fkey-26.3.x/26.4.x)**: fkey.c fkScanChildren runs
+  'SELECT rowid FROM child WHERE fkcol = ?' through sqlite3WhereBegin — the EQP node
+  is whatever the NORMAL planner picks. Never hard-code 'SCAN <child>' for FK scans;
+  synthesize the child-key equality select and plan it (covering-index SEARCH
+  appears). Constraint lists render in INDEX column order (explainIndexRange walks
+  index columns; WHERE 'a=? AND b=?' on index (b,a) prints '(b=? AND a=?)').
+- **lock_status needs BOTH halves**: the w6-misc wave recorded per-tx read marks
+  (tx.readDbs via noteStmtReadLock from execEntry) but lockStatusFor never consulted
+  them — 'main shared' after BEGIN+read was unreported. Marks land on the statement's
+  first read; deferred BEGIN alone stays 'unlocked'; COMMIT/ROLLBACK clear.
+- **Auto-vacuum finalDbSize must use the CONFIGURED pending byte**: tester.tcl pins
+  sqlite3_test_control pending byte 0x10000 (= page 65 at 1024B pages);
+  finalDbSize's crossing adjustment (nOrig>PENDING && nFin<PENDING → nFin--) computed
+  PENDING from the 1GB default, so the drain truncated past the reserved page's slot
+  accounting and stranded a free page below nFin when the chain header was zeroed —
+  every subsequent integrity_check reported 'Page N: never used'. Any vacuum math
+  that mirrors btree.c's PENDING_BYTE_PAGE(pBt) must read pager.PendingBytePage().
+- **sqlite3AtoF mantissa rule**: a numeric prefix needs ≥1 mantissa digit before OR
+  after the dot — '.9' is 0.9 REAL, but '.e5'/'.X'/'. EE-bytes' scan as NO numeric
+  prefix (integer 0, no MEM_Real). The old scanNumericPrefix reused the scan POSITION
+  as the digit test, so any dot-first blob built a bogus prefix that fell into the
+  overflow branch and returned +Inf ('no such column: Inf' from the backup logical
+  copy rendering +Inf as a bare token). Overflow Inf is REAL only for genuine
+  exponent overflow ('9e999'+0 → Inf REAL); numericType's MEM_Real flag requires '.'
+  or e/E IN the scanned literal. The backup copy renders ±Inf as 9.0e+999 /
+  -9.0e+999 (shell dump form) and NaN as NULL — Go's strconv '+Inf' re-parses as an
+  identifier.
+- **Flaky testgen failures**: bisect nondeterminism by looping a single package
+  (vacuum_into failed ~35% per run — Go map iteration was NOT the cause this time;
+  the trigger was randomblob(600) values hitting the broken dot-prefix path). When a
+  repro "passes", compare the harness EXACTLY (same pragmas, SetPendingByte, payload
+  construction via tclMakeStr = "char." repeated, grouped multi-oid deletes).
+- **Repro hygiene**: a db opened once and reused across attempts must not be
+  os.Remove'd mid-loop nor db.Close()'d per iteration — a closed-DB
+  'database disk image is malformed' is a repro artifact, not an engine bug.
