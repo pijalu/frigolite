@@ -3,6 +3,7 @@ package execdml
 
 import (
 	"fmt"
+	"github.com/pijalu/frigolite/internal/execexpr"
 	"github.com/pijalu/frigolite/internal/execquery"
 	"github.com/pijalu/frigolite/internal/function"
 	"github.com/pijalu/frigolite/internal/schema"
@@ -251,7 +252,7 @@ func buildBeforeTriggerRow(colDefs []sql.ColumnDef, values []interface{}, ipkWas
 			if ipkWasNil && i == ipkIndex {
 				newRow[colDefs[i].Name] = int64(-1)
 			} else {
-				newRow[colDefs[i].Name] = v
+				newRow[colDefs[i].Name] = wrapTriggerRowValue(v, colDefs[i])
 			}
 		}
 	}
@@ -818,3 +819,15 @@ func (e *DMLExecutor) computeOneGenerated(cd sql.ColumnDef, i int, values []inte
 // integer (integer, integer-valued real like 3.0, or numeric text like '12')
 // is used as the rowid; anything else (non-integer real like 3.5, or
 // non-numeric text) fails with "datatype mismatch".
+
+// wrapTriggerRowValue tags a trigger-row value with its column's declared
+// collation (expr.c: TK_COLUMN carries the column's collating sequence into
+// every comparison): a trigger WHEN like new.a = 'a' over a COLLATE NOCASE
+// column must match 'A' (collate6-1.3). The wrapper is unwrapped when the
+// value is written or rendered.
+func wrapTriggerRowValue(v interface{}, cd sql.ColumnDef) interface{} {
+	if v == nil || cd.Collate == "" || strings.EqualFold(cd.Collate, "BINARY") {
+		return v
+	}
+	return &execexpr.CollatedValue{Value: v, Collation: strings.ToUpper(cd.Collate)}
+}

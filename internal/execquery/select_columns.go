@@ -828,6 +828,18 @@ func (e *SelectEngine) compareOrderByValues(left, right interface{}, ob sql.Orde
 			}
 		}
 	}
+	// A bare column term with no explicit COLLATE sorts by the column's
+	// DECLARED collation (expr.c sqlite3ExprCollSeq → TK_COLUMN): the scan
+	// wraps declared-collation columns in CollatedValue markers, so an
+	// unwrapped-order term inherits the marker's collation (reindex-2.6:
+	// ORDER BY a with a TEXT PRIMARY KEY COLLATE c1 sorts reverse).
+	if coll == "" {
+		if _, c := extractValue(left); c != "" {
+			coll = c
+		} else if _, c := extractValue(right); c != "" {
+			coll = c
+		}
+	}
 	if coll != "" {
 		// An explicit COLLATE in the ORDER BY term (or one inherited from a
 		// SELECT-list alias) overrides the column's declared collation:

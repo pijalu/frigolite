@@ -110,6 +110,20 @@ func (e *SelectEngine) validateCompoundOrderByCollations(s *sql.SelectStmt, coll
 		tail = tail.Union
 	}
 	for _, ob := range tail.OrderBy {
+		// An explicit COLLATE on the term itself is validated here too:
+		// the compound's result columns carry no collation for literal
+		// members ("SELECT 10 INTERSECT SELECT 20 ORDER BY 1 COLLATE
+		// string_compare" must still fail for the unknown collation —
+		// collate3-3.30/3.36).
+		if b, ok := ob.Expr.(*sql.BinaryOp); ok && strings.EqualFold(b.Operator, "COLLATE") {
+			// The unknown-collation error echoes the name AS WRITTEN in the
+			// SQL text (collate3-3.30: "string_compare", not uppercased).
+			if lit, ok := b.Right.(*sql.StringLit); ok && lit.Value != "" {
+				if err := e.ctx.CheckCollationString(lit.Value); err != nil {
+					return err
+				}
+			}
+		}
 		pos := e.compoundOrderTermPosition(s, ob.Expr)
 		if pos >= 1 && pos <= len(colls) && colls[pos-1] != "" {
 			if err := e.ctx.CheckCollationString(colls[pos-1]); err != nil {
