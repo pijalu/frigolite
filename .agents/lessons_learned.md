@@ -8796,3 +8796,21 @@ regenerated; suite net −2274 fails vs pre-tranche baseline (7230 → ~4950).
   JSON wants are stale converter-era first-seen renderings that duplicate
   nocase-equal rows SQLite dedups — not an engine gap); 4.3's real issue is
   the whole-file step-list re-append (tkt3376 CREATE re-run), not GROUP BY.
+- **idx-coll merge follow-up (T32-collate addendum): the merge dropped main's
+  compound exemption in resolveOrderByOrdinalTerms.** The two-sided merge
+  (47772f421 main + f5a2ea59a idx-coll → 75451d1ed) took idx-coll's rewritten
+  function, losing `if s.Union != nil { return orderBy }` (tkt2822,
+  00046da64). Result: for a compound with aliased outputs, resolveCompound-
+  OrderByTerms first rewrites `ORDER BY PX` → ordinal 1, then the ordinal
+  rewrite turned it into the LEFTMOST MEMBER'S SOURCE name "p" — the merged
+  rows are keyed by OUTPUT names (PX), so every lookup missed and the sort
+  silently disabled (TestW5Tkt2822CompoundOrderByAlias cases 1-5 all-natural-
+  order; testgen tkt2822 red). Corroborated independently by WIP-ROUTER
+  (pin green at 47772f421, red from the merge). Fix: restore the exemption
+  (compounds stay positional; merged-row collations flow through
+  applyCompoundOrderByCollations; non-compound ordinal/collation handling
+  from idx-coll is untouched). tkt2822's select_validate_part2.go half
+  (compoundMemberExprPosition/ColumnPosition) SURVIVED the merge — when
+  bisecting a two-sided merge, diff EACH function, not just files: the file
+  was "unchanged" while its sibling function in select_columns.go lost
+  main's side.

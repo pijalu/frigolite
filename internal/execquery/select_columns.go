@@ -599,8 +599,23 @@ func (e *SelectEngine) lessRows(orderBy []sql.OrderByTerm, rowMaps []RowMap, row
 // output column's collation exactly like ORDER BY <name> (select.c
 // sqlite3ResolveSortRefs: the sort reference takes the result column's
 // collating sequence). Other expressions keep the positional fallback.
+//
+// Compound selects are exempt: their sort is positional over the merged rows
+// by construction (resolve.c resolveCompoundOrderBy converts every term to an
+// integer before the sorter runs), and the merged row maps are keyed by the
+// compound's OUTPUT column names — a rewrite to the leftmost member's source
+// column name would miss those maps whenever an output alias renames the
+// column ("SELECT p PX ... UNION ALL SELECT x XX ... ORDER BY PX" resolves PX
+// to ordinal 1, which this rewrite would turn into source name "p"; that
+// evaluates NULL for every merged row and silently disables the sort,
+// tkt2822-6.x). Compound column collations are carried separately by
+// applyCompoundOrderByCollations' COLLATE wrapper, which the positional
+// fallback honors.
 func (e *SelectEngine) resolveOrderByOrdinalTerms(s *sql.SelectStmt, orderBy []sql.OrderByTerm) []sql.OrderByTerm {
 	if s == nil {
+		return orderBy
+	}
+	if s.Union != nil {
 		return orderBy
 	}
 	changed := false
