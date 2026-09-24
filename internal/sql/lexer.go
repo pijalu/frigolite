@@ -267,13 +267,17 @@ func (t *Tokenizer) trySingleCharToken(ch byte, pos int) *Token {
 	}
 }
 
-// readDotOp reads a '.' token, or a number if a digit follows.
+// readDotOp reads a '.' token, or a number if a digit follows. The dot is
+// left unconsumed in the number case: readNumber lexes the whole literal
+// INCLUDING its leading dot (tokenize.c scans ".5" as one TK_FLOAT token —
+// dropping the dot made SELECT .1 yield the integer 1 and SELECT .4e+1 the
+// real 40.0, misc5-5.1/5.4).
 func (t *Tokenizer) readDotOp(pos int) *Token {
-	t.pos++
-	if t.pos < len(t.input) && t.input[t.pos] >= '0' && t.input[t.pos] <= '9' {
+	if t.pos+1 < len(t.input) && t.input[t.pos+1] >= '0' && t.input[t.pos+1] <= '9' {
 		t.last = t.readNumber()
 		return &t.last
 	}
+	t.pos++
 	t.last = Token{Type: TokenDot, Value: ".", Pos: pos}
 	return &t.last
 }
@@ -508,6 +512,23 @@ func (t *Tokenizer) readEscapedString(pos, strStart int) Token {
 
 func (t *Tokenizer) readNumber() Token {
 	pos := t.pos
+
+	// Leading-dot mantissa: ".5", ".5e2" — tokenize.c scans the dot into the
+	// number token, so the value keeps it (and the parser's ContainsAny(".eE")
+	// classifies it as a float).
+	if t.pos < len(t.input) && t.input[t.pos] == '.' {
+		t.pos++ // consume the dot
+		buf := []byte{'.'}
+		buf = t.readDigits(buf)
+		buf = t.readFraction(buf)
+		buf = t.readExponent(buf)
+		if tail, hasTail := t.consumeIdentTail(buf); hasTail {
+			t.last = Token{Type: TokenUnrecognized, Value: string(tail), Pos: pos}
+			return t.last
+		}
+		t.last = Token{Type: TokenNumber, Value: string(buf), Pos: pos}
+		return t.last
+	}
 
 	// Fast path: read consecutive digits first
 	digitStart := t.scanDigits()
