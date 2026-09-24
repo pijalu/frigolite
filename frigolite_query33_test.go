@@ -2,9 +2,9 @@ package frigolite
 
 import (
 	"fmt"
-	"os"
 	"path/filepath"
 	"strconv"
+	"strings"
 	"testing"
 )
 
@@ -18,6 +18,111 @@ func openProbeDB(t *testing.T) *DB {
 	}
 	t.Cleanup(func() { db.Close() })
 	return db
+}
+
+// TestProbeSelectHCompoundOrderBy is the engine-first probe for selectH-2.1:
+// a compound subquery with ORDER BY b must apply the sort (b: c61 < c62 →
+// the second arm's row first).
+func TestProbeSelectHCompoundOrderBy(t *testing.T) {
+	db := openProbeDB(t)
+	if err := db.Exec(`CREATE TABLE t1(c15, c16, c61, c62);
+		INSERT INTO t1 VALUES(15, 16, 61, 62);`).Error; err != nil {
+		t.Fatal(err)
+	}
+	res := db.Query(`SELECT a FROM (
+		SELECT 1 AS cnt, c15 AS a, *, c62 AS b FROM t1
+		UNION ALL
+		SELECT 1 AS cnt, c16 AS a, *, c61 AS b FROM t1
+		ORDER BY b )`)
+	if res.Error != nil {
+		t.Fatalf("query error: %v", res.Error)
+	}
+	if got, want := flatRows(res), "16 15"; got != want {
+		t.Errorf("got %q want %q", got, want)
+	}
+}
+
+// TestProbeSelectHCounter counts invocations of a counter UDF via a Go
+// variable (engine-first probe for selectH 1.3/2.2/3.2/3.5 — the
+// omit-unused-subquery-column optimization must keep the UDF un-invoked when
+// its output column is never referenced by the outer query).
+func TestProbeSelectHCounter(t *testing.T) {
+	db := openProbeDB(t)
+	if err := db.Exec(`CREATE TABLE t1(c0, c44, c60);
+		INSERT INTO t1 VALUES(0, 44, 60);`).Error; err != nil {
+		t.Fatal(err)
+	}
+	cnt := 0
+	db.RegisterFunction("counter", func(args []interface{}) (interface{}, error) {
+		amt := int64(1)
+		if len(args) > 0 {
+			if n, ok := args[0].(int64); ok {
+				amt = n
+			}
+		}
+		cnt += int(amt)
+		return int64(cnt), nil
+	}, 1, 1)
+	res := db.Query(`SELECT DISTINCT c44 FROM (
+		SELECT c0 AS a, *, counter(1) FROM t1
+		UNION ALL
+		SELECT c0 AS a, *, counter(1) FROM t1
+	  ) WHERE c60=60`)
+	if res.Error != nil {
+		t.Fatalf("query error: %v", res.Error)
+	}
+	if got, want := flatRows(res), "44"; got != want {
+		t.Errorf("rows: got %q want %q", got, want)
+	}
+	if cnt != 0 {
+		t.Errorf("counter invoked %d times; SQLite's omit-unused-subquery-column keeps it at 0", cnt)
+	}
+}
+
+// TestProbeSelectHStarAliasColumn is the engine-first probe for selectH-3.6:
+// SELECT x over a compound view whose arms are "c16 AS a, *, <expr> AS x"
+// (68 output columns: alias, 66-star columns, trailing expression) must
+// return the expression values, not source columns.
+func TestProbeSelectHStarAliasColumn(t *testing.T) {
+	db := openProbeDB(t)
+	cols := make([]string, 66)
+	vals := make([]string, 66)
+	for i := 0; i < 66; i++ {
+		cols[i] = fmt.Sprintf("c%d", i)
+		vals[i] = strconv.Itoa(i)
+	}
+	ddl := fmt.Sprintf("CREATE TABLE t1(%s);\nINSERT INTO t1 VALUES(%s);\nCREATE INDEX t1c60 ON t1(c60);",
+		strings.Join(cols, ", "), strings.Join(vals, ", "))
+	if err := db.Exec(ddl).Error; err != nil {
+		t.Fatal(err)
+	}
+	cnt := 0
+	db.RegisterFunction("counter", func(args []interface{}) (interface{}, error) {
+		cnt++
+		return int64(cnt), nil
+	}, 1, 1)
+	// selectH-3.1: the view is created (and first used) inside one
+	// multi-statement Exec.
+	if err := db.Exec(`CREATE VIEW v1 AS
+		  SELECT c16 AS a, *, counter(1) AS x FROM t1
+		  UNION ALL
+		  SELECT c17 AS a, *, counter(1) AS x FROM t1
+		  UNION ALL
+		  SELECT c18 AS a, *, counter(1) AS x FROM t1
+		  UNION ALL
+		  SELECT c19 AS a, *, counter(1) AS x FROM t1;
+		  SELECT count(*) FROM v1 WHERE c60=60;`).Error; err != nil {
+		t.Fatal(err)
+	}
+	// selectH-3.6: the x column IS selected, so counter runs once per arm
+	// row and x carries 1 2 3 4.
+	res := db.Query(`SELECT x FROM v1 WHERE c60=60`)
+	if res.Error != nil {
+		t.Fatalf("query x where error: %v", res.Error)
+	}
+	if got, want := flatRows(res), "1 2 3 4"; got != want {
+		t.Errorf("x where c60=60: got %q want %q", got, want)
+	}
 }
 
 // TestProbeHavingNondeter is the engine-first probe for having.test 4.2/4.3:
@@ -73,7 +178,6 @@ func TestProbeHavingNondeter(t *testing.T) {
 	if got := flatRows(res2); got != "1 4 2 2" {
 		t.Errorf("4.3: got %q want %q", got, "1 4 2 2")
 	}
-	_ = os.Remove
 }
 
 func flatRows(res *Result) string {

@@ -501,6 +501,30 @@ func (e *SelectEngine) execSelectViewWithOuter(s *sql.SelectStmt, viewEntry *sch
 	if e.nestDepth >= e.ctx.ExprDepthLimit() {
 		return &Result{Error: fmt.Errorf("VIEWs and/or subqueries nested too deep")}
 	}
+	// Offer the outer statement to the view-body expansion for the
+	// omit-unused-subquery-column optimization (select.c
+	// disableUnusedSubqueryResultColumns applies to view materialization
+	// like any FROM-clause subquery). The freshly parsed body consumes and
+	// clears it, so a body expanding further views does not inherit stale
+	// usage.
+	prevOuterStmt := e.viewOuterStmt
+	prevOuterQuals := e.viewOuterQuals
+	e.viewOuterStmt = s
+	quals := make([]string, 0, 3)
+	if viewEntry.Name != "" {
+		quals = append(quals, viewEntry.Name)
+	}
+	if s.From.Name != "" {
+		quals = append(quals, s.From.Name)
+	}
+	if s.From.As != "" {
+		quals = append(quals, s.From.As)
+	}
+	e.viewOuterQuals = quals
+	defer func() {
+		e.viewOuterStmt = prevOuterStmt
+		e.viewOuterQuals = prevOuterQuals
+	}()
 	viewResult := e.execViewBody(viewEntry, viewCtx)
 	if viewResult.Error != nil {
 		return viewResult

@@ -3,7 +3,6 @@ package execquery
 
 import (
 	"fmt"
-	"os"
 	"strconv"
 	"strings"
 
@@ -11,9 +10,6 @@ import (
 	"github.com/pijalu/frigolite/internal/sql"
 	"github.com/pijalu/frigolite/internal/vtab"
 )
-
-// debugT33Sort is a temporary instrumentation flag (T33-query diagnosis).
-var debugT33Sort = os.Getenv("FRIGOLITE_T33_SORT_DEBUG") != ""
 
 // This file owns column name resolution, qualified-star expansion,
 // ORDER BY row comparison, and PK column identification for SELECT
@@ -730,12 +726,6 @@ func (e *SelectEngine) compareOrderByTerm(ob sql.OrderByTerm, rowMaps []RowMap, 
 	}
 	obExpr := normalizeOrderByExpr(ob.Expr)
 	ref, isRef := stripCollate(obExpr).(*sql.ColumnRef)
-	if debugT33Sort {
-		left0, lok0 := resolveOrderByValue(obExpr, rows, resultCols, i)
-		lm, lmok := rowMaps[i].Get(ref.Name)
-		fmt.Fprintf(os.Stderr, "T33DBG term=%q isRef=%v refName=%q resultCols=%q left0=%v lok0=%v rowmap[%d][%q]=%v(ok=%v) rows[i][2]=%v\n",
-			sql.ExprString(ob.Expr), isRef, ref.Name, resultCols, left0, lok0, i, ref.Name, lm, lmok, rows[i][2])
-	}
 	if !isRef || ref.Table != "" || ref.Name == "*" {
 		return e.compareOrderByFallback(ob, obExpr, rowMaps, rows, resultCols, i, j)
 	}

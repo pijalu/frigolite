@@ -748,6 +748,38 @@ func (tp *transpiler) emitFsUserProcs(name, body string) bool {
 	return false
 }
 
+// stripProcBodyOuterBraces removes one balanced pair of outer braces from a
+// proc body word. The TCL tokenizer already strips the outer braces of a
+// braced word, so a blind TrimSuffix("}") would corrupt any body whose last
+// command ends with a brace (having.test's `proc nondeter {args} { incr
+// ::V; expr {$::V % 2} }` lost the expr's closing brace and the body-shape
+// detection degraded the UDF to a nil stub). Only a leading "{" whose match
+// is the final character is stripped.
+func stripProcBodyOuterBraces(word string) string {
+	body := strings.TrimSpace(word)
+	if len(body) < 2 || body[0] != '{' || body[len(body)-1] != '}' {
+		return body
+	}
+	depth := 0
+	for i := 0; i < len(body); i++ {
+		switch body[i] {
+		case '{':
+			depth++
+		case '}':
+			depth--
+			if depth == 0 && i != len(body)-1 {
+				// The opening brace closes before the end of the word:
+				// it is not a wrapper around the whole body.
+				return body
+			}
+		}
+	}
+	if depth != 0 {
+		return body
+	}
+	return strings.TrimSpace(body[1 : len(body)-1])
+}
+
 // processProc recognizes simple test-harness procs (constant-returning,
 // counter, predicate, join, collation) and registers them for later `db func`
 // / `db collate` handlers.
@@ -757,10 +789,7 @@ func (tp *transpiler) processProc(args []tcl.RawWord) {
 		return
 	}
 	name := strings.TrimSpace(args[0].Text)
-	body := strings.TrimSpace(args[2].Text)
-	body = strings.TrimPrefix(body, "{")
-	body = strings.TrimSuffix(body, "}")
-	body = strings.TrimSpace(body)
+	body := stripProcBodyOuterBraces(args[2].Text)
 
 	// A proc of the shape used by the `tcl` vtab module
 	// (vtabL.test: proc vtab_command {method args} { ... return $::var })
