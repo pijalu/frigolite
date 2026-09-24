@@ -3,6 +3,7 @@ package execquery
 
 import (
 	"fmt"
+	"os"
 	"strconv"
 	"strings"
 
@@ -10,6 +11,9 @@ import (
 	"github.com/pijalu/frigolite/internal/sql"
 	"github.com/pijalu/frigolite/internal/vtab"
 )
+
+// debugT33Sort is a temporary instrumentation flag (T33-query diagnosis).
+var debugT33Sort = os.Getenv("FRIGOLITE_T33_SORT_DEBUG") != ""
 
 // This file owns column name resolution, qualified-star expansion,
 // ORDER BY row comparison, and PK column identification for SELECT
@@ -710,14 +714,40 @@ func (e *SelectEngine) compareOrderByTerm(ob sql.OrderByTerm, rowMaps []RowMap, 
 	// column names here: rewriting the term to the named column lets the
 	// comparator's declared-collation resolution see through SELECT *
 	// (collate1-3.1: SELECT * FROM t(a COLLATE hex) ORDER BY 1 sorts hex).
+	// The POSITION survives in positionalIdx: an ordinal names the result
+	// column AT THAT POSITION (resolve.c resolveOrderByTermToExprList returns
+	// the iCol-th result expression), so when several result columns render
+	// the same name (t4a.x/t4b.x in where6-3.1, or the two sum(c) OVER
+	// (ORDER BY a) windows of window8-1.8.8 that differ only in EXCLUDE) a
+	// name-based lookup would silently redirect the sort key to the FIRST
+	// matching column or to a row-map value keyed by the shared name.
+	positionalIdx := -1
 	if nl, isLit := ob.Expr.(*sql.NumericLit); isLit {
 		if pos, err := strconv.Atoi(nl.Value); err == nil && pos >= 1 && pos <= len(resultCols) {
-			ob.Expr = &sql.ColumnRef{Name: resultCols[pos-1]}
+			positionalIdx = pos - 1
+			ob.Expr = &sql.ColumnRef{Name: resultCols[positionalIdx]}
 		}
 	}
 	obExpr := normalizeOrderByExpr(ob.Expr)
 	ref, isRef := stripCollate(obExpr).(*sql.ColumnRef)
+	if debugT33Sort {
+		left0, lok0 := resolveOrderByValue(obExpr, rows, resultCols, i)
+		lm, lmok := rowMaps[i].Get(ref.Name)
+		fmt.Fprintf(os.Stderr, "T33DBG term=%q isRef=%v refName=%q resultCols=%q left0=%v lok0=%v rowmap[%d][%q]=%v(ok=%v) rows[i][2]=%v\n",
+			sql.ExprString(ob.Expr), isRef, ref.Name, resultCols, left0, lok0, i, ref.Name, lm, lmok, rows[i][2])
+	}
 	if !isRef || ref.Table != "" || ref.Name == "*" {
+		return e.compareOrderByFallback(ob, obExpr, rowMaps, rows, resultCols, i, j)
+	}
+	if positionalIdx >= 0 {
+		// Ordinal sort keys read the OUTPUT ROW at the ordinal's position.
+		// resolveOrderByRowValues' row-map preference must not apply: the
+		// row map is keyed by NAME, and a source column or a stored
+		// expression key sharing the result column's rendered name would
+		// shadow the actual output value (where6-3.1, window8-1.8.8).
+		if positionalIdx < len(rows[i]) && positionalIdx < len(rows[j]) {
+			return e.compareOrderByValues(rows[i][positionalIdx], rows[j][positionalIdx], ob)
+		}
 		return e.compareOrderByFallback(ob, obExpr, rowMaps, rows, resultCols, i, j)
 	}
 	left, lok := resolveOrderByValue(obExpr, rows, resultCols, i)
