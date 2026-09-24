@@ -108,12 +108,7 @@ func (e *Engine) reindexTargets(target string) ([]reindexIndexTarget, error) {
 		}
 	}
 	if target != "" && !matched {
-		// A collation target that no index uses is still a successful
-		// no-op REINDEX (build.c matches the collation, finds nothing).
-		if e.collationExists(reindexTargetObject(target)) || e.schemaReferencesCollationInAnyDb(reindexTargetObject(target)) {
-			return nil, nil
-		}
-		return nil, fmt.Errorf("unable to identify the object to be reindexed")
+		return e.reindexTargetNoIndexFallback(target)
 	}
 	return out, nil
 }
