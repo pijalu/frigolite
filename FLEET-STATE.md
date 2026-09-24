@@ -168,3 +168,17 @@ INTERSECT/EXCEPT. tkt2822's own fix (select_validate_part2.go alias-first
 Then: reindex 2.6/2.7 (planner sorter-omission tranche, documented),
 randexpr1 + tkt_78e04e52ea (T32-deep agent — check its branch
 fleet/tkt-deep for landed work), final census + PORTPLAN close.
+
+## T32 close (census 2026-09-24+, post all T30/T31/T32 merges)
+
+1037 pass / 26 fail / 280 skip / 17 suspects (same slow set, serially
+adjudicated previously: 9 pass + 8 confirmed slow-class). The 17
+non-adjudicated fails:
+- 9 fts5 adjudicated architectural (stay).
+- **8 fall-through-crack packages**: misc2, misc3, misc5, misc7, misc8
+  (the w5-tkt WIP that fixed them was on commit 380a22c5d, preserved —
+  `git log 380a22c5d` — when fleet/tkt2 was reset; resume by cherry-pick
+  or re-derive), having, permutations, where6, window8, selectH, index,
+  reindex (planner sorter-omission tranche), skipscan2, without_rowid4
+  (4 residual), tpch01, rtree1.
+- fts3corrupt6, e_fkey-class items: re-enumerate at next census.
