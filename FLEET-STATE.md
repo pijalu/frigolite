@@ -143,3 +143,28 @@ P5AnalyzeReindex (RESUME-1, idx-coll follow-up), TestSQLiteSuite legacy
 JSON-harness drift (identical on main; testgen corpus is the census
 currency) and 4 missing-oracle-fixture infra fails (backupconformance,
 walconformance, 2 regen fixtures needing the ori corpus).
+
+## Session close 2 (2026-09-24, single-agent)
+
+Landed: fleet/collate-res (merged 39ad1ee67) — collate1/collate5 GREEN
+(the "merge interaction" premise was wrong: the green state lived on the
+unmerged fleet/w5-tkt WIP; real gaps = format-UDF emitter stub,
+numeric collation equality, INTERSECT/EXCEPT last-row survivor).
+Fleet/kernel-wip merged: 2 stale root pins corrected (GlobRangePin
+oracle-truth, WindowC null want); root fails 9→7.
+P4Numeric randomblob pin corrected to oracle truth (n<1 → 1 byte).
+
+NEW REGRESSION (top priority, introduced by fleet/collate-res 39ad1ee67):
+**compound ORDER BY sorting is skipped entirely** — tkt2822 got
+[1 8 9 2 1 7 7 2] (insertion order) for ALL FOUR ORDER BY variants
+(PX/YX aliases, XX/QX, QX/XX, qualified t6b.x). TestW5Tkt2822CompoundOrderByAlias
+red (was green at 8161628f4). Suspect: select_setop.go
+intersectRows/exceptRows survivor rewrite or the new select_agg_group.go
+key path dropping the compound sort call for UNION ALL. Fix = restore the
+sort (or its call) while keeping the last-row survivor semantics for
+INTERSECT/EXCEPT. tkt2822's own fix (select_validate_part2.go alias-first
++ compound exemption) must keep working.
+
+Then: reindex 2.6/2.7 (planner sorter-omission tranche, documented),
+randexpr1 + tkt_78e04e52ea (T32-deep agent — check its branch
+fleet/tkt-deep for landed work), final census + PORTPLAN close.
