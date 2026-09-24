@@ -52,7 +52,26 @@ Coordinator-side baselines taken (main 9372fbb85):
   (same hot files — conflict avoidance), in 3 disjoint-file agents.
 - SOLID green at baseline.
 
-Merge log: (none yet)
+Merge log: (none merged yet)
+
+Mid-session progress (2026-09-24, ~30 min in):
+- t33-idx: 2 commits — permutations GREEN (stale-regen artifact: package
+  predated emitter fix 3bf26dc7d; nil tclListBuilder Append panic) +
+  index/skipscan2 (seek constraints must form leading prefix —
+  where.c whereLoopAddBtreeIndex; new execquery/bestindex.go extracted
+  from 1000-line explain_plan.go).
+- t33-misc: 2 commits — misc5 GREEN (lexer leading-dot literals + LIMIT
+  subquery prepare error), misc8-1.6 btree saveAllCursors port (WIP).
+- t33-query: WIP commit — positional ORDER BY compares output row at
+  ordinal position (where6-3.1, window8-1.8.8).
+- t33-solo: 1 commit — rtree1-17.1 REINDEX resolves zero-index/vtab
+  targets (likely also fixes TestP5AnalyzeReindex root fail — to verify
+  at merge).
+- t33-fts5: still baselining the 9-package class.
+- Root-suite rerun done: top-level fails = TestP5AnalyzeReindex (idx
+  agent owns) + TestSQLiteSuite legacy JSON-harness drift (385 files,
+  adjudicated T32-wip: superseded pipeline, testgen is the census
+  currency; pre-squash drift documented §2 DRIFT ALERT).
 
 ---
 
