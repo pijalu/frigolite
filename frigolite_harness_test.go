@@ -104,14 +104,19 @@ var harnessSkipSubtests = map[string]string{
 	"collate1/6.8":          "cascades from 6.5 (INSERT INTO p1)",
 	"collate1/10.0":         "converter state: t1 already exists (the TCL dropped it in a lost exec block); the subtest's contract — UNIQUE COLLATE x unregistered must fail with 'no such collation sequence' — is oracle-verified and pinned by TestPinReindexSecondConnectionMissingCollation's schema-collation resolution",
 
-	// collate5.test: compound set-op merge-key REPRESENTATION (which of two
-	// nocase-equal rows survives a UNION) plus converter state artifacts.
-	"collate5/collate5-2.1.3": "compound UNION merge-key survivor representation: which of two nocase-equal (a,b) rows the merge keeps — frigolite keeps the first-seen row's bytes; SQLite's ephemeral b-tree keeps the last-inserted representation. Dedup/ordering under the compound column collations works (2.1.1/2.1.2/2.2.2/2.2.4/2.3.2-4 pass)",
-	"collate5/collate5-2.2.1": "EXCEPT survivor representation (N vs N): same merge-representation residue as 2.1.3",
-	"collate5/collate5-2.2.3": "EXCEPT (a,b) survivor representation — same residue",
-	"collate5/collate5-2.3.1": "INTERSECT survivor representation — same residue",
-	"collate5/collate5-4.2":   "GROUP BY a,b (nocase a) with ORDER BY a,b: group-key merge under the declared collation — grouping collapses correctly (4.1 passes) but the emitted group representative order diverges",
-	"collate5/collate5-4.3":   "same GROUP BY representative residue as 4.2",
+	// collate5.test: the compound set-op survivor representation and the
+	// GROUP BY collation key merge are FIXED engine-side (select_setop.go
+	// last-inserted-wins survivors; select_agg.go equivalentGroupKey) —
+	// 2.2.1/2.3.1/4.2 pass and the contracts are pinned by
+	// TestPinCompoundSetOpSurvivor / TestPinGroupByCollationKeyMerge; the
+	// testgen package carries the TCL-faithful wants. The remaining skips
+	// are JSON-conversion artifacts: the recorded 2.x wants are stale
+	// first-seen-era renderings (they duplicate nocase-equal rows SQLite
+	// deduplicates), and 4.3 re-appends the whole-file step list.
+	"collate5/collate5-2.1.3": "stale JSON want (converter-era first-seen rendering: 'a apple a apple ...' duplicates nocase-equal rows SQLite's UNION dedups to 'A Apple A apple ...' — TCL-corrected want green in testgen/collate5 and pinned natively)",
+	"collate5/collate5-2.2.3": "stale JSON want (same converter-era rendering class as 2.1.3; EXCEPT survivor 'N {}' proven by TestPinCompoundSetOpSurvivor)",
+	"collate5/collate5-2.3.3": "stale JSON want (same class: INTERSECT survivor 'B banana' per last-inserted-wins — pinned natively)",
+	"collate5/collate5-4.3":   "converter duplication: the JSON step list re-appends the whole file (CREATE TABLE tkt3376 re-run — the 5.2 artifact), not the TCL's DROP TABLE collate5t1",
 	"collate5/5.2":            "converter state: tkt3376 already exists (5.1's DROP lost in conversion)",
 	"collate5/5.3":            "converter state: needs the tkt3376 db2 reopen (UTF16le encoding) the JSON cannot express",
 	"collate5/5.4":            "converter state: t1 already exists (prior section's DROP lost)",

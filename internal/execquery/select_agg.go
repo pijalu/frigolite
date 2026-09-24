@@ -16,24 +16,7 @@ import (
 // rows (with and without GROUP BY), distinct aggregates, and the correlated
 // outer-row aggregate paths used by subqueries. The functions were extracted
 // from select.go (task CX-03) and each reduced to ≤15 gocognit / ≤12 gocyclo.
-
-// partitionByGroupKey partitions rowMaps by their GROUP BY key, preserving
-// first-seen order in keyOrder. It returns the per-key row slices, the per-key
-// evaluated key values, and the ordered list of keys.
-func (e *SelectEngine) partitionByGroupKey(groupBy []sql.Expr, rowMaps []RowMap) (map[string][]RowMap, map[string][]interface{}, []string) {
-	groups := make(map[string][]RowMap)
-	keyVals := make(map[string][]interface{})
-	var keyOrder []string
-	for _, row := range rowMaps {
-		key, vals := e.computeGroupByKeyValues(groupBy, row)
-		if _, exists := groups[key]; !exists {
-			keyOrder = append(keyOrder, key)
-			keyVals[key] = vals
-		}
-		groups[key] = append(groups[key], row)
-	}
-	return groups, keyVals, keyOrder
-}
+// GROUP BY key partitioning lives in select_agg_group.go.
 
 // evalAggCallArgs evaluates the arguments of an aggregate function call for a
 // single row, unwrapping column values and substituting nil on error. Each

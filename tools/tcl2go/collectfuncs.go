@@ -538,18 +538,22 @@ func hexCollation(lower string) (string, bool) {
 }
 
 // numericCollation matches the numeric_collate body: numeric compare.
+// TCL == and expr comparisons are NUMERIC when both operands parse as
+// numbers ("1.0" == "1" is true), falling back to string comparison — the
+// emitted closure mirrors that.
 func numericCollation(lower string) (string, bool) {
 	if !strings.Contains(lower, "expr ($lhs>$rhs)") && !(strings.Contains(lower, "expr") && strings.Contains(lower, "$lhs") && strings.Contains(lower, "$rhs")) {
 		return "", false
 	}
 	return `func(a, b string) int {
-	if a == b { return 0 }
 	af, aerr := strconv.ParseFloat(a, 64)
 	bf, berr := strconv.ParseFloat(b, 64)
 	if aerr == nil && berr == nil {
-		if af < bf { return -1 }
-		return 1
+		if af == bf { return 0 }
+		if af > bf { return 1 }
+		return -1
 	}
+	if a == b { return 0 }
 	return strings.Compare(a, b)
 }`, true
 }

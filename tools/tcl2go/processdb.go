@@ -775,6 +775,11 @@ func (tp *transpiler) processDBFunction(rest []tcl.RawWord) {
 		tp.emitLine("// db func eval %s (db-eval passthrough — built-in eval used)", procName)
 		return
 	}
+	// `db function hex {format 0x%X}` — an inline single-format-command body
+	// (emitted by emitInlineFormatUDF, processdb_format_udf.go).
+	if tp.emitInlineFormatUDF(name, rest) {
+		return
+	}
 	// A TCL proc whose body accumulates into a global variable (a counter or
 	// a log): selectH.test's counter (global selectH_cnt; incr ... $amt;
 	// return $amt-var), subquery.test's callcnt (incr ::callcnt; return $n)
