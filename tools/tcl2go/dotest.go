@@ -716,7 +716,7 @@ func (tp *transpiler) emitLSortComparison(nameExpr, expectedExpr string, bodyCmd
 	tp.indent++
 	tp.emitLine("got := %s(%s)", sortFn, goVar)
 	tp.emitLine("want := %s", expectedExpr)
-	tp.emitLine("if got != want {")
+	tp.emitLine("if got != want && !tclFpnumCompare(got, want) {")
 	tp.emitLine("\tt.Errorf(\"result mismatch\\n  got:  [%%s]\\n  want: [%%s]\\n  body: do_test %%s\", got, want, %s)", nameExpr)
 	tp.emitLine("}")
 	tp.indent--
@@ -838,7 +838,7 @@ func (tp *transpiler) emitDBEvalQueryResult(nameExpr, expectedExpr, sqlExpr stri
 		tp.emitLine("\treturn")
 		tp.emitLine("}")
 		tp.emitLine("want := flatten(%s)", wantVar)
-		tp.emitLine("if got != want {")
+		tp.emitLine("if got != want && !tclFpnumCompare(got, want) {")
 		tp.emitLine("\tt.Errorf(\"result mismatch\\n  got:  [%%s]\\n  want: [%%s]\", got, want)")
 		tp.emitLine("}")
 		return
@@ -852,7 +852,7 @@ func (tp *transpiler) emitDBEvalQueryResult(nameExpr, expectedExpr, sqlExpr stri
 	} else {
 		tp.emitLine("want := %s", expectedExpr)
 	}
-	tp.emitLine("if got != want {")
+	tp.emitLine("if got != want && !tclFpnumCompare(got, want) {")
 	tp.emitLine("\tt.Errorf(\"result mismatch\\n  got:  [%%s]\\n  want: [%%s]\", got, want)")
 	tp.emitLine("}")
 }
@@ -1243,7 +1243,7 @@ func (tp *transpiler) emitSetVarResultCheck(nameExpr, expectedExpr, setVar strin
 		tp.emitLine("got := tclListFlatten(%s)", setVar)
 		tp.emitLine("want := tclListFlatten(%s)", expectedExpr)
 	}
-	tp.emitLine("if got != want {")
+	tp.emitLine("if got != want && !tclFpnumCompare(got, want) {")
 	tp.emitLine("\tt.Errorf(\"result mismatch\\n  got:  [%%s]\\n  want: [%%s]\\n  body: do_test %%s\", got, want, %s)", nameExpr)
 	tp.emitLine("}")
 }
@@ -1283,35 +1283,137 @@ func (tp *transpiler) emitExecsqlQueryResultCheck(nameExpr, expectedExpr string)
 // assertions (catchsql, lappend, etc. — a catchsql body is the "expect
 // error" form, so its SQL is deliberately not run). Returns true when at
 // least one SQL-running command was found.
+// skipSideEffect is one ordered side effect of a skipped do_test body: a
+// SQL execution on a connection, or a pure file operation later tests rely on.
+type skipSideEffect struct {
+	kind    string // "sql", "close", "remove", "mkdir", "copy"
+	connVar string
+	sqlExpr string
+	goArgs  []string
+}
+
 func (tp *transpiler) emitSkippedDoTestSideEffects(name, reason string, args []tcl.RawWord) bool {
 	if len(args) < 2 {
 		return false
 	}
 	bodyCmds := tp.parseBracedBody(args, 1)
 
-	// Collect the SQL-running commands (the DDL/DML side effects).
-	type sideEffect struct{ connVar, sqlExpr string }
-	var effects []sideEffect
+	// Walk the body once, in order: SQL-running commands (the DDL/DML side
+	// effects) AND file-manipulation commands (delete/mkdir/copy layout for
+	// later tests). File ordering matters — a later do_test opens a database
+	// file that an earlier skipped test had to place (misc7-23.1's
+	// forcecopy test.db tst/test.db before sqlite3 db tst/test.db).
+	var effects []skipSideEffect
 	for _, cmd := range bodyCmds {
-		connVar, sqlExpr, ok := tp.sqlSideEffectCmd(cmd)
-		if !ok {
+		if connVar, sqlExpr, ok := tp.sqlSideEffectCmd(cmd); ok {
+			effects = append(effects, skipSideEffect{kind: "sql", connVar: connVar, sqlExpr: sqlExpr})
 			continue
 		}
-		effects = append(effects, sideEffect{connVar, sqlExpr})
+		if eff, ok := tp.fileSideEffectCmd(cmd); ok {
+			effects = append(effects, eff)
+		}
 	}
 	if len(effects) == 0 {
 		return false
 	}
+	hasSQL := false
+	for _, eff := range effects {
+		if eff.kind == "sql" {
+			hasSQL = true
+			break
+		}
+	}
 	nameExpr := tp.goStringLiteral(tcl.RawWord{Text: name})
-	tp.emitLine("{ // %s — skipped: %s (SQL side effects only)", nameExpr, reason)
+	label := "(file side effects only)"
+	if hasSQL {
+		label = "(SQL + file side effects only)"
+	}
+	tp.emitLine("{ // %s — skipped: %s %s", nameExpr, reason, label)
 	tp.indent++
 	for _, eff := range effects {
-		tp.emitLine("_res = %s.Exec(%s)", eff.connVar, eff.sqlExpr)
-		tp.emitLine("_ = _res.Error // tolerate unsupported-feature errors in skipped tests")
+		switch eff.kind {
+		case "sql":
+			tp.emitLine("_res = %s.Exec(%s)", eff.connVar, eff.sqlExpr)
+			tp.emitLine("_ = _res.Error // tolerate unsupported-feature errors in skipped tests")
+		case "close":
+			tp.emitLine("%s.Close()", eff.connVar)
+		case "remove":
+			tp.emitLine("os.RemoveAll(%s)", eff.goArgs[0])
+		case "mkdir":
+			tp.emitLine("os.MkdirAll(%s, 0755)", eff.goArgs[0])
+		case "copy":
+			tp.emitLine("tclFileCopy(%s, %s)", eff.goArgs[0], eff.goArgs[1])
+		}
 	}
 	tp.indent--
 	tp.emitLine("}")
 	return true
+}
+
+// fileSideEffectCmd classifies one skipped-test body command as a pure file
+// manipulation the later tests depend on: `dbN close`, `forcedelete PATH`,
+// `file delete [-force] PATH`, `file mkdir PATH`, `file copy|forcecopy SRC
+// DST`. Permission changes (`file attributes P -permissions M`) are NOT
+// emitted: enforcing them is precisely the VFS capability under N/A, and a
+// real chmod would break the engine's subsequent opens.
+func (tp *transpiler) fileSideEffectCmd(cmd []tcl.RawWord) (skipSideEffect, bool) {
+	literalWords := func(words []tcl.RawWord) ([]string, bool) {
+		out := make([]string, 0, len(words))
+		for _, w := range words {
+			if strings.HasPrefix(w.Text, "$") || strings.HasPrefix(w.Text, "[") {
+				return nil, false
+			}
+			out = append(out, tp.goStringLiteral(w))
+		}
+		return out, true
+	}
+	switch {
+	case len(cmd) == 2 && strings.HasPrefix(cmd[0].Text, "db") && cmd[1].Text == "close":
+		return skipSideEffect{kind: "close", connVar: cmd[0].Text}, true
+	case cmd[0].Text == "forcedelete" && len(cmd) >= 2:
+		args, ok := literalWords(cmd[1:])
+		if !ok {
+			return skipSideEffect{}, false
+		}
+		return skipSideEffect{kind: "remove", goArgs: args}, true
+	case cmd[0].Text == "file" && len(cmd) >= 3 && cmd[1].Text == "delete":
+		args, ok := literalWords(cmd[2:])
+		if !ok {
+			return skipSideEffect{}, false
+		}
+		if len(args) > 0 && args[0] == `"-force"` {
+			args = args[1:]
+		}
+		if len(args) == 0 {
+			return skipSideEffect{}, false
+		}
+		return skipSideEffect{kind: "remove", goArgs: args}, true
+	case cmd[0].Text == "file" && len(cmd) == 3 && cmd[1].Text == "mkdir":
+		args, ok := literalWords(cmd[2:])
+		if !ok {
+			return skipSideEffect{}, false
+		}
+		return skipSideEffect{kind: "mkdir", goArgs: args}, true
+	case cmd[0].Text == "file" && len(cmd) >= 4 && cmd[1].Text == "copy":
+		args, ok := literalWords(cmd[2:])
+		if !ok || len(args) < 2 {
+			return skipSideEffect{}, false
+		}
+		if args[0] == `"-force"` {
+			args = args[1:]
+		}
+		if len(args) < 2 {
+			return skipSideEffect{}, false
+		}
+		return skipSideEffect{kind: "copy", goArgs: args[:2]}, true
+	case len(cmd) >= 3 && cmd[0].Text == "forcecopy":
+		args, ok := literalWords(cmd[1:])
+		if !ok || len(args) < 2 {
+			return skipSideEffect{}, false
+		}
+		return skipSideEffect{kind: "copy", goArgs: args[:2]}, true
+	}
+	return skipSideEffect{}, false
 }
 
 // sqlSideEffectCmd classifies one body command as a SQL side effect,

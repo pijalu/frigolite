@@ -510,6 +510,17 @@ func (tp *transpiler) emitDBEvalCallbackConn(dbConn string, rest []tcl.RawWord) 
 	if sqlExpr == `""` {
 		return
 	}
+	// Body selection: `db eval {SQL} {body}` passes the callback as the
+	// second word; the three-word TCL form `db eval {SQL} {arrayName} {body}`
+	// (misc2-7.2: `db eval {SELECT rowid FROM t1} {} { db eval ... }`) puts
+	// an optional array name in the middle — the LAST word is the row body.
+	// The previous code always used rest[1], so the 3-word form transpiled
+	// with an empty body and no column bindings (the DELETE never ran and
+	// `SELECT * FROM t1` kept its rows).
+	bodyWord := rest[1]
+	if len(rest) >= 3 {
+		bodyWord = rest[len(rest)-1]
+	}
 	rowsVar := fmt.Sprintf("_dbevalRows%d", tp.varCount)
 	tp.varCount++
 	rbFlag := fmt.Sprintf("_dbevalRb%d", tp.varCount)
@@ -546,7 +557,7 @@ func (tp *transpiler) emitDBEvalCallbackConn(dbConn string, rest []tcl.RawWord) 
 	tp.indent++
 	tp.emitLine("switch %s.Columns[_ci] {", rowsVar)
 	tp.indent++
-	for _, col := range dbEvalCallbackColumns(rest[1].Text) {
+	for _, col := range dbEvalCallbackColumns(bodyWord.Text) {
 		goVar := tclVarToGo(col)
 		if !isValidGoIdent(goVar) || goVar == "" {
 			continue
@@ -594,7 +605,7 @@ func (tp *transpiler) emitDBEvalCallbackConn(dbConn string, rest []tcl.RawWord) 
 		preparedState:       tp.preparedState,
 		varConstValues:      tp.varConstValues,
 	}
-	bodyTP.processCommands(parseCommands(rest[1].Text))
+	bodyTP.processCommands(parseCommands(bodyWord.Text))
 	tp.varCount = bodyTP.varCount
 	tp.indent = bodyTP.indent
 	tp.varConstValues = bodyTP.varConstValues

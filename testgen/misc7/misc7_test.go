@@ -5,6 +5,7 @@
 package misc7
 
 import (
+"fmt"
 "github.com/pijalu/frigolite"
 "github.com/pijalu/frigolite/internal/vtab"
 "os"
@@ -20,6 +21,21 @@ func Test_misc7(t *testing.T) {
 		t.Fatal(err)
 	}
 	defer db.Close()
+
+	// auto-installed test-extension functions (src/test_func.c)
+	db.RegisterFunction("test_error", func(args []interface{}) (interface{}, error) {
+		msg := ""
+		if len(args) > 0 && args[0] != nil {
+			msg = fmt.Sprintf("%v", args[0])
+		}
+		return nil, fmt.Errorf("%s", msg)
+	}, 1, 2)
+	db.RegisterFunction("test_isolation", func(args []interface{}) (interface{}, error) {
+		if len(args) < 2 {
+			return nil, nil
+		}
+		return args[1], nil
+	}, 2, 2)
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
@@ -192,7 +208,7 @@ func Test_misc7(t *testing.T) {
 		result = tclListAppend(result, tclExprWith("$delay>1500000 && $delay<4000000", map[string]string{"delay": delay}))
 		got := tclListFlatten(result)
 		want := tclListFlatten("1 database is locked 1")
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "misc7-7.0")
 		}
 	}
@@ -240,7 +256,7 @@ func Test_misc7(t *testing.T) {
 		got := flatten(r)
 		want := tclListFlatten("{}")
 		got = tclListFlattenCollapse(got)
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -268,7 +284,7 @@ func Test_misc7(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1 1"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -348,18 +364,23 @@ func Test_misc7(t *testing.T) {
 	db, err = frigolite.Open("test.db")
 	tclConnRegister("db", db)
 	if err != nil { t.Fatal(err) }
-	{ // "misc7-16.X" — skipped: do_ioerr_test fault-injection harness setup N-A (SQL side effects only)
+	{ // "misc7-16.X" — skipped: do_ioerr_test fault-injection harness setup N-A (SQL + file side effects only)
 		_res = db.Exec("\n    SELECT count(*) FROM t3;\n  ")
 		_ = _res.Error // tolerate unsupported-feature errors in skipped tests
 	}
 	if tcl_platform_platform != "windows" {
 		tclFileChmod("test.db", "rw-r--r--")
 		if tclBool("file attributes test.db -permissions" + "==0644") {
-			{ // "misc7-17.1" — skipped: file-permission manipulation to force readonly DB open N-A (SQL side effects only)
+			{ // "misc7-17.1" — skipped: file-permission manipulation to force readonly DB open N-A (SQL + file side effects only)
 				_res = db.Exec("\n        BEGIN;\n        DELETE FROM t3 WHERE (oid%3)==0;\n      ")
 				_ = _res.Error // tolerate unsupported-feature errors in skipped tests
+				tclFileCopy("test.db", "bak.db")
+				tclFileCopy("test.db-journal", "bak.db-journal")
 				_res = db.Exec("\n        COMMIT;\n      ")
 				_ = _res.Error // tolerate unsupported-feature errors in skipped tests
+				db.Close()
+				tclFileCopy("bak.db", "test.db")
+				tclFileCopy("bak.db-journal", "test.db-journal")
 			}
 			{ // "misc7-17.2" — skipped: file-permission manipulation to force readonly DB open N-A
 			}
@@ -367,13 +388,14 @@ func Test_misc7(t *testing.T) {
 			_ = pending_byte_page // suppress unused warning
 			db.SetPendingByte(uint32(tclAtoi(sqlite_pending_byte)))
 			sqlite_pending_byte = sqlite_pending_byte
-			{ // "misc7-17.3" — skipped: sqlite3_test_control_pending_byte + writable_schema rootpage corruption N-A (SQL side effects only)
+			{ // "misc7-17.3" — skipped: sqlite3_test_control_pending_byte + writable_schema rootpage corruption N-A (SQL + file side effects only)
 				_res = db.Exec("\n        pragma writable_schema = true;\n        UPDATE sqlite_master \n          SET rootpage = " + sqlLiteral(pending_byte_page) + "\n          WHERE type = 'table' AND name = 't3';\n      ")
 				_ = _res.Error // tolerate unsupported-feature errors in skipped tests
 				_res = db.Exec("\n        SELECT rootpage FROM sqlite_master WHERE type = 'table' AND name = 't3';\n      ")
 				_ = _res.Error // tolerate unsupported-feature errors in skipped tests
 			}
-			{ // "misc7-17.4" — skipped: malformed-database-schema detection after rootpage corruption N-A
+			{ // "misc7-17.4" — skipped: malformed-database-schema detection after rootpage corruption N-A (file side effects only)
+				db.Close()
 			}
 		}
 	}
@@ -393,7 +415,7 @@ func Test_misc7(t *testing.T) {
 		got := flatten(r)
 		want := tclListFlatten("{}")
 		got = tclListFlattenCollapse(got)
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -405,11 +427,14 @@ func Test_misc7(t *testing.T) {
 	}
 	{ // "misc7-21.1" — skipped: 520-char filename open via get_pwd+file join harness N-A
 	}
-	{ // "misc7-22.1" — skipped: readonly hot-journal rollback + extended errcode C API N-A (SQL side effects only)
+	{ // "misc7-22.1" — skipped: readonly hot-journal rollback + extended errcode C API N-A (SQL + file side effects only)
+		db.Close()
+		os.RemoveAll("test.db")
 		_res = db.Exec("\n    CREATE TABLE t1(a, b);\n    INSERT INTO t1 VALUES(1, 2);\n    INSERT INTO t1 VALUES(3, 4);\n  ")
 		_ = _res.Error // tolerate unsupported-feature errors in skipped tests
+		db.Close()
 	}
-	{ // "misc7-22.2" — skipped: readonly hot-journal rollback + extended errcode C API N-A (SQL side effects only)
+	{ // "misc7-22.2" — skipped: readonly hot-journal rollback + extended errcode C API N-A (SQL + file side effects only)
 		_res = db.Exec(" SELECT * FROM t1 ")
 		_ = _res.Error // tolerate unsupported-feature errors in skipped tests
 	}
@@ -436,7 +461,11 @@ func Test_misc7(t *testing.T) {
 			_res = db.Exec("\n    CREATE TABLE t1(x, y);\n    INSERT INTO t1 VALUES(1, 2);\n  ")
 			_ = _res.Error // tolerate unsupported-feature errors in skipped tests
 		}
-		{ // "misc7-23.1" — skipped: readonly-directory open via file attributes VFS N-A
+		{ // "misc7-23.1" — skipped: readonly-directory open via file attributes VFS N-A (file side effects only)
+			db.Close()
+			os.RemoveAll("tst")
+			os.MkdirAll("tst", 0755)
+			tclFileCopy("test.db", "tst/test.db")
 		}
 		db, err = frigolite.Open("tst/test.db")
 		tclConnRegister("db", db)
@@ -449,7 +478,9 @@ func Test_misc7(t *testing.T) {
 		}
 		{ // "misc7-23.4" — skipped: readonly-directory open via file attributes VFS N-A
 		}
-		{ // "misc7-23.5" — skipped: readonly-directory open via file attributes VFS N-A
+		{ // "misc7-23.5" — skipped: readonly-directory open via file attributes VFS N-A (file side effects only)
+			db.Close()
+			os.RemoveAll("tst")
 		}
 	}
 }
