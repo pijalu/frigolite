@@ -1289,14 +1289,18 @@ func tclLsearch(list string, value string) int {
 func tclLRange(list string, start, end interface{}) string {
 	items := tclSplitList(list)
 	s, _ := strconv.Atoi(fmt.Sprintf("%v", start))
-	// "end" means the last element (TCL lrange semantics); a numeric end is
-	// clamped to the list bounds.
+	// "end" means the last element (TCL lrange semantics); an end past the
+	// list is clamped to the last element, but a NEGATIVE numeric end is NOT
+	// clamped: TCL resolves it to a position before start and returns the
+	// empty string (tkt_38cb5df375 51.7: lrange {8 7 6 5 4 3 2 1} 0 -1
+	// yields an empty string — clamping it to the last element turned an
+	// empty expected result into the whole list).
 	e := len(items) - 1
 	if es, ok := end.(string); ok && es != "end" {
 		e, _ = strconv.Atoi(es)
 	}
 	if s < 0 { s = 0 }
-	if e < 0 || e >= len(items) { e = len(items) - 1 }
+	if e >= len(items) { e = len(items) - 1 }
 	if s > e || s >= len(items) { return "" }
 	return tclList(items[s : e+1])
 }
@@ -2066,7 +2070,12 @@ func tclExecSQL(db *frigolite.DB, sql string) string {
 		}
 		rowStrs = append(rowStrs, strings.Join(parts, " "))
 	}
-	return strings.Join(rowStrs, "\n")
+	// TCL canonical list stringification: [db eval] yields a flat list whose
+	// string form is ONE line — all elements joined by single spaces
+	// (multi-line .mode-list rendering would break the string match /
+	// regexp subjects TCL patterns are written against: glob * and regexp .
+	// span the whole string, tpch01-1.1's EQP glob among them).
+	return strings.Join(rowStrs, " ")
 }
 
 // tclMemdbSignature computes memdb.test's table-t3 rollback fingerprint:

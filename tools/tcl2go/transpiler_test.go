@@ -167,3 +167,23 @@ func TestTranspileJoinSeparator(t *testing.T) {
 		}
 	}
 }
+
+// TestTranspileTCLEvalSQLCanonicalJoin pins the tclExecSQL helper's list
+// stringification contract: [db eval] yields a flat TCL list whose string
+// form is ONE line (elements joined by single spaces). The row separator
+// must stay " " — joining rows with "\n" (the old .mode-list shape) breaks
+// every string match / regexp subject the TCL suite writes against the list
+// string, because TCL glob * and regexp . span the whole single-line form
+// while Go's regexp "." does not cross newlines (tpch01-1.1/1.1b/1.1c EQP
+// pattern assertions). Comparison paths normalize whitespace via
+// tclListFlattenCollapse, so the canonical join is strictly more faithful.
+func TestTranspileTCLEvalSQLCanonicalJoin(t *testing.T) {
+	want := `return strings.Join(rowStrs, " ")`
+	if !strings.Contains(helpersTemplate, want) {
+		t.Fatalf("tclExecSQL template must stringify the db eval list canonically (%s); the template drifted back to a multi-line row join", want)
+	}
+	banned := `strings.Join(rowStrs, "\n")`
+	if strings.Contains(helpersTemplate, banned) {
+		t.Fatalf("tclExecSQL template must not join rows with %q (non-canonical multi-line list string)", banned)
+	}
+}
