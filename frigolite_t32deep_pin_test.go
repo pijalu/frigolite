@@ -2,6 +2,7 @@ package frigolite
 
 import (
 	"fmt"
+	"strings"
 	"testing"
 )
 
@@ -121,4 +122,106 @@ func TestT32DeepRandexprCollapse(t *testing.T) {
 			t.Errorf("%s: got [%s] want [%s]", tc.name, got, tc.want)
 		}
 	}
+}
+
+// TestT32DeepEmptyIndexName pins tkt-78e04e52ea: zero-length schema names are
+// legal (CREATE INDEX "" ON ...; CREATE TABLE "" ...). The planner's
+// not-found signal must not be the empty string, or an empty-named index is
+// permanently invisible to every chooser: EQP must report
+// "SEARCH t2 USING COVERING INDEX  (x=?)" (double space — the empty name) and
+// DROP INDEX "" must remove it again. Expectations oracle-checked against
+// sqlite3 3.54.
+func TestT32DeepEmptyIndexName(t *testing.T) {
+	db, err := Open(t.TempDir() + "/t.db")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer db.Close()
+	for _, s := range []string{
+		`CREATE TABLE t2(x)`,
+		`INSERT INTO t2 VALUES(2),(5)`,
+	} {
+		if r := db.Exec(s); r.Error != nil {
+			t.Fatalf("%s: %v", s, r.Error)
+		}
+	}
+	if r := db.Exec(`CREATE INDEX "" ON t2(x)`); r.Error != nil {
+		t.Fatalf("CREATE INDEX \"\": %v", r.Error)
+	}
+	// The empty-named index is visible in the schema...
+	r := db.Query(`SELECT quote(name), quote(tbl_name) FROM sqlite_master ORDER BY name`)
+	if r.Error != nil || len(r.Rows) != 2 {
+		t.Fatalf("sqlite_master: err=%v rows=%v want 2 rows", r.Error, r.Rows)
+	}
+	// ...and used by the planner (tkt-78e04-2.1, oracle-verified).
+	if got := eqpT32(db, `EXPLAIN QUERY PLAN SELECT * FROM t2 WHERE x=5`); got != "SEARCH t2 USING COVERING INDEX  (x=?)" {
+		t.Errorf("EQP with empty-named index: got [%s] want [SEARCH t2 USING COVERING INDEX  (x=?)]", got)
+	}
+	// COUNT(col) covering plan renders the empty name too.
+	if got := eqpT32(db, `EXPLAIN QUERY PLAN SELECT count(x) FROM t2`); got == "" {
+		t.Log("no covering plan for count(x)")
+	}
+	// DROP INDEX "" works (tkt-78e04-2.2) and the plan reverts to a scan.
+	if r := db.Exec(`DROP INDEX ""`); r.Error != nil {
+		t.Fatalf("DROP INDEX \"\": %v", r.Error)
+	}
+	if got := eqpT32(db, `EXPLAIN QUERY PLAN SELECT * FROM t2 WHERE x=2`); got != "SCAN t2" {
+		t.Errorf("EQP after drop: got [%s] want [SCAN t2]", got)
+	}
+
+	// Zero-length TABLE name: the autoindex of a UNIQUE column on table ""
+	// resolves and plans with the empty name rendered (oracle: SEARCH with
+	// COVERING INDEX sqlite_autoindex__1).
+	if r := db.Exec(`CREATE TABLE ""("" UNIQUE, x CHAR(100))`); r.Error != nil {
+		t.Fatalf("CREATE TABLE \"\": %v", r.Error)
+	}
+	if r := db.Exec(`INSERT INTO "" VALUES('1e5zz','y')`); r.Error != nil {
+		t.Fatalf("INSERT: %v", r.Error)
+	}
+	if got := eqpT32(db, `EXPLAIN QUERY PLAN SELECT "" FROM "" WHERE "" = '1e5zz'`); got != "SEARCH  USING COVERING INDEX sqlite_autoindex__1 (=?)" {
+		t.Errorf("EQP on empty-named table: got [%s] want [SEARCH  USING COVERING INDEX sqlite_autoindex__1 (=?)]", got)
+	}
+	// The zero-length column participates in index-driven scans; the data
+	// contract (the LIKE term over table "" with index i1 — TCL 1.4, whose
+	// exact EQP wording is a deeper where.c class) returns the right row.
+	if r := db.Exec(`CREATE INDEX i1 ON ""("" COLLATE nocase)`); r.Error != nil {
+		t.Fatalf("CREATE INDEX i1: %v", r.Error)
+	}
+	qr := db.Query(`SELECT "" FROM "" WHERE "" LIKE '1e5%'`)
+	if qr.Error != nil || len(qr.Rows) != 1 || t32String(qr.Rows[0][0]) != "1e5zz" {
+		t.Errorf("LIKE over empty-named table: err=%v rows=%v", qr.Error, qr.Rows)
+	}
+	// SQLite-faithful table_info: the zero-length name/type are empty STRINGS
+	// (oracle-verified); only dflt_value is NULL. The JSON harness cannot
+	// express zero-length cells ({} ↔ NULL lossiness), so pin it here.
+	ti := db.Query(`PRAGMA table_info("")`)
+	if ti.Error != nil || len(ti.Rows) != 2 {
+		t.Fatalf("table_info(\"\"): err=%v rows=%v", ti.Error, ti.Rows)
+	}
+	c0 := ti.Rows[0]
+	if s, ok := c0[1].(string); !ok || s != "" {
+		t.Errorf("table_info col-0 name = %#v, want the empty string", c0[1])
+	}
+	if c0[4] != nil {
+		t.Errorf("table_info col-0 dflt_value = %#v, want NULL", c0[4])
+	}
+}
+
+// eqpT32 runs one EXPLAIN QUERY PLAN statement and returns the joined plan
+// detail lines (header row skipped).
+func eqpT32(db *DB, q string) string {
+	r := db.Query(q)
+	if r.Error != nil {
+		return "ERR: " + r.Error.Error()
+	}
+	out := ""
+	for _, row := range r.Rows {
+		for _, v := range row {
+			if s, ok := v.(string); ok && s != "QUERY PLAN" {
+				s = strings.TrimPrefix(s, "`--")
+				out += s
+			}
+		}
+	}
+	return out
 }

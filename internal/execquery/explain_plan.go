@@ -197,9 +197,9 @@ func (e *SelectEngine) orderByIndexPlan(t queryTable, s *sql.SelectStmt) string 
 		return ""
 	}
 	if e.indexCoversCols(idxName, t.real, selectOutputCols(s)) {
-		return fmt.Sprintf("SCAN %s USING COVERING INDEX %s", t.display, idxName)
+		return fmt.Sprintf("SCAN %s USING COVERING INDEX %s", t.display, indexSchemaName(idxName))
 	}
-	return fmt.Sprintf("SCAN %s USING INDEX %s", t.display, idxName)
+	return fmt.Sprintf("SCAN %s USING INDEX %s", t.display, indexSchemaName(idxName))
 }
 
 // whereHasNonIndexConstraint reports whether the WHERE expression contains a
@@ -260,7 +260,7 @@ func (e *SelectEngine) groupDistinctIndexPlan(t queryTable, s *sql.SelectStmt) s
 	if idxName == "" || !e.indexCoversCols(idxName, t.real, selectOutputCols(s)) {
 		return ""
 	}
-	return fmt.Sprintf("SCAN %s USING COVERING INDEX %s", t.display, idxName)
+	return fmt.Sprintf("SCAN %s USING COVERING INDEX %s", t.display, indexSchemaName(idxName))
 }
 
 // countIndexPlan renders an "INDEX <idx>" node for COUNT(col) when a covering
@@ -279,7 +279,7 @@ func (e *SelectEngine) countIndexPlan(t queryTable, s *sql.SelectStmt) string {
 	}
 	bestCoverIdx := e.findBestCoveringIndex(t.display, colRef.Name)
 	if bestCoverIdx != "" {
-		return fmt.Sprintf("INDEX %s", bestCoverIdx)
+		return fmt.Sprintf("INDEX %s", indexSchemaName(bestCoverIdx))
 	}
 	return ""
 }
@@ -520,7 +520,7 @@ func (e *SelectEngine) tiebreakIndex(refs []indexedRef, bestName, candidateName 
 	if covNew > covCur {
 		return candidateName
 	}
-	if covNew == covCur && e.ctx.IndexColumnCount(candidateName) < e.ctx.IndexColumnCount(bestName) {
+	if covNew == covCur && e.ctx.IndexColumnCount(indexSchemaName(candidateName)) < e.ctx.IndexColumnCount(indexSchemaName(bestName)) {
 		return candidateName
 	}
 	return bestName
@@ -942,7 +942,7 @@ func (e *SelectEngine) findBestCoveringIndex(tableName, colName string) string {
 	for i := range candidates {
 		candidates[i].sz = szMap[candidates[i].name]
 	}
-	return bestCoveringCandidate(candidates).name
+	return indexLookupToken(bestCoveringCandidate(candidates).name)
 }
 
 // bestCoveringCandidate picks the best covering index: fewest columns, then

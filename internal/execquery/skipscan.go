@@ -416,8 +416,10 @@ func constrainedOperandCol(expr sql.Expr, tableName, op string, mark func(col, o
 
 // stat1Tokens returns the integer tokens of the sqlite_stat1 entry for the
 // given index (or for the PRIMARY KEY of a WITHOUT ROWID table when idxName
-// is "PRIMARY KEY"). Returns nil when no stat1 row is found.
+// is "PRIMARY KEY"). Returns nil when no stat1 row is found. Accepts the
+// planner index token (an empty-named index resolves through indexSchemaName).
 func (e *SelectEngine) stat1Tokens(idxName string) []int64 {
+	idxName = indexSchemaName(idxName)
 	var tokens []int64
 	e.forEachStat1Row(func(rec *storage.Record) bool {
 		if len(rec.Values) < 3 {

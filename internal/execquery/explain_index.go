@@ -21,6 +21,36 @@ import (
 // create an import cycle since execdml imports execquery).
 var indexWhereRe = regexp.MustCompile(`(?is)\)\s*WHERE\s+(.+)$`)
 
+// emptyIndexName is the planner's found-token for an index whose schema name
+// is the empty string — CREATE INDEX "" ON ... is legal SQLite
+// (tkt-78e04e52ea). Index-lookup helpers signal "no index" with "", which
+// would make an empty-named index permanently invisible to every chooser.
+// SQLite's C implementation is immune because build.c keeps Index objects on
+// a linked list and "not found" is a NULL pointer, never a name comparison;
+// the Go planners mirror that distinction by returning this token instead.
+// The NUL byte cannot occur in a schema identifier (C-string names), so the
+// token never collides with a real index. Renderers and resolve-by-name
+// helpers translate the token back with indexSchemaName.
+const emptyIndexName = "\x00"
+
+// indexLookupToken maps a found index's schema name to its planner token:
+// the empty name becomes the emptyIndexName found-token.
+func indexLookupToken(name string) string {
+	if name == "" {
+		return emptyIndexName
+	}
+	return name
+}
+
+// indexSchemaName maps a planner index token back to its schema name (the
+// found-token becomes the real zero-length name).
+func indexSchemaName(token string) string {
+	if token == emptyIndexName {
+		return ""
+	}
+	return token
+}
+
 // findIndexOnCols returns the name of an index on the table whose leading
 // columns match the given column list in order (a prefix match), or "" when
 // no index qualifies. Used to decide whether ORDER BY / GROUP BY can use an
@@ -48,7 +78,7 @@ func (e *SelectEngine) findIndexOnColsForQuery(tableName string, cols []string, 
 			if where != nil && !e.partialIndexImplied(entry, where) {
 				continue
 			}
-			return entry.Name
+			return indexLookupToken(entry.Name)
 		}
 	}
 	// Also check the implicit PRIMARY KEY index of a WITHOUT ROWID table,
@@ -123,6 +153,7 @@ func containsFold(list []string, s string) bool {
 // columns are "covered" by the index definition because the index only stores
 // rows matching the predicate.
 func (e *SelectEngine) partialIndexWhereColumns(idxName string) []string {
+	idxName = indexSchemaName(idxName)
 	entries, err := e.ctx.Schema().GetEntries("")
 	if err != nil {
 		return nil
@@ -211,7 +242,7 @@ func (e *SelectEngine) joinNodeFor(t queryTable, planned []string, joins []joinR
 // (e.g. a subquery in the FROM clause).
 func joinSearchNode(t queryTable, jr *joinRef) []planNode {
 	if jr.indexName != "" {
-		return []planNode{{detail: fmt.Sprintf("SEARCH %s USING INDEX %s (%s=?)", t.display, jr.indexName, jr.col)}}
+		return []planNode{{detail: fmt.Sprintf("SEARCH %s USING INDEX %s (%s=?)", t.display, indexSchemaName(jr.indexName), jr.col)}}
 	}
 	// No real index on the join column (e.g. a subquery in the FROM
 	// clause): SQLite materializes an automatic index on the right side.
@@ -289,7 +320,11 @@ func (e *SelectEngine) joinScanNode(t queryTable, s *sql.SelectStmt) []planNode 
 // SQLite uses COVERING INDEX when no temp table is needed to resolve the
 // output), or "INDEX <name>". When s is nil, falls back to all-table-cols.
 func (e *SelectEngine) indexUsingLabel(tableName, idx string, s *sql.SelectStmt) string {
-	using := "INDEX " + idx
+	// idx carries the planner token: translate it for display, while the
+	// resolve helpers below (indexColumns, indexCoversCols) accept the token
+	// directly — the empty name must stay distinguishable from "not found".
+	name := indexSchemaName(idx)
+	using := "INDEX " + name
 	if idx == "PRIMARY KEY" {
 		using = "PRIMARY KEY"
 	} else {
@@ -309,7 +344,7 @@ func (e *SelectEngine) indexUsingLabel(tableName, idx string, s *sql.SelectStmt)
 			covered = e.indexCoversCols(idx, tableName, selectOutputCols(s))
 		}
 		if covered {
-			using = "COVERING INDEX " + idx
+			using = "COVERING INDEX " + name
 		}
 	}
 	return using
@@ -448,7 +483,7 @@ func (e *SelectEngine) findIndexOnColumn(tableName, colName string, where ...sql
 			if whereExpr != nil && !e.partialIndexImplied(entry, whereExpr) {
 				continue
 			}
-			return entry.Name
+			return indexLookupToken(entry.Name)
 		}
 	}
 	return ""
@@ -479,7 +514,7 @@ func (e *SelectEngine) findIndexOnExpr(tableName, exprSQL string) string {
 	}
 	for _, entry := range entries {
 		if entry.Type == "index" && entry.TblName == tableName && entry.SQL != "" && indexKeyMatches(entry.SQL, exprSQL) {
-			return entry.Name
+			return indexLookupToken(entry.Name)
 		}
 	}
 	return ""
