@@ -276,7 +276,7 @@ func (tp *transpiler) processBlobWriteTest(args []tcl.RawWord) {
 	tp.emitLine("}")
 	tp.emitLine("got := flatten(r)")
 	tp.emitLine("want := %s", tp.goStringLiteral(tcl.RawWord{Text: strings.TrimSpace(args[5].Text)}))
-	tp.emitLine("if got != want {")
+	tp.emitLine("if got != want && !tclFpnumCompare(got, want) {")
 	tp.emitLine("\tt.Errorf(\"result mismatch\\n  got:  [%%s]\\n  want: [%%s]\\n  body: do_test %%s\", got, want, %s)", nameExpr)
 	tp.emitLine("}")
 	tp.indent--

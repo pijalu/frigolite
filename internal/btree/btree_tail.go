@@ -13,6 +13,7 @@ import (
 )
 
 func (t *BTree) DeleteCellsWhere(fn func(cell *storage.Cell) bool) (int64, error) {
+	t.saveAllCursors() // btree.c saveAllCursors on the delete path
 	var deleted int64
 	// The sweep runs in passes: balanceNonroot (invoked when a leaf
 	// empties) can redistribute surviving cells into a leaf that was
@@ -302,6 +303,7 @@ func (t *BTree) dropIndexLeafRefFromParent(parentPg *pager.Page, parentPage *sto
 // trigger cascade under rollback protection). Returns the number of cells
 // deleted (0 when the rowid is absent).
 func (t *BTree) DeleteCellByRowID(rowID int64) (int64, error) {
+	t.saveAllCursors() // btree.c saveAllCursors on the delete path
 	c, err := t.OpenCursor()
 	if err != nil {
 		return 0, err

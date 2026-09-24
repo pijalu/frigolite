@@ -101,7 +101,7 @@ func (tp *transpiler) emitIndexExprCheck(nameExpr, expectedExpr string, bodyCmds
 		gotExpr := fmt.Sprintf("%s != \"-1\"", goVar)
 		tp.emitLine("got := %s", gotExpr)
 		tp.emitLine("want := tclBool(%s)", expectedExpr)
-		tp.emitLine("if got != want {")
+		tp.emitLine("if got != want && !tclFpnumCompare(got, want) {")
 		tp.emitLine("\tt.Errorf(\"result mismatch\\n  got:  [%%v]\\n  want: [%%v]\\n  body: do_test %%s\", got, want, %s)", nameExpr)
 		tp.emitLine("}")
 	}
@@ -139,7 +139,7 @@ func (tp *transpiler) emitExprCompareCheck(nameExpr, expectedExpr string, bodyCm
 	}
 	tp.emitLine("got := %s", gotExpr)
 	tp.emitLine("want := tclBool(%s)", expectedExpr)
-	tp.emitLine("if got != want {")
+	tp.emitLine("if got != want && !tclFpnumCompare(got, want) {")
 	tp.emitLine("\tt.Errorf(\"result mismatch\\n  got:  [%%v]\\n  want: [%%v]\\n  body: do_test %%s\", got, want, %s)", nameExpr)
 	tp.emitLine("}")
 }

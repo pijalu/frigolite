@@ -46,6 +46,7 @@ func (t *BTree) DeleteIndexEntry(target []byte) (bool, error) {
 // statement's cost is O(index) instead of O(changes x index) (which thrashed
 // the 10-page cache for minutes in temptable2 3.2).
 func (t *BTree) DeleteIndexEntries(targets [][]byte) (int, error) {
+	t.saveAllCursors() // btree.c saveAllCursors on the dropCell path
 	var leaves []uint32
 	if err := t.collectLeafPages(t.rootPage, &leaves, nil); err != nil {
 		return 0, err

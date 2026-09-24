@@ -818,6 +818,12 @@ func (e *SelectEngine) evalLimitExpr(expr sql.Expr) (sql.Expr, error) {
 	}
 	v, err := e.ctx.EvalExpr(expr, nil)
 	if err != nil {
+		// A LIMIT expression containing a subquery resolves at prepare:
+		// its evaluation failures are schema errors ("no such table: blah",
+		// misc5-6.1) and must surface, not degrade to an unlimited scan.
+		if exprContainsSubquery(expr) {
+			return nil, err
+		}
 		return expr, nil
 	}
 

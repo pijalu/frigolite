@@ -2332,3 +2332,26 @@ absorb):
   ("VACUUM-dependent" heuristic), removing the INSERT that 1.4's count(*)=2
   depends on; the INSERT is restored (sqlite3_release_memory is incidental).
   The engine passes the full shape natively (TestW6_ShortRead1).
+
+## misc3-6.11-utf8 / misc3-6.11-utf16 (2026-09-24, T33-misc)
+
+**Assertion**: runs `EXPLAIN SELECT a+123456789012, b*4.5678, c FROM ex1
+ORDER BY +a, b DESC` and greps the returned program text for VDBE P4
+operand renderings: the Real literal `4.5678` (OP_Real P4), the utf8
+variant additionally the text default `hello` (OP_String8 P4 of a column
+DEFAULT), and the SorterOpen keyinfo fragment `,-B` (a collation sequence
+rendered through its BTREE-name abbreviation with a descending flag).
+
+**Evidence**: frigolite's EXPLAIN emits the engine's own program listing,
+not SQLite's VDBE opcode/P4 model — there is no OP_Real P4, no OP_String8
+P4, and no SorterOpen keyinfo to render, so the regexps cannot match
+without faking VDBE text. Oracle: /usr/bin/sqlite3 (3.54) and the 3.51
+reference build both produce a VDBE listing whose P4 operands carry those
+exact byte sequences; the assertions are about the listing's internal
+encoding, not about SQL-visible behavior (the surrounding misc3-6.10
+values tests all run). This is the documented G5.EXPLAIN phase
+(PORTPLAN), tracked like where2-2.5 et al.
+
+**Disposition**: per-test skip (skiptests.go "misc3-6.11-utf8/-utf16")
+with reason "EXPLAIN VDBE P4 operand renderings not implemented
+(G5.EXPLAIN)". Revisit when G5.EXPLAIN lands.

@@ -15,6 +15,10 @@ import (
 // Uses a recursive insert with proper split propagation for multi-level trees.
 // When a page splits, the split key and new sibling propagate up to the parent.
 func (t *BTree) InsertCell(newCell *storage.Cell) error {
+	// Splits and defragmentation move cells: save the positions of cursors
+	// open on this tree from enclosing statements (btree.c saveAllCursors,
+	// reached on the insert path through sqlite3BtreeInsert).
+	t.saveAllCursors()
 	// parentPgno=0: the root has no parent; split allocations on the root
 	// path are parented to the root page itself (btree.c balance_deeper
 	// ptrmapPut(pBt, pgnoChild, PTRMAP_BTREE, pRoot->pgno), src/btree.c:9028).
