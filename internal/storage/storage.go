@@ -431,6 +431,9 @@ func decodeTableLeafCell(data []byte, off int, pageSize int) (*Cell, error) {
 
 func decodeTableInteriorCell(data []byte, off int) (*Cell, error) {
 	c := &Cell{Type: CellTableInterior}
+	if off+4 > len(data) {
+		return nil, fmt.Errorf("database disk image is malformed")
+	}
 	c.LeftPtr = binary.BigEndian.Uint32(data[off : off+4])
 	rowid, _ := util.GetVarint(data[off+4:])
 	c.RowID = int64(rowid)
@@ -464,6 +467,9 @@ func decodeIndexLeafCell(data []byte, off int, pageSize int) (*Cell, error) {
 
 func decodeIndexInteriorCell(data []byte, off int) (*Cell, error) {
 	c := &Cell{Type: CellIndexInterior}
+	if off+4 > len(data) {
+		return nil, fmt.Errorf("database disk image is malformed")
+	}
 	c.LeftPtr = binary.BigEndian.Uint32(data[off : off+4])
 	pos := off + 4
 	plen, n := util.GetVarint(data[pos:])

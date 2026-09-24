@@ -8872,3 +8872,72 @@ regenerated; suite net −2274 fails vs pre-tranche baseline (7230 → ~4950).
   bisecting a two-sided merge, diff EACH function, not just files: the file
   was "unchanged" while its sibling function in select_columns.go lost
   main's side.
+## FULL-SUITE-DRIFT.T32-kernel — kernel/btree + bind-emitter wave (2026-09-24, branch fleet/kernel-fix)
+
+- **Re-baseline first, then trust the snapshot**: the orchestrator's 4-package
+  cluster (autovacuum, backup, e_fkey, unionall) all PASSED at babbd8c0d — the
+  T30-misc2 pending-byte fix + T31-idxcoll had already landed. The REAL full-suite
+  drift was elsewhere: testgen/changes PANICKED (deterministic, in isolation too)
+  and testgen/bind dropped binds. Run the isolated package AND the full sweep
+  before believing either list.
+- **freeInteriorDividerChains page-type guard (changes-1.4 panic)**: the
+  "release displaced divider chains" pre-pass in writeInteriorRootAt keyed on
+  the TREE kind (!t.isTable) instead of the PAGE type. On the FIRST root split
+  the old root is an index LEAF; leaf cells decoded as index-interior cells read
+  LeftPtr at off..off+4 past the page end (cell at 1021 on 1024B page →
+  "[:1025] cap 1024"). balance_deeper moves leaf content verbatim to the new
+  child — NOTHING is freed; chain release is balance_nonroot semantics and
+  applies only when the old page type is PageTypeInteriorIndex
+  (btree_root_split.go). Defensive half: decodeIndexInteriorCell /
+  decodeTableInteriorCell now return "database disk image is malformed" when
+  off+4 crosses the page end (DecodeCell's documented no-panic contract).
+- **Repro shape matters**: 500 rows with 'row'||i text payloads did NOT panic;
+  5000 single-int rows panicked at row 164 — the panic needs a leaf cell whose
+  misread 4-byte LeftPtr CROSSES the page end (last cell at pageSize-3..-1).
+  When a repro "passes", shrink the cell size, not the row count.
+- **tcl2go dynamic bind indices**: `sqlite3_bind_int $VM [expr $iMaxVar - 2] 999`
+  emitted only a "(non-numeric bind index)" comment — the bind VANISHED and
+  bind-9.7 saw [1 {} {} {} {} {}]. processBind now renders dynamic indices as
+  runtime Go: `[expr ...]` → tclToInt(tclExprWith("...", map{$var: goVar})),
+  bare `$var` → tclToInt(goVar); legacy literal-recording mode still skips.
+  Engine was always correct (bind 32764..32766 works; pinned natively in
+  TestT32KernelPinMaxVariableBind). Regenerating ONE file:
+  `go run ./tools/tcl2go/ -testdir /Users/muaddib/dev/sqlite/test bind.test`
+  (bare `go run ./tools/tcl2go/` from the worktree finds 0 tests — testdir
+  must point at the sqlite checkout; default `ori/sqlite/test` doesn't exist).
+  Regen also syncs stale helper templates (tclLrange negative-end,
+  test_error/test_isolation fixture registration) — that drift is expected and
+  desirable when a package hasn't been regenerated since a template fix.
+- **Gitignored oracle fixtures are per-worktree**: testdata/backupconformance/
+  *.db (+ walconformance .db/.db-journal) exist only where an earlier agent
+  generated them. A fresh worktree FAILS TestBackupConformance
+  ("no oracle dest fixtures") and internal/pager TestJournalConformance (missing
+  jrnl-persist-basic.db-journal) — copy from the main repo checkout, they are
+  deterministic oracle outputs (ORACLE_VERSION 3.51.0), environmental not
+  engine bugs.
+- **Cluster re-baseline results (fleet/kernel-fix @ 1c7a6d9ba)**: testgen/
+  autovacuum, backup, e_fkey, unionall green in isolation; the full satellite
+  sweep (fkey1-4, unionall2/fault, autovacuum2/ioerr2, incrvacuum2/3,
+  vacuum2/3/into, backup2/4/5/ioerr/malloc — 18 packages) green; guards
+  (autovacuum2, incrvacuum, fkey1, unionvtab, vacuum) green. changes + bind
+  fixed as above (both were NOT in the orchestrator cluster list — full-suite
+  bisect beats cluster triage).
+
+- **T32 postscript — TestSQLiteSuite cascade is NOISE at the current baseline**:
+  the JSON harness shares test.db/test.db2 state across files; one file that
+  leaves tables/transactions behind poisons every later file ("table t1 already
+  exists" / "no such table" / "attempt to write a readonly database"), and the
+  first poisoner differs run to run. Two identical head runs produced 4501 and
+  4520 failing subtests with dozens of differing entries; base measured 4508.
+  The gate is therefore the TOP-LEVEL failure set (and per-family testgen
+  results), never the raw subtest count. Only-in-this-run subtests with real
+  assertions (altercons-9.x) must be checked with an isolated
+  `-run 'TestSQLiteSuite/<family>'` at head AND base before calling them
+  regressions — isolated, altercons matched base exactly.
+- **grep vs harness logs**: TestSQLiteSuite output embeds randomblob BINARY
+  bytes — plain grep silently fails ("binary file matches" suppression, awk
+  towc errors). Use `LC_ALL=C grep -a` on any root-suite log.
+- **Gitignored per-worktree tools**: tools/orafixture (regenerates UCL
+  reference fixtures, e.g. incrvacuum2-4-1-btree-divider) is untracked; copy
+  from the main checkout or TestNativeBtreeDividerFixtureReference fails with
+  "stat .../tools/orafixture: directory not found".

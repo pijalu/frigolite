@@ -113,8 +113,13 @@ func (t *BTree) writeInteriorRootAt(dst uint32, children []uint32, seps []leafSp
 	}
 	coff := contentOffset(dst)
 	// The rewrite replaces any existing divider cells: release their
-	// overflow chains first.
-	if old, perr := storage.ParsePage(pg.Data, int(t.pageSize), coff); perr == nil && old.CellCount > 0 && !t.isTable {
+	// overflow chains first — but only when the displaced content is an
+	// INTERIOR index page (its divider cells own fresh overflow chains).
+	// On the FIRST root split the old root is an index LEAF: balance_deeper
+	// moves leaf content verbatim into the new child (src/btree.c:8978-9040)
+	// and every leaf cell keeps its own chain, so there is nothing to free —
+	// decoding leaf cells as interior cells reads past the page end.
+	if old, perr := storage.ParsePage(pg.Data, int(t.pageSize), coff); perr == nil && old.CellCount > 0 && old.PageType == storage.PageTypeInteriorIndex {
 		if ferr := t.freeInteriorDividerChains(pg, old); ferr != nil {
 			return ferr
 		}
