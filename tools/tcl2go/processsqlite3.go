@@ -404,10 +404,20 @@ func (tp *transpiler) processBind(cmdName string, args []tcl.RawWord) {
 		tp.emitLine("// %s $%s (unknown prepared statement)", cmdName, stmtVar)
 		return
 	}
-	idx, err := strconv.Atoi(strings.TrimSpace(args[1].Text))
+	idxText := strings.TrimSpace(args[1].Text)
+	idx, err := strconv.Atoi(idxText)
+	idxExpr := strconv.Itoa(idx)
 	if err != nil {
-		tp.emitLine("// %s $%s %s (non-numeric bind index)", cmdName, stmtVar, args[1].Text)
-		return
+		// A dynamic bind index ("[expr $iMaxVar - 2]", bind-9.5) evaluates
+		// at runtime through the expr evaluator (tclExprWith → tclToInt);
+		// tclBindStmt's idx parameter takes the resulting int. The legacy
+		// literal-recording emulation needs a compile-time map key and
+		// keeps skipping.
+		idxExpr = tp.bindIndexGoExpr(idxText)
+		if idxExpr == "" || !stmtVMEnabled() {
+			tp.emitLine("// %s $%s %s (non-numeric bind index)", cmdName, stmtVar, args[1].Text)
+			return
+		}
 	}
 	conn := ps.conns[stmtVar]
 	if conn == "" {
@@ -444,11 +454,47 @@ func (tp *transpiler) processBind(cmdName string, args []tcl.RawWord) {
 		// call does not return SQLITE_OK — including SQLITE_RANGE and the
 		// post-step SQLITE_MISUSE (bind-10.8.1: binding after the program
 		// started fails; test1.c test_bind returns TCL_ERROR on rc!=OK).
-		tp.emitLine("if _r = tclBindStmt(%s, %q, %d, %q, %s, %s); _r != %q && _r != \"\" { _catchErr = fmt.Errorf(\"\") }",
-			conn, stmtVar, idx, kind, rawExpr, nlenExpr, "SQLITE_OK")
+		tp.emitLine("if _r = tclBindStmt(%s, %q, %s, %q, %s, %s); _r != %q && _r != \"\" { _catchErr = fmt.Errorf(\"\") }",
+			conn, stmtVar, idxExpr, kind, rawExpr, nlenExpr, "SQLITE_OK")
 		return
 	}
-	tp.emitLine("_r = tclBindStmt(%s, %q, %d, %q, %s, %s)", conn, stmtVar, idx, kind, rawExpr, nlenExpr)
+	tp.emitLine("_r = tclBindStmt(%s, %q, %s, %q, %s, %s)", conn, stmtVar, idxExpr, kind, rawExpr, nlenExpr)
+}
+
+// bindIndexGoExpr renders a TCL bind-index word as a Go int expression:
+// numeric literals pass through verbatim; a "[expr ...]" word goes through
+// the runtime expr evaluator (tclExprWith, $var substitution) wrapped in
+// tclToInt; a bare "$var" word converts the referenced Go string variable
+// with tclToInt. It returns "" for unsupported shapes so the caller keeps
+// the old skip behavior.
+func (tp *transpiler) bindIndexGoExpr(text string) string {
+	t := strings.TrimSpace(text)
+	if strings.HasPrefix(t, "$") {
+		gv := tclVarToGo(strings.TrimPrefix(t, "$"))
+		if isValidGoIdent(gv) {
+			return "tclToInt(" + gv + ")"
+		}
+		return ""
+	}
+	if !strings.HasPrefix(t, "[expr") || !strings.HasSuffix(t, "]") {
+		return ""
+	}
+	exprStr := strings.TrimSpace(t[1 : len(t)-1])
+	exprStr = strings.TrimSpace(strings.TrimPrefix(exprStr, "expr"))
+	if res, err := tcl.EvalExpr(exprStr, nil, nil); err == nil {
+		if n, nerr := strconv.Atoi(res); nerr == nil {
+			return strconv.Itoa(n)
+		}
+	}
+	exprVarNames, exprGo := tclExprToGo(exprStr, tp.vars)
+	if len(exprVarNames) == 0 {
+		return fmt.Sprintf("tclToInt(tclExpr(%q))", exprGo)
+	}
+	var parts []string
+	for _, name := range exprVarNames {
+		parts = append(parts, fmt.Sprintf("%q: %s", name, tp.exprVarValue(name)))
+	}
+	return fmt.Sprintf("tclToInt(tclExprWith(%q, map[string]string{%s}))", exprGo, strings.Join(parts, ", "))
 }
 
 // bindValueSQL renders a bound TCL value as a SQL literal for the INSERT
