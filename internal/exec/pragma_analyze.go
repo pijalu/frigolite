@@ -154,7 +154,8 @@ func (e *Engine) indexUsesCollation(ctx *DatabaseContext, idxEnt *schema.Entry, 
 		return false
 	}
 	colDefs := e.indexTableColumnDefs(ctx, idxEnt.TblName)
-	for _, name := range execdml.IndexKeyCollations(idxEnt.SQL, colDefs) {
+	tblEnt, _ := ctx.Schema.FindTable(idxEnt.TblName)
+	for _, name := range e.dml.IndexEntryKeyCollations(ctx, tblEnt, idxEnt, colDefs) {
 		if strings.EqualFold(name, collation) {
 			return true
 		}

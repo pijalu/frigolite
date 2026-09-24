@@ -134,10 +134,20 @@ func TestP5AnalyzeReindex(t *testing.T) {
 
 	// REINDEX with no argument rebuilds all indexes; schema-qualified and
 	// name forms are accepted. Results are unchanged (correctness only).
-	for _, sql := range []string{"REINDEX", "REINDEX main", "REINDEX i1", "REINDEX main.i1"} {
+	// T33-idx oracle adjudication (/usr/bin/sqlite3 3.51): "REINDEX main"
+	// ERRORS "unable to identify the object to be reindexed" — build.c
+	// sqlite3Reindex resolves the single name as collation, then table,
+	// then index; a schema name alone matches none of them.
+	for _, sql := range []string{"REINDEX", "REINDEX i1", "REINDEX main.i1"} {
 		if r := db.Exec(sql); r.Error != nil {
 			t.Fatalf("%s: %v", sql, r.Error)
 		}
+	}
+	if r := db.Exec("REINDEX main"); r.Error == nil || r.Error.Error() != "unable to identify the object to be reindexed" {
+		t.Errorf("REINDEX main: got %v, want error \"unable to identify the object to be reindexed\" (oracle)", r.Error)
+	}
+	if r := db.Exec("REINDEX nosuch"); r.Error == nil || r.Error.Error() != "unable to identify the object to be reindexed" {
+		t.Errorf("REINDEX nosuch: got %v, want error \"unable to identify the object to be reindexed\" (oracle)", r.Error)
 	}
 	if got := flattenQuery(t, db, "SELECT a FROM t1 ORDER BY a"); got != "1 3" {
 		t.Errorf("t1 after REINDEX: got [%s]", got)

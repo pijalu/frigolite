@@ -563,11 +563,19 @@ func (e *SelectEngine) sortRowsWithMaps(result *Result, orderBy []sql.OrderByTer
 		return err
 	}
 	// When SQLite satisfies the ORDER BY with an index scan (no temp b-tree
-	// sort), rows with equal sort keys emerge in the index entry order —
-	// the keys followed by the implicit rowid, DESCENDING for a reverse
+	// sort), the index loop EMITS rows in the index b-tree's stored key
+	// order — read from the b-tree itself, so a collation redefined
+	// mid-session cannot reorder the output (reindex-2.6/2.7: `SELECT a FROM
+	// t2 ORDER BY a` keeps the stale PK order until REINDEX physically
+	// rebuilds it). Rows with equal index keys emerge in b-tree entry order
+	// — the keys followed by the implicit rowid, DESCENDING for a reverse
 	// (all-DESC) scan (memdb-6.6: ORDER BY c DESC over i2(c) ties in
 	// descending rowid). A temp-b-tree sort has no defined tie order, so
 	// without the index the stable scan order is kept.
+	if idxName, backward, ok := e.indexOrderedScanForOrderBy(s, orderBy); ok &&
+		e.emitRowsInIndexOrder(result, rowMaps, s.From.Name, idxName, backward) {
+		return nil
+	}
 	tie := e.orderByIndexRowidTie(s, orderBy)
 	// Sort indices, then reorder both slices in-place
 	indices := make([]int, n)

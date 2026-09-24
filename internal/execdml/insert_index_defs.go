@@ -123,8 +123,34 @@ func (e *DMLExecutor) indexDefsIn(ctx *DatabaseContext, tableName string) []inde
 	if err != nil {
 		return result
 	}
+	// The table entry provides CREATE TABLE SQL for deriving autoindex key
+	// columns (sqlite_autoindex_* entries store no SQL; their columns come
+	// from the table's PRIMARY KEY / UNIQUE constraints).
+	tableEntry, _ := ctx.Schema.FindTable(tableName)
+	isWR := tableEntry != nil && hasWithoutRowidKeyword(strings.ToUpper(tableEntry.SQL))
+	var colDefs []sql.ColumnDef
 	for _, ent := range entries {
 		if !strings.EqualFold(ent.TblName, tableName) {
+			continue
+		}
+		if strings.TrimSpace(ent.SQL) == "" {
+			// sqlite_autoindex_* entry: SQLite maintains this b-tree on
+			// every DML — its stored key order feeds index-driven reads.
+			// The engine's constraint checks scan the table instead, which
+			// left these trees empty; derive the def from the table's
+			// constraints exactly as REINDEX does (indexDefForEntry →
+			// autoindexKeyColumns) so DML and REINDEX agree on the content.
+			// A WITHOUT ROWID table's PRIMARY KEY is its own table b-tree
+			// (no separate autoindex b-tree to maintain).
+			if isWR || tableEntry == nil {
+				continue
+			}
+			if colDefs == nil {
+				colDefs = e.ctx.ParseColumnDefs(tableEntry.Name, tableEntry.SQL)
+			}
+			if def := e.indexDefForEntry(ctx, tableEntry, ent, colDefs); def != nil {
+				result = append(result, *def)
+			}
 			continue
 		}
 		colText := indexColumnListText(ent.SQL)
