@@ -162,11 +162,11 @@ func isEqualitySeekOp(op string) bool {
 }
 
 // isRangeSeekOp reports whether op is a range constraint class at the seek
-// prefix's end (where.c WO_GT|WO_GE|WO_LT|WO_LE and the LIKE-optimization /
-// BETWEEN bounds derived from them).
+// prefix's end (where.c WO_GT|WO_GE|WO_LT|WO_LE and the LIKE/GLOB-optimization
+// / BETWEEN bounds derived from them).
 func isRangeSeekOp(op string) bool {
 	switch op {
-	case "<", "<=", ">", ">=", "LIKE", "BETWEEN":
+	case "<", "<=", ">", ">=", "LIKE", "GLOB", "BETWEEN":
 		return true
 	}
 	return false
