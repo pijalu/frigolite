@@ -536,13 +536,19 @@ func (e *SelectEngine) intersectRows(a, b [][]interface{}, colls []string) [][]i
 	for _, row := range b {
 		bSet[rowKey(row, colls)] = true
 	}
-	// Find a rows that are also in b
+	// Find a rows that are also in b. The surviving representative of each
+	// distinct key is arm a's LAST row for it (SQLite's merge b-tree
+	// overwrites the stored payload when an equal key re-arrives —
+	// collate5-2.3.x: INTERSECT of 'a'/'A' yields 'A', the later of the
+	// nocase-equal rows).
+	last := make(map[string]int)
+	for i, row := range a {
+		last[rowKey(row, colls)] = i
+	}
 	var result [][]interface{}
-	seen := make(map[string]bool)
-	for _, row := range a {
+	for i, row := range a {
 		key := rowKey(row, colls)
-		if bSet[key] && !seen[key] {
-			seen[key] = true
+		if bSet[key] && last[key] == i {
 			result = append(result, row)
 		}
 	}
@@ -559,14 +565,25 @@ func (e *SelectEngine) exceptRows(a, b [][]interface{}, colls []string) [][]inte
 	for _, row := range b {
 		bSet[rowKey(row, colls)] = true
 	}
-	var result [][]interface{}
-	seen := make(map[string]bool)
-	for _, row := range a {
+	// The surviving representative of each distinct key is its LAST row in
+	// a (SQLite's EXCEPT merge b-tree keeps the final payload per key —
+	// collate5-2.2.1: EXCEPT of t1's 'n'/'N' with t2 holding 'a'/'A'/'b'/'B'
+	// yields 'N', the later of the nocase-equal pair).
+	last := make(map[string]int)
+	for i, row := range a {
 		key := rowKey(row, colls)
-		if !bSet[key] && !seen[key] {
-			seen[key] = true
-			result = append(result, row)
+		if bSet[key] {
+			continue
 		}
+		last[key] = i
+	}
+	var result [][]interface{}
+	for i, row := range a {
+		key := rowKey(row, colls)
+		if bSet[key] || last[key] != i {
+			continue
+		}
+		result = append(result, row)
 	}
 	return result
 }
