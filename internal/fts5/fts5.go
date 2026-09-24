@@ -225,9 +225,6 @@ type Table struct {
 	// version bumps on every index mutation, invalidating the match cache.
 	version uint64
 	cache   *matchCacheEntry
-	// shadowDirty records pending %_data blob writes (flushed at the
-	// statement boundary by FlushShadowIfDirty).
-	shadowDirty bool
 	// pendingSecureUpgrade records a secure delete made while the format
 	// version is still 4; the engine applies the 'version'=5 write at the
 	// flush point (xSavepoint / COMMIT) or drops it on rollback.
@@ -241,6 +238,35 @@ type Table struct {
 	// operation that tokenizes reports the constructor error
 	// (fts5tokenizer 10.x).
 	tokErr error
+
+	// Segment/pending state (fts5Index): the structure record, the pending
+	// (unflushed) document rowids with C's pending-hash byte accounting, and
+	// the contentless-delete operation counter. Pending docs flush at sync
+	// points (autocommit statement ends, COMMIT) or when the pending byte
+	// estimate crosses 'hashsize' (fts5IndexBeginWrite's overflow flush).
+	structRec          *StructRec
+	nextSegid          int64
+	pendingRowids      []int64
+	pendingBytes       int64
+	pendingTermState   map[string]*pendingTerm
+	nContentlessDelete int64
+	// docOrigins mirrors the %_docsize origin column of contentless_delete
+	// tables (the origin value each deleted rowid tombstones against).
+	docOrigins map[int64]uint64
+	// dirtySegments flags segments whose persisted payload no longer
+	// matches the in-memory index (plain deletes rewrite them at sync).
+	dirtySegments map[*Segment]bool
+	// writeActive counts in-flight write operations; a query arriving while
+	// it is nonzero re-enters the table mid-write and fails with C's corrupt
+	// error (fts5circref: triggers on shadow tables reading the table being
+	// written).
+	writeActive int
+}
+
+// pendingTerm is one term's state in the pending-hash byte accounting
+// mirror (the fields of C's Fts5HashEntry that nPendingData accumulates).
+type pendingTerm struct {
+	lastRowid int64
 }
 
 // newTable builds a Table with its mirrors initialized.
@@ -356,11 +382,21 @@ func (t *Table) Insert(rowid int64, values []interface{}) error {
 	if err := t.insertContentRow(rowid, values); err != nil {
 		return err
 	}
+	// A contentless_delete docsize row carries the origin value the document
+	// tombstones against (sqlite3Fts5IndexGetOrigin: the origin the NEXT
+	// flush will assign its segment).
+	if t.cfg.ContentlessDelete {
+		if t.docOrigins == nil {
+			t.docOrigins = make(map[int64]uint64)
+		}
+		t.docOrigins[rowid] = t.structRec.NOriginCntr
+	}
 	if err := t.insertDocsizeRow(rowid); err != nil {
 		return err
 	}
-	t.markShadowDirty()
-	return nil
+	// The document joins the pending hash; the flush happens at the sync
+	// point or when 'hashsize' overflows (sqlite3Fts5IndexBeginWrite).
+	return t.AddPendingRow(rowid, cols)
 }
 
 // Delete removes a document (fts5StorageDelete). It reports whether the
@@ -381,6 +417,30 @@ func (t *Table) Delete(rowid int64) (bool, error) {
 	if t.cfg.SecureDelete && t.cfg.FormatVersion != 5 {
 		t.pendingSecureUpgrade = true
 	}
+	if t.cfg.ContentlessDelete {
+		// contentless_delete tombstones the rowid in every segment whose
+		// origin range covers the document's origin; the FIRST such segment
+		// (highest level first) also bumps nEntryTombstone
+		// (sqlite3Fts5IndexContentlessDelete).
+		origin := t.docOrigins[rowid]
+		found := false
+		for lvl := len(t.structRec.Levels) - 1; lvl >= 0 && !found; lvl-- {
+			for i := len(t.structRec.Levels[lvl]) - 1; i >= 0; i-- {
+				seg := t.structRec.Levels[lvl][i]
+				if seg.Origin1 > origin || seg.Origin2 < origin {
+					continue
+				}
+				if !found {
+					seg.NEntryTombstone++
+					found = true
+				}
+				seg.Tombs[rowid] = true
+				if err := t.tombstoneAdd(seg, rowid); err != nil {
+					return true, err
+				}
+			}
+		}
+	}
 	delete(t.contentValues, rowid)
 	if err := t.deleteContentRow(rowid); err != nil {
 		return true, err
@@ -388,20 +448,37 @@ func (t *Table) Delete(rowid int64) (bool, error) {
 	if err := t.deleteDocsizeRow(rowid); err != nil {
 		return true, err
 	}
+	delete(t.docOrigins, rowid)
 	if len(t.ix.SortedRowids()) == 0 {
 		// An emptied table restarts auto rowid allocation at 1: the shadow
 		// %_content rowid table is empty, and OP_NewRowid (no AUTOINCREMENT)
 		// picks 1 for an empty b-tree.
 		t.maxRowid = 0
 	}
-	t.markShadowDirty()
+	if !t.cfg.ContentlessDelete {
+		// A plain (or secure) delete rewrites the containing segments'
+		// payloads at the next sync (fts5IndexDelete's in-place segment
+		// edits; contentless_delete records tombstones instead).
+		t.markSegmentsDirty(rowid)
+	}
 	return true, nil
 }
 
-// markShadowDirty records that the in-memory index has diverged from the
-// %_data id=11 blob (the pending-terms state; C flushes pending terms at
-// sync points, i.e. statement ends).
-func (t *Table) markShadowDirty() { t.shadowDirty = true }
+// markSegmentsDirty flags every segment holding rowid whose payload needs a
+// rewrite at the next sync.
+func (t *Table) markSegmentsDirty(rowid int64) {
+	if t.dirtySegments == nil {
+		t.dirtySegments = make(map[*Segment]bool)
+	}
+	for _, seg := range t.structRec.allSegments() {
+		for _, rid := range seg.Rowids {
+			if rid == rowid {
+				t.dirtySegments[seg] = true
+				break
+			}
+		}
+	}
+}
 
 // ApplySecureUpgrade persists the deferred secure-delete format upgrade:
 // REPLACE 'version'=5 into %_config (fts5FlushSecureDelete's one-time
@@ -427,16 +504,6 @@ func (t *Table) ApplySecureUpgrade() error {
 // sqlite3Fts5StorageRollback discard the pending data).
 func (t *Table) DiscardSecureUpgrade() { t.pendingSecureUpgrade = false }
 
-// FlushShadowIfDirty persists the index blob when the index changed since
-// the last flush (sqlite3Fts5StorageSync at the statement boundary).
-func (t *Table) FlushShadowIfDirty() error {
-	if !t.shadowDirty {
-		return nil
-	}
-	t.shadowDirty = false
-	return t.flushShadowIndex()
-}
-
 // DeleteAll clears the whole index (the 'delete-all' special command and a
 // WHERE-less DELETE on a contentless table: fts5SpecialDelete).
 func (t *Table) DeleteAll() error {
@@ -456,7 +523,9 @@ func (t *Table) DeleteAll() error {
 			return err
 		}
 	}
-	return t.flushShadowIndex()
+	// fts5StorageDeleteAll empties %_data and re-seeds the averages and
+	// structure records (sqlite3Fts5IndexReinit).
+	return t.resetIndexStructure()
 }
 
 // SpecialCommand handles the INSERT INTO t1(t1, rank) VALUES('cmd', ...)
@@ -478,9 +547,18 @@ func (t *Table) SpecialCommand(cmd string, args []interface{}) (bool, error) {
 	case "pgsz", "hashsize", "automerge", "usermerge", "crisismerge",
 		"deletemerge", "secure-delete", "insttoken":
 		return t.specialConfigValue(strings.ToLower(cmd), args)
-	case "merge", "integrity-check", "optimize":
-		// Index maintenance directives with no SQL-observable effect at this
-		// storage granularity; integrity-check on a healthy index is a no-op.
+	case "merge":
+		n := int64(-1)
+		if len(args) > 0 {
+			if v, ok := asInt64(args[0]); ok {
+				n = v
+			}
+		}
+		return true, t.mergeCommand(n)
+	case "optimize":
+		return true, t.optimizeCommand()
+	case "integrity-check":
+		// On a healthy index a no-op (the mirror model validates on load).
 		return true, nil
 	case "flush":
 		// sqlite3Fts5FlushToDisk: write any pending in-memory index data to
@@ -533,8 +611,21 @@ func (t *Table) specialConfigValue(cmd string, args []interface{}) (bool, error)
 	// C keeps bSecureDelete in memory (fts5_config.c fts5ConfigSetValue);
 	// the format version upgrade happens lazily on the first secure
 	// delete.
-	if cmd == "secure-delete" {
+	switch cmd {
+	case "secure-delete":
 		t.cfg.SecureDelete = v != 0
+	case "pgsz":
+		t.cfg.Pgsz = v
+	case "hashsize":
+		t.cfg.HashSize = v
+	case "automerge":
+		t.cfg.Automerge = v
+	case "usermerge":
+		t.cfg.Usermerge = v
+	case "crisismerge":
+		t.cfg.CrisisMerge = v
+	case "deletemerge":
+		t.cfg.DeleteMerge = v
 	}
 	return true, t.storeConfigValue(cmd, v)
 }
@@ -662,6 +753,13 @@ func (t *Table) rebuild() error {
 		t.cfg.FormatVersion = 4
 		t.pendingSecureUpgrade = false
 	}
+	// The prior index state is discarded and every document re-enters
+	// through the pending hash (fts5StorageRebuild's per-row
+	// sqlite3Fts5IndexWrite), flushing as ordinary segments at the sync
+	// point.
+	if err := t.resetIndexStructure(); err != nil {
+		return err
+	}
 	for _, d := range docs {
 		cols, err := t.tokenizeValues(d.values)
 		if err != nil {
@@ -669,8 +767,11 @@ func (t *Table) rebuild() error {
 		}
 		t.ix.AddDoc(d.rowid, nil, cols)
 		t.noteRowid(d.rowid)
+		if err := t.AddPendingRow(d.rowid, cols); err != nil {
+			return err
+		}
 	}
-	return t.flushShadowIndex()
+	return t.FlushShadowIfDirty()
 }
 
 // ScanDocs returns the documents a full scan visits in ascending rowid order
@@ -788,14 +889,32 @@ func (t *Table) Drop() error { return t.dropShadowTables() }
 // TableState is a statement-rollback snapshot of the table's in-memory state
 // (the shadow tables themselves are covered by the pager snapshot).
 type TableState struct {
-	ix       *InvertedIndex
-	content  map[int64][]interface{}
-	maxRowid int64
+	ix                 *InvertedIndex
+	content            map[int64][]interface{}
+	maxRowid           int64
+	structRec          *StructRec
+	nextSegid          int64
+	pendingRowids      []int64
+	pendingBytes       int64
+	pendingTermState   map[string]*pendingTerm
+	nContentlessDelete int64
+	docOrigins         map[int64]uint64
 }
 
 // Snapshot captures the in-memory state.
 func (t *Table) Snapshot() *TableState {
-	return &TableState{ix: t.ix.Snapshot(), content: snapshotContent(t.contentValues), maxRowid: t.maxRowid}
+	return &TableState{
+		ix:                 t.ix.Snapshot(),
+		content:            snapshotContent(t.contentValues),
+		maxRowid:           t.maxRowid,
+		structRec:          snapshotStructRec(t.structRec),
+		nextSegid:          t.nextSegid,
+		pendingRowids:      append([]int64(nil), t.pendingRowids...),
+		pendingBytes:       t.pendingBytes,
+		pendingTermState:   snapshotTermState(t.pendingTermState),
+		nContentlessDelete: t.nContentlessDelete,
+		docOrigins:         snapshotOrigins(t.docOrigins),
+	}
 }
 
 // snapshotContent deep-copies the values mirror.
@@ -812,5 +931,54 @@ func (t *Table) Restore(s *TableState) {
 	t.ix = s.ix
 	t.contentValues = s.content
 	t.maxRowid = s.maxRowid
+	t.structRec = s.structRec
+	t.nextSegid = s.nextSegid
+	t.pendingRowids = s.pendingRowids
+	t.pendingBytes = s.pendingBytes
+	t.pendingTermState = s.pendingTermState
+	t.nContentlessDelete = s.nContentlessDelete
+	t.docOrigins = s.docOrigins
+	t.dirtySegments = nil
 	t.bumpVersion()
+}
+
+// snapshotStructRec deep-copies a structure record.
+func snapshotStructRec(sr *StructRec) *StructRec {
+	if sr == nil {
+		return nil
+	}
+	out := &StructRec{V2: sr.V2, NWriteCounter: sr.NWriteCounter, NOriginCntr: sr.NOriginCntr}
+	for _, lvl := range sr.Levels {
+		var cp []*Segment
+		for _, seg := range lvl {
+			s2 := *seg
+			s2.Rowids = append([]int64(nil), seg.Rowids...)
+			s2.Tombs = make(map[int64]bool, len(seg.Tombs))
+			for k, v := range seg.Tombs {
+				s2.Tombs[k] = v
+			}
+			cp = append(cp, &s2)
+		}
+		out.Levels = append(out.Levels, cp)
+	}
+	return out
+}
+
+// snapshotTermState deep-copies the pending-term accounting state.
+func snapshotTermState(src map[string]*pendingTerm) map[string]*pendingTerm {
+	out := make(map[string]*pendingTerm, len(src))
+	for k, v := range src {
+		p := *v
+		out[k] = &p
+	}
+	return out
+}
+
+// snapshotOrigins deep-copies the docsize origin mirror.
+func snapshotOrigins(src map[int64]uint64) map[int64]uint64 {
+	out := make(map[int64]uint64, len(src))
+	for k, v := range src {
+		out[k] = v
+	}
+	return out
 }

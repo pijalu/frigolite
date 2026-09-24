@@ -84,7 +84,35 @@ type Config struct {
 	// insert: C's pConfig->zRank/zRankArgs; empty Func means the default
 	// "bm25" with no arguments).
 	Rank RankSpec
+
+	// Index-maintenance settings (the pgsz/hashsize/automerge/usermerge/
+	// crisismerge/deletemerge special inserts, fts5ConfigSetValue). Defaults
+	// mirror C's FTS5_DEFAULT_* constants.
+	Pgsz        int64
+	HashSize    int64
+	Automerge   int64
+	Usermerge   int64
+	CrisisMerge int64
+	DeleteMerge int64
 }
+
+// fts5 maintenance defaults (fts5_config.c FTS5_DEFAULT_*).
+const (
+	// DefaultPgsz is FTS5_DEFAULT_PAGE_SIZE.
+	DefaultPgsz int64 = 4050
+	// DefaultHashSize is FTS5_DEFAULT_HASHSIZE (1 MiB of pending data).
+	DefaultHashSize int64 = 1024 * 1024
+	// DefaultAutomerge is FTS5_DEFAULT_AUTOMERGE.
+	DefaultAutomerge int64 = 4
+	// DefaultCrisisMerge is FTS5_DEFAULT_CRISISMERGE.
+	DefaultCrisisMerge int64 = 16
+	// DefaultDeleteMerge is FTS5_DEFAULT_DELETE_AUTOMERGE (10%).
+	DefaultDeleteMerge int64 = 10
+	// DefaultUsermerge is C's nUsermerge default.
+	DefaultUsermerge int64 = 4
+	// WorkUnit is FTS5_WORK_UNIT: the automerge work quanta in leaf pages.
+	WorkUnit int64 = 64
+)
 
 // Contentless reports whether the table is content=” (no stored text).
 func (c *Config) Contentless() bool {
@@ -101,9 +129,15 @@ func (c *Config) DetailFull() bool { return c.Detail == DetailFull }
 // configuration fails like C's failed sqlite3_declare_vtab.
 func ParseConfig(name string, args []string) (*Config, error) {
 	cfg := &Config{
-		Name:       name,
-		ColumnSize: true,
-		Detail:     DetailFull,
+		Name:        name,
+		ColumnSize:  true,
+		Detail:      DetailFull,
+		Pgsz:        DefaultPgsz,
+		HashSize:    DefaultHashSize,
+		Automerge:   DefaultAutomerge,
+		Usermerge:   DefaultUsermerge,
+		CrisisMerge: DefaultCrisisMerge,
+		DeleteMerge: DefaultDeleteMerge,
 	}
 	if strings.EqualFold(name, "rank") {
 		return nil, fmt.Errorf("reserved fts5 table name: %s", name)

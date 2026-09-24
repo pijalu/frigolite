@@ -56,6 +56,9 @@ func (e *Engine) execCommit() *Result {
 	// at COMMIT (fts5_main.c xCommit → sqlite3Fts5StorageStorageSync →
 	// fts5IndexFlush → fts5FlushSecureDelete's REPLACE 'version'=5), inside
 	// the committing transaction.
+	if err := e.fts5FlushPending(); err != nil {
+		return &Result{Error: err}
+	}
 	if err := e.fts5ApplySecureUpgrades(); err != nil {
 		return &Result{Error: err}
 	}
@@ -596,7 +599,12 @@ func (e *Engine) execSavepointRelease(s *sql.SavepointStmt) *Result {
 // savepoints remain open (R-37736-42616).
 func (e *Engine) releaseImplicitTxSavepoint(popped []savepointEntry) *Result {
 	// Releasing the outermost savepoint commits: flush the fts5
-	// secure-delete format upgrade (fts5SavepointMethod's flush).
+	// secure-delete format upgrade and the pending hash
+	// (fts5SavepointMethod's flush).
+	if err := e.fts5FlushPending(); err != nil {
+		e.tx.savepointStack = append(e.tx.savepointStack, popped...)
+		return &Result{Error: err}
+	}
 	if err := e.fts5ApplySecureUpgrades(); err != nil {
 		e.tx.savepointStack = append(e.tx.savepointStack, popped...)
 		return &Result{Error: err}
@@ -688,6 +696,25 @@ func (e *Engine) fts5ApplySecureUpgrades() error {
 	for _, t := range e.fts5Tables {
 		if t != nil {
 			if err := t.ApplySecureUpgrade(); err != nil {
+				return err
+			}
+		}
+	}
+	return nil
+}
+
+// fts5FlushPending flushes every fts5 table's pending hash at COMMIT /
+// RELEASE-of-outermost-savepoint (C's xSync runs at transaction commit:
+// sqlite3VdbeCommit invokes every vtab's xSync, and fts5's flushes the
+// pending hash into a level-0 segment then — fts5hash 2.2 pins that an
+// in-transaction %_data table holds only the seed rows).
+func (e *Engine) fts5FlushPending() error {
+	for _, t := range e.fts5Tables {
+		if t != nil {
+			saved := e.LastRowID()
+			err := t.FlushShadowIfDirty()
+			e.SetLastRowID(saved)
+			if err != nil {
 				return err
 			}
 		}
