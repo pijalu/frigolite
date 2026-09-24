@@ -410,32 +410,69 @@ func (e *SelectEngine) fromTableColumnNames(tableEntry *schema.Entry) map[string
 
 // aggColumnArgsRefInner checks if a SELECT column's aggregate function args,
 // FILTER clause, or ORDER BY terms reference any of the given inner column
-// names. The FILTER is part of the aggregate expression (resolve.c
-// sqlite3ReferencesSrcList scans the whole aggregate), so a FILTER reference
-// to an inner column (filter1-6.1: COUNT(a) FILTER(WHERE x)) makes the
-// aggregate inner-owned.
+// names. Aggregates are located anywhere in the column expression (resolve.c
+// marks an aggregate inner-owned by where its column references resolve, not
+// by the shape of the result expression: max(a)*max(a) over FROM t1 owns t1's
+// rows exactly like a bare max(a) column would). The FILTER is part of the
+// aggregate expression (resolve.c sqlite3ReferencesSrcList scans the whole
+// aggregate), so a FILTER reference to an inner column (filter1-6.1:
+// COUNT(a) FILTER(WHERE x)) makes the aggregate inner-owned.
 func (e *SelectEngine) aggColumnArgsRefInner(col sql.SelectColumn, colNames map[string]bool) bool {
-	fn, ok := col.Expr.(*sql.FuncCall)
-	if !ok {
+	return e.exprAggArgsRefInner(col.Expr, colNames)
+}
+
+// exprAggArgsRefInner walks an expression tree looking for an aggregate
+// function call whose args, ORDER BY terms, or FILTER reference any of the
+// given inner column names. The walk covers every expression node kind
+// (CAST, IN-lists, CASE, paren nesting, …) via WalkExprFull and does not
+// cross Subquery boundaries (a nested subquery owns its own aggregates).
+func (e *SelectEngine) exprAggArgsRefInner(expr sql.Expr, colNames map[string]bool) bool {
+	if expr == nil {
 		return false
 	}
-	for _, arg := range fn.Args {
-		if exprHasColRefInMap(arg, colNames) {
-			return true
+	found := false
+	WalkExprFull(expr, func(n sql.Expr) {
+		if found {
+			return
 		}
-	}
-	for _, ob := range fn.OrderBy {
-		if exprHasColRefInMap(ob.Expr, colNames) {
-			return true
+		fn, ok := n.(*sql.FuncCall)
+		if !ok {
+			return
 		}
-	}
-	// A FILTER referencing a FROM-table column binds the aggregate to the
-	// inner rows even when the arguments are outer-only (filter1-6.1:
-	// COUNT(a) FILTER(WHERE x) with x in the FROM table).
-	if fn.Filter != nil && exprHasColRefInMap(fn.Filter, colNames) {
-		return true
-	}
-	return false
+		for _, arg := range fn.Args {
+			if exprHasColRefNames(arg, colNames) {
+				found = true
+				return
+			}
+		}
+		for _, ob := range fn.OrderBy {
+			if exprHasColRefNames(ob.Expr, colNames) {
+				found = true
+				return
+			}
+		}
+		// A FILTER referencing a FROM-table column binds the aggregate to the
+		// inner rows even when the arguments are outer-only (filter1-6.1:
+		// COUNT(a) FILTER(WHERE x) with x in the FROM table).
+		if fn.Filter != nil && exprHasColRefNames(fn.Filter, colNames) {
+			found = true
+		}
+	})
+	return found
+}
+
+// exprHasColRefNames reports whether an expression tree contains a column
+// reference whose name matches an entry in colNames. Like WalkExprFull the
+// walk covers every expression node kind and does not descend into
+// subqueries.
+func exprHasColRefNames(expr sql.Expr, colNames map[string]bool) bool {
+	found := false
+	WalkExprFull(expr, func(n sql.Expr) {
+		if ref, ok := n.(*sql.ColumnRef); ok && colNames[ref.Name] {
+			found = true
+		}
+	})
+	return found
 }
 
 // subqueryOuterAggRef returns the name of an aggregate function in the given

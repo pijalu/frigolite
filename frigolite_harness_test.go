@@ -84,6 +84,15 @@ var slowTestFiles = map[string]string{
 // duplicate-steps state, or race on shared ATTACH files across parallel
 // files. Each entry cites its contract's native pin.
 var harnessSkipSubtests = map[string]string{
+	// tkt_78e04e52ea 1.2: TCL renders the zero-length column name and type of
+	// PRAGMA table_info("") as {} — indistinguishable from NULL in a TCL list.
+	// The converter emitted NULL, the harness {}→NULL normalization demands
+	// NULL cells, but SQLite (oracle-verified) returns the empty STRING for a
+	// column named "" (only dflt_value is NULL). The JSON format cannot
+	// express a zero-length cell; the SQLite-faithful behavior is pinned in
+	// TestT32DeepEmptyIndexName.
+	"tkt_78e04e52ea/tkt-78e04-1.2": "TCL {} ↔ NULL lossiness: table_info must return the zero-length NAME/TYPE as empty strings (SQLite ground truth), the JSON expectation cannot express them; empty-name table/contract pinned by TestT32DeepEmptyIndexName",
+
 	// reindex.test redefines the TCL proc c1 (db collate c1 c1 late-binding)
 	// from reindex-2.5 onward and re-opens the db as a second connection
 	// without c1/c2 in section 3. Static fixture keeps c1 reverse, so:
@@ -610,7 +619,6 @@ var unsupportedTestFiles = map[string]string{
 	"tkt_5e10420e8d": "pre-existing compatibility test failure requiring feature implementation",
 	"tkt_6bfb98dfc0": "pre-existing compatibility test failure requiring feature implementation",
 	"tkt_752e1646fc": "pre-existing compatibility test failure requiring feature implementation",
-	"tkt_78e04e52ea": "pre-existing compatibility test failure requiring feature implementation",
 	"unionall":       "pre-existing compatibility test failure requiring feature implementation",
 
 	// Large-data / timeout — excluded to keep the harness fast

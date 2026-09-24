@@ -248,7 +248,9 @@ type queryTable struct {
 }
 
 func (e *SelectEngine) collectQueryTables(s *sql.SelectStmt) []queryTable {
-	if s.From.Name == "" && s.From.Subquery == nil {
+	// From.EmptyName marks the quoted empty table name (FROM "" —
+	// tkt-78e04e52ea): a real FROM term, not a FROM-less select.
+	if s.From.Name == "" && !s.From.EmptyName && s.From.Subquery == nil {
 		return nil
 	}
 	tables := []queryTable{queryTableFromRef(s.From)}
@@ -507,8 +509,10 @@ func (e *SelectEngine) indexCoversAllTableCols(tableName string, indexCols []str
 }
 
 // indexColumns returns the key column names of a named index ("" slice when
-// the index is not found).
+// the index is not found). Accepts the planner index token: an empty-named
+// index resolves through indexSchemaName.
 func (e *SelectEngine) indexColumns(idx string) []string {
+	idx = indexSchemaName(idx)
 	entries, err := e.ctx.Schema().GetEntries("")
 	if err != nil {
 		return nil
@@ -816,7 +820,10 @@ func estimateLikePrefixSelectivity(prefix string) float64 {
 // indexColumnCollation returns the effective collation of the named column in
 // the named index: an explicit COLLATE in the index SQL wins, otherwise the
 // column's declared collation applies. Returns "" for BINARY (default).
+// Accepts the planner index token (an empty-named index resolves through
+// indexSchemaName).
 func (e *SelectEngine) indexColumnCollation(tableName, indexName, colName string) string {
+	indexName = indexSchemaName(indexName)
 	entries, err := e.ctx.Schema().GetEntries("")
 	if err != nil {
 		return ""

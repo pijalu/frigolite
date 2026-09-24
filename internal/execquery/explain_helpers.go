@@ -232,7 +232,7 @@ func (e *SelectEngine) findIndexOnLeadingColumn(tableName, colName string) strin
 		}
 		cols := e.indexEntryColumns(entry)
 		if len(cols) > 0 && strings.EqualFold(cols[0], colName) {
-			return entry.Name
+			return indexLookupToken(entry.Name)
 		}
 	}
 	return ""

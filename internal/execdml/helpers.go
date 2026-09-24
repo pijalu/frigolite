@@ -41,6 +41,14 @@ func parseIndexColumns(sqlStr string) []string {
 		} else if ai := strings.Index(cu, " ASC"); ai >= 0 {
 			col = strings.TrimSpace(col[:ai])
 		}
+		// SQLite stores the UNQUOTED identifier in the schema (build.c
+		// sqlite3CreateIndex keeps the token text after dequoting): a quoted
+		// column — including the zero-length name ("" "", tkt-78e04e52ea) —
+		// must compare equal to its bare name wherever the planner resolves
+		// index columns against column references.
+		if col != "" && (col[0] == '"' || col[0] == '`' || col[0] == '[') {
+			col = quotedToken(col)
+		}
 		cols = append(cols, col)
 	}
 	return cols
