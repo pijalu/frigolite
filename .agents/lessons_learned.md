@@ -8745,3 +8745,54 @@ regenerated; suite net −2274 fails vs pre-tranche baseline (7230 → ~4950).
   AND IDENTICAL on main; fleet census currency is the testgen corpus
   (tools/status). Missing-fixture fails (backupconformance, walconformance,
   regen fixtures needing the ori corpus) are the known fresh-worktree infra gaps.
+## T32-collate — collate1/5 + reindex residue after the idx-coll merge (2026-09-24, fleet agent COLLATE-FIX, branch fleet/collate-res @ babbd8c0d)
+
+- **The idx-coll merge did NOT break collate1/collate5/reindex.** The failures
+  reproduce IDENTICALLY at f5a2ea59a (idx-coll tip) and babbd8c0d (post-merge):
+  `git diff f5a2ea59a babbd8c0d` touches no collation-relevant query code and
+  the select_columns.go marker-inheritance patch (line ~914) is in BOTH. The
+  green state the tranche was credited with lived on the UNMERGED WIP branch
+  fleet/w5-tkt (380a22c5d), which carries BOTH the fixture fixes and the
+  engine fixes. Lesson: verify "green at tip X" claims by RUNNING the packages
+  at X before bisecting a merge — the delta had nothing to bisect.
+- **Compound set-op merge-key survivor = LAST row inserted** (select_setop.go
+  intersectRows/exceptRows; UNION dedupeRows already did this): SQLite's
+  merge b-tree overwrites the stored payload per key, so the surviving
+  REPRESENTATION is the later nocase-equal row (collate5-2.1.1 UNION
+  {A B N}, 2.2.1 EXCEPT {N}, 2.3.1 INTERSECT {A B}, 2.3.3 INTERSECT
+  {a apple B banana}). Oracle-verified against the collate5.test TCL wants.
+  CAUTION when verifying with the sqlite3 CLI: collate5-2.0 RE-CREATES t2
+  with different rows than section 1 — reproduce the right fixture state.
+- **Compound GROUP BY keys merge under per-term collations**
+  (select_agg_group.go equivalentGroupKey + computeGroupByKeyValues returning
+  per-term collations): the serialized text key is insufficient when two
+  terms compare EQUAL under the term's collation with different text
+  (collate5-4.2: '1' vs '1.0' under COLLATE NUMERIC → ONE group, count 2).
+  The pre-existing per-term collated serialization already handles
+  case-folding keys; the merge handles textual-form differences.
+- **collate1's hex UDF**: the TCL `db function hex {format 0x%X}` was emitted
+  as a NIL-RETURNING stub → hex(45) stored NULL → [{} {} {}]. Emitted as a
+  tclFormat closure (tools/tcl2go processdb_format_udf.go
+  emitInlineFormatUDF); the numeric_collate emitter closure also learned TCL
+  numeric == ('1.0'=='1' → 0) in collectfuncs.go numericCollation. The
+  committed testgen/collate1+collate5 files are the fleet-WIP-validated
+  generated forms; note the repo-wide emitter↔testgen skew at babbd8c0d
+  (regenerating ALL of testgen with the base emitter churns 2184 files —
+  do NOT regen wholesale from a mid-fleet branch).
+- **reindex-2.6/2.7 testgen residue (STAYS, documented)**: the two failures
+  are the oracle-adjudicated engine gap "an ORDER BY satisfied by an index
+  must EMIT stored index order; the engine re-sorts under the CURRENT
+  collation" — SQLite's planner consumes the ORDER BY (orderByConsumed) and
+  shows the stale index order after a mid-session comparator redefinition;
+  frigolite re-sorts. The seek/rebuild contracts ARE pinned natively
+  (TestPinReindexRebuildsUnderChangedCollation); JSON harness reindex is
+  green. Fixing it for real = planner sorter-omission (a w5-query-core
+  tranche), not a collation-mechanism change.
+- **tkt2822 testgen failure is pre-existing at babbd8c0d** (identical
+  got/want at base and with this branch's changes) — same never-landed-WIP
+  class (compound ORDER BY resolution), NOT a collate-res regression.
+- Harness collate5 skips updated: 2.2.1/2.3.1/4.2 UN-SKIPPED (pass with the
+  engine fixes); 2.1.3/2.2.3/2.3.3 stay skipped with corrected reasons (the
+  JSON wants are stale converter-era first-seen renderings that duplicate
+  nocase-equal rows SQLite dedups — not an engine gap); 4.3's real issue is
+  the whole-file step-list re-append (tkt3376 CREATE re-run), not GROUP BY.
