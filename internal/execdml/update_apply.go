@@ -223,7 +223,12 @@ func (e *DMLExecutor) fireUpdateBeforeTriggers(tableName string, rootPage uint32
 		return false, trigResult
 	}
 	// If a BEFORE trigger deleted the row being updated, skip the write.
-	stillExists, err := e.rowExists(tableName, rootPage, ch.rowID)
+	// update.c re-seeks the row before writing it. WITHOUT ROWID rows share
+	// the synthetic rowid 0, so rowid equality cannot identify the row —
+	// existence is checked by the change's OLD primary-key values
+	// (without_rowid1-10.6: the BEFORE UPDATE trigger deletes every row
+	// with the updated key; the outer writes must be skipped, not re-run).
+	stillExists, err := e.rowExistsForChange(tableName, rootPage, ch, colDefs)
 	if err != nil {
 		return false, &Result{Error: err}
 	}
@@ -231,6 +236,29 @@ func (e *DMLExecutor) fireUpdateBeforeTriggers(tableName string, rootPage uint32
 		return true, nil
 	}
 	return false, nil
+}
+
+// rowExistsForChange reports whether the change's row still exists in the
+// table: by rowid for a rowid table, by the OLD primary-key values for a
+// WITHOUT ROWID table.
+func (e *DMLExecutor) rowExistsForChange(tableName string, rootPage uint32, ch updateChange, colDefs []sql.ColumnDef) (bool, error) {
+	tableEntry, _, ferr := e.ctx.FindTable(tableName)
+	if ferr != nil {
+		return false, ferr
+	}
+	if tableEntry == nil {
+		return false, nil
+	}
+	if len(e.ctx.WRStorageOrder(tableEntry.SQL, colDefs)) > 0 {
+		tree := e.updateRowTree(tableName, rootPage)
+		cursor, err := tree.OpenCursor()
+		if err != nil {
+			return false, err
+		}
+		_, found := e.readCurrentRowValuesWR(cursor, tableEntry, colDefs, ch.oldValues)
+		return found, nil
+	}
+	return e.rowExists(tableName, rootPage, ch.rowID)
 }
 
 // updateRowConflictsWithTable scans the live table for rows whose values

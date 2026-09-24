@@ -254,3 +254,39 @@ func TestIdx33ReindexStaleOrder(t *testing.T) {
 	must(db.Exec("REINDEX c1"), "reindex c1")
 	check("2.8 (rebuilt under forward c1)", "ABCD BCDE abc bcd")
 }
+
+// TestIdx33WR1BeforeTriggerDeleteSkips pins without_rowid1-10.6: a BEFORE
+// UPDATE trigger that deletes the rows being updated (WITHOUT ROWID rows all
+// carry the synthetic rowid 0, so existence is re-checked by OLD primary-key
+// values — update.c re-seeks each row before writing). Oracle: the outer
+// writes are skipped, no UNIQUE error, surviving rows unchanged.
+func TestIdx33WR1BeforeTriggerDeleteSkips(t *testing.T) {
+	db, _ := frigolite.Open(":memory:")
+	defer db.Close()
+	for _, s := range []string{
+		"CREATE TABLE t1(a, b, c UNIQUE, PRIMARY KEY(a, b)) WITHOUT ROWID",
+		"INSERT INTO t1 VALUES('a', 'a', 1)",
+		"INSERT INTO t1 VALUES('a', 'b', 2)",
+		"INSERT INTO t1 VALUES('b', 'a', 3)",
+		"INSERT INTO t1 VALUES('b', 'b', 4)",
+		"CREATE TRIGGER t1_tr BEFORE UPDATE ON t1 BEGIN\n    DELETE FROM t1 WHERE a = new.a;\n  END",
+	} {
+		if res := db.Exec(s); res.Error != nil {
+			t.Fatalf("%s: %v", s, res.Error)
+		}
+	}
+	res := db.Exec("UPDATE t1 SET c = c+1 WHERE a = 'a'")
+	if res.Error != nil {
+		t.Fatalf("update: %v", res.Error)
+	}
+	r := db.Query("SELECT * FROM t1 ORDER BY a, b")
+	var parts []string
+	for _, row := range r.Rows {
+		for _, v := range row {
+			parts = append(parts, fmt.Sprintf("%v", v))
+		}
+	}
+	if got := strings.Join(parts, " "); got != "b a 3 b b 4" {
+		t.Errorf("got [%s] want [b a 3 b b 4]", got)
+	}
+}
