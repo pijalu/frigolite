@@ -8557,6 +8557,64 @@ regenerated; suite net −2274 fails vs pre-tranche baseline (7230 → ~4950).
   (indexUsingLabel must render the empty name → "COVERING INDEX  (x=?)"
   double space; stat1Tokens/indexColumns/indexColumnCollation resolve by
   name and need the mapping back). Engine data correctness is unaffected.
+
+## FULL-SUITE-DRIFT.T32-deep — randexpr1 collapse + empty-named index (2026-09-24, branch fleet/tkt-deep)
+
+- **randexpr1 FIXED (70→0)**: the collapse predicate's blind spot was
+  `aggColumnArgsRefInner` inspecting only a BARE aggregate FuncCall column.
+  Aggregates nested in arithmetic/CAST/IN-lists (max(a)*max(a),
+  -cast(avg(f) AS integer), max(a) IN (...)) were invisible, so
+  `aggRefsMatchFromTable` reported "no inner refs" and
+  `selectFromAggRefsOuterOnly` flagged an UNCORRELATED aggregate as
+  outer-only → execSelectCorrelatedAgg collapsed the enclosing query to one
+  row, fabricating a row from an empty scan. Fix: ownership follows where the
+  aggregate's column references RESOLVE (resolve.c), not the shape of the
+  result expression — exprAggArgsRefInner walks the whole column via
+  WalkExprFull (covers CAST/IN-list/CASE; Subquery stays a leaf) checking each
+  aggregate's args/ORDER BY/FILTER (new exprHasColRefNames). Guards stayed
+  green: aggnested 1.1/1.3, filter1 6.x, select1 (testgen).
+- **Aggregate-EQ semantics probe rule**: `SELECT max(a) ... FROM t WHERE 0`
+  is ONE row (NULL) — an aggregate query always yields a row without GROUP
+  BY; only a NON-aggregate scan with a false WHERE yields zero rows. Probe
+  expectations against sqlite3 before pinning row counts.
+- **tkt_78e04e52ea FIXED**: planner "" sentinel replaced by an
+  impossible-token found-signal (emptyIndexName = NUL byte; C-string schema
+  names can never contain NUL) — the Go translation of C's NULL-pointer
+  "not found". Finders return indexLookupToken(entry.Name); resolvers
+  (indexColumns, indexColumnCollation, stat1Tokens, partialIndexWhereColumns,
+  tiebreakIndex counts) and renderers (indexUsingLabel, joinSearchNode,
+  orderBy/groupDistinct/countIndexPlan) translate via indexSchemaName. Token
+  flows into sortScanRowsIndexOrder make the executor see empty-named
+  indexes too. Guards: index/intpkey/reindex/like/without_rowid harness
+  patterns show failure profiles IDENTICAL to baseline (compare subtest
+  failure profiles, not pass/fail — most index*/like* JSON files are
+  baseline-red).
+- **Zero-length-name class (same ticket)**: collectQueryTables must honor
+  From.EmptyName (FROM "" was planned as SCAN CONSTANT ROW);
+  parseIndexColumns (execdml) now unquotes quoted index key identifiers —
+  SQLite stores UNQUOTED names, and `""` kept its quote chars and never
+  matched the bare empty column.
+- **Harness artifacts surfaced by un-listing tkt_78e04e52ea.json**:
+  (1) sectionKey misparses names like "tkt-78e04-2.1" (SplitN on first "-"
+  leaves "78e04-2" → numeric-parsing fallback key [0,1] colliding with 1.1) —
+  mark such files "ordered": true when the JSON order is the TCL order;
+  (2) the legacy converter appended a replay of every earlier do_test body
+  to the file's last test (state-corrupting) — trim to the TCL source;
+  (3) TCL {} is lossy in the JSON format: table_info's zero-length NAME/TYPE
+  cells are genuine empty STRINGS in SQLite (oracle), but the harness's
+  {}→NULL normalization demands NULL — record in harnessSkipSubtests with
+  the native pin (TestT32DeepEmptyIndexName); (4) TCL 1.4
+  (`/*SCAN  USING COVERING INDEX i1*/`) was dropped by the converter (glob
+  expectation): its DATA contract is pinned natively, but its exact EQP
+  shape (LIKE over an index-collation-NOCASE column renders SCAN with NO
+  range args in sqlite3 3.54, vs SEARCH+(x>? AND x<?) when the NOCASE comes
+  from the column decl) is a deeper where.c/explain.c class — open for a
+  future LIKE-EQP tranche.
+- **SQLite 3.54 LIKE-EQP oracle facts**: NOCASE-column index + LIKE range →
+  "SEARCH t USING INDEX (x>? AND x<?)"; BINARY index + LIKE → "SCAN t USING
+  INDEX (x>? AND x<?)" (two ranges); index-only NOCASE (empty-named column)
+  → "SCAN t USING COVERING INDEX i1" with no args. Do not "normalize" these.
+
 ## FULL-SUITE-DRIFT.T30-misc2 — misc singles wave 2 (2026-09-23, branch fleet/misc2)
 
 - **Compound-view column affinity (unionall-8.4/8.7/8.10)**: sqlite3SubqueryColumnTypes
