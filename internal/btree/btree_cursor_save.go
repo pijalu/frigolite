@@ -260,14 +260,8 @@ func (c *Cursor) routeInteriorTable(pg *pager.Page, page *storage.BTreePage, row
 // (routing on full key comparisons, dividers reassembled from overflow).
 func (c *Cursor) seekIndexLeafWithPath(pageNum uint32, key []byte) (bool, error) {
 	for {
-		pg, err := c.tx.pager.ReadPage(pageNum)
+		pg, page, err := c.readTreePage(pageNum)
 		if err != nil {
-			c.endOfBTree = true
-			return false, err
-		}
-		page, err := storage.ParsePage(pg.Data, int(c.tx.pageSize), contentOffset(pg.PageNum))
-		if err != nil {
-			c.endOfBTree = true
 			return false, err
 		}
 		if page.PageType == storage.PageTypeLeafIndex {
@@ -277,38 +271,81 @@ func (c *Cursor) seekIndexLeafWithPath(pageNum uint32, key []byte) (bool, error)
 			c.endOfBTree = true
 			return false, nil
 		}
-		lo, hi := 0, int(page.CellCount)-1
-		childPage := page.RightmostPtr
-		for lo <= hi {
-			mid := (lo + hi) / 2
-			cellOff := int(storage.CellPointer(pg.Data, contentOffset(pg.PageNum), mid, int(c.tx.pageSize)))
-			cell, derr := storage.DecodeCell(pg.Data, cellOff, storage.CellIndexInterior, int(c.tx.usableSize))
-			if derr != nil {
-				c.endOfBTree = true
-				return false, derr
-			}
-			full, oerr := c.tx.readOverflow(cell)
-			if oerr != nil {
-				c.endOfBTree = true
-				return false, oerr
-			}
-			if c.tx.compareKey(full.Payload, key) < 0 {
-				lo = mid + 1
-			} else {
-				childPage = cell.LeftPtr
-				hi = mid - 1
-			}
-		}
-		if lo < int(page.CellCount) {
-			cellOff := int(storage.CellPointer(pg.Data, contentOffset(pg.PageNum), lo, int(c.tx.pageSize)))
-			cell, derr := storage.DecodeCell(pg.Data, cellOff, storage.CellIndexInterior, int(c.tx.usableSize))
-			if derr != nil {
-				c.endOfBTree = true
-				return false, derr
-			}
-			childPage = cell.LeftPtr
+		lo, childPage, err := c.routeInteriorIndex(pg, page, key)
+		if err != nil {
+			return false, err
 		}
 		c.path = append(c.path, cursorPathEntry{pageNum: pg.PageNum, childIdx: lo})
 		pageNum = childPage
 	}
+}
+
+// readTreePage reads and parses one b-tree page for the seek-with-path walk.
+func (c *Cursor) readTreePage(pageNum uint32) (*pager.Page, *storage.BTreePage, error) {
+	pg, err := c.tx.pager.ReadPage(pageNum)
+	if err != nil {
+		c.endOfBTree = true
+		return nil, nil, err
+	}
+	page, err := storage.ParsePage(pg.Data, int(c.tx.pageSize), contentOffset(pg.PageNum))
+	if err != nil {
+		c.endOfBTree = true
+		return nil, nil, err
+	}
+	return pg, page, nil
+}
+
+// routeInteriorIndex computes the descent for an interior index page: the
+// (child index, child page) pair for key, matching seekInInteriorIndex's
+// routing on full (overflow-reassembled) divider comparisons.
+func (c *Cursor) routeInteriorIndex(pg *pager.Page, page *storage.BTreePage, key []byte) (int, uint32, error) {
+	lo, hi := 0, int(page.CellCount)-1
+	childPage := page.RightmostPtr
+	for lo <= hi {
+		mid := (lo + hi) / 2
+		cell, err := c.interiorIndexCell(pg, mid)
+		if err != nil {
+			return 0, 0, err
+		}
+		if c.tx.compareKey(cell.key, key) < 0 {
+			lo = mid + 1
+		} else {
+			childPage = cell.leftPtr
+			hi = mid - 1
+		}
+	}
+	if lo < int(page.CellCount) {
+		cell, err := c.interiorIndexCell(pg, lo)
+		if err != nil {
+			return 0, 0, err
+		}
+		childPage = cell.leftPtr
+	}
+	return lo, childPage, nil
+}
+
+// interiorIndexCell decodes one interior index cell (divider) and reassembles
+// its spilled payload, returning the comparison key and left-child pointer.
+func (c *Cursor) interiorIndexCell(pg *pager.Page, idx int) (struct {
+	leftPtr uint32
+	key     []byte
+}, error) {
+	var out struct {
+		leftPtr uint32
+		key     []byte
+	}
+	cellOff := int(storage.CellPointer(pg.Data, contentOffset(pg.PageNum), idx, int(c.tx.pageSize)))
+	cell, err := storage.DecodeCell(pg.Data, cellOff, storage.CellIndexInterior, int(c.tx.usableSize))
+	if err != nil {
+		c.endOfBTree = true
+		return out, err
+	}
+	full, oerr := c.tx.readOverflow(cell)
+	if oerr != nil {
+		c.endOfBTree = true
+		return out, oerr
+	}
+	out.leftPtr = cell.LeftPtr
+	out.key = full.Payload
+	return out, nil
 }

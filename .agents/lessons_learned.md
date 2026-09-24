@@ -4,6 +4,59 @@
 - P6.VTAB zipfile: statement-level OR conflict handling must be delegated to module xUpdate semantics when uniqueness key is non-rowid. Added optional ConflictAwareUpdater path in execdml; zipfile UpdateRowConflict handles IGNORE/REPLACE against name collisions. Generic delete/retry cannot identify zipfile name-keyed conflicts.
 # Lessons Learned — Frigolite
 
+## T33-misc — misc2/3/5/7/8 driven green (2026-09-24)
+
+- **WIP 380a22c5d adjudication**: of its ~30-file internal/ delta, only 3 hunks
+  were needed for the misc packages (lexer leading-dot literals, evalLimitExpr
+  subquery-error surfacing, readDotOp dot retention); everything else (collate
+  min/max, setop survivor, compound ORDER BY) was ALREADY covered by main's
+  evolved collate-res/idx-coll/tkt2822 merges — confirmed by adopting the WIP's
+  13 w5_tkt_pin_test.go pins wholesale: all pass on main + my fixes with zero
+  WIP engine grafts beyond the two seams above.
+- **btree.c saveAllCursors port (misc8-1.6)**: a nested statement's write
+  (eval UDF DELETE) while an outer scan cursor is positioned needs key-save +
+  re-seek, because frigolite builds a FRESH BTree per statement over the shared
+  (pager, rootPage) — that pair is the BtShared identity, so the cursor
+  registry is keyed on it (internal/btree/btree_cursor_save.go). Restore
+  semantics are subtle: btreeMoveto's skipnext means a MISSING saved key makes
+  the restored next-larger row the Next RESULT (no extra advance); exact hits
+  advance normally. Oracle-verified 3 shapes: delete-all mid-scan, delete each
+  current row (all rows still emitted), delete a later row (skipped cleanly).
+  Known divergence: frigolite decodes all columns BEFORE expression evaluation,
+  so a mid-row delete shows the pre-delete value for later columns where
+  SQLite's per-OP_Column restore yields NULL (misc8-1.6 row 3: c=9 vs NULL);
+  corpus never asserts those bytes.
+- **tcl2go 3-word `db eval {SQL} {arrayName} {body}`**: the emitter treated
+  rest[1] (the ARRAY NAME) as the body — nested bodies emitted empty (misc2-7.2
+  "transpiled-passing" but engine-perfect). Fix: body = LAST word when >=3.
+- **fpnum_compare is the do_test contract**: SQLite's TCL suite compares
+  string-first, then fpnum_compare (test1.c 6168) — trailing-zero/exponent-pad
+  float text differences are EQUAL by design (misc3-2.5: 15-vs-13 digits after
+  the point; the expectation file predates printf changes and passes upstream
+  only via this fallback). Ported verbatim to the helpers template
+  (tclFpnumCompare) and wired into ALL 13 got/want comparison emissions. The C
+  comparator is STRICTER than its doc comment (1e-100 vs 1.0e-100 and 1e+5 vs
+  1e5 are FALSE — dot/sign pairing breaks first); pinned in
+  testgen/misc3/fpnum_pin_test.go.
+- **Corpus regen drift**: regenerating a package with the current emitter also
+  brings previously-landed emitter features (tclLRange negative-end,
+  test_error/test_isolation auto-install) the checked-in corpus predates.
+  Regen only the packages you own; diffs confirm identical-except-intended.
+- **Skipped tests need FILE side effects too** (misc7-23.1): the later flow
+  does `frigolite.Open("tst/test.db")` OUTSIDE any do_test, so a skipped test's
+  file layout (mkdir tst, forcecopy) must still be emitted. Added
+  fileSideEffectCmd emission (db close / forcedelete / file mkdir|delete|copy
+  → os.RemoveAll / os.MkdirAll / tclFileCopy); deliberately NOT file
+  attributes -permissions (enforcing readonly dirs is the N/A capability; a
+  real chmod would break the engine's own opens).
+- **Building the oracle with eval()**: /usr/bin/sqlite3 lacks eval(); compile
+  sqlite3.c + ext/misc/eval.c + a tiny main (SQLITE_CORE, sqlite3_eval_init)
+  for mid-scan-write ground truth (see /tmp/sqlite351build pattern).
+- **quality_gate on tools/tcl2go**: dotest.go/processblob.go were already over
+  the 1000-line hard max at base; extract NEW cohesive sections into new files
+  (dotest_sideeffects.go, processdb_dbeval.go) rather than growing them —
+  processdb_part2.go dropped below 1000 as a side effect.
+
 ## W6-KERNEL-RESUME — resuming a dead agent's WIP tranche (2026-09-23)
 
 - **Resume protocol that worked**: diff `main..fleet/w6-kernel` per commit — the
