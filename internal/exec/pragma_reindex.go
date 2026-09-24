@@ -6,12 +6,41 @@
 package exec
 
 import (
+	"fmt"
 	"strings"
 
 	"github.com/pijalu/frigolite/internal/schema"
 	"github.com/pijalu/frigolite/internal/storage"
 	"github.com/pijalu/frigolite/internal/util"
 )
+
+// reindexTargetNoIndexFallback resolves a targeted REINDEX that matched no
+// index entry (build.c sqlite3Reindex resolution order: collation, then
+// TABLE via sqlite3FindTable — virtual tables included — then index; only
+// when none resolve does it report "unable to identify the object to be
+// reindexed"). A named table with zero schema index entries — e.g. an rtree
+// virtual table (rtree PK/UNIQUE constraints are module-delegated and
+// materialize no sqlite_autoindex) or a plain indexless table — is a
+// successful no-op: reindexTable skips IsVirtual tables and iterates the
+// possibly-empty pIndex list.
+func (e *Engine) reindexTargetNoIndexFallback(target string) ([]reindexIndexTarget, error) {
+	obj := reindexTargetObject(target)
+	schemaQualified := strings.ContainsRune(target, '.')
+	for _, ctx := range e.databases {
+		if schemaQualified && !e.targetSchemaMatches(ctx, target) {
+			continue
+		}
+		if ent, err := ctx.Schema.FindTable(obj); err == nil && ent != nil {
+			return nil, nil
+		}
+	}
+	// A collation target that no index uses is still a successful no-op
+	// REINDEX (build.c matches the collation, finds nothing).
+	if e.collationExists(obj) || e.schemaReferencesCollationInAnyDb(obj) {
+		return nil, nil
+	}
+	return nil, fmt.Errorf("unable to identify the object to be reindexed")
+}
 
 // stat1RowMatchesTbl reports whether a sqlite_stat1 row names the given table.
 func stat1RowMatchesTbl(row RowMap, tblName string) bool {
