@@ -22,6 +22,21 @@ func Test_without_rowid4(t *testing.T) {
 	}
 	defer db.Close()
 
+	// auto-installed test-extension functions (src/test_func.c)
+	db.RegisterFunction("test_error", func(args []interface{}) (interface{}, error) {
+		msg := ""
+		if len(args) > 0 && args[0] != nil {
+			msg = fmt.Sprintf("%v", args[0])
+		}
+		return nil, fmt.Errorf("%s", msg)
+	}, 1, 2)
+	db.RegisterFunction("test_isolation", func(args []interface{}) (interface{}, error) {
+		if len(args) < 2 {
+			return nil, nil
+		}
+		return args[1], nil
+	}, 2, 2)
+
 	var _res *frigolite.Result
 	var r *frigolite.Result
 	var msg string
@@ -607,7 +622,11 @@ func Test_without_rowid4(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	{ // "without_rowid4-6.2b" — skipped: WR-btree trigger-interleave UNIQUE artifact: oracle errors from outer/inner write ordering, not a real key conflict
+	{ // do_test "without_rowid4-6.2b"
+		_res = db.Exec("\n      UPDATE OR ABORT tbl SET a = 4 WHERE a = 1;\n    ")
+		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "UNIQUE constraint failed: tbl.a") {
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "UNIQUE constraint failed: tbl.a", resErrString(_res), "\n      UPDATE OR ABORT tbl SET a = 4 WHERE a = 1;\n    ")
+		}
 	}
 	{ // do_test "without_rowid4-6.2c"
 		r = db.Query("\n      SELECT * from tbl;\n    ")
@@ -621,7 +640,11 @@ func Test_without_rowid4(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	{ // "without_rowid4-6.2d" — skipped: WR-btree trigger-interleave UNIQUE artifact: oracle errors from outer/inner write ordering, not a real key conflict
+	{ // do_test "without_rowid4-6.2d"
+		_res = db.Exec("\n      UPDATE OR FAIL tbl SET a = 4 WHERE a = 1;\n    ")
+		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "UNIQUE constraint failed: tbl.a") {
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "UNIQUE constraint failed: tbl.a", resErrString(_res), "\n      UPDATE OR FAIL tbl SET a = 4 WHERE a = 1;\n    ")
+		}
 	}
 	{ // do_test "without_rowid4-6.2e"
 		r = db.Query("\n      SELECT * from tbl;\n    ")
@@ -659,7 +682,11 @@ func Test_without_rowid4(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	{ // "without_rowid4-6.2g" — skipped: WR-btree trigger-interleave UNIQUE artifact: oracle errors from outer/inner write ordering, not a real key conflict
+	{ // do_test "without_rowid4-6.2g"
+		_res = db.Exec("\n      UPDATE OR ROLLBACK tbl SET a = 4 WHERE a = 1;\n    ")
+		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "UNIQUE constraint failed: tbl.a") {
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "UNIQUE constraint failed: tbl.a", resErrString(_res), "\n      UPDATE OR ROLLBACK tbl SET a = 4 WHERE a = 1;\n    ")
+		}
 	}
 	{ // do_test "without_rowid4-6.2h"
 		r = db.Query("\n      SELECT * from tbl;\n    ")

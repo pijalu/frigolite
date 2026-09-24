@@ -42,7 +42,7 @@ func (e *DMLExecutor) applyUpdateWithTriggers(tableEntry *schema.Entry, colDefs 
 		}
 		appliedChange, res := e.applyTriggeredUpdateRow(tree, tableName, rootPage, tableEntry, colDefs, colIndex, uniqueCols, idxColsList, *ch)
 		if res != nil {
-			return res
+			return e.updateOrconfFailure(s, res)
 		}
 		if !appliedChange {
 			continue
@@ -54,10 +54,25 @@ func (e *DMLExecutor) applyUpdateWithTriggers(tableEntry *schema.Entry, colDefs 
 		// changes() counter (and user functions like my_changes) observe
 		// the row-by-row interleaving (e_changes 5.1.2).
 		if res := e.fireTriggeredUpdateAfter(tableName, colDefs, *ch); res != nil {
-			return res
+			return e.updateOrconfFailure(s, res)
 		}
 	}
 	return &Result{Changes: changesMade}
+}
+
+// updateOrconfFailure tags an UPDATE trigger-path failure with the
+// statement's ON CONFLICT undo scope. Under an explicit OR FAIL, the rows
+// written before the failing one survive: vdbe.c OP_Halt with P2=OE_Fail
+// COMMITS the statement sub-transaction, and the trigger program shares the
+// outer statement's (without_rowid4-6.2e). RAISE(FAIL) results already carry
+// the flag from execTriggerBody; other modes keep the default statement-undo
+// semantics (ABORT undoes the statement, ROLLBACK rolls back the whole
+// transaction).
+func (e *DMLExecutor) updateOrconfFailure(s *sql.UpdateStmt, res *Result) *Result {
+	if res != nil && res.Error != nil && strings.EqualFold(s.OnConflict, "FAIL") && isIgnoreableConstraintError(res.Error) {
+		res.SetKeepPriorRowsOnError()
+	}
+	return res
 }
 
 // fireTriggeredUpdateAfter fires AFTER UPDATE triggers for one written change
@@ -110,18 +125,30 @@ func (e *DMLExecutor) applyTriggeredUpdateRow(tree *btree.BTree, tableName strin
 	// The error names the violated column from the CONFLICTING live row's
 	// values (trigger2-6.2b: "tbl.a"): the change's own old values differ
 	// on the SET column and would miss (dbgI probe).
+	// WITHOUT ROWID rows share the synthetic RowID 0, so the rowid-based
+	// self-exclusion inside updateRowConflictValues would treat every live
+	// cell as the row itself and skip it — the WR-aware checker is required
+	// on every per-row path, not just OR IGNORE (without_rowid4-6.2 turned
+	// this omission into duplicate PKs once the outer OR clause propagated
+	// into the trigger body).
 	var conflictVals []interface{}
-	conflict, err := e.updateRowConflictValues(tree, ch, colDefs, colIndex, uniqueCols, idxColsList, &conflictVals)
-	if err != nil {
-		return false, &Result{Error: err}
-	}
-	if conflict {
-		aVals := conflictVals
-		aRowID := ch.rowID
-		if aVals == nil {
-			aVals = ch.oldValues
+	if wrOrder := e.ctx.WRStorageOrder(tableEntry.SQL, colDefs); len(wrOrder) > 0 {
+		if res := e.checkLiveTableConflictsWR(tree, nil, ch, colDefs, colIndex, uniqueCols, idxColsList, tableEntry, wrOrder); res.Error != nil {
+			return false, res
 		}
-		return false, &Result{Error: e.uniqueConflictError(tableName, colDefs, colIndex, aVals, ch.values, aRowID, ch.rowID, uniqueCols, idxColsList)}
+	} else {
+		conflict, err := e.updateRowConflictValues(tree, ch, colDefs, colIndex, uniqueCols, idxColsList, &conflictVals)
+		if err != nil {
+			return false, &Result{Error: err}
+		}
+		if conflict {
+			aVals := conflictVals
+			aRowID := ch.rowID
+			if aVals == nil {
+				aVals = ch.oldValues
+			}
+			return false, &Result{Error: e.uniqueConflictError(tableName, colDefs, colIndex, aVals, ch.values, aRowID, ch.rowID, uniqueCols, idxColsList)}
+		}
 	}
 	if res := e.enforceUpdateFKActions(tableEntry, colDefs, ch); res != nil {
 		return false, res

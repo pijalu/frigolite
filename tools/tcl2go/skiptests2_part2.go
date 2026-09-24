@@ -1108,15 +1108,18 @@ var skipTestsMoreTail = map[string]string{
 	// (no-side-effects for both).
 	"without_rowid3-15.1.6": "dropped execsqlS ROLLBACK leaves this BEGIN's transaction open, breaking every later statement (no-side-effects)",
 	"without_rowid3-15.1.7": "transaction-state cascade of the dropped 15.1.6 ROLLBACK; TCL rolled the DELETE back (no-side-effects)",
-	// without_rowid4-6.2b/6.2d/6.2g: UPDATE OR ABORT/FAIL/ROLLBACK whose
-	// AFTER-trigger rewrites the WR PK btree mid-statement — SQLite's error
-	// is an artifact of the outer/inner btree write interleaving (verified
-	// against the oracle: even a non-conflicting inner SET a=99 errors). The
-	// frigolite executor applies the update without the artifact; the SQL
-	// side effects are kept, only the error assertion is dropped.
-	"without_rowid4-6.2b": "WR-btree trigger-interleave UNIQUE artifact: oracle errors from outer/inner write ordering, not a real key conflict",
-	"without_rowid4-6.2d": "WR-btree trigger-interleave UNIQUE artifact: oracle errors from outer/inner write ordering, not a real key conflict",
-	"without_rowid4-6.2g": "WR-btree trigger-interleave UNIQUE artifact: oracle errors from outer/inner write ordering, not a real key conflict",
+	// without_rowid4-6.2b/6.2d/6.2g were skipped as a "WR-btree write
+	// interleave artifact" — disproven against the oracle (T33-idx): the
+	// error IS a real key conflict. trigger.c codeTriggerProgram propagates
+	// the outer statement's ON CONFLICT clause over the body step's own
+	// (orconf = orconf==OE_Default ? pStep->orconf : orconf), so the body's
+	// UPDATE OR IGNORE runs as ABORT/FAIL/ROLLBACK and its (6,3,4)->(a=4)
+	// row write genuinely conflicts with the outer statement's new (4,...)
+	// PK. Oracle 3.51: plain UPDATE succeeds while UPDATE OR ABORT errors on
+	// the identical state; even a non-conflicting outer SET a=99 errors
+	// because the propagated ABORT makes the inner (6,...)->(99,...) write
+	// conflict. The engine implements the propagation (applyOuterOrConflict)
+	// plus WR-aware per-row conflict checks, so the assertions run green.
 
 	// without_rowid3-16.4.1.2 / 16.4.1.3 remain failing: the self-ref
 	// (d,f)->(e,c) updates are oracle-correct in isolation, but the generated
