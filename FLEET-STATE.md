@@ -115,6 +115,12 @@ RESUME (in order):
    declared-collation marker patch (line ~914) is the suspect; bisect the
    merged delta. idx-coll's own fixture registrations (hex collation +
    hex function) may also need porting.
+   JOINED BY T32-wip findings: TestW5Tkt2822CompoundOrderByAlias (green at
+   47772f421, red from merge 75451d1ed — compound ORDER BY QX,XX / t6b.x,QX /
+   t6a.q,XX return pre-tkt2 order; oracle 3.54 wants verified) and
+   TestP5AnalyzeReindex ("REINDEX main: unable to identify the object" —
+   already failing at f5a2ea59a). Both are idx-coll engine-delta interaction;
+   root-suite drift, not testgen.
 2. autovacuum ("Page N never used"), backup, e_fkey residue, unionall
    570, tkt_78e04e52ea (empty-name index found-signal), randexpr1
    (nested correlated-agg — constraints in lessons).
@@ -122,4 +128,18 @@ RESUME (in order):
    vacuum header metas, trigger3 RAISE scope, trigger6 UDF shadowing,
    alterlegacy/e_fkey legacy renames, csv01 declared types, lock
    read-marks — route to cluster owners.
+   DONE (T32-wip): all six already adopted on kernel-wip via fleet/w6-misc
+   (b603018db, merged 301800e18) and evolved; routed testgen packages
+   pragma/trigger3/trigger6/alterlegacy/e_fkey/csv01/lock 7/7 green; 16/16
+   TestW6MiscPin_* green; oracle 3.54 parity spot-checked. No further routing.
 4. Then: final census + adjudication + PORTPLAN §2/§5d close.
+
+Root-suite state at T32-wip (fleet/kernel-wip): 9 top-level fails at
+babbd8c0d → 7 after two oracle-adjudicated stale-pin fixes
+(TestSQLiteGlobRangePin want = index BINARY order "abd|acd";
+TestWindowCGroupConcatBlobUTF16 null rendered "NULL" per flattenResult —
+the pin had never passed since ca196b7a3). Remaining 7: tkt2822 +
+P5AnalyzeReindex (RESUME-1, idx-coll follow-up), TestSQLiteSuite legacy
+JSON-harness drift (identical on main; testgen corpus is the census
+currency) and 4 missing-oracle-fixture infra fails (backupconformance,
+walconformance, 2 regen fixtures needing the ori corpus).

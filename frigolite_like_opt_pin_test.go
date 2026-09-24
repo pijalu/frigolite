@@ -161,8 +161,11 @@ func TestSQLiteGlobRangePin(t *testing.T) {
 	likeOptQuery(t, db2, "SELECT x FROM t1 WHERE x GLOB 'abc*'", "abc|abcd", 0)
 	db3 := build(t, "CREATE TABLE t1(x TEXT); CREATE INDEX i1 ON t1(x)")
 	likeOptQuery(t, db3, "SELECT x FROM t1 WHERE x GLOB 'abc*'", "abc|abcd", 0)
-	// Bracket pattern: prefix 'a' only, not complete: 6 in-range calls.
-	likeOptQuery(t, db3, "SELECT x FROM t1 WHERE x GLOB 'a[bc]d'", "acd|abd", 6)
+	// Bracket pattern: prefix 'a' only, not complete: 6 in-range calls. The
+	// range is answered through the covering index (oracle 3.54 EQP: SEARCH
+	// t1 USING COVERING INDEX i1 (x>? AND x<?)), so rows emit in the index's
+	// BINARY collation order — abd before acd — not insertion order.
+	likeOptQuery(t, db3, "SELECT x FROM t1 WHERE x GLOB 'a[bc]d'", "abd|acd", 6)
 	// Wildcard-free GLOB patterns (ticket e090183531fc2747).
 	likeOptQuery(t, db3, "SELECT x FROM t1 WHERE x GLOB 'a'", "a", 6)
 	likeOptQuery(t, db3, "SELECT x FROM t1 WHERE x GLOB 'abcd'", "abcd", 1)

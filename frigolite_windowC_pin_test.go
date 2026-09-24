@@ -11,7 +11,11 @@ import (
 // group_concat's sqlite3_value_text rendering of the blob decodes UTF-16
 // code units. With PRAGMA encoding=UTF16le the blob x'5585d09013455178cd11ce4a'
 // renders as UTF-16le text; UTF16be decodes byte-swapped. Oracle
-// (/usr/bin/sqlite3 3.51.0) verified both outputs.
+// (/usr/bin/sqlite3 3.51.0 and 3.54.0) verified both outputs. The first
+// window has no preceding row, so its group_concat is SQL NULL — rendered
+// "NULL" by flattenResult (the oracle prints the NULL row as an empty
+// field; the original "{}" transcription — TCL for empty string, not NULL
+// — never matched any engine output).
 func TestWindowCGroupConcatBlobUTF16(t *testing.T) {
 	const query = `
   WITH separator(x) AS (VALUES(',a,'),(',bc,')),
@@ -22,8 +26,8 @@ func TestWindowCGroupConcatBlobUTF16(t *testing.T) {
 		pragma string
 		want   string
 	}{
-		{"UTF16le", "{} 1 蕕郐䔓硑ᇍ䫎 1"},
-		{"UTF16be", "{} 1 喅킐ፅ典촑칊 1"},
+		{"UTF16le", "NULL 1 蕕郐䔓硑ᇍ䫎 1"},
+		{"UTF16be", "NULL 1 喅킐ፅ典촑칊 1"},
 	}
 	for _, tc := range cases {
 		f := "windowcpin.db"

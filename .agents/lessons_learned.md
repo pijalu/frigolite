@@ -8696,3 +8696,52 @@ regenerated; suite net −2274 fails vs pre-tranche baseline (7230 → ~4950).
   frigolite_idxcoll_pin_test.go. Remaining skips are converter duplicate-step
   artifacts (collate8-2.8, minmax3-4.15, collate1 5.3/10.0, collate5 5.2-5.4)
   or shared-filename ATTACH races (e_reindex-2.0/2.6.0).
+
+## FULL-SUITE-DRIFT.T32-wip — WIP routing disposition (2026-09-24, branch fleet/kernel-wip)
+
+- **The fleet/w6-kernel WIP (6eb865e53) was ALREADY fully adopted on kernel-wip**:
+  the parallel fleet/w6-misc WIP (b603018db) is the same in-flight work, merged as
+  301800e18 and since evolved. Per routed fix, all verified green at babbd8c0d:
+  (1) pragma-6.x PK ordinals + DEFAULT compaction (pragma_table.go
+  tableInfoPkOrdinals/primaryKeyOrdinalsFromSQL/compactExprText; the W6DEBUG
+  os.Getenv debug block was stripped on adoption) — oracle 3.54: PRIMARY KEY(c,a,b)
+  → pk 1/2/3, DEFAULT (5+3) renders "5+3"; (2) trigger3 RAISE undo scopes
+  (execexpr.RaiseError{Kind,Msg} + applyRaiseUndoScope; oracle: FAIL keeps both
+  rows of the open tx (count=2), ROLLBACK leaves 0) — trigger3 testgen green;
+  (3) trigger6 user-UDF shadowing (Registry.userSet/IsUserRegistered gates
+  evalEngineFunc, sqlite3FindFunction order) — trigger6 testgen green;
+  (4) alterlegacy/e_fkey legacy alter trigger retargeting
+  (renameTriggerTargetToken ON-token rewrite) + single-quoted-identifier table
+  rename — alterlegacy (66 assertion sites) + e_fkey (253 do_test) testgen green;
+  (5) csv01 declared column types — adopted then refactored by T30-vtab into
+  csvVTab.types/columnDefsFromSchema; csv01 green; (6) lock tx read-marks
+  (tx.readDbs + noteStmtReadLock wired at engine_core.go) — lock green. All 16
+  TestW6MiscPin_* pins green. NO new adoption needed; the routing memo's census
+  (trigger3/alterlegacy failing) predated the w6-misc merge.
+- **Full-suite triage at babbd8c0d (root `go test . -v`): 9 top-level fails,
+  6 real, of which 2 were STALE PINS fixed here** (oracle-adjudicated, pin-only):
+  - TestSQLiteGlobRangePin: the want "acd|abd" was insertion order; with the
+    covering index SQLite 3.54 emits index (BINARY) order — EQP: SEARCH t1 USING
+    COVERING INDEX i1 (x>? AND x<?) → "abd|acd". Engine was right; pin updated.
+  - TestWindowCGroupConcatBlobUTF16: want transcribed the oracle's EMPTY null
+    field as "{}" (TCL empty string) but flattenResult renders NULL as "NULL";
+    the pin failed at its own creation commit (ca196b7a3) — never green. Wants
+    corrected to "NULL 1 <mojibake> 1" (mojibake re-verified against 3.54).
+  - **Lessons: transcribe oracle nulls as the harness's NULL token, and confirm
+    a NEW pin actually runs green before committing it** (this one was committed
+    "green" but had never passed; scoped runs hid it for 10 waves).
+- **Real engine regressions found, OWNED BY THE idx-coll FOLLOW-UP (RESUME-1
+  family), not fixed here** (out of T32-wip lane):
+  - TestW5Tkt2822CompoundOrderByAlias: green on the pinfix/tkt2 lineage
+    (47772f421), breaks at merge 75451d1ed (brings b929f68f1..f5a2ea59a
+    collation-ordered index maintenance). Cases `ORDER BY QX, XX`,
+    `ORDER BY t6b.x, QX`, `ORDER BY t6a.q, XX` over a compound SELECT return
+    tkt2 order instead of oracle order (oracle 3.54 verified wants). Same merge
+    interaction as collate1/collate5/reindex-2.6/2.7.
+  - TestP5AnalyzeReindex: "REINDEX main: unable to identify the object to be
+    reindexed" — already failing at f5a2ea59a (idx-coll tip); RESUME-1 item.
+- Legacy JSON harness drift (TestSQLiteSuite, 386 files, e.g. harness trigger3
+  "no such table: tbl" — the JSON has no per-file schema setup) is PRE-EXISTING
+  AND IDENTICAL on main; fleet census currency is the testgen corpus
+  (tools/status). Missing-fixture fails (backupconformance, walconformance,
+  regen fixtures needing the ori corpus) are the known fresh-worktree infra gaps.
