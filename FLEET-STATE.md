@@ -1,5 +1,61 @@
 # Fleet State — clear snapshot at fleet stop (2026-09-23)
 
+## T33 session START (2026-09-24, coordinator + 4 cluster agents) — ACTIVE
+
+Objective: implement the remaining PORTPLAN work — drive the 17 actionable
+testgen fails (of the 26-fail census) to green or evidence-adjudicated
+close, then final census + PORTPLAN §2/§4/§5d close.
+
+Baseline: main `9372fbb85`, census stamp 2026-09-24T18:06:08Z =
+1037 pass / 26 fail / 283 skip. Build + vet green. Root `go test .`
+baseline running (result → /tmp/t33_root_baseline.txt).
+
+The 26 fails = 9 fts5 adjudicated architectural (stay) + 17 actionable:
+misc2, misc3, misc5, misc7, misc8, having, where6, window8, selectH,
+index, reindex, skipscan2, without_rowid4, permutations, fts3corrupt6,
+rtree1, tpch01.
+
+Fleet map (fresh worktrees, branches cut from main 9372fbb85):
+
+| Branch | Worktree | Packages | Entry evidence |
+|---|---|---|---|
+| `fleet/t33-misc` | frigolite-wt-t33-misc | misc2 misc3 misc5 misc7 misc8 | resume from preserved WIP 380a22c5d (fleet/w5-tkt) — cherry-pick or re-derive; WIP touched execquery/execdml/execexpr/function/lexer/util + frigolite_w5_tkt_pin_test.go |
+| `fleet/t33-query` | frigolite-wt-t33-query | having where6 window8 selectH | result mismatches (selectH do_test 1.3; window8 long row dump) |
+| `fleet/t33-idx` | frigolite-wt-t33-idx | index reindex skipscan2 without_rowid4 permutations | reindex = documented planner sorter-omission tranche (2.6/2.7); permutations shows a nil-append PANIC; skipscan2/without_rowid4/index result mismatches |
+| `fleet/t33-solo` | frigolite-wt-t33-solo | fts3corrupt6 rtree1 tpch01 | rtree1 "unable to id…" exec error; tpch01 EQP output (SEARCH supplier USING INDEX); fts3corrupt6 result mismatch |
+| `fleet/t33-fts5` | frigolite-wt-t33-fts5 | fts5circref fts5content fts5contentless fts5contentless3 fts5contentless4 fts5hash fts5leftjoin fts5misc fts5unindexed | the 9 "architectural" adjudications were NOT NA_EVIDENCE-backed — implement the SQL-visible semantics (contentless_delete tombstones, external-content reads, unindexed cols, LEFT JOIN MATCH, re-entrancy guard) within the mirror-storage model; per-assertion NA_EVIDENCE only as last resort |
+
+Protocol: engine-first (pure-Go probe before any edit), oracle
+/usr/bin/sqlite3 ground truth, no `git stash` (patches only), agents
+commit to their branch, coordinator merges + verifies + owns
+FLEET-STATE.md. Ori corpus absent in fresh worktrees — symlink
+/Users/muaddib/dev/frigolite/ori if regen needed. Serial package runs.
+
+Coordinator-side baselines taken (main 9372fbb85):
+- Root `go test .` (non-testgen): FAIL after 368s — failing test(s) TBD
+  (full log rerunning to /tmp/t33_root_full.log).
+- staticcheck ./...: 4 U1000 unused (btree_interior_page.go:81
+  mustEncodeDividerCell, btree_tail.go:229 removeEmptyIndexLeaf,
+  btree_tail.go:271 dropIndexLeafRefFromParent, pragma_analyze.go:133
+  schemaPrefixOf). vet: 1 pre-existing (btree_interior_page.go:64
+  unreachable).
+- §5d legacy worklist (gate scope = non-test, non-third_party,
+  non-testgen): over-1000-line files = exec/pragma_table.go 1098,
+  execquery/select_agg_validate.go 1037, exec/pragma_analyze.go 1030,
+  execquery/select_agg.go 1017, storage/storage.go 1005,
+  execquery/select_columns.go 1004; gocognit>15 non-vendored = 17
+  (resolveOrderByOrdinalTerms 44, compactExprText 34,
+  primaryKeyOrdinalsFromSQL 33, reindexTargets 29, autoindexKeyColumns
+  29, compareOrderByValues 27, evalMinMaxAggregate 22, equivalentGroupKey
+  20, validateCompoundOrderByCollations 20, +3 below cutoff); gocyclo>12
+  = 21. PLAN: dispatch the §5d refactor fleet AFTER all fix agents merge
+  (same hot files — conflict avoidance), in 3 disjoint-file agents.
+- SOLID green at baseline.
+
+Merge log: (none yet)
+
+---
+
 Main: `f2f0be9aa` — pushed. Build green; 18/18 wave-3 packages verified on main.
 
 ## Merged into main this session (30+ goals, all pushed)
