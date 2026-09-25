@@ -146,49 +146,21 @@ func (tp *transpiler) processPuts(args []tcl.RawWord) {
 	}
 	if fdIdx >= len(args) || !strings.HasPrefix(args[fdIdx].Text, "$") {
 		// puts to stdout / no channel: fall through to the log path.
-		msgExpr := tp.varValueExpr(args)
-		if tp.isVarDeclared("_putsMsg") {
-			tp.emitLine("_putsMsg = %s", msgExpr)
-		} else {
-			tp.emitLine("_putsMsg := %s", msgExpr)
-			tp.vars = append(tp.vars, "_putsMsg")
-		}
-		tp.emitLine("_ = _putsMsg")
+		tp.emitPutsLog(args)
 		return
 	}
 	chName := strings.TrimPrefix(strings.TrimPrefix(args[fdIdx].Text, "$"), "::")
 	if path, ok := activeFileChannels[chName]; ok {
-		msgExpr := tp.varValueExpr(args[fdIdx+1:])
-		// memdb1.test: `puts -nonewline $fd $db1` writes the serialize
-		// image (db1Blob shadow); the generic varValueExpr quotes the
-		// $::db1 reference as literal text — substitute the shadow.
-		// buildStringExpr now maps $::db1 to db1Blob directly (see
-		// renderVarPart), but keep this guard for the quoted-literal path.
-		if msgExpr == `"$::db1"` || msgExpr == `"$db1"` || msgExpr == `"db1"` {
-			msgExpr = "db1Blob"
-		}
-		dest := channelDestExpr(chName, path)
-		// Always honor the runtime fileChannelSeek value: when the test
-		// did a `seek $fd [expr X+Y]` with a non-foldable expression,
-		// the transpile-time map is empty but the runtime map (populated
-		// by the emitted `fileChannelSeek["fd"] = int64(tclAtoi(...))`)
-		// carries the correct offset. Default offset 0 matches TCL's
-		// "no seek => write at start" semantics.
-		// TCL advances a write channel's position past each written
-		// record, so emit the advance after every puts — sequential puts
-		// append instead of overwriting at the same offset (csv01-7.x:
-		// `puts $fd "a,b"` then `puts -nonewline $fd "abcd,$T"` builds a
-		// two-line file).
-		if nonewline {
-			tp.emitLine("tclChannelAppendAt(%s, %s, fileChannelSeek[%q])", dest, msgExpr, chName)
-			tp.emitLine("fileChannelSeek[%q] += int64(len(%s))", chName, msgExpr)
-		} else {
-			tp.emitLine("tclChannelAppendAt(%s, %s+\"\\n\", fileChannelSeek[%q])", dest, msgExpr, chName)
-			tp.emitLine("fileChannelSeek[%q] += int64(len(%s+\"\\n\"))", chName, msgExpr)
-		}
+		msgExpr := tp.channelPutsMsgExpr(args[fdIdx+1:])
+		tp.emitChannelPuts(chName, path, msgExpr, nonewline)
 		return
 	}
 	// Channel not registered — fall through to log.
+	tp.emitPutsLog(args)
+}
+
+// emitPutsLog emits the fall-through puts-to-log path (no file channel).
+func (tp *transpiler) emitPutsLog(args []tcl.RawWord) {
 	msgExpr := tp.varValueExpr(args)
 	if tp.isVarDeclared("_putsMsg") {
 		tp.emitLine("_putsMsg = %s", msgExpr)
@@ -197,6 +169,40 @@ func (tp *transpiler) processPuts(args []tcl.RawWord) {
 		tp.vars = append(tp.vars, "_putsMsg")
 	}
 	tp.emitLine("_ = _putsMsg")
+}
+
+// channelPutsMsgExpr renders the message of a file-channel puts. memdb1.test:
+// `puts -nonewline $fd $db1` writes the serialize image (db1Blob shadow);
+// the generic varValueExpr quotes the $::db1 reference as literal text —
+// substitute the shadow. buildStringExpr now maps $::db1 to db1Blob directly
+// (see renderVarPart), but keep this guard for the quoted-literal path.
+func (tp *transpiler) channelPutsMsgExpr(msgArgs []tcl.RawWord) string {
+	msgExpr := tp.varValueExpr(msgArgs)
+	if msgExpr == `"$::db1"` || msgExpr == `"$db1"` || msgExpr == `"db1"` {
+		return "db1Blob"
+	}
+	return msgExpr
+}
+
+// emitChannelPuts writes to a registered file channel. Always honor the
+// runtime fileChannelSeek value: when the test did a `seek $fd [expr X+Y]`
+// with a non-foldable expression, the transpile-time map is empty but the
+// runtime map (populated by the emitted
+// `fileChannelSeek["fd"] = int64(tclAtoi(...))`) carries the correct offset.
+// Default offset 0 matches TCL's "no seek => write at start" semantics. TCL
+// advances a write channel's position past each written record, so emit the
+// advance after every puts — sequential puts append instead of overwriting
+// at the same offset (csv01-7.x: `puts $fd "a,b"` then
+// `puts -nonewline $fd "abcd,$T"` builds a two-line file).
+func (tp *transpiler) emitChannelPuts(chName, path, msgExpr string, nonewline bool) {
+	dest := channelDestExpr(chName, path)
+	if nonewline {
+		tp.emitLine("tclChannelAppendAt(%s, %s, fileChannelSeek[%q])", dest, msgExpr, chName)
+		tp.emitLine("fileChannelSeek[%q] += int64(len(%s))", chName, msgExpr)
+	} else {
+		tp.emitLine("tclChannelAppendAt(%s, %s+\"\\n\", fileChannelSeek[%q])", dest, msgExpr, chName)
+		tp.emitLine("fileChannelSeek[%q] += int64(len(%s+\"\\n\"))", chName, msgExpr)
+	}
 }
 
 // processFileDelete handles: forcedelete path... (an optional leading "-force"
@@ -252,97 +258,137 @@ func (tp *transpiler) processFileCmd(args []tcl.RawWord) {
 	rest := args[1:]
 	switch sub {
 	case "mkdir":
-		// `file mkdir PATH` — create the directory (parents included, like
-		// TCL's file mkdir for single-level paths).
-		if len(rest) > 0 {
-			pathExpr := tp.goStringLiteral(rest[0])
-			tp.emitLine("os.MkdirAll(%s, 0755)", pathExpr)
-		}
+		tp.emitFileMkdir(rest)
 	case "delete":
-		// `file delete -force PATH` (-force = ignore missing-file errors);
-		// the flag is consumed, the PATH is what gets removed. Pager4.test
-		// 1.5 deletes the db file out from under an open connection.
-		paths := rest
-		if len(paths) > 0 && paths[0].Text == "-force" {
-			paths = paths[1:]
-		}
-		if len(paths) > 0 {
-			pathExpr := tp.goStringLiteral(paths[0])
-			tp.emitLine("_ = os.Remove(%s)", pathExpr)
-		}
+		tp.emitFileDelete(rest)
 	case "rename":
-		// `file rename OLD NEW` — os.Rename. Pager4.test renames the db file
-		// out from under an open connection (SQLITE_READONLY_DBMOVED).
-		if len(rest) >= 2 {
-			tp.emitLine("_ = os.Rename(%s, %s)", tp.goStringLiteral(rest[0]), tp.goStringLiteral(rest[1]))
-		}
+		tp.emitFileRename(rest)
 	case "exists":
-		if len(rest) > 0 {
-			pathExpr := tp.goStringLiteral(rest[0])
-			tp.emitLine("// file exists %s", pathExpr)
-		}
+		tp.emitFileExists(rest)
 	case "size":
-		// `file size PATH` — the file size in bytes ("0" when missing). The
-		// result is left in _r so a do_test body ending in this command
-		// (backup4's multi-command `...; db1 close; file size test.db`
-		// bodies) compares the real size (bodyEndsWithBackupResult /
-		// emitQueryFuncResultCheck); single-command bodies are handled by
-		// emitBareFileSizeComparison.
-		if len(rest) > 0 {
-			path := strings.TrimSpace(rest[0].Text)
-			if strings.HasPrefix(path, "$") {
-				tp.emitLine("_r = strconv.Itoa(tclFileSize(%s))", tclVarToGo(strings.TrimPrefix(path, "$")))
-			} else {
-				tp.emitLine("_r = strconv.Itoa(tclFileSize(%s))", tp.goStringLiteral(rest[0]))
-			}
-		}
+		tp.emitFileSize(rest)
 	case "dirname":
-		if len(rest) > 0 {
-			pathExpr := tp.goStringLiteral(rest[0])
-			tp.emitLine("filepath.Dir(%s)", pathExpr)
-		}
+		tp.emitFileDirname(rest)
 	case "join":
-		var parts []string
-		for _, a := range rest {
-			parts = append(parts, tp.goStringLiteral(a))
-		}
-		tp.emitLine("filepath.Join(%s)", strings.Join(parts, ", "))
+		tp.emitFileJoin(rest)
 	case "attributes", "attr":
-		// `file attributes PATH -ATTR` (getter, rest has 2 elements) leaves
-		// the perms string in _r; `file attributes PATH -ATTR VAL` (setter,
-		// rest has 3 elements) sets them and leaves _r unchanged. The
-		// journal3.test 1.2.x.1 body uses both forms back-to-back to
-		// round-trip a perm value through the FS.
-		if len(rest) == 2 || len(rest) == 3 {
-			pathExpr := tp.goStringLiteral(rest[0])
-			attrName := strings.TrimPrefix(rest[1].Text, "-")
-			if attrName == "permissions" || attrName == "perm" {
-				if len(rest) == 2 {
-					// Getter: read the current perms as "0%04o" (4-digit octal,
-					// matching TCL's `file attributes PATH -permissions` output).
-					// Then apply the TCL regsub-equivalent (turn "00" into
-					// "0." in the first 2 chars) so the result is "/0.NNN/"
-					// for $permissions=00644, matching the test's expected
-					// perm string set via `set res "/[regsub {^00} $perms {0.}]/"`.
-					tp.emitLine("if st, _err := os.Stat(%s); _err == nil { _perm := fmt.Sprintf(\"0%%04o\", st.Mode().Perm()); _r = \"/\" + strings.Replace(_perm, \"00\", \"0.\", 1) + \"/\" } else { _r = \"\" }", pathExpr)
-				} else {
-					// Setter: chmod to the requested mode (octal "00644" or
-					// TCL symbolic "r--r--r--"; readonly.test 1.1).
-					modeExpr := tp.goStringLiteral(rest[2])
-					tp.emitLine("tclFileChmod(%s, %s)", pathExpr, modeExpr)
-				}
-			} else {
-				tp.emitLine("// file attributes %s -%s (unsupported attribute)", pathExpr, attrName)
-			}
-		} else {
-			tp.emitLine("// file attributes (insufficient args)")
-		}
+		tp.emitFileAttributes(rest)
 	default:
-		if len(rest) > 0 {
-			tp.emitLine("// file %s %s", sub, describeArgsShort(rest))
+		tp.emitFileUnsupported(sub, rest)
+	}
+}
+
+// emitFileMkdir handles `file mkdir PATH` — create the directory (parents
+// included, like TCL's file mkdir for single-level paths).
+func (tp *transpiler) emitFileMkdir(rest []tcl.RawWord) {
+	if len(rest) > 0 {
+		pathExpr := tp.goStringLiteral(rest[0])
+		tp.emitLine("os.MkdirAll(%s, 0755)", pathExpr)
+	}
+}
+
+// emitFileDelete handles `file delete -force PATH` (-force = ignore
+// missing-file errors); the flag is consumed, the PATH is what gets removed.
+// Pager4.test 1.5 deletes the db file out from under an open connection.
+func (tp *transpiler) emitFileDelete(rest []tcl.RawWord) {
+	paths := rest
+	if len(paths) > 0 && paths[0].Text == "-force" {
+		paths = paths[1:]
+	}
+	if len(paths) > 0 {
+		pathExpr := tp.goStringLiteral(paths[0])
+		tp.emitLine("_ = os.Remove(%s)", pathExpr)
+	}
+}
+
+// emitFileRename handles `file rename OLD NEW` — os.Rename. Pager4.test
+// renames the db file out from under an open connection
+// (SQLITE_READONLY_DBMOVED).
+func (tp *transpiler) emitFileRename(rest []tcl.RawWord) {
+	if len(rest) >= 2 {
+		tp.emitLine("_ = os.Rename(%s, %s)", tp.goStringLiteral(rest[0]), tp.goStringLiteral(rest[1]))
+	}
+}
+
+// emitFileExists handles `file exists PATH`.
+func (tp *transpiler) emitFileExists(rest []tcl.RawWord) {
+	if len(rest) > 0 {
+		pathExpr := tp.goStringLiteral(rest[0])
+		tp.emitLine("// file exists %s", pathExpr)
+	}
+}
+
+// emitFileSize handles `file size PATH` — the file size in bytes ("0" when
+// missing). The result is left in _r so a do_test body ending in this command
+// (backup4's multi-command `...; db1 close; file size test.db` bodies)
+// compares the real size (bodyEndsWithBackupResult / emitQueryFuncResultCheck);
+// single-command bodies are handled by emitBareFileSizeComparison.
+func (tp *transpiler) emitFileSize(rest []tcl.RawWord) {
+	if len(rest) > 0 {
+		path := strings.TrimSpace(rest[0].Text)
+		if strings.HasPrefix(path, "$") {
+			tp.emitLine("_r = strconv.Itoa(tclFileSize(%s))", tclVarToGo(strings.TrimPrefix(path, "$")))
 		} else {
-			tp.emitLine("// file %s", sub)
+			tp.emitLine("_r = strconv.Itoa(tclFileSize(%s))", tp.goStringLiteral(rest[0]))
 		}
+	}
+}
+
+// emitFileDirname handles `file dirname PATH`.
+func (tp *transpiler) emitFileDirname(rest []tcl.RawWord) {
+	if len(rest) > 0 {
+		pathExpr := tp.goStringLiteral(rest[0])
+		tp.emitLine("filepath.Dir(%s)", pathExpr)
+	}
+}
+
+// emitFileJoin handles `file join PARTS...`.
+func (tp *transpiler) emitFileJoin(rest []tcl.RawWord) {
+	var parts []string
+	for _, a := range rest {
+		parts = append(parts, tp.goStringLiteral(a))
+	}
+	tp.emitLine("filepath.Join(%s)", strings.Join(parts, ", "))
+}
+
+// emitFileAttributes handles `file attributes PATH -ATTR` (getter, rest has
+// 2 elements) — leaves the perms string in _r; `file attributes PATH -ATTR
+// VAL` (setter, rest has 3 elements) sets them and leaves _r unchanged. The
+// journal3.test 1.2.x.1 body uses both forms back-to-back to round-trip a
+// perm value through the FS.
+func (tp *transpiler) emitFileAttributes(rest []tcl.RawWord) {
+	if len(rest) != 2 && len(rest) != 3 {
+		tp.emitLine("// file attributes (insufficient args)")
+		return
+	}
+	pathExpr := tp.goStringLiteral(rest[0])
+	attrName := strings.TrimPrefix(rest[1].Text, "-")
+	if attrName != "permissions" && attrName != "perm" {
+		tp.emitLine("// file attributes %s -%s (unsupported attribute)", pathExpr, attrName)
+		return
+	}
+	if len(rest) == 2 {
+		// Getter: read the current perms as "0%04o" (4-digit octal,
+		// matching TCL's `file attributes PATH -permissions` output).
+		// Then apply the TCL regsub-equivalent (turn "00" into
+		// "0." in the first 2 chars) so the result is "/0.NNN/"
+		// for $permissions=00644, matching the test's expected
+		// perm string set via `set res "/[regsub {^00} $perms {0.}]/"`.
+		tp.emitLine("if st, _err := os.Stat(%s); _err == nil { _perm := fmt.Sprintf(\"0%%04o\", st.Mode().Perm()); _r = \"/\" + strings.Replace(_perm, \"00\", \"0.\", 1) + \"/\" } else { _r = \"\" }", pathExpr)
+		return
+	}
+	// Setter: chmod to the requested mode (octal "00644" or
+	// TCL symbolic "r--r--r--"; readonly.test 1.1).
+	modeExpr := tp.goStringLiteral(rest[2])
+	tp.emitLine("tclFileChmod(%s, %s)", pathExpr, modeExpr)
+}
+
+// emitFileUnsupported comments out an unsupported `file` subcommand.
+func (tp *transpiler) emitFileUnsupported(sub string, rest []tcl.RawWord) {
+	if len(rest) > 0 {
+		tp.emitLine("// file %s %s", sub, describeArgsShort(rest))
+	} else {
+		tp.emitLine("// file %s", sub)
 	}
 }
 
