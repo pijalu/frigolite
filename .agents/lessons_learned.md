@@ -9182,3 +9182,44 @@ regenerated; suite net −2274 fails vs pre-tranche baseline (7230 → ~4950).
   window slice). Recording the exact signature up front turned every later
   "FAIL" into a 5-line diff against baseline instead of a false alarm; the
   full 18-package validation set ran in ~40s so per-tranche re-runs were cheap.
+
+## T33-win (2026-09-25) — window1 regression repair: omit-unused-subquery-column use-walk holes (branch fleet/t33-win)
+
+1. **Bisect inside the suspect merge, not across it.** The brief blamed
+   t33-query's positional-ORDER-BY change (2421001cb~1 = 10d2f85d1) for the
+   window1 breakage. Attribution runs proved window1 GREEN at 10d2f85d1 and
+   RED at 2421001cb itself — the culprit was the SECOND commit of that branch
+   (`disableUnusedSubqueryColumns` + view-outer scope), not the positional
+   fix. When a merge contains multiple commits, diff each commit separately
+   before believing a summary line.
+2. **Name-based colUsed approximation must walk everything resolution walks.**
+   SQLite sets a source's `colUsed` bit during name resolution (resolve.c),
+   which descends into window definitions (OVER PARTITION BY / ORDER BY /
+   frame bounds), aggregate ORDER BY terms, FILTER conditions, and
+   expression-subquery bodies (correlated IN/EXISTS/scalar). The Go
+   analyzer's `exprChildren` treats `Subquery` as a leaf and only descends
+   FuncCall.Args — so a subquery column referenced ONLY through any of those
+   constructs was wrongly NULLed out by the omit-unused optimization
+   (window1-31.2/31.3/48.0/48.1/78.2, all wanting oracle-verified values,
+   all rendering NULL/wrong).
+3. **A nulled output column can rename itself.** For a compound FROM-subquery,
+   rewriting member columns to `&sql.NullLit{}` also changes the derived
+   output NAME (ExprString of a NULL literal), so an outer WINDOW clause over
+   that column then fails with "no such column" — a downstream symptom that
+   looks like a name-resolution bug but is the optimizer's omission. Fix the
+   use-walk, not the resolver.
+4. **Observable-pin design over single-row probes.** A column lost from a
+   window ORDER BY is invisible on a 1-row input (any order sums the same);
+   make the subquery multi-row (or use PARTITION BY) so the wrongness shows.
+   Conversely, order-key loss on RANGE frames flips the frame content —
+   single-row probes do catch that ('abc' vs NULL).
+5. **NULL RANGE order-key frame semantics are NOT a bug here:** SQLite keeps
+   NULL-keyed rows in RANGE `1 FOLLOWING AND 2 FOLLOWING` frames (verified:
+   `... OVER (ORDER BY y RANGE BETWEEN 1 FOLLOWING AND 2 FOLLOWING)` over
+   y=NULL returns the row) — frigolite's include-behavior matches the oracle;
+   do not "fix" it.
+6. **Pre-existing red is out of scope but must be pinned to main:** window6's
+   generated test file fails to compile at main (`window6_test.go:499:11: no
+   new variables on left side of :=` — tcl2go emitter bug, owned by the
+   transpiler agent). Same verification command on main reproduces it before
+   spending any time on it in a worktree.
