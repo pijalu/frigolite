@@ -302,24 +302,30 @@ func coerceRandFloatOperands(s string) string {
 	return b.String()
 }
 
+// balancedParenEnd returns the index just past the balanced parenthesis group
+// starting at s[0], or len(s) when unbalanced.
+func balancedParenEnd(s string) int {
+	depth := 0
+	for i := 0; i < len(s); i++ {
+		switch s[i] {
+		case '(':
+			depth++
+		case ')':
+			depth--
+			if depth == 0 {
+				return i + 1
+			}
+		}
+	}
+	return len(s)
+}
+
 // arithOperandEnd returns the index just past the leading arithmetic operand
 // of s: either a balanced parenthesis group, an identifier/function call up
 // to the first top-level operator, or a numeric run.
 func arithOperandEnd(s string) int {
 	if strings.HasPrefix(s, "(") {
-		depth := 0
-		for i := 0; i < len(s); i++ {
-			switch s[i] {
-			case '(':
-				depth++
-			case ')':
-				depth--
-				if depth == 0 {
-					return i + 1
-				}
-			}
-		}
-		return len(s)
+		return balancedParenEnd(s)
 	}
 	for i := 0; i < len(s); i++ {
 		switch c := s[i]; {
@@ -438,21 +444,22 @@ func isASCIIAlphaNum(c byte) bool {
 // (e.g. `expr [sqlite3_stmt_status $stmt $id 0]>0`, dbstatus.test 5.5.x). It
 // returns a Go expression producing the TCL truth string "1"/"0" and whether
 // the form was recognized.
-func (tp *transpiler) exprCmdCompare(expr string) (string, bool) {
+// exprCmdParts locates the single [cmd ...] and the trailing `OP N` (or
+// N OP cmd) of an `expr [cmd ...] OP N` form. Returns ok=false when absent.
+func exprCmdParts(expr string) (cmdText, op, num string, ok bool) {
 	// Find the single [cmd ...] and the trailing OP N (or N OP cmd).
 	open := strings.Index(expr, "[")
 	closeIdx := strings.Index(expr[open+1:], "]")
 	if open < 0 || closeIdx < 0 {
-		return "", false
+		return "", "", "", false
 	}
 	close := open + 1 + closeIdx
-	cmdText := expr[open+1 : close]
+	cmdText = expr[open+1 : close]
 	rest := strings.TrimSpace(expr[close+1:])
 	if rest == "" {
-		return "", false
+		return "", "", "", false
 	}
 	// Match OP N (e.g. ">0", "== 1", `== "0 ok"`).
-	var op, num string
 	for _, cand := range []string{">=", "<=", "==", "!=", ">", "<"} {
 		if strings.HasPrefix(rest, cand) {
 			op = cand
@@ -460,10 +467,27 @@ func (tp *transpiler) exprCmdCompare(expr string) (string, bool) {
 			break
 		}
 	}
-	if op == "" {
-		return "", false
+	if op == "" || num == "" {
+		return "", "", "", false
 	}
-	if num == "" {
+	return cmdText, op, num, true
+}
+
+// exprCmdNumExpr renders the compare RHS: a string literal stays verbatim; a
+// $var reference maps to the Go variable; numeric text passes through.
+func exprCmdNumExpr(num string) string {
+	if strings.HasPrefix(num, "$") {
+		gv := tclVarToGo(strings.TrimPrefix(num, "$"))
+		if isValidGoIdent(gv) {
+			return "toInt(" + gv + ")"
+		}
+	}
+	return num
+}
+
+func (tp *transpiler) exprCmdCompare(expr string) (string, bool) {
+	cmdText, op, num, ok := exprCmdParts(expr)
+	if !ok {
 		return "", false
 	}
 	goCmd := tp.cmdExpr(cmdText)
@@ -478,14 +502,7 @@ func (tp *transpiler) exprCmdCompare(expr string) (string, bool) {
 		return fmt.Sprintf("tclBool01(%s %s %s)", goCmd, cmp, num), true
 	}
 	// Numeric or $var RHS: command holds a numeric string, use toInt semantics.
-	numExpr := num
-	if strings.HasPrefix(num, "$") {
-		gv := tclVarToGo(strings.TrimPrefix(num, "$"))
-		if isValidGoIdent(gv) {
-			numExpr = "toInt(" + gv + ")"
-		}
-	}
-	return fmt.Sprintf("tclBool01(toInt(%s) %s %s)", goCmd, cmp, numExpr), true
+	return fmt.Sprintf("tclBool01(toInt(%s) %s %s)", goCmd, cmp, exprCmdNumExpr(num)), true
 }
 
 // listLengthExpr converts an "llength ..." command into a Go tclLLength()
