@@ -79,18 +79,27 @@ func (e *DMLExecutor) collectTableTriggerRefs(tableName string) (*DatabaseContex
 			}
 		}
 	}
-	if tc := e.ctx.GetDB("temp"); tc != nil && tc != tableCtx && tableCtx != nil {
-		tempTriggers, _ := tc.Schema.FindTriggersForTable(tableName)
-		for _, tt := range tempTriggers {
-			if tt == nil {
-				continue
-			}
-			if e.shouldAppendTempTrigger(tt, tableCtx, tc, tableName) {
-				refs = append(refs, triggerRef{ctx: tc, entry: tt})
-			}
+	return tableCtx, e.appendTempTriggerRefs(tableCtx, tableName, refs)
+}
+
+// appendTempTriggerRefs appends the TEMP triggers targeting the table,
+// paired with the TEMP context (a TEMP trigger fires for a table in any
+// schema when its target resolves there — trigger.c's TEMP pTrigger list).
+func (e *DMLExecutor) appendTempTriggerRefs(tableCtx *DatabaseContext, tableName string, refs []triggerRef) []triggerRef {
+	tc := e.ctx.GetDB("temp")
+	if tc == nil || tc == tableCtx || tableCtx == nil {
+		return refs
+	}
+	tempTriggers, _ := tc.Schema.FindTriggersForTable(tableName)
+	for _, tt := range tempTriggers {
+		if tt == nil {
+			continue
+		}
+		if e.shouldAppendTempTrigger(tt, tableCtx, tc, tableName) {
+			refs = append(refs, triggerRef{ctx: tc, entry: tt})
 		}
 	}
-	return tableCtx, refs
+	return refs
 }
 
 // collectTableTriggers returns the database context owning the named table
