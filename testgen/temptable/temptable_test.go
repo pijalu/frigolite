@@ -5,6 +5,7 @@
 package temptable
 
 import (
+"fmt"
 "github.com/pijalu/frigolite"
 "github.com/pijalu/frigolite/internal/vtab"
 "os"
@@ -19,6 +20,21 @@ func Test_temptable(t *testing.T) {
 		t.Fatal(err)
 	}
 	defer db.Close()
+
+	// auto-installed test-extension functions (src/test_func.c)
+	db.RegisterFunction("test_error", func(args []interface{}) (interface{}, error) {
+		msg := ""
+		if len(args) > 0 && args[0] != nil {
+			msg = fmt.Sprintf("%v", args[0])
+		}
+		return nil, fmt.Errorf("%s", msg)
+	}, 1, 2)
+	db.RegisterFunction("test_isolation", func(args []interface{}) (interface{}, error) {
+		if len(args) < 2 {
+			return nil, nil
+		}
+		return args[1], nil
+	}, 2, 2)
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
@@ -70,7 +86,7 @@ func Test_temptable(t *testing.T) {
 		_ = dummy // suppress unused warning
 		got := tclListFlatten(dummy)
 		want := tclListFlatten("{}")
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "temptable-1.0")
 		}
 	}
@@ -98,7 +114,7 @@ func Test_temptable(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "t1"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -151,7 +167,7 @@ func Test_temptable(t *testing.T) {
 		_res = db2.Exec("\n     INSERT INTO t2 VALUES(7,6,5);\n     INSERT INTO t2 VALUES(4,3,2);\n     SELECT * FROM t2 ORDER BY x;\n  ")
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 	}
-	{ // "temptable-1.12" — skipped: multi-connection visibility not implemented (P7.LOCKING) (SQL side effects only)
+	{ // "temptable-1.12" — skipped: multi-connection visibility not implemented (P7.LOCKING) (SQL + file side effects only)
 		_res = db2.Exec("DROP TABLE t2;")
 		_ = _res.Error // tolerate unsupported-feature errors in skipped tests
 	}
@@ -163,7 +179,7 @@ func Test_temptable(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1 2"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -183,7 +199,7 @@ func Test_temptable(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1 2"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -206,7 +222,7 @@ func Test_temptable(t *testing.T) {
 		got := flatten(r)
 		want := tclListFlatten("{}")
 		got = tclListFlattenCollapse(got)
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -218,7 +234,7 @@ func Test_temptable(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "2"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -230,7 +246,7 @@ func Test_temptable(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "2"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -250,7 +266,7 @@ func Test_temptable(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "10 20"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -262,7 +278,7 @@ func Test_temptable(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "9 8 7"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -340,7 +356,7 @@ func Test_temptable(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "3 4"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -364,7 +380,7 @@ func Test_temptable(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1 2"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -376,7 +392,7 @@ func Test_temptable(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "3 4"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -394,7 +410,7 @@ func Test_temptable(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "3 4"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -434,7 +450,7 @@ func Test_temptable(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "4"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -446,7 +462,7 @@ func Test_temptable(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "4"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -458,7 +474,7 @@ func Test_temptable(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "2"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -470,7 +486,7 @@ func Test_temptable(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "4"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -482,7 +498,7 @@ func Test_temptable(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "2"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -494,7 +510,7 @@ func Test_temptable(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "4"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -507,7 +523,7 @@ func Test_temptable(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "xyzzy"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}

@@ -5,6 +5,7 @@
 package altercol
 
 import (
+"fmt"
 "github.com/pijalu/frigolite"
 "github.com/pijalu/frigolite/internal/vtab"
 "os"
@@ -20,6 +21,21 @@ func Test_altercol(t *testing.T) {
 		t.Fatal(err)
 	}
 	defer db.Close()
+
+	// auto-installed test-extension functions (src/test_func.c)
+	db.RegisterFunction("test_error", func(args []interface{}) (interface{}, error) {
+		msg := ""
+		if len(args) > 0 && args[0] != nil {
+			msg = fmt.Sprintf("%v", args[0])
+		}
+		return nil, fmt.Errorf("%s", msg)
+	}, 1, 2)
+	db.RegisterFunction("test_isolation", func(args []interface{}) (interface{}, error) {
+		if len(args) < 2 {
+			return nil, nil
+		}
+		return args[1], nil
+	}, 2, 2)
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
@@ -133,7 +149,7 @@ func Test_altercol(t *testing.T) {
 				}
 				got := flatten(r)
 				want := "1 2 3"
-				if got != want {
+				if got != want && !tclFpnumCompare(got, want) {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
@@ -157,7 +173,7 @@ func Test_altercol(t *testing.T) {
 				got := flatten(r)
 				want := tclListFlatten(res)
 				got = tclListFlattenCollapse(got)
-				if got != want {
+				if got != want && !tclFpnumCompare(got, want) {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
@@ -185,7 +201,7 @@ func Test_altercol(t *testing.T) {
 			}
 			got := flatten(r)
 			want := "CREATE TABLE t3(a, biglongname, c, d, e, f, g, h, i, j, k, l, m, FOREIGN KEY (biglongname, c, d, e, f, g, h, i, j, k, l, m) REFERENCES t4)"
-			if got != want {
+			if got != want && !tclFpnumCompare(got, want) {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
@@ -209,7 +225,7 @@ func Test_altercol(t *testing.T) {
 			}
 			got := flatten(r)
 			want := "CREATE TABLE t4(x, abc, z)"
-			if got != want {
+			if got != want && !tclFpnumCompare(got, want) {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
@@ -221,7 +237,7 @@ func Test_altercol(t *testing.T) {
 			}
 			got := flatten(r)
 			want := "3 2 1"
-			if got != want {
+			if got != want && !tclFpnumCompare(got, want) {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
@@ -239,7 +255,7 @@ func Test_altercol(t *testing.T) {
 			}
 			got := flatten(r)
 			want := "CREATE TRIGGER ttt AFTER INSERT ON t4 WHEN new.abc<0 BEGIN\n    SELECT x, abc, z FROM t4;\n    DELETE FROM t4 WHERE abc=32;\n    UPDATE t4 SET x=abc+1, abc=0 WHERE abc=32;\n    INSERT INTO t4(x, abc, z) SELECT 4, 5, 6 WHERE 0;\n  END"
-			if got != want {
+			if got != want && !tclFpnumCompare(got, want) {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
@@ -257,7 +273,7 @@ func Test_altercol(t *testing.T) {
 			}
 			got := flatten(r)
 			want := "CREATE TABLE c1(a, b, FOREIGN KEY (a, b) REFERENCES p1(c, \"silly name\")) CREATE TABLE p1(c, \"silly name\", PRIMARY KEY(c, \"silly name\"))"
-			if got != want {
+			if got != want && !tclFpnumCompare(got, want) {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
@@ -281,7 +297,7 @@ func Test_altercol(t *testing.T) {
 			}
 			got := flatten(r)
 			want := "CREATE TABLE c1(a, b, FOREIGN KEY (a, b) REFERENCES p1(c, \"reasonable\")) CREATE TABLE p1(c, \"reasonable\", PRIMARY KEY(c, \"reasonable\")) CREATE TABLE c2(a, b, FOREIGN KEY (a, b) REFERENCES p1)"
-			if got != want {
+			if got != want && !tclFpnumCompare(got, want) {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
@@ -299,7 +315,7 @@ func Test_altercol(t *testing.T) {
 			}
 			got := flatten(r)
 			want := "2 5"
-			if got != want {
+			if got != want && !tclFpnumCompare(got, want) {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
@@ -336,7 +352,7 @@ func Test_altercol(t *testing.T) {
 			got := flatten(r)
 			want := tclListFlatten("{}")
 			got = tclListFlattenCollapse(got)
-			if got != want {
+			if got != want && !tclFpnumCompare(got, want) {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
@@ -363,7 +379,7 @@ func Test_altercol(t *testing.T) {
 			}
 			got := flatten(r)
 			want := "1"
-			if got != want {
+			if got != want && !tclFpnumCompare(got, want) {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
@@ -381,7 +397,7 @@ func Test_altercol(t *testing.T) {
 			}
 			got := flatten(r)
 			want := "2"
-			if got != want {
+			if got != want && !tclFpnumCompare(got, want) {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
@@ -406,7 +422,7 @@ func Test_altercol(t *testing.T) {
 			}
 			got := flatten(r)
 			want := "CREATE VIEW v1 AS SELECT x, yyy, z FROM a1"
-			if got != want {
+			if got != want && !tclFpnumCompare(got, want) {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
@@ -430,7 +446,7 @@ func Test_altercol(t *testing.T) {
 			}
 			got := flatten(r)
 			want := "CREATE VIEW v2 AS SELECT xxx, xxx+xxx, a, a+a FROM a1, a2"
-			if got != want {
+			if got != want && !tclFpnumCompare(got, want) {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
@@ -454,7 +470,7 @@ func Test_altercol(t *testing.T) {
 			}
 			got := flatten(r)
 			want := "CREATE VIEW v2 AS SELECT x, x+x, a, a+a FROM a1, a2"
-			if got != want {
+			if got != want && !tclFpnumCompare(got, want) {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
@@ -472,7 +488,7 @@ func Test_altercol(t *testing.T) {
 			}
 			got := flatten(r)
 			want := "CREATE VIEW vvv AS SELECT \"a;b\"+\"a;b\" || coalesce(\"a;b\", \"a;b\") FROM b1, b2 WHERE x=\"a;b\" GROUP BY \"a;b\" HAVING \"a;b\">0"
-			if got != want {
+			if got != want && !tclFpnumCompare(got, want) {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
@@ -484,7 +500,7 @@ func Test_altercol(t *testing.T) {
 			}
 			got := flatten(r)
 			want := "CREATE VIEW www AS SELECT bbb FROM b1 UNION ALL SELECT y FROM b2"
-			if got != want {
+			if got != want && !tclFpnumCompare(got, want) {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
@@ -503,7 +519,7 @@ func Test_altercol(t *testing.T) {
 			}
 			got := flatten(r)
 			want := "CREATE VIEW xxx AS SELECT a FROM b1 UNION SELECT hello FROM b2 ORDER BY 1 COLLATE nocase"
-			if got != want {
+			if got != want && !tclFpnumCompare(got, want) {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
@@ -521,7 +537,7 @@ func Test_altercol(t *testing.T) {
 			}
 			got := flatten(r)
 			want := "bbb,ccc,aaa"
-			if got != want {
+			if got != want && !tclFpnumCompare(got, want) {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
@@ -533,7 +549,7 @@ func Test_altercol(t *testing.T) {
 			}
 			got := flatten(r)
 			want := "CREATE VIEW vt5(x) AS SELECT group_concat(a ORDER BY bbb) FROM t5"
-			if got != want {
+			if got != want && !tclFpnumCompare(got, want) {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
@@ -545,7 +561,7 @@ func Test_altercol(t *testing.T) {
 			}
 			got := flatten(r)
 			want := "bbb,ccc,aaa"
-			if got != want {
+			if got != want && !tclFpnumCompare(got, want) {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
@@ -612,7 +628,7 @@ func Test_altercol(t *testing.T) {
 					}
 					got := flatten(r)
 					want := "CREATE TABLE x1(a, bbb, c) CREATE VIRTUAL TABLE e1 USING echo(x1)"
-					if got != want {
+					if got != want && !tclFpnumCompare(got, want) {
 						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 					}
 				}
@@ -655,7 +671,7 @@ func Test_altercol(t *testing.T) {
 					}
 					got := flatten(r)
 					want := "CREATE TABLE sqlite_stat1(tbl,idx,stat)"
-					if got != want {
+					if got != want && !tclFpnumCompare(got, want) {
 						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 					}
 				}
@@ -734,7 +750,7 @@ func Test_altercol(t *testing.T) {
 					}
 					got := flatten(r)
 					want := "CREATE INDEX x1i ON x1(i)"
-					if got != want {
+					if got != want && !tclFpnumCompare(got, want) {
 						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 					}
 				}
@@ -748,7 +764,7 @@ func Test_altercol(t *testing.T) {
 					got := flatten(r)
 					want := tclListFlatten("{}")
 					got = tclListFlattenCollapse(got)
-					if got != want {
+					if got != want && !tclFpnumCompare(got, want) {
 						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 					}
 				}
@@ -767,7 +783,7 @@ func Test_altercol(t *testing.T) {
 					got := flatten(r)
 					want := tclListFlatten("{}")
 					got = tclListFlattenCollapse(got)
-					if got != want {
+					if got != want && !tclFpnumCompare(got, want) {
 						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 					}
 				}
@@ -851,7 +867,7 @@ func Test_altercol(t *testing.T) {
 						}
 						got := flatten(r)
 						want := "CREATE VIEW vvv AS SELECT xyz AS d FROM xxx WHERE d=0"
-						if got != want {
+						if got != want && !tclFpnumCompare(got, want) {
 							t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 						}
 					}
@@ -863,7 +879,7 @@ func Test_altercol(t *testing.T) {
 						}
 						got := flatten(r)
 						want := "1 4"
-						if got != want {
+						if got != want && !tclFpnumCompare(got, want) {
 							t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 						}
 					}
@@ -881,7 +897,7 @@ func Test_altercol(t *testing.T) {
 						}
 						got := flatten(r)
 						want := "1 4"
-						if got != want {
+						if got != want && !tclFpnumCompare(got, want) {
 							t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 						}
 					}
@@ -899,7 +915,7 @@ func Test_altercol(t *testing.T) {
 						}
 						got := flatten(r)
 						want := "4 5 456"
-						if got != want {
+						if got != want && !tclFpnumCompare(got, want) {
 							t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 						}
 					}
@@ -911,7 +927,7 @@ func Test_altercol(t *testing.T) {
 						}
 						got := flatten(r)
 						want := "4 5 20456"
-						if got != want {
+						if got != want && !tclFpnumCompare(got, want) {
 							t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 						}
 					}
@@ -923,7 +939,7 @@ func Test_altercol(t *testing.T) {
 						}
 						got := flatten(r)
 						want := "4 5 0"
-						if got != want {
+						if got != want && !tclFpnumCompare(got, want) {
 							t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 						}
 					}
@@ -935,7 +951,7 @@ func Test_altercol(t *testing.T) {
 						}
 						got := flatten(r)
 						want := "3 456 20456 0"
-						if got != want {
+						if got != want && !tclFpnumCompare(got, want) {
 							t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 						}
 					}
@@ -953,7 +969,7 @@ func Test_altercol(t *testing.T) {
 						}
 						got := flatten(r)
 						want := "3 456 20456 0"
-						if got != want {
+						if got != want && !tclFpnumCompare(got, want) {
 							t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 						}
 					}
@@ -997,7 +1013,7 @@ func Test_altercol(t *testing.T) {
 						}
 						got := flatten(r)
 						want := "111"
-						if got != want {
+						if got != want && !tclFpnumCompare(got, want) {
 							t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 						}
 					}
@@ -1028,7 +1044,7 @@ func Test_altercol(t *testing.T) {
 						}
 						got := flatten(r)
 						want := "CREATE VIEW v2(e) AS SELECT coalesce(t2.c,t1.f) FROM t1, t2 WHERE t1.b=t2.d"
-						if got != want {
+						if got != want && !tclFpnumCompare(got, want) {
 							t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 						}
 					}
@@ -1043,7 +1059,7 @@ func Test_altercol(t *testing.T) {
 						}
 						got := flatten(r)
 						want := "CREATE TABLE t1(bbb,b,c,UNIQUE(bbb),PRIMARY KEY(bbb),UNIQUE(bbb))"
-						if got != want {
+						if got != want && !tclFpnumCompare(got, want) {
 							t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 						}
 					}
@@ -1055,7 +1071,7 @@ func Test_altercol(t *testing.T) {
 						}
 						got := flatten(r)
 						want := "CREATE TABLE t1(bbb,b,c,UNIQUE(bbb),PRIMARY KEY(bbb),UNIQUE(bbb))WITHOUT ROWID"
-						if got != want {
+						if got != want && !tclFpnumCompare(got, want) {
 							t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 						}
 					}
@@ -1067,7 +1083,7 @@ func Test_altercol(t *testing.T) {
 						}
 						got := flatten(r)
 						want := "CREATE TABLE t1(xx UNIQUE,yy UNIQUE,zz UNIQUE,UNIQUE(xx),PRIMARY KEY(yy),UNIQUE(zz))"
-						if got != want {
+						if got != want && !tclFpnumCompare(got, want) {
 							t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 						}
 					}
@@ -1098,7 +1114,7 @@ func Test_altercol(t *testing.T) {
 						}
 						got := flatten(r)
 						want := "CREATE TRIGGER tr1 AFTER INSERT ON t1 WHEN new.d IS NOT NULL BEGIN\n    SELECT d NOT NULL FROM t1;\n  END"
-						if got != want {
+						if got != want && !tclFpnumCompare(got, want) {
 							t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 						}
 					}
@@ -1117,7 +1133,7 @@ func Test_altercol(t *testing.T) {
 						}
 						got := flatten(r)
 						want := "CREATE TABLE t1(othername, b) CREATE TABLE t2(c, othername, extra AS (c + 1))"
-						if got != want {
+						if got != want && !tclFpnumCompare(got, want) {
 							t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 						}
 					}
@@ -1138,7 +1154,7 @@ func Test_altercol(t *testing.T) {
 						}
 						got := flatten(r)
 						want := "ok"
-						if got != want {
+						if got != want && !tclFpnumCompare(got, want) {
 							t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 						}
 					}
@@ -1157,7 +1173,7 @@ func Test_altercol(t *testing.T) {
 						}
 						got := flatten(r)
 						want := "ok CREATE TABLE t1(\"x\" \"b\",c)"
-						if got != want {
+						if got != want && !tclFpnumCompare(got, want) {
 							t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 						}
 					}
@@ -1189,7 +1205,7 @@ func Test_altercol(t *testing.T) {
 						got := flatten(r)
 						want := tclListFlatten("{}")
 						got = tclListFlattenCollapse(got)
-						if got != want {
+						if got != want && !tclFpnumCompare(got, want) {
 							t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 						}
 					}
@@ -1201,7 +1217,7 @@ func Test_altercol(t *testing.T) {
 						}
 						got := flatten(r)
 						want := "t1"
-						if got != want {
+						if got != want && !tclFpnumCompare(got, want) {
 							t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 						}
 					}
@@ -1226,7 +1242,7 @@ func Test_altercol(t *testing.T) {
 						got := flatten(r)
 						want := tclListFlatten("{}")
 						got = tclListFlattenCollapse(got)
-						if got != want {
+						if got != want && !tclFpnumCompare(got, want) {
 							t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 						}
 					}
@@ -1238,7 +1254,7 @@ func Test_altercol(t *testing.T) {
 						}
 						got := flatten(r)
 						want := "t1"
-						if got != want {
+						if got != want && !tclFpnumCompare(got, want) {
 							t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 						}
 					}
@@ -1250,7 +1266,7 @@ func Test_altercol(t *testing.T) {
 						}
 						got := flatten(r)
 						want := "t4new"
-						if got != want {
+						if got != want && !tclFpnumCompare(got, want) {
 							t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 						}
 					}

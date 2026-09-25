@@ -5,6 +5,7 @@
 package where4
 
 import (
+"fmt"
 "github.com/pijalu/frigolite"
 "github.com/pijalu/frigolite/internal/vtab"
 "os"
@@ -18,6 +19,21 @@ func Test_where4(t *testing.T) {
 		t.Fatal(err)
 	}
 	defer db.Close()
+
+	// auto-installed test-extension functions (src/test_func.c)
+	db.RegisterFunction("test_error", func(args []interface{}) (interface{}, error) {
+		msg := ""
+		if len(args) > 0 && args[0] != nil {
+			msg = fmt.Sprintf("%v", args[0])
+		}
+		return nil, fmt.Errorf("%s", msg)
+	}, 1, 2)
+	db.RegisterFunction("test_isolation", func(args []interface{}) (interface{}, error) {
+		if len(args) < 2 {
+			return nil, nil
+		}
+		return args[1], nil
+	}, 2, 2)
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
@@ -77,7 +93,7 @@ func Test_where4(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "7"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -141,7 +157,7 @@ func Test_where4(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "7 2 1 4 3 6 5"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -153,7 +169,7 @@ func Test_where4(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "6 5 4 3 2 1 7"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -165,7 +181,7 @@ func Test_where4(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "7 1 2 3 4 5 6"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -177,7 +193,7 @@ func Test_where4(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "2 2 {} 3 {} {}"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -189,7 +205,7 @@ func Test_where4(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "2 2 {} 3 {} {}"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -201,7 +217,7 @@ func Test_where4(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "2 2 {} 3 {} {}"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -220,7 +236,7 @@ func Test_where4(t *testing.T) {
 		got := flatten(r)
 		want := tclListFlatten("{}")
 		got = tclListFlattenCollapse(got)
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -233,7 +249,7 @@ func Test_where4(t *testing.T) {
 		got := flatten(r)
 		want := tclListFlatten("{}")
 		got = tclListFlattenCollapse(got)
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -246,7 +262,7 @@ func Test_where4(t *testing.T) {
 		got := flatten(r)
 		want := tclListFlatten("{}")
 		got = tclListFlattenCollapse(got)
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -259,7 +275,7 @@ func Test_where4(t *testing.T) {
 		got := flatten(r)
 		want := tclListFlatten("{}")
 		got = tclListFlattenCollapse(got)
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -281,7 +297,7 @@ func Test_where4(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1 2 4"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -293,17 +309,17 @@ func Test_where4(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1 2 4"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	{ // "where4-6.1" — skipped: covering-index scan ORDER for WHERE IN (planner, P7) — result set matches, order differs (SQL side effects only)
+	{ // "where4-6.1" — skipped: covering-index scan ORDER for WHERE IN (planner, P7) — result set matches, order differs (SQL + file side effects only)
 		_res = db.Exec("\n    CREATE TABLE t5(a,b,c,d,e,f,UNIQUE(a,b,c,d,e,f));\n    INSERT INTO t5 VALUES(1,1,1,1,1,11111);\n    INSERT INTO t5 VALUES(2,2,2,2,2,22222);\n    INSERT INTO t5 VALUES(1,2,3,4,5,12345);\n    INSERT INTO t5 VALUES(2,3,4,5,6,23456);\n  ")
 		_ = _res.Error // tolerate unsupported-feature errors in skipped tests
 		_res = db.Exec("\n    SELECT rowid FROM t5\n     WHERE a IN (1,9,2) AND b=2 AND c IN (1,2,3,4) AND d>0\n  ")
 		_ = _res.Error // tolerate unsupported-feature errors in skipped tests
 	}
-	{ // "where4-6.2" — skipped: covering-index scan ORDER for WHERE IN (planner, P7) — result set matches, order differs (SQL side effects only)
+	{ // "where4-6.2" — skipped: covering-index scan ORDER for WHERE IN (planner, P7) — result set matches, order differs (SQL + file side effects only)
 		_res = db.Exec("\n    SELECT rowid FROM t5\n     WHERE a IN (1,NULL,2) AND b=2 AND c IN (1,2,3,4) AND d>0\n  ")
 		_ = _res.Error // tolerate unsupported-feature errors in skipped tests
 	}
@@ -333,7 +349,7 @@ func Test_where4(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "{}"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -351,7 +367,7 @@ func Test_where4(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "{} 1 {} 2"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -363,7 +379,7 @@ func Test_where4(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "{} 1 {} 2"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}

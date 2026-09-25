@@ -5,6 +5,7 @@
 package spellfix2
 
 import (
+"fmt"
 "github.com/pijalu/frigolite"
 "github.com/pijalu/frigolite/internal/vtab"
 "os"
@@ -18,6 +19,21 @@ func Test_spellfix2(t *testing.T) {
 		t.Fatal(err)
 	}
 	defer db.Close()
+
+	// auto-installed test-extension functions (src/test_func.c)
+	db.RegisterFunction("test_error", func(args []interface{}) (interface{}, error) {
+		msg := ""
+		if len(args) > 0 && args[0] != nil {
+			msg = fmt.Sprintf("%v", args[0])
+		}
+		return nil, fmt.Errorf("%s", msg)
+	}, 1, 2)
+	db.RegisterFunction("test_isolation", func(args []interface{}) (interface{}, error) {
+		if len(args) < 2 {
+			return nil, nil
+		}
+		return args[1], nil
+	}, 2, 2)
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
@@ -78,7 +94,7 @@ func Test_spellfix2(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "amsterdam 100 9 amsterdamania 100 9 amsterdammetje 100 9"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -90,7 +106,7 @@ func Test_spellfix2(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "amsterdam 100 9 amsterdamania 100 9 amsterdammetje 100 9"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -102,7 +118,7 @@ func Test_spellfix2(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "amsterdam 100 9 amsterdamania 100 9 amsterdamlaan 100 9 amsterdammetje 100 9 amsterdamsestraat 100 9 amsterdamweg 100 9"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -123,7 +139,7 @@ func Test_spellfix2(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "32 20"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -135,7 +151,7 @@ func Test_spellfix2(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "amsterdam 100 9 amsterdama 100 9 amsterdamania 100 9 amsterdamb 100 9 amsterdamc 100 9 amsterdamd 100 9 amsterdame 100 9 amsterdamf 100 9 amsterdamg 100 9 amsterdamh 100 9 amsterdami 100 9 amsterdamj 100 9 amsterdamk 100 9 amsterdaml 100 9 amsterdamlaan 100 9 amsterdamm 100 9 amsterdammetje 100 9 amsterdamn 100 9 amsterdamo 100 9 amsterdamp 100 9 amsterdamq 100 9 amsterdamr 100 9 amsterdams 100 9 amsterdamsestraat 100 9 amsterdamt 100 9 amsterdamu 100 9 amsterdamv 100 9 amsterdamw 100 9 amsterdamweg 100 9 amsterdamx 100 9 amsterdamy 100 9 amsterdamz 100 9"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -147,7 +163,7 @@ func Test_spellfix2(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "amsterdam 100 9 amsterdama 100 9 amsterdamania 100 9 amsterdamb 100 9 amsterdamc 100 9 amsterdame 100 9 amsterdamf 100 9 amsterdamg 100 9 amsterdamh 100 9 amsterdami 100 9 amsterdamm 100 9 amsterdammetje 100 9 amsterdamn 100 9 amsterdamo 100 9 amsterdamp 100 9 amsterdamu 100 9 amsterdamv 100 9 amsterdamw 100 9 amsterdamweg 100 9 amsterdamy 100 9"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}

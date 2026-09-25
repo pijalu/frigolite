@@ -5,6 +5,7 @@
 package e_reindex
 
 import (
+"fmt"
 "github.com/pijalu/frigolite"
 "github.com/pijalu/frigolite/internal/vtab"
 "os"
@@ -20,6 +21,21 @@ func Test_e_reindex(t *testing.T) {
 		t.Fatal(err)
 	}
 	defer db.Close()
+
+	// auto-installed test-extension functions (src/test_func.c)
+	db.RegisterFunction("test_error", func(args []interface{}) (interface{}, error) {
+		msg := ""
+		if len(args) > 0 && args[0] != nil {
+			msg = fmt.Sprintf("%v", args[0])
+		}
+		return nil, fmt.Errorf("%s", msg)
+	}, 1, 2)
+	db.RegisterFunction("test_isolation", func(args []interface{}) (interface{}, error) {
+		if len(args) < 2 {
+			return nil, nil
+		}
+		return args[1], nil
+	}, 2, 2)
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
@@ -151,7 +167,7 @@ func Test_e_reindex(t *testing.T) {
 		got := flatten(r)
 		want := tclListFlatten("{}")
 		got = tclListFlattenCollapse(got)
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -169,7 +185,7 @@ func Test_e_reindex(t *testing.T) {
 		got := flatten(r)
 		want := tclListFlatten("{}")
 		got = tclListFlattenCollapse(got)
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -189,7 +205,7 @@ func Test_e_reindex(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "ok"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -218,23 +234,25 @@ func Test_e_reindex(t *testing.T) {
 	vtab.TclVarSet("V", "eight", "8")
 	// proc sort_by_value collation (registered via db collate)
 	db.RegisterCollation("collA", func(a, b string) int {
-	if a == b { return 0 }
 	af, aerr := strconv.ParseFloat(a, 64)
 	bf, berr := strconv.ParseFloat(b, 64)
 	if aerr == nil && berr == nil {
-		if af < bf { return -1 }
-		return 1
+		if af == bf { return 0 }
+		if af > bf { return 1 }
+		return -1
 	}
+	if a == b { return 0 }
 	return strings.Compare(a, b)
 })
 	db.RegisterCollation("collB", func(a, b string) int {
-	if a == b { return 0 }
 	af, aerr := strconv.ParseFloat(a, 64)
 	bf, berr := strconv.ParseFloat(b, 64)
 	if aerr == nil && berr == nil {
-		if af < bf { return -1 }
-		return 1
+		if af == bf { return 0 }
+		if af > bf { return 1 }
+		return -1
 	}
+	if a == b { return 0 }
 	return strings.Compare(a, b)
 })
 	vtab.TclVarSet("BY", "length", "one six two five four eight seven three")

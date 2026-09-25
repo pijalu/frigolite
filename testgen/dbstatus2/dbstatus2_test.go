@@ -5,6 +5,7 @@
 package dbstatus2
 
 import (
+"fmt"
 "github.com/pijalu/frigolite"
 "github.com/pijalu/frigolite/internal/vtab"
 "os"
@@ -19,6 +20,21 @@ func Test_dbstatus2(t *testing.T) {
 		t.Fatal(err)
 	}
 	defer db.Close()
+
+	// auto-installed test-extension functions (src/test_func.c)
+	db.RegisterFunction("test_error", func(args []interface{}) (interface{}, error) {
+		msg := ""
+		if len(args) > 0 && args[0] != nil {
+			msg = fmt.Sprintf("%v", args[0])
+		}
+		return nil, fmt.Errorf("%s", msg)
+	}, 1, 2)
+	db.RegisterFunction("test_isolation", func(args []interface{}) (interface{}, error) {
+		if len(args) < 2 {
+			return nil, nil
+		}
+		return args[1], nil
+	}, 2, 2)
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
@@ -264,7 +280,7 @@ func Test_dbstatus2(t *testing.T) {
 		tclBlobResolve(fd, incrblob_1, incrblob_2, incrblob_3, incrblob_4, incrblob_5, incrblob_6, incrblob_7, incrblob_8, incrblob_9, incrblob_10, incrblob_11, incrblob_12, incrblob_13, incrblob_14, incrblob_15, incrblob_16, incrblob_17, incrblob_18, incrblob_19, incrblob_20, incrblob_21, incrblob_22, incrblob_23, incrblob_24, incrblob_25, incrblob_26, incrblob_27, incrblob_28, incrblob_29, incrblob_30, incrblob_31, incrblob_32, incrblob_33, incrblob_34, incrblob_35, incrblob_36, incrblob_37, incrblob_38, incrblob_39, incrblob_40, incrblob_41, incrblob_42, incrblob_43, incrblob_44, incrblob_45, incrblob_46, incrblob_47, incrblob_48, incrblob_49, incrblob_50, incrblob_51, incrblob_52, incrblob_53, incrblob_54, incrblob_55, incrblob_56, incrblob_57, incrblob_58, incrblob_59, incrblob_60, incrblob_61, incrblob_62, incrblob_63, incrblob_64).Close()
 		got := tclListFlatten(_len)
 		want := tclListFlatten("600")
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "1.7")
 		}
 	}
@@ -329,7 +345,7 @@ func Test_dbstatus2(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "delete"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -346,7 +362,7 @@ func Test_dbstatus2(t *testing.T) {
 			got := flatten(r)
 			want := tclListFlatten("{}")
 			got = tclListFlattenCollapse(got)
-			if got != want {
+			if got != want && !tclFpnumCompare(got, want) {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}

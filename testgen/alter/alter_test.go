@@ -22,6 +22,21 @@ func Test_alter(t *testing.T) {
 	}
 	defer db.Close()
 
+	// auto-installed test-extension functions (src/test_func.c)
+	db.RegisterFunction("test_error", func(args []interface{}) (interface{}, error) {
+		msg := ""
+		if len(args) > 0 && args[0] != nil {
+			msg = fmt.Sprintf("%v", args[0])
+		}
+		return nil, fmt.Errorf("%s", msg)
+	}, 1, 2)
+	db.RegisterFunction("test_isolation", func(args []interface{}) (interface{}, error) {
+		if len(args) < 2 {
+			return nil, nil
+		}
+		return args[1], nil
+	}, 2, 2)
+
 	var _res *frigolite.Result
 	var r *frigolite.Result
 	var msg string
@@ -136,7 +151,7 @@ func Test_alter(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "t1 1 2 t2 3 4 5 6 7"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -212,7 +227,7 @@ func Test_alter(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "main main main"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -224,7 +239,7 @@ func Test_alter(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "aux aux aux"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -236,7 +251,7 @@ func Test_alter(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "main main main"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -248,7 +263,7 @@ func Test_alter(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "main main main"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -260,7 +275,7 @@ func Test_alter(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "aux aux aux"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -278,7 +293,7 @@ func Test_alter(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1 2 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -290,7 +305,7 @@ func Test_alter(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1 2 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -362,7 +377,7 @@ func Test_alter(t *testing.T) {
 		_ = TRIGGER // TCL namespace variable (query)
 		got := tclListFlatten(TRIGGER)
 		want := tclListFlatten("trig1 1 2 3")
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "alter-3.1.1")
 		}
 	}
@@ -374,7 +389,7 @@ func Test_alter(t *testing.T) {
 		_ = TRIGGER // TCL namespace variable (query)
 		got := tclListFlatten(TRIGGER)
 		want := tclListFlatten("trig1 4 5 6")
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "alter-3.1.2")
 		}
 	}
@@ -392,7 +407,7 @@ func Test_alter(t *testing.T) {
 		_ = TRIGGER // TCL namespace variable (query)
 		got := tclListFlatten(TRIGGER)
 		want := tclListFlatten("trig2 1 2 3")
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "alter-3.1.4")
 		}
 	}
@@ -404,7 +419,7 @@ func Test_alter(t *testing.T) {
 		_ = TRIGGER // TCL namespace variable (query)
 		got := tclListFlatten(TRIGGER)
 		want := tclListFlatten("trig2 4 5 6")
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "alter-3.1.5")
 		}
 	}
@@ -422,7 +437,7 @@ func Test_alter(t *testing.T) {
 		_ = TRIGGER // TCL namespace variable (query)
 		got := tclListFlatten(TRIGGER)
 		want := tclListFlatten("trig3 1 2 3")
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "alter-3.1.7")
 		}
 	}
@@ -434,7 +449,7 @@ func Test_alter(t *testing.T) {
 		_ = TRIGGER // TCL namespace variable (query)
 		got := tclListFlatten(TRIGGER)
 		want := tclListFlatten("trig3 4 5 6")
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "alter-3.1.8")
 		}
 	}
@@ -520,7 +535,7 @@ func Test_alter(t *testing.T) {
 		_ = TRIGGER // TCL namespace variable (query)
 		got := tclListFlatten(TRIGGER)
 		want := tclListFlatten("trig1 a b c")
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "alter-3.3.2")
 		}
 	}
@@ -532,7 +547,7 @@ func Test_alter(t *testing.T) {
 		_ = TRIGGER // TCL namespace variable (query)
 		got := tclListFlatten(TRIGGER)
 		want := tclListFlatten("trig1 d e f")
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "alter-3.3.3")
 		}
 	}
@@ -550,7 +565,7 @@ func Test_alter(t *testing.T) {
 		_ = TRIGGER // TCL namespace variable (query)
 		got := tclListFlatten(TRIGGER)
 		want := tclListFlatten("trig1 g h i")
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "alter-3.3.5")
 		}
 	}
@@ -562,7 +577,7 @@ func Test_alter(t *testing.T) {
 		_ = TRIGGER // TCL namespace variable (query)
 		got := tclListFlatten(TRIGGER)
 		want := tclListFlatten("trig2 G h i")
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "alter-3.3.6")
 		}
 	}
@@ -581,7 +596,7 @@ func Test_alter(t *testing.T) {
 		got := flatten(r)
 		want := tclListFlatten("{}")
 		got = tclListFlattenCollapse(got)
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -599,7 +614,7 @@ func Test_alter(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "10 11"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -611,7 +626,7 @@ func Test_alter(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "12"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -738,7 +753,7 @@ func Test_alter(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "4 5"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -751,7 +766,7 @@ func Test_alter(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "27"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -763,11 +778,11 @@ func Test_alter(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1 18 2 9"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	{ // "alter-9.1" — skipped: test-only internal function SQLITE_RENAME_COLUMN not implemented (SQL side effects only)
+	{ // "alter-9.1" — skipped: test-only internal function SQLITE_RENAME_COLUMN not implemented (SQL + file side effects only)
 		_res = db.Exec("SELECT SQLITE_RENAME_COLUMN(0,0,0,0,0,0,0,0,0)")
 		_ = _res.Error // tolerate unsupported-feature errors in skipped tests
 	}
@@ -810,7 +825,7 @@ func Test_alter(t *testing.T) {
 			}
 			got := flatten(r)
 			want := "sqlite_autoindex_xyzሴabc_1"
-			if got != want {
+			if got != want && !tclFpnumCompare(got, want) {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
@@ -832,27 +847,27 @@ func Test_alter(t *testing.T) {
 			}
 			got := flatten(r)
 			want := "sqlite_autoindex_xyzabc_1"
-			if got != want {
+			if got != want && !tclFpnumCompare(got, want) {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
-		{ // "alter-11.1" — skipped: sqlite3_exec test-harness command not transpiled (SQL side effects only)
+		{ // "alter-11.1" — skipped: sqlite3_exec test-harness command not transpiled (SQL + file side effects only)
 			_res = db.Exec("\n    ALTER TABLE t11 ADD COLUMN abc;\n  ")
 			_ = _res.Error // tolerate unsupported-feature errors in skipped tests
 		}
 		isutf16 = "0" // capability regexp "16" not matched (engine default)
 		if tclBool("!" + isutf16) {
-			{ // "alter-11.2" — skipped: sqlite3_exec test-harness command not transpiled (SQL side effects only)
+			{ // "alter-11.2" — skipped: sqlite3_exec test-harness command not transpiled (SQL + file side effects only)
 				_res = db.Exec("INSERT INTO t11 VALUES(1,2)")
 				_ = _res.Error // tolerate unsupported-feature errors in skipped tests
 			}
 		}
-		{ // "alter-11.3" — skipped: sqlite3_exec test-harness command not transpiled (SQL side effects only)
+		{ // "alter-11.3" — skipped: sqlite3_exec test-harness command not transpiled (SQL + file side effects only)
 			_res = db.Exec("\n    ALTER TABLE t11b ADD COLUMN abc;\n  ")
 			_ = _res.Error // tolerate unsupported-feature errors in skipped tests
 		}
 		if tclBool("!" + isutf16) {
-			{ // "alter-11.4" — skipped: sqlite3_exec test-harness command not transpiled (SQL side effects only)
+			{ // "alter-11.4" — skipped: sqlite3_exec test-harness command not transpiled (SQL + file side effects only)
 				_res = db.Exec("INSERT INTO t11b VALUES(3,4)")
 				_ = _res.Error // tolerate unsupported-feature errors in skipped tests
 			}
@@ -861,12 +876,12 @@ func Test_alter(t *testing.T) {
 			{ // "alter-11.6" — skipped: sqlite3_exec test-harness command not transpiled
 			}
 		}
-		{ // "alter-11.7" — skipped: sqlite3_exec test-harness command not transpiled (SQL side effects only)
+		{ // "alter-11.7" — skipped: sqlite3_exec test-harness command not transpiled (SQL + file side effects only)
 			_res = db.Exec("\n    ALTER TABLE t11c ADD COLUMN abc;\n  ")
 			_ = _res.Error // tolerate unsupported-feature errors in skipped tests
 		}
 		if tclBool("!" + isutf16) {
-			{ // "alter-11.8" — skipped: sqlite3_exec test-harness command not transpiled (SQL side effects only)
+			{ // "alter-11.8" — skipped: sqlite3_exec test-harness command not transpiled (SQL + file side effects only)
 				_res = db.Exec("INSERT INTO t11c VALUES(5,6)")
 				_ = _res.Error // tolerate unsupported-feature errors in skipped tests
 			}
@@ -896,7 +911,7 @@ func Test_alter(t *testing.T) {
 			got := flatten(r)
 			want := tclListFlatten("{}")
 			got = tclListFlattenCollapse(got)
-			if got != want {
+			if got != want && !tclFpnumCompare(got, want) {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
@@ -924,7 +939,7 @@ func Test_alter(t *testing.T) {
 			}
 			got := flatten(r)
 			want := "t3102a t3102b t3102c"
-			if got != want {
+			if got != want && !tclFpnumCompare(got, want) {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
@@ -936,7 +951,7 @@ func Test_alter(t *testing.T) {
 			}
 			got := flatten(r)
 			want := "t3102a_rename t3102b t3102c"
-			if got != want {
+			if got != want && !tclFpnumCompare(got, want) {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
@@ -948,7 +963,7 @@ func Test_alter(t *testing.T) {
 			}
 			got := flatten(r)
 			want := "t3102a_rename t3102b_rename t3102c"
-			if got != want {
+			if got != want && !tclFpnumCompare(got, want) {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
@@ -999,7 +1014,7 @@ func Test_alter(t *testing.T) {
 				}
 				got := flatten(r)
 				want := "abc 1.25 99 xyzzy cba 5.5 98 fizzle"
-				if got != want {
+				if got != want && !tclFpnumCompare(got, want) {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
@@ -1011,7 +1026,7 @@ func Test_alter(t *testing.T) {
 				}
 				got := flatten(r)
 				want := "abc 1.25 99 xyzzy cba 5.5 98 fizzle"
-				if got != want {
+				if got != want && !tclFpnumCompare(got, want) {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
@@ -1027,7 +1042,7 @@ func Test_alter(t *testing.T) {
 				}
 				got := flatten(r)
 				want := "1 1.0 2.0 3 1.5 3.5"
-				if got != want {
+				if got != want && !tclFpnumCompare(got, want) {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
@@ -1066,7 +1081,7 @@ func Test_alter(t *testing.T) {
 				got := flatten(r)
 				want := tclListFlatten("{}")
 				got = tclListFlattenCollapse(got)
-				if got != want {
+				if got != want && !tclFpnumCompare(got, want) {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
@@ -1078,7 +1093,7 @@ func Test_alter(t *testing.T) {
 				}
 				got := flatten(r)
 				want := "r1 t3"
-				if got != want {
+				if got != want && !tclFpnumCompare(got, want) {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
@@ -1134,7 +1149,7 @@ func Test_alter(t *testing.T) {
 				}
 				got := flatten(r)
 				want := "e table r1 trigger t1 table"
-				if got != want {
+				if got != want && !tclFpnumCompare(got, want) {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
@@ -1152,7 +1167,7 @@ func Test_alter(t *testing.T) {
 				}
 				got := flatten(r)
 				want := "r2 trigger t1 table t99 table"
-				if got != want {
+				if got != want && !tclFpnumCompare(got, want) {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}

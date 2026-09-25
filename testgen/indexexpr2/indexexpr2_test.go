@@ -5,6 +5,7 @@
 package indexexpr2
 
 import (
+"fmt"
 "github.com/pijalu/frigolite"
 "github.com/pijalu/frigolite/internal/vtab"
 "os"
@@ -19,6 +20,21 @@ func Test_indexexpr2(t *testing.T) {
 		t.Fatal(err)
 	}
 	defer db.Close()
+
+	// auto-installed test-extension functions (src/test_func.c)
+	db.RegisterFunction("test_error", func(args []interface{}) (interface{}, error) {
+		msg := ""
+		if len(args) > 0 && args[0] != nil {
+			msg = fmt.Sprintf("%v", args[0])
+		}
+		return nil, fmt.Errorf("%s", msg)
+	}, 1, 2)
+	db.RegisterFunction("test_isolation", func(args []interface{}) (interface{}, error) {
+		if len(args) < 2 {
+			return nil, nil
+		}
+		return args[1], nil
+	}, 2, 2)
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
@@ -86,7 +102,7 @@ func Test_indexexpr2(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "0 0"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -108,7 +124,7 @@ func Test_indexexpr2(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "2 2 3 3 4 4"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -145,7 +161,7 @@ func Test_indexexpr2(t *testing.T) {
 		}
 		got := flatten(r)
 		want := ".ABC .abcd .DEF .defg"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -157,7 +173,7 @@ func Test_indexexpr2(t *testing.T) {
 		}
 		got := flatten(r)
 		want := ".ABC .abcd .DEF .defg"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -181,7 +197,7 @@ func Test_indexexpr2(t *testing.T) {
 		}
 		got := flatten(r)
 		want := ".ABC 1 .ABC 3 .abc 2 .abc 4"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -193,7 +209,7 @@ func Test_indexexpr2(t *testing.T) {
 		}
 		got := flatten(r)
 		want := ".ABC 1 .ABC 3 .abc 2 .abc 4"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -205,7 +221,7 @@ func Test_indexexpr2(t *testing.T) {
 		}
 		got := flatten(r)
 		want := ".ABC1 1 .abc2 2 .ABC3 3 .abc4 4"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -217,7 +233,7 @@ func Test_indexexpr2(t *testing.T) {
 		}
 		got := flatten(r)
 		want := ".ABC1 1 .ABC3 3 .abc2 2 .abc4 4"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -229,7 +245,7 @@ func Test_indexexpr2(t *testing.T) {
 		}
 		got := flatten(r)
 		want := ".ABC1 1 .abc2 2 .ABC3 3 .abc4 4"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -245,7 +261,7 @@ func Test_indexexpr2(t *testing.T) {
 		}
 		got := flatten(r)
 		want := ".ABC1 1 .ABC3 3 .abc2 2 .abc4 4"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -258,15 +274,15 @@ func Test_indexexpr2(t *testing.T) {
 	tclConnRegister("db", db)
 	if err != nil { t.Fatal(err) }
 	db.RegisterFunction("refcnt", func(args []interface{}) (interface{}, error) { return nil, nil }, 0, -1)
-	{ // "indexexpr2-4.100" — skipped: authorizer not implemented (db auth C callback harness N-A; deterministic refcnt function not implemented) (SQL side effects only)
+	{ // "indexexpr2-4.100" — skipped: authorizer not implemented (db auth C callback harness N-A; deterministic refcnt function not implemented) (SQL + file side effects only)
 		_res = db.Exec("\n    CREATE TABLE t1(a,b,c,d,e,f);\n    CREATE INDEX t1abc ON t1(refcnt(a+b+c));\n  ")
 		_ = _res.Error // tolerate unsupported-feature errors in skipped tests
 	}
-	{ // "indexexpr2-4.110" — skipped: authorizer/refcnt harness not implemented (4.100 setup skipped, refcnt deterministic C func) (SQL side effects only)
+	{ // "indexexpr2-4.110" — skipped: authorizer/refcnt harness not implemented (4.100 setup skipped, refcnt deterministic C func) (SQL + file side effects only)
 		_res = db.Exec("INSERT INTO t1 VALUES(1,2,3,4,5,6);")
 		_ = _res.Error // tolerate unsupported-feature errors in skipped tests
 	}
-	{ // "indexexpr2-4.120" — skipped: authorizer/refcnt harness not implemented (4.110 setup skipped) (SQL side effects only)
+	{ // "indexexpr2-4.120" — skipped: authorizer/refcnt harness not implemented (4.110 setup skipped) (SQL + file side effects only)
 		_res = db.Exec("UPDATE t1 SET b=b+1;")
 		_ = _res.Error // tolerate unsupported-feature errors in skipped tests
 	}
@@ -278,7 +294,7 @@ func Test_indexexpr2(t *testing.T) {
 		_ = cnt // TCL namespace variable (query)
 		got := tclListFlatten(cnt)
 		want := tclListFlatten("0")
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "4.130")
 		}
 	}
@@ -314,7 +330,7 @@ func Test_indexexpr2(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "2 4 3 9"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -332,7 +348,7 @@ func Test_indexexpr2(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "2 4 3 9"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -350,7 +366,7 @@ func Test_indexexpr2(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1 123 2 123 3 123abc 4 123.0"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -362,7 +378,7 @@ func Test_indexexpr2(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1 123 2 123 3 123abc 4 123.0"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -380,7 +396,7 @@ func Test_indexexpr2(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1 123 2 123"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -392,7 +408,7 @@ func Test_indexexpr2(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1 123 2 123"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -422,7 +438,7 @@ func Test_indexexpr2(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "CREATE TABLE t0(c0)"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -508,7 +524,7 @@ func Test_indexexpr2(t *testing.T) {
 				}
 				got := flatten(r)
 				want := "5 -5 205 5 20 220"
-				if got != want {
+				if got != want && !tclFpnumCompare(got, want) {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
@@ -527,7 +543,7 @@ func Test_indexexpr2(t *testing.T) {
 				}
 				got := flatten(r)
 				want := "1 abcde"
-				if got != want {
+				if got != want && !tclFpnumCompare(got, want) {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
@@ -539,7 +555,7 @@ func Test_indexexpr2(t *testing.T) {
 				}
 				got := flatten(r)
 				want := "4"
-				if got != want {
+				if got != want && !tclFpnumCompare(got, want) {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}

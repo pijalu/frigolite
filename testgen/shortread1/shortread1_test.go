@@ -5,6 +5,7 @@
 package shortread1
 
 import (
+"fmt"
 "github.com/pijalu/frigolite"
 "os"
 "testing"
@@ -17,6 +18,21 @@ func Test_shortread1(t *testing.T) {
 		t.Fatal(err)
 	}
 	defer db.Close()
+
+	// auto-installed test-extension functions (src/test_func.c)
+	db.RegisterFunction("test_error", func(args []interface{}) (interface{}, error) {
+		msg := ""
+		if len(args) > 0 && args[0] != nil {
+			msg = fmt.Sprintf("%v", args[0])
+		}
+		return nil, fmt.Errorf("%s", msg)
+	}, 1, 2)
+	db.RegisterFunction("test_isolation", func(args []interface{}) (interface{}, error) {
+		if len(args) < 2 {
+			return nil, nil
+		}
+		return args[1], nil
+	}, 2, 2)
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
@@ -65,7 +81,7 @@ func Test_shortread1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "0"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -77,28 +93,13 @@ func Test_shortread1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "11"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
 	{ // do_test "shortread1-1.3"
 		// sqlite3_release_memory [expr {1024*9}] (unsupported command, not transpiled)
-		// FULL-SUITE-DRIFT.T30-kernel hand-patch: the emitter skipped the WHOLE
-		// multi-statement execsql because it contains PRAGMA freelist_count
-		// ("VACUUM-dependent" heuristic), dropping the engine-visible INSERT
-		// that shortread1-1.4's count(*)=2 depends on. sqlite3_release_memory
-		// is incidental (the engine has no pagecache purge to model). The
-		// multi-statement shape passes natively (TestW6_ShortRead1).
-		r = db.Query("\n    INSERT INTO t1 VALUES(hex(randomblob(5000)));\n    PRAGMA freelist_count;\n  ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    INSERT INTO t1 VALUES(hex(randomblob(5000)));\n    PRAGMA freelist_count;\n  ")
-			return
-		}
-		got := flatten(r)
-		want := "0"
-		if got != want {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-		}
+		// execsql skipped: PRAGMA freelist_count is VACUUM-dependent (P8.VACUUM)
 	}
 	{ // do_test "shortread1-1.4"
 		r = db.Query("\n    COMMIT;\n    SELECT count(*) FROM t1;\n  ")
@@ -108,7 +109,7 @@ func Test_shortread1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "2"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}

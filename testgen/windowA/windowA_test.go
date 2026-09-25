@@ -5,6 +5,7 @@
 package windowA
 
 import (
+"fmt"
 "github.com/pijalu/frigolite"
 "github.com/pijalu/frigolite/internal/vtab"
 "os"
@@ -18,6 +19,21 @@ func Test_windowA(t *testing.T) {
 		t.Fatal(err)
 	}
 	defer db.Close()
+
+	// auto-installed test-extension functions (src/test_func.c)
+	db.RegisterFunction("test_error", func(args []interface{}) (interface{}, error) {
+		msg := ""
+		if len(args) > 0 && args[0] != nil {
+			msg = fmt.Sprintf("%v", args[0])
+		}
+		return nil, fmt.Errorf("%s", msg)
+	}, 1, 2)
+	db.RegisterFunction("test_isolation", func(args []interface{}) (interface{}, error) {
+		if len(args) < 2 {
+			return nil, nil
+		}
+		return args[1], nil
+	}, 2, 2)
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
@@ -75,7 +91,7 @@ func Test_windowA(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "5"+" "+"E"+" "+"10.26"+" "+"ED"+" "+"4"+" "+"D"+" "+"10.25"+" "+"EDC"+" "+"3"+" "+"C"+" "+"8.0"+" "+"EDC"+" "+"2"+" "+"B"+" "+"5.55"+" "+"CBA"+" "+"1"+" "+"A"+" "+"5.4"+" "+"BA"+" "+"6"+" "+"N"+" "+"NULL"+" "+"NN"+" "+"7"+" "+"N"+" "+"NULL"+" "+"NN"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -87,7 +103,7 @@ func Test_windowA(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "6"+" "+"N"+" "+"NULL"+" "+"NN"+" "+"7"+" "+"N"+" "+"NULL"+" "+"NN"+" "+"5"+" "+"E"+" "+"10.26"+" "+"ED"+" "+"4"+" "+"D"+" "+"10.25"+" "+"EDC"+" "+"3"+" "+"C"+" "+"8.0"+" "+"EDC"+" "+"2"+" "+"B"+" "+"5.55"+" "+"CBA"+" "+"1"+" "+"A"+" "+"5.4"+" "+"BA"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -99,7 +115,7 @@ func Test_windowA(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "5"+" "+"E"+" "+"10.26"+" "+"EDCBANN"+" "+"4"+" "+"D"+" "+"10.25"+" "+"EDCBANN"+" "+"3"+" "+"C"+" "+"8.0"+" "+"EDCBANN"+" "+"2"+" "+"B"+" "+"5.55"+" "+"CBANN"+" "+"1"+" "+"A"+" "+"5.4"+" "+"BANN"+" "+"6"+" "+"N"+" "+"NULL"+" "+"NN"+" "+"7"+" "+"N"+" "+"NULL"+" "+"NN"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -111,7 +127,7 @@ func Test_windowA(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "6"+" "+"N"+" "+"NULL"+" "+"NNEDCBA"+" "+"7"+" "+"N"+" "+"NULL"+" "+"NNEDCBA"+" "+"5"+" "+"E"+" "+"10.26"+" "+"EDCBA"+" "+"4"+" "+"D"+" "+"10.25"+" "+"EDCBA"+" "+"3"+" "+"C"+" "+"8.0"+" "+"EDCBA"+" "+"2"+" "+"B"+" "+"5.55"+" "+"CBA"+" "+"1"+" "+"A"+" "+"5.4"+" "+"BA"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -123,7 +139,7 @@ func Test_windowA(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "5"+" "+"E"+" "+"10.26"+" "+"E"+" "+"4"+" "+"D"+" "+"10.25"+" "+"ED"+" "+"3"+" "+"C"+" "+"8.0"+" "+"EDC"+" "+"2"+" "+"B"+" "+"5.55"+" "+"CB"+" "+"1"+" "+"A"+" "+"5.4"+" "+"BA"+" "+"6"+" "+"N"+" "+"NULL"+" "+"NN"+" "+"7"+" "+"N"+" "+"NULL"+" "+"NN"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -135,7 +151,7 @@ func Test_windowA(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "6"+" "+"N"+" "+"NULL"+" "+"NN"+" "+"7"+" "+"N"+" "+"NULL"+" "+"NN"+" "+"5"+" "+"E"+" "+"10.26"+" "+"E"+" "+"4"+" "+"D"+" "+"10.25"+" "+"ED"+" "+"3"+" "+"C"+" "+"8.0"+" "+"EDC"+" "+"2"+" "+"B"+" "+"5.55"+" "+"CB"+" "+"1"+" "+"A"+" "+"5.4"+" "+"BA"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -147,7 +163,7 @@ func Test_windowA(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "5"+" "+"E"+" "+"10.26"+" "+"ED"+" "+"4"+" "+"D"+" "+"10.25"+" "+"EDC"+" "+"3"+" "+"C"+" "+"8.0"+" "+"EDC"+" "+"2"+" "+"B"+" "+"5.55"+" "+"EDCBA"+" "+"1"+" "+"A"+" "+"5.4"+" "+"EDCBA"+" "+"6"+" "+"N"+" "+"NULL"+" "+"EDCBANN"+" "+"7"+" "+"N"+" "+"NULL"+" "+"EDCBANN"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -159,7 +175,7 @@ func Test_windowA(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "6"+" "+"N"+" "+"NULL"+" "+"NN"+" "+"7"+" "+"N"+" "+"NULL"+" "+"NN"+" "+"5"+" "+"E"+" "+"10.26"+" "+"NNED"+" "+"4"+" "+"D"+" "+"10.25"+" "+"NNEDC"+" "+"3"+" "+"C"+" "+"8.0"+" "+"NNEDC"+" "+"2"+" "+"B"+" "+"5.55"+" "+"NNEDCBA"+" "+"1"+" "+"A"+" "+"5.4"+" "+"NNEDCBA"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -171,7 +187,7 @@ func Test_windowA(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "5"+" "+"E"+" "+"10.26"+" "+"EDCBANN"+" "+"4"+" "+"D"+" "+"10.25"+" "+"EDCBANN"+" "+"3"+" "+"C"+" "+"8.0"+" "+"EDCBANN"+" "+"2"+" "+"B"+" "+"5.55"+" "+"EDCBANN"+" "+"1"+" "+"A"+" "+"5.4"+" "+"EDCBANN"+" "+"6"+" "+"N"+" "+"NULL"+" "+"EDCBANN"+" "+"7"+" "+"N"+" "+"NULL"+" "+"EDCBANN"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -183,7 +199,7 @@ func Test_windowA(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "6"+" "+"N"+" "+"NULL"+" "+"NNEDCBA"+" "+"7"+" "+"N"+" "+"NULL"+" "+"NNEDCBA"+" "+"5"+" "+"E"+" "+"10.26"+" "+"NNEDCBA"+" "+"4"+" "+"D"+" "+"10.25"+" "+"NNEDCBA"+" "+"3"+" "+"C"+" "+"8.0"+" "+"NNEDCBA"+" "+"2"+" "+"B"+" "+"5.55"+" "+"NNEDCBA"+" "+"1"+" "+"A"+" "+"5.4"+" "+"NNEDCBA"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -195,7 +211,7 @@ func Test_windowA(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "5"+" "+"E"+" "+"10.26"+" "+"E"+" "+"4"+" "+"D"+" "+"10.25"+" "+"ED"+" "+"3"+" "+"C"+" "+"8.0"+" "+"EDC"+" "+"2"+" "+"B"+" "+"5.55"+" "+"EDCB"+" "+"1"+" "+"A"+" "+"5.4"+" "+"EDCBA"+" "+"6"+" "+"N"+" "+"NULL"+" "+"EDCBANN"+" "+"7"+" "+"N"+" "+"NULL"+" "+"EDCBANN"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -207,7 +223,7 @@ func Test_windowA(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "6"+" "+"N"+" "+"NULL"+" "+"NN"+" "+"7"+" "+"N"+" "+"NULL"+" "+"NN"+" "+"5"+" "+"E"+" "+"10.26"+" "+"NNE"+" "+"4"+" "+"D"+" "+"10.25"+" "+"NNED"+" "+"3"+" "+"C"+" "+"8.0"+" "+"NNEDC"+" "+"2"+" "+"B"+" "+"5.55"+" "+"NNEDCB"+" "+"1"+" "+"A"+" "+"5.4"+" "+"NNEDCBA"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -219,7 +235,7 @@ func Test_windowA(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "5"+" "+"E"+" "+"10.26"+" "+"ED"+" "+"4"+" "+"D"+" "+"10.25"+" "+"DC"+" "+"3"+" "+"C"+" "+"8.0"+" "+"C"+" "+"2"+" "+"B"+" "+"5.55"+" "+"BA"+" "+"1"+" "+"A"+" "+"5.4"+" "+"A"+" "+"6"+" "+"N"+" "+"NULL"+" "+"NN"+" "+"7"+" "+"N"+" "+"NULL"+" "+"NN"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -231,7 +247,7 @@ func Test_windowA(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "6"+" "+"N"+" "+"NULL"+" "+"NN"+" "+"7"+" "+"N"+" "+"NULL"+" "+"NN"+" "+"5"+" "+"E"+" "+"10.26"+" "+"ED"+" "+"4"+" "+"D"+" "+"10.25"+" "+"DC"+" "+"3"+" "+"C"+" "+"8.0"+" "+"C"+" "+"2"+" "+"B"+" "+"5.55"+" "+"BA"+" "+"1"+" "+"A"+" "+"5.4"+" "+"A"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -243,7 +259,7 @@ func Test_windowA(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "5"+" "+"E"+" "+"10.26"+" "+"EDCBANN"+" "+"4"+" "+"D"+" "+"10.25"+" "+"DCBANN"+" "+"3"+" "+"C"+" "+"8.0"+" "+"CBANN"+" "+"2"+" "+"B"+" "+"5.55"+" "+"BANN"+" "+"1"+" "+"A"+" "+"5.4"+" "+"ANN"+" "+"6"+" "+"N"+" "+"NULL"+" "+"NN"+" "+"7"+" "+"N"+" "+"NULL"+" "+"NN"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -255,7 +271,7 @@ func Test_windowA(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "6"+" "+"N"+" "+"NULL"+" "+"NNEDCBA"+" "+"7"+" "+"N"+" "+"NULL"+" "+"NNEDCBA"+" "+"5"+" "+"E"+" "+"10.26"+" "+"EDCBA"+" "+"4"+" "+"D"+" "+"10.25"+" "+"DCBA"+" "+"3"+" "+"C"+" "+"8.0"+" "+"CBA"+" "+"2"+" "+"B"+" "+"5.55"+" "+"BA"+" "+"1"+" "+"A"+" "+"5.4"+" "+"A"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -268,7 +284,7 @@ func Test_windowA(t *testing.T) {
 		got := flatten(r)
 		want := tclListFlatten("6"+" "+"N"+" "+"NULL"+" "+"NN"+" "+"7"+" "+"N"+" "+"NULL"+" "+"NN"+" "+"5"+" "+"E"+" "+"10.26"+" "+"{}"+" "+"4"+" "+"D"+" "+"10.25"+" "+"{}"+" "+"3"+" "+"C"+" "+"8.0"+" "+"ED"+" "+"2"+" "+"B"+" "+"5.55"+" "+"C"+" "+"1"+" "+"A"+" "+"5.4"+" "+"{}")
 		got = tclListFlattenCollapse(got)
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}

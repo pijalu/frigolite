@@ -22,6 +22,21 @@ func Test_capi3c(t *testing.T) {
 	}
 	defer db.Close()
 
+	// auto-installed test-extension functions (src/test_func.c)
+	db.RegisterFunction("test_error", func(args []interface{}) (interface{}, error) {
+		msg := ""
+		if len(args) > 0 && args[0] != nil {
+			msg = fmt.Sprintf("%v", args[0])
+		}
+		return nil, fmt.Errorf("%s", msg)
+	}, 1, 2)
+	db.RegisterFunction("test_isolation", func(args []interface{}) (interface{}, error) {
+		if len(args) < 2 {
+			return nil, nil
+		}
+		return args[1], nil
+	}, 2, 2)
+
 	var _res *frigolite.Result
 	var r *frigolite.Result
 	var msg string
@@ -556,7 +571,7 @@ func Test_capi3c(t *testing.T) {
 		{ // "capi3-11.3.3" (prepare-step internals; SQL side effects only)
 			// sqlite3_get_autocommit $DB (unsupported command, not transpiled)
 		}
-		{ // "capi3-11.3.4" — skipped: PRAGMA lock_status SHARED read-lock retention (statement-lock model) N-A (SQL side effects only)
+		{ // "capi3-11.3.4" — skipped: PRAGMA lock_status SHARED read-lock retention (statement-lock model) N-A (SQL + file side effects only)
 			_res = db.Exec("PRAGMA lock_status")
 			_ = _res.Error // tolerate unsupported-feature errors in skipped tests
 		}
@@ -621,7 +636,7 @@ func Test_capi3c(t *testing.T) {
 			}
 			got := flatten(r)
 			want := "1 2"
-			if got != want {
+			if got != want && !tclFpnumCompare(got, want) {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
@@ -645,7 +660,7 @@ func Test_capi3c(t *testing.T) {
 			}
 			got := flatten(r)
 			want := "1 2"
-			if got != want {
+			if got != want && !tclFpnumCompare(got, want) {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
@@ -727,7 +742,7 @@ func Test_capi3c(t *testing.T) {
 			}
 			got := flatten(r)
 			want := "1 2 3 4"
-			if got != want {
+			if got != want && !tclFpnumCompare(got, want) {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
@@ -787,7 +802,7 @@ func Test_capi3c(t *testing.T) {
 			rc = tclListAppend(rc, msg)
 			got := tclListFlatten(rc)
 			want := tclListFlatten("1 SQLITE_MISUSE")
-			if got != want {
+			if got != want && !tclFpnumCompare(got, want) {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "capi3c-14.1")
 			}
 		}

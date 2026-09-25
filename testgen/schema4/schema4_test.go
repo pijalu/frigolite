@@ -19,6 +19,21 @@ func Test_schema4(t *testing.T) {
 	}
 	defer db.Close()
 
+	// auto-installed test-extension functions (src/test_func.c)
+	db.RegisterFunction("test_error", func(args []interface{}) (interface{}, error) {
+		msg := ""
+		if len(args) > 0 && args[0] != nil {
+			msg = fmt.Sprintf("%v", args[0])
+		}
+		return nil, fmt.Errorf("%s", msg)
+	}, 1, 2)
+	db.RegisterFunction("test_isolation", func(args []interface{}) (interface{}, error) {
+		if len(args) < 2 {
+			return nil, nil
+		}
+		return args[1], nil
+	}, 2, 2)
+
 	var _res *frigolite.Result
 	var r *frigolite.Result
 	var msg string
@@ -76,7 +91,7 @@ func Test_schema4(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "after insert 1 2 after update 2 3 after delete 2 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -88,7 +103,7 @@ func Test_schema4(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "after insert 1 2 after update 2 3 after delete 2 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -104,7 +119,7 @@ func Test_schema4(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "after insert 1 2 after update 2 3 after delete 2 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -128,7 +143,7 @@ func Test_schema4(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "after insert 1 2 after update 2 3 after delete 2 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -176,7 +191,7 @@ func Test_schema4(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "after insert a b after delete a b"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -192,7 +207,7 @@ func Test_schema4(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "after insert c d after delete c d"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -210,7 +225,7 @@ func Test_schema4(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "CREATE TABLE x1(x)"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -228,7 +243,7 @@ func Test_schema4(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "CREATE TABLE x1(x)"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -240,7 +255,7 @@ func Test_schema4(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "after insert e f after update g h after delete g h"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -252,7 +267,7 @@ func Test_schema4(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "123 456"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}

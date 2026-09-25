@@ -5,6 +5,7 @@
 package joinC
 
 import (
+"fmt"
 "github.com/pijalu/frigolite"
 "os"
 "testing"
@@ -17,6 +18,21 @@ func Test_joinC(t *testing.T) {
 		t.Fatal(err)
 	}
 	defer db.Close()
+
+	// auto-installed test-extension functions (src/test_func.c)
+	db.RegisterFunction("test_error", func(args []interface{}) (interface{}, error) {
+		msg := ""
+		if len(args) > 0 && args[0] != nil {
+			msg = fmt.Sprintf("%v", args[0])
+		}
+		return nil, fmt.Errorf("%s", msg)
+	}, 1, 2)
+	db.RegisterFunction("test_isolation", func(args []interface{}) (interface{}, error) {
+		if len(args) < 2 {
+			return nil, nil
+		}
+		return args[1], nil
+	}, 2, 2)
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
@@ -65,7 +81,7 @@ func Test_joinC(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "15 15 15 15 15 15"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -77,7 +93,7 @@ func Test_joinC(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "15 15 15 15 15 15"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -89,7 +105,7 @@ func Test_joinC(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "15 15 15 15 15 15"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -101,7 +117,7 @@ func Test_joinC(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "15 15 15 15 15 15"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -113,7 +129,7 @@ func Test_joinC(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "12 12 12 12 - - 15 15 15 15 15 15"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -125,7 +141,7 @@ func Test_joinC(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "12 12 12 12 - - 15 15 15 15 15 15"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -137,7 +153,7 @@ func Test_joinC(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "12 12 12 12 - - 15 15 15 15 15 15"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -149,7 +165,7 @@ func Test_joinC(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "12 12 12 12 - - 15 15 15 15 15 15"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -161,7 +177,7 @@ func Test_joinC(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "15 15 15 15 15 15"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -173,7 +189,7 @@ func Test_joinC(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "15 15 15 15 15 15"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -185,7 +201,7 @@ func Test_joinC(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "15 15 15 15 15 15"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -197,7 +213,7 @@ func Test_joinC(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "15 15 15 15 15 15"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -209,7 +225,7 @@ func Test_joinC(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "12 12 12 12 - - 15 15 15 15 15 15"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -221,7 +237,7 @@ func Test_joinC(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "12 12 12 12 - - 15 15 15 15 15 15"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -233,7 +249,7 @@ func Test_joinC(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "12 12 12 12 - - 15 15 15 15 15 15"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -245,7 +261,7 @@ func Test_joinC(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "12 12 12 12 - - 15 15 15 15 15 15"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -257,7 +273,7 @@ func Test_joinC(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "12 12 12 - - - 15 15 15 15 15 15"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -269,7 +285,7 @@ func Test_joinC(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "12 12 12 - - - 15 15 15 15 15 15"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -281,7 +297,7 @@ func Test_joinC(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "12 12 12 - - - 15 15 15 15 15 15"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -293,7 +309,7 @@ func Test_joinC(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "12 12 12 - - - 15 15 15 15 15 15"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -305,7 +321,7 @@ func Test_joinC(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "12 12 12 12 - - 15 15 15 15 15 15"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -317,7 +333,7 @@ func Test_joinC(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "12 12 12 12 - - 15 15 15 15 15 15"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -329,7 +345,7 @@ func Test_joinC(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "12 12 12 12 - - 15 15 15 15 15 15"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -341,7 +357,7 @@ func Test_joinC(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "12 12 12 12 - - 15 15 15 15 15 15"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -353,7 +369,7 @@ func Test_joinC(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "12 12 12 - - - 15 15 15 15 15 15"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -365,7 +381,7 @@ func Test_joinC(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "12 12 12 - - - 15 15 15 15 15 15"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -377,7 +393,7 @@ func Test_joinC(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "12 12 12 - - - 15 15 15 15 15 15"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -389,7 +405,7 @@ func Test_joinC(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "12 12 12 - - - 15 15 15 15 15 15"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -401,7 +417,7 @@ func Test_joinC(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "12 12 12 12 - - 15 15 15 15 15 15"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -413,7 +429,7 @@ func Test_joinC(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "12 12 12 12 - - 15 15 15 15 15 15"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -425,7 +441,7 @@ func Test_joinC(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "12 12 12 12 - - 15 15 15 15 15 15"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -437,7 +453,7 @@ func Test_joinC(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "12 12 12 12 - - 15 15 15 15 15 15"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -449,7 +465,7 @@ func Test_joinC(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "15 15 15 15 15 15"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -461,7 +477,7 @@ func Test_joinC(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "11 11 - 11 11 - 15 15 15 15 15 15"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -473,7 +489,7 @@ func Test_joinC(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "15 15 15 15 15 15 17 17 - 17 - 17"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -485,7 +501,7 @@ func Test_joinC(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "11 11 - 11 11 - 15 15 15 15 15 15 17 17 - 17 - 17"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -497,7 +513,7 @@ func Test_joinC(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "11 11 - 11 - - 12 12 12 12 - - 15 15 15 15 15 15 17 17 - 17 - -"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -509,7 +525,7 @@ func Test_joinC(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "11 11 - 11 11 - 12 12 12 12 - - 15 15 15 15 15 15 17 17 - 17 - -"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -521,7 +537,7 @@ func Test_joinC(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "11 11 - 11 - - 12 12 12 12 - - 15 15 15 15 15 15 17 17 - 17 - 17"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -533,7 +549,7 @@ func Test_joinC(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "11 11 - 11 11 - 12 12 12 12 - - 15 15 15 15 15 15 17 17 - 17 - 17"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -545,7 +561,7 @@ func Test_joinC(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "15 15 15 15 15 15"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -557,7 +573,7 @@ func Test_joinC(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "11 11 - 11 11 - 15 15 15 15 15 15"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -569,7 +585,7 @@ func Test_joinC(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "15 15 15 15 15 15 17 17 - 17 - 17"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -581,7 +597,7 @@ func Test_joinC(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "11 11 - 11 11 - 15 15 15 15 15 15 17 17 - 17 - 17"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -593,7 +609,7 @@ func Test_joinC(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "11 11 - 11 - - 12 12 12 12 - - 15 15 15 15 15 15 17 17 - 17 - -"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -605,7 +621,7 @@ func Test_joinC(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "11 11 - 11 11 - 12 12 12 12 - - 15 15 15 15 15 15 17 17 - 17 - -"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -617,7 +633,7 @@ func Test_joinC(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "11 11 - 11 - - 12 12 12 12 - - 15 15 15 15 15 15 17 17 - 17 - 17"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -629,7 +645,7 @@ func Test_joinC(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "11 11 - 11 11 - 12 12 12 12 - - 15 15 15 15 15 15 17 17 - 17 - 17"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -641,7 +657,7 @@ func Test_joinC(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "12 12 12 - - - 15 15 15 15 15 15"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -653,7 +669,7 @@ func Test_joinC(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "11 11 - 11 11 - 12 12 12 - - - 15 15 15 15 15 15"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -665,7 +681,7 @@ func Test_joinC(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "12 12 12 - - - 15 15 15 15 15 15 17 17 - 17 - 17"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -677,7 +693,7 @@ func Test_joinC(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "11 11 - 11 11 - 12 12 12 - - - 15 15 15 15 15 15 17 17 - 17 - 17"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -689,7 +705,7 @@ func Test_joinC(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "11 11 - 11 - - 12 12 12 12 - - 15 15 15 15 15 15 17 17 - 17 - -"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -701,7 +717,7 @@ func Test_joinC(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "11 11 - 11 11 - 12 12 12 12 - - 15 15 15 15 15 15 17 17 - 17 - -"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -713,7 +729,7 @@ func Test_joinC(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "11 11 - 11 - - 12 12 12 12 - - 15 15 15 15 15 15 17 17 - 17 - 17"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -725,7 +741,7 @@ func Test_joinC(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "11 11 - 11 11 - 12 12 12 12 - - 15 15 15 15 15 15 17 17 - 17 - 17"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -737,7 +753,7 @@ func Test_joinC(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "12 12 12 - - - 15 15 15 15 15 15"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -749,7 +765,7 @@ func Test_joinC(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "11 11 - 11 11 - 12 12 12 - - - 15 15 15 15 15 15"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -761,7 +777,7 @@ func Test_joinC(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "12 12 12 - - - 15 15 15 15 15 15 17 17 - 17 - 17"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -773,7 +789,7 @@ func Test_joinC(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "11 11 - 11 11 - 12 12 12 - - - 15 15 15 15 15 15 17 17 - 17 - 17"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -785,7 +801,7 @@ func Test_joinC(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "11 11 - 11 - - 12 12 12 12 - - 15 15 15 15 15 15 17 17 - 17 - -"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -797,7 +813,7 @@ func Test_joinC(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "11 11 - 11 11 - 12 12 12 12 - - 15 15 15 15 15 15 17 17 - 17 - -"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -809,7 +825,7 @@ func Test_joinC(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "11 11 - 11 - - 12 12 12 12 - - 15 15 15 15 15 15 17 17 - 17 - 17"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -821,7 +837,7 @@ func Test_joinC(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "11 11 - 11 11 - 12 12 12 12 - - 15 15 15 15 15 15 17 17 - 17 - 17"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -833,7 +849,7 @@ func Test_joinC(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "11 11 - - - - 12 12 - - - - 15 15 15 15 15 15 17 17 - - - -"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -845,7 +861,7 @@ func Test_joinC(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "11 11 - - - - 12 12 - - - - 15 15 15 15 15 15 17 17 - - - -"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -857,7 +873,7 @@ func Test_joinC(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "11 11 - - - - 12 12 - - - - 15 15 15 15 15 15 17 17 - - - -"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -869,7 +885,7 @@ func Test_joinC(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "11 11 - - - - 12 12 - - - - 15 15 15 15 15 15 17 17 - - - -"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -881,7 +897,7 @@ func Test_joinC(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "11 11 - - - - 12 12 12 12 - - 15 15 15 15 15 15 17 17 - - - -"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -893,7 +909,7 @@ func Test_joinC(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "11 11 - - - - 12 12 12 12 - - 15 15 15 15 15 15 17 17 - - - -"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -905,7 +921,7 @@ func Test_joinC(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "11 11 - - - - 12 12 12 12 - - 15 15 15 15 15 15 17 17 - - - -"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -917,7 +933,7 @@ func Test_joinC(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "11 11 - - - - 12 12 12 12 - - 15 15 15 15 15 15 17 17 - - - -"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -929,7 +945,7 @@ func Test_joinC(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "11 11 - - - - 12 12 - - - - 15 15 15 15 15 15 17 17 - - - -"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -941,7 +957,7 @@ func Test_joinC(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "11 11 - - - - 12 12 - - - - 15 15 15 15 15 15 17 17 - - - -"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -953,7 +969,7 @@ func Test_joinC(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "11 11 - - - - 12 12 - - - - 15 15 15 15 15 15 17 17 - - - -"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -965,7 +981,7 @@ func Test_joinC(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "11 11 - - - - 12 12 - - - - 15 15 15 15 15 15 17 17 - - - -"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -977,7 +993,7 @@ func Test_joinC(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "11 11 - - - - 12 12 12 12 - - 15 15 15 15 15 15 17 17 - - - -"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -989,7 +1005,7 @@ func Test_joinC(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "11 11 - - - - 12 12 12 12 - - 15 15 15 15 15 15 17 17 - - - -"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -1001,7 +1017,7 @@ func Test_joinC(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "11 11 - - - - 12 12 12 12 - - 15 15 15 15 15 15 17 17 - - - -"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -1013,7 +1029,7 @@ func Test_joinC(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "11 11 - - - - 12 12 12 12 - - 15 15 15 15 15 15 17 17 - - - -"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -1025,7 +1041,7 @@ func Test_joinC(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "11 11 - - - - 12 12 12 - - - 15 15 15 15 15 15 17 17 - - - -"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -1037,7 +1053,7 @@ func Test_joinC(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "11 11 - - - - 12 12 12 - - - 15 15 15 15 15 15 17 17 - - - -"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -1049,7 +1065,7 @@ func Test_joinC(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "11 11 - - - - 12 12 12 - - - 15 15 15 15 15 15 17 17 - - - -"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -1061,7 +1077,7 @@ func Test_joinC(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "11 11 - - - - 12 12 12 - - - 15 15 15 15 15 15 17 17 - - - -"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -1073,7 +1089,7 @@ func Test_joinC(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "11 11 - - - - 12 12 12 12 - - 15 15 15 15 15 15 17 17 - - - -"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -1085,7 +1101,7 @@ func Test_joinC(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "11 11 - - - - 12 12 12 12 - - 15 15 15 15 15 15 17 17 - - - -"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -1097,7 +1113,7 @@ func Test_joinC(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "11 11 - - - - 12 12 12 12 - - 15 15 15 15 15 15 17 17 - - - -"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -1109,7 +1125,7 @@ func Test_joinC(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "11 11 - - - - 12 12 12 12 - - 15 15 15 15 15 15 17 17 - - - -"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -1121,7 +1137,7 @@ func Test_joinC(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "11 11 - - - - 12 12 12 - - - 15 15 15 15 15 15 17 17 - - - -"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -1133,7 +1149,7 @@ func Test_joinC(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "11 11 - - - - 12 12 12 - - - 15 15 15 15 15 15 17 17 - - - -"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -1145,7 +1161,7 @@ func Test_joinC(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "11 11 - - - - 12 12 12 - - - 15 15 15 15 15 15 17 17 - - - -"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -1157,7 +1173,7 @@ func Test_joinC(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "11 11 - - - - 12 12 12 - - - 15 15 15 15 15 15 17 17 - - - -"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -1169,7 +1185,7 @@ func Test_joinC(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "11 11 - - - - 12 12 12 12 - - 15 15 15 15 15 15 17 17 - - - -"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -1181,7 +1197,7 @@ func Test_joinC(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "11 11 - - - - 12 12 12 12 - - 15 15 15 15 15 15 17 17 - - - -"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -1193,7 +1209,7 @@ func Test_joinC(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "11 11 - - - - 12 12 12 12 - - 15 15 15 15 15 15 17 17 - - - -"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -1205,7 +1221,7 @@ func Test_joinC(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "11 11 - - - - 12 12 12 12 - - 15 15 15 15 15 15 17 17 - - - -"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -1217,7 +1233,7 @@ func Test_joinC(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "11 11 - - - - 12 12 - - - - 15 15 15 15 15 15 17 17 - - - -"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -1229,7 +1245,7 @@ func Test_joinC(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "11 11 - 11 11 - 12 12 - - - - 15 15 15 15 15 15 17 17 - - - -"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -1241,7 +1257,7 @@ func Test_joinC(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "11 11 - - - - 12 12 - - - - 15 15 15 15 15 15 17 17 - 17 - 17"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -1253,7 +1269,7 @@ func Test_joinC(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "11 11 - 11 11 - 12 12 - - - - 15 15 15 15 15 15 17 17 - 17 - 17"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -1265,7 +1281,7 @@ func Test_joinC(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "11 11 - 11 - - 12 12 12 12 - - 15 15 15 15 15 15 17 17 - 17 - -"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -1277,7 +1293,7 @@ func Test_joinC(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "11 11 - 11 11 - 12 12 12 12 - - 15 15 15 15 15 15 17 17 - 17 - -"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -1289,7 +1305,7 @@ func Test_joinC(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "11 11 - 11 - - 12 12 12 12 - - 15 15 15 15 15 15 17 17 - 17 - 17"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -1301,7 +1317,7 @@ func Test_joinC(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "11 11 - 11 11 - 12 12 12 12 - - 15 15 15 15 15 15 17 17 - 17 - 17"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -1313,7 +1329,7 @@ func Test_joinC(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "11 11 - - - - 12 12 - - - - 15 15 15 15 15 15 17 17 - - - -"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -1325,7 +1341,7 @@ func Test_joinC(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "11 11 - 11 11 - 12 12 - - - - 15 15 15 15 15 15 17 17 - - - -"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -1337,7 +1353,7 @@ func Test_joinC(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "11 11 - - - - 12 12 - - - - 15 15 15 15 15 15 17 17 - 17 - 17"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -1349,7 +1365,7 @@ func Test_joinC(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "11 11 - 11 11 - 12 12 - - - - 15 15 15 15 15 15 17 17 - 17 - 17"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -1361,7 +1377,7 @@ func Test_joinC(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "11 11 - 11 - - 12 12 12 12 - - 15 15 15 15 15 15 17 17 - 17 - -"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -1373,7 +1389,7 @@ func Test_joinC(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "11 11 - 11 11 - 12 12 12 12 - - 15 15 15 15 15 15 17 17 - 17 - -"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -1385,7 +1401,7 @@ func Test_joinC(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "11 11 - 11 - - 12 12 12 12 - - 15 15 15 15 15 15 17 17 - 17 - 17"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -1397,7 +1413,7 @@ func Test_joinC(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "11 11 - 11 11 - 12 12 12 12 - - 15 15 15 15 15 15 17 17 - 17 - 17"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -1409,7 +1425,7 @@ func Test_joinC(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "11 11 - - - - 12 12 12 - - - 15 15 15 15 15 15 17 17 - - - -"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -1421,7 +1437,7 @@ func Test_joinC(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "11 11 - 11 11 - 12 12 12 - - - 15 15 15 15 15 15 17 17 - - - -"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -1433,7 +1449,7 @@ func Test_joinC(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "11 11 - - - - 12 12 12 - - - 15 15 15 15 15 15 17 17 - 17 - 17"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -1445,7 +1461,7 @@ func Test_joinC(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "11 11 - 11 11 - 12 12 12 - - - 15 15 15 15 15 15 17 17 - 17 - 17"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -1457,7 +1473,7 @@ func Test_joinC(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "11 11 - 11 - - 12 12 12 12 - - 15 15 15 15 15 15 17 17 - 17 - -"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -1469,7 +1485,7 @@ func Test_joinC(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "11 11 - 11 11 - 12 12 12 12 - - 15 15 15 15 15 15 17 17 - 17 - -"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -1481,7 +1497,7 @@ func Test_joinC(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "11 11 - 11 - - 12 12 12 12 - - 15 15 15 15 15 15 17 17 - 17 - 17"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -1493,7 +1509,7 @@ func Test_joinC(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "11 11 - 11 11 - 12 12 12 12 - - 15 15 15 15 15 15 17 17 - 17 - 17"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -1505,7 +1521,7 @@ func Test_joinC(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "11 11 - - - - 12 12 12 - - - 15 15 15 15 15 15 17 17 - - - -"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -1517,7 +1533,7 @@ func Test_joinC(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "11 11 - 11 11 - 12 12 12 - - - 15 15 15 15 15 15 17 17 - - - -"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -1529,7 +1545,7 @@ func Test_joinC(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "11 11 - - - - 12 12 12 - - - 15 15 15 15 15 15 17 17 - 17 - 17"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -1541,7 +1557,7 @@ func Test_joinC(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "11 11 - 11 11 - 12 12 12 - - - 15 15 15 15 15 15 17 17 - 17 - 17"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -1553,7 +1569,7 @@ func Test_joinC(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "11 11 - 11 - - 12 12 12 12 - - 15 15 15 15 15 15 17 17 - 17 - -"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -1565,7 +1581,7 @@ func Test_joinC(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "11 11 - 11 11 - 12 12 12 12 - - 15 15 15 15 15 15 17 17 - 17 - -"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -1577,7 +1593,7 @@ func Test_joinC(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "11 11 - 11 - - 12 12 12 12 - - 15 15 15 15 15 15 17 17 - 17 - 17"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -1589,7 +1605,7 @@ func Test_joinC(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "11 11 - 11 11 - 12 12 12 12 - - 15 15 15 15 15 15 17 17 - 17 - 17"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -1601,7 +1617,7 @@ func Test_joinC(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "15 15 15 15 15 15"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -1613,7 +1629,7 @@ func Test_joinC(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "13 - 13 13 13 - 15 15 15 15 15 15"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -1625,7 +1641,7 @@ func Test_joinC(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "15 15 15 15 15 15 18 - 18 18 - 18"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -1637,7 +1653,7 @@ func Test_joinC(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "13 - 13 13 13 - 15 15 15 15 15 15 18 - 18 18 - 18"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -1649,7 +1665,7 @@ func Test_joinC(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "12 12 12 12 - - 13 - 13 13 - - 15 15 15 15 15 15 18 - 18 18 - -"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -1661,7 +1677,7 @@ func Test_joinC(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "12 12 12 12 - - 13 - 13 13 13 - 15 15 15 15 15 15 18 - 18 18 - -"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -1673,7 +1689,7 @@ func Test_joinC(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "12 12 12 12 - - 13 - 13 13 - - 15 15 15 15 15 15 18 - 18 18 - 18"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -1685,7 +1701,7 @@ func Test_joinC(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "12 12 12 12 - - 13 - 13 13 13 - 15 15 15 15 15 15 18 - 18 18 - 18"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -1697,7 +1713,7 @@ func Test_joinC(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "15 15 15 15 15 15"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -1709,7 +1725,7 @@ func Test_joinC(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "13 - 13 13 13 - 15 15 15 15 15 15"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -1721,7 +1737,7 @@ func Test_joinC(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "15 15 15 15 15 15 18 - 18 18 - 18"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -1733,7 +1749,7 @@ func Test_joinC(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "13 - 13 13 13 - 15 15 15 15 15 15 18 - 18 18 - 18"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -1745,7 +1761,7 @@ func Test_joinC(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "12 12 12 12 - - 13 - 13 13 - - 15 15 15 15 15 15 18 - 18 18 - -"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -1757,7 +1773,7 @@ func Test_joinC(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "12 12 12 12 - - 13 - 13 13 13 - 15 15 15 15 15 15 18 - 18 18 - -"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -1769,7 +1785,7 @@ func Test_joinC(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "12 12 12 12 - - 13 - 13 13 - - 15 15 15 15 15 15 18 - 18 18 - 18"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -1781,7 +1797,7 @@ func Test_joinC(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "12 12 12 12 - - 13 - 13 13 13 - 15 15 15 15 15 15 18 - 18 18 - 18"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -1793,7 +1809,7 @@ func Test_joinC(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "- - - - - - 12 12 12 - - - 13 - 13 - - - 15 15 15 15 15 15 18 - 18 - - -"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -1805,7 +1821,7 @@ func Test_joinC(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "- - - - - - 12 12 12 - - - 13 - 13 13 13 - 15 15 15 15 15 15 18 - 18 - - -"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -1817,7 +1833,7 @@ func Test_joinC(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "- - - - - - 12 12 12 - - - 13 - 13 - - - 15 15 15 15 15 15 18 - 18 18 - 18"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -1829,7 +1845,7 @@ func Test_joinC(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "- - - - - - 12 12 12 - - - 13 - 13 13 13 - 15 15 15 15 15 15 18 - 18 18 - 18"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -1841,7 +1857,7 @@ func Test_joinC(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "- - - - - - 12 12 12 12 - - 13 - 13 13 - - 15 15 15 15 15 15 18 - 18 18 - -"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -1853,7 +1869,7 @@ func Test_joinC(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "- - - - - - 12 12 12 12 - - 13 - 13 13 13 - 15 15 15 15 15 15 18 - 18 18 - -"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -1865,7 +1881,7 @@ func Test_joinC(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "- - - - - - 12 12 12 12 - - 13 - 13 13 - - 15 15 15 15 15 15 18 - 18 18 - 18"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -1877,7 +1893,7 @@ func Test_joinC(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "- - - - - - 12 12 12 12 - - 13 - 13 13 13 - 15 15 15 15 15 15 18 - 18 18 - 18"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -1889,7 +1905,7 @@ func Test_joinC(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "- - - - - - 12 12 12 - - - 13 - 13 - - - 15 15 15 15 15 15 18 - 18 - - -"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -1901,7 +1917,7 @@ func Test_joinC(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "- - - - - - 12 12 12 - - - 13 - 13 13 13 - 15 15 15 15 15 15 18 - 18 - - -"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -1913,7 +1929,7 @@ func Test_joinC(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "- - - - - - 12 12 12 - - - 13 - 13 - - - 15 15 15 15 15 15 18 - 18 18 - 18"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -1925,7 +1941,7 @@ func Test_joinC(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "- - - - - - 12 12 12 - - - 13 - 13 13 13 - 15 15 15 15 15 15 18 - 18 18 - 18"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -1937,7 +1953,7 @@ func Test_joinC(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "- - - - - - 12 12 12 12 - - 13 - 13 13 - - 15 15 15 15 15 15 18 - 18 18 - -"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -1949,7 +1965,7 @@ func Test_joinC(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "- - - - - - 12 12 12 12 - - 13 - 13 13 13 - 15 15 15 15 15 15 18 - 18 18 - -"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -1961,7 +1977,7 @@ func Test_joinC(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "- - - - - - 12 12 12 12 - - 13 - 13 13 - - 15 15 15 15 15 15 18 - 18 18 - 18"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -1973,7 +1989,7 @@ func Test_joinC(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "- - - - - - 12 12 12 12 - - 13 - 13 13 13 - 15 15 15 15 15 15 18 - 18 18 - 18"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -1985,7 +2001,7 @@ func Test_joinC(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "15 15 15 15 15 15 19 - - 19 19 19"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -1997,7 +2013,7 @@ func Test_joinC(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "11 11 - 11 11 - 13 - 13 13 13 - 15 15 15 15 15 15 19 - - 19 19 19"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -2009,7 +2025,7 @@ func Test_joinC(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "15 15 15 15 15 15 17 17 - 17 - 17 18 - 18 18 - 18 19 - - 19 19 19"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -2021,7 +2037,7 @@ func Test_joinC(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "11 11 - 11 11 - 13 - 13 13 13 - 15 15 15 15 15 15 17 17 - 17 - 17 18 - 18 18 - 18 19 - - 19 19 19"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -2033,7 +2049,7 @@ func Test_joinC(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "- - - - - - 11 11 - 11 - - 12 12 12 12 - - 13 - 13 13 - - 15 15 15 15 15 15 17 17 - 17 - - 18 - 18 18 - - 19 - - 19 19 19"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -2045,7 +2061,7 @@ func Test_joinC(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "- - - - - - 11 11 - 11 11 - 12 12 12 12 - - 13 - 13 13 13 - 15 15 15 15 15 15 17 17 - 17 - - 18 - 18 18 - - 19 - - 19 19 19"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -2057,7 +2073,7 @@ func Test_joinC(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "- - - - - - 11 11 - 11 - - 12 12 12 12 - - 13 - 13 13 - - 15 15 15 15 15 15 17 17 - 17 - 17 18 - 18 18 - 18 19 - - 19 19 19"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -2069,7 +2085,7 @@ func Test_joinC(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "- - - - - - 11 11 - 11 11 - 12 12 12 12 - - 13 - 13 13 13 - 15 15 15 15 15 15 17 17 - 17 - 17 18 - 18 18 - 18 19 - - 19 19 19"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -2081,7 +2097,7 @@ func Test_joinC(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "15 15 15 15 15 15 19 - - 19 19 19"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -2093,7 +2109,7 @@ func Test_joinC(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "11 11 - 11 11 - 13 - 13 13 13 - 15 15 15 15 15 15 19 - - 19 19 19"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -2105,7 +2121,7 @@ func Test_joinC(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "15 15 15 15 15 15 17 17 - 17 - 17 18 - 18 18 - 18 19 - - 19 19 19"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -2117,7 +2133,7 @@ func Test_joinC(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "11 11 - 11 11 - 13 - 13 13 13 - 15 15 15 15 15 15 17 17 - 17 - 17 18 - 18 18 - 18 19 - - 19 19 19"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -2129,7 +2145,7 @@ func Test_joinC(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "- - - - - - 11 11 - 11 - - 12 12 12 12 - - 13 - 13 13 - - 15 15 15 15 15 15 17 17 - 17 - - 18 - 18 18 - - 19 - - 19 19 19"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -2141,7 +2157,7 @@ func Test_joinC(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "- - - - - - 11 11 - 11 11 - 12 12 12 12 - - 13 - 13 13 13 - 15 15 15 15 15 15 17 17 - 17 - - 18 - 18 18 - - 19 - - 19 19 19"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -2153,7 +2169,7 @@ func Test_joinC(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "- - - - - - 11 11 - 11 - - 12 12 12 12 - - 13 - 13 13 - - 15 15 15 15 15 15 17 17 - 17 - 17 18 - 18 18 - 18 19 - - 19 19 19"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -2165,7 +2181,7 @@ func Test_joinC(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "- - - - - - 11 11 - 11 11 - 12 12 12 12 - - 13 - 13 13 13 - 15 15 15 15 15 15 17 17 - 17 - 17 18 - 18 18 - 18 19 - - 19 19 19"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -2177,7 +2193,7 @@ func Test_joinC(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "- - - - - - 12 12 12 - - - 13 - 13 - - - 15 15 15 15 15 15 18 - 18 - - - 19 - - 19 19 19"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -2189,7 +2205,7 @@ func Test_joinC(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "- - - - - - 11 11 - 11 11 - 12 12 12 - - - 13 - 13 13 13 - 15 15 15 15 15 15 18 - 18 - - - 19 - - 19 19 19"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -2201,7 +2217,7 @@ func Test_joinC(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "- - - - - - 12 12 12 - - - 13 - 13 - - - 15 15 15 15 15 15 17 17 - 17 - 17 18 - 18 18 - 18 19 - - 19 19 19"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -2213,7 +2229,7 @@ func Test_joinC(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "- - - - - - 11 11 - 11 11 - 12 12 12 - - - 13 - 13 13 13 - 15 15 15 15 15 15 17 17 - 17 - 17 18 - 18 18 - 18 19 - - 19 19 19"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -2225,7 +2241,7 @@ func Test_joinC(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "- - - - - - - - - - - - 11 11 - 11 - - 12 12 12 12 - - 13 - 13 13 - - 15 15 15 15 15 15 17 17 - 17 - - 18 - 18 18 - - 19 - - 19 19 19"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -2237,7 +2253,7 @@ func Test_joinC(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "- - - - - - - - - - - - 11 11 - 11 11 - 12 12 12 12 - - 13 - 13 13 13 - 15 15 15 15 15 15 17 17 - 17 - - 18 - 18 18 - - 19 - - 19 19 19"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -2249,7 +2265,7 @@ func Test_joinC(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "- - - - - - - - - - - - 11 11 - 11 - - 12 12 12 12 - - 13 - 13 13 - - 15 15 15 15 15 15 17 17 - 17 - 17 18 - 18 18 - 18 19 - - 19 19 19"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -2261,7 +2277,7 @@ func Test_joinC(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "- - - - - - - - - - - - 11 11 - 11 11 - 12 12 12 12 - - 13 - 13 13 13 - 15 15 15 15 15 15 17 17 - 17 - 17 18 - 18 18 - 18 19 - - 19 19 19"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -2273,7 +2289,7 @@ func Test_joinC(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "- - - - - - 12 12 12 - - - 13 - 13 - - - 15 15 15 15 15 15 18 - 18 - - - 19 - - 19 19 19"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -2285,7 +2301,7 @@ func Test_joinC(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "- - - - - - 11 11 - 11 11 - 12 12 12 - - - 13 - 13 13 13 - 15 15 15 15 15 15 18 - 18 - - - 19 - - 19 19 19"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -2297,7 +2313,7 @@ func Test_joinC(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "- - - - - - 12 12 12 - - - 13 - 13 - - - 15 15 15 15 15 15 17 17 - 17 - 17 18 - 18 18 - 18 19 - - 19 19 19"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -2309,7 +2325,7 @@ func Test_joinC(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "- - - - - - 11 11 - 11 11 - 12 12 12 - - - 13 - 13 13 13 - 15 15 15 15 15 15 17 17 - 17 - 17 18 - 18 18 - 18 19 - - 19 19 19"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -2321,7 +2337,7 @@ func Test_joinC(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "- - - - - - - - - - - - 11 11 - 11 - - 12 12 12 12 - - 13 - 13 13 - - 15 15 15 15 15 15 17 17 - 17 - - 18 - 18 18 - - 19 - - 19 19 19"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -2333,7 +2349,7 @@ func Test_joinC(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "- - - - - - - - - - - - 11 11 - 11 11 - 12 12 12 12 - - 13 - 13 13 13 - 15 15 15 15 15 15 17 17 - 17 - - 18 - 18 18 - - 19 - - 19 19 19"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -2345,7 +2361,7 @@ func Test_joinC(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "- - - - - - - - - - - - 11 11 - 11 - - 12 12 12 12 - - 13 - 13 13 - - 15 15 15 15 15 15 17 17 - 17 - 17 18 - 18 18 - 18 19 - - 19 19 19"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -2357,7 +2373,7 @@ func Test_joinC(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "- - - - - - - - - - - - 11 11 - 11 11 - 12 12 12 12 - - 13 - 13 13 13 - 15 15 15 15 15 15 17 17 - 17 - 17 18 - 18 18 - 18 19 - - 19 19 19"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -2369,7 +2385,7 @@ func Test_joinC(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "11 11 - - - - 12 12 - - - - 15 15 15 15 15 15 17 17 - - - -"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -2381,7 +2397,7 @@ func Test_joinC(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "11 11 - - - - 12 12 - - - - 13 - 13 13 13 - 15 15 15 15 15 15 17 17 - - - -"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -2393,7 +2409,7 @@ func Test_joinC(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "11 11 - - - - 12 12 - - - - 15 15 15 15 15 15 17 17 - - - - 18 - 18 18 - 18"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -2405,7 +2421,7 @@ func Test_joinC(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "11 11 - - - - 12 12 - - - - 13 - 13 13 13 - 15 15 15 15 15 15 17 17 - - - - 18 - 18 18 - 18"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -2417,7 +2433,7 @@ func Test_joinC(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "11 11 - - - - 12 12 12 12 - - 13 - 13 13 - - 15 15 15 15 15 15 17 17 - - - - 18 - 18 18 - -"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -2429,7 +2445,7 @@ func Test_joinC(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "11 11 - - - - 12 12 12 12 - - 13 - 13 13 13 - 15 15 15 15 15 15 17 17 - - - - 18 - 18 18 - -"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -2441,7 +2457,7 @@ func Test_joinC(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "11 11 - - - - 12 12 12 12 - - 13 - 13 13 - - 15 15 15 15 15 15 17 17 - - - - 18 - 18 18 - 18"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -2453,7 +2469,7 @@ func Test_joinC(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "11 11 - - - - 12 12 12 12 - - 13 - 13 13 13 - 15 15 15 15 15 15 17 17 - - - - 18 - 18 18 - 18"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -2465,7 +2481,7 @@ func Test_joinC(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "11 11 - - - - 12 12 - - - - 15 15 15 15 15 15 17 17 - - - -"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -2477,7 +2493,7 @@ func Test_joinC(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "11 11 - - - - 12 12 - - - - 13 - 13 13 13 - 15 15 15 15 15 15 17 17 - - - -"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -2489,7 +2505,7 @@ func Test_joinC(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "11 11 - - - - 12 12 - - - - 15 15 15 15 15 15 17 17 - - - - 18 - 18 18 - 18"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -2501,7 +2517,7 @@ func Test_joinC(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "11 11 - - - - 12 12 - - - - 13 - 13 13 13 - 15 15 15 15 15 15 17 17 - - - - 18 - 18 18 - 18"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -2513,7 +2529,7 @@ func Test_joinC(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "11 11 - - - - 12 12 12 12 - - 13 - 13 13 - - 15 15 15 15 15 15 17 17 - - - - 18 - 18 18 - -"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -2525,7 +2541,7 @@ func Test_joinC(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "11 11 - - - - 12 12 12 12 - - 13 - 13 13 13 - 15 15 15 15 15 15 17 17 - - - - 18 - 18 18 - -"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -2537,7 +2553,7 @@ func Test_joinC(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "11 11 - - - - 12 12 12 12 - - 13 - 13 13 - - 15 15 15 15 15 15 17 17 - - - - 18 - 18 18 - 18"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -2549,7 +2565,7 @@ func Test_joinC(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "11 11 - - - - 12 12 12 12 - - 13 - 13 13 13 - 15 15 15 15 15 15 17 17 - - - - 18 - 18 18 - 18"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -2561,7 +2577,7 @@ func Test_joinC(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "- - - - - - 11 11 - - - - 12 12 12 - - - 13 - 13 - - - 15 15 15 15 15 15 17 17 - - - - 18 - 18 - - -"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -2573,7 +2589,7 @@ func Test_joinC(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "- - - - - - 11 11 - - - - 12 12 12 - - - 13 - 13 13 13 - 15 15 15 15 15 15 17 17 - - - - 18 - 18 - - -"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -2585,7 +2601,7 @@ func Test_joinC(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "- - - - - - 11 11 - - - - 12 12 12 - - - 13 - 13 - - - 15 15 15 15 15 15 17 17 - - - - 18 - 18 18 - 18"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -2597,7 +2613,7 @@ func Test_joinC(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "- - - - - - 11 11 - - - - 12 12 12 - - - 13 - 13 13 13 - 15 15 15 15 15 15 17 17 - - - - 18 - 18 18 - 18"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -2609,7 +2625,7 @@ func Test_joinC(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "- - - - - - 11 11 - - - - 12 12 12 12 - - 13 - 13 13 - - 15 15 15 15 15 15 17 17 - - - - 18 - 18 18 - -"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -2621,7 +2637,7 @@ func Test_joinC(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "- - - - - - 11 11 - - - - 12 12 12 12 - - 13 - 13 13 13 - 15 15 15 15 15 15 17 17 - - - - 18 - 18 18 - -"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -2633,7 +2649,7 @@ func Test_joinC(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "- - - - - - 11 11 - - - - 12 12 12 12 - - 13 - 13 13 - - 15 15 15 15 15 15 17 17 - - - - 18 - 18 18 - 18"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -2645,7 +2661,7 @@ func Test_joinC(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "- - - - - - 11 11 - - - - 12 12 12 12 - - 13 - 13 13 13 - 15 15 15 15 15 15 17 17 - - - - 18 - 18 18 - 18"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -2657,7 +2673,7 @@ func Test_joinC(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "- - - - - - 11 11 - - - - 12 12 12 - - - 13 - 13 - - - 15 15 15 15 15 15 17 17 - - - - 18 - 18 - - -"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -2669,7 +2685,7 @@ func Test_joinC(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "- - - - - - 11 11 - - - - 12 12 12 - - - 13 - 13 13 13 - 15 15 15 15 15 15 17 17 - - - - 18 - 18 - - -"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -2681,7 +2697,7 @@ func Test_joinC(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "- - - - - - 11 11 - - - - 12 12 12 - - - 13 - 13 - - - 15 15 15 15 15 15 17 17 - - - - 18 - 18 18 - 18"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -2693,7 +2709,7 @@ func Test_joinC(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "- - - - - - 11 11 - - - - 12 12 12 - - - 13 - 13 13 13 - 15 15 15 15 15 15 17 17 - - - - 18 - 18 18 - 18"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -2705,7 +2721,7 @@ func Test_joinC(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "- - - - - - 11 11 - - - - 12 12 12 12 - - 13 - 13 13 - - 15 15 15 15 15 15 17 17 - - - - 18 - 18 18 - -"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -2717,7 +2733,7 @@ func Test_joinC(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "- - - - - - 11 11 - - - - 12 12 12 12 - - 13 - 13 13 13 - 15 15 15 15 15 15 17 17 - - - - 18 - 18 18 - -"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -2729,7 +2745,7 @@ func Test_joinC(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "- - - - - - 11 11 - - - - 12 12 12 12 - - 13 - 13 13 - - 15 15 15 15 15 15 17 17 - - - - 18 - 18 18 - 18"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -2741,7 +2757,7 @@ func Test_joinC(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "- - - - - - 11 11 - - - - 12 12 12 12 - - 13 - 13 13 13 - 15 15 15 15 15 15 17 17 - - - - 18 - 18 18 - 18"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -2753,7 +2769,7 @@ func Test_joinC(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "11 11 - - - - 12 12 - - - - 15 15 15 15 15 15 17 17 - - - - 19 - - 19 19 19"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -2765,7 +2781,7 @@ func Test_joinC(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "11 11 - 11 11 - 12 12 - - - - 13 - 13 13 13 - 15 15 15 15 15 15 17 17 - - - - 19 - - 19 19 19"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -2777,7 +2793,7 @@ func Test_joinC(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "11 11 - - - - 12 12 - - - - 15 15 15 15 15 15 17 17 - 17 - 17 18 - 18 18 - 18 19 - - 19 19 19"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -2789,7 +2805,7 @@ func Test_joinC(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "11 11 - 11 11 - 12 12 - - - - 13 - 13 13 13 - 15 15 15 15 15 15 17 17 - 17 - 17 18 - 18 18 - 18 19 - - 19 19 19"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -2801,7 +2817,7 @@ func Test_joinC(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "- - - - - - 11 11 - 11 - - 12 12 12 12 - - 13 - 13 13 - - 15 15 15 15 15 15 17 17 - 17 - - 18 - 18 18 - - 19 - - 19 19 19"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -2813,7 +2829,7 @@ func Test_joinC(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "- - - - - - 11 11 - 11 11 - 12 12 12 12 - - 13 - 13 13 13 - 15 15 15 15 15 15 17 17 - 17 - - 18 - 18 18 - - 19 - - 19 19 19"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -2825,7 +2841,7 @@ func Test_joinC(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "- - - - - - 11 11 - 11 - - 12 12 12 12 - - 13 - 13 13 - - 15 15 15 15 15 15 17 17 - 17 - 17 18 - 18 18 - 18 19 - - 19 19 19"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -2837,7 +2853,7 @@ func Test_joinC(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "- - - - - - 11 11 - 11 11 - 12 12 12 12 - - 13 - 13 13 13 - 15 15 15 15 15 15 17 17 - 17 - 17 18 - 18 18 - 18 19 - - 19 19 19"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -2849,7 +2865,7 @@ func Test_joinC(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "11 11 - - - - 12 12 - - - - 15 15 15 15 15 15 17 17 - - - - 19 - - 19 19 19"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -2861,7 +2877,7 @@ func Test_joinC(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "11 11 - 11 11 - 12 12 - - - - 13 - 13 13 13 - 15 15 15 15 15 15 17 17 - - - - 19 - - 19 19 19"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -2873,7 +2889,7 @@ func Test_joinC(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "11 11 - - - - 12 12 - - - - 15 15 15 15 15 15 17 17 - 17 - 17 18 - 18 18 - 18 19 - - 19 19 19"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -2885,7 +2901,7 @@ func Test_joinC(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "11 11 - 11 11 - 12 12 - - - - 13 - 13 13 13 - 15 15 15 15 15 15 17 17 - 17 - 17 18 - 18 18 - 18 19 - - 19 19 19"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -2897,7 +2913,7 @@ func Test_joinC(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "- - - - - - 11 11 - 11 - - 12 12 12 12 - - 13 - 13 13 - - 15 15 15 15 15 15 17 17 - 17 - - 18 - 18 18 - - 19 - - 19 19 19"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -2909,7 +2925,7 @@ func Test_joinC(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "- - - - - - 11 11 - 11 11 - 12 12 12 12 - - 13 - 13 13 13 - 15 15 15 15 15 15 17 17 - 17 - - 18 - 18 18 - - 19 - - 19 19 19"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -2921,7 +2937,7 @@ func Test_joinC(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "- - - - - - 11 11 - 11 - - 12 12 12 12 - - 13 - 13 13 - - 15 15 15 15 15 15 17 17 - 17 - 17 18 - 18 18 - 18 19 - - 19 19 19"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -2933,7 +2949,7 @@ func Test_joinC(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "- - - - - - 11 11 - 11 11 - 12 12 12 12 - - 13 - 13 13 13 - 15 15 15 15 15 15 17 17 - 17 - 17 18 - 18 18 - 18 19 - - 19 19 19"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -2945,7 +2961,7 @@ func Test_joinC(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "- - - - - - 11 11 - - - - 12 12 12 - - - 13 - 13 - - - 15 15 15 15 15 15 17 17 - - - - 18 - 18 - - - 19 - - 19 19 19"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -2957,7 +2973,7 @@ func Test_joinC(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "- - - - - - 11 11 - 11 11 - 12 12 12 - - - 13 - 13 13 13 - 15 15 15 15 15 15 17 17 - - - - 18 - 18 - - - 19 - - 19 19 19"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -2969,7 +2985,7 @@ func Test_joinC(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "- - - - - - 11 11 - - - - 12 12 12 - - - 13 - 13 - - - 15 15 15 15 15 15 17 17 - 17 - 17 18 - 18 18 - 18 19 - - 19 19 19"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -2981,7 +2997,7 @@ func Test_joinC(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "- - - - - - 11 11 - 11 11 - 12 12 12 - - - 13 - 13 13 13 - 15 15 15 15 15 15 17 17 - 17 - 17 18 - 18 18 - 18 19 - - 19 19 19"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -2993,7 +3009,7 @@ func Test_joinC(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "- - - - - - - - - - - - 11 11 - 11 - - 12 12 12 12 - - 13 - 13 13 - - 15 15 15 15 15 15 17 17 - 17 - - 18 - 18 18 - - 19 - - 19 19 19"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -3005,7 +3021,7 @@ func Test_joinC(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "- - - - - - - - - - - - 11 11 - 11 11 - 12 12 12 12 - - 13 - 13 13 13 - 15 15 15 15 15 15 17 17 - 17 - - 18 - 18 18 - - 19 - - 19 19 19"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -3017,7 +3033,7 @@ func Test_joinC(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "- - - - - - - - - - - - 11 11 - 11 - - 12 12 12 12 - - 13 - 13 13 - - 15 15 15 15 15 15 17 17 - 17 - 17 18 - 18 18 - 18 19 - - 19 19 19"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -3029,7 +3045,7 @@ func Test_joinC(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "- - - - - - - - - - - - 11 11 - 11 11 - 12 12 12 12 - - 13 - 13 13 13 - 15 15 15 15 15 15 17 17 - 17 - 17 18 - 18 18 - 18 19 - - 19 19 19"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -3041,7 +3057,7 @@ func Test_joinC(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "- - - - - - 11 11 - - - - 12 12 12 - - - 13 - 13 - - - 15 15 15 15 15 15 17 17 - - - - 18 - 18 - - - 19 - - 19 19 19"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -3053,7 +3069,7 @@ func Test_joinC(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "- - - - - - 11 11 - 11 11 - 12 12 12 - - - 13 - 13 13 13 - 15 15 15 15 15 15 17 17 - - - - 18 - 18 - - - 19 - - 19 19 19"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -3065,7 +3081,7 @@ func Test_joinC(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "- - - - - - 11 11 - - - - 12 12 12 - - - 13 - 13 - - - 15 15 15 15 15 15 17 17 - 17 - 17 18 - 18 18 - 18 19 - - 19 19 19"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -3077,7 +3093,7 @@ func Test_joinC(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "- - - - - - 11 11 - 11 11 - 12 12 12 - - - 13 - 13 13 13 - 15 15 15 15 15 15 17 17 - 17 - 17 18 - 18 18 - 18 19 - - 19 19 19"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -3089,7 +3105,7 @@ func Test_joinC(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "- - - - - - - - - - - - 11 11 - 11 - - 12 12 12 12 - - 13 - 13 13 - - 15 15 15 15 15 15 17 17 - 17 - - 18 - 18 18 - - 19 - - 19 19 19"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -3101,7 +3117,7 @@ func Test_joinC(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "- - - - - - - - - - - - 11 11 - 11 11 - 12 12 12 12 - - 13 - 13 13 13 - 15 15 15 15 15 15 17 17 - 17 - - 18 - 18 18 - - 19 - - 19 19 19"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -3113,7 +3129,7 @@ func Test_joinC(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "- - - - - - - - - - - - 11 11 - 11 - - 12 12 12 12 - - 13 - 13 13 - - 15 15 15 15 15 15 17 17 - 17 - 17 18 - 18 18 - 18 19 - - 19 19 19"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -3125,7 +3141,7 @@ func Test_joinC(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "- - - - - - - - - - - - 11 11 - 11 11 - 12 12 12 12 - - 13 - 13 13 13 - 15 15 15 15 15 15 17 17 - 17 - 17 18 - 18 18 - 18 19 - - 19 19 19"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}

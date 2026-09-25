@@ -6,6 +6,7 @@ package fkey5
 
 import (
 "errors"
+"fmt"
 "github.com/pijalu/frigolite"
 "github.com/pijalu/frigolite/internal/vtab"
 "os"
@@ -20,6 +21,21 @@ func Test_fkey5(t *testing.T) {
 		t.Fatal(err)
 	}
 	defer db.Close()
+
+	// auto-installed test-extension functions (src/test_func.c)
+	db.RegisterFunction("test_error", func(args []interface{}) (interface{}, error) {
+		msg := ""
+		if len(args) > 0 && args[0] != nil {
+			msg = fmt.Sprintf("%v", args[0])
+		}
+		return nil, fmt.Errorf("%s", msg)
+	}, 1, 2)
+	db.RegisterFunction("test_isolation", func(args []interface{}) (interface{}, error) {
+		if len(args) < 2 {
+			return nil, nil
+		}
+		return args[1], nil
+	}, 2, 2)
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
@@ -81,7 +97,7 @@ func Test_fkey5(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "{}"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -111,7 +127,7 @@ func Test_fkey5(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "{}"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -123,7 +139,7 @@ func Test_fkey5(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "0 0 p1 x {} NO ACTION NO ACTION NONE"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -139,7 +155,7 @@ func Test_fkey5(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "{}"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -151,7 +167,7 @@ func Test_fkey5(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "c2 76 p2 0 c2 79 p2 0"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -163,7 +179,7 @@ func Test_fkey5(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "c2 76 p2 0 c2 79 p2 0"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -175,7 +191,7 @@ func Test_fkey5(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "c6 1 p2 0 c6 3 p2 0"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -187,7 +203,7 @@ func Test_fkey5(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "c6 1 p2 0 c6 3 p2 0"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -199,7 +215,7 @@ func Test_fkey5(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "c10 1 p2 0 c10 3 p2 0"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -211,7 +227,7 @@ func Test_fkey5(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "c10 1 p2 0 c10 3 p2 0"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -223,7 +239,7 @@ func Test_fkey5(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "c3 65 p3 0 c3 68 p3 0"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -235,7 +251,7 @@ func Test_fkey5(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "c3 65 p3 0 c3 68 p3 0"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -247,7 +263,7 @@ func Test_fkey5(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "c7 1 p3 0 c7 3 p3 0 c7 4 p3 0 c7 6 p3 0"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -259,7 +275,7 @@ func Test_fkey5(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "c7 1 p3 0 c7 3 p3 0 c7 4 p3 0 c7 6 p3 0"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -271,7 +287,7 @@ func Test_fkey5(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "c11 1 p3 0 c11 3 p3 0 c11 4 p3 0 c11 6 p3 0"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -283,7 +299,7 @@ func Test_fkey5(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "c11 1 p3 0 c11 3 p3 0 c11 4 p3 0 c11 6 p3 0"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -295,7 +311,7 @@ func Test_fkey5(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "c4 54 p4 0 c4 56 p4 0"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -307,7 +323,7 @@ func Test_fkey5(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "c4 54 p4 0 c4 56 p4 0"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -319,7 +335,7 @@ func Test_fkey5(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "c8 1 p4 0 c8 3 p4 0 c8 6 p4 0"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -331,7 +347,7 @@ func Test_fkey5(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "c8 1 p4 0 c8 3 p4 0 c8 6 p4 0"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -343,7 +359,7 @@ func Test_fkey5(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "c12 1 p4 0 c12 3 p4 0 c12 6 p4 0"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -355,7 +371,7 @@ func Test_fkey5(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "c12 1 p4 0 c12 3 p4 0 c12 6 p4 0"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -400,7 +416,7 @@ func Test_fkey5(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "c14 1 p4 0 c14 3 p4 0 c14 6 p4 0"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -412,7 +428,7 @@ func Test_fkey5(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "c13 1 p3 0 c13 2 p3 0 c13 3 p3 0 c13 4 p3 0 c13 5 p3 0 c13 6 p3 0"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -424,7 +440,7 @@ func Test_fkey5(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "c19 1 p5 0"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -436,7 +452,7 @@ func Test_fkey5(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "{}"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -448,7 +464,7 @@ func Test_fkey5(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "c20 1 p5 0"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -460,7 +476,7 @@ func Test_fkey5(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "{}"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -472,7 +488,7 @@ func Test_fkey5(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "{}"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -484,7 +500,7 @@ func Test_fkey5(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "{}"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -496,7 +512,7 @@ func Test_fkey5(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "c22 1 p6 0"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -511,7 +527,7 @@ func Test_fkey5(t *testing.T) {
 		got := flatten(r)
 		want := tclListFlatten("{}")
 		got = tclListFlattenCollapse(got)
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -524,7 +540,7 @@ func Test_fkey5(t *testing.T) {
 		got := flatten(r)
 		want := tclListFlatten("{}")
 		got = tclListFlattenCollapse(got)
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -536,7 +552,7 @@ func Test_fkey5(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "k1 2 s1 0"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -549,7 +565,7 @@ func Test_fkey5(t *testing.T) {
 		got := flatten(r)
 		want := tclListFlatten("{}")
 		got = tclListFlattenCollapse(got)
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -562,7 +578,7 @@ func Test_fkey5(t *testing.T) {
 		got := flatten(r)
 		want := tclListFlatten("{}")
 		got = tclListFlattenCollapse(got)
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -575,7 +591,7 @@ func Test_fkey5(t *testing.T) {
 		got := flatten(r)
 		want := tclListFlatten("{}")
 		got = tclListFlattenCollapse(got)
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -587,7 +603,7 @@ func Test_fkey5(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "k2 3 s1 0"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -618,7 +634,7 @@ func Test_fkey5(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "c30 {} p30 0"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -656,7 +672,7 @@ func Test_fkey5(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "t1 5 t2 0 t1 7 t2 0 t1 9 t2 0"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -668,7 +684,7 @@ func Test_fkey5(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "t1 9 t2 0"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -680,7 +696,7 @@ func Test_fkey5(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "t1 9 t2 0 x"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -698,7 +714,7 @@ func Test_fkey5(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "t1 9 t2 0 x"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -718,7 +734,7 @@ func Test_fkey5(t *testing.T) {
 		got := flatten(r)
 		want := tclListFlatten("{}")
 		got = tclListFlattenCollapse(got)
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -732,7 +748,7 @@ func Test_fkey5(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "t1 9 t2 0 | t3 2 t1 0 |"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
