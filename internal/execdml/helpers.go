@@ -22,36 +22,40 @@ func parseIndexColumns(sqlStr string) []string {
 	if end < 0 || end <= start {
 		return nil
 	}
-	colsStr := sqlStr[start+1 : end]
 	var cols []string
-	for _, c := range strings.Split(colsStr, ",") {
+	for _, c := range strings.Split(sqlStr[start+1 : end], ",") {
 		col := strings.TrimSpace(c)
 		if col == "" {
 			continue
 		}
-		// Strip a COLLATE clause and ASC/DESC suffix so "c COLLATE nocase"
-		// resolves to the column "c". The collation is captured separately by
-		// parseIndexColumnCollations.
-		if ci := strings.Index(strings.ToUpper(col), " COLLATE "); ci >= 0 {
-			col = strings.TrimSpace(col[:ci])
-		}
-		cu := strings.ToUpper(col)
-		if di := strings.Index(cu, " DESC"); di >= 0 {
-			col = strings.TrimSpace(col[:di])
-		} else if ai := strings.Index(cu, " ASC"); ai >= 0 {
-			col = strings.TrimSpace(col[:ai])
-		}
-		// SQLite stores the UNQUOTED identifier in the schema (build.c
-		// sqlite3CreateIndex keeps the token text after dequoting): a quoted
-		// column — including the zero-length name ("" "", tkt-78e04e52ea) —
-		// must compare equal to its bare name wherever the planner resolves
-		// index columns against column references.
-		if col != "" && (col[0] == '"' || col[0] == '`' || col[0] == '[') {
-			col = quotedToken(col)
-		}
-		cols = append(cols, col)
+		cols = append(cols, indexKeyColName(col))
 	}
 	return cols
+}
+
+// indexKeyColName reduces one CREATE INDEX key item to its column name:
+// strips a COLLATE clause and ASC/DESC suffix so "c COLLATE nocase" resolves
+// to the column "c" (the collation is captured separately by
+// parseIndexColumnCollations), then dequotes the identifier.
+func indexKeyColName(col string) string {
+	if ci := strings.Index(strings.ToUpper(col), " COLLATE "); ci >= 0 {
+		col = strings.TrimSpace(col[:ci])
+	}
+	cu := strings.ToUpper(col)
+	if di := strings.Index(cu, " DESC"); di >= 0 {
+		col = strings.TrimSpace(col[:di])
+	} else if ai := strings.Index(cu, " ASC"); ai >= 0 {
+		col = strings.TrimSpace(col[:ai])
+	}
+	// SQLite stores the UNQUOTED identifier in the schema (build.c
+	// sqlite3CreateIndex keeps the token text after dequoting): a quoted
+	// column — including the zero-length name ("" "", tkt-78e04e52ea) —
+	// must compare equal to its bare name wherever the planner resolves
+	// index columns against column references.
+	if col != "" && (col[0] == '"' || col[0] == '`' || col[0] == '[') {
+		col = quotedToken(col)
+	}
+	return col
 }
 
 // constraintNameBefore extracts the CONSTRAINT name from a column-definition
