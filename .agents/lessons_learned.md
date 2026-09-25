@@ -9104,3 +9104,47 @@ regenerated; suite net −2274 fails vs pre-tranche baseline (7230 → ~4950).
 - **gocognit 186 function (processSetBracketValue)** decomposed cleanly into a
   41-entry chain of one-concern guards; every resulting function ≤10 gocognit /
   ≤10 gocyclo.
+## T33d-db (2026-09-25) — §5d tcl2go closure: db-command + blob family
+
+- **Package-level dispatch-map vars create Go init cycles**: a
+  `var m = map[string]func(...){...}` whose method expressions transitively
+  reach back to a function that reads `m` (processDB → tclHandlers → … →
+  processDB) fails to compile with "initialization cycle". Fix: declare the
+  map var WITHOUT an initializer and build it lazily on first use
+  (`if m == nil { m = map... }` inside the getter) — Go's init-dependency
+  analysis only tracks initializer expressions, so a nil-guard build is safe
+  in this single-threaded tool. Applied to dbSubCmdHandler/namedDBSubCmdHandler.
+- **tcl2go regen is ~20% nondeterministic**: emitTclProcAliasRegistrations
+  (processset.go:1211) iterates the `tclProcVarAliases` MAP, so
+  indexfault_test.go's two `vtab.TclVarSet("install_custom_faultsim"/
+  "custom_injectstop", ...)` lines swap order in ~1 of 5 regens with an
+  IDENTICAL binary. Regen-diff gates must allow exactly this known flip
+  (fixed by sorting the alias keys — owner: processset slice, NOT T33d-db).
+- **Refactoring a match-chain? Preserve FALLTHROUGH, not just order**:
+  expectedStringExpr's bracketed branch ([...] word) must fall through to the
+  [binary format ...] checks when neither ifcapable nor userProc matches —
+  wrapping it in a helper that returns ("", false) killed the
+  e_blobopen comparison emission. When extracting chain steps, keep early
+  RETURNS only where the original returned; otherwise return a tri-state or
+  inline the branch.
+- **De Morgan inversions over 4-clause guards are the top regression source**:
+  emitSqlite3PreambleOpen's skip-guard was written `!wasOpened` instead of
+  `wasOpened` (original conjunct `!wasOpened` must be NEGATED into the
+  disjunction). Symptom was subtle: only the "declared-but-never-opened
+  secondary connection" shape degraded (7 testgen files), everything else
+  identical. Debug recipe: instrument the dispatch function with a one-line
+  fmt.Fprintf(os.Stderr) of ALL guard inputs (declared/wasOpened/dbClosed/
+  inEval), regen, grep the connection name — pins the wrong branch in one run.
+- **Many "fmt./strconv." appearances in this package are inside emitted
+  string LITERALS** (tp.emitLine format strings generating Go code), not real
+  calls — after extracting helpers, run goimports; unused-import errors are
+  expected and the fix is to trim the import block, not to keep dead imports.
+- **Worktree ori setup**: git worktree add materializes the 2 TRACKED files
+  under ori/sqlite/test/ (genesis.tcl, rtree_util.tcl), so
+  `ln -s ../ori ori` lands INSIDE an existing dir. Working recipe: symlink
+  each corpus file into ori/sqlite/test (`for f in <main>/ori/sqlite/test/*;
+  [ -e ] || ln -s …`), leaving the tracked two as real files.
+- **Stale testgen on main**: at fleet start, committed testgen/ differs from
+  the current transpiler output (2181 files) — earlier sibling merges did not
+  re-commit regen. First commit of a §5d slice should be a no-source-change
+  "baseline testgen regen" so subsequent byte-diff gates are enforceable.
