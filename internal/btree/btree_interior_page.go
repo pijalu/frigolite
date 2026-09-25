@@ -54,40 +54,6 @@ func (t *BTree) encodeDividerCell(leftChild uint32, res leafSplitResult, ownerPg
 	// varint, no payload bytes): carrying the full separator payload in the
 	// parent destabilized the balance paths at scale. See splitMedianKey.
 	return t.encodeInteriorCell(leftChild, uint64(len(res.medianPayload))), nil
-	// A divider key that would spill to overflow is encoded with an EMPTY
-	// payload (plen 0): empty sorts before every record, so descent routes
-	// every insert to the divider's right subtree, where the split placed
-	// the spilled-key leaf. This keeps dividers chain-free — no shared or
-	// relocated overflow bookkeeping on interior pages. (Single-leaf trees
-	// and locally-fitting dividers — the overwhelming majority — carry the
-	// full separator payload.)
-	plen := len(res.medianPayload)
-	if storage.LocalPayloadSize(plen, int(t.usableSize), storage.CellIndexLeaf) < plen {
-		buf := make([]byte, 5)
-		binary.BigEndian.PutUint32(buf, leftChild)
-		buf[4] = 0
-		return buf, nil
-	}
-	return storage.EncodeCell(&storage.Cell{
-		Type:    storage.CellIndexInterior,
-		LeftPtr: leftChild,
-		Payload: res.medianPayload,
-	}), nil
-}
-
-// mustEncodeDividerCell is encodeDividerCell for re-encode sites that
-// already validated the divider fits: an overflow-allocation failure falls
-// back to a local-only cell rather than corrupting the page.
-func (t *BTree) mustEncodeDividerCell(leftChild uint32, res leafSplitResult, ownerPgno uint32) []byte {
-	data, err := t.encodeDividerCell(leftChild, res, ownerPgno)
-	if err != nil {
-		return storage.EncodeCell(&storage.Cell{
-			Type:    storage.CellIndexInterior,
-			LeftPtr: leftChild,
-			Payload: res.medianPayload,
-		})
-	}
-	return data
 }
 
 // dividerCellLen reports the encoded size of one divider cell (the room
@@ -261,34 +227,48 @@ func (t *BTree) applyChildSplits(pg *pager.Page, page *storage.BTreePage, origCh
 	}
 
 	if t.isTable {
-		// Carry the upper bound through the chain: the ORIGINAL cell's key.
-		carrierKey := t.cellKeyAt(pg, ptrBase, idx)
-		deadBytes, err := t.rekeyCarrierChain(pg, page, coff, ptroff, ptrBase, idx, origChild, carrierKey, splits)
-		if err != nil {
-			return err
-		}
-		if deadBytes > 0 {
-			// Every re-key RELOCATED a divider, abandoning its old bytes above
-			// the new content start. Those bytes are inside the content area but
-			// belong to no cell — untracked free space that sqlite3
-			// integrity_check reports as "Fragmentation of N bytes reported as
-			// M". Repack the surviving dividers contiguously (defragmentPage
-			// parity) so no untracked hole remains.
-			if err := t.defragmentInterior(pg, page); err != nil {
-				return err
-			}
-		}
-		return t.pager.WritePage(pg)
+		return t.applyTableChildSplits(pg, page, coff, ptroff, ptrBase, idx, origChild, splits)
 	}
-	// Index b-tree: the carrier is the ORIGINAL divider's record payload; the
-	// chain re-encodes divider cells with their new separator payloads.
+	return t.applyIndexChildSplits(pg, page, coff, ptroff, ptrBase, idx, origChild, splits)
+}
+
+// applyTableChildSplits re-keys a table b-tree interior page after a child
+// split: the ORIGINAL cell keeps its left child but takes the first split's
+// median as its key, and each new sibling is inserted right after it
+// carrying the PREVIOUS upper bound.
+func (t *BTree) applyTableChildSplits(pg *pager.Page, page *storage.BTreePage, coff, ptroff, ptrBase, idx int, origChild uint32, splits []leafSplitResult) error {
+	// Carry the upper bound through the chain: the ORIGINAL cell's key.
+	carrierKey := t.cellKeyAt(pg, ptrBase, idx)
+	deadBytes, err := t.rekeyCarrierChain(pg, page, coff, ptroff, ptrBase, idx, origChild, carrierKey, splits)
+	if err != nil {
+		return err
+	}
+	return t.finishChildSplits(pg, page, deadBytes)
+}
+
+// applyIndexChildSplits re-keys an index b-tree interior page after a child
+// split: the carrier is the ORIGINAL divider's record payload; the chain
+// re-encodes divider cells with their new separator payloads.
+func (t *BTree) applyIndexChildSplits(pg *pager.Page, page *storage.BTreePage, coff, ptroff, ptrBase, idx int, origChild uint32, splits []leafSplitResult) error {
 	// Cloned: the chain's relocations rewrite pg.Data under it.
 	carrierPayload := append([]byte(nil), t.cellDividerPayloadAt(pg, ptrBase, idx)...)
 	deadBytes, err := t.rekeyCarrierChainIndex(pg, page, coff, ptroff, ptrBase, idx, origChild, carrierPayload, splits)
 	if err != nil {
 		return err
 	}
+	return t.finishChildSplits(pg, page, deadBytes)
+}
+
+// finishChildSplits repacks the abandoned divider bytes and persists the
+// re-keyed page.
+func (t *BTree) finishChildSplits(pg *pager.Page, page *storage.BTreePage, deadBytes int) error {
 	if deadBytes > 0 {
+		// Every re-key RELOCATED a divider, abandoning its old bytes above
+		// the new content start. Those bytes are inside the content area but
+		// belong to no cell — untracked free space that sqlite3
+		// integrity_check reports as "Fragmentation of N bytes reported as
+		// M". Repack the surviving dividers contiguously (defragmentPage
+		// parity) so no untracked hole remains.
 		if err := t.defragmentInterior(pg, page); err != nil {
 			return err
 		}
