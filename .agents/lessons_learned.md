@@ -9277,3 +9277,17 @@ regenerated; suite net −2274 fails vs pre-tranche baseline (7230 → ~4950).
    — oracle-generated runtime files that only exist in the long-lived main
    checkout); triage such failures as environmental before suspecting the
    engine.
+8. **T33-win2 — view-declared column lists are POSITIONAL, name-matching is
+   not enough:** `CREATE VIEW v(x,y) AS SELECT a,b FROM t1` + `SELECT x,y
+   FROM v` NULLs every column under the omit-unused optimization when the
+   use-analyzer matches only the body's output names (a,b): the outer query
+   addresses the view's DECLARED names, which resolve to source iColumn
+   positionally (resolve.c). Fix: pass `ViewDeclaredColumns(entry.SQL)` into
+   disableUnusedSubqueryColumns and mark used[i] when an outer reference
+   matches declaredNames[i] (length-guarded against the body's output arity).
+   The same triage rule as T33-win applies: any NULL/empty result where a
+   value is expected, on a query with a FROM-subquery or view, is a
+   use-walk hole until proven otherwise — write the pure-Go probe first,
+   oracle-verify the want, and enumerate EVERY construct the outer query
+   can address a subquery/view column through (this class needed three
+   passes: window defs + subquery bodies, then declared view names).
