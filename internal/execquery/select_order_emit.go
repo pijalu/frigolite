@@ -42,6 +42,19 @@ func (e *SelectEngine) indexOrderedScanForOrderBy(s *sql.SelectStmt, orderBy []s
 	if !known || len(idxDescs) < len(cols) {
 		return "", false, false
 	}
+	backward, ok = orderByScanDirection(cols, descs, idxDescs)
+	if !ok {
+		return "", false, false
+	}
+	return idxName, backward, true
+}
+
+// orderByScanDirection matches each ORDER BY term's direction against the
+// index column's sort order: forward requires every direction to match the
+// index column's, backward requires every direction to be the opposite
+// (where.c sqlite3OrderByIsIndexed / pIndex->aSortOrder checks). ok is false
+// when neither direction satisfies the whole term list.
+func orderByScanDirection(cols []string, descs, idxDescs []bool) (backward, ok bool) {
 	forward := true
 	backward = true
 	for i := range cols {
@@ -52,10 +65,7 @@ func (e *SelectEngine) indexOrderedScanForOrderBy(s *sql.SelectStmt, orderBy []s
 			backward = false
 		}
 	}
-	if !forward && !backward {
-		return "", false, false
-	}
-	return idxName, backward, true
+	return backward, forward || backward
 }
 
 // orderByTermColumnsWithDirs extracts the bare column names of an ORDER BY
@@ -136,10 +146,25 @@ func (e *SelectEngine) emitRowsInIndexOrder(result *Result, rowMaps []RowMap, ta
 		return false
 	}
 	if backward {
-		for i, j := 0, len(rowids)-1; i < j; i, j = i+1, j-1 {
-			rowids[i], rowids[j] = rowids[j], rowids[i]
-		}
+		// A backward scan reads the index b-tree in the opposite direction.
+		reverseRowids(rowids)
 	}
+	perm := indexOrderPermutation(rowids, scanRowidPositions(rowMaps), len(result.Rows))
+	e.permuteScanResults(result.Rows, rowMaps, perm)
+	return true
+}
+
+// reverseRowids reverses a stored rowid sequence in place.
+func reverseRowids(rowids []int64) {
+	for i, j := 0, len(rowids)-1; i < j; i, j = i+1, j-1 {
+		rowids[i], rowids[j] = rowids[j], rowids[i]
+	}
+}
+
+// scanRowidPositions maps each scan row's rowid to its position in the
+// result (rows without a rowid — none for a rowid-table scan — are never
+// keyed).
+func scanRowidPositions(rowMaps []RowMap) map[int64]int {
 	posByRowid := make(map[int64]int, len(rowMaps))
 	for i, m := range rowMaps {
 		if v := lookupRowMapValue(m, "rowid"); v != nil {
@@ -148,8 +173,15 @@ func (e *SelectEngine) emitRowsInIndexOrder(result *Result, rowMaps []RowMap, ta
 			}
 		}
 	}
-	used := make([]bool, len(result.Rows))
-	perm := make([]int, 0, len(result.Rows))
+	return posByRowid
+}
+
+// indexOrderPermutation permutes scan positions into the index's stored (or
+// reversed) key order; positions never keyed by the walk keep their relative
+// order at the end.
+func indexOrderPermutation(rowids []int64, posByRowid map[int64]int, n int) []int {
+	used := make([]bool, n)
+	perm := make([]int, 0, n)
 	for _, rid := range rowids {
 		if p, hit := posByRowid[rid]; hit && !used[p] {
 			used[p] = true
@@ -161,8 +193,7 @@ func (e *SelectEngine) emitRowsInIndexOrder(result *Result, rowMaps []RowMap, ta
 			perm = append(perm, p)
 		}
 	}
-	e.permuteScanResults(result.Rows, rowMaps, perm)
-	return true
+	return perm
 }
 
 // indexStoredRowidOrder walks the index b-tree and returns every entry's
@@ -189,12 +220,8 @@ func (e *SelectEngine) indexStoredRowidOrder(tableName, idxName string) ([]int64
 		if err != nil || cell == nil {
 			return nil, false
 		}
-		rec, err := storage.DecodeRecord(cell.Payload)
-		if err != nil || rec == nil || len(rec.Values) == 0 {
-			return nil, false
-		}
-		rid, isInt := util.UnwrapColumnValue(rec.Values[len(rec.Values)-1]).(int64)
-		if !isInt {
+		rid, ok := indexEntryRowid(cell)
+		if !ok {
 			return nil, false
 		}
 		rowids = append(rowids, rid)
@@ -204,4 +231,16 @@ func (e *SelectEngine) indexStoredRowidOrder(tableName, idxName string) ([]int64
 		}
 	}
 	return rowids, true
+}
+
+// indexEntryRowid decodes an index record's trailing rowid (index records
+// carry the rowid as their last element). ok is false on any decode failure
+// (the caller aborts the walk).
+func indexEntryRowid(cell *storage.Cell) (int64, bool) {
+	rec, err := storage.DecodeRecord(cell.Payload)
+	if err != nil || rec == nil || len(rec.Values) == 0 {
+		return 0, false
+	}
+	rid, isInt := util.UnwrapColumnValue(rec.Values[len(rec.Values)-1]).(int64)
+	return rid, isInt
 }
