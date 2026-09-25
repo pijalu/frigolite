@@ -189,6 +189,10 @@ func (e *Engine) registerFTSModules() {
 	// fts5tokenize (ext/fts5/fts5_test_tok.c): a tokenizer exposed as a
 	// virtual table; querying WHERE input = <text> returns one row per token.
 	e.vtabs.Register("fts5tokenize", fts5.NewTokenizeModule())
+	// fts5_structure (ext/fts5/fts5_index.c fts5struct*, SQLITE_TEST): the
+	// structure-record decoder TVF — FROM fts5_structure((SELECT block FROM
+	// <fts>_data WHERE id=10)) reports one row per segment.
+	e.vtabs.Register("fts5_structure", fts5.NewStructModule())
 	// fts4aux reads the FTS3/4 in-memory indexes (fts3_aux.c). Register it
 	// after the FTS modules so it can resolve the target table.
 	e.vtabs.Register("fts4aux", fts.NewFTS4AuxModule(map[string]*fts.FTS3Module{

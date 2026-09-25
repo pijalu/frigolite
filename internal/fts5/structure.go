@@ -119,12 +119,13 @@ func (sr *StructRec) encode() []byte {
 // with an error on the malformed shapes C rejects (bad varints, level/segment
 // count mismatch, pgnoLast<pgnoFirst).
 func decodeStructRec(data []byte) (*StructRec, error) {
-	if len(data) < 8 {
+	// Minimum record: legacy 4-byte cookie + three 1-byte varints.
+	if len(data) < 7 {
 		return nil, fmt.Errorf("database disk image is malformed")
 	}
 	sr := &StructRec{}
 	pos := 4 // cookie
-	if bytes.Equal(data[pos:pos+4], structureV2Marker) {
+	if len(data) >= 8 && bytes.Equal(data[pos:pos+4], structureV2Marker) {
 		sr.V2 = true
 		pos += 4
 	}
