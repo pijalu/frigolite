@@ -24,28 +24,8 @@ func (tp *transpiler) varValueExpr(args []tcl.RawWord) string {
 		return "db1Blob"
 	}
 	if !args[0].Braced && strings.HasPrefix(word, "$") {
-		trimmed := strings.TrimPrefix(word, "$")
-		// The word is a single variable reference only when the TCL
-		// variable-name scan consumes the whole text: bare names end at the
-		// first non-name character, array references at the closing ')'.
-		// Anything else is a concatenation — a trailing literal (`append sql
-		// $i,` — index2-1.2) folded through the name sanitizer produced an
-		// undefined identifier (`i_`).
-		if wholeTclVarRef(trimmed) {
-			name := tclVarToGo(trimmed)
-			// A bare word may hold ADJACENT references ($boundsign$bound):
-			// TCL ends a variable name at the next '$', so the word is a
-			// concatenation, not a single (sanitizer-mangled) identifier —
-			// render it through the general string-parts path (tabfunc01 1380).
-			if isValidGoIdent(name) && !strings.Contains(trimmed, "$") {
-				return name
-			}
-		}
-		if strings.Contains(word, "$") {
-			// Apply TCL bare-word escape processing before parsing ($s\n in
-			// trans2-2.3's `append modsql $s\n` appends a newline character,
-			// not a backslash-n pair).
-			return tp.buildStringExpr(unescapeBareWord(word))
+		if expr, ok := tp.dollarWordValueExpr(word); ok {
+			return expr
 		}
 	}
 	// A bracket command ([db one {...}], [string map ...], ...) evaluates at
@@ -59,47 +39,88 @@ func (tp *transpiler) varValueExpr(args []tcl.RawWord) string {
 	// REPL]` substitution (journal3.test 1.2.x.1: `set res
 	// "/[regsub {^00} $permissions {0.}]/"`) must be evaluated at SET
 	// time so later comparisons against $VAR see the real perm string
-	// ("/0.644/"), not the literal TCL text. The regsub body is split
-	// into SPEC, INPUT, REPL by whitespace; the resulting
-	// tclRegsub(SPEC, INPUT, REPL) call is wrapped in the literal
-	// prefix/suffix around the `[...]` substitution.
-	if spec, input, repl, ok := regsubSpecInSetValueSplit(word); ok {
-		openIdx := strings.Index(word, "[regsub ")
-		closeIdx := strings.LastIndex(word, "]")
-		if openIdx >= 0 && closeIdx > openIdx {
-			prefix := word[:openIdx]
-			suffix := word[closeIdx+1:]
-			// Render the literal $permissions reference as a Go var
-			// (the loop var) so tclRegsub actually applies the SPEC.
-			inputGo := strings.TrimSpace(input)
-			if strings.HasPrefix(inputGo, "$") {
-				inputGo = tclVarToGo(strings.TrimPrefix(inputGo, "$"))
-				if !isValidGoIdent(inputGo) {
-					inputGo = input
-				}
-			} else {
-				inputGo = strconv.Quote(inputGo)
-			}
-			// Pattern and replacement are TCL braced literals; strip
-			// the surrounding braces (if the whole word is braced)
-			// so the regex engine sees the raw characters (TCL quoting
-			// is part of the literal syntax, not the regex/replacement
-			// text). The SPEC is the whole regsub body which is
-			// brace-bracketed when there's exactly one braced group
-			// (e.g. `{^00}`); the REPL is also a single braced token.
-			pat := spec
-			if strings.HasPrefix(pat, "{") && strings.HasSuffix(pat, "}") {
-				pat = pat[1 : len(pat)-1]
-			}
-			rpl := repl
-			if strings.HasPrefix(rpl, "{") && strings.HasSuffix(rpl, "}") {
-				rpl = rpl[1 : len(rpl)-1]
-			}
-			return fmt.Sprintf("(%s + tclRegsub(%s, %s, %s) + %s)",
-				strconv.Quote(prefix), strconv.Quote(pat), inputGo, strconv.Quote(rpl), strconv.Quote(suffix))
-		}
+	// ("/0.644/"), not the literal TCL text.
+	if expr, ok := regsubInSetValueExpr(word); ok {
+		return expr
 	}
 	return tp.goStringLiteral(args[0])
+}
+
+// dollarWordValueExpr renders a $-prefixed word value. The word is a single
+// variable reference only when the TCL variable-name scan consumes the whole
+// text: bare names end at the first non-name character, array references at
+// the closing ')'. Anything else is a concatenation — a trailing literal
+// (`append sql $i,` — index2-1.2) folded through the name sanitizer produced
+// an undefined identifier (`i_`). A bare word may also hold ADJACENT
+// references ($boundsign$bound): TCL ends a variable name at the next '$',
+// so the word is a concatenation rendered through the general string-parts
+// path (tabfunc01 1380), after TCL bare-word escape processing ($s\n in
+// trans2-2.3's `append modsql $s\n` appends a newline character, not a
+// backslash-n pair).
+func (tp *transpiler) dollarWordValueExpr(word string) (string, bool) {
+	trimmed := strings.TrimPrefix(word, "$")
+	if wholeTclVarRef(trimmed) {
+		name := tclVarToGo(trimmed)
+		if isValidGoIdent(name) && !strings.Contains(trimmed, "$") {
+			return name, true
+		}
+	}
+	if strings.Contains(word, "$") {
+		return tp.buildStringExpr(unescapeBareWord(word)), true
+	}
+	return "", false
+}
+
+// regsubInputGoExpr renders the regsub INPUT word: a literal $permissions
+// reference becomes the Go var (the loop var) so tclRegsub actually applies
+// the SPEC; other text is quoted.
+func regsubInputGoExpr(input string) string {
+	inputGo := strings.TrimSpace(input)
+	if strings.HasPrefix(inputGo, "$") {
+		inputGo = tclVarToGo(strings.TrimPrefix(inputGo, "$"))
+		if !isValidGoIdent(inputGo) {
+			return input
+		}
+		return inputGo
+	}
+	return strconv.Quote(inputGo)
+}
+
+// stripOuterBraceLayer strips one surrounding brace pair so the regex engine
+// sees the raw characters (TCL quoting is part of the literal syntax, not
+// the regex/replacement text).
+func stripOuterBraceLayer(s string) string {
+	if strings.HasPrefix(s, "{") && strings.HasSuffix(s, "}") {
+		return s[1 : len(s)-1]
+	}
+	return s
+}
+
+// regsubInSetValueExpr renders a `set VAR "...[regsub SPEC INPUT REPL]..."`
+// value: the regsub body is split into SPEC, INPUT, REPL by whitespace; the
+// resulting tclRegsub(SPEC, INPUT, REPL) call is wrapped in the literal
+// prefix/suffix around the `[...]` substitution. Returns ok=false when the
+// word is not this shape.
+func regsubInSetValueExpr(word string) (string, bool) {
+	spec, input, repl, ok := regsubSpecInSetValueSplit(word)
+	if !ok {
+		return "", false
+	}
+	openIdx := strings.Index(word, "[regsub ")
+	closeIdx := strings.LastIndex(word, "]")
+	if openIdx < 0 || closeIdx <= openIdx {
+		return "", false
+	}
+	prefix := word[:openIdx]
+	suffix := word[closeIdx+1:]
+	inputGo := regsubInputGoExpr(input)
+	// Pattern and replacement are TCL braced literals; the SPEC is the whole
+	// regsub body which is brace-bracketed when there's exactly one braced
+	// group (e.g. `{^00}`); the REPL is also a single braced token.
+	pat := stripOuterBraceLayer(spec)
+	rpl := stripOuterBraceLayer(repl)
+	return fmt.Sprintf("(%s + tclRegsub(%s, %s, %s) + %s)",
+		strconv.Quote(prefix), strconv.Quote(pat), inputGo, strconv.Quote(rpl), strconv.Quote(suffix)), true
 }
 
 // wholeTclVarRef reports whether s (a TCL word with the leading '$' already
@@ -155,16 +176,9 @@ func regsubSpecInSetValue(word string) (string, bool) {
 	return rest[:end], true
 }
 
-// regsubSpecInSetValueSplit is regsubSpecInSetValue with the spec further
-// split into its 3 TCL args (pattern, input, replacement). The input is
-// left as the original TCL word (e.g. "$permissions") so the caller can
-// render it as a Go var reference; the pattern and replacement are the
-// literal TCL text (without the surrounding braces).
-func regsubSpecInSetValueSplit(word string) (pattern, input, replacement string, ok bool) {
-	spec, ok := regsubSpecInSetValue(word)
-	if !ok {
-		return "", "", "", false
-	}
+// splitSpecArgs splits a regsub spec body on top-level whitespace (braces
+// protect embedded spaces).
+func splitSpecArgs(spec string) []string {
 	var parts []string
 	depth := 0
 	start := 0
@@ -188,6 +202,20 @@ func regsubSpecInSetValueSplit(word string) (pattern, input, replacement string,
 	if start < len(spec) {
 		parts = append(parts, spec[start:])
 	}
+	return parts
+}
+
+// regsubSpecInSetValueSplit is regsubSpecInSetValue with the spec further
+// split into its 3 TCL args (pattern, input, replacement). The input is
+// left as the original TCL word (e.g. "$permissions") so the caller can
+// render it as a Go var reference; the pattern and replacement are the
+// literal TCL text (without the surrounding braces).
+func regsubSpecInSetValueSplit(word string) (pattern, input, replacement string, ok bool) {
+	spec, ok := regsubSpecInSetValue(word)
+	if !ok {
+		return "", "", "", false
+	}
+	parts := splitSpecArgs(spec)
 	if len(parts) < 3 {
 		return spec, "", "", false
 	}
@@ -330,55 +358,60 @@ func (tp *transpiler) emitIncrMapElement(base, key string, args []tcl.RawWord) {
 func (tp *transpiler) incrAmount(args []tcl.RawWord) string {
 	amount := "1"
 	if len(args) >= 2 {
-		// incr VAR [sqlite3_is_interrupted $DB] — increment by the
-		// connection's interrupt-flag state (0/1), matching the TCL harness
-		// (interrupt.test 2.5.2).
-		amountText := strings.TrimSpace(args[1].Text)
-		if strings.HasPrefix(amountText, "[sqlite3_is_interrupted ") && strings.HasSuffix(amountText, "]") {
-			inner := strings.TrimSuffix(strings.TrimPrefix(amountText, "["), "]")
-			fields := strings.Fields(inner)
-			if len(fields) >= 2 {
-				dbConn := tp.dbArgGo(fields[1])
-				amount = fmt.Sprintf("toInt(tclBool01(%s.IsInterrupted()))", dbConn)
-			}
-		} else if fields := strings.Fields(amountText); len(fields) >= 1 {
-			// incr VAR detect_blob FILE I — increment by the return value
-			// of detect_blob (0/1). detect_blob is a Tcl test helper that
-			// scans the file for a specific blob residue; the test harness
-			// uses it to verify secure_delete=1 zero-fills freed pages. The
-			// Frigolite pager does not implement zero-on-free, so the stub
-			// always returns 0 (matching the expected result when
-			// secure_delete works); the same stub also makes the Tcl
-			// `incr n [detect_blob {} $i]` line a no-op, which is what the
-			// testgen tests assert. We strip a leading `[` and trailing `]`
-			// so the `[cmd]`-form is recognized.
-			stripped := strings.TrimSuffix(strings.TrimPrefix(amountText, "["), "]")
-			strippedFields := strings.Fields(stripped)
-			if len(strippedFields) >= 1 && strippedFields[0] == "detect_blob" {
-				amount = "0"
-			} else if len(fields) == 1 && fields[0] == "detect_blob" {
-				amount = "0"
-			} else {
-				amountExpr := tp.goStringLiteral(args[1])
-				if len(amountExpr) >= 2 && amountExpr[0] == '"' && amountExpr[len(amountExpr)-1] == '"' {
-					amount = amountExpr[1 : len(amountExpr)-1]
-				} else {
-					amount = amountExpr
-				}
-			}
-		} else {
-			amountExpr := tp.goStringLiteral(args[1])
-			if len(amountExpr) >= 2 && amountExpr[0] == '"' && amountExpr[len(amountExpr)-1] == '"' {
-				amount = amountExpr[1 : len(amountExpr)-1]
-			} else {
-				amount = amountExpr
-			}
-		}
+		amount = tp.incrAmountFromWord(args[1])
 	}
-
 	// If amount is not a pure integer, wrap it in a strconv.Atoi conversion
 	// to avoid type mismatches (int + string).
 	return amount
+}
+
+// incrAmountGoExpr renders the literal amount word as a Go expression: the
+// goStringLiteral rendering is unwrapped from its quotes when it is a plain
+// literal.
+func (tp *transpiler) incrAmountGoExpr(w tcl.RawWord) string {
+	amountExpr := tp.goStringLiteral(w)
+	if len(amountExpr) >= 2 && amountExpr[0] == '"' && amountExpr[len(amountExpr)-1] == '"' {
+		return amountExpr[1 : len(amountExpr)-1]
+	}
+	return amountExpr
+}
+
+// incrAmountFromWord renders one `incr VAR AMOUNT` amount word.
+func (tp *transpiler) incrAmountFromWord(w tcl.RawWord) string {
+	amountText := strings.TrimSpace(w.Text)
+	// incr VAR [sqlite3_is_interrupted $DB] — increment by the
+	// connection's interrupt-flag state (0/1), matching the TCL harness
+	// (interrupt.test 2.5.2).
+	if strings.HasPrefix(amountText, "[sqlite3_is_interrupted ") && strings.HasSuffix(amountText, "]") {
+		inner := strings.TrimSuffix(strings.TrimPrefix(amountText, "["), "]")
+		fields := strings.Fields(inner)
+		if len(fields) >= 2 {
+			dbConn := tp.dbArgGo(fields[1])
+			return fmt.Sprintf("toInt(tclBool01(%s.IsInterrupted()))", dbConn)
+		}
+		return "1"
+	}
+	// incr VAR detect_blob FILE I — increment by the return value
+	// of detect_blob (0/1). detect_blob is a Tcl test helper that
+	// scans the file for a specific blob residue; the test harness
+	// uses it to verify secure_delete=1 zero-fills freed pages. The
+	// Frigolite pager does not implement zero-on-free, so the stub
+	// always returns 0 (matching the expected result when
+	// secure_delete works); the same stub also makes the Tcl
+	// `incr n [detect_blob {} $i]` line a no-op, which is what the
+	// testgen tests assert. We strip a leading `[` and trailing `]`
+	// so the `[cmd]`-form is recognized.
+	if fields := strings.Fields(amountText); len(fields) >= 1 {
+		stripped := strings.TrimSuffix(strings.TrimPrefix(amountText, "["), "]")
+		strippedFields := strings.Fields(stripped)
+		if len(strippedFields) >= 1 && strippedFields[0] == "detect_blob" {
+			return "0"
+		}
+		if len(fields) == 1 && fields[0] == "detect_blob" {
+			return "0"
+		}
+	}
+	return tp.incrAmountGoExpr(w)
 }
 
 // incrAmountToInt converts a rendered incr amount to a Go int expression
@@ -513,130 +546,6 @@ func (tp *transpiler) processExpr(args []tcl.RawWord) {
 	tp.emitLine("// expr %s (not evaluated)", sanitizeTCLComment(exprStr))
 }
 
-func (tp *transpiler) processCatch(args []tcl.RawWord) {
-	if len(args) < 1 {
-		return
-	}
-	bodyCmds := tp.parseBracedBody(args, 0)
-	if bodyCmds == nil {
-		tp.emitLine("// catch (non-braced)")
-		return
-	}
-
-	resultVar := "_catchResult"
-	errVar := "_catchErrMsg"
-	hasResult := false
-	if len(args) >= 2 {
-		resultVar = tclVarToGo(args[1].Text)
-		hasResult = true
-	}
-	if len(args) >= 3 {
-		errVar = tclVarToGo(args[2].Text)
-	}
-
-	tp.emitLine("{")
-	tp.indent++
-	if hasResult {
-		if !tp.isVarDeclared(resultVar) {
-			tp.emitLine("var %s string // catch result (\"0\"=ok, \"1\"=error)", resultVar)
-		}
-		if !tp.isVarDeclared(errVar) {
-			tp.emitLine("var %s string // catch error message", errVar)
-		}
-		tp.emitLine("_ = %s // suppress unused warning", resultVar)
-		tp.emitLine("_ = %s // suppress unused warning", errVar)
-	}
-	tp.emitLine("var _catchErr error")
-	if !hasResult {
-		tp.emitLine("_ = _catchErr // suppress unused warning")
-	}
-	// TCL catch compares the body's RESULT; reset the value-builtin
-	// accumulator so a body whose commands assign no value (plain set/DDL)
-	// yields an empty result rather than a stale `_r`.
-	tp.emitLine("_r = \"\"")
-	bodyTP := &transpiler{sb: tp.sb, indent: tp.indent, dbVar: tp.dbVar, t: tp.t, catchMode: true, vars: tp.vars, forIncrs: tp.forIncrs, testPrefix: tp.testPrefix, preparedState: tp.preparedState, dbClosed: tp.dbClosed, dqsDDL: tp.dqsDDL, dqsDML: tp.dqsDML, dbAliases: tp.dbAliases, queryVars: tp.queryVars, unsetVars: tp.unsetVars, dbVarFuncs: tp.dbVarFuncs, constFuncs: tp.constFuncs, quotaCallbacks: tp.quotaCallbacks, rangeListFuncs: tp.rangeListFuncs, varCount: tp.varCount, pendingFileReset: tp.pendingFileReset, varConstValues: tp.varConstValues, sqlVarValues: tp.sqlVarValues, foreachLitValues: tp.foreachLitValues, varsetLoopVars: tp.varsetLoopVars, dbConnVars: tp.dbConnVars, runtimeConnVars: tp.runtimeConnVars, varRenames: tp.varRenames, connFailedOpen: tp.connFailedOpen, connClosed: tp.connClosed, blobChans: tp.blobChans, blobChannelVars: tp.blobChannelVars, blobVarNames: tp.blobVarNames, usedChannels: tp.usedChannels, blobSeq: tp.blobSeq, fixtureVar: tp.fixtureVar}
-	bodyTP.processCommands(bodyCmds)
-	tp.indent = bodyTP.indent
-	tp.dbClosed = bodyTP.dbClosed
-	tp.dqsDDL = bodyTP.dqsDDL
-	tp.dqsDML = bodyTP.dqsDML
-	tp.varCount = bodyTP.varCount
-	tp.queryVars = bodyTP.queryVars
-	tp.unsetVars = bodyTP.unsetVars
-	tp.dbVarFuncs = bodyTP.dbVarFuncs
-	tp.constFuncs = bodyTP.constFuncs
-	tp.dbAliases = bodyTP.dbAliases
-	tp.pendingFileReset = bodyTP.pendingFileReset
-	tp.varConstValues = bodyTP.varConstValues
-	tp.sqlVarValues = bodyTP.sqlVarValues
-	tp.foreachLitValues = bodyTP.foreachLitValues
-	tp.varsetLoopVars = bodyTP.varsetLoopVars
-	tp.dbConnVars = bodyTP.dbConnVars
-	tp.runtimeConnVars = bodyTP.runtimeConnVars
-	tp.varRenames = bodyTP.varRenames
-	tp.connFailedOpen = bodyTP.connFailedOpen
-	tp.connClosed = bodyTP.connClosed
-	if len(bodyTP.blobChans) > 0 {
-		tp.blobChans = bodyTP.blobChans
-	}
-	if len(bodyTP.blobChannelVars) > 0 {
-		tp.blobChannelVars = bodyTP.blobChannelVars
-	}
-	if bodyTP.blobVarNames != nil {
-		tp.blobVarNames = bodyTP.blobVarNames
-	}
-	if bodyTP.usedChannels != nil {
-		tp.usedChannels = bodyTP.usedChannels
-	}
-	tp.blobSeq = bodyTP.blobSeq
-	if hasResult {
-		// After body, set the error message if there was an error.
-		// TCL catch with 2 args (`catch BODY rcVar` / `catch BODY msg` in
-		// a do_test like memdb1.test 150's `catch {db deserialize
-		// -unknown 1 $db1} msg; set msg`): the single trailing var holds
-		// the ERROR MESSAGE on failure ("unknown option: -unknown"),
-		// not the "1" code — the do_test value is that message.
-		// Disambiguate by the var name: `msg`/`err*` hold the message;
-		// anything else (rc) holds the code.
-		if resultVar == "msg" || strings.HasPrefix(resultVar, "err") || strings.HasPrefix(resultVar, "_err") {
-			tp.emitLine("if _catchErr != nil {")
-			tp.indent++
-			tp.emitLine("%s = _catchErr.Error()", resultVar)
-			tp.indent--
-			tp.emitLine("} else {")
-			tp.indent++
-			// On success TCL sets the var to the body RESULT (quote-1.3.4:
-			// `catch {execsql {...}} msg` leaves the query result "hello 10"
-			// in msg), not an unconditional empty string.
-			tp.emitLine("%s = tclCatchStmtResult(_r)", resultVar)
-			tp.indent--
-			tp.emitLine("}")
-		} else {
-			// Faithful TCL `catch BODY varName` semantics: varName holds
-			// the error message on failure, else the body's RESULT (the
-			// value the last command left in `_r`; tclCatchStmtResult maps
-			// the stmt-API SQLITE_OK sentinel to TCL's empty success
-			// result — sqlite3_bind_text leaves no interpreter result,
-			// sqllimits1-5.14.8). The pre-2026-09 emission ("1"/"0" catch
-			// codes) contradicted TCL: no `catch BODY var` ever yields
-			// the numeric code in the variable.
-			tp.emitLine("if _catchErr != nil {")
-			tp.indent++
-			tp.emitLine("%s = _catchErr.Error()", resultVar)
-			tp.emitLine("%s = _catchErr.Error()", errVar)
-			tp.indent--
-			tp.emitLine("} else {")
-			tp.indent++
-			tp.emitLine("%s = tclCatchStmtResult(_r)", resultVar)
-			tp.emitLine("%s = \"\"", errVar)
-			tp.indent--
-			tp.emitLine("}")
-		}
-	}
-	tp.indent--
-	tp.emitLine("}")
-}
-
 // processStringAppend handles: append varName value...
 // TCL append to string variable: append sql " WHERE x=1"
 func (tp *transpiler) processStringAppend(args []tcl.RawWord) {
@@ -699,13 +608,7 @@ func (tp *transpiler) processList(args []tcl.RawWord) {
 		//   ...
 		// }]). Skip the {*} and splice the next argument's inner elements.
 		if a.Braced && a.Text == "*" && ai+1 < len(args) && args[ai+1].Braced {
-			inner := strings.TrimSpace(args[ai+1].Text)
-			inner = strings.TrimPrefix(inner, "{")
-			inner = strings.TrimSuffix(inner, "}")
-			for _, e := range strings.Fields(inner) {
-				items = append(items, tp.goStringLiteral(tcl.RawWord{Text: e, Braced: false, Quoted: false}))
-			}
-			ai++
+			ai = tp.appendListExpansionArgs(args, ai, &items)
 			continue
 		}
 		// A trailing lone backslash is a line-continuation remnant, not a
@@ -718,37 +621,24 @@ func (tp *transpiler) processList(args []tcl.RawWord) {
 		// its side effects, e.g. sqlite3_blob_write) and use the catch
 		// result var ("" / error message) in the list. This is the common
 		// `list [catch {...} msg] $msg` assertion pattern.
-		if v, ok := tp.emitListCatchArg(a); ok {
-			items = append(items, v)
-			continue
-		}
-		// `list [catch $tstbody msg] [set msg]` where tstbody holds a
-		// sqlite3_table_column_metadata command (colmeta.test): emit the
-		// metadata call and use its "{code {meta}}" result directly.
-		if ok := tp.emitListColmetaArg(a); ok {
-			colmetaFound = true
-			continue
-		}
-		// `list [sqlite3_step $::stmt] ...` — execute the prepared
-		// statement (SQL side effect) and use its result code in the list
-		// (changes2.test's "SQLITE_DONE SQLITE_OK" assertion).
-		if v, ok := tp.emitListStepArg(a); ok {
-			items = append(items, v)
-			continue
-		}
-		// `list ... [sqlite3_finalize $stmt]` — finalize the tracked
-		// prepared statement; the element is the REAL finalize code
-		// (SQLITE_OK, or the re-reported step error's code — vdbeapi.c
-		// sqlite3VdbeFinalize).
-		if v, ok := tp.emitListFinalizeArg(a); ok {
-			items = append(items, v)
+		if v, ok := tp.appendListSpecialArg(a, &colmetaFound); ok {
+			if v != "" {
+				items = append(items, v)
+			}
 			continue
 		}
 		items = append(items, tp.goStringLiteral(a))
 	}
+	tp.emitListResult(items, colmetaFound)
+}
+
+// emitListResult emits the list result assignment: the colmeta path leaves
+// its "{code {meta}}" result in _r (the do_test compares _r directly, no
+// tclList wrapper); everything else builds a uniquely-named _listN. The list
+// result is also the do_test body value when a `list` command closes a
+// do_test body (e.g. `list [catch {sqlite3_blob_write ...} msg] $msg`).
+func (tp *transpiler) emitListResult(items []string, colmetaFound bool) {
 	if colmetaFound {
-		// The colmeta handler left the full "{code {meta}}" result in _r;
-		// the do_test compares _r directly (no tclList wrapper).
 		tp.emitLine("_ = _r // colmeta result")
 		return
 	}
@@ -759,10 +649,52 @@ func (tp *transpiler) processList(args []tcl.RawWord) {
 	tp.varCount++
 	tp.emitLine("%s := tclList([]string{%s})", listVar, strings.Join(items, ", "))
 	tp.emitLine("_ = %s", listVar)
-	// The list result is also the do_test body value when a `list` command
-	// closes a do_test body (e.g. `list [catch {sqlite3_blob_write ...} msg]
-	// $msg`).
 	tp.emitLine("_r = %s", listVar)
+}
+
+// appendListSpecialArg handles the list arguments that emit runtime side
+// effects at generation time. Returns (item, handled); a handled colmeta
+// argument emits no item (its result stays in _r) and flags *colmetaFound.
+func (tp *transpiler) appendListSpecialArg(a tcl.RawWord, colmetaFound *bool) (string, bool) {
+	// `list [catch {BODY} VAR] ...` — the common `list [catch {...} msg]
+	// $msg` assertion pattern.
+	if v, ok := tp.emitListCatchArg(a); ok {
+		return v, true
+	}
+	// `list [catch $tstbody msg] [set msg]` where tstbody holds a
+	// sqlite3_table_column_metadata command (colmeta.test): emit the
+	// metadata call and use its "{code {meta}}" result directly.
+	if ok := tp.emitListColmetaArg(a); ok {
+		*colmetaFound = true
+		return "", true
+	}
+	// `list [sqlite3_step $::stmt] ...` — execute the prepared
+	// statement (SQL side effect) and use its result code in the list
+	// (changes2.test's "SQLITE_DONE SQLITE_OK" assertion).
+	if v, ok := tp.emitListStepArg(a); ok {
+		return v, true
+	}
+	// `list ... [sqlite3_finalize $stmt]` — finalize the tracked
+	// prepared statement; the element is the REAL finalize code
+	// (SQLITE_OK, or the re-reported step error's code — vdbeapi.c
+	// sqlite3VdbeFinalize).
+	if v, ok := tp.emitListFinalizeArg(a); ok {
+		return v, true
+	}
+	return "", false
+}
+
+// appendListExpansionArgs handles TCL `{*}` expansion: the braced word after
+// {*} has its inner elements spliced into the list (windowfault.test 13.x).
+// Returns the next argument index.
+func (tp *transpiler) appendListExpansionArgs(args []tcl.RawWord, ai int, items *[]string) int {
+	inner := strings.TrimSpace(args[ai+1].Text)
+	inner = strings.TrimPrefix(inner, "{")
+	inner = strings.TrimSuffix(inner, "}")
+	for _, e := range strings.Fields(inner) {
+		*items = append(*items, tp.goStringLiteral(tcl.RawWord{Text: e, Braced: false, Quoted: false}))
+	}
+	return ai + 1
 }
 
 // emitListStepArg handles a `[sqlite3_step $stmt]` argument to a `list`
@@ -881,79 +813,6 @@ func (tp *transpiler) emitListColmetaArg(w tcl.RawWord) bool {
 	tp.emitLine("if len(_colmeta) >= 3 { _col = _colmeta[2] }")
 	tp.emitLine("_r = tclTableColumnMetadata(db, _schema, _table, _col)")
 	return true
-}
-
-// emitListCatchArg handles a `[catch {BODY} VAR]` argument to a `list`
-// command. It emits the catch body (side effects) and returns the Go
-// expression for the catch result ("" on success, the error message on
-// failure) plus the result var's string. Returns ("", false) when the arg is
-// not a catch form.
-func (tp *transpiler) emitListCatchArg(w tcl.RawWord) (string, bool) {
-	text := strings.TrimSpace(w.Text)
-	if !strings.HasPrefix(text, "[catch ") || !strings.HasSuffix(text, "]") {
-		return "", false
-	}
-	inner := strings.TrimSuffix(strings.TrimPrefix(text, "[catch "), "]")
-	// inner: {BODY} VAR
-	braceEnd := -1
-	if strings.HasPrefix(inner, "{") {
-		depth := 0
-		for i := 0; i < len(inner); i++ {
-			if inner[i] == '{' {
-				depth++
-			} else if inner[i] == '}' {
-				depth--
-				if depth == 0 {
-					braceEnd = i
-					break
-				}
-			}
-		}
-	}
-	if braceEnd < 0 {
-		return "", false
-	}
-	bodyText := inner[1:braceEnd]
-	resultVar := strings.TrimSpace(inner[braceEnd+1:])
-	if resultVar == "" {
-		return "", false
-	}
-	// Emit the catch body and capture its error into the result var.
-	bodyCmds := tcl.ParseCommands(bodyText)
-	tp.emitLine("_rc := \"0\"")
-	tp.emitLine("{")
-	tp.indent++
-	tp.emitLine("var _catchErr error")
-	goResult := tclVarToGo(resultVar)
-	if !tp.isVarDeclared(goResult) {
-		tp.emitLine("var %s string", goResult)
-		tp.vars = append(tp.vars, goResult)
-	}
-	bodyTP := &transpiler{sb: tp.sb, indent: tp.indent, dbVar: tp.dbVar, t: tp.t, catchMode: true, vars: tp.vars, forIncrs: tp.forIncrs, testPrefix: tp.testPrefix, preparedState: tp.preparedState, dbClosed: tp.dbClosed, dqsDDL: tp.dqsDDL, dqsDML: tp.dqsDML, dbAliases: tp.dbAliases, queryVars: tp.queryVars, unsetVars: tp.unsetVars, dbVarFuncs: tp.dbVarFuncs, constFuncs: tp.constFuncs, quotaCallbacks: tp.quotaCallbacks, rangeListFuncs: tp.rangeListFuncs, varCount: tp.varCount, pendingFileReset: tp.pendingFileReset, varConstValues: tp.varConstValues, sqlVarValues: tp.sqlVarValues, foreachLitValues: tp.foreachLitValues, varsetLoopVars: tp.varsetLoopVars, dbConnVars: tp.dbConnVars, runtimeConnVars: tp.runtimeConnVars, varRenames: tp.varRenames, connFailedOpen: tp.connFailedOpen, connClosed: tp.connClosed, blobChans: tp.blobChans, blobChannelVars: tp.blobChannelVars, blobVarNames: tp.blobVarNames, usedChannels: tp.usedChannels, blobSeq: tp.blobSeq, fixtureVar: tp.fixtureVar}
-	bodyTP.processCommands(bodyCmds)
-	tp.indent = bodyTP.indent
-	tp.connFailedOpen = bodyTP.connFailedOpen
-	tp.connClosed = bodyTP.connClosed
-	tp.blobSeq = bodyTP.blobSeq
-	if len(bodyTP.blobChans) > 0 {
-		tp.blobChans = bodyTP.blobChans
-	}
-	if len(bodyTP.blobChannelVars) > 0 {
-		tp.blobChannelVars = bodyTP.blobChannelVars
-	}
-	if bodyTP.blobVarNames != nil {
-		tp.blobVarNames = bodyTP.blobVarNames
-	}
-	if bodyTP.usedChannels != nil {
-		tp.usedChannels = bodyTP.usedChannels
-	}
-	// TCL catch returns "1" on error, "0" on success; the error message goes
-	// into the result var (goResult).
-	tp.emitLine("if _catchErr != nil { %s = _catchErr.Error() } else { %s = \"\" }", goResult, goResult)
-	tp.emitLine("if _catchErr != nil { _rc = \"1\" }")
-	tp.indent--
-	tp.emitLine("}")
-	return "_rc", true
 }
 
 // processClose handles: close $channel  or  db close
