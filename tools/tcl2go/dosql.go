@@ -410,21 +410,28 @@ func isErrExpectation(expected string) bool {
 // `[list [expr {$VAR!=""}] $VAR]` — a runtime list whose first element is 1
 // exactly when the error variable is non-empty. Returns the Go variable name
 // (or ""). The TCL pattern builds "0 {}" (success) or "1 {msg}" (error).
-func catchsqlPresenceVar(args []tcl.RawWord) string {
+// presenceListParts validates the outer `[list ...]` wrapper of a
+// catchsql-presence expected value and returns its two words.
+func presenceListParts(args []tcl.RawWord) ([]string, bool) {
 	if len(args) < 3 {
-		return ""
+		return nil, false
 	}
 	text := strings.TrimSpace(args[2].Text)
 	if !strings.HasPrefix(text, "[list ") || !strings.HasSuffix(text, "]") {
-		return ""
+		return nil, false
 	}
 	inner := strings.TrimSpace(text[len("[list ") : len(text)-1])
 	parts := tclCmdWords(inner)
 	if len(parts) != 2 {
-		return ""
+		return nil, false
 	}
-	// First element: [expr {$VAR!=""}] (or {[expr {$VAR!=""}]}).
-	expr := strings.TrimSpace(parts[0])
+	return parts, true
+}
+
+// presenceExprVar extracts the variable name of the first list element —
+// `[expr {$VAR!=""}]` (or {[expr {$VAR!="}]}). Returns "" for other forms.
+func presenceExprVar(part string) string {
+	expr := strings.TrimSpace(part)
 	expr = strings.TrimPrefix(expr, "{")
 	expr = strings.TrimSuffix(expr, "}")
 	if !strings.HasPrefix(expr, "[expr {") || !strings.HasSuffix(expr, "}]") {
@@ -434,8 +441,7 @@ func catchsqlPresenceVar(args []tcl.RawWord) string {
 	if !strings.Contains(cond, "!=\"\"") {
 		return ""
 	}
-	// Extract the variable name from the condition and confirm the second
-	// element references the same variable.
+	// Extract the variable name from the condition.
 	varName := ""
 	for _, w := range tclCmdWords(cond) {
 		w = strings.TrimSpace(w)
@@ -446,6 +452,20 @@ func catchsqlPresenceVar(args []tcl.RawWord) string {
 			}
 		}
 	}
+	return varName
+}
+
+func catchsqlPresenceVar(args []tcl.RawWord) string {
+	parts, ok := presenceListParts(args)
+	if !ok {
+		return ""
+	}
+	// First element: [expr {$VAR!=""}] (or {[expr {$VAR!=""}]}).
+	varName := presenceExprVar(parts[0])
+	if varName == "" {
+		return ""
+	}
+	// Confirm the second element references the same variable.
 	second := strings.TrimSpace(parts[1])
 	if !strings.HasPrefix(second, "$") || strings.TrimPrefix(second, "$") != varName {
 		return ""
@@ -757,6 +777,58 @@ func (tp *transpiler) processFTSErrorTest(args []tcl.RawWord) {
 	tp.emitLine("}")
 }
 
+// emitCatchsqlPresenceComparison emits the presence-based check for a
+// `[list [expr {$err!=""}] $err]` expected value: "0 {}" when the error
+// variable is empty (success), "1 {msg}" otherwise. Returns handled=false
+// when msgVar is empty.
+func (tp *transpiler) emitCatchsqlPresenceComparison(msgVar, sqlExpr, dbConn string) bool {
+	if msgVar == "" {
+		return false
+	}
+	tp.emitLine("_res = %s.Exec(%s)", dbConn, sqlExpr)
+	tp.emitLine("if %s == \"\" {", msgVar)
+	tp.emitLine("\tif _res.Error != nil {")
+	tp.emitLine("\t\tt.Errorf(\"expected success, got error: %%v\\n  sql: %%s\", resErrString(_res), %s)", sqlExpr)
+	tp.emitLine("\t}")
+	tp.emitLine("} else {")
+	tp.emitLine("\tif _res.Error == nil || !strings.Contains(_res.Error.Error(), %s) {", msgVar)
+	tp.emitLine("\t\tt.Errorf(\"expected error containing %%s, got: %%v\\n  sql: %%s\", %s, resErrString(_res), %s)", msgVar, sqlExpr)
+	tp.emitLine("\t}")
+	tp.emitLine("}")
+	return true
+}
+
+// emitCatchsqlDynamicVarComparison handles a bare TCL variable expected value
+// (do_catchsql_test NAME SQL $err): the variable holds the TCL catchsql
+// result ("1 {msg}" or "0 {}"); use the count-aware runtime comparison so a
+// success expectation ("0 {}") is checked as success, not as an empty error
+// message. Returns handled=false for other forms.
+func (tp *transpiler) emitCatchsqlDynamicVarComparison(args []tcl.RawWord, sqlExpr, dbConn string) bool {
+	if !(len(args) >= 3 && strings.HasPrefix(strings.TrimSpace(args[2].Text), "$")) {
+		return false
+	}
+	dynamic := tp.buildStringExpr(strings.TrimSpace(args[2].Text))
+	tp.emitLine("_res = %s.Exec(%s)", dbConn, sqlExpr)
+	tp.emitLine("if !tclCatchsqlMatches(_res, %s) {", dynamic)
+	tp.emitLine("\tt.Errorf(\"catchsql mismatch\\n  got:  [%%v]\\n  want: [%%s]\\n  sql: %%s\", resErrString(_res), %s, %s)", dynamic, sqlExpr)
+	tp.emitLine("}")
+	return true
+}
+
+// catchsqlQuotedDynamicMsg detects the bare "1 {msg with $vars}" quoted form
+// (do_catchsql_test "1 {msg $v}"): the message interpolates $var at runtime.
+// Returns the message string expression, or "" for other forms.
+func (tp *transpiler) catchsqlQuotedDynamicMsg(args []tcl.RawWord) string {
+	if !args[2].Quoted || !strings.HasPrefix(strings.TrimSpace(args[2].Text), "1 {") ||
+		!strings.Contains(args[2].Text, "$") {
+		return ""
+	}
+	msg := strings.TrimSpace(args[2].Text)
+	msg = strings.TrimSpace(msg[2:]) // drop "1 "
+	msg = strings.Trim(msg, "{}")
+	return tp.buildStringExpr(msg)
+}
+
 // emitCatchSQLComparison emits the do_catchsql_test result comparison,
 // dispatching on the expected-value form (success, dynamic message, literal
 // message, or any error). dbConn is the connection the SQL runs on (a
@@ -766,17 +838,7 @@ func (tp *transpiler) emitCatchSQLComparison(nameExpr, sqlExpr, expectedExpr str
 	// TCL `do_catchsql_test NAME SQL [list [expr {$err!=""}] $err]`: the
 	// expected value is a RUNTIME list — "0 {}" when the error variable is
 	// empty (success), "1 {msg}" otherwise. Emit a presence-based check.
-	if msgVar := catchsqlPresenceVar(args); msgVar != "" {
-		tp.emitLine("_res = %s.Exec(%s)", dbConn, sqlExpr)
-		tp.emitLine("if %s == \"\" {", msgVar)
-		tp.emitLine("\tif _res.Error != nil {")
-		tp.emitLine("\t\tt.Errorf(\"expected success, got error: %%v\\n  sql: %%s\", resErrString(_res), %s)", sqlExpr)
-		tp.emitLine("\t}")
-		tp.emitLine("} else {")
-		tp.emitLine("\tif _res.Error == nil || !strings.Contains(_res.Error.Error(), %s) {", msgVar)
-		tp.emitLine("\t\tt.Errorf(\"expected error containing %%s, got: %%v\\n  sql: %%s\", %s, resErrString(_res), %s)", msgVar, sqlExpr)
-		tp.emitLine("\t}")
-		tp.emitLine("}")
+	if tp.emitCatchsqlPresenceComparison(catchsqlPresenceVar(args), sqlExpr, dbConn) {
 		return
 	}
 	errMsg := extractExpectedErrorFromLiteral(expectedExpr)
@@ -786,19 +848,7 @@ func (tp *transpiler) emitCatchSQLComparison(nameExpr, sqlExpr, expectedExpr str
 	// A bare TCL variable expected value (do_catchsql_test NAME SQL $err):
 	// render the variable's Go value at runtime so the leading "1 " error
 	// marker is detected dynamically.
-	if len(args) >= 3 && strings.HasPrefix(strings.TrimSpace(args[2].Text), "$") {
-
-		dynamic := tp.buildStringExpr(strings.TrimSpace(args[2].Text))
-		raw = ""
-		expectSuccess = false
-		errMsg = ""
-		// The variable holds the TCL catchsql result ("1 {msg}" or "0 {}");
-		// use the count-aware runtime comparison so a success expectation
-		// ("0 {}") is checked as success, not as an empty error message.
-		tp.emitLine("_res = %s.Exec(%s)", dbConn, sqlExpr)
-		tp.emitLine("if !tclCatchsqlMatches(_res, %s) {", dynamic)
-		tp.emitLine("\tt.Errorf(\"catchsql mismatch\\n  got:  [%%v]\\n  want: [%%s]\\n  sql: %%s\", resErrString(_res), %s, %s)", dynamic, sqlExpr)
-		tp.emitLine("}")
+	if tp.emitCatchsqlDynamicVarComparison(args, sqlExpr, dbConn) {
 		return
 	}
 	// TCL [list 1 "<msg with $vars>"] form: the expected error message is a
@@ -809,13 +859,11 @@ func (tp *transpiler) emitCatchSQLComparison(nameExpr, sqlExpr, expectedExpr str
 	}
 	// Bare "1 {msg with $vars}" quoted form (do_catchsql_test "1 {msg $v}"):
 	// the message interpolates $var at runtime.
-	if expectSuccess && args[2].Quoted && strings.HasPrefix(strings.TrimSpace(args[2].Text), "1 {") &&
-		strings.Contains(args[2].Text, "$") {
-		msg := strings.TrimSpace(args[2].Text)
-		msg = strings.TrimSpace(msg[2:]) // drop "1 "
-		msg = strings.Trim(msg, "{}")
-		expectSuccess = false
-		errMsgDynamic = tp.buildStringExpr(msg)
+	if expectSuccess {
+		if msg := tp.catchsqlQuotedDynamicMsg(args); msg != "" {
+			expectSuccess = false
+			errMsgDynamic = msg
+		}
 	}
 	// TCL catchsql regex form "/1 {near .* syntax error}/" (with2 6.7-6.9),
 	// "/1.*too big.*/" (basexx1 118-119), "/1 .*corrupt.*/"
