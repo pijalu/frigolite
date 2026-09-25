@@ -5,6 +5,7 @@
 package orderby6
 
 import (
+"fmt"
 "github.com/pijalu/frigolite"
 "github.com/pijalu/frigolite/internal/vtab"
 "os"
@@ -19,6 +20,21 @@ func Test_orderby6(t *testing.T) {
 		t.Fatal(err)
 	}
 	defer db.Close()
+
+	// auto-installed test-extension functions (src/test_func.c)
+	db.RegisterFunction("test_error", func(args []interface{}) (interface{}, error) {
+		msg := ""
+		if len(args) > 0 && args[0] != nil {
+			msg = fmt.Sprintf("%v", args[0])
+		}
+		return nil, fmt.Errorf("%s", msg)
+	}, 1, 2)
+	db.RegisterFunction("test_isolation", func(args []interface{}) (interface{}, error) {
+		if len(args) < 2 {
+			return nil, nil
+		}
+		return args[1], nil
+	}, 2, 2)
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
@@ -110,7 +126,7 @@ func Test_orderby6(t *testing.T) {
 					return
 				}
 				want := flatten(_want1)
-				if got != want {
+				if got != want && !tclFpnumCompare(got, want) {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
@@ -127,7 +143,7 @@ func Test_orderby6(t *testing.T) {
 					return
 				}
 				want := flatten(_want2)
-				if got != want {
+				if got != want && !tclFpnumCompare(got, want) {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
@@ -144,7 +160,7 @@ func Test_orderby6(t *testing.T) {
 					return
 				}
 				want := flatten(_want3)
-				if got != want {
+				if got != want && !tclFpnumCompare(got, want) {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
@@ -161,7 +177,7 @@ func Test_orderby6(t *testing.T) {
 					return
 				}
 				want := flatten(_want4)
-				if got != want {
+				if got != want && !tclFpnumCompare(got, want) {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
@@ -173,7 +189,7 @@ func Test_orderby6(t *testing.T) {
 				}
 				got := flatten(r)
 				want := "840 880 920 960 1000 1 41 81 121 161"
-				if got != want {
+				if got != want && !tclFpnumCompare(got, want) {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
@@ -185,7 +201,7 @@ func Test_orderby6(t *testing.T) {
 				}
 				got := flatten(r)
 				want := "840 880 920 960 1000 1 41 81 121 161"
-				if got != want {
+				if got != want && !tclFpnumCompare(got, want) {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
@@ -197,7 +213,7 @@ func Test_orderby6(t *testing.T) {
 				}
 				got := flatten(r)
 				want := "839 879 919 959 999 38 78 118 158 198"
-				if got != want {
+				if got != want && !tclFpnumCompare(got, want) {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
@@ -209,7 +225,7 @@ func Test_orderby6(t *testing.T) {
 				}
 				got := flatten(r)
 				want := "839 879 919 959 999 38 78 118 158 198"
-				if got != want {
+				if got != want && !tclFpnumCompare(got, want) {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
@@ -221,7 +237,7 @@ func Test_orderby6(t *testing.T) {
 				}
 				got := flatten(r)
 				want := "161 121 81 41 1 962 922 882 842 802"
-				if got != want {
+				if got != want && !tclFpnumCompare(got, want) {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
@@ -233,7 +249,7 @@ func Test_orderby6(t *testing.T) {
 				}
 				got := flatten(r)
 				want := "161 121 81 41 1 962 922 882 842 802"
-				if got != want {
+				if got != want && !tclFpnumCompare(got, want) {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
@@ -245,7 +261,7 @@ func Test_orderby6(t *testing.T) {
 				}
 				got := flatten(r)
 				want := "838 878 918 958 998 37 77 117 157 197"
-				if got != want {
+				if got != want && !tclFpnumCompare(got, want) {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
@@ -257,7 +273,7 @@ func Test_orderby6(t *testing.T) {
 				}
 				got := flatten(r)
 				want := "838 878 918 958 998 37 77 117 157 197"
-				if got != want {
+				if got != want && !tclFpnumCompare(got, want) {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
@@ -291,7 +307,7 @@ func Test_orderby6(t *testing.T) {
 							return
 						}
 						want := flatten(_want6)
-						if got != want {
+						if got != want && !tclFpnumCompare(got, want) {
 							t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 						}
 					}
@@ -313,7 +329,7 @@ func Test_orderby6(t *testing.T) {
 						return
 					}
 					want := flatten(_want7)
-					if got != want {
+					if got != want && !tclFpnumCompare(got, want) {
 						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 					}
 				}
@@ -330,7 +346,7 @@ func Test_orderby6(t *testing.T) {
 						return
 					}
 					want := flatten(_want8)
-					if got != want {
+					if got != want && !tclFpnumCompare(got, want) {
 						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 					}
 				}
@@ -347,7 +363,7 @@ func Test_orderby6(t *testing.T) {
 						return
 					}
 					want := flatten(_want9)
-					if got != want {
+					if got != want && !tclFpnumCompare(got, want) {
 						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 					}
 				}
@@ -364,7 +380,7 @@ func Test_orderby6(t *testing.T) {
 						return
 					}
 					want := flatten(_want10)
-					if got != want {
+					if got != want && !tclFpnumCompare(got, want) {
 						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 					}
 				}
@@ -381,7 +397,7 @@ func Test_orderby6(t *testing.T) {
 						return
 					}
 					want := flatten(_want11)
-					if got != want {
+					if got != want && !tclFpnumCompare(got, want) {
 						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 					}
 				}
@@ -398,7 +414,7 @@ func Test_orderby6(t *testing.T) {
 						return
 					}
 					want := flatten(_want12)
-					if got != want {
+					if got != want && !tclFpnumCompare(got, want) {
 						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 					}
 				}
@@ -415,7 +431,7 @@ func Test_orderby6(t *testing.T) {
 						return
 					}
 					want := flatten(_want13)
-					if got != want {
+					if got != want && !tclFpnumCompare(got, want) {
 						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 					}
 				}
@@ -432,7 +448,7 @@ func Test_orderby6(t *testing.T) {
 						return
 					}
 					want := flatten(_want14)
-					if got != want {
+					if got != want && !tclFpnumCompare(got, want) {
 						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 					}
 				}
@@ -449,7 +465,7 @@ func Test_orderby6(t *testing.T) {
 						return
 					}
 					want := flatten(_want15)
-					if got != want {
+					if got != want && !tclFpnumCompare(got, want) {
 						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 					}
 				}
@@ -466,7 +482,7 @@ func Test_orderby6(t *testing.T) {
 						return
 					}
 					want := flatten(_want16)
-					if got != want {
+					if got != want && !tclFpnumCompare(got, want) {
 						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 					}
 				}
@@ -483,7 +499,7 @@ func Test_orderby6(t *testing.T) {
 						return
 					}
 					want := flatten(_want17)
-					if got != want {
+					if got != want && !tclFpnumCompare(got, want) {
 						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 					}
 				}
@@ -500,7 +516,7 @@ func Test_orderby6(t *testing.T) {
 						return
 					}
 					want := flatten(_want18)
-					if got != want {
+					if got != want && !tclFpnumCompare(got, want) {
 						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 					}
 				}

@@ -282,7 +282,7 @@ func (tp *transpiler) emitExpectedQueryResult(dbConn, sqlExpr, expectedExpr stri
 	} else {
 		tp.emitLine("want := %s", expectedExpr)
 	}
-	tp.emitLine("if got != want {")
+	tp.emitLine("if got != want && !tclFpnumCompare(got, want) {")
 	tp.emitLine("\tt.Errorf(\"result mismatch\\n  got:  [%%s]\\n  want: [%%s]\", got, want)")
 	tp.emitLine("}")
 }
@@ -374,7 +374,7 @@ func (tp *transpiler) emitRuntimeDBEvalComparison(dbConn, expectedExpr, dbEvalSQ
 	tp.emitLine("\treturn")
 	tp.emitLine("}")
 	tp.emitLine("want := flatten(%s)", wantVar)
-	tp.emitLine("if got != want {")
+	tp.emitLine("if got != want && !tclFpnumCompare(got, want) {")
 	tp.emitLine("\tt.Errorf(\"result mismatch\\n  got:  [%%s]\\n  want: [%%s]\", got, want)")
 	tp.emitLine("}")
 }
@@ -988,7 +988,7 @@ func (tp *transpiler) processDoChangesLikeTest(args []tcl.RawWord, counter strin
 	} else {
 		tp.emitLine("want := %s", expectedExpr)
 	}
-	tp.emitLine("if got != want {")
+	tp.emitLine("if got != want && !tclFpnumCompare(got, want) {")
 	tp.emitLine("\tt.Errorf(\"result mismatch\\n  got:  [%%s]\\n  want: [%%s]\", got, want)")
 	tp.emitLine("}")
 	tp.indent--

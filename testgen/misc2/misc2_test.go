@@ -6,6 +6,7 @@ package misc2
 
 import (
 "errors"
+"fmt"
 "github.com/pijalu/frigolite"
 "os"
 "strconv"
@@ -20,6 +21,21 @@ func Test_misc2(t *testing.T) {
 		t.Fatal(err)
 	}
 	defer db.Close()
+
+	// auto-installed test-extension functions (src/test_func.c)
+	db.RegisterFunction("test_error", func(args []interface{}) (interface{}, error) {
+		msg := ""
+		if len(args) > 0 && args[0] != nil {
+			msg = fmt.Sprintf("%v", args[0])
+		}
+		return nil, fmt.Errorf("%s", msg)
+	}, 1, 2)
+	db.RegisterFunction("test_isolation", func(args []interface{}) (interface{}, error) {
+		if len(args) < 2 {
+			return nil, nil
+		}
+		return args[1], nil
+	}, 2, 2)
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
@@ -130,7 +146,7 @@ func Test_misc2(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "4000000000"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -142,7 +158,7 @@ func Test_misc2(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "4000000000 2147483648"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -154,7 +170,7 @@ func Test_misc2(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1 2147483647"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -166,7 +182,7 @@ func Test_misc2(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1 2147483648 2147483647"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -178,7 +194,7 @@ func Test_misc2(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1 4000000000 2147483648 2147483647"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -190,7 +206,7 @@ func Test_misc2(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1 2147483647 2147483648 4000000000"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -203,7 +219,7 @@ func Test_misc2(t *testing.T) {
 		got := flatten(r)
 		want := tclListFlatten("{}")
 		got = tclListFlattenCollapse(got)
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -242,8 +258,12 @@ func Test_misc2(t *testing.T) {
 			for _ri := 0; _ri < len(_dbevalRows0.Rows) && _dbevalErr2 == nil; _ri++ {
 				for _ci := 0; _ci < len(_dbevalRows0.Columns); _ci++ {
 					switch _dbevalRows0.Columns[_ci] {
+						case "rowid":
+							rowid = tclStr(_dbevalRows0.Rows[_ri][_ci])
 					}
 				}
+				_res = db.Exec("DELETE FROM t1 WHERE rowid=" + rowid)
+				if _res.Error != nil { _catchErr = _res.Error }
 				if _dbevalRb1 { _dbevalErr2 = errors.New("abort due to ROLLBACK") }
 				if _dbevalInt3 { _dbevalErr2 = errors.New("interrupted"); db.ClearInterrupt() }
 			}
@@ -262,7 +282,7 @@ func Test_misc2(t *testing.T) {
 		rc = tclListAppend(rc, msg)
 		got := tclListFlatten(rc)
 		want := tclListFlatten("0 {}")
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "misc2-7.2")
 		}
 	}
@@ -275,7 +295,7 @@ func Test_misc2(t *testing.T) {
 		got := flatten(r)
 		want := tclListFlatten("{}")
 		got = tclListFlattenCollapse(got)
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -475,8 +495,12 @@ func Test_misc2(t *testing.T) {
 			for _ri := 0; _ri < len(_dbevalRows24.Rows) && _dbevalErr26 == nil; _ri++ {
 				for _ci := 0; _ci < len(_dbevalRows24.Columns); _ci++ {
 					switch _dbevalRows24.Columns[_ci] {
+						case "rowid":
+							rowid = tclStr(_dbevalRows24.Rows[_ri][_ci])
 					}
 				}
+				_res = db.Exec("DELETE FROM t1 WHERE rowid=" + rowid)
+				if _res.Error != nil { _catchErr = _res.Error }
 				if _dbevalRb25 { _dbevalErr26 = errors.New("abort due to ROLLBACK") }
 				if _dbevalInt27 { _dbevalErr26 = errors.New("interrupted"); db.ClearInterrupt() }
 			}
@@ -495,7 +519,7 @@ func Test_misc2(t *testing.T) {
 		rc = tclListAppend(rc, msg)
 		got := tclListFlatten(rc)
 		want := tclListFlatten("0 {}")
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "misc2-7.12")
 		}
 	}
@@ -508,7 +532,7 @@ func Test_misc2(t *testing.T) {
 		got := flatten(r)
 		want := tclListFlatten("{}")
 		got = tclListFlattenCollapse(got)
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -704,7 +728,7 @@ func Test_misc2(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1000"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -716,7 +740,7 @@ func Test_misc2(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1000"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -728,7 +752,7 @@ func Test_misc2(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "625"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}

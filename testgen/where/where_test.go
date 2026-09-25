@@ -5,6 +5,7 @@
 package where
 
 import (
+"fmt"
 "github.com/pijalu/frigolite"
 "github.com/pijalu/frigolite/internal/vtab"
 "os"
@@ -19,6 +20,21 @@ func Test_where(t *testing.T) {
 		t.Fatal(err)
 	}
 	defer db.Close()
+
+	// auto-installed test-extension functions (src/test_func.c)
+	db.RegisterFunction("test_error", func(args []interface{}) (interface{}, error) {
+		msg := ""
+		if len(args) > 0 && args[0] != nil {
+			msg = fmt.Sprintf("%v", args[0])
+		}
+		return nil, fmt.Errorf("%s", msg)
+	}, 1, 2)
+	db.RegisterFunction("test_isolation", func(args []interface{}) (interface{}, error) {
+		if len(args) < 2 {
+			return nil, nil
+		}
+		return args[1], nil
+	}, 2, 2)
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
@@ -154,7 +170,7 @@ func Test_where(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "3 121 10"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -417,7 +433,7 @@ func Test_where(t *testing.T) {
 		got := flatten(r)
 		want := tclListFlatten("{}")
 		got = tclListFlattenCollapse(got)
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -429,7 +445,7 @@ func Test_where(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "99"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -441,7 +457,7 @@ func Test_where(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "99"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -454,7 +470,7 @@ func Test_where(t *testing.T) {
 		got := flatten(r)
 		want := tclListFlatten("{}")
 		got = tclListFlattenCollapse(got)
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -466,7 +482,7 @@ func Test_where(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "100"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -532,7 +548,7 @@ func Test_where(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "2 1 9 54 5 3025 62 5 3969"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -544,7 +560,7 @@ func Test_where(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "62 5 3969 54 5 3025 2 1 9"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -556,7 +572,7 @@ func Test_where(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "54 5 3025 62 5 3969 2 1 9"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -568,7 +584,7 @@ func Test_where(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "2 1 9 62 5 3969 54 5 3025"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -581,7 +597,7 @@ func Test_where(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "100 5050 5050 348550"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -824,7 +840,7 @@ func Test_where(t *testing.T) {
 		got := flatten(r)
 		want := tclListFlatten("{}")
 		got = tclListFlattenCollapse(got)
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -837,7 +853,7 @@ func Test_where(t *testing.T) {
 		got := flatten(r)
 		want := tclListFlatten("{}")
 		got = tclListFlattenCollapse(got)
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -850,7 +866,7 @@ func Test_where(t *testing.T) {
 		got := flatten(r)
 		want := tclListFlatten("{}")
 		got = tclListFlattenCollapse(got)
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -863,19 +879,19 @@ func Test_where(t *testing.T) {
 		got := flatten(r)
 		want := tclListFlatten("{}")
 		got = tclListFlattenCollapse(got)
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	{ // "where-10.2" — skipped: TCL user-defined function with per-row upvar side effect (db function tclvar) not transpilable (SQL side effects only)
+	{ // "where-10.2" — skipped: TCL user-defined function with per-row upvar side effect (db function tclvar) not transpilable (SQL + file side effects only)
 		_res = db.Exec("\n    SELECT count(*) FROM t1 WHERE tclvar('v1');\n  ")
 		_ = _res.Error // tolerate unsupported-feature errors in skipped tests
 	}
-	{ // "where-10.3" — skipped: TCL user-defined function with per-row upvar side effect (db function tclvar) not transpilable (SQL side effects only)
+	{ // "where-10.3" — skipped: TCL user-defined function with per-row upvar side effect (db function tclvar) not transpilable (SQL + file side effects only)
 		_res = db.Exec("\n    SELECT count(*) FROM t1 WHERE tclvar('v1');\n  ")
 		_ = _res.Error // tolerate unsupported-feature errors in skipped tests
 	}
-	{ // "where-10.4" — skipped: TCL user-defined function with per-row upvar side effect (db function tclvar) not transpilable (SQL side effects only)
+	{ // "where-10.4" — skipped: TCL user-defined function with per-row upvar side effect (db function tclvar) not transpilable (SQL + file side effects only)
 		_res = db.Exec("\n    SELECT count(*) FROM t1 WHERE tclvar('v1');\n  ")
 		_ = _res.Error // tolerate unsupported-feature errors in skipped tests
 	}
@@ -1013,7 +1029,7 @@ func Test_where(t *testing.T) {
 			_ = db.Exec("\n    SELECT x.a || '/' || y.a FROM t8 x, t8 y ORDER BY x.b, y.a||x.b DESC\n  ") // cksort
 		}
 	}
-	{ // "where-15.1" — skipped: TEMP schema not supported (SQL side effects only)
+	{ // "where-15.1" — skipped: TEMP schema not supported (SQL + file side effects only)
 		_res = db.Exec("\n    CREATE TEMP TABLE t1 (a, b, c, d, e);\n    CREATE TEMP TABLE t2 (f);\n    SELECT t1.e AS alias FROM t2, t1 WHERE alias = 1 ;\n  ")
 		_ = _res.Error // tolerate unsupported-feature errors in skipped tests
 	}
@@ -1031,7 +1047,7 @@ func Test_where(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1 one 1 one 2 two 1 one"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -1049,7 +1065,7 @@ func Test_where(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "2 2"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -1069,7 +1085,7 @@ func Test_where(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "42"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -1081,7 +1097,7 @@ func Test_where(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "42 43"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -1093,7 +1109,7 @@ func Test_where(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1.5 42"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -1105,7 +1121,7 @@ func Test_where(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "42 1 43 1"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -1117,7 +1133,7 @@ func Test_where(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -1129,7 +1145,7 @@ func Test_where(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -1141,7 +1157,7 @@ func Test_where(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -1153,7 +1169,7 @@ func Test_where(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -1165,7 +1181,7 @@ func Test_where(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -1177,7 +1193,7 @@ func Test_where(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -1189,7 +1205,7 @@ func Test_where(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -1201,7 +1217,7 @@ func Test_where(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1 2"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -1213,7 +1229,7 @@ func Test_where(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1 2"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -1229,7 +1245,7 @@ func Test_where(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "0"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -1247,7 +1263,7 @@ func Test_where(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "4 1 0 4 0 1"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -1262,7 +1278,7 @@ func Test_where(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "5"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -1274,7 +1290,7 @@ func Test_where(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "3 2 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -1391,7 +1407,7 @@ func Test_where(t *testing.T) {
 			}
 			got := flatten(r)
 			want := "1 a"
-			if got != want {
+			if got != want && !tclFpnumCompare(got, want) {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
@@ -1403,7 +1419,7 @@ func Test_where(t *testing.T) {
 			}
 			got := flatten(r)
 			want := "1 a"
-			if got != want {
+			if got != want && !tclFpnumCompare(got, want) {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
@@ -1415,7 +1431,7 @@ func Test_where(t *testing.T) {
 			}
 			got := flatten(r)
 			want := "1 a"
-			if got != want {
+			if got != want && !tclFpnumCompare(got, want) {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
@@ -1427,7 +1443,7 @@ func Test_where(t *testing.T) {
 			}
 			got := flatten(r)
 			want := "1 a"
-			if got != want {
+			if got != want && !tclFpnumCompare(got, want) {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
@@ -1439,7 +1455,7 @@ func Test_where(t *testing.T) {
 			}
 			got := flatten(r)
 			want := "1"
-			if got != want {
+			if got != want && !tclFpnumCompare(got, want) {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
@@ -1451,7 +1467,7 @@ func Test_where(t *testing.T) {
 			}
 			got := flatten(r)
 			want := "1"
-			if got != want {
+			if got != want && !tclFpnumCompare(got, want) {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
@@ -1463,7 +1479,7 @@ func Test_where(t *testing.T) {
 			}
 			got := flatten(r)
 			want := "1"
-			if got != want {
+			if got != want && !tclFpnumCompare(got, want) {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
@@ -1475,7 +1491,7 @@ func Test_where(t *testing.T) {
 			}
 			got := flatten(r)
 			want := "1"
-			if got != want {
+			if got != want && !tclFpnumCompare(got, want) {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
@@ -1496,7 +1512,7 @@ func Test_where(t *testing.T) {
 				got := flatten(r)
 				want := tclListFlatten("{}")
 				got = tclListFlattenCollapse(got)
-				if got != want {
+				if got != want && !tclFpnumCompare(got, want) {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
@@ -1508,7 +1524,7 @@ func Test_where(t *testing.T) {
 				}
 				got := flatten(r)
 				want := "0"
-				if got != want {
+				if got != want && !tclFpnumCompare(got, want) {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
@@ -1528,7 +1544,7 @@ func Test_where(t *testing.T) {
 			}
 			got := flatten(r)
 			want := "1 1 15 999 19 5"
-			if got != want {
+			if got != want && !tclFpnumCompare(got, want) {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
@@ -1540,11 +1556,11 @@ func Test_where(t *testing.T) {
 			}
 			got := flatten(r)
 			want := "xyz"
-			if got != want {
+			if got != want && !tclFpnumCompare(got, want) {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
-		{ // "where-30.1" — skipped: EXPLAIN QUERY PLAN 4-column format (id/parent/notused/detail) + deep CTE planner (P4/P5 scope) (SQL side effects only)
+		{ // "where-30.1" — skipped: EXPLAIN QUERY PLAN 4-column format (id/parent/notused/detail) + deep CTE planner (P4/P5 scope) (SQL + file side effects only)
 			_res = db.Exec("CREATE TABLE raw(country,date,total,delta, UNIQUE(country,date));")
 			_ = _res.Error // tolerate unsupported-feature errors in skipped tests
 			_res = db.Exec("\n    EXPLAIN QUERY PLAN\n    WITH\n      -- Find the country and min/max date\n      init(country, date, fin) AS (SELECT country, min(date), max(date)\n         FROM raw WHERE total > 0 GROUP BY country),\n    \n      -- Generate the date stream for each country\n      src(country, date) AS (SELECT raw.country, raw.date\n          FROM raw JOIN init i on raw.country = i.country AND raw.date > i.date\n          ORDER BY raw.country, raw.date),\n    \n      -- Generate the x & y for each entry in the country/date stream\n      vals(country, date, x, y) AS (SELECT src.country, src.date,\n                julianday(raw.date) - julianday(src.date), log(delta+1)\n          FROM src JOIN raw on raw.country = src.country\n                        AND raw.date > date(src.date,'-7 days')\n                        AND raw.date <= src.date AND delta >= 0),\n    \n      -- Accumulate the data we need\n      sums(country, date, x2, x, n, xy, y) AS (SELECT country, date,\n              sum(x*x*1.0), sum(x*1.0), sum(1.0), sum(x*y*1.0), sum(y*1.0)\n         FROM vals GROUP BY 1, 2),\n    \n      -- use these to calculate to divisor for the inverse matrix\n      mult(country, date, m) AS (SELECT country, date, 1.0/(x2 * n - x * x)\n         FROM sums),\n    \n      -- Build the inverse matrix\n      inv(country, date, a,b,c,d) AS (SELECT mult.country, mult.date, n * m,\n                -x * m, -x * m, x2 * m\n          FROM mult JOIN sums on sums.country=mult.country\n                         AND mult.date=sums.date),\n    \n      -- Calculate the coefficients for the least squares fit\n      fit(country, date, a, b) AS (SELECT inv.country, inv.date,\n               a * xy + b * y, c * xy + d * y\n          FROM inv\n          JOIN mult on mult.country = inv.country AND mult.date = inv.date\n          JOIN sums on sums.country = mult.country AND sums.date = mult.date\n    )\n    SELECT *, nFin/nPrev - 1 AS growth, log(2)/log(nFin/nPrev) AS doubling\n      FROM (SELECT f.*, exp(b) - 1 AS nFin, exp(a* (-1) + b) - 1 AS nPrev\n              FROM fit f JOIN init i on i.country = f.country\n                          AND f.date <= date(i.fin,'-3 days'))\n     WHERE nPrev > 0 AND nFin > 0;\n  ")

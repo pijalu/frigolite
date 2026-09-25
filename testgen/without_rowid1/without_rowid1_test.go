@@ -5,6 +5,7 @@
 package without_rowid1
 
 import (
+"fmt"
 "github.com/pijalu/frigolite"
 "github.com/pijalu/frigolite/internal/vtab"
 "os"
@@ -20,6 +21,21 @@ func Test_without_rowid1(t *testing.T) {
 		t.Fatal(err)
 	}
 	defer db.Close()
+
+	// auto-installed test-extension functions (src/test_func.c)
+	db.RegisterFunction("test_error", func(args []interface{}) (interface{}, error) {
+		msg := ""
+		if len(args) > 0 && args[0] != nil {
+			msg = fmt.Sprintf("%v", args[0])
+		}
+		return nil, fmt.Errorf("%s", msg)
+	}, 1, 2)
+	db.RegisterFunction("test_isolation", func(args []interface{}) (interface{}, error) {
+		if len(args) < 2 {
+			return nil, nil
+		}
+		return args[1], nil
+	}, 2, 2)
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
@@ -86,7 +102,7 @@ func Test_without_rowid1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "arctic sleep ammonia helena | journal sherman ammonia helena | dynamic juliet flipper command | journal sherman gamma patriot |"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -102,7 +118,7 @@ func Test_without_rowid1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "arctic sleep ammonia helena | journal sherman ammonia helena | dynamic juliet flipper command | journal sherman gamma patriot |"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -114,7 +130,7 @@ func Test_without_rowid1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "journal sherman gamma patriot | dynamic juliet flipper command | journal sherman ammonia helena | arctic sleep ammonia helena |"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -126,7 +142,7 @@ func Test_without_rowid1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "dynamic juliet flipper command | journal sherman ammonia helena | journal sherman gamma patriot | arctic sleep ammonia helena |"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -138,7 +154,7 @@ func Test_without_rowid1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "dynamic juliet flipper command | journal sherman ammonia helena | journal sherman gamma patriot | arctic sleep ammonia helena |"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -156,7 +172,7 @@ func Test_without_rowid1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "arctic sleep ammonia helena | journal sherman ammonia helena | dynamic phone flipper harvard | journal sherman gamma patriot |"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -168,7 +184,7 @@ func Test_without_rowid1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "dynamic phone flipper harvard | journal sherman ammonia helena | journal sherman gamma patriot | arctic sleep ammonia helena |"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -180,7 +196,7 @@ func Test_without_rowid1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "arctic sleep ammonia helena | journal sherman ammonia 3.1415926 | dynamic phone flipper harvard | journal sherman gamma 3.1415926 |"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -192,7 +208,7 @@ func Test_without_rowid1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "dynamic phone flipper harvard | journal sherman ammonia 3.1415926 | journal sherman gamma 3.1415926 | arctic sleep ammonia helena |"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -204,7 +220,7 @@ func Test_without_rowid1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "arctic sleep ammonia helena | journal sherman ammonia 3.1415926 | 1250 phone flipper harvard | journal sherman gamma 3.1415926 |"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -218,7 +234,7 @@ func Test_without_rowid1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1250 phone flipper harvard | journal sherman ammonia 3.1415926 | journal sherman gamma 3.1415926 | arctic sleep ammonia helena |"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -230,7 +246,7 @@ func Test_without_rowid1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1250 phone flipper harvard | journal sherman ammonia 3.1415926 | journal sherman gamma 3.1415926 | arctic sleep ammonia helena |"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -244,7 +260,7 @@ func Test_without_rowid1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "t1 t1 4 2 1 t1 t1bd 4 2 2"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -256,7 +272,7 @@ func Test_without_rowid1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "abc def"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -268,7 +284,7 @@ func Test_without_rowid1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "ABC def"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -281,7 +297,7 @@ func Test_without_rowid1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "def abc"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -293,7 +309,7 @@ func Test_without_rowid1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "xyz ABC"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -319,7 +335,7 @@ func Test_without_rowid1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "ABC def ghi ABC def ghi"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -345,7 +361,7 @@ func Test_without_rowid1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "three two"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -357,7 +373,7 @@ func Test_without_rowid1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "three two"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -375,7 +391,7 @@ func Test_without_rowid1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "i ii iii"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -387,7 +403,7 @@ func Test_without_rowid1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -399,7 +415,7 @@ func Test_without_rowid1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -423,7 +439,7 @@ func Test_without_rowid1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "5 two x 7 two x 9 two x"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -435,7 +451,7 @@ func Test_without_rowid1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "2 one x 4 one x 6 one x"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -469,7 +485,7 @@ func Test_without_rowid1(t *testing.T) {
 				got := flatten(r)
 				want := tclListFlatten(cnt)
 				got = tclListFlattenCollapse(got)
-				if got != want {
+				if got != want && !tclFpnumCompare(got, want) {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
@@ -501,7 +517,7 @@ func Test_without_rowid1(t *testing.T) {
 					got := flatten(r)
 					want := tclListFlatten(cnt)
 					got = tclListFlattenCollapse(got)
-					if got != want {
+					if got != want && !tclFpnumCompare(got, want) {
 						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 					}
 				}
@@ -520,7 +536,7 @@ func Test_without_rowid1(t *testing.T) {
 				}
 				got := flatten(r)
 				want := "ok t47 i47"
-				if got != want {
+				if got != want && !tclFpnumCompare(got, want) {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
@@ -532,7 +548,7 @@ func Test_without_rowid1(t *testing.T) {
 				}
 				got := flatten(r)
 				want := "ok t48 sqlite_autoindex_t48_2"
-				if got != want {
+				if got != want && !tclFpnumCompare(got, want) {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
@@ -566,7 +582,7 @@ func Test_without_rowid1(t *testing.T) {
 				}
 				got := flatten(r)
 				want := "table t1 | index t1x |"
-				if got != want {
+				if got != want && !tclFpnumCompare(got, want) {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
@@ -633,7 +649,7 @@ func Test_without_rowid1(t *testing.T) {
 				}
 				got := flatten(r)
 				want := "b a 3 b b 4"
-				if got != want {
+				if got != want && !tclFpnumCompare(got, want) {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
@@ -645,7 +661,7 @@ func Test_without_rowid1(t *testing.T) {
 				}
 				got := flatten(r)
 				want := "ok A a"
-				if got != want {
+				if got != want && !tclFpnumCompare(got, want) {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
@@ -657,7 +673,7 @@ func Test_without_rowid1(t *testing.T) {
 				}
 				got := flatten(r)
 				want := "ok"
-				if got != want {
+				if got != want && !tclFpnumCompare(got, want) {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
@@ -669,7 +685,7 @@ func Test_without_rowid1(t *testing.T) {
 				}
 				got := flatten(r)
 				want := "ok abc xyz abc xyz"
-				if got != want {
+				if got != want && !tclFpnumCompare(got, want) {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
@@ -689,7 +705,7 @@ func Test_without_rowid1(t *testing.T) {
 				got := flatten(r)
 				want := tclListFlatten("{}")
 				got = tclListFlattenCollapse(got)
-				if got != want {
+				if got != want && !tclFpnumCompare(got, want) {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
@@ -720,7 +736,7 @@ func Test_without_rowid1(t *testing.T) {
 				}
 				got := flatten(r)
 				want := "a c0 c2"
-				if got != want {
+				if got != want && !tclFpnumCompare(got, want) {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}

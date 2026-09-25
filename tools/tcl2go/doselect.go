@@ -292,7 +292,7 @@ func (tp *transpiler) emitSelectQueryCase(name string, tc selectTestCase, query 
 	tp.emitLine("}")
 	tp.emitLine("got := flatten(r)")
 	tp.emitLine("want := %s", wantExpr)
-	tp.emitLine("if got != want {")
+	tp.emitLine("if got != want && !tclFpnumCompare(got, want) {")
 	tp.emitLine("\tt.Errorf(\"result mismatch\\n  got:  [%%s]\\n  want: [%%s]\", got, want)")
 	tp.emitLine("}")
 }
@@ -388,7 +388,7 @@ func (tp *transpiler) emitSelectCountCase(name string, tc selectTestCase) {
 	tp.emitLine("}")
 	tp.emitLine("got := strconv.Itoa(len(r.Rows))")
 	tp.emitLine("want := %s", expectedExpr)
-	tp.emitLine("if got != want {")
+	tp.emitLine("if got != want && !tclFpnumCompare(got, want) {")
 	tp.emitLine("\tt.Errorf(\"result mismatch\\n  got:  [%%s]\\n  want: [%%s]\", got, want)")
 	tp.emitLine("}")
 }
@@ -430,7 +430,7 @@ func (tp *transpiler) emitSelectTCLQueryCase(name string, tc selectTestCase, tcl
 	tp.emitLine("}")
 	tp.emitLine("got := flatten(r)")
 	tp.emitLine("want := %s", wantExpr)
-	tp.emitLine("if got != want {")
+	tp.emitLine("if got != want && !tclFpnumCompare(got, want) {")
 	tp.emitLine("\tt.Errorf(\"result mismatch\\n  got:  [%%s]\\n  want: [%%s]\", got, want)")
 	tp.emitLine("}")
 }

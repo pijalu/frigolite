@@ -1,605 +1,17 @@
 // Package main implements the tcl2go tool.
 //
-// This file handles the TCL set command.
+// This file holds the `set VAR [...]` value emitters used by the dispatch
+// chain (processset_bracket*.go) plus the catch-block machinery and the
+// generic plain-set assignment.
 package main
 
 import (
 	"fmt"
-	"os"
 	"strconv"
 	"strings"
 
 	"github.com/pijalu/frigolite/tools/tclconvert/tcl"
 )
-
-// ---- Variable handlers ----
-
-func (tp *transpiler) processSetBracketValue(goName, cmdText string) bool {
-	// set VAR [sqlite3_limit ...] — sqlite3_limit forms (sqllimits1-1.30:
-	// `set prior [sqlite3_limit db SQLITE_LIMIT_LENGTH 1]` binds VAR to
-	// the PRIOR value; `... -1` queries without changing).
-	// set VAR [cksum] / [cksum db2] — the tester.tcl fingerprint helper.
-	if parts := strings.Fields(cmdText); len(parts) >= 1 && parts[0] == "cksum" {
-		connVar := tp.dbVar
-		if len(parts) >= 2 {
-			if v := strings.TrimSpace(parts[1]); isValidGoIdent(tclVarToGo(v)) {
-				connVar = tclVarToGo(v)
-			}
-		}
-		tp.assignSetValue(goName, fmt.Sprintf("tclCksum(%s)", connVar))
-		return true
-	}
-	if parts := strings.Fields(cmdText); len(parts) >= 3 && parts[0] == "sqlite3_limit" {
-		// Forms: [sqlite3_limit db LIMIT VAL] (4 parts) or
-		// [sqlite3_limit LIMIT VAL] (3 parts, db omitted).
-		lim, val := "", ""
-		if len(parts) == 4 {
-			lim, val = parts[2], parts[3]
-		} else if len(parts) == 3 {
-			lim, val = parts[1], parts[2]
-		}
-		if lim != "" {
-			if strings.TrimSpace(val) == "-1" {
-				tp.assignSetValue(goName, fmt.Sprintf("strconv.Itoa(db.Limit(%q))", lim))
-			} else {
-				tp.emitLine("{ // set %s [sqlite3_limit %s %s]", goName, lim, val)
-				tp.indent++
-				tp.emitLine("_prior := db.Limit(%q)", lim)
-				tp.emitLine("db.SetLimit(%q, toInt(%q))", lim, val)
-				tp.assignSetValue(goName, "strconv.Itoa(_prior)")
-				tp.indent--
-				tp.emitLine("}")
-			}
-			return true
-		}
-	}
-	// memdb1.test 1020: `set res [list [catch {...} msg] $msg]` — the list
-	// form routes through processList/emitListCatchArg so the catch body
-	// runs and the result feeds res (the backup-interlock error must reach
-	// res). cmdText here is the bracket INNER text (outer [ ] stripped by
-	// the caller), so parse it as a bare command, not a bracket word.
-	if strings.HasPrefix(strings.TrimSpace(cmdText), "list ") || strings.TrimSpace(cmdText) == "list" {
-		raws := tcl.ParseCommands(cmdText)
-		if len(raws) == 1 && len(raws[0]) >= 2 && raws[0][0].Text == "list" {
-			tp.processList(raws[0][1:])
-			tp.assignSetValue(goName, "_r")
-			return true
-		}
-	}
-	cmdParts := strings.Fields(cmdText)
-	if len(cmdParts) == 0 {
-		return false
-	}
-	// set VAR [sqlite3_limit ...] is handled at the top of this function
-	// (prior-value capture); reaching here means the top handler declined
-	// (unexpected arity) — fall through to the generic handlers below.
-	// memdb.test signature (see userProcEmitterFor): [signature one] /
-	// [signature two] return the t3 rollback fingerprint.
-	if body, ok := globalProcBodies[cmdParts[0]]; ok {
-		if userProcEmitterFor(cmdParts[0], body) == "memdb_signature" {
-			tp.assignSetValue(goName, fmt.Sprintf("tclMemdbSignature(%s)", tp.dbVar))
-			return true
-		}
-		// cache.test pager_cache_size (btree_pager_stats "page" count).
-		if userProcEmitterFor(cmdParts[0], body) == "cache_pager_size" {
-			tp.assignSetValue(goName, fmt.Sprintf("strconv.Itoa(tclPagerCacheSize(%s))", tp.dbVar))
-			return true
-		}
-	}
-	// set VAR [userproc args...] with a registry-backed implementation
-	// (rtree4's rand/randincr/scramble): emit a direct runtime call instead
-	// of falling through to the raw-text fallback. `$var` arguments pass the
-	// Go variable's value; bare tokens go through as literals.
-	if globalUserProcs[cmdParts[0]] {
-		callArgs := make([]string, 0, len(cmdParts)-1)
-		for _, a := range cmdParts[1:] {
-			if strings.HasPrefix(a, "$") && !strings.Contains(a, "(") {
-				if gv := tclVarToGo(strings.TrimPrefix(a, "$")); gv != "" {
-					callArgs = append(callArgs, gv)
-					continue
-				}
-			}
-			callArgs = append(callArgs, strconv.Quote(a))
-		}
-		tp.assignSetValue(goName,
-			fmt.Sprintf("callTclUserProc(%q, %s)", cmdParts[0], strings.Join(callArgs, ", ")))
-		return true
-	}
-	// set VAR [sqlite3_test_control_pending_byte N] — the C command sets the
-	// pending byte and returns the PREVIOUS offset (src/test2.c
-	// testPendingByte); pager1.test 42.x captures it in pending_prev to
-	// restore later. Perform the engine override, mirror the shadow var, and
-	// assign the previous value.
-	if cmdParts[0] == "sqlite3_test_control_pending_byte" && len(cmdParts) >= 2 {
-		arg := strings.TrimSpace(strings.Join(cmdParts[1:], " "))
-		if strings.HasPrefix(arg, "$") {
-			goVar := tclVarToGo(strings.TrimPrefix(arg, "$"))
-			if isValidGoIdent(goVar) && tp.isVarDeclared(goVar) {
-				tp.emitLine("_r = strconv.FormatUint(uint64(%s.SetPendingByte(uint32(tclAtoi(%s)))), 10)", tp.dbVar, goVar)
-				tp.emitLine("%s = _r", goName)
-				tp.emitLine("sqlite_pending_byte = %s", goVar)
-				return true
-			}
-		} else if n, err := strconv.ParseInt(arg, 0, 64); err == nil {
-			tp.emitLine("_r = strconv.FormatUint(uint64(%s.SetPendingByte(%d)), 10)", tp.dbVar, n)
-			tp.emitLine("%s = _r", goName)
-			tp.emitLine("sqlite_pending_byte = %q", strconv.FormatInt(n, 10))
-			return true
-		}
-	}
-	// set VAR [catch {sqlite3_intarray_create DB NAME} RESULTVAR] — the
-	// intarray create runs inside a catch; RESULTVAR receives the create's
-	// RETURN VALUE (the handle), while the bracket result (assigned to VAR) is
-	// the catch code. test_intarray.c 1.1b.
-	if cmdParts[0] == "catch" {
-		for i := 0; i < len(cmdParts); i++ {
-			if strings.HasPrefix(cmdParts[i], "{sqlite3_intarray_create") && i+2 < len(cmdParts) {
-				name := strings.TrimSuffix(cmdParts[i+2], "}")
-				name = strings.Trim(name, "'\"")
-				resultVar := tclVarToGo(cmdParts[len(cmdParts)-1])
-				tp.emitLine("_r = vtab.IntarrayRegisterHandle(%q)", name)
-				tp.emitLine("_res = %s.Exec(\"CREATE VIRTUAL TABLE temp.%s USING intarray('%s')\")", tp.dbVar, name, name)
-				tp.emitLine("if _res.Error != nil { t.Errorf(\"intarray create: %%v\", _res.Error) }")
-				if resultVar != "" && resultVar != goName {
-					tp.emitLine("%s = _r", resultVar)
-				}
-				tp.emitLine("_r = \"0\"")
-				// The bracket result (the catch code) IS the set target's
-				// value: `set rc [catch {...} ia1]` assigns rc = "0". The
-				// missing assignment left rc holding its PREVIOUS value, so
-				// intarray-1.1b's lappend built a stale list ("0X5" instead
-				// of "0 X5") and the /0 [0-9A-Z]+/ comparison failed.
-				tp.assignSetValue(goName, "_r")
-				return true
-			}
-		}
-	}
-	// [lreverse $VAR] — reverse a TCL list variable at runtime
-	// (fts3first.test's order=DESC comparisons).
-	if len(cmdParts) == 2 && cmdParts[0] == "lreverse" && strings.HasPrefix(cmdParts[1], "$") {
-		if gv := tclVarToGo(strings.TrimPrefix(cmdParts[1], "$")); gv != "" {
-			tp.emitLine("%s = tclLreverse(%s)", goName, gv)
-			tp.emitLine("\t_ = %s // suppress unused warning", goName)
-			return true
-		}
-	}
-	if len(cmdParts) > 0 && (cmdParts[0] == "sqlite3_prepare" || cmdParts[0] == "sqlite3_prepare_v2") {
-		tp.recordPreparedStatement(goName, "["+cmdText+"]")
-		return true
-	}
-	// set VAR [file_control_tempfilename DB] — test1.c file_control_tempfilename:
-	// SQLITE_FCNTL_TEMPFILENAME returns a VFS temp filename (unix:
-	// <tempdir>/etilqs_<16 random alphanumerics>, os_unix.c
-	// unixTempFileNameExclusive; filectrl-1.6 asserts the etilqs_ prefix).
-	if cmdParts[0] == "file_control_tempfilename" {
-		tp.assignSetValue(goName, fmt.Sprintf("tclFileControlTempFileName(%s)", tp.dbVar))
-		return true
-	}
-	// set VAR [sqlite3_quota_* ARGS] — quota commands are value-producing
-	// (fopen handles, fread content, ftell positions, dump lists): run the
-	// same statement handler (which leaves its result in _r) and assign it.
-	if strings.HasPrefix(cmdParts[0], "sqlite3_quota_") {
-		if os.Getenv("QDBG11") != "" {
-			fmt.Fprintf(os.Stderr, "QDBG11 set-bracket route: %s\n", cmdText)
-		}
-		if h, ok := tclHandlers()[cmdParts[0]]; ok {
-			raws := tcl.ParseCommands(cmdText)
-			if len(raws) > 0 {
-				h(tp, raws[0][1:])
-				tp.assignSetValue(goName, "_r")
-				return true
-			}
-		}
-	}
-	if isLsearchCmd(cmdParts) {
-		return tp.setLsearchValue(goName, cmdText, cmdParts)
-	}
-	if cmdParts[0] == "string" && len(cmdParts) > 1 {
-		// set VAR [string first NEEDLE HAYSTACK ?START?] and friends: render
-		// the runtime string-op result into VAR (zipfile.test 24.x patches a
-		// central-directory offset computed from $zip at runtime).
-		if setStringFuncValue(tp, goName, cmdParts) {
-			return true
-		}
-	}
-	if cmdParts[0] == "findall" && len(cmdParts) == 3 {
-		// set L [findall NEEDLE HAYSTACK]: the zipfile2.test proc returning
-		// every occurrence index (runtime call — $archive patches below).
-		if n, ok := tp.stringWordExpr(cmdParts[1]); ok {
-			if h, ok2 := tp.stringWordExpr(cmdParts[2]); ok2 {
-				tp.assignSetValue(goName, fmt.Sprintf("tclFindAll(%s, %s)", n, h))
-				return true
-			}
-		}
-	}
-	if cmdParts[0] == "create_db" {
-		return tp.setCreateDBValue(goName)
-	}
-	if isMakeExprCmd(cmdParts) {
-		return tp.setMakeExprValue(goName, cmdText, cmdParts[0])
-	}
-	if isRegexpCmd(cmdParts) {
-		return tp.setRegexpValue(goName, cmdParts)
-	}
-	if tp.inlineQueryFuncValue(goName, cmdParts) {
-		return true
-	}
-	if isDBEvalCmd(cmdParts) {
-		return tp.setDBEvalValue(goName, cmdText, cmdParts)
-	}
-	if isDBOneCmd(cmdParts) {
-		return tp.setDBOneValue(goName, cmdText, cmdParts)
-	}
-	// set VAR [catchsql {SQL}] — execute the SQL and bind VAR to the catchsql
-	// result string ("0 {rows}" on success, "1 {msg}" on error), matching TCL's
-	// [catchsql] command-substitution value (ctime.test's out-of-bounds
-	// sqlite_compileoption_get checks).
-	if cmdParts[0] == "catchsql" {
-		return tp.setCatchsqlSetValue(goName, cmdText, cmdParts)
-	}
-	// set VAR [db total_changes] / [db changes] — the connection's change
-	// counters (fts4merge5 1.4: the merge loop breaks when total_changes
-	// stops growing).
-	if len(cmdParts) >= 2 && cmdParts[0] == "db" {
-		switch cmdParts[1] {
-		case "total_changes":
-			tp.assignSetValue(goName, "strconv.FormatInt(db.TotalChanges(), 10)")
-			return true
-		case "changes":
-			tp.assignSetValue(goName, "strconv.FormatInt(db.Changes(), 10)")
-			return true
-		}
-	}
-	// set VAR [<conn> incrblob ...] — assign the *frigolite.Blob to VAR and
-	// register it as a blob channel (read/seek/puts/close on $VAR route to
-	// the Blob methods).
-	if isDBIncrblobCmd(cmdParts) {
-		connName := cmdParts[0]
-		restText := strings.TrimSpace(strings.TrimPrefix(cmdText, connName))
-		restText = strings.TrimSpace(strings.TrimPrefix(restText, "incrblob"))
-		rest := strings.Fields(restText)
-		restWords := make([]tcl.RawWord, 0, len(rest))
-		for _, r := range rest {
-			restWords = append(restWords, tcl.RawWord{Text: r})
-		}
-		tp.processDBIncrblobTo(goName, connName, restWords)
-		return true
-	}
-	if isListCmd(cmdParts) {
-		return tp.setListValue(goName, cmdText)
-	}
-	// set VAR [binary format SPEC ARGS...] — build a byte string (the
-	// corruption tests slice/modify the segdir root blob).
-	if cmdParts[0] == "binary" && len(cmdParts) >= 3 && cmdParts[1] == "format" {
-		if _, ok := tp.setBinaryFormatValue(goName, cmdText); ok {
-			return true
-		}
-	}
-	// set VAR [sqlite3_intarray_create DB NAME] — create the intarray vtab
-	// and bind VAR to the returned handle (test_intarray.c).
-	if cmdParts[0] == "sqlite3_intarray_create" {
-		if tp.intarrayCreateSetValue(goName, cmdText) {
-			return true
-		}
-	}
-	if isSqlite3OpenCmd(cmdParts) {
-		return tp.setSqlite3Value(goName, cmdParts)
-	}
-	// set VAR [sqlite3_limit ...] with a `db` connection arg is handled
-	// by the top-of-function prior-value branch; the 3-part db-less form
-	// below covers the harness shorthand. This fallback catches any arity
-	// the top branch declined.
-	if len(cmdParts) >= 3 && cmdParts[0] == "sqlite3_limit" {
-		lim := cmdParts[len(cmdParts)-2]
-		val := strings.TrimSpace(cmdParts[len(cmdParts)-1])
-		if strings.TrimSpace(val) == "-1" {
-			tp.assignSetValue(goName, fmt.Sprintf("strconv.Itoa(db.Limit(%q))", lim))
-		} else {
-			tp.emitLine("{ // set %s [sqlite3_limit %s %s]", goName, lim, val)
-			tp.indent++
-			tp.emitLine("_prior := db.Limit(%q)", lim)
-			tp.emitLine("db.SetLimit(%q, toInt(%q))", lim, val)
-			tp.assignSetValue(goName, "strconv.Itoa(_prior)")
-			tp.indent--
-			tp.emitLine("}")
-		}
-		return true
-	}
-	if isExprCmd(cmdParts) {
-		return tp.setExprValue(goName, cmdText)
-	}
-	// set VAR [open PATH MODE] — store the file path in VAR (a file channel).
-	// The mode argument (e.g. "rb", "w") is TCL-only; tclReadFile/tclFileSize
-	// helpers operate on the path alone.
-	if cmdParts[0] == "open" {
-		restText := strings.TrimSpace(strings.TrimPrefix(cmdText, "open"))
-		fields := strings.Fields(restText)
-		path := restText
-		if len(fields) > 0 {
-			path = fields[0]
-		}
-		pathWord := tcl.RawWord{Text: path}
-		pathExpr := tp.sqlStringValue(pathWord)
-		tp.assignSetValue(goName, pathExpr)
-		return true
-	}
-	// set VAR [read $CHAN] — read the file channel's whole content (CHAN
-	// holds a path stored by `set CHAN [open PATH ...]`).
-	if cmdParts[0] == "read" && len(cmdParts) >= 2 && strings.HasPrefix(cmdParts[1], "$") {
-		chanGo := tclVarToGo(strings.TrimPrefix(cmdParts[1], "$"))
-		if isValidGoIdent(chanGo) && tp.isVarDeclared(chanGo) {
-			if len(cmdParts) >= 3 {
-				// `read $CHAN N` — read N bytes from the channel's current
-				// seek position. Used by corrupt* tests to capture cell
-				// pointers / child-page bytes. N may be a bracket-balanced
-				// `[expr ...]` that the Fields split fragments; reconstruct
-				// it from the raw cmdText.
-				prefix := cmdParts[0] + " " + cmdParts[1]
-				countText := strings.TrimSpace(cmdText)
-				countText = strings.TrimSpace(strings.TrimPrefix(countText, prefix))
-				countExpr, ok := tp.readCountExpr(countText)
-				if !ok {
-					countExpr = cmdParts[2]
-				}
-				tp.assignSetValue(goName, fmt.Sprintf("tclReadFileWithLen(%s, %s)", chanGo, countExpr))
-			} else {
-				tp.assignSetValue(goName, "tclReadFile("+chanGo+")")
-			}
-			return true
-		}
-	}
-	// set var [sqlite3_blob_bytes $B] — assign the blob byte count.
-	if cmdParts[0] == "sqlite3_blob_bytes" {
-		tp.assignSetValue(goName, fmt.Sprintf("strconv.Itoa(%s.Bytes())", tp.blobArgExpr(tcl.RawWord{Text: cmdText[len("sqlite3_blob_bytes"):]})))
-		return true
-	}
-	// set VAR [file_control_data_version db [schema]] — the database file's
-	// data-version counter (dataversion1.test).
-	if cmdParts[0] == "file_control_data_version" && len(cmdParts) >= 2 {
-		dbExpr := tp.dbArgGo(cmdParts[1])
-		schemaExpr := `""`
-		if len(cmdParts) >= 3 {
-			schemaExpr = tp.goStringLiteral(tcl.RawWord{Text: cmdParts[2]})
-		}
-		tp.assignSetValue(goName, fmt.Sprintf("tclDataVersion(%s, %s)", dbExpr, schemaExpr))
-		return true
-	}
-	// set VAR [db one {SQL}] — run the SQL at runtime and take the first
-	// column of the first row as a TCL string (zipfile2 5.0/8.x build their
-	// fixtures with SELECT X'...' blobs).
-	if cmdParts[0] == "db" && len(cmdParts) >= 3 && cmdParts[1] == "one" {
-		body := strings.TrimSpace(strings.TrimPrefix(strings.TrimSpace(cmdText), "db one"))
-		tp.assignSetValue(goName, fmt.Sprintf("tclDbOne(%s, %s)", tp.dbVar, tp.goStringLiteral(tcl.RawWord{Text: body})))
-		return true
-	}
-	// set VAR [binary encode hex $b] / [binary decode hex $hex] — the TCL
-	// 8.x binary codec used all over zipfile2 to move between blob bytes
-	// and their hex text form.
-	if cmdParts[0] == "binary" && len(cmdParts) >= 4 {
-		var expr string
-		switch cmdParts[1] + " " + cmdParts[2] {
-		case "encode hex":
-			expr = tp.hexCodecArgExpr(cmdParts, 3)
-			if expr != "" {
-				tp.assignSetValue(goName, fmt.Sprintf("tclHexEncode(%s)", expr))
-				return true
-			}
-		case "decode hex":
-			expr = tp.hexCodecArgExpr(cmdParts, 3)
-			if expr != "" {
-				tp.assignSetValue(goName, fmt.Sprintf("string(tclHexDecode(%s))", expr))
-				return true
-			}
-		}
-	}
-	// set VAR [proc arg...] — a registered special-func proc (int2str,
-	// utf8_to_hstr, ...) whose Go helper is in specialFuncs.
-	if tmpl, ok := tp.specialFuncs[cmdParts[0]]; ok {
-		if strings.Contains(tmpl, "$data") && len(cmdParts) >= 2 {
-			rest := strings.TrimSpace(strings.TrimPrefix(strings.TrimSpace(cmdText), cmdParts[0]))
-			dataExpr := tp.buildStringExpr(rest)
-			tp.assignSetValue(goName, strings.Replace(tmpl, "$data", dataExpr, 1))
-		} else if tmpl == "tclBlobHexDecode" {
-			// blob() hex decoder as a value (zipfile2 `set blob [blob $a]`):
-			// decode the argument's hex text into raw bytes. Tokenize with the
-			// TCL word splitter so nested bracket substitutions survive
-			// ([blob [string map {0800 0900} $archive2]]).
-			argExpr := `""`
-			if w := tclCmdWords(strings.TrimSpace(strings.TrimPrefix(strings.TrimSpace(cmdText), cmdParts[0]))); len(w) >= 1 {
-				argExpr = tp.buildStringExpr(w[0])
-			}
-			tp.assignSetValue(goName, fmt.Sprintf("string(tclHexDecode(%s))", argExpr))
-		} else {
-			tp.assignSetValue(goName, tmpl)
-		}
-		return true
-	}
-	// set tstbody [concat sqlite3_table_column_metadata $DB $params] —
-	// record the column-metadata command (colmeta.test). The do_test body
-	// that catch-runs $tstbody is later emitted as a direct
-	// tclTableColumnMetadata call (see emitColmetaBody).
-	if strings.HasPrefix(cmdText, "concat sqlite3_table_column_metadata") {
-		if tp.colmetaCmds == nil {
-			tp.colmetaCmds = make(map[string]string)
-		}
-		tp.colmetaCmds[goName] = strings.TrimSpace(strings.TrimPrefix(cmdText, "concat sqlite3_table_column_metadata"))
-		tp.assignSetValue(goName, `""`)
-		return true
-	}
-	// set VAR [sqlite3_exec db {SQL}] — run SQL (with %XX decoding) and store
-	// the "{code {headers values}}" result (badutf2.test).
-	if cmdParts[0] == "sqlite3_exec" && len(cmdParts) >= 3 {
-		dbExpr := tp.dbArgGo(cmdParts[1])
-		sqlArg := strings.TrimSpace(cmdText)
-		sqlArg = strings.TrimSpace(strings.TrimPrefix(sqlArg, "sqlite3_exec"))
-		sqlArg = strings.TrimSpace(strings.TrimPrefix(sqlArg, cmdParts[1]))
-		// A bare $var SQL argument passes the Go variable directly; a braced
-		// or quoted SQL text becomes a Go string literal.
-		var sqlExpr string
-		if strings.HasPrefix(sqlArg, "$") {
-			gv := tclVarToGo(strings.TrimPrefix(sqlArg, "$"))
-			if isValidGoIdent(gv) {
-				sqlExpr = gv
-			}
-		}
-		if sqlExpr == "" {
-			sqlExpr = tp.goStringLiteral(tcl.RawWord{Text: sqlArg})
-		}
-		tp.assignSetValue(goName, fmt.Sprintf("tclExec(%s, %s)", dbExpr, sqlExpr))
-		return true
-	}
-	// set VAR [sqlite3_limit db LIMIT -1] — query the current limit value
-	// (basexx1.test's `set inLimit [sqlite3_limit db SQLITE_LIMIT_LENGTH -1]`
-	// restore pattern). The -1 argument means "query, don't change".
-	if cmdParts[0] == "sqlite3_limit" && len(cmdParts) >= 4 && strings.TrimSpace(cmdParts[3]) == "-1" {
-		tp.assignSetValue(goName, fmt.Sprintf("strconv.Itoa(db.Limit(%q))", cmdParts[2]))
-		return true
-	}
-	// set VAR [sqlite3_limit db LIMIT N] — set the limit, return the PRIOR
-	// value (sqllimits1-1.30: `set prior [sqlite3_limit db
-	// SQLITE_LIMIT_LENGTH 1]` captures the old limit for restore).
-	// NOTE: `set prior [sqlite3_limit SQLITE_LIMIT_LENGTH 1]` (no db
-	// arg, as emitted for 1.30's inner set) has cmdParts = [sqlite3_limit
-	// LIMIT VAL]: db is args[1], so the limit is cmdParts[1].
-	if cmdParts[0] == "sqlite3_limit" && (len(cmdParts) == 4 || len(cmdParts) == 3) {
-		lim, val := "", ""
-		if len(cmdParts) == 4 {
-			lim = cmdParts[2]
-			val = strings.TrimSpace(cmdParts[3])
-		} else {
-			lim = cmdParts[1]
-			val = strings.TrimSpace(cmdParts[2])
-		}
-		if strings.TrimSpace(val) == "-1" {
-			tp.assignSetValue(goName, fmt.Sprintf("strconv.Itoa(db.Limit(%q))", lim))
-			return true
-		}
-		tp.emitLine("{ // set %s [sqlite3_limit %s %s]", goName, lim, val)
-		tp.indent++
-		tp.emitLine("_prior := db.Limit(%q)", lim)
-		tp.emitLine("db.SetLimit(%q, toInt(%q))", lim, val)
-		if tp.isVarDeclared(goName) {
-			tp.emitLine("%s = strconv.Itoa(_prior)", goName)
-		} else {
-			tp.emitLine("var %s = strconv.Itoa(_prior)", goName)
-			tp.vars = append(tp.vars, goName)
-		}
-		tp.emitLine("_ = %s", goName)
-		tp.indent--
-		tp.emitLine("}")
-		return true
-	}
-	if tp.setMiscBracketValue(goName, cmdText, cmdParts) {
-		return true
-	}
-	return false
-}
-
-// setMiscBracketValue handles the remaining `set VAR [...]` bracket values:
-// dbcksum (tester.tcl checksum), sqlite3_connection_pointer (connection
-// alias for sqlite3_errmsg/errcode resolution), catch, and concat-of-eqp.
-// Returns true when the command was handled.
-func (tp *transpiler) setMiscBracketValue(goName, cmdText string, cmdParts []string) bool {
-	if cmdParts[0] == "dbcksum" || cmdParts[0] == "sqlite3_connection_pointer" {
-		// set VAR [dbcksum db [schema]] — compute the tester.tcl checksum;
-		// set VAR [sqlite3_connection_pointer db] — alias a connection to a
-		// variable so later sqlite3_errmsg $VAR / sqlite3_errcode $VAR calls
-		// resolve to the real *frigolite.DB handle (see dbArgGo).
-		return tp.setCAPIValue(goName, cmdParts)
-	}
-	if isCatchCmd(cmdParts) {
-		return tp.setCatchValue(goName, cmdText)
-	}
-	if cmdParts[0] == "concat" && strings.Contains(cmdText, "[eqp ") {
-		return tp.setConcatEQPValue(goName, cmdText)
-	}
-	return false
-}
-
-// setConcatEQPValue handles `set VAR [concat [eqp SQL] [eqp SQL] ...]` — the
-// TCL test-suite idiom that concatenates EXPLAIN QUERY PLAN detail lists
-// (e_fkey-26.x). Each [eqp "SQL"] is inlined as tclEQP(db, SQL) and the
-// results are space-joined into the Go variable.
-func (tp *transpiler) setConcatEQPValue(goName, cmdText string) bool {
-	var exprs []string
-	rest := cmdText
-	for {
-		i := strings.Index(rest, "[eqp ")
-		if i < 0 {
-			break
-		}
-		rest = rest[i+len("[eqp "):]
-		// The eqp argument is a double-quoted or braced SQL string ending
-		// before the matching "]".
-		arg := ""
-		if strings.HasPrefix(rest, "\"") {
-			end := strings.Index(rest[1:], "\"")
-			if end < 0 {
-				break
-			}
-			arg = rest[1 : 1+end]
-			rest = rest[2+end:]
-		} else {
-			end := strings.Index(rest, "]")
-			if end < 0 {
-				break
-			}
-			arg = strings.TrimSpace(rest[:end])
-			rest = rest[end+1:]
-		}
-		sqlExpr := tp.goStringLiteral(tcl.RawWord{Text: arg})
-		exprs = append(exprs, "tclEQP(db, "+sqlExpr+")")
-	}
-	if len(exprs) == 0 {
-		return false
-	}
-	tp.emitLine("%s = %s", goName, strings.Join(exprs, " + \" \" + "))
-	tp.emitLine("_ = %s // suppress unused warning", goName)
-	return true
-}
-
-// setCAPIValue dispatches `set VAR [dbcksum ...]` and `set VAR
-// [sqlite3_connection_pointer ...]` to their handlers (the two C-API set
-// values the transpiler emulates; see processSetBracketValue).
-func (tp *transpiler) setCAPIValue(goName string, cmdParts []string) bool {
-	if cmdParts[0] == "sqlite3_connection_pointer" {
-		return tp.setConnectionPointerValue(goName, cmdParts)
-	}
-	// dbcksum db [schema] — compute the tester.tcl checksum.
-	schemaName := "\"main\""
-	dbConn := "db"
-	if len(cmdParts) >= 2 {
-		dbConn = tp.dbArgGo(cmdParts[1])
-	}
-	if len(cmdParts) >= 3 {
-		schemaName = fmt.Sprintf("%q", cmdParts[2])
-	}
-	tp.assignSetValue(goName, "tclDBCksum("+dbConn+", "+schemaName+")")
-	return true
-}
-
-// setConnectionPointerValue handles `set VAR [sqlite3_connection_pointer db]`
-// — the TCL test suite's way of aliasing a connection to a variable (the
-// returned "pointer" is an opaque C-API string). The Go value is the plain
-// connection name; the alias is recorded in varConstValues so later
-// `sqlite3_errmsg $VAR` / `sqlite3_errcode $VAR` / `sqlite3_prepare $VAR`
-// calls resolve to the real *frigolite.DB handle. Returns false when the
-// target is not a known connection (the generic set path handles it).
-func (tp *transpiler) setConnectionPointerValue(goName string, cmdParts []string) bool {
-	if len(cmdParts) < 2 {
-		return false
-	}
-	connGo := tclVarToGo(strings.TrimPrefix(cmdParts[1], "$"))
-	if !(connGo == "db" || isPreDeclaredDB(connGo) || tp.dbConnVars[connGo]) {
-		return false
-	}
-	if tp.varConstValues == nil {
-		tp.varConstValues = make(map[string]string)
-	}
-	tp.varConstValues[goName] = connGo
-	tp.assignSetValue(goName, fmt.Sprintf("%q", connGo))
-	return true
-}
 
 // setCreateDBValue handles `set nPage [create_db "..."]` (e_vacuum.test):
 // emits the t1/t2 table setup so later VACUUM tests see the tables, and binds
@@ -813,13 +225,7 @@ func (tp *transpiler) setDBEvalValue(goName, cmdText string, cmdParts []string) 
 	dbEvalVar := fmt.Sprintf("_dbeval%d", tp.varCount)
 	tp.varCount++
 	tp.emitLine("%s := tclExecSQL(%s, %s)", dbEvalVar, connGo, sqlExpr)
-	if tp.isVarDeclared(goName) {
-		tp.emitLine("%s = %s", goName, dbEvalVar)
-	} else {
-		tp.emitLine("var %s = %s", goName, dbEvalVar)
-		tp.vars = append(tp.vars, goName)
-	}
-	tp.emitLine("_ = %s // suppress unused warning", goName)
+	tp.assignSetValue(goName, dbEvalVar)
 	return true
 }
 
@@ -834,13 +240,7 @@ func (tp *transpiler) setDBOneValue(goName, cmdText string, cmdParts []string) b
 	oneVar := fmt.Sprintf("_dbone%d", tp.varCount)
 	tp.varCount++
 	tp.emitLine("%s := tclExecSQL(db, %s)", oneVar, sqlExpr)
-	if tp.isVarDeclared(goName) {
-		tp.emitLine("%s = %s", goName, oneVar)
-	} else {
-		tp.emitLine("var %s = %s", goName, oneVar)
-		tp.vars = append(tp.vars, goName)
-	}
-	tp.emitLine("_ = %s // suppress unused warning", goName)
+	tp.assignSetValue(goName, oneVar)
 	return true
 }
 
@@ -881,12 +281,11 @@ func (tp *transpiler) setCatchsqlSetValue(goName, cmdText string, cmdParts []str
 	return true
 }
 
-// setListValue handles `set var [list a b c]` — build a TCL-list string
-// without the "list" command word so tclSplitList at Go runtime returns
-// exactly the list elements. TCL backslash-newline continuations are removed
-// (they are not part of the list value).
-func (tp *transpiler) setListValue(goName, cmdText string) bool {
-	listText := strings.TrimPrefix(cmdText, "list")
+// normalizeListValueText normalizes a `list ...` body: TCL backslash-newline
+// continuations are removed (they are not part of the list value), and the
+// catchsql-style `1 {message}` two-element error form collapses to its
+// message text.
+func normalizeListValueText(listText string) string {
 	listText = strings.ReplaceAll(listText, "\\\r\n", " ")
 	listText = strings.ReplaceAll(listText, "\\\n", " ")
 	listText = strings.TrimSpace(listText)
@@ -908,6 +307,14 @@ func (tp *transpiler) setListValue(goName, cmdText string) bool {
 		}
 		listText = msg
 	}
+	return listText
+}
+
+// setListValue handles `set var [list a b c]` — build a TCL-list string
+// without the "list" command word so tclSplitList at Go runtime returns
+// exactly the list elements.
+func (tp *transpiler) setListValue(goName, cmdText string) bool {
+	listText := normalizeListValueText(strings.TrimPrefix(cmdText, "list"))
 	valExpr := tp.goStringLiteral(tcl.RawWord{Text: listText})
 	// A list whose elements are SQL scripts with declared $var references
 	// (incrvacuum.test's `set TestScriptList [list {...$::str1...} ...]`,
@@ -920,13 +327,7 @@ func (tp *transpiler) setListValue(goName, cmdText string) bool {
 		looksLikeSQLText(listText) && !hasTopLevelCmdSubst(listText) {
 		valExpr = tp.buildSQLStringExprNoCmd(listText)
 	}
-	if tp.isVarDeclared(goName) {
-		tp.emitLine("%s = %s", goName, valExpr)
-	} else {
-		tp.emitLine("var %s = %s", goName, valExpr)
-		tp.vars = append(tp.vars, goName)
-	}
-	tp.emitLine("_ = %s // suppress unused warning", goName)
+	tp.assignSetValue(goName, valExpr)
 	if tp.varConstValues == nil {
 		tp.varConstValues = make(map[string]string)
 	}
@@ -988,6 +389,40 @@ func (tp *transpiler) readCountExpr(countText string) (string, bool) {
 	return countText, true
 }
 
+// exprConstantValue folds a TCL expr string into a Go value expression at
+// generation time. Returns "" when the expression needs runtime evaluation.
+func (tp *transpiler) exprConstantValue(exprStr string) string {
+	result, err := tcl.EvalExpr(exprStr, nil, nil)
+	if err == nil {
+		return fmt.Sprintf("%q", result)
+	}
+	if fs, ok := fileSizeArithExpr(exprStr); ok {
+		// [file size PATH] arithmetic (e.g. `[file size test.db]/1024`) —
+		// render the file size and arithmetic at runtime.
+		return "strconv.Itoa(" + fs + ")"
+	}
+	if strings.Contains(exprStr, "[") && strings.Contains(exprStr, "]") {
+		// [cmd] command substitutions (e.g. [string length $word]).
+		if goExpr, ok := tp.exprCmdToGo(exprStr); ok {
+			return "strconv.Itoa(" + goExpr + ")"
+		}
+		return ""
+	}
+	if strings.Contains(exprStr, "rand(") {
+		// rand() is the one TCL math function the runtime evaluator
+		// (tclEvalFuncs) cannot compute, so render it as native Go code
+		// (the helpers import math/rand). Other functions (log, pow,
+		// int, sqrt, ...) and pure $var arithmetic fall through to
+		// tclExprWith, which evaluates at runtime with float semantics
+		// (critical when a var holds a real like 2460369.5 — toInt()
+		// would truncate it).
+		if goExpr, ok := tp.exprCmdToGo(exprStr); ok {
+			return "strconv.Itoa(" + goExpr + ")"
+		}
+	}
+	return ""
+}
+
 func (tp *transpiler) setExprValue(goName, cmdText string) bool {
 	exprStr := strings.TrimSpace(strings.TrimPrefix(strings.TrimSpace(cmdText), "expr"))
 	if len(exprStr) >= 2 && exprStr[0] == '{' && exprStr[len(exprStr)-1] == '}' {
@@ -1000,31 +435,7 @@ func (tp *transpiler) setExprValue(goName, cmdText string) bool {
 		tp.assignSetValue(goName, fmt.Sprintf("%q", strconv.FormatInt(n, 10)))
 		return true
 	}
-	result, err := tcl.EvalExpr(exprStr, nil, nil)
-	valExpr := ""
-	if err == nil {
-		valExpr = fmt.Sprintf("%q", result)
-	} else if fs, ok := fileSizeArithExpr(exprStr); ok {
-		// [file size PATH] arithmetic (e.g. `[file size test.db]/1024`) —
-		// render the file size and arithmetic at runtime.
-		valExpr = "strconv.Itoa(" + fs + ")"
-	} else if strings.Contains(exprStr, "[") && strings.Contains(exprStr, "]") {
-		// [cmd] command substitutions (e.g. [string length $word]).
-		if goExpr, ok := tp.exprCmdToGo(exprStr); ok {
-			valExpr = "strconv.Itoa(" + goExpr + ")"
-		}
-	} else if strings.Contains(exprStr, "rand(") {
-		// rand() is the one TCL math function the runtime evaluator
-		// (tclEvalFuncs) cannot compute, so render it as native Go code
-		// (the helpers import math/rand). Other functions (log, pow,
-		// int, sqrt, ...) and pure $var arithmetic fall through to
-		// tclExprWith, which evaluates at runtime with float semantics
-		// (critical when a var holds a real like 2460369.5 — toInt()
-		// would truncate it).
-		if goExpr, ok := tp.exprCmdToGo(exprStr); ok {
-			valExpr = "strconv.Itoa(" + goExpr + ")"
-		}
-	}
+	valExpr := tp.exprConstantValue(exprStr)
 	if valExpr == "" {
 		valExpr = tp.runtimeExprValue(exprStr)
 	}
@@ -1132,18 +543,13 @@ func (tp *transpiler) setCatchValue(goName, cmdText string) bool {
 	return true
 }
 
-// singleDbEvalSelectRows reports whether the catch body is exactly one
-// "db eval {SELECT ...}" command (any connection: db, db2, ...) with no array
-// variable or trailing row script. TCL assigns the query's flattened row
-// values to the catch message variable on success (tclsqlite.c: the command
-// result is the row list), so emitCatchBlock binds errVar from _res.Rows in
-// that case (lock.test 1.21/1.22). Returns false for every other body shape.
-func singleDbEvalSelectRows(body string) bool {
-	b := strings.TrimSpace(body)
-	// Connection token: "db" optionally followed by digits, then "eval".
+// dbEvalConnPrefix consumes the leading "<conn> eval" prefix (connection
+// token "db" optionally followed by digits) from b. Returns the remainder and
+// true when the prefix is present.
+func dbEvalConnPrefix(b string) (string, bool) {
 	i := 0
 	if !strings.HasPrefix(b, "db") {
-		return false
+		return "", false
 	}
 	i = 2
 	for i < len(b) && b[i] >= '0' && b[i] <= '9' {
@@ -1151,11 +557,16 @@ func singleDbEvalSelectRows(body string) bool {
 	}
 	rest := strings.TrimSpace(b[i:])
 	if !strings.HasPrefix(rest, "eval") {
-		return false
+		return "", false
 	}
-	rest = strings.TrimSpace(rest[len("eval"):])
+	return strings.TrimSpace(rest[len("eval"):]), true
+}
+
+// bracedSQLBody reports whether rest is exactly one {...} group followed only
+// by whitespace; it returns the group's inner text.
+func bracedSQLBody(rest string) (string, bool) {
 	if len(rest) == 0 || rest[0] != '{' {
-		return false
+		return "", false
 	}
 	// Find the matching close brace; nothing but whitespace may follow.
 	depth := 0
@@ -1175,10 +586,29 @@ func singleDbEvalSelectRows(body string) bool {
 		}
 	}
 	if end < 0 || strings.TrimSpace(rest[end+1:]) != "" {
+		return "", false
+	}
+	return rest[1:end], true
+}
+
+// singleDbEvalSelectRows reports whether the catch body is exactly one
+// "db eval {SELECT ...}" command (any connection: db, db2, ...) with no array
+// variable or trailing row script. TCL assigns the query's flattened row
+// values to the catch message variable on success (tclsqlite.c: the command
+// result is the row list), so emitCatchBlock binds errVar from _res.Rows in
+// that case (lock.test 1.21/1.22). Returns false for every other body shape.
+func singleDbEvalSelectRows(body string) bool {
+	b := strings.TrimSpace(body)
+	rest, ok := dbEvalConnPrefix(b)
+	if !ok {
 		return false
 	}
-	sql := strings.ToUpper(strings.TrimSpace(rest[1:end]))
-	return strings.HasPrefix(sql, "SELECT") || strings.HasPrefix(sql, "WITH") || strings.HasPrefix(sql, "VALUES")
+	sqlBody, ok := bracedSQLBody(rest)
+	if !ok {
+		return false
+	}
+	sql := strings.ToUpper(strings.TrimSpace(sqlBody))
+	return isRowStmtKeyword(sql)
 }
 
 // bodyEndsWithExecsqlSelect reports whether the catch body is exactly one
@@ -1204,13 +634,29 @@ func bodyIsExecsql2Select(body string) bool {
 	return sqlBatchEndsWithRowStmt(cmds[0][1].Text)
 }
 
-// sqlBatchEndsWithRowStmt reports whether the last statement of a
-// multi-statement SQL batch produces rows (SELECT/WITH/VALUES). TCL
-// `catch {execsql {END TRANSACTION; SELECT ...}} msg` binds the batch's
-// row output to msg (tclsqlite.c appends every statement's rows to the
-// command result), so a batch that ENDS in a row-producing statement needs
-// the same msg wiring as a single SELECT (trans-4.9).
-func sqlBatchEndsWithRowStmt(sqlText string) bool {
+// skipSQLComment advances i past a `--` comment body up to (not including)
+// the terminating newline; the caller's i++ resumes after it.
+func skipSQLComment(sqlText string, i int) int {
+	for i < len(sqlText) && sqlText[i] != '\n' {
+		i++
+	}
+	return i
+}
+
+// isSQLCommentStart reports whether position i begins a `--` SQL comment.
+func isSQLCommentStart(sqlText string, i int) bool {
+	return sqlText[i] == '-' && i+1 < len(sqlText) && sqlText[i+1] == '-'
+}
+
+// isRowStmtKeyword reports whether an upper-cased statement text begins with
+// a row-producing keyword (SELECT, WITH, or VALUES).
+func isRowStmtKeyword(upperSQL string) bool {
+	return strings.HasPrefix(upperSQL, "SELECT") || strings.HasPrefix(upperSQL, "WITH") || strings.HasPrefix(upperSQL, "VALUES")
+}
+
+// lastSQLStatementText returns the text of the last statement of a
+// multi-statement SQL batch, honoring ' and " quoting and skipping -- comments.
+func lastSQLStatementText(sqlText string) string {
 	last := ""
 	cur := strings.Builder{}
 	inS, inD := false, false // ' and " quotes
@@ -1219,29 +665,16 @@ func sqlBatchEndsWithRowStmt(sqlText string) bool {
 		switch {
 		case inS:
 			cur.WriteByte(c)
-			if c == '\'' {
-				inS = false
-			}
+			inS = c != '\''
 		case inD:
 			cur.WriteByte(c)
-			if c == '"' {
-				inD = false
-			}
-		case c == '\'':
-			inS = true
+			inD = c != '"'
+		case c == '\'' || c == '"':
+			inS, inD = c == '\'', c == '"'
 			cur.WriteByte(c)
-		case c == '"':
-			inD = true
-			cur.WriteByte(c)
-		case c == '-':
+		case isSQLCommentStart(sqlText, i):
 			// -- comment: skip to end of line
-			if i+1 < len(sqlText) && sqlText[i+1] == '-' {
-				for i < len(sqlText) && sqlText[i] != '\n' {
-					i++
-				}
-				continue
-			}
-			cur.WriteByte(c)
+			i = skipSQLComment(sqlText, i)
 		case c == ';':
 			if strings.TrimSpace(cur.String()) != "" {
 				last = cur.String()
@@ -1254,11 +687,22 @@ func sqlBatchEndsWithRowStmt(sqlText string) bool {
 	if strings.TrimSpace(cur.String()) != "" {
 		last = cur.String()
 	}
-	last = strings.ToUpper(strings.TrimSpace(last))
-	return strings.HasPrefix(last, "SELECT") || strings.HasPrefix(last, "WITH") || strings.HasPrefix(last, "VALUES")
+	return last
 }
 
-// scope, assigning the TCL result code (1/0) to varName and the error message
+// sqlBatchEndsWithRowStmt reports whether the last statement of a
+// multi-statement SQL batch produces rows (SELECT/WITH/VALUES). TCL
+// `catch {execsql {END TRANSACTION; SELECT ...}} msg` binds the batch's
+// row output to msg (tclsqlite.c appends every statement's rows to the
+// command result), so a batch that ENDS in a row-producing statement needs
+// the same msg wiring as a single SELECT (trans-4.9).
+func sqlBatchEndsWithRowStmt(sqlText string) bool {
+	last := strings.ToUpper(strings.TrimSpace(lastSQLStatementText(sqlText)))
+	return isRowStmtKeyword(last)
+}
+
+// emitCatchBlock transpiles `catch { BODY } MSGVAR` at statement scope,
+// assigning the TCL result code (1/0) to varName and the error message
 // to errVar.
 func (tp *transpiler) emitCatchBlock(varName, errVar, bodyStr string) {
 	// Declare variables at function scope (indent 1)
@@ -1342,13 +786,7 @@ func (tp *transpiler) processSetTimeValue(goName, bracketText string) {
 		bodyTP.processCommands(bodyCmds)
 		tp.indent = bodyTP.indent
 	}
-	if tp.isVarDeclared(goName) {
-		tp.emitLine("%s = \"\"", goName)
-	} else {
-		tp.emitLine("var %s = \"\"", goName)
-		tp.vars = append(tp.vars, goName)
-	}
-	tp.emitLine("_ = %s // suppress unused warning", goName)
+	tp.assignSetValue(goName, `""`)
 }
 
 // processSetLindexTimeValue handles `set var [lindex [time { SCRIPT }] N]` —
@@ -1367,44 +805,47 @@ func (tp *transpiler) processSetLindexTimeValue(goName, bracketText string) {
 			tp.indent = bodyTP.indent
 		}
 	}
-	if tp.isVarDeclared(goName) {
-		tp.emitLine("%s = \"0\"", goName)
-	} else {
-		tp.emitLine("var %s = \"0\"", goName)
-		tp.vars = append(tp.vars, goName)
-	}
-	tp.emitLine("_ = %s // suppress unused warning", goName)
+	tp.assignSetValue(goName, `"0"`)
 }
 
-// processSetGeneric handles the plain `set var value` assignment: build the
-// value expression, track query vars / testprefix, and emit the assignment.
-func (tp *transpiler) processSetGeneric(goName string, args, rest []tcl.RawWord) {
-	valueExpr := tp.varValueExpr(rest)
-	// Track simple bare-word constants (set var value) so later commands can
-	// resolve the value statically — e.g. `set db_dest db2` followed by
-	// `execsql {SQL} $db_dest` resolves the connection to db2.
-	if len(rest) >= 1 && !rest[0].Braced && !rest[0].Quoted &&
-		!strings.HasPrefix(rest[0].Text, "[") && !strings.HasPrefix(rest[0].Text, "$") {
-		if tp.varConstValues == nil {
-			tp.varConstValues = make(map[string]string)
-		}
-		tp.varConstValues[goName] = rest[0].Text
+// trackSetBareConstValue records simple bare-word constants (set var value)
+// so later commands can resolve the value statically — e.g. `set db_dest db2`
+// followed by `execsql {SQL} $db_dest` resolves the connection to db2.
+func (tp *transpiler) trackSetBareConstValue(goName string, rest []tcl.RawWord) {
+	if len(rest) < 1 || rest[0].Braced || rest[0].Quoted ||
+		strings.HasPrefix(rest[0].Text, "[") || strings.HasPrefix(rest[0].Text, "$") {
+		return
 	}
-	// Track quoted string assignments so later commands (e.g. the
-	// colmeta.test `set tests "concat $tests {LIST}"` accumulation) can
-	// resolve the variable's constant list value.
-	if len(rest) >= 1 && rest[0].Quoted {
-		if tp.varConstValues == nil {
-			tp.varConstValues = make(map[string]string)
-		}
-		tp.varConstValues[goName] = tclUnescapeQuoted(rest[0].Text)
+	if tp.varConstValues == nil {
+		tp.varConstValues = make(map[string]string)
 	}
-	// Track variables whose assigned value is (or begins with) a query
-	// statement, so `execsql $var` bodies can be recognized as queries. Also
-	// record braced SQL constants in a dedicated map so sqlite3_prepare can
-	// classify a $var SQL (capi3-1.7 prepares `SELECT namex ...` via a $sql
-	// variable) without disturbing the varConstValues concat/list machinery.
-	if len(rest) >= 1 && rest[0].Braced {
+	tp.varConstValues[goName] = rest[0].Text
+}
+
+// trackSetQuotedValue records quoted string assignments so later commands
+// (e.g. the colmeta.test `set tests "concat $tests {LIST}"` accumulation) can
+// resolve the variable's constant list value.
+func (tp *transpiler) trackSetQuotedValue(goName string, rest []tcl.RawWord) {
+	if len(rest) < 1 || !rest[0].Quoted {
+		return
+	}
+	if tp.varConstValues == nil {
+		tp.varConstValues = make(map[string]string)
+	}
+	tp.varConstValues[goName] = tclUnescapeQuoted(rest[0].Text)
+}
+
+// trackSetQueryVarValue tracks variables whose assigned value is (or begins
+// with) a query statement, so `execsql $var` bodies can be recognized as
+// queries. Also records braced SQL constants in a dedicated map so
+// sqlite3_prepare can classify a $var SQL (capi3-1.7 prepares `SELECT namex
+// ...` via a $sql variable) without disturbing the varConstValues concat/list
+// machinery.
+func (tp *transpiler) trackSetQueryVarValue(goName string, args, rest []tcl.RawWord) {
+	if len(rest) < 1 {
+		return
+	}
+	if rest[0].Braced {
 		tp.markQueryVar(args[0].Text, rest[0].Text)
 		if !strings.HasPrefix(strings.TrimSpace(rest[0].Text), "$") {
 			if tp.sqlVarValues == nil {
@@ -1412,22 +853,28 @@ func (tp *transpiler) processSetGeneric(goName string, args, rest []tcl.RawWord)
 			}
 			tp.sqlVarValues[goName] = strings.TrimSpace(rest[0].Text)
 		}
-	} else if len(rest) >= 1 && !rest[0].Braced {
-		tp.markQueryVar(args[0].Text, rest[0].Text)
+		return
 	}
-	// Track `set testprefix NAME` so the skipTests lookup can resolve bare
-	// test names (e.g. whereF's "4.0") to their TCL-effective names
-	// ("whereF-4.0"), matching tester.tcl's prefixing. This keeps generic
-	// keys like "4.0" from colliding across packages.
+	tp.markQueryVar(args[0].Text, rest[0].Text)
+}
+
+// trackSetTestPrefix tracks `set testprefix NAME` so the skipTests lookup can
+// resolve bare test names (e.g. whereF's "4.0") to their TCL-effective names
+// ("whereF-4.0"), matching tester.tcl's prefixing. This keeps generic
+// keys like "4.0" from colliding across packages.
+func (tp *transpiler) trackSetTestPrefix(args, rest []tcl.RawWord) {
 	if args[0].Text == "testprefix" && len(rest) >= 1 && !rest[0].Braced {
 		tp.testPrefix = strings.TrimSpace(rest[0].Text)
 	}
-	// Use := for first declaration, = for subsequent assignment to avoid redeclaration
-	if tp.isVarDeclared(goName) {
-		tp.emitLine("%s = %s", goName, valueExpr)
-	} else {
-		tp.emitLine("var %s = %s", goName, valueExpr)
-		tp.vars = append(tp.vars, goName)
-	}
-	tp.emitLine("_ = %s // suppress unused warning", goName)
+}
+
+// processSetGeneric handles the plain `set var value` assignment: build the
+// value expression, track query vars / testprefix, and emit the assignment.
+func (tp *transpiler) processSetGeneric(goName string, args, rest []tcl.RawWord) {
+	valueExpr := tp.varValueExpr(rest)
+	tp.trackSetBareConstValue(goName, rest)
+	tp.trackSetQuotedValue(goName, rest)
+	tp.trackSetQueryVarValue(goName, args, rest)
+	tp.trackSetTestPrefix(args, rest)
+	tp.assignSetValue(goName, valueExpr)
 }

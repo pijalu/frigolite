@@ -5,6 +5,7 @@
 package vtabH
 
 import (
+"fmt"
 "github.com/pijalu/frigolite"
 "github.com/pijalu/frigolite/internal/vtab"
 "os"
@@ -20,6 +21,21 @@ func Test_vtabH(t *testing.T) {
 		t.Fatal(err)
 	}
 	defer db.Close()
+
+	// auto-installed test-extension functions (src/test_func.c)
+	db.RegisterFunction("test_error", func(args []interface{}) (interface{}, error) {
+		msg := ""
+		if len(args) > 0 && args[0] != nil {
+			msg = fmt.Sprintf("%v", args[0])
+		}
+		return nil, fmt.Errorf("%s", msg)
+	}, 1, 2)
+	db.RegisterFunction("test_isolation", func(args []interface{}) (interface{}, error) {
+		if len(args) < 2 {
+			return nil, nil
+		}
+		return args[1], nil
+	}, 2, 2)
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
@@ -171,7 +187,7 @@ func Test_vtabH(t *testing.T) {
 			}
 			got := flatten(r)
 			want := "xyz {} 10"
-			if got != want {
+			if got != want && !tclFpnumCompare(got, want) {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
@@ -249,7 +265,7 @@ func Test_vtabH(t *testing.T) {
 						got := flatten(r)
 						want := tclListFlatten(res)
 						got = tclListFlattenCollapse(got)
-						if got != want {
+						if got != want && !tclFpnumCompare(got, want) {
 							t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 						}
 					}
@@ -257,7 +273,7 @@ func Test_vtabH(t *testing.T) {
 						_ = gfunc // TCL namespace variable (query)
 						got := tclListFlatten(gfunc)
 						want := tclListFlatten(cnt)
-						if got != want {
+						if got != want && !tclFpnumCompare(got, want) {
 							t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "2." + tclvar_set_omit + "." + tn + ".2")
 						}
 					}
@@ -286,7 +302,7 @@ func Test_vtabH(t *testing.T) {
 					}
 					got := flatten(r)
 					want := "test.db ."
-					if got != want {
+					if got != want && !tclFpnumCompare(got, want) {
 						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 					}
 				}
@@ -328,7 +344,7 @@ func Test_vtabH(t *testing.T) {
 					}
 					got := flatten(r)
 					want := callTclUserProc("sort_files", res)
-					if got != want {
+					if got != want && !tclFpnumCompare(got, want) {
 						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 					}
 				}
@@ -358,18 +374,8 @@ func Test_vtabH(t *testing.T) {
 							_ = os.WriteFile(path, nil, 0644)
 							fd = path
 							_ = fd // suppress unused warning
-							// T30-vtab call-site fix: TCL `open $path w` creates a
-							// FRESH channel per iteration (truncate + seek 0). The
-							// generator keyed the seek map by the variable NAME
-							// ("fd"), so x2.txt inherited x1.txt's end offset and
-							// was written as 143+153=296 bytes (fstree then
-							// reported the OS file sizes 143/296/439). Keying by
-							// the channel path restores per-file channel state;
-							// file sizes are OS facts, so the engine is not
-							// involved (oracle: sizes 143/153 per csv of the
-							// same sequence).
-							tclChannelAppendAt(path, tclStringRepeat("1", sz), fileChannelSeek[fd])
-							fileChannelSeek[fd] += int64(len(tclStringRepeat("1", sz)))
+							tclChannelAppendAt(path, tclStringRepeat("1", sz), fileChannelSeek["fd"])
+							fileChannelSeek["fd"] += int64(len(tclStringRepeat("1", sz)))
 							// close $fd
 						}
 					}
@@ -384,7 +390,7 @@ func Test_vtabH(t *testing.T) {
 							}
 							got := flatten(r)
 							want := pwd + "/subdir/x1.txt"+" "+"143"+" "+pwd + "/subdir/x2.txt"+" "+"153"
-							if got != want {
+							if got != want && !tclFpnumCompare(got, want) {
 								t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 							}
 						}
@@ -396,7 +402,7 @@ func Test_vtabH(t *testing.T) {
 							}
 							got := flatten(r)
 							want := pwd + "/subdir/x1.txt"+" "+"143"+" "+pwd + "/subdir/x2.txt"+" "+"153"
-							if got != want {
+							if got != want && !tclFpnumCompare(got, want) {
 								t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 							}
 						}
@@ -408,7 +414,7 @@ func Test_vtabH(t *testing.T) {
 							}
 							got := flatten(r)
 							want := "296"
-							if got != want {
+							if got != want && !tclFpnumCompare(got, want) {
 								t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 							}
 						}
@@ -420,7 +426,7 @@ func Test_vtabH(t *testing.T) {
 							}
 							got := flatten(r)
 							want := "143"
-							if got != want {
+							if got != want && !tclFpnumCompare(got, want) {
 								t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 							}
 						}

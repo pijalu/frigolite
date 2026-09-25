@@ -5,6 +5,7 @@
 package collate4
 
 import (
+"fmt"
 "github.com/pijalu/frigolite"
 "os"
 "strconv"
@@ -19,6 +20,21 @@ func Test_collate4(t *testing.T) {
 		t.Fatal(err)
 	}
 	defer db.Close()
+
+	// auto-installed test-extension functions (src/test_func.c)
+	db.RegisterFunction("test_error", func(args []interface{}) (interface{}, error) {
+		msg := ""
+		if len(args) > 0 && args[0] != nil {
+			msg = fmt.Sprintf("%v", args[0])
+		}
+		return nil, fmt.Errorf("%s", msg)
+	}, 1, 2)
+	db.RegisterFunction("test_isolation", func(args []interface{}) (interface{}, error) {
+		if len(args) < 2 {
+			return nil, nil
+		}
+		return args[1], nil
+	}, 2, 2)
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
@@ -283,7 +299,7 @@ func Test_collate4(t *testing.T) {
 		got := flatten(r)
 		want := tclListFlatten("{}")
 		got = tclListFlattenCollapse(got)
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -385,7 +401,7 @@ func Test_collate4(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "abc"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -421,7 +437,7 @@ func Test_collate4(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "abc"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -457,7 +473,7 @@ func Test_collate4(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "abc"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -480,24 +496,26 @@ func Test_collate4(t *testing.T) {
 		}
 	}
 	db.RegisterCollation("numeric", func(a, b string) int {
-	if a == b { return 0 }
 	af, aerr := strconv.ParseFloat(a, 64)
 	bf, berr := strconv.ParseFloat(b, 64)
 	if aerr == nil && berr == nil {
-		if af < bf { return -1 }
-		return 1
+		if af == bf { return 0 }
+		if af > bf { return 1 }
+		return -1
 	}
+	if a == b { return 0 }
 	return strings.Compare(a, b)
 })
 	// proc numeric_collate collation redefined — re-register (TCL late binding)
 	db.RegisterCollation("numeric_collate", func(a, b string) int {
-	if a == b { return 0 }
 	af, aerr := strconv.ParseFloat(a, 64)
 	bf, berr := strconv.ParseFloat(b, 64)
 	if aerr == nil && berr == nil {
-		if af < bf { return -1 }
-		return 1
+		if af == bf { return 0 }
+		if af > bf { return 1 }
+		return -1
 	}
+	if a == b { return 0 }
 	return strings.Compare(a, b)
 })
 	{ // do_test "collate4-4.0"
@@ -552,7 +570,7 @@ func Test_collate4(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "11 11"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -564,7 +582,7 @@ func Test_collate4(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "101 101"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -576,7 +594,7 @@ func Test_collate4(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "11 101"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -588,7 +606,7 @@ func Test_collate4(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "11 101"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -600,7 +618,7 @@ func Test_collate4(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "101 101"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -612,7 +630,7 @@ func Test_collate4(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "101 101"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}

@@ -101,6 +101,16 @@ func (e *SelectEngine) execSelectView(entry *schema.Entry) *Result {
 				return &Result{Error: fmt.Errorf("unsafe use of %s()", name)}
 			}
 		}
+		// Omit-unused-subquery-column (select.c
+		// disableUnusedSubqueryResultColumns): when the expansion site
+		// handed us the outer statement, NULL out the body's result
+		// columns it never references. The body AST is freshly parsed per
+		// expansion, so the rewrite cannot leak into later statements.
+		if e.viewOuterStmt != nil {
+			e.disableUnusedSubqueryColumns(e.viewOuterStmt, e.viewOuterQuals, sel)
+			e.viewOuterStmt = nil
+			e.viewOuterQuals = nil
+		}
 		return e.execSelect(sel)
 	}
 	return &Result{Error: fmt.Errorf("exec: view does not contain SELECT")}
@@ -155,6 +165,22 @@ func (e *SelectEngine) buildNoFromRowMaps(rows [][]interface{}, columns []string
 
 // execSelectFromSubquery executes an outer SELECT whose FROM is a subquery.
 func (e *SelectEngine) execSelectFromSubquery(s *sql.SelectStmt) *Result {
+	// Omit-unused-subquery-column (select.c
+	// disableUnusedSubqueryResultColumns): NULL out the subquery's result
+	// columns the outer statement never references so their expressions
+	// (user-defined function calls with side effects, expensive
+	// computations) are not evaluated. Runs before the subquery executes;
+	// the freshly parsed statement AST is rewritten in place.
+	if s.From.Subquery != nil {
+		quals := make([]string, 0, 2)
+		if s.From.Name != "" {
+			quals = append(quals, s.From.Name)
+		}
+		if s.From.As != "" {
+			quals = append(quals, s.From.As)
+		}
+		e.disableUnusedSubqueryColumns(s, quals, s.From.Subquery)
+	}
 	// Execute the subquery. A FROM-clause derived table is non-lateral
 	// (SQLite SF_NestedFrom): see SelectEngine.derivedScope.
 	savedDerived := e.derivedScope

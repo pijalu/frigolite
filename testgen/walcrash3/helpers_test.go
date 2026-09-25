@@ -1289,14 +1289,18 @@ func tclLsearch(list string, value string) int {
 func tclLRange(list string, start, end interface{}) string {
 	items := tclSplitList(list)
 	s, _ := strconv.Atoi(fmt.Sprintf("%v", start))
-	// "end" means the last element (TCL lrange semantics); a numeric end is
-	// clamped to the list bounds.
+	// "end" means the last element (TCL lrange semantics); an end past the
+	// list is clamped to the last element, but a NEGATIVE numeric end is NOT
+	// clamped: TCL resolves it to a position before start and returns the
+	// empty string (tkt_38cb5df375 51.7: lrange {8 7 6 5 4 3 2 1} 0 -1
+	// yields an empty string — clamping it to the last element turned an
+	// empty expected result into the whole list).
 	e := len(items) - 1
 	if es, ok := end.(string); ok && es != "end" {
 		e, _ = strconv.Atoi(es)
 	}
 	if s < 0 { s = 0 }
-	if e < 0 || e >= len(items) { e = len(items) - 1 }
+	if e >= len(items) { e = len(items) - 1 }
 	if s > e || s >= len(items) { return "" }
 	return tclList(items[s : e+1])
 }
@@ -2066,7 +2070,12 @@ func tclExecSQL(db *frigolite.DB, sql string) string {
 		}
 		rowStrs = append(rowStrs, strings.Join(parts, " "))
 	}
-	return strings.Join(rowStrs, "\n")
+	// TCL canonical list stringification: [db eval] yields a flat list whose
+	// string form is ONE line — all elements joined by single spaces
+	// (multi-line .mode-list rendering would break the string match /
+	// regexp subjects TCL patterns are written against: glob * and regexp .
+	// span the whole string, tpch01-1.1's EQP glob among them).
+	return strings.Join(rowStrs, " ")
 }
 
 // tclMemdbSignature computes memdb.test's table-t3 rollback fingerprint:
@@ -6407,4 +6416,188 @@ func tclProfileImpl(name string) func(sqlText string, ns int64) {
 // message (the mask argument is optional: ?CALLBACK? ?MASK?).
 func tclWrongNumArgsMask(what string) error {
 	return fmt.Errorf("wrong # args: should be \"db %s ?CALLBACK? ?MASK?\"", what)
+}
+// tclFpnumCompare ports src/test1.c fpnum_compare, the do_test fallback
+// comparator of SQLite's TCL test suite (tester.tcl: string compare first,
+// then fpnum_compare). Whitespace-separated tokens are compared pairwise:
+// non-numeric tokens must match exactly; floating-point tokens must agree on
+// the digits before the decimal point, on up to 15 digits after it (taking
+// rounding into account), and on the exponent (e+NN matches e+N). Returns
+// true when the two strings describe the same value.
+func tclFpnumCompare(aStr, bStr string) bool {
+	zA := []byte(aStr)
+	zB := []byte(bStr)
+	i, j := 0, 0
+	isDigit := func(c byte) bool { return c >= '0' && c <= '9' }
+	isSpace := func(c byte) bool {
+		return c == ' ' || c == '\t' || c == '\n' || c == '\r' || c == '\v' || c == '\f'
+	}
+	at := func(z []byte, k int) byte {
+		if k < len(z) {
+			return z[k]
+		}
+		return 0
+	}
+	for {
+		for isSpace(at(zA, i)) {
+			i++
+		}
+		for isSpace(at(zB, j)) {
+			j++
+		}
+
+		if at(zA, i) != at(zB, j) {
+			break // first character must match
+		}
+		if at(zA, i) == '-' && isDigit(at(zA, i+1)) {
+			i++ // skip initial '-'
+			j++
+		}
+		if !isDigit(at(zA, i)) {
+			// Not a number: the token must match exactly.
+			for at(zA, i) != 0 && !isSpace(at(zA, i)) && at(zA, i) == at(zB, j) {
+				i++
+				j++
+			}
+			if at(zA, i) != at(zB, j) {
+				break
+			}
+			if isSpace(at(zA, i)) {
+				continue
+			}
+			break
+		}
+
+		// A number on both sides. Match the digits before the decimal point
+		// (which must all agree), then up to 15 fraction digits.
+		nDigit := 0
+		for at(zA, i) == at(zB, j) && isDigit(at(zA, i)) {
+			i++
+			j++
+			nDigit++
+		}
+		if at(zA, i) != at(zB, j) {
+			break
+		}
+		if at(zA, i) == 0 {
+			break
+		}
+		if at(zA, i) == '.' && at(zB, j) == '.' {
+			i++
+			j++
+			for at(zA, i) == at(zB, j) && isDigit(at(zA, i)) {
+				i++
+				j++
+				nDigit++
+			}
+			if at(zA, i) == 0 {
+				for at(zB, j) == '0' || (isDigit(at(zB, j)) && nDigit >= 15) {
+					j++
+					nDigit++
+				}
+				break
+			}
+			if at(zB, j) == 0 {
+				for at(zA, i) == '0' || (isDigit(at(zA, i)) && nDigit >= 15) {
+					i++
+					nDigit++
+				}
+				break
+			}
+			if isSpace(at(zA, i)) && isSpace(at(zB, j)) {
+				continue
+			}
+			if isDigit(at(zA, i)) && isDigit(at(zB, j)) {
+				// A and B are both digits, but different digits: accept a
+				// rounding boundary (one side ends in ...5 rounding up).
+				if at(zA, i) == at(zB, j)+1 && !isDigit(at(zA, i+1)) && isDigit(at(zB, j+1)) {
+					j++
+					for at(zB, j) == '9' {
+						j++
+						nDigit++
+					}
+					if nDigit < 14 && (!isDigit(at(zB, j)) || at(zB, j) < '5') {
+						break
+					}
+					for isDigit(at(zB, j)) {
+						j++
+					}
+					i++
+				} else if at(zB, j) == at(zA, i)+1 && !isDigit(at(zB, j+1)) && isDigit(at(zA, i+1)) {
+					i++
+					for at(zA, i) == '9' {
+						i++
+						nDigit++
+					}
+					if nDigit < 14 && (!isDigit(at(zA, i)) || at(zA, i) < '5') {
+						break
+					}
+					for isDigit(at(zA, i)) {
+						i++
+					}
+					j++
+				} else {
+					break
+				}
+			} else if !isDigit(at(zA, i)) && isDigit(at(zB, j)) {
+				for at(zB, j) == '0' {
+					j++
+					nDigit++
+				}
+				if nDigit < 15 {
+					break
+				}
+				for isDigit(at(zB, j)) {
+					j++
+				}
+			} else if !isDigit(at(zB, j)) && isDigit(at(zA, i)) {
+				for at(zA, i) == '0' {
+					i++
+					nDigit++
+				}
+				if nDigit < 15 {
+					break
+				}
+				for isDigit(at(zA, i)) {
+					i++
+				}
+			} else {
+				break
+			}
+		}
+		if at(zA, i) == 'e' && at(zB, j) == 'e' {
+			i++
+			j++
+			if (at(zA, i) == '+' || at(zA, i) == '-') && at(zB, j) == at(zA, i) {
+				i++
+				j++
+			}
+			if at(zA, i) != at(zB, j) {
+				if at(zA, i) == '0' && at(zA, i+1) == at(zB, j) {
+					i++
+				}
+				if at(zB, j) == '0' && at(zB, j+1) == at(zA, i) {
+					j++
+				}
+			}
+			for at(zA, i) == at(zB, j) && isDigit(at(zA, i)) {
+				i++
+				j++
+			}
+			if at(zA, i) != at(zB, j) {
+				break
+			}
+			if at(zA, i) == 0 {
+				break
+			}
+			continue
+		}
+	}
+	for isSpace(at(zA, i)) {
+		i++
+	}
+	for isSpace(at(zB, j)) {
+		j++
+	}
+	return at(zA, i) == 0 && at(zB, j) == 0
 }

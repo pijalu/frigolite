@@ -1,6 +1,7 @@
 package execdml
 
 import (
+	"fmt"
 	"strings"
 
 	"github.com/pijalu/frigolite/internal/execquery"
@@ -111,6 +112,22 @@ func IndexKeyCollations(indexSQL string, colDefs []sql.ColumnDef) []string {
 		names = append(names, exprCollationName(parseWhereExpr(key), colDefs))
 	}
 	return names
+}
+
+// IndexEntryKeyCollations resolves one index schema entry's per-key collation
+// names. sqlite_autoindex_* entries store no SQL: their keys are derived from
+// the table's PRIMARY KEY / UNIQUE constraints (the same derivation REINDEX's
+// rebuild uses), so a collation-targeted REINDEX matches them like any
+// explicit index (build.c sqlite3Reindex scans every index's azColl array).
+func (e *DMLExecutor) IndexEntryKeyCollations(ctx *DatabaseContext, tableEntry *schema.Entry, indexEntry *schema.Entry, colDefs []sql.ColumnDef) []string {
+	if tableEntry != nil && strings.TrimSpace(indexEntry.SQL) == "" {
+		cols := autoindexKeyColumns(tableEntry, e, colDefs, indexEntry.Name)
+		if len(cols) > 0 {
+			synth := fmt.Sprintf("CREATE INDEX x ON %s(%s)", tableEntry.Name, strings.Join(cols, ", "))
+			return IndexKeyCollations(synth, colDefs)
+		}
+	}
+	return IndexKeyCollations(indexEntry.SQL, colDefs)
 }
 
 // exprCollationName propagates the compile-time collation of an expression

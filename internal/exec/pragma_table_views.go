@@ -11,6 +11,10 @@ import (
 	"strings"
 )
 
+// materializeForeignKeyListWithRow builds the rows of pragma_foreign_key_list
+// (table-valued PRAGMA foreign_key_list) with a row context for
+// column-reference arguments (correlated pragma_foreign_key_list). Columns:
+// (id, seq, table, from, to, on_update, on_delete, match).
 func (e *Engine) materializeForeignKeyListWithRow(ref sql.TableRef, row Row) ([]sql.ColumnDef, [][]interface{}, error) {
 	cols := []sql.ColumnDef{
 		{Name: "id"},

@@ -103,35 +103,27 @@ func (t *BTree) repointRelocatedSplitChildren(children []uint32) error {
 	return nil
 }
 
-// writeInteriorRootAt rewrites page dst as a fresh interior node over the
-// ordered children: cell j points at children[j] with separator seps[j], and
-// children[len-1] is the rightmost pointer.
-func (t *BTree) writeInteriorRootAt(dst uint32, children []uint32, seps []leafSplitResult) error {
-	pg, err := t.pager.ReadPage(dst)
-	if err != nil {
-		return err
+// freeDisplacedInteriorChains releases the overflow chains owned by the
+// page's existing divider cells before the rewrite — but only when the
+// displaced content is an INTERIOR index page (its divider cells own fresh
+// overflow chains). On the FIRST root split the old root is an index LEAF:
+// balance_deeper moves leaf content verbatim into the new child
+// (src/btree.c:8978-9040) and every leaf cell keeps its own chain, so there
+// is nothing to free — decoding leaf cells as interior cells reads past the
+// page end.
+func (t *BTree) freeDisplacedInteriorChains(pg *pager.Page, coff int) error {
+	old, perr := storage.ParsePage(pg.Data, int(t.pageSize), coff)
+	if perr != nil || old.CellCount == 0 || old.PageType != storage.PageTypeInteriorIndex {
+		return nil
 	}
-	coff := contentOffset(dst)
-	// The rewrite replaces any existing divider cells: release their
-	// overflow chains first — but only when the displaced content is an
-	// INTERIOR index page (its divider cells own fresh overflow chains).
-	// On the FIRST root split the old root is an index LEAF: balance_deeper
-	// moves leaf content verbatim into the new child (src/btree.c:8978-9040)
-	// and every leaf cell keeps its own chain, so there is nothing to free —
-	// decoding leaf cells as interior cells reads past the page end.
-	if old, perr := storage.ParsePage(pg.Data, int(t.pageSize), coff); perr == nil && old.CellCount > 0 && old.PageType == storage.PageTypeInteriorIndex {
-		if ferr := t.freeInteriorDividerChains(pg, old); ferr != nil {
-			return ferr
-		}
-	}
-	for i := range pg.Data {
-		pg.Data[i] = 0
-	}
-	if t.isTable {
-		pg.Data[coff] = storage.PageTypeInteriorTable
-	} else {
-		pg.Data[coff] = storage.PageTypeInteriorIndex
-	}
+	return t.freeInteriorDividerChains(pg, old)
+}
+
+// writeInteriorRootHeader writes the interior page header fields and the
+// FIRST divider cell (children[0]/seps[0]); the remaining separators are
+// appended by addInteriorCellToPage. children[len-1] becomes the rightmost
+// pointer.
+func (t *BTree) writeInteriorRootHeader(pg *pager.Page, coff int, dst uint32, children []uint32, seps []leafSplitResult) error {
 	cellCount := uint16(0)
 	contentStart := int(t.pageSize)
 	if len(seps) > 0 {
@@ -147,6 +139,32 @@ func (t *BTree) writeInteriorRootAt(dst uint32, children []uint32, seps []leafSp
 	binary.BigEndian.PutUint16(pg.Data[coff+3:coff+5], cellCount)
 	binary.BigEndian.PutUint16(pg.Data[coff+5:coff+7], uint16(contentStart))
 	binary.BigEndian.PutUint32(pg.Data[coff+8:coff+12], children[len(children)-1]) // rightmostPtr
+	return nil
+}
+
+// writeInteriorRootAt rewrites page dst as a fresh interior node over the
+// ordered children: cell j points at children[j] with separator seps[j], and
+// children[len-1] is the rightmost pointer.
+func (t *BTree) writeInteriorRootAt(dst uint32, children []uint32, seps []leafSplitResult) error {
+	pg, err := t.pager.ReadPage(dst)
+	if err != nil {
+		return err
+	}
+	coff := contentOffset(dst)
+	if err := t.freeDisplacedInteriorChains(pg, coff); err != nil {
+		return err
+	}
+	for i := range pg.Data {
+		pg.Data[i] = 0
+	}
+	if t.isTable {
+		pg.Data[coff] = storage.PageTypeInteriorTable
+	} else {
+		pg.Data[coff] = storage.PageTypeInteriorIndex
+	}
+	if err := t.writeInteriorRootHeader(pg, coff, dst, children, seps); err != nil {
+		return err
+	}
 	if err := t.pager.WritePage(pg); err != nil {
 		return err
 	}

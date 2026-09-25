@@ -22,6 +22,21 @@ func Test_without_rowid4(t *testing.T) {
 	}
 	defer db.Close()
 
+	// auto-installed test-extension functions (src/test_func.c)
+	db.RegisterFunction("test_error", func(args []interface{}) (interface{}, error) {
+		msg := ""
+		if len(args) > 0 && args[0] != nil {
+			msg = fmt.Sprintf("%v", args[0])
+		}
+		return nil, fmt.Errorf("%s", msg)
+	}, 1, 2)
+	db.RegisterFunction("test_isolation", func(args []interface{}) (interface{}, error) {
+		if len(args) < 2 {
+			return nil, nil
+		}
+		return args[1], nil
+	}, 2, 2)
+
 	var _res *frigolite.Result
 	var r *frigolite.Result
 	var msg string
@@ -156,7 +171,7 @@ func Test_without_rowid4(t *testing.T) {
 			}
 			got := tclListFlatten(_r)
 			want := tclListFlatten("1"+" "+"1"+" "+"2"+" "+"4"+" "+"6"+" "+"10"+" "+"20"+" "+"2"+" "+"1"+" "+"2"+" "+"13"+" "+"24"+" "+"10"+" "+"20"+" "+"3"+" "+"3"+" "+"4"+" "+"13"+" "+"24"+" "+"30"+" "+"40"+" "+"4"+" "+"3"+" "+"4"+" "+"40"+" "+"60"+" "+"30"+" "+"40"+" "+"1"+" "+"1"+" "+"2"+" "+"13"+" "+"24"+" "+"10"+" "+"20")
-			if got != want {
+			if got != want && !tclFpnumCompare(got, want) {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "without_rowid4-1." + ii + ".1")
 			}
 		}
@@ -182,7 +197,7 @@ func Test_without_rowid4(t *testing.T) {
 			}
 			got := tclListFlatten(_r)
 			want := tclListFlatten("1"+" "+"100"+" "+"100"+" "+"400"+" "+"300"+" "+"0"+" "+"0"+" "+"2"+" "+"100"+" "+"100"+" "+"300"+" "+"200"+" "+"0"+" "+"0"+" "+"3"+" "+"300"+" "+"200"+" "+"300"+" "+"200"+" "+"0"+" "+"0"+" "+"4"+" "+"300"+" "+"200"+" "+"0"+" "+"0"+" "+"0"+" "+"0")
-			if got != want {
+			if got != want && !tclFpnumCompare(got, want) {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "without_rowid4-1." + ii + ".2")
 			}
 		}
@@ -198,7 +213,7 @@ func Test_without_rowid4(t *testing.T) {
 			}
 			got := flatten(r)
 			want := "1"+" "+"0"+" "+"0"+" "+"0"+" "+"0"+" "+"5"+" "+"6"+" "+"2"+" "+"0"+" "+"0"+" "+"5"+" "+"6"+" "+"5"+" "+"6"
-			if got != want {
+			if got != want && !tclFpnumCompare(got, want) {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
@@ -402,7 +417,7 @@ func Test_without_rowid4(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -439,7 +454,7 @@ func Test_without_rowid4(t *testing.T) {
 		got := flatten(r)
 		want := tclListFlatten(t232)
 		got = tclListFlattenCollapse(got)
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -461,7 +476,7 @@ func Test_without_rowid4(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1 2 1 2 1 2"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -481,7 +496,7 @@ func Test_without_rowid4(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1 2 3 1 2 4"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -516,7 +531,7 @@ func Test_without_rowid4(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1 2 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -534,7 +549,7 @@ func Test_without_rowid4(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1 2 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -552,7 +567,7 @@ func Test_without_rowid4(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1 2 3 2 2 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -564,7 +579,7 @@ func Test_without_rowid4(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1 2 3 2 0 0"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -583,7 +598,7 @@ func Test_without_rowid4(t *testing.T) {
 		got := flatten(r)
 		want := tclListFlatten("{}")
 		got = tclListFlattenCollapse(got)
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -603,11 +618,15 @@ func Test_without_rowid4(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1 2 10 6 3 4"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	{ // "without_rowid4-6.2b" — skipped: WR-btree trigger-interleave UNIQUE artifact: oracle errors from outer/inner write ordering, not a real key conflict
+	{ // do_test "without_rowid4-6.2b"
+		_res = db.Exec("\n      UPDATE OR ABORT tbl SET a = 4 WHERE a = 1;\n    ")
+		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "UNIQUE constraint failed: tbl.a") {
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "UNIQUE constraint failed: tbl.a", resErrString(_res), "\n      UPDATE OR ABORT tbl SET a = 4 WHERE a = 1;\n    ")
+		}
 	}
 	{ // do_test "without_rowid4-6.2c"
 		r = db.Query("\n      SELECT * from tbl;\n    ")
@@ -617,11 +636,15 @@ func Test_without_rowid4(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1 2 10 6 3 4"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	{ // "without_rowid4-6.2d" — skipped: WR-btree trigger-interleave UNIQUE artifact: oracle errors from outer/inner write ordering, not a real key conflict
+	{ // do_test "without_rowid4-6.2d"
+		_res = db.Exec("\n      UPDATE OR FAIL tbl SET a = 4 WHERE a = 1;\n    ")
+		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "UNIQUE constraint failed: tbl.a") {
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "UNIQUE constraint failed: tbl.a", resErrString(_res), "\n      UPDATE OR FAIL tbl SET a = 4 WHERE a = 1;\n    ")
+		}
 	}
 	{ // do_test "without_rowid4-6.2e"
 		r = db.Query("\n      SELECT * from tbl;\n    ")
@@ -631,7 +654,7 @@ func Test_without_rowid4(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "4 2 10 6 3 4"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -643,7 +666,7 @@ func Test_without_rowid4(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1 3 10"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -655,11 +678,15 @@ func Test_without_rowid4(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1 3 10 2 3 4"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	{ // "without_rowid4-6.2g" — skipped: WR-btree trigger-interleave UNIQUE artifact: oracle errors from outer/inner write ordering, not a real key conflict
+	{ // do_test "without_rowid4-6.2g"
+		_res = db.Exec("\n      UPDATE OR ROLLBACK tbl SET a = 4 WHERE a = 1;\n    ")
+		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "UNIQUE constraint failed: tbl.a") {
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "UNIQUE constraint failed: tbl.a", resErrString(_res), "\n      UPDATE OR ROLLBACK tbl SET a = 4 WHERE a = 1;\n    ")
+		}
 	}
 	{ // do_test "without_rowid4-6.2h"
 		r = db.Query("\n      SELECT * from tbl;\n    ")
@@ -669,7 +696,7 @@ func Test_without_rowid4(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "4 2 3 6 3 4"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -691,7 +718,7 @@ func Test_without_rowid4(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1"+" "+"1"+" "+"2"+" "+"3"+" "+"4"+" "+"100"+" "+"25"+" "+"3"+" "+"4"+" "+"2"+" "+"1"+" "+"2"+" "+"3"+" "+"4"+" "+"100"+" "+"25"+" "+"3"+" "+"4"+" "+"3"+" "+"1"+" "+"2"+" "+"3"+" "+"4"+" "+"0"+" "+"0"+" "+"0"+" "+"0"+" "+"4"+" "+"1"+" "+"2"+" "+"3"+" "+"4"+" "+"0"+" "+"0"+" "+"0"+" "+"0"+" "+"5"+" "+"0"+" "+"0"+" "+"0"+" "+"0"+" "+"10"+" "+"20"+" "+"30"+" "+"40"+" "+"6"+" "+"0"+" "+"0"+" "+"0"+" "+"0"+" "+"10"+" "+"20"+" "+"30"+" "+"40"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -703,7 +730,7 @@ func Test_without_rowid4(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1"+" "+"0"+" "+"0"+" "+"0"+" "+"0"+" "+"10"+" "+"20"+" "+"30"+" "+"40"+" "+"2"+" "+"0"+" "+"0"+" "+"0"+" "+"0"+" "+"10"+" "+"20"+" "+"30"+" "+"40"+" "+"3"+" "+"1"+" "+"2"+" "+"3"+" "+"4"+" "+"100"+" "+"25"+" "+"3"+" "+"4"+" "+"4"+" "+"1"+" "+"2"+" "+"3"+" "+"4"+" "+"100"+" "+"25"+" "+"3"+" "+"4"+" "+"5"+" "+"1"+" "+"2"+" "+"3"+" "+"4"+" "+"0"+" "+"0"+" "+"0"+" "+"0"+" "+"6"+" "+"1"+" "+"2"+" "+"3"+" "+"4"+" "+"0"+" "+"0"+" "+"0"+" "+"0"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -715,7 +742,7 @@ func Test_without_rowid4(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1"+" "+"1"+" "+"2"+" "+"3"+" "+"4"+" "+"0"+" "+"0"+" "+"0"+" "+"0"+" "+"2"+" "+"1"+" "+"2"+" "+"3"+" "+"4"+" "+"0"+" "+"0"+" "+"0"+" "+"0"+" "+"3"+" "+"0"+" "+"0"+" "+"0"+" "+"0"+" "+"10"+" "+"20"+" "+"30"+" "+"40"+" "+"4"+" "+"0"+" "+"0"+" "+"0"+" "+"0"+" "+"10"+" "+"20"+" "+"30"+" "+"40"+" "+"5"+" "+"1"+" "+"2"+" "+"3"+" "+"4"+" "+"100"+" "+"25"+" "+"3"+" "+"4"+" "+"6"+" "+"1"+" "+"2"+" "+"3"+" "+"4"+" "+"100"+" "+"25"+" "+"3"+" "+"4"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -727,7 +754,7 @@ func Test_without_rowid4(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "3 5 4"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -740,7 +767,7 @@ func Test_without_rowid4(t *testing.T) {
 		got := flatten(r)
 		want := tclListFlatten("{}")
 		got = tclListFlattenCollapse(got)
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -752,7 +779,7 @@ func Test_without_rowid4(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "3 {} 5 {} 4 {}"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -764,7 +791,7 @@ func Test_without_rowid4(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "9 {} 11 {} 10 {}"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -776,7 +803,7 @@ func Test_without_rowid4(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "{} 1 {} 2 {} 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -788,7 +815,7 @@ func Test_without_rowid4(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "3 103 5 205 4 304 9 109 11 211 10 310"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}

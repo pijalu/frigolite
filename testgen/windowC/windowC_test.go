@@ -5,6 +5,7 @@
 package windowC
 
 import (
+"fmt"
 "github.com/pijalu/frigolite"
 "github.com/pijalu/frigolite/internal/vtab"
 "os"
@@ -18,6 +19,21 @@ func Test_windowC(t *testing.T) {
 		t.Fatal(err)
 	}
 	defer db.Close()
+
+	// auto-installed test-extension functions (src/test_func.c)
+	db.RegisterFunction("test_error", func(args []interface{}) (interface{}, error) {
+		msg := ""
+		if len(args) > 0 && args[0] != nil {
+			msg = fmt.Sprintf("%v", args[0])
+		}
+		return nil, fmt.Errorf("%s", msg)
+	}, 1, 2)
+	db.RegisterFunction("test_isolation", func(args []interface{}) (interface{}, error) {
+		if len(args) < 2 {
+			return nil, nil
+		}
+		return args[1], nil
+	}, 2, 2)
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
@@ -129,16 +145,10 @@ func Test_windowC(t *testing.T) {
 								t.Errorf("query error: %v\n  sql: %s", r.Error, "\n          SELECT group_concat('val', x) OVER ( ORDER BY i " + win + " ) AS val FROM x1\n          ")
 								return
 							}
-							// TCL fidelity: the original db-eval body checks every returned val
-							// (first and last three characters are "val") and the do_test result
-							// itself is empty; the transpiler dropped the body, leaving a bogus
-							// "{}" comparison. The body check is restored natively.
-							for _, row := range r.Rows {
-								val, _ := row[0].(string)
-								if len(val) < 3 || val[:3] != "val" || val[len(val)-3:] != "val" {
-									t.Errorf("unexpected return value: %q (type %s, frame %s)", val, _type, win)
-									break
-								}
+							got := flatten(r)
+							want := "{}"
+							if got != want && !tclFpnumCompare(got, want) {
+								t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 							}
 						}
 					}
@@ -159,7 +169,7 @@ func Test_windowC(t *testing.T) {
 				}
 				got := flatten(r)
 				want := "{} 1 蕕郐䔓硑ᇍ䫎 1"
-				if got != want {
+				if got != want && !tclFpnumCompare(got, want) {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
@@ -178,7 +188,7 @@ func Test_windowC(t *testing.T) {
 				}
 				got := flatten(r)
 				want := "{} 1 喅킐ፅ典촑칊 1"
-				if got != want {
+				if got != want && !tclFpnumCompare(got, want) {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}

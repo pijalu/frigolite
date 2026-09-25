@@ -5,6 +5,7 @@
 package intpkey
 
 import (
+"fmt"
 "github.com/pijalu/frigolite"
 "os"
 "regexp"
@@ -19,6 +20,21 @@ func Test_intpkey(t *testing.T) {
 		t.Fatal(err)
 	}
 	defer db.Close()
+
+	// auto-installed test-extension functions (src/test_func.c)
+	db.RegisterFunction("test_error", func(args []interface{}) (interface{}, error) {
+		msg := ""
+		if len(args) > 0 && args[0] != nil {
+			msg = fmt.Sprintf("%v", args[0])
+		}
+		return nil, fmt.Errorf("%s", msg)
+	}, 1, 2)
+	db.RegisterFunction("test_isolation", func(args []interface{}) (interface{}, error) {
+		if len(args) < 2 {
+			return nil, nil
+		}
+		return args[1], nil
+	}, 2, 2)
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
@@ -77,7 +93,7 @@ func Test_intpkey(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "sqlite_autoindex_t1_1"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -90,7 +106,7 @@ func Test_intpkey(t *testing.T) {
 		got := flatten(r)
 		want := tclListFlatten("{}")
 		got = tclListFlattenCollapse(got)
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -108,7 +124,7 @@ func Test_intpkey(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "5 hello world"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -120,7 +136,7 @@ func Test_intpkey(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "5 5 hello world"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -142,7 +158,7 @@ func Test_intpkey(t *testing.T) {
 		_r = tclListAppend(_r, msg)
 		got := tclListFlatten(_r)
 		want := tclListFlatten("1 UNIQUE constraint failed: t1.a")
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "intpkey-1.6")
 		}
 	}
@@ -154,7 +170,7 @@ func Test_intpkey(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "5 5 hello world"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -176,7 +192,7 @@ func Test_intpkey(t *testing.T) {
 		_r = tclListAppend(_r, msg)
 		got := tclListFlatten(_r)
 		want := tclListFlatten("0 {}")
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "intpkey-1.8")
 		}
 	}
@@ -190,7 +206,7 @@ func Test_intpkey(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "5 5 hello world 6 6 second entry"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -202,7 +218,7 @@ func Test_intpkey(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "hello one second"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -214,7 +230,7 @@ func Test_intpkey(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "4 one two 5 hello world 6 second entry"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -226,7 +242,7 @@ func Test_intpkey(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "4 one two"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -260,7 +276,7 @@ func Test_intpkey(t *testing.T) {
 		_r = tclListAppend(_r, msg)
 		got := tclListFlatten(_r)
 		want := tclListFlatten("1 datatype mismatch")
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "intpkey-1.13.1")
 		}
 	}
@@ -282,7 +298,7 @@ func Test_intpkey(t *testing.T) {
 		_r = tclListAppend(_r, msg)
 		got := tclListFlatten(_r)
 		want := tclListFlatten("1 datatype mismatch")
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "intpkey-1.13.2")
 		}
 	}
@@ -304,7 +320,7 @@ func Test_intpkey(t *testing.T) {
 		_r = tclListAppend(_r, msg)
 		got := tclListFlatten(_r)
 		want := tclListFlatten("1 datatype mismatch")
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "intpkey-1.14")
 		}
 	}
@@ -326,7 +342,7 @@ func Test_intpkey(t *testing.T) {
 		_r = tclListAppend(_r, msg)
 		got := tclListFlatten(_r)
 		want := tclListFlatten("0 {}")
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "intpkey-1.15")
 		}
 	}
@@ -338,7 +354,7 @@ func Test_intpkey(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "-3 y z 4 one two 5 hello world 6 second entry"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -350,7 +366,7 @@ func Test_intpkey(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "-3 y z"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -362,7 +378,7 @@ func Test_intpkey(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "-3 y z"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -374,7 +390,7 @@ func Test_intpkey(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "-3 y z"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -386,7 +402,7 @@ func Test_intpkey(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "-3 y z"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -398,7 +414,7 @@ func Test_intpkey(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "-3 y z"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -410,7 +426,7 @@ func Test_intpkey(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "8 y z"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -422,7 +438,7 @@ func Test_intpkey(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "4 4 one two 5 5 hello world 6 6 second entry 8 8 y z"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -434,7 +450,7 @@ func Test_intpkey(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "5 5 hello world 4 4 one two"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -446,7 +462,7 @@ func Test_intpkey(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "5 5 hello world 4 4 one two"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -458,7 +474,7 @@ func Test_intpkey(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "4 4 one two 5 5 hello world"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -470,7 +486,7 @@ func Test_intpkey(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "4 4 one two 5 5 hello world"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -482,7 +498,7 @@ func Test_intpkey(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "5 5 hello world 4 4 one two 6 6 second entry 8 8 y z"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -494,7 +510,7 @@ func Test_intpkey(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "5 hello world 6 second entry 8 y z"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -506,7 +522,7 @@ func Test_intpkey(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "5 hello world 6 second entry -4 y z"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -518,7 +534,7 @@ func Test_intpkey(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "-4 y z 5 hello world 6 second entry"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -611,7 +627,7 @@ func Test_intpkey(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "-4 -4 0 0 5 5 6 6 11 11"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -623,7 +639,7 @@ func Test_intpkey(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "20 b-20 c-20 21 b-21 c-21 22 b-22 c-22"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -635,7 +651,7 @@ func Test_intpkey(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "5 hello world 11 hello world"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -648,7 +664,7 @@ func Test_intpkey(t *testing.T) {
 		got := flatten(r)
 		want := tclListFlatten("{}")
 		got = tclListFlattenCollapse(got)
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -660,7 +676,7 @@ func Test_intpkey(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "20 b-20 c-20 22 b-22 c-22"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -672,7 +688,7 @@ func Test_intpkey(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "30 new row"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -684,7 +700,7 @@ func Test_intpkey(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "22 b-22 c-22 30 new row"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -696,7 +712,7 @@ func Test_intpkey(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "-4 0 5 6 11 20 22 30"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -708,7 +724,7 @@ func Test_intpkey(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "-4 0 5 6 11 20 22 30"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -720,7 +736,7 @@ func Test_intpkey(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "5 5 www 11 11 www"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -732,7 +748,7 @@ func Test_intpkey(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1 1 2"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -744,7 +760,7 @@ func Test_intpkey(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "2 2 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -756,7 +772,7 @@ func Test_intpkey(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1 1 2 2 2 3 3 2 1 4 3 2"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -768,7 +784,7 @@ func Test_intpkey(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "hello"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -781,7 +797,7 @@ func Test_intpkey(t *testing.T) {
 		got := flatten(r)
 		want := tclListFlatten("{}")
 		got = tclListFlattenCollapse(got)
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -796,7 +812,7 @@ func Test_intpkey(t *testing.T) {
 		got := flatten(r)
 		want := tclListFlatten("{}")
 		got = tclListFlattenCollapse(got)
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -808,7 +824,7 @@ func Test_intpkey(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1 2 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -844,7 +860,7 @@ func Test_intpkey(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "3 3 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -856,7 +872,7 @@ func Test_intpkey(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "3 3 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -868,7 +884,7 @@ func Test_intpkey(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1 1 one"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -880,7 +896,7 @@ func Test_intpkey(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1 1 one"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -892,7 +908,7 @@ func Test_intpkey(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "2 2 2 3 3 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -905,7 +921,7 @@ func Test_intpkey(t *testing.T) {
 		got := flatten(r)
 		want := tclListFlatten("{}")
 		got = tclListFlattenCollapse(got)
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -917,7 +933,7 @@ func Test_intpkey(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "big-2"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -930,7 +946,7 @@ func Test_intpkey(t *testing.T) {
 		got := flatten(r)
 		want := tclListFlatten("{}")
 		got = tclListFlattenCollapse(got)
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -942,7 +958,7 @@ func Test_intpkey(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "big-1 big-2"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -954,7 +970,7 @@ func Test_intpkey(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "y zero 2 hello second hello b-20 b-22 new 3 big-1"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -966,7 +982,7 @@ func Test_intpkey(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "y zero 2 hello second hello b-20 b-22 new 3 big-1 big-2"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -979,7 +995,7 @@ func Test_intpkey(t *testing.T) {
 		got := flatten(r)
 		want := tclListFlatten("{}")
 		got = tclListFlattenCollapse(got)
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -997,7 +1013,7 @@ func Test_intpkey(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "0 id INTEGER 0 {} 1 1 b TEXT 0 {} 0 2 c INT 0 {} 0"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -1009,7 +1025,7 @@ func Test_intpkey(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "248 giraffe"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -1021,7 +1037,7 @@ func Test_intpkey(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "248 giraffe"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -1033,7 +1049,7 @@ func Test_intpkey(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "123 elephant 248 ostrich"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -1052,7 +1068,7 @@ func Test_intpkey(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "-9223372036854775808 min-int 0 zero 9223372036854775807 max-int"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -1064,7 +1080,7 @@ func Test_intpkey(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "min-int"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -1076,7 +1092,7 @@ func Test_intpkey(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "min-int"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -1088,7 +1104,7 @@ func Test_intpkey(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "min-int"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -1101,7 +1117,7 @@ func Test_intpkey(t *testing.T) {
 		got := flatten(r)
 		want := tclListFlatten("{}")
 		got = tclListFlattenCollapse(got)
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -1113,7 +1129,7 @@ func Test_intpkey(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "max-int"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -1130,7 +1146,7 @@ func Test_intpkey(t *testing.T) {
 		got := flatten(r)
 		want := tclListFlatten("{}")
 		got = tclListFlattenCollapse(got)
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}

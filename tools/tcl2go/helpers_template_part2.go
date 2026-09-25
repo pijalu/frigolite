@@ -255,7 +255,12 @@ func tclExecSQL(db *frigolite.DB, sql string) string {
 		}
 		rowStrs = append(rowStrs, strings.Join(parts, " "))
 	}
-	return strings.Join(rowStrs, "\n")
+	// TCL canonical list stringification: [db eval] yields a flat list whose
+	// string form is ONE line — all elements joined by single spaces
+	// (multi-line .mode-list rendering would break the string match /
+	// regexp subjects TCL patterns are written against: glob * and regexp .
+	// span the whole string, tpch01-1.1's EQP glob among them).
+	return strings.Join(rowStrs, " ")
 }
 
 // tclMemdbSignature computes memdb.test's table-t3 rollback fingerprint:

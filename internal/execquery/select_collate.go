@@ -115,21 +115,37 @@ func (e *SelectEngine) validateCompoundOrderByCollations(s *sql.SelectStmt, coll
 		// members ("SELECT 10 INTERSECT SELECT 20 ORDER BY 1 COLLATE
 		// string_compare" must still fail for the unknown collation —
 		// collate3-3.30/3.36).
-		if b, ok := ob.Expr.(*sql.BinaryOp); ok && strings.EqualFold(b.Operator, "COLLATE") {
-			// The unknown-collation error echoes the name AS WRITTEN in the
-			// SQL text (collate3-3.30: "string_compare", not uppercased).
-			if lit, ok := b.Right.(*sql.StringLit); ok && lit.Value != "" {
-				if err := e.ctx.CheckCollationString(lit.Value); err != nil {
-					return err
-				}
-			}
+		if err := e.checkTermExplicitCollation(ob.Expr); err != nil {
+			return err
 		}
 		pos := e.compoundOrderTermPosition(s, ob.Expr)
-		if pos >= 1 && pos <= len(colls) && colls[pos-1] != "" {
-			if err := e.ctx.CheckCollationString(colls[pos-1]); err != nil {
-				return err
-			}
+		if err := e.checkResultColumnCollation(colls, pos); err != nil {
+			return err
 		}
+	}
+	return nil
+}
+
+// checkTermExplicitCollation validates the COLLATE operand written directly
+// on an ORDER BY term against the connection's registry.
+func (e *SelectEngine) checkTermExplicitCollation(expr sql.Expr) error {
+	b, ok := expr.(*sql.BinaryOp)
+	if !ok || !strings.EqualFold(b.Operator, "COLLATE") {
+		return nil
+	}
+	// The unknown-collation error echoes the name AS WRITTEN in the
+	// SQL text (collate3-3.30: "string_compare", not uppercased).
+	if lit, ok := b.Right.(*sql.StringLit); ok && lit.Value != "" {
+		return e.ctx.CheckCollationString(lit.Value)
+	}
+	return nil
+}
+
+// checkResultColumnCollation validates the collation of the result column a
+// compound ORDER BY term sorts (the term's effective sort collation).
+func (e *SelectEngine) checkResultColumnCollation(colls []string, pos int) error {
+	if pos >= 1 && pos <= len(colls) && colls[pos-1] != "" {
+		return e.ctx.CheckCollationString(colls[pos-1])
 	}
 	return nil
 }

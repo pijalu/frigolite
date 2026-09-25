@@ -1,330 +1,19 @@
 // Package main implements the tcl2go tool.
 //
-// This file transpiles TCL command substitution [cmd ...] into Go expressions.
+// This file transpiles TCL command substitution [cmd ...] into Go expressions:
+// the cmdExpr dispatcher plus the misc per-command handlers (expr, format,
+// subst, db, file, glob, catch, sqlite3 reopen, status queries, execsql and
+// the unknown-command fallback).
 package main
 
 import (
 	"fmt"
-	"os"
 	"regexp"
 	"strconv"
 	"strings"
-	"sync"
 
 	"github.com/pijalu/frigolite/tools/tclconvert/tcl"
 )
-
-// cmdExprHandler emits a Go expression for a TCL command substitution.
-// args excludes the command name word; cmdText is the full command text.
-type cmdExprHandler func(tp *transpiler, cmdName, cmdText string, args []string) string
-
-// cmdExprHandlers maps TCL command names to their Go expression emitters.
-// Built lazily (see cmdExprHandlersRef) because handler bodies may transitively
-// reference cmdExpr through the string-expression builders.
-var (
-	cmdExprHandlersOnce sync.Once
-	cmdExprHandlers     map[string]cmdExprHandler
-)
-
-// cmdExprHandlersRef returns the command-expression dispatch table, building it
-// on first use.
-func cmdExprHandlersRef() map[string]cmdExprHandler {
-	cmdExprHandlersOnce.Do(func() {
-		cmdExprHandlers = buildCmdExprHandlers()
-	})
-	return cmdExprHandlers
-}
-
-func buildCmdExprHandlers() map[string]cmdExprHandler {
-	return map[string]cmdExprHandler{
-		"cols":                (*transpiler).cmdExprCols,
-		"exprs":               (*transpiler).cmdExprCols,
-		"vals":                (*transpiler).cmdExprVals,
-		"expr":                (*transpiler).cmdExprEval,
-		"strftime":            (*transpiler).cmdExprStrftime,
-		"format":              (*transpiler).cmdExprFormat,
-		"subst":               (*transpiler).cmdExprSubst,
-		"set":                 (*transpiler).cmdExprSet,
-		"concat":              (*transpiler).cmdExprConcat,
-		"string":              (*transpiler).cmdExprString,
-		"binary":              (*transpiler).cmdExprBinary,
-		"db":                  (*transpiler).cmdExprDb,
-		"catch":               (*transpiler).cmdExprCatch,
-		"list":                (*transpiler).cmdExprList,
-		"lindex":              (*transpiler).cmdExprLIndex,
-		"llength":             (*transpiler).cmdExprLLength,
-		"split":               (*transpiler).cmdExprSplit,
-		"lsearch":             (*transpiler).cmdExprLSearch,
-		"lrange":              (*transpiler).cmdExprLRange,
-		"lreplace":            (*transpiler).cmdExprLReplace,
-		"lsort":               (*transpiler).cmdExprLSort,
-		"file":                (*transpiler).cmdExprFile,
-		"glob":                (*transpiler).cmdExprGlob,
-		"pwd":                 (*transpiler).cmdExprPwd,
-		"sqlite3":             (*transpiler).cmdExprSqlite3,
-		"join":                (*transpiler).cmdExprJoin,
-		"execsql":             (*transpiler).cmdExprExecSQL,
-		"execsql2":            (*transpiler).cmdExprExecSQL,
-		"sqlite3_db_status":   (*transpiler).cmdExprDbStatus,
-		"sqlite3_status":      (*transpiler).cmdExprStatus,
-		"sqlite3_stmt_status": (*transpiler).cmdExprStmtStatus,
-		"sqlite3_step": func(tp *transpiler, cmdName, cmdText string, args []string) string {
-			return `"SQLITE_ROW"` // stepping implicit in frigolite
-		},
-		"sqlite3_finalize": func(tp *transpiler, cmdName, cmdText string, args []string) string {
-			return `"SQLITE_OK"` // finalize of a successful statement returns SQLITE_OK
-		},
-		"sqlite3_next_stmt": func(tp *transpiler, cmdName, cmdText string, args []string) string {
-			// The engine has no statement registry to iterate; sqlite3_next_stmt
-			// on a connection with no prepared statements returns NULL ("").
-			return `""`
-		},
-		"stepsql": func(tp *transpiler, cmdName, cmdText string, args []string) string {
-			// stepsql DB {SQL} runs the SQL (side effects via the top-level
-			// processStepsql handler) and returns the first result code; a
-			// successful step returns 0. Used by `set x [stepsql ...]` bodies
-			// whose first list element is the result code.
-			return `"0"`
-		},
-		"sqlite3_prepare_v2": func(tp *transpiler, cmdName, cmdText string, args []string) string {
-			return `""` // preparation handled by frigolite internally
-		},
-		"sqlite3_bind_parameter_count": func(tp *transpiler, cmdName, cmdText string, args []string) string {
-			if len(args) < 1 {
-				return `"0"`
-			}
-			return fmt.Sprintf("strconv.Itoa(tclParamCountOf(%q))", stmtVarFromArg(args[0]))
-		},
-		"sqlite3_bind_parameter_name": func(tp *transpiler, cmdName, cmdText string, args []string) string {
-			if len(args) < 2 {
-				return `""`
-			}
-			return fmt.Sprintf("tclParamNameOf(%q, %s)", stmtVarFromArg(args[0]), tp.exprIntArg(args[1]))
-		},
-		"sqlite3_bind_parameter_index": func(tp *transpiler, cmdName, cmdText string, args []string) string {
-			if len(args) < 2 {
-				return `"0"`
-			}
-			return fmt.Sprintf("strconv.Itoa(tclParamIndexOf(%q, %s))", stmtVarFromArg(args[0]), tp.buildStringExpr(args[1]))
-		},
-		"sqlite3_column_count": func(tp *transpiler, cmdName, cmdText string, args []string) string {
-			if len(args) < 1 {
-				return `"0"`
-			}
-			return fmt.Sprintf("strconv.Itoa(tclColumnCount(%q))", stmtVarFromArg(args[0]))
-		},
-		"sqlite3_data_count": func(tp *transpiler, cmdName, cmdText string, args []string) string {
-			if len(args) < 1 {
-				return `"0"`
-			}
-			return fmt.Sprintf("strconv.Itoa(tclDataCount(%q))", stmtVarFromArg(args[0]))
-		},
-		"sqlite3_column_name": func(tp *transpiler, cmdName, cmdText string, args []string) string {
-			if len(args) < 2 {
-				return `""`
-			}
-			return fmt.Sprintf("tclColumnNameOf(%q, %s)", stmtVarFromArg(args[0]), tp.exprIntArg(args[1]))
-		},
-		"sqlite3_column_text": func(tp *transpiler, cmdName, cmdText string, args []string) string {
-			if len(args) < 2 {
-				return `""`
-			}
-			return fmt.Sprintf("tclColumnTextOf(%q, %s)", stmtVarFromArg(args[0]), tp.exprIntArg(args[1]))
-		},
-		"sqlite3_column_int": func(tp *transpiler, cmdName, cmdText string, args []string) string {
-			if len(args) < 2 {
-				return `"0"`
-			}
-			return fmt.Sprintf("tclColumnTextOf(%q, %s)", stmtVarFromArg(args[0]), tp.exprIntArg(args[1]))
-		},
-		"sqlite3_column_double": func(tp *transpiler, cmdName, cmdText string, args []string) string {
-			if len(args) < 2 {
-				return `"0"`
-			}
-			return fmt.Sprintf("tclColumnDoubleOf(%q, %s)", stmtVarFromArg(args[0]), tp.exprIntArg(args[1]))
-		},
-		"build_database": func(tp *transpiler, cmdName, cmdText string, args []string) string {
-			nRowExpr := "1000"
-			paramExpr := `""`
-			if len(args) > 0 {
-				nRowExpr = tp.intArgExpr(args[0])
-			}
-			if len(args) > 1 {
-				paramExpr = tp.buildStringExpr(args[1])
-			}
-			return fmt.Sprintf("fts3SortBuildDatabase(db, %s, %s)", nRowExpr, paramExpr)
-		},
-		"regexp": func(tp *transpiler, cmdName, cmdText string, args []string) string {
-			// TCL `regexp PATTERN STRING` -> unanchored ARE match, "1"/"0"
-			// (misc3-6.11: [regexp { 4.5678 } $x] capability probes).
-			if len(args) != 2 {
-				return fmt.Sprintf("%q", cmdText)
-			}
-			pattern := strings.TrimSpace(args[0])
-			pattern = strings.TrimSuffix(strings.TrimPrefix(pattern, "{"), "}")
-			return fmt.Sprintf("tclRegexpMatch(%q, %s)", pattern, tp.buildStringExpr(args[1]))
-		},
-		"array": func(tp *transpiler, cmdName, cmdText string, args []string) string {
-			// [array get VAR]: flattened key/value pairs. Inside a db-eval
-			// row loop, VAR refers to the current row's column bindings
-			// (pre-computed flat expression); otherwise it is a dynamic-key
-			// Go map (XxxMap) — but only when VAR is a registered dynamic
-			// array (the preamble declares only those as maps). Unregistered
-			// arrays keep the literal-text fallback (mutex1 2.x iterates
-			// [array get counters] whose proc writer is unsupported anyway).
-			if len(args) >= 1 && args[0] == "get" && len(args) == 2 {
-				base := strings.TrimPrefix(strings.TrimSpace(args[1]), "::")
-				if e, ok := tp.rowFlatVars[base]; ok {
-					return e
-				}
-				if tp.arrayMapVars[base] || tp.arrayMapVars["::"+base] {
-					return fmt.Sprintf("tclArrayGetFlat(%s)", tclVarToGo(base)+"Map")
-				}
-			}
-			// [array names ARR]: the keys of a literal-key array are known
-			// at generation time (trackArrayKey records every `set arr(K)
-			// V`), so emit them as a literal TCL list string. TCL's `array
-			// names` returns keys in unspecified order; consumers either
-			// sort them or use them as a mapping table (fts4unicode 1.x
-			// builds the `mappings` table for `string map` from
-			// `[array names map]`).
-			if len(args) == 2 && args[0] == "names" {
-				base := strings.TrimPrefix(strings.TrimSpace(args[1]), "::")
-				if keys, ok := tp.arrayKeys[base]; ok && len(keys) > 0 {
-					return strconv.Quote(strings.Join(keys, " "))
-				}
-			}
-			return fmt.Sprintf("%q", cmdText)
-		},
-		"info": func(tp *transpiler, cmdName, cmdText string, args []string) string {
-			// [info exists ARR($key)] / [info exists VAR]
-			// [info exists VAR] — scalar existence goes through the shared
-			// variable registry so harness guards like
-			// {[info exists ::UNZIP]} reflect whether an earlier branch ran.
-			if len(args) == 2 && args[0] == "exists" {
-				nm := strings.TrimPrefix(strings.TrimPrefix(args[1], "$"), "::")
-				// The harness options array ::G is set by the TCL test
-				// runner's command line (-soak, -perm, ...). The Go harness
-				// never sets any option, so `info exists ::G(anything)` is
-				// always false (corruptC's issoak, corruptN's perm:presql).
-				if nm == "G" || strings.HasPrefix(nm, "G(") {
-					return `"0"`
-				}
-				// Dynamic-key form: `info exists NAME($key)` (parsed
-				// as a single arg with `(` because the TCL parser
-				// does not split it). Translate to a Go map lookup
-				// when the array is registered in arrayMapVars
-				// (set by `array set`).
-				if idx := strings.Index(nm, "("); idx > 0 {
-					rawBase := nm[:idx]
-					base := tclVarToGo(rawBase + "Map")
-					rawKey := nm[idx+1 : len(nm)-1] // e.g. "$i" (dynamic) or "5" (literal)
-					key := strings.TrimPrefix(rawKey, "$")
-					if isValidGoIdent(base[:len(base)-len("Map")]) {
-						// A leading $ sigil means the key is a variable
-						// reference — the Go-side var of that name holds the
-						// runtime value; anything else is a literal key and
-						// must be quoted. (Decide BEFORE stripping the sigil:
-						// `unusable_page($i)` and `unusable_page(i)` differ
-						// only in it.)
-						// Only a REGISTERED dynamic array (its XxxMap is
-						// declared in the preamble) may use the map form;
-						// anything else (thread003's thread_spawn-populated
-						// finished(), permutations' ::env) would reference an
-						// undeclared map — fall back to the tclvar registry,
-						// which stays compilable and answers "no" for arrays
-						// the harness never populated.
-						if isArrayMapBacked(tp, rawBase) {
-							if strings.HasPrefix(rawKey, "$") {
-								return fmt.Sprintf("tclBool01(%s[%s] != \"\")", base, key)
-							}
-							return fmt.Sprintf("tclBool01(%s[%q] != \"\")", base, key)
-						}
-						if strings.HasPrefix(rawKey, "$") {
-							// Route the key variable through the sanitizer (a TCL
-							// var named `t` maps to Go `_t`, never *testing.T).
-							return fmt.Sprintf("tclBool01(vtab.TclVarExists(%q, %s))", rawBase, tclVarToGo(key))
-						}
-						return fmt.Sprintf("tclBool01(vtab.TclVarExists(%q, %q))", rawBase, key)
-					}
-				}
-				if isValidGoIdent(tclVarToGo(nm)) {
-					return fmt.Sprintf("tclBool01(vtab.TclVarExists(%q, \"\"))", nm)
-				}
-				return fmt.Sprintf("%q", cmdText)
-			}
-			if len(args) == 3 && args[0] == "exists" {
-				name := args[1]
-				key := strings.TrimPrefix(args[2], "$")
-				if idx := strings.Index(name, "("); idx > 0 {
-					rawBase := strings.TrimSuffix(name[:idx], "(")
-					base := tclVarToGo(rawBase + "Map")
-					kv := tclVarToGo(key)
-					if isArrayMapBacked(tp, rawBase) {
-						return fmt.Sprintf("tclBool01(%s[%s] != \"\")", base, kv)
-					}
-					// Unregistered array: the tclvar registry keeps the check
-					// compilable (the harness never populates such arrays).
-					return fmt.Sprintf("tclBool01(vtab.TclVarExists(%q, %s))", rawBase, kv)
-				}
-			}
-			return fmt.Sprintf("%q", cmdText)
-		},
-		"sqlite3_errmsg": func(tp *transpiler, cmdName, cmdText string, args []string) string {
-			return cmdExprErrmsg(tp, cmdName, cmdText, args)
-		},
-		"sqlite3_errcode": func(tp *transpiler, cmdName, cmdText string, args []string) string {
-			return cmdExprErrcode(tp, cmdName, cmdText, args)
-		},
-		"sqlite3_set_errmsg":  sqlite3SetErrmsgExpr,
-		"sqlite3_bind_int":    sqlite3BindExpr,
-		"sqlite3_bind_int64":  sqlite3BindExpr,
-		"sqlite3_bind_text":   sqlite3BindExpr,
-		"sqlite3_bind_text16": sqlite3BindExpr,
-		"sqlite3_bind_double": sqlite3BindExpr,
-		"sqlite3_bind_null":   sqlite3BindExpr,
-		"sqlite3_bind_blob":   sqlite3BindExpr,
-		"sqlite3_open":        sqlite3OpenExpr,
-		"sqlite3_open16":      sqlite3OpenExpr,
-		"sqlite3_open_v2":     sqlite3OpenExpr,
-		"sqlite3_open_new":    sqlite3OpenExpr,
-		"sqlite3_open_old":    sqlite3OpenExpr,
-	}
-}
-
-// sqlite3BindExpr returns "" for parameter binding (handled via SQL $N/?
-// syntax).
-func sqlite3BindExpr(tp *transpiler, cmdName, cmdText string, args []string) string {
-	return `""`
-}
-
-// sqlite3OpenExpr returns "" — sqlite3_open returns a handle; represent as an
-// empty string placeholder.
-func sqlite3OpenExpr(tp *transpiler, cmdName, cmdText string, args []string) string {
-	return `""`
-}
-
-// stmtVarFromArg converts a TCL statement-handle argument ("$VM") to the
-// registry name used by the tclPrepared map ("VM").
-func stmtVarFromArg(arg string) string {
-	return strings.TrimPrefix(strings.TrimSpace(arg), "$")
-}
-
-// exprIntArg renders a TCL integer argument as a Go integer expression: a
-// literal when numeric, otherwise the corresponding variable reference.
-func (tp *transpiler) exprIntArg(text string) string {
-	t := strings.TrimSpace(text)
-	if _, err := strconv.Atoi(t); err == nil {
-		return t
-	}
-	if strings.HasPrefix(t, "$") {
-		gv := tclVarToGo(strings.TrimPrefix(t, "$"))
-		if isValidGoIdent(gv) {
-			return gv
-		}
-	}
-	return "0"
-}
 
 // cmdExpr converts a TCL command text (inside [...]) to a Go expression.
 func (tp *transpiler) cmdExpr(cmdText string) string {
@@ -337,68 +26,8 @@ func (tp *transpiler) cmdExpr(cmdText string) string {
 	cmdName := args[0]
 	rest := args[1:]
 
-	// [permutation] evaluates to the name of the current test permutation,
-	// or the empty string when the suite runs without one. testgen always
-	// runs without a permutation, so conditions like
-	// {[permutation]=="prepare"} become "" == "prepare" (false), which
-	// skips the prepare/step C-API blocks the transpiler cannot reproduce.
-	if cmdName == "permutation" {
-		return `""`
-	}
-
-	// [clang_sanitize_address] — the TCL harness proc that reports whether
-	// the library was built with -fsanitize=address. testgen runs a normal
-	// build, so it returns 0 (false); conditions like
-	// {[clang_sanitize_address]==0 && 0} then evaluate to false.
-	if cmdName == "clang_sanitize_address" {
-		return `"0"`
-	}
-
-	// [md5 STRING] — the test suite's C-extension md5 command (test/md5.c,
-	// registered as a TCL command in every test through the test build):
-	// returns the lowercase hex MD5 digest of STRING. func.test 24.7 uses it
-	// to build the expected value of md5sum() over many arguments
-	// (set result [md5 "this${midres}program..."]); the harness helper
-	// tclMD5 is the faithful implementation. STRING is rendered through the
-	// string-parts path so ${var} interpolation inside the quoted word
-	// applies (TCL double-quote substitution semantics).
-	if cmdName == "md5" && len(rest) >= 1 {
-		arg := rest[len(rest)-1]
-		if strings.Contains(arg, "$") || strings.Contains(arg, "[") {
-			return fmt.Sprintf("tclMD5(%s)", tp.buildStringExpr(arg))
-		}
-		return fmt.Sprintf("tclMD5(%q)", arg)
-	}
-
-	// [detail_is_none] / [detail_is_col] / [detail_is_full] — fts5_common.tcl
-	// predicates over the foreach_detail_mode loop variable (rendered as the
-	// generated _fdmModeN Go var). Resolved to a runtime "1"/"0" so they
-	// compose both as bare conditions and inside ==0 numeric comparisons.
-	switch cmdName {
-	case "detail_is_none", "detail_is_col", "detail_is_full":
-		mode := strings.TrimPrefix(cmdName, "detail_is_")
-		return fmt.Sprintf("tclBool01(_fdmMode%d == %q)", tp.fdmSeq, mode)
-	}
-
-	// [sqlite3_fts5_tokenize DB TOKENIZER TEXT] — the fts5_tcl.c test bridge
-	// (f5tTokenize): returns the flat TCL list "token start end ..." for TEXT
-	// tokenized through TOKENIZER (a TCL list of spec words). The generated
-	// fts5TclTokenize helper (emitted on demand) routes the request through
-	// the engine's own tokenizer registry (internal/fts5).
-	// [sqlite3_exec_hex DB SQL] - test1.c's sqlite3_exec_hex: decodes percent-H-H
-	// to raw bytes, executes SQL, returns "<rc> <column names and values>"
-	// (like-9.3.1 reads the result for a LIKE with a raw 0x78/0x25 pattern).
-	if cmdName == "sqlite3_exec_hex" && len(rest) >= 2 {
-		sql := strings.TrimSpace(rest[len(rest)-1])
-		sql = strings.TrimSpace(strings.TrimSuffix(strings.TrimPrefix(sql, "{"), "}"))
-		return fmt.Sprintf("tclExecHex(%s, %q)", tp.dbVar, sql)
-	}
-
-	if cmdName == "sqlite3_fts5_tokenize" && len(rest) >= 3 {
-		useFTS5Tokenize()
-		spec := tp.buildStringExpr(rest[len(rest)-2])
-		input := tp.buildStringExpr(rest[len(rest)-1])
-		return fmt.Sprintf("fts5TclTokenize(%s, %s, %s)", tp.dbVar, spec, input)
+	if e, ok := tp.cmdExprBuiltinSpecial(cmdName, rest); ok {
+		return e
 	}
 
 	if h, ok := cmdExprHandlersRef()[cmdName]; ok {
@@ -415,12 +44,8 @@ func (tp *transpiler) cmdExpr(cmdText string) string {
 	// A registered single-arg string-map proc (`[tx $ins]`, json101's
 	// JSON-shorthand translator) becomes a Go strings.NewReplacer chain on
 	// the argument expression.
-	if pairs, ok := tp.procStringMaps[cmdName]; ok && len(rest) == 1 {
-		quoted := make([]string, len(pairs))
-		for i, p := range pairs {
-			quoted[i] = strconv.Quote(p)
-		}
-		return fmt.Sprintf("strings.NewReplacer(%s).Replace(%s)", strings.Join(quoted, ", "), tp.buildStringExpr(rest[0]))
+	if e, ok := tp.cmdExprStringMapProc(cmdName, rest); ok {
+		return e
 	}
 	// [read $CHAN] on an incremental-blob channel — read the blob value
 	// (dbstatus2.test 1.7: `set len [string length [read $fd]]`). The
@@ -433,23 +58,124 @@ func (tp *transpiler) cmdExpr(cmdText string) string {
 	}
 	// Backup-object subcommand substitution: [B step N] / [B finish] /
 	// [B remaining] / [B pagecount] for a declared *frigolite.Backup var.
-	// Here cmdName is the backup variable (B) and rest[0] is the subcommand.
-	if goName := tclVarToGo(cmdName); isValidGoIdent(goName) && len(rest) >= 1 {
-		switch strings.ToLower(rest[0]) {
-		case "step":
-			if len(rest) >= 2 {
-				return cmdExprBackupStep(goName, rest[1])
-			}
-			return fmt.Sprintf("tclBackupStep(%s, 0)", goName)
-		case "finish":
-			return cmdExprBackupFinish(goName)
-		case "remaining":
-			return cmdExprBackupRemaining(goName)
-		case "pagecount":
-			return cmdExprBackupPagecount(goName)
-		}
+	if e, ok := tp.cmdExprBackupSub(cmdName, rest); ok {
+		return e
 	}
 	return tp.cmdExprDefault(cmdName, cmdText, rest)
+}
+
+// cmdExprBuiltinSpecial handles the suite's special-value command
+// substitutions that precede the dispatch table. Returns ("", false) when
+// cmdName is not one of them.
+func (tp *transpiler) cmdExprBuiltinSpecial(cmdName string, rest []string) (string, bool) {
+	switch cmdName {
+	case "permutation":
+		// [permutation] evaluates to the name of the current test permutation,
+		// or the empty string when the suite runs without one. testgen always
+		// runs without a permutation, so conditions like
+		// {[permutation]=="prepare"} become "" == "prepare" (false), which
+		// skips the prepare/step C-API blocks the transpiler cannot reproduce.
+		return `""`, true
+	case "clang_sanitize_address":
+		// [clang_sanitize_address] — the TCL harness proc that reports whether
+		// the library was built with -fsanitize=address. testgen runs a normal
+		// build, so it returns 0 (false); conditions like
+		// {[clang_sanitize_address]==0 && 0} then evaluate to false.
+		return `"0"`, true
+	case "md5":
+		if len(rest) >= 1 {
+			return tp.cmdExprMD5(rest[len(rest)-1]), true
+		}
+	case "detail_is_none", "detail_is_col", "detail_is_full":
+		// [detail_is_none] / [detail_is_col] / [detail_is_full] —
+		// fts5_common.tcl predicates over the foreach_detail_mode loop
+		// variable (rendered as the generated _fdmModeN Go var). Resolved to
+		// a runtime "1"/"0" so they compose both as bare conditions and
+		// inside ==0 numeric comparisons.
+		mode := strings.TrimPrefix(cmdName, "detail_is_")
+		return fmt.Sprintf("tclBool01(_fdmMode%d == %q)", tp.fdmSeq, mode), true
+	case "sqlite3_exec_hex":
+		// [sqlite3_exec_hex DB SQL] - test1.c's sqlite3_exec_hex: decodes
+		// percent-H-H to raw bytes, executes SQL, returns "<rc> <column names
+		// and values>" (like-9.3.1 reads the result for a LIKE with a raw
+		// 0x78/0x25 pattern).
+		if len(rest) >= 2 {
+			sql := strings.TrimSpace(rest[len(rest)-1])
+			sql = strings.TrimSpace(strings.TrimSuffix(strings.TrimPrefix(sql, "{"), "}"))
+			return fmt.Sprintf("tclExecHex(%s, %q)", tp.dbVar, sql), true
+		}
+	case "sqlite3_fts5_tokenize":
+		// [sqlite3_fts5_tokenize DB TOKENIZER TEXT] — the fts5_tcl.c test
+		// bridge (f5tTokenize): returns the flat TCL list "token start end
+		// ..." for TEXT tokenized through TOKENIZER (a TCL list of spec
+		// words). The generated fts5TclTokenize helper (emitted on demand)
+		// routes the request through the engine's own tokenizer registry
+		// (internal/fts5).
+		if len(rest) >= 3 {
+			useFTS5Tokenize()
+			spec := tp.buildStringExpr(rest[len(rest)-2])
+			input := tp.buildStringExpr(rest[len(rest)-1])
+			return fmt.Sprintf("fts5TclTokenize(%s, %s, %s)", tp.dbVar, spec, input), true
+		}
+	}
+	return "", false
+}
+
+// cmdExprMD5 renders the [md5 STRING] substitution: the test suite's
+// C-extension md5 command (test/md5.c, registered as a TCL command in every
+// test through the test build) returns the lowercase hex MD5 digest of
+// STRING. func.test 24.7 uses it to build the expected value of md5sum()
+// over many arguments (set result [md5 "this${midres}program..."]); the
+// harness helper tclMD5 is the faithful implementation. STRING is rendered
+// through the string-parts path so ${var} interpolation inside the quoted
+// word applies (TCL double-quote substitution semantics).
+func (tp *transpiler) cmdExprMD5(arg string) string {
+	if strings.Contains(arg, "$") || strings.Contains(arg, "[") {
+		return fmt.Sprintf("tclMD5(%s)", tp.buildStringExpr(arg))
+	}
+	return fmt.Sprintf("tclMD5(%q)", arg)
+}
+
+// cmdExprStringMapProc renders a call to a registered single-arg string-map
+// proc (e.g. json101's `[tx $ins]`) as a Go strings.NewReplacer chain on the
+// argument expression. Returns ok=false when cmdName is not a registered
+// string-map proc or the call does not have exactly one argument.
+func (tp *transpiler) cmdExprStringMapProc(cmdName string, rest []string) (string, bool) {
+	pairs, ok := tp.procStringMaps[cmdName]
+	if !ok || len(rest) != 1 {
+		return "", false
+	}
+	quoted := make([]string, len(pairs))
+	for i, p := range pairs {
+		quoted[i] = strconv.Quote(p)
+	}
+	return fmt.Sprintf("strings.NewReplacer(%s).Replace(%s)", strings.Join(quoted, ", "), tp.buildStringExpr(rest[0])), true
+}
+
+// cmdExprBackupSub handles backup-object subcommand substitution: [B step N]
+// / [B finish] / [B remaining] / [B pagecount] for a declared
+// *frigolite.Backup var. Here cmdName is the backup variable (B) and
+// rest[0] is the subcommand. Returns ("", false) when cmdName is not a valid
+// Go identifier or rest is empty (the caller falls through to the default).
+func (tp *transpiler) cmdExprBackupSub(cmdName string, rest []string) (string, bool) {
+	goName := tclVarToGo(cmdName)
+	if !isValidGoIdent(goName) || len(rest) < 1 {
+		return "", false
+	}
+	switch strings.ToLower(rest[0]) {
+	case "step":
+		if len(rest) >= 2 {
+			return cmdExprBackupStep(goName, rest[1]), true
+		}
+		return fmt.Sprintf("tclBackupStep(%s, 0)", goName), true
+	case "finish":
+		return cmdExprBackupFinish(goName), true
+	case "remaining":
+		return cmdExprBackupRemaining(goName), true
+	case "pagecount":
+		return cmdExprBackupPagecount(goName), true
+	}
+	return "", false
 }
 
 // cmdExprCols handles `[cols s f]` and `[exprs s f]` — TCL test procs from
@@ -634,231 +360,6 @@ func (tp *transpiler) cmdExprSet(cmdName, cmdText string, args []string) string 
 	return `""`
 }
 
-// cmdExprString handles `[string ...]` subcommands (map, length, tolower,
-// toupper, trim, range, repeat).
-func (tp *transpiler) cmdExprString(cmdName, cmdText string, args []string) string {
-	if len(args) < 1 {
-		return `""`
-	}
-	sub := args[0]
-	switch sub {
-	case "map":
-		return tp.cmdExprStringMap(cmdText, args)
-	case "length":
-		return tp.cmdExprStringUnary("length", args)
-	case "tolower":
-		return tp.cmdExprStringUnary("tolower", args)
-	case "toupper":
-		return tp.cmdExprStringUnary("toupper", args)
-	case "trim", "trimleft", "trimright":
-		return tp.cmdExprStringTrim(sub, args)
-	case "match":
-		return tp.cmdExprStringMatch(args)
-	case "range":
-		return tp.cmdExprStringRange(args)
-	case "index":
-		if len(args) < 3 {
-			return `""`
-		}
-		strExpr := tp.buildStringExpr(args[1])
-		idxExpr := tp.buildStringExpr(args[2])
-		return fmt.Sprintf("tclStringIndex(%s, %s)", strExpr, idxExpr)
-	case "repeat":
-		return tp.cmdExprStringRepeat(args)
-	case "replace":
-		// string replace S FIRST LAST NEWSTR (zipfile2 patches archive bytes)
-		if len(args) < 5 {
-			return `""`
-		}
-		return fmt.Sprintf("tclStringReplace(%s, %s, %s, %s)",
-			tp.buildStringExpr(args[1]), tp.buildStringExpr(args[2]),
-			tp.buildStringExpr(args[3]), tp.buildStringExpr(args[4]))
-	default:
-		str := strings.TrimSpace(cmdText[len("string "+sub):])
-		return fmt.Sprintf("%q", str)
-	}
-}
-
-// cmdExprStringMatch renders [string match PATTERN STR] — TCL glob match; the
-// result is a "1"/"0" string so callers wrapping it in tclBool(...) (condition
-// path) or concatenating it still type-check.
-func (tp *transpiler) cmdExprStringMatch(args []string) string {
-	if len(args) < 3 {
-		return `""`
-	}
-	patternExpr := tp.buildStringExpr(args[1])
-	strExpr := tp.buildStringExpr(args[2])
-	return fmt.Sprintf("tclStringMatch01(%s, %s)", patternExpr, strExpr)
-}
-
-// cmdExprStringRange renders [string range STR START END].
-func (tp *transpiler) cmdExprStringRange(args []string) string {
-	if len(args) < 4 {
-		return `""`
-	}
-	strExpr := tp.buildStringExpr(args[1])
-	startExpr := tp.buildStringExpr(args[2])
-	endExpr := tp.buildStringExpr(args[3])
-	return fmt.Sprintf("tclStringRange(%s, %s, %s)", strExpr, startExpr, endExpr)
-}
-
-// cmdExprStringRepeat renders [string repeat STR N]. The count is rendered as
-// a string by TCL; tclStringRepeat converts it at runtime (the expression
-// context cannot emit a typed int).
-func (tp *transpiler) cmdExprStringRepeat(args []string) string {
-	if len(args) < 3 {
-		return `""`
-	}
-	strExpr := tp.buildStringExpr(args[1])
-	nExpr := tp.buildStringExpr(args[2])
-	return fmt.Sprintf("tclStringRepeat(%s, %s)", strExpr, nExpr)
-}
-
-// cmdExprStringUnary renders a unary [string OP STR] expression (length,
-// tolower, toupper, trim). memdb1.test's [string length $::db1] reads the
-// serialize image shadow (db1Blob), not the *frigolite.DB connection var.
-func (tp *transpiler) cmdExprStringUnary(op string, args []string) string {
-	if len(args) < 2 {
-		return cmdExprStringUnaryDefault(op)
-	}
-	strExpr := tp.buildStringExpr(strings.Join(args[1:], " "))
-	switch op {
-	case "length":
-		return fmt.Sprintf("strconv.Itoa(len(%s))", strExpr)
-	case "tolower":
-		return fmt.Sprintf("strings.ToLower(%s)", strExpr)
-	case "toupper":
-		return fmt.Sprintf("strings.ToUpper(%s)", strExpr)
-	default:
-		return fmt.Sprintf("strings.TrimSpace(%s)", strExpr)
-	}
-}
-
-// cmdExprStringUnaryDefault returns the default result for a unary string
-// expression with too few arguments.
-func cmdExprStringUnaryDefault(op string) string {
-	if op == "length" {
-		return `"0"`
-	}
-	return `""`
-}
-
-// cmdExprStringTrim renders [string trim|trimleft|trimright STR ?chars?] —
-// strip the given characters (default whitespace) from the start/end of STR.
-// The charset is a TCL string of characters, each of which is trimmed (not a
-// substring); Go's strings.Trim/TrimLeft/TrimRight match this behavior.
-func (tp *transpiler) cmdExprStringTrim(op string, args []string) string {
-	if len(args) < 2 {
-		return cmdExprStringUnaryDefault(op)
-	}
-	strExpr := tp.buildStringExpr(args[1])
-	charsExpr := `" \t\n\r\v\f"`
-	if len(args) >= 3 {
-		charsExpr = tp.buildStringExpr(args[2])
-	}
-	switch op {
-	case "trim":
-		return fmt.Sprintf("strings.Trim(%s, %s)", strExpr, charsExpr)
-	case "trimleft":
-		return fmt.Sprintf("strings.TrimLeft(%s, %s)", strExpr, charsExpr)
-	default:
-		return fmt.Sprintf("strings.TrimRight(%s, %s)", strExpr, charsExpr)
-	}
-}
-
-// cmdExprStringMap handles `[string map {old new ...} $str]` →
-// strings.ReplaceAll. The map is parsed from cmdText since braces aren't split
-// properly by Fields. A `[string map [list old new] $str]` form (the map is
-// itself a list command, often with a runtime $var replacement) is translated
-// to runtime strings.ReplaceAll with the variable's Go value.
-func (tp *transpiler) cmdExprStringMap(cmdText string, args []string) string {
-	rest := strings.TrimSpace(strings.TrimPrefix(cmdText, "string map"))
-	if os.Getenv("TCLDBG") != "" {
-		fmt.Fprintf(os.Stderr, "SMAP rest=%q args=%q\n", rest, args)
-	}
-	if len(rest) < 2 {
-		return `""`
-	}
-	// `string map [list OLD NEW] $str` — map is a list-command with the
-	// replacement possibly a runtime $var. Emit strings.ReplaceAll with the
-	// runtime values.
-	if strings.HasPrefix(rest, "[list ") {
-		closeIdx := strings.Index(rest, "]")
-		if closeIdx < 0 {
-			return `""`
-		}
-		listContent := strings.TrimSpace(rest[5:closeIdx])
-		strPart := strings.TrimSpace(rest[closeIdx+1:])
-		// The SQL operand is usually a braced TCL word ({ ... }) whose outer
-		// braces are list-delimiter syntax, not SQL content — strip one
-		// balanced brace layer.
-		if len(strPart) >= 2 && strPart[0] == '{' && strPart[len(strPart)-1] == '}' {
-			strPart = strPart[1 : len(strPart)-1]
-		}
-		items := tclCmdWords(listContent)
-		strExpr := tp.buildStringExpr(strPart)
-		if len(items) >= 2 {
-			oldExpr := tp.buildStringExpr(items[0])
-			newExpr := tp.buildStringExpr(items[1])
-			return fmt.Sprintf("strings.ReplaceAll(%s, %s, %s)", strExpr, oldExpr, newExpr)
-		}
-		return strExpr
-	}
-	if rest[0] != '{' {
-		return `""`
-	}
-	// Find matching close brace for mapping
-	depth := 0
-	mapEnd := -1
-	for i, c := range rest {
-		if c == '{' {
-			depth++
-		}
-		if c == '}' {
-			depth--
-		}
-		if depth == 0 {
-			mapEnd = i
-			break
-		}
-	}
-	if mapEnd < 0 {
-		return `""`
-	}
-	mapContent := rest[1:mapEnd]
-	strPart := strings.TrimSpace(rest[mapEnd+1:])
-	// Parse the map pairs with the TCL tokenizer so braced replacement values
-	// (e.g. {"newname"} → "newname") keep their inner content without the
-	// list-rendering braces (altertab2-3.$tn: string map {log_entry
-	// {"newname"}} must emit "newname", not {"newname"}).
-	items := tclCmdWords(mapContent)
-	strExpr := tp.buildStringExpr(strPart)
-	if len(items) >= 2 {
-		return fmt.Sprintf("strings.ReplaceAll(%s, %q, %q)", strExpr, items[0], items[1])
-	}
-	return strExpr
-}
-
-// cmdExprBinary handles [binary encode hex S] / [binary decode hex S] value
-// substitution: hex codec between byte strings and their lowercase text.
-func (tp *transpiler) cmdExprBinary(cmdName, cmdText string, args []string) string {
-	rest := strings.TrimSpace(strings.TrimPrefix(cmdText, "binary"))
-	fields := strings.Fields(rest)
-	if len(fields) < 3 {
-		return `""`
-	}
-	op := fields[0] + " " + fields[1]
-	valWord := strings.TrimSpace(strings.TrimPrefix(rest, op))
-	argExpr := tp.buildStringExpr(valWord)
-	switch op {
-	case "encode hex":
-		return fmt.Sprintf("tclHexEncode(%s)", argExpr)
-	case "decode hex":
-		return fmt.Sprintf("string(tclHexDecode(%s))", argExpr)
-	}
-	return `""`
-}
-
 // cmdExprDb handles [db one {SQL}] / [db eval {SQL}] value substitution: run
 // the query at runtime. `db one` returns the first column of the first row;
 // `db eval` returns the flattened query result list. Other `db` subcommands
@@ -970,279 +471,6 @@ func (tp *transpiler) cmdExprCatch(cmdName, cmdText string, args []string) strin
 	return `"0"`
 }
 
-// tclListElementRepr renders one list element in its TCL list string
-// representation: values containing whitespace, braces, quotes, or the
-// empty string are wrapped in ONE brace level so a downstream runtime
-// tclListFlatten (which strips exactly one brace level per element)
-// reproduces the original value — e.g. {"b":9} → {{"b":9}} → flatten →
-// {"b":9}, and "" → {} → flatten → {} (matching flatten()'s NULL/empty
-// cell rendering). Unbalanced braces cannot be braced; backslash-escape
-// them instead (TCL braced words require balanced braces).
-func tclListElementRepr(v string) string {
-	if v == "" {
-		return "{}"
-	}
-	needsBrace := strings.ContainsAny(v, " \t\n\r{}\"")
-	depth := 0
-	for i := 0; i < len(v); i++ {
-		switch v[i] {
-		case '{':
-			depth++
-		case '}':
-			depth--
-			if depth < 0 {
-				needsBrace = false // unbalanced: escape instead
-			}
-		}
-	}
-	if depth != 0 {
-		needsBrace = false
-	}
-	if needsBrace {
-		return "{" + v + "}"
-	}
-	// Unbalanced braces cannot be braced; escape the list-structural
-	// characters instead (braces, quotes, whitespace). Brackets, $ and ;
-	// are literal inside a list element and need no escaping.
-	var b strings.Builder
-	for i := 0; i < len(v); i++ {
-		switch c := v[i]; c {
-		case ' ', '\t', '\n', '\r', '{', '}', '"':
-			b.WriteByte('\\')
-		}
-		b.WriteByte(v[i])
-	}
-	return b.String()
-}
-
-// cmdExprList handles `[list $var]` — constructs a TCL list. A single element
-// renders as its value; multiple elements join with spaces (TCL list
-// rendering).
-func (tp *transpiler) cmdExprList(cmdName, cmdText string, args []string) string {
-	// Re-parse the command words so each element's TCL quoting mode is
-	// known: BRACED words are literals; their content must not undergo
-	// $var or [cmd] substitution. Unbraced/quoted words substitute.
-	raws := tcl.ParseCommands(strings.TrimSpace(cmdText))
-	if len(raws) == 0 || len(raws[0]) < 1 {
-		// Fallback: no parseable words — substitute every arg text.
-		if len(args) == 0 {
-			return `""`
-		}
-		parts := make([]string, len(args))
-		for i, a := range args {
-			parts[i] = tp.buildStringExpr(a)
-		}
-		return strings.Join(parts, `+" "+`)
-	}
-	type listElem struct {
-		expr    string
-		literal bool
-		text0   string // original literal text when literal=true
-	}
-	var clean []listElem
-	appendSubst := func(text string) {
-		clean = append(clean, listElem{expr: tp.buildStringExpr(text)})
-	}
-	for i := 1; i < len(raws[0]); i++ { // raws[0][0] is the "list" word
-		w := raws[0][i]
-		// A lone backslash is a line-continuation remnant (backslash-newline
-		// before `]`), not a list element — TCL folds it away.
-		if !w.Braced && !w.Quoted && strings.TrimSpace(w.Text) == "\\" {
-			continue
-		}
-		switch {
-		case strings.HasPrefix(w.Text, "{*}"):
-			// TCL `{*}` splice marker: value's elements join the list.
-			appendSubst(strings.TrimPrefix(w.Text, "{*}"))
-		case w.Text == "*":
-			// Splice marker word followed by the spliced value; a
-			// multi-line braced list value flattens to its space-joined
-			// form (the shape flatten() produces).
-			if i+1 < len(raws[0]) {
-				i++
-				spliced := raws[0][i].Text
-				if flat, ok := flattenBraceList(spliced); ok {
-					spliced = flat
-				}
-				appendSubst(spliced)
-			}
-		case w.Braced:
-			clean = append(clean, listElem{expr: strconv.Quote(w.Text), literal: true, text0: w.Text})
-		case w.Quoted:
-			appendSubst(tclUnescapeQuoted(w.Text))
-		default:
-			appendSubst(w.Text)
-		}
-	}
-	if len(clean) == 0 {
-		return `""`
-	}
-	allLit := true
-	for _, el := range clean {
-		if !el.literal {
-			allLit = false
-			break
-		}
-	}
-	if allLit {
-		lits := make([]string, len(clean))
-		for i, el := range clean {
-			u, err := strconv.Unquote(el.expr)
-			if err != nil {
-				u = el.text0
-			}
-			// Emit each element in TCL list representation so a runtime
-			// tclListFlatten round-trips braced/empty data elements exactly.
-			lits[i] = tclListElementRepr(u)
-		}
-		return strconv.Quote(strings.Join(lits, " "))
-	}
-	parts := make([]string, len(clean))
-	for i, el := range clean {
-		if el.literal {
-			u, err := strconv.Unquote(el.expr)
-			if err != nil {
-				u = el.text0
-			}
-			parts[i] = strconv.Quote(tclListElementRepr(u))
-		} else {
-			parts[i] = el.expr
-		}
-	}
-	return strings.Join(parts, `+" "+`)
-}
-
-// cmdExprSplit handles `[split STR ?SEP?]` — TCL split as a value: the
-// result is the TCL list string of parts (unionvtab 2.4.x:
-// `set E [split $e .]`). With no SEP the split characters are the TCL
-// whitespace default " \n\t\r"; an empty SEP splits into individual
-// characters (see the runtime tclSplitString).
-func (tp *transpiler) cmdExprSplit(cmdName, cmdText string, args []string) string {
-	if len(args) < 1 {
-		return `""`
-	}
-	strExpr := tp.buildStringExpr(args[0])
-	sep := `" \n\t\r"`
-	if len(args) >= 2 {
-		sep = tp.buildStringExpr(args[1])
-	}
-	return fmt.Sprintf("tclSplitString(%s, %s)", strExpr, sep)
-}
-
-// cmdExprLIndex handles `[lindex $list $idx]`.
-func (tp *transpiler) cmdExprLIndex(cmdName, cmdText string, args []string) string {
-	if len(args) < 2 {
-		return `""`
-	}
-	listExpr := tp.buildStringExpr(args[0])
-	idxExpr := tp.buildStringExpr(args[1])
-	return fmt.Sprintf("tclLIndex(%s, %s)", listExpr, idxExpr)
-}
-
-// cmdExprLLength handles `[llength $list]` — the list length as a string (TCL
-// values are strings), so comparisons like {$i < [llength $::idxlist]} work.
-func (tp *transpiler) cmdExprLLength(cmdName, cmdText string, args []string) string {
-	if len(args) < 1 {
-		return `"0"`
-	}
-	listExpr := tp.buildStringExpr(args[0])
-	return fmt.Sprintf("strconv.Itoa(tclLLength(%s))", listExpr)
-}
-
-// cmdExprLSearch handles `[lsearch $list $value]` — index of value in the TCL
-// list, or -1 when absent. Emits a runtime Go expression so conditions like
-// {[lsearch $exprkw $kw]<0} resolve correctly (buildCmdNumericCond compares
-// the Atoi-converted result).
-func (tp *transpiler) cmdExprLSearch(cmdName, cmdText string, args []string) string {
-	// Skip TCL lsearch flags (e.g. -exact, -glob, -regexp) before the list.
-	for len(args) > 0 && strings.HasPrefix(args[0], "-") {
-		args = args[1:]
-	}
-	if len(args) < 2 {
-		return `"-1"`
-	}
-	listExpr := tp.buildStringExpr(args[0])
-	valueExpr := tp.buildStringExpr(args[1])
-	return fmt.Sprintf("strconv.Itoa(tclLsearch(%s, %s))", listExpr, valueExpr)
-}
-
-// cmdExprLRange handles `[lrange $list start end]` — sublist as a TCL list
-// string.
-func (tp *transpiler) cmdExprLRange(cmdName, cmdText string, args []string) string {
-	if len(args) < 3 {
-		return `""`
-	}
-	listExpr := tp.buildStringExpr(args[0])
-	startExpr := tp.buildStringExpr(args[1])
-	endExpr := tp.buildStringExpr(args[2])
-	return fmt.Sprintf("tclLRange(%s, %s, %s)", listExpr, startExpr, endExpr)
-}
-
-// cmdExprLReplace handles `[lreplace $list $first $last $repl...]` — returns
-// the modified list as a TCL list string. TCL's lreplace replaces the range
-// [first..last] (or just the single element at `first` when `last` is omitted
-// but our callers always pass both) with the new elements. Used in test
-// expressions like `set ::tbl_data [lreplace $::tbl_data $idx $idx]` to drop
-// the deleted row's generated string from the reference list.
-func (tp *transpiler) cmdExprLReplace(cmdName, cmdText string, args []string) string {
-	if len(args) < 3 {
-		return `""`
-	}
-	listExpr := tp.buildStringExpr(args[0])
-	firstExpr := tp.buildStringExpr(args[1])
-	// In TCL, a 2-arg form `lreplace $list $first` is "remove the element at
-	// $first"; tests always pass 3+ args, so treat the third as `last`.
-	lastExpr := tp.buildStringExpr(args[2])
-	var replExprs []string
-	for _, a := range args[3:] {
-		replExprs = append(replExprs, tp.buildStringExpr(a))
-	}
-	if len(replExprs) == 0 {
-		return fmt.Sprintf("tclLReplace(%s, %s, %s)", listExpr, firstExpr, lastExpr)
-	}
-	return fmt.Sprintf("tclLReplace(%s, %s, %s, %s)", listExpr, firstExpr, lastExpr, strings.Join(replExprs, ", "))
-}
-
-// cmdExprLSort handles `[lsort $list]` — sorted list (default ascending).
-func (tp *transpiler) cmdExprLSort(cmdName, cmdText string, args []string) string {
-	if len(args) < 1 {
-		return `""`
-	}
-	// lsort switches: -integer (numeric compare), -increasing/-decreasing
-	// direction, -unique. Flags precede the list argument.
-	integer, desc := false, false
-	listArgs := args
-	for len(listArgs) > 0 && strings.HasPrefix(listArgs[0], "-") {
-		switch listArgs[0] {
-		case "-integer":
-			integer = true
-		case "-decreasing":
-			desc = true
-		case "-increasing", "-ascii", "-real", "-nocase":
-			integer = integer || listArgs[0] == "-real"
-		case "-unique":
-			// dedup not needed by the corpus; treat as plain sort
-		default:
-			return fmt.Sprintf("tclSort(%s)", tp.buildStringExpr(listArgs[0]))
-		}
-		listArgs = listArgs[1:]
-	}
-	if len(listArgs) == 0 {
-		return `""`
-	}
-	listExpr := tp.buildStringExpr(listArgs[0])
-	switch {
-	case integer && desc:
-		return fmt.Sprintf("tclSortIntDesc(%s)", listExpr)
-	case integer:
-		return fmt.Sprintf("tclSortInt(%s)", listExpr)
-	case desc:
-		return fmt.Sprintf("tclSortDesc(%s)", listExpr)
-	default:
-		return fmt.Sprintf("tclSort(%s)", listExpr)
-	}
-}
-
 // cmdExprFile handles `[file tail $path]` — basename of a path (used by
 // attach4's database_list callback to strip the directory from the file
 // column).
@@ -1341,41 +569,6 @@ func (tp *transpiler) cmdExprStmtStatus(cmdName, cmdText string, args []string) 
 	return fmt.Sprintf("strconv.FormatInt(%s.StmtStatus(%s), 10)", tp.dbVar, nameExpr)
 }
 
-// cmdExprJoin handles `[join list sep]` — TCL list join. The list is a TCL
-// variable built at Go runtime (e.g. by lappend), so emit
-// strings.Join(tclSplitList).
-func (tp *transpiler) cmdExprJoin(cmdName, cmdText string, args []string) string {
-	if len(args) < 1 {
-		return `""`
-	}
-	listExpr := tp.buildStringExpr(args[0])
-	sep := `" "`
-	if len(args) >= 2 {
-		sep = tp.buildStringExpr(args[1])
-	}
-	return fmt.Sprintf("strings.Join(tclSplitList(%s), %s)", listExpr, sep)
-}
-
-// cmdExprConcat handles `[concat $a $b ...]` — TCL list concatenation. Each
-// arg is rendered as a Go string expression (so $var and [cmd] refs are
-// resolved), split via tclSplitList, and the elements are joined with a
-// single space. Used by autovacuum.test 1.x's
-//
-//	[eval concat $delete_order]
-//
-// to flatten a list-of-lists into a single space-separated list before
-// [lsort -integer] ingests it.
-func (tp *transpiler) cmdExprConcat(cmdName, cmdText string, args []string) string {
-	if len(args) == 0 {
-		return `""`
-	}
-	exprs := make([]string, len(args))
-	for i, a := range args {
-		exprs[i] = tp.buildStringExpr(a)
-	}
-	return fmt.Sprintf("tclConcat(%s)", strings.Join(exprs, ", "))
-}
-
 // cmdExprExecSQL handles `[execsql {SQL}]` / `[execsql2 {SQL}]` — execute SQL
 // and return the joined result values as a space-separated string (for
 // string-equal comparisons in tests). The argument may be a double-quoted word
@@ -1400,112 +593,125 @@ func (tp *transpiler) cmdExprExecSQL(cmdName, cmdText string, args []string) str
 func (tp *transpiler) cmdExprDefault(cmdName, cmdText string, args []string) string {
 	// [eval SCRIPT] — TCL's eval runs the script as a command. The common
 	// testgen pattern is `[eval concat $list]` which flattens a list of
-	// lists into a single space-separated list. Re-tokenize the script and
-	// recursively call cmdExpr on the first word: when that word is a
-	// list-producing command (concat / list / lsort), the result IS the
-	// list value. Other `eval` forms (procedures, math) are N-A for the
-	// testgen — emit an empty string so the caller doesn't crash.
+	// lists into a single space-separated list.
 	if cmdName == "eval" {
-		rest := strings.TrimSpace(strings.TrimPrefix(cmdText, "eval"))
-		words := tclCmdWords(rest)
-		if len(words) == 0 {
-			return `""`
-		}
-		// Re-emit the script and recurse into cmdExpr so the inner
-		// command (concat/list/lsort) is evaluated through its handler.
-		inner := strings.Join(words, " ")
-		return tp.cmdExpr(inner)
+		return tp.cmdExprDefaultEval(cmdText)
 	}
 	// [catchsql DB SQL] inside an expression (zipfile2: [lindex [catchsql
 	// db {SQL}] 0]) evaluates to the TCL list text {code rows-or-message}.
 	if cmdName == "catchsql" && len(cmdText) > len("catchsql") {
-		// NOTE: tclCmdWords can drop a multi-line braced SQL argument, so
-		// split the connection word from cmdText directly.
-		tail := strings.TrimSpace(cmdText[len("catchsql"):])
-		var dbExpr, sqlText string
-		switch {
-		case strings.HasPrefix(tail, "{"):
-			// catchsql {SQL} — default connection.
-			dbExpr = tp.dbArgGo("db")
-			sqlText = tail
-		default:
-			i := strings.IndexAny(tail, " \t\n")
-			if i < 0 {
-				i = len(tail)
-			}
-			connTok := tail[:i]
-			if len(args) >= 2 {
-				dbExpr = tp.dbArgGo(args[0])
-				sqlText = strings.TrimSpace(strings.TrimPrefix(tail, connTok))
-			} else {
-				dbExpr = tp.dbArgGo(connTok)
-				sqlText = strings.TrimSpace(tail[i:])
-			}
-		}
-		if strings.HasPrefix(sqlText, "{") && strings.HasSuffix(sqlText, "}") {
-			sqlText = sqlText[1 : len(sqlText)-1]
-		}
-		sqlExpr := tp.goStringLiteral(tcl.RawWord{Text: strings.TrimSpace(sqlText)})
-		return fmt.Sprintf("tclCatchsqlStr(%s, %s)", dbExpr, sqlExpr)
+		return tp.cmdExprDefaultCatchsql(cmdText, args)
 	}
 	// Range-list procs (e.g. vtabI.test's all_col_list building "c1 ... cN")
 	// return generated data, not SQL: substitute the collected list value.
-	if len(tp.rangeListFuncs) > 0 {
-		if listVal, ok := tp.rangeListFuncs[cmdName]; ok {
-			return fmt.Sprintf("%q", listVal)
-		}
+	if listVal, ok := tp.rangeListFuncs[cmdName]; ok {
+		return fmt.Sprintf("%q", listVal)
 	}
 	// Test-infrastructure procs (scramble/random_uuid/hash1/hash2) with
 	// runtime Go equivalents. The template's $data placeholder is replaced
 	// with the first argument (e.g. `[scramble $data]` →
 	// tclScramble(data)); hash1/hash2 read the global data list variable.
-	if len(tp.specialFuncs) > 0 {
-		if tmpl, ok := tp.specialFuncs[cmdName]; ok {
-			if strings.Contains(tmpl, "$data") {
-				dataExpr := "data"
-				if len(args) >= 1 {
-					dataExpr = tp.buildStringExpr(args[0])
-				}
-				return strings.Replace(tmpl, "$data", dataExpr, 1)
-			}
-			// blob() hex decoder used as a value: decode the argument's
-			// hex text into the raw byte string (zipfile2 `set blob [blob $x]`).
-			if tmpl == "tclBlobHexDecode" {
-				argExpr := `""`
-				// Tokenize the tail with the TCL word splitter so nested
-				// bracket substitutions survive intact
-				// ([blob [string map {0800 0900} $a]] used to lose the map).
-				rest := strings.TrimSpace(strings.TrimPrefix(cmdText, cmdName))
-				if w := tclCmdWords(rest); len(w) >= 1 {
-					argExpr = tp.buildStringExpr(w[0])
-				}
-				return fmt.Sprintf("string(tclHexDecode(%s))", argExpr)
-			}
-			// 2-arg template (e.g. `tclMakeStr($a, $b)` for autovacuum.test's
-			// `make_str char len` proc): substitute $a with args[0] and $b
-			// with args[1] (both rendered as Go string expressions). When
-			// fewer args are supplied, fall back to zero values to keep the
-			// generated code compiling.
-			if strings.Contains(tmpl, "$a") && strings.Contains(tmpl, "$b") {
-				aExpr := `""`
-				bExpr := "0"
-				if len(args) >= 1 {
-					aExpr = tp.buildStringExpr(args[0])
-				}
-				if len(args) >= 2 {
-					// `len` is a TCL integer; buildStringExpr returns a
-					// string literal — wrap with strconv.Atoi when the
-					// runtime helper wants an int.
-					bExpr = "tclToInt(" + tp.buildStringExpr(args[1]) + ")"
-				}
-				out := strings.Replace(tmpl, "$a", aExpr, 1)
-				out = strings.Replace(out, "$b", bExpr, 1)
-				return out
-			}
-			return tmpl
-		}
+	if tmpl, ok := tp.specialFuncs[cmdName]; ok {
+		return tp.cmdExprDefaultSpecial(tmpl, cmdName, cmdText, args)
 	}
 	return fmt.Sprintf("%q", cmdText)
+}
+
+// cmdExprDefaultEval renders [eval SCRIPT]: re-tokenize the script and
+// recursively call cmdExpr on it — when the first word is a list-producing
+// command (concat / list / lsort), the result IS the list value. Other `eval`
+// forms (procedures, math) are N-A for the testgen — emit an empty string so
+// the caller doesn't crash.
+func (tp *transpiler) cmdExprDefaultEval(cmdText string) string {
+	rest := strings.TrimSpace(strings.TrimPrefix(cmdText, "eval"))
+	words := tclCmdWords(rest)
+	if len(words) == 0 {
+		return `""`
+	}
+	// Re-emit the script and recurse into cmdExpr so the inner
+	// command (concat/list/lsort) is evaluated through its handler.
+	inner := strings.Join(words, " ")
+	return tp.cmdExpr(inner)
+}
+
+// cmdExprDefaultCatchsql renders [catchsql DB SQL] as the TCL list text
+// {code rows-or-message}.
+func (tp *transpiler) cmdExprDefaultCatchsql(cmdText string, args []string) string {
+	// NOTE: tclCmdWords can drop a multi-line braced SQL argument, so
+	// split the connection word from cmdText directly.
+	tail := strings.TrimSpace(cmdText[len("catchsql"):])
+	var dbExpr, sqlText string
+	switch {
+	case strings.HasPrefix(tail, "{"):
+		// catchsql {SQL} — default connection.
+		dbExpr = tp.dbArgGo("db")
+		sqlText = tail
+	default:
+		i := strings.IndexAny(tail, " \t\n")
+		if i < 0 {
+			i = len(tail)
+		}
+		connTok := tail[:i]
+		if len(args) >= 2 {
+			dbExpr = tp.dbArgGo(args[0])
+			sqlText = strings.TrimSpace(strings.TrimPrefix(tail, connTok))
+		} else {
+			dbExpr = tp.dbArgGo(connTok)
+			sqlText = strings.TrimSpace(tail[i:])
+		}
+	}
+	if strings.HasPrefix(sqlText, "{") && strings.HasSuffix(sqlText, "}") {
+		sqlText = sqlText[1 : len(sqlText)-1]
+	}
+	sqlExpr := tp.goStringLiteral(tcl.RawWord{Text: strings.TrimSpace(sqlText)})
+	return fmt.Sprintf("tclCatchsqlStr(%s, %s)", dbExpr, sqlExpr)
+}
+
+// cmdExprDefaultSpecial renders a registered test-infrastructure proc call
+// through its Go template.
+func (tp *transpiler) cmdExprDefaultSpecial(tmpl, cmdName, cmdText string, args []string) string {
+	if strings.Contains(tmpl, "$data") {
+		dataExpr := "data"
+		if len(args) >= 1 {
+			dataExpr = tp.buildStringExpr(args[0])
+		}
+		return strings.Replace(tmpl, "$data", dataExpr, 1)
+	}
+	// blob() hex decoder used as a value: decode the argument's
+	// hex text into the raw byte string (zipfile2 `set blob [blob $x]`).
+	if tmpl == "tclBlobHexDecode" {
+		argExpr := `""`
+		// Tokenize the tail with the TCL word splitter so nested
+		// bracket substitutions survive intact
+		// ([blob [string map {0800 0900} $a]] used to lose the map).
+		rest := strings.TrimSpace(strings.TrimPrefix(cmdText, cmdName))
+		if w := tclCmdWords(rest); len(w) >= 1 {
+			argExpr = tp.buildStringExpr(w[0])
+		}
+		return fmt.Sprintf("string(tclHexDecode(%s))", argExpr)
+	}
+	// 2-arg template (e.g. `tclMakeStr($a, $b)` for autovacuum.test's
+	// `make_str char len` proc): substitute $a with args[0] and $b
+	// with args[1] (both rendered as Go string expressions). When
+	// fewer args are supplied, fall back to zero values to keep the
+	// generated code compiling.
+	if strings.Contains(tmpl, "$a") && strings.Contains(tmpl, "$b") {
+		aExpr := `""`
+		bExpr := "0"
+		if len(args) >= 1 {
+			aExpr = tp.buildStringExpr(args[0])
+		}
+		if len(args) >= 2 {
+			// `len` is a TCL integer; buildStringExpr returns a
+			// string literal — wrap with strconv.Atoi when the
+			// runtime helper wants an int.
+			bExpr = "tclToInt(" + tp.buildStringExpr(args[1]) + ")"
+		}
+		out := strings.Replace(tmpl, "$a", aExpr, 1)
+		out = strings.Replace(out, "$b", bExpr, 1)
+		return out
+	}
+	return tmpl
 }
 
 // hexioReadExpr matches an expected-value expression of the shape

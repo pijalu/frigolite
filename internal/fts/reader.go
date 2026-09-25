@@ -354,7 +354,11 @@ func (idx *InvertedIndex) loadLeaf(leaf []byte, pos int, prevTerm []byte) ([]byt
 		if !okDoc {
 			return prev, fmt.Errorf("corrupt segment root")
 		}
-		idx.recordLeafTerm(string(term), doclist)
+		// The node buffer beyond the declared doclist length is the C
+		// reader's continuation: position parsing is sentinel-driven, so an
+		// unterminated position list reads INTO those bytes (fts3corrupt6
+		// 2.1) — see loadDoclist.
+		idx.recordLeafTerm(string(term), doclist, leaf[dnext:])
 		pos = dnext
 		prev = term
 	}
@@ -380,9 +384,12 @@ func readLeafDoclistBytes(leaf []byte, pos int) ([]byte, int, bool) {
 // as corrupt (valid framing, damaged content) when the load fails. The
 // recording keeps loading subsequent terms (their doclists are independent;
 // fts3corrupt4 11.1 queries 'e*' which must fail, while 13.1's 'e*' on a
-// segment with a corrupt unqueried term must succeed).
-func (idx *InvertedIndex) recordLeafTerm(term string, doclist []byte) {
-	if err := idx.loadDoclist(term, doclist); err != nil {
+// segment with a corrupt unqueried term must succeed). tail is the node
+// buffer beyond the doclist: the C reader hands phrase evaluation a pointer
+// into the node, so a position list missing its end-of-doc sentinel parses
+// those bytes as more positions of the current document.
+func (idx *InvertedIndex) recordLeafTerm(term string, doclist, tail []byte) {
+	if err := idx.loadDoclist(term, doclist, tail); err != nil {
 		if idx.corruptTerms == nil {
 			idx.corruptTerms = make(map[string]bool)
 		}
@@ -427,7 +434,8 @@ func readLeafChainTerm(leaf []byte, pos int, prev []byte, first bool) (term []by
 
 // loadDoclist parses an FTS3 doclist (delta-encoded docids, then position
 // lists with 1=new-column, 0=end-of-doc) and adds each hit to the index.
-func (idx *InvertedIndex) loadDoclist(term string, doclist []byte) error {
+// tail is the enclosing node buffer beyond the doclist's declared length.
+func (idx *InvertedIndex) loadDoclist(term string, doclist, tail []byte) error {
 	if len(doclist) == 0 {
 		// A zero-length doclist is a term with no postings — the era's
 		// reader accepts it and simply yields no rows (fts3corrupt7 1.1).
@@ -442,7 +450,7 @@ func (idx *InvertedIndex) loadDoclist(term string, doclist []byte) error {
 	if doclist[len(doclist)-1] != 0 {
 		return fmt.Errorf("corrupt segment root")
 	}
-	sc := &doclistScanner{idx: idx, term: term, needDocID: true}
+	sc := &doclistScanner{idx: idx, term: term, needDocID: true, tail: tail}
 	return sc.scan(doclist)
 }
 
@@ -473,6 +481,18 @@ type doclistScanner struct {
 	// doclist's final byte is 0, so the trailing flush after the loop must
 	// NOT re-interpret the already-flushed doc as a delete marker.
 	docEnded bool
+	// tail is the node buffer beyond the doclist's declared length. C's
+	// position parsing is sentinel-driven (fts3PoslistCopy /
+	// fts3GetDeltaVarint read until POS_END), and the doclist handed to
+	// phrase evaluation points into the node buffer — so an unterminated
+	// position list parses the continuation as more positions of the
+	// current document (the docid loop itself stays bounded by the declared
+	// length: once its poslist skip runs past pEnd, fts3EvalNextDocid's
+	// pDocid<pEnd check ends iteration, so no new docids come from the
+	// tail). fts3corrupt6 2.1's crafted root depends on this: term "1"'s
+	// truncated doclist bleeds into the following term header, and the
+	// recovered positions pair under '1 NEAR 1' (oracle: count=1).
+	tail []byte
 }
 
 // scan walks the doclist body.
@@ -491,9 +511,48 @@ func (sc *doclistScanner) scan(doclist []byte) error {
 		pos = next
 	}
 	if sc.docID != 0 {
+		// The final entry lacked an end-of-doc sentinel: continue its
+		// position list in the node continuation before flushing.
+		if len(sc.tail) > 0 && !sc.docEnded {
+			sc.scanTailPositions()
+		}
 		sc.flushDoc()
 	}
 	return nil
+}
+
+// scanTailPositions parses the node continuation as the current document's
+// remaining position list (sentinel-driven, mirroring C's poslist reads that
+// are bounded only by POS_END / POS_COLUMN structure, not by the doclist
+// length). An end-of-doc sentinel ends the current document — and, because
+// the docid iterator is already past the declared doclist length, the whole
+// doclist. Tolerates a continuation truncated mid-varint by stopping there.
+func (sc *doclistScanner) scanTailPositions() {
+	pos := 0
+	for pos < len(sc.tail) {
+		v, n := getFTS3Varint(sc.tail[pos:])
+		if n == 0 {
+			break
+		}
+		pos += n
+		switch {
+		case v == 0:
+			// The sentinel recovered from the node bytes ends this
+			// document; flush it and end the scan (no further docids).
+			sc.flushDoc()
+			return
+		case v == 1:
+			next, err := sc.newColumn(sc.tail, pos)
+			if err != nil {
+				return
+			}
+			pos = next
+		default:
+			sc.lastPos = int(v) - 2 + sc.lastPos
+			sc.idx.addPosting(sc.term, sc.docID, sc.lastCol, sc.lastPos)
+			sc.hasPosition = true
+		}
+	}
 }
 
 // step consumes one doclist varint v (at pos, for the new-column marker's

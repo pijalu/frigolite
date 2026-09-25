@@ -3,7 +3,8 @@
 // This file handles the sqlite3_blob_* C-API emulation: sqlite3_blob_open,
 // sqlite3_blob_bytes, sqlite3_blob_read, sqlite3_blob_write, sqlite3_blob_close
 // and the TCL `db incrblob` method. The engine's Blob type
-// (frigolite.OpenBlob) backs the generated calls.
+// (frigolite.OpenBlob) backs the generated calls. The expected-value
+// binary-format renderers live in expectedbinary.go.
 
 package main
 
@@ -14,230 +15,6 @@ import (
 
 	"github.com/pijalu/frigolite/tools/tclconvert/tcl"
 )
-
-// expectedStringExpr renders a do_test expected value that contains
-// `[binary format ...]` / `[string repeat ...]` command substitutions into a
-// Go string expression. Returns ("", false) when the word is not one of the
-// supported binary-format forms, so the caller falls back to goStringLiteral.
-func (tp *transpiler) expectedStringExpr(w tcl.RawWord) (string, bool) {
-	text := strings.TrimSpace(w.Text)
-	// [userProc args...] — a fixture proc registered by the generated test
-	// resolves to a runtime registry call whose result is the wanted value
-	// (vtabH 3.x: [sort_files $res true], [contents $pwd]).
-	if strings.HasPrefix(text, "[") && strings.HasSuffix(text, "]") {
-		cmdText := strings.TrimSuffix(strings.TrimPrefix(text, "["), "]")
-		fields := tclCmdWords(cmdText)
-		// [ifcapable GUARD {BODY} [else {BODY}]] — a capability-selected
-		// expected value folds at transpile time (autoinc-2.70/2.71: the
-		// sqlite_sequence contents differ only for a !tempdb build). The
-		// chosen body is a `list a b c` script whose rendering is the
-		// static word list. Unknown/elseif forms are not folded.
-		if len(fields) >= 3 && fields[0] == "ifcapable" {
-			if expr, ok := foldIfcapableExpected(fields); ok {
-				return expr, true
-			}
-			return "", false
-		}
-		if len(fields) >= 1 && globalUserProcs[fields[0]] {
-			callArgs := make([]string, 0, len(fields)-1)
-			for _, a := range fields[1:] {
-				if strings.HasPrefix(a, "$") && !strings.Contains(a, "(") {
-					if gv := tclVarToGo(strings.TrimPrefix(a, "$")); gv != "" && isValidGoIdent(gv) {
-						callArgs = append(callArgs, gv)
-						continue
-					}
-				}
-				callArgs = append(callArgs, strconv.Quote(a))
-			}
-			return fmt.Sprintf("callTclUserProc(%q, %s)", fields[0], strings.Join(callArgs, ", ")), true
-		}
-	}
-	// `lreverse $VAR` — reverse a TCL list variable at runtime
-	// (fts3first.test's order=DESC comparisons).
-	if strings.HasPrefix(text, "lreverse $") {
-		varName := strings.TrimSpace(text[len("lreverse $"):])
-		if tclVarToGo(varName) != "" {
-			return fmt.Sprintf("tclLreverse(%s)", tclVarToGo(varName)), true
-		}
-	}
-	// [string repeat [binary format c 0] N] — repeat a single-byte pattern.
-	if strings.HasPrefix(text, "[string repeat [binary format ") && strings.HasSuffix(text, "]") {
-		inner := strings.TrimSuffix(strings.TrimPrefix(text, "[string repeat [binary format "), "]")
-		// inner: "c 0] N" — split at "]".
-		closeIdx := strings.Index(inner, "]")
-		if closeIdx < 0 {
-			return "", false
-		}
-		formatAndArg := strings.Fields(strings.TrimSpace(inner[:closeIdx]))
-		countExpr := strings.TrimSpace(inner[closeIdx+1:])
-		if len(formatAndArg) < 2 {
-			return "", false
-		}
-		spec := formatAndArg[0]
-		pattern, ok := binaryFormatBytes(spec, formatAndArg[1:])
-		if !ok {
-			return "", false
-		}
-		if len(pattern) != 1 {
-			return "", false
-		}
-		countGo := tp.valueExpr(tcl.RawWord{Text: countExpr})
-		return fmt.Sprintf("tclStringRepeat(string([]byte{%d}), %s)", pattern[0], countGo), true
-	}
-	// [binary format SPEC ARGS...] — build the byte string at runtime.
-	if strings.HasPrefix(text, "[binary format ") && strings.HasSuffix(text, "]") {
-		inner := strings.TrimSuffix(strings.TrimPrefix(text, "[binary format "), "]")
-		fields := tclCmdWords(inner)
-		if len(fields) < 2 {
-			return "", false
-		}
-		spec := fields[0]
-		// Resolve each arg: $var refs, integer literals, and supported
-		// [string range ...] / [string repeat ...] command substitutions.
-		args := fields[1:]
-		vals := make([]string, 0, len(args))
-		for _, a := range args {
-			vals = append(vals, tp.binaryArgExpr(a))
-		}
-		expr, ok := binaryFormatGoExpr(spec, vals)
-		if !ok {
-			return "", false
-		}
-		return expr, true
-	}
-	return "", false
-}
-
-// binaryArgExpr renders one argument of a `binary format` spec: a $var
-// reference, an integer literal, or a supported [string range ...] command
-// substitution (used by the corruption tests to slice the root blob).
-func (tp *transpiler) binaryArgExpr(a string) string {
-	a = strings.TrimSpace(a)
-	if strings.HasPrefix(a, "[string range ") && strings.HasSuffix(a, "]") {
-		inner := strings.TrimSuffix(strings.TrimPrefix(a, "[string range "), "]")
-		parts := tclCmdWords(inner)
-		if len(parts) == 3 {
-			strExpr := tp.valueExpr(tcl.RawWord{Text: parts[0]})
-			startExpr := tp.valueExpr(tcl.RawWord{Text: parts[1]})
-			endExpr := tp.valueExpr(tcl.RawWord{Text: parts[2]})
-			return fmt.Sprintf("tclStringRange(%s, %s, %s)", strExpr, startExpr, endExpr)
-		}
-	}
-	if strings.HasPrefix(a, "[string repeat ") && strings.HasSuffix(a, "]") {
-		inner := strings.TrimSuffix(strings.TrimPrefix(a, "[string repeat "), "]")
-		parts := tclCmdWords(inner)
-		if len(parts) == 2 {
-			strExpr := tp.valueExpr(tcl.RawWord{Text: parts[0]})
-			countExpr := tp.valueExpr(tcl.RawWord{Text: parts[1]})
-			return fmt.Sprintf("tclStringRepeat(%s, %s)", strExpr, countExpr)
-		}
-	}
-	return tp.valueExpr(tcl.RawWord{Text: a})
-}
-
-// binaryFormatBytes evaluates a `binary format` spec with literal integer
-// arguments, returning the resulting bytes. Only the single-char 'c' spec
-// with one literal arg is supported (used by string-repeat patterns).
-func binaryFormatBytes(spec string, args []string) ([]byte, bool) {
-	if spec != "c" && spec != "b" {
-		return nil, false
-	}
-	if len(args) != 1 {
-		return nil, false
-	}
-	n, err := strconv.Atoi(strings.TrimSpace(args[0]))
-	if err != nil {
-		return nil, false
-	}
-	return []byte{byte(n)}, true
-}
-
-// binaryFormatGoExpr renders a `[binary format SPEC ARGS...]` into a Go
-// string expression. Integer specifiers (c/b/s/i) and byte-string specifiers
-// (aN/a*) are supported; each contributes a `string(...)` fragment that is
-// concatenated. A spec like "ccc" repeats the format char once per arg.
-func binaryFormatGoExpr(spec string, args []string) (string, bool) {
-	var parts []string
-	ai := 0
-	i := 0
-	for i < len(spec) {
-		ch := spec[i]
-		switch ch {
-		case 'c', 'b', 's', 'i', 'a':
-		default:
-			return "", false
-		}
-		if ch == 'a' {
-			// aN copies the first N bytes of the string arg; a* copies all.
-			if ai >= len(args) {
-				return "", false
-			}
-			arg := args[ai]
-			ai++
-			if i+1 < len(spec) && spec[i+1] == '*' {
-				parts = append(parts, fmt.Sprintf("string(tclBlobBytes(%s))", arg))
-				i += 2
-				if i < len(spec) {
-					return "", false
-				}
-				break
-			}
-			// aN: copy N bytes (the arg is a string/blob).
-			n := 0
-			j := i + 1
-			for j < len(spec) && spec[j] >= '0' && spec[j] <= '9' {
-				n = n*10 + int(spec[j]-'0')
-				j++
-			}
-			if n == 0 && j == i+1 {
-				return "", false
-			}
-			parts = append(parts, fmt.Sprintf("string(tclBlobBytes(%s)[:%d])", arg, n))
-			i = j
-			continue
-		}
-		if i+1 < len(spec) && spec[i+1] == '*' {
-			// c* consumes ALL remaining args as bytes.
-			var byteExprs []string
-			for _, a := range args[ai:] {
-				byteExprs = append(byteExprs, fmt.Sprintf("byte(tclBlobInt(%s))", a))
-			}
-			if len(byteExprs) > 0 {
-				parts = append(parts, fmt.Sprintf("string([]byte{%s})", strings.Join(byteExprs, ", ")))
-			}
-			i += 2
-			if i < len(spec) {
-				return "", false
-			}
-			break
-		}
-		if ai >= len(args) {
-			return "", false
-		}
-		a := args[ai]
-		ai++
-		var byteExprs []string
-		switch ch {
-		case 'c', 'b':
-			byteExprs = append(byteExprs, fmt.Sprintf("byte(tclBlobInt(%s))", a))
-		case 's':
-			byteExprs = append(byteExprs, fmt.Sprintf("byte(tclBlobInt(%s)&0xff), byte((tclBlobInt(%s)>>8)&0xff)", a, a))
-		case 'i':
-			byteExprs = append(byteExprs, fmt.Sprintf("byte(tclBlobInt(%s)&0xff), byte((tclBlobInt(%s)>>8)&0xff), byte((tclBlobInt(%s)>>16)&0xff), byte((tclBlobInt(%s)>>24)&0xff)", a, a, a, a))
-		}
-		if len(byteExprs) > 0 {
-			parts = append(parts, fmt.Sprintf("string([]byte{%s})", strings.Join(byteExprs, ", ")))
-		}
-		i++
-	}
-	if len(parts) == 0 {
-		return "", false
-	}
-	if len(parts) == 1 {
-		return parts[0], true
-	}
-	return "(" + strings.Join(parts, " + ") + ")", true
-}
 
 // processBlobWriteTest handles `blob_write_test TN ID IOFFSET BLOB NDATA
 // FINAL` — the e_blobwrite.test proc that opens a write blob on t1.t at the
@@ -276,7 +53,7 @@ func (tp *transpiler) processBlobWriteTest(args []tcl.RawWord) {
 	tp.emitLine("}")
 	tp.emitLine("got := flatten(r)")
 	tp.emitLine("want := %s", tp.goStringLiteral(tcl.RawWord{Text: strings.TrimSpace(args[5].Text)}))
-	tp.emitLine("if got != want {")
+	tp.emitLine("if got != want && !tclFpnumCompare(got, want) {")
 	tp.emitLine("\tt.Errorf(\"result mismatch\\n  got:  [%%s]\\n  want: [%%s]\\n  body: do_test %%s\", got, want, %s)", nameExpr)
 	tp.emitLine("}")
 	tp.indent--
@@ -1053,34 +830,34 @@ func (tp *transpiler) intValueExpr(w tcl.RawWord) string {
 		return strconv.Itoa(n)
 	}
 	text = strings.TrimPrefix(text, "$")
-	if false {
-		goName := tclVarToGo(strings.TrimPrefix(text, "$"))
-		if isValidGoIdent(goName) && tp.isVarDeclared(goName) {
-			return "tclBlobInt(" + goName + ")"
-		}
-		return "0"
-	}
 	if strings.HasPrefix(text, "[expr ") && strings.HasSuffix(text, "]") {
-		inner := strings.TrimSuffix(strings.TrimPrefix(text, "[expr "), "]")
-		inner = strings.TrimSpace(strings.Trim(inner, "{}"))
-		// Try constant evaluation at transpile time (e.g. "5 + 3").
-		if res, err := tcl.EvalExpr(inner, nil, nil); err == nil {
-			if n, perr := strconv.Atoi(res); perr == nil {
-				return strconv.Itoa(n)
-			}
-		}
-		// Fall back to the generic runtime expression.
-		exprVarNames, exprGo := tclExprToGo(inner, tp.vars)
-		if len(exprVarNames) == 0 {
-			return "tclBlobInt(" + fmt.Sprintf("%q", inner) + ")"
-		}
-		var parts []string
-		for _, name := range exprVarNames {
-			parts = append(parts, fmt.Sprintf("%q: %s", name, tp.exprVarValue(name)))
-		}
-		return "tclBlobInt(tclExprWith(" + fmt.Sprintf("%q", exprGo) + ", map[string]string{" + strings.Join(parts, ", ") + "}))"
+		return tp.intExprValue(text)
 	}
 	return "tclBlobInt(" + fmt.Sprintf("%q", text) + ")"
+}
+
+// intExprValue renders a `[expr ...]` word as a Go int expression for blob
+// offsets: constant expressions fold at transpile time; others go through
+// the runtime expr evaluator (tclExprWith → tclBlobInt).
+func (tp *transpiler) intExprValue(text string) string {
+	inner := strings.TrimSuffix(strings.TrimPrefix(text, "[expr "), "]")
+	inner = strings.TrimSpace(strings.Trim(inner, "{}"))
+	// Try constant evaluation at transpile time (e.g. "5 + 3").
+	if res, err := tcl.EvalExpr(inner, nil, nil); err == nil {
+		if n, perr := strconv.Atoi(res); perr == nil {
+			return strconv.Itoa(n)
+		}
+	}
+	// Fall back to the generic runtime expression.
+	exprVarNames, exprGo := tclExprToGo(inner, tp.vars)
+	if len(exprVarNames) == 0 {
+		return "tclBlobInt(" + fmt.Sprintf("%q", inner) + ")"
+	}
+	var parts []string
+	for _, name := range exprVarNames {
+		parts = append(parts, fmt.Sprintf("%q: %s", name, tp.exprVarValue(name)))
+	}
+	return "tclBlobInt(tclExprWith(" + fmt.Sprintf("%q", exprGo) + ", map[string]string{" + strings.Join(parts, ", ") + "}))"
 }
 
 // isGoIntLiteral reports whether s is a parseable base-10 int string

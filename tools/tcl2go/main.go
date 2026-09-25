@@ -124,4 +124,4 @@ func generateHelpersFile(pkg string) []byte {
 // into two parts (helpers_template_part1.go / helpers_template_part2.go) so
 // no single file exceeds the 1000-line quality-gate limit; concatenation
 // reproduces the exact template byte-for-byte.
-const helpersTemplate = helpersTemplatePart1 + helpersTemplatePart2
+const helpersTemplate = helpersTemplatePart1 + helpersTemplatePart2 + helpersTemplateFpnum

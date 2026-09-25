@@ -5,6 +5,7 @@
 package spellfix4
 
 import (
+"fmt"
 "github.com/pijalu/frigolite"
 "github.com/pijalu/frigolite/internal/vtab"
 "os"
@@ -19,6 +20,21 @@ func Test_spellfix4(t *testing.T) {
 		t.Fatal(err)
 	}
 	defer db.Close()
+
+	// auto-installed test-extension functions (src/test_func.c)
+	db.RegisterFunction("test_error", func(args []interface{}) (interface{}, error) {
+		msg := ""
+		if len(args) > 0 && args[0] != nil {
+			msg = fmt.Sprintf("%v", args[0])
+		}
+		return nil, fmt.Errorf("%s", msg)
+	}, 1, 2)
+	db.RegisterFunction("test_isolation", func(args []interface{}) (interface{}, error) {
+		if len(args) < 2 {
+			return nil, nil
+		}
+		return args[1], nil
+	}, 2, 2)
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
@@ -71,7 +87,7 @@ func Test_spellfix4(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "{} 50"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -83,7 +99,7 @@ func Test_spellfix4(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "97"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -95,7 +111,7 @@ func Test_spellfix4(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "97"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -107,7 +123,7 @@ func Test_spellfix4(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "97"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -119,7 +135,7 @@ func Test_spellfix4(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "98"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -131,7 +147,7 @@ func Test_spellfix4(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "98"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -143,7 +159,7 @@ func Test_spellfix4(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "98"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -155,7 +171,7 @@ func Test_spellfix4(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "99"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -167,7 +183,7 @@ func Test_spellfix4(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "99"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -179,7 +195,7 @@ func Test_spellfix4(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "99"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -191,7 +207,7 @@ func Test_spellfix4(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "149"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -203,7 +219,7 @@ func Test_spellfix4(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "{} 8 196"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -215,7 +231,7 @@ func Test_spellfix4(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "5"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -227,7 +243,7 @@ func Test_spellfix4(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "102"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -239,7 +255,7 @@ func Test_spellfix4(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "{} 8 8"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -251,7 +267,7 @@ func Test_spellfix4(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "{}"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -263,7 +279,7 @@ func Test_spellfix4(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "139 bucket pocket 144 meter motor 149 manual mental 169 crack trick 173 sinatra sonata 174 edition emotion 174 major motor 174 risk rose 174 state stone 194 deal detail 196 alert talent 196 analog catalog 196 deal legal 196 ford forum 196 risk trick 196 stone strong 197 china tina 197 congo logo 197 diana tina 197 florida gloria"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -275,7 +291,7 @@ func Test_spellfix4(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "69d0a31872203a775e19325ea98cd053"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}

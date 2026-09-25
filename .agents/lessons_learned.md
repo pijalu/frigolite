@@ -4,6 +4,59 @@
 - P6.VTAB zipfile: statement-level OR conflict handling must be delegated to module xUpdate semantics when uniqueness key is non-rowid. Added optional ConflictAwareUpdater path in execdml; zipfile UpdateRowConflict handles IGNORE/REPLACE against name collisions. Generic delete/retry cannot identify zipfile name-keyed conflicts.
 # Lessons Learned — Frigolite
 
+## T33-misc — misc2/3/5/7/8 driven green (2026-09-24)
+
+- **WIP 380a22c5d adjudication**: of its ~30-file internal/ delta, only 3 hunks
+  were needed for the misc packages (lexer leading-dot literals, evalLimitExpr
+  subquery-error surfacing, readDotOp dot retention); everything else (collate
+  min/max, setop survivor, compound ORDER BY) was ALREADY covered by main's
+  evolved collate-res/idx-coll/tkt2822 merges — confirmed by adopting the WIP's
+  13 w5_tkt_pin_test.go pins wholesale: all pass on main + my fixes with zero
+  WIP engine grafts beyond the two seams above.
+- **btree.c saveAllCursors port (misc8-1.6)**: a nested statement's write
+  (eval UDF DELETE) while an outer scan cursor is positioned needs key-save +
+  re-seek, because frigolite builds a FRESH BTree per statement over the shared
+  (pager, rootPage) — that pair is the BtShared identity, so the cursor
+  registry is keyed on it (internal/btree/btree_cursor_save.go). Restore
+  semantics are subtle: btreeMoveto's skipnext means a MISSING saved key makes
+  the restored next-larger row the Next RESULT (no extra advance); exact hits
+  advance normally. Oracle-verified 3 shapes: delete-all mid-scan, delete each
+  current row (all rows still emitted), delete a later row (skipped cleanly).
+  Known divergence: frigolite decodes all columns BEFORE expression evaluation,
+  so a mid-row delete shows the pre-delete value for later columns where
+  SQLite's per-OP_Column restore yields NULL (misc8-1.6 row 3: c=9 vs NULL);
+  corpus never asserts those bytes.
+- **tcl2go 3-word `db eval {SQL} {arrayName} {body}`**: the emitter treated
+  rest[1] (the ARRAY NAME) as the body — nested bodies emitted empty (misc2-7.2
+  "transpiled-passing" but engine-perfect). Fix: body = LAST word when >=3.
+- **fpnum_compare is the do_test contract**: SQLite's TCL suite compares
+  string-first, then fpnum_compare (test1.c 6168) — trailing-zero/exponent-pad
+  float text differences are EQUAL by design (misc3-2.5: 15-vs-13 digits after
+  the point; the expectation file predates printf changes and passes upstream
+  only via this fallback). Ported verbatim to the helpers template
+  (tclFpnumCompare) and wired into ALL 13 got/want comparison emissions. The C
+  comparator is STRICTER than its doc comment (1e-100 vs 1.0e-100 and 1e+5 vs
+  1e5 are FALSE — dot/sign pairing breaks first); pinned in
+  testgen/misc3/fpnum_pin_test.go.
+- **Corpus regen drift**: regenerating a package with the current emitter also
+  brings previously-landed emitter features (tclLRange negative-end,
+  test_error/test_isolation auto-install) the checked-in corpus predates.
+  Regen only the packages you own; diffs confirm identical-except-intended.
+- **Skipped tests need FILE side effects too** (misc7-23.1): the later flow
+  does `frigolite.Open("tst/test.db")` OUTSIDE any do_test, so a skipped test's
+  file layout (mkdir tst, forcecopy) must still be emitted. Added
+  fileSideEffectCmd emission (db close / forcedelete / file mkdir|delete|copy
+  → os.RemoveAll / os.MkdirAll / tclFileCopy); deliberately NOT file
+  attributes -permissions (enforcing readonly dirs is the N/A capability; a
+  real chmod would break the engine's own opens).
+- **Building the oracle with eval()**: /usr/bin/sqlite3 lacks eval(); compile
+  sqlite3.c + ext/misc/eval.c + a tiny main (SQLITE_CORE, sqlite3_eval_init)
+  for mid-scan-write ground truth (see /tmp/sqlite351build pattern).
+- **quality_gate on tools/tcl2go**: dotest.go/processblob.go were already over
+  the 1000-line hard max at base; extract NEW cohesive sections into new files
+  (dotest_sideeffects.go, processdb_dbeval.go) rather than growing them —
+  processdb_part2.go dropped below 1000 as a side effect.
+
 ## W6-KERNEL-RESUME — resuming a dead agent's WIP tranche (2026-09-23)
 
 - **Resume protocol that worked**: diff `main..fleet/w6-kernel` per commit — the
@@ -8941,3 +8994,191 @@ regenerated; suite net −2274 fails vs pre-tranche baseline (7230 → ~4950).
   reference fixtures, e.g. incrvacuum2-4-1-btree-divider) is untracked; copy
   from the main checkout or TestNativeBtreeDividerFixtureReference fails with
   "stat .../tools/orafixture: directory not found".
+
+## T33d-exec — §5d golang-check closure, internal/exec + internal/execdml (2026-09-25, branch fleet/t33d-exec)
+
+- **gocognit (uudashr) applies NESTING BONUSES**: an `if` at depth 2 inside a
+  loop costs +3, not +1 — extracting only the leaf helpers barely moves the
+  count (indexDefsIn went 23→21 from one branch extraction). To actually hit
+  ≤15, flatten the STRUCTURE: hoist the whole nested branch into a method
+  (appendAutoindexDef took it 21→10). Count nesting first, then choose the
+  extraction seam at the deepest level.
+- **gocyclo counts every switch case (+1) and every nested if (+1)**: an
+  8-case quote-state switch with 4 nested ifs is gocyclo 13 even though
+  gocognit says 9 (exprQuoteState.advance). Split state machines into
+  tryClose/tryOpen halves; both gates then pass (2 and 9).
+- **Split-name collision**: `vtab_materialize.go` already existed in
+  internal/exec (constraint-pushdown machinery) — a same-named new file
+  silently clobbers it (git shows M, not ??). Before creating a split file,
+  `git ls-files <pkg>/` or check `git status --short` for M vs ??.
+- **pragma_table.go had an ORPHANED doc comment** (materializeForeignKeyListWithRow's,
+  stranded when pragma_table_views.go was split off earlier). Function/doc
+  cohesion across file splits: move the comment with its function.
+- **Package tests ≠ validation set**: `go test ./internal/exec/` FAILS at the
+  base commit ba0094585 too (TestVacuumDoesNotCorruptBTree "cannot commit -
+  no transaction is active") — pre-existing, identical failure set base vs
+  branch. Diff `--- FAIL` blocks (not timings) when adjudicating; never
+  assume a package failure is yours.
+- **schemaPrefixOf (exec) was dead because execddl has its own package-local
+  copy** — same-named helpers in different packages are not the same symbol;
+  grep per-package before believing U1000.
+- All findings closed: compactExprText 34/29→9/3, primaryKeyOrdinalsFromSQL
+  33/20→3/5, reindexTargets 29/15→4/6, execReindex 13→8 gocyclo,
+  execCommit 14→11 gocyclo, noteStmtReadLock 16→4, autoindexKeyColumns 28/18→3/5,
+  indexDefsIn 23/13→10/5, collectTableTriggerRefs 16→6, parseIndexColumns
+  13→5 gocyclo. Files: pragma_table.go 1098→332 (+pragma_tableinfo.go 470,
+  +vtab_tvf.go 395); pragma_analyze.go 1026→850 (REINDEX → pragma_reindex.go 561).
+  7 commits on fleet/t33d-exec, validation set green after every commit.
+
+## T33d-cmd (2026-09-25) — §5d tcl2go cmd-expression/generator golang-check closure
+
+- **Stale committed testgen/ is a fleet-wide condition, not a worktree error**: at
+  branch start, `go run ./tools/tcl2go/ -testdir ori/sqlite/test` produced a
+  ~2,181-file diff vs committed testgen/ because main's merged emitter fixes
+  postdate the last full-corpus regen. Protocol: commit the full regen FIRST as
+  one dedicated `5d.tcl2go: baseline full-corpus regen sync...` commit
+  (testgen/ paths only), then measure every later regen gate against that
+  synced baseline (`git status --short testgen/` must stay empty).
+- **Worktree `ori` setup**: git tracks a sparse `ori/` (2 files); `ln -s
+  ../ori ori` inside the worktree creates a stray `ori/ori` symlink. Replace
+  the dir: `rm -rf ori && ln -s /Users/muaddib/dev/frigolite/ori ori` (1221
+  tcl files). The 2 tracked-file deletions stay uncommitted; scope regen
+  checks to `testgen/`.
+- **tcl2go package-level handler tables CANNOT be map literals**: any
+  package-level `var X = map[string]cmdExprHandler{...}` whose handlers
+  transitively reach `cmdExpr` (via buildStringExpr → renderStringPart →
+  cmdExpr) fails with `initialization cycle`. Use the sync.Once lazy-ref
+  pattern (cmdExprHandlersRef) — same reason the original used it.
+- **gocognit counts nested closures into the enclosing function** (each `if`
+  inside a func literal in a map literal adds to the outer function's
+  complexity) — buildCmdExprHandlers was 84 even though the literal is
+  "flat". Extracting closures to named methods collapses it to ~3.
+- **Refactor-verification loop that worked**: (1) baseline checksum snapshot
+  of regen (`find testgen -type f -print0 | sort -z | xargs -0 shasum`), (2)
+  verify generator determinism with a second run BEFORE editing, (3) after
+  each tranche: regen + checksum diff. Caught two silent hazards: a typo'd
+  boolean (`== "db" == false`) and import drift.
+- **Split recipe for oversized tcl2go files**: cut by handler family (trace/
+  busy, proc registration, string/list expressions, dispatch table, preamble,
+  scans, imports), keep the dispatcher in the original file, and move shared
+  lookups (e.g. procBodyFor resolving globalProcBodies→tp.procBodies) into
+  the family file that uses them. Emission ORDER is the invariant: extract
+  helpers so emitLine sequences stay byte-identical (e.g. trace_v2 emits
+  tclTraceNameSet BEFORE the unrecognized-body check).
+
+## T33d-set (2026-09-25) — tcl2go `set`-family §5d closure (fleet/t33d-set)
+
+- **Worktree Bash cwd resets between calls**: commands silently ran in the MAIN
+  tree (one commit landed on local `main`; regen "passed" against unmodified
+  code = false pass). Fix: every Bash call starts `WT=<worktree>; cd "$WT" &&`,
+  and gates echo `pwd`. `git reset --hard HEAD~1` undid the stray main commit
+  (origin/main was never pushed).
+- **`ori` in a fresh worktree is a 2-file git-tracked dir** (genesis.tcl,
+  rtree_util.tcl), so `ln -s ../ori ori` nests a symlink INSIDE it and the
+  corpus is not at `ori/sqlite/test/*.test`. The repo tracks no other ori
+  content; regen with `-testdir <abs-path-to-main-or>/sqlite/test` instead of
+  symlinking (testDir never leaks into generated bytes, only file lookup).
+- **Committed testgen/ was stale vs the merged emitters** (~2,181-file diff on
+  a clean regen; identical in main and worktree). Baseline protocol: commit the
+  full regen ONCE as a dedicated testgen/-only commit, then gate on
+  `git status --short testgen/` staying empty.
+- **Package-level slices of method expressions create Go var-init cycles**:
+  `var chain = []func…{(*T).a}` cycles through tclHandlers → processSet →
+  processSetBracketValue → chain. Use a builder function (pattern of
+  `tclHandlers()`/`buildTclCommandHandlers()`).
+- **tcl2go regen has a PRE-EXISTING nondeterminism**: `emitTclProcAliasRegistrations`
+  ranges over the `tclProcVarAliases` map, so for `set ::custom_nfail -1` in
+  indexfault.test the two alias `vtab.TclVarSet(...)` lines swap randomly
+  (observed 1-in-10 runs; testgen/indexfault/indexfault_test.go lines 193-194).
+  The regen byte-diff gate must treat EXACTLY that two-line swap as the known
+  flicker (`git checkout -- testgen/indexfault/`) and require everything else
+  byte-identical. Proper fix (sort alias keys) changes emitted order 50% of
+  runs and must be its own corpus-wide regen commit, not smuggled into a
+  behavior-preserving refactor.
+- **Ladder → ordered dispatch chain preserves semantics byte-for-byte** when
+  each rung becomes a guard returning false-to-fall-through, chain order equals
+  ladder order, and shared emission tails become helpers only when their bytes
+  are provably identical (e.g. `assignSetValue`). Dead rungs (unreachable
+  after earlier always-true rungs) were kept verbatim — deleting them cannot
+  change output but risks a misread.
+- **gocognit 186 function (processSetBracketValue)** decomposed cleanly into a
+  41-entry chain of one-concern guards; every resulting function ≤10 gocognit /
+  ≤10 gocyclo.
+## T33d-db (2026-09-25) — §5d tcl2go closure: db-command + blob family
+
+- **Package-level dispatch-map vars create Go init cycles**: a
+  `var m = map[string]func(...){...}` whose method expressions transitively
+  reach back to a function that reads `m` (processDB → tclHandlers → … →
+  processDB) fails to compile with "initialization cycle". Fix: declare the
+  map var WITHOUT an initializer and build it lazily on first use
+  (`if m == nil { m = map... }` inside the getter) — Go's init-dependency
+  analysis only tracks initializer expressions, so a nil-guard build is safe
+  in this single-threaded tool. Applied to dbSubCmdHandler/namedDBSubCmdHandler.
+- **tcl2go regen is ~20% nondeterministic**: emitTclProcAliasRegistrations
+  (processset.go:1211) iterates the `tclProcVarAliases` MAP, so
+  indexfault_test.go's two `vtab.TclVarSet("install_custom_faultsim"/
+  "custom_injectstop", ...)` lines swap order in ~1 of 5 regens with an
+  IDENTICAL binary. Regen-diff gates must allow exactly this known flip
+  (fixed by sorting the alias keys — owner: processset slice, NOT T33d-db).
+- **Refactoring a match-chain? Preserve FALLTHROUGH, not just order**:
+  expectedStringExpr's bracketed branch ([...] word) must fall through to the
+  [binary format ...] checks when neither ifcapable nor userProc matches —
+  wrapping it in a helper that returns ("", false) killed the
+  e_blobopen comparison emission. When extracting chain steps, keep early
+  RETURNS only where the original returned; otherwise return a tri-state or
+  inline the branch.
+- **De Morgan inversions over 4-clause guards are the top regression source**:
+  emitSqlite3PreambleOpen's skip-guard was written `!wasOpened` instead of
+  `wasOpened` (original conjunct `!wasOpened` must be NEGATED into the
+  disjunction). Symptom was subtle: only the "declared-but-never-opened
+  secondary connection" shape degraded (7 testgen files), everything else
+  identical. Debug recipe: instrument the dispatch function with a one-line
+  fmt.Fprintf(os.Stderr) of ALL guard inputs (declared/wasOpened/dbClosed/
+  inEval), regen, grep the connection name — pins the wrong branch in one run.
+- **Many "fmt./strconv." appearances in this package are inside emitted
+  string LITERALS** (tp.emitLine format strings generating Go code), not real
+  calls — after extracting helpers, run goimports; unused-import errors are
+  expected and the fix is to trim the import block, not to keep dead imports.
+- **Worktree ori setup**: git worktree add materializes the 2 TRACKED files
+  under ori/sqlite/test/ (genesis.tcl, rtree_util.tcl), so
+  `ln -s ../ori ori` lands INSIDE an existing dir. Working recipe: symlink
+  each corpus file into ori/sqlite/test (`for f in <main>/ori/sqlite/test/*;
+  [ -e ] || ln -s …`), leaving the tracked two as real files.
+- **Stale testgen on main**: at fleet start, committed testgen/ differs from
+  the current transpiler output (2181 files) — earlier sibling merges did not
+  re-commit regen. First commit of a §5d slice should be a no-source-change
+  "baseline testgen regen" so subsequent byte-diff gates are enforceable.
+## T33d-q (2026-09-25) — §5d golang-check closure: execquery + btree + storage
+
+- **Slice result**: all 15 assigned functions under gocognit 15 / gocyclo 12; 4
+  oversized files split (select_columns 1024→537+select_orderby 523;
+  select_agg_validate 1037→665+select_validate_exprs 383; select_agg 1017→894+
+  select_agg_funcs 154; storage 1005→245+cell 334+record 444). All my files ≤1000.
+  3 assigned U1000s removed (mustEncodeDividerCell, removeEmptyIndexLeaf,
+  dropIndexLeafRefFromParent — verified unused by repo-wide grep INCLUDING
+  comments before deletion); the pre-existing vet "unreachable" in
+  btree_interior_page.go:64 (dead tail after an unconditional return in
+  encodeDividerCell) removed in the same commit.
+- **disableUnusedSubqueryColumns (gocognit 102→2)**: the closure spider
+  (markName/markAll/qualMatch/outerWalk/outerRef capturing outNames/used/
+  qualifiers) decomposes cleanly into a `subqueryColumnUse` struct with
+  methods + pure helpers (eligibility, compound expansion, rewrite). Keeping
+  the early-exit `if found { return }` inside the WalkExprFull closure
+  preserves the performance profile, not just semantics.
+- **Semantics-preservation tricks that passed the full validation set**:
+  (a) pure predicates may be REORDERED across a boolean OR (e.g. clause
+  external-table checks) — side-effect-free checks are order-independent;
+  (b) always-true sub-conditions (`isLit || !ok` when already inside `!ok`)
+  collapse to the dominating condition only after proving the other
+  disjunct is unreachable-in-false; (c) hoisting a repeated pure call
+  (stripCollate) is safe — verify purity by reading it first.
+- **sed-based file splits**: split boundaries MUST be re-gofmt-checked — the
+  mechanical cut left a double blank line in select_agg.go (caught by
+  `gofmt -l`); several files in the tree have PRE-EXISTING gofmt drift
+  (context.go, btree.go struct alignment) — do not "fix" those, it is noise
+  outside the slice and the repo does not enforce gofmt in hooks.
+- **Baseline discipline paid off**: testgen/window1 fails with 5 mismatches
+  (1551/1563/2242/2254/3309) at the BASE HEAD (window-exec gaps owned by the
+  window slice). Recording the exact signature up front turned every later
+  "FAIL" into a 5-line diff against baseline instead of a false alarm; the
+  full 18-package validation set ran in ~40s so per-tranche re-runs were cheap.

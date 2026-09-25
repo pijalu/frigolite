@@ -26,49 +26,88 @@ import (
 // declarations in column order, then the table-level UNIQUE constraints in
 // declaration order — SQLite's autoindex creation order.
 func autoindexKeyColumns(tableEntry *schema.Entry, e *DMLExecutor, colDefs []sql.ColumnDef, indexName string) []string {
+	ordinal := autoindexOrdinal(indexName)
+	if ordinal <= 0 {
+		return nil
+	}
+	list := autoindexCandidateLists(tableEntry, e, colDefs)
+	if ordinal > len(list) {
+		return nil
+	}
+	return list[ordinal-1]
+}
+
+// autoindexOrdinal parses the 1-based constraint ordinal from an autoindex
+// name (sqlite_autoindex_<table>_<N>); 0 when the name carries no ordinal.
+func autoindexOrdinal(indexName string) int {
 	ordinal := 0
 	if idx := strings.LastIndexByte(strings.ToUpper(indexName), '_'); idx >= 0 {
 		if n, err := strconv.Atoi(indexName[idx+1:]); err == nil {
 			ordinal = n
 		}
 	}
-	if ordinal <= 0 {
-		return nil
-	}
-	// Candidate constraint column lists in creation order. The engine's
-	// schema materializes an autoindex entry for every PK/UNIQUE constraint
-	// (including an INTEGER rowid-alias PK's entry), so the candidate list
-	// mirrors the entries the schema actually created.
+	return ordinal
+}
+
+// autoindexCandidateLists builds the candidate constraint column lists in
+// the engine's autoindex creation order (the schema materializes an autoindex
+// entry for every PK/UNIQUE constraint, including an INTEGER rowid-alias PK's
+// entry, so the candidate list mirrors the entries the schema created).
+func autoindexCandidateLists(tableEntry *schema.Entry, e *DMLExecutor, colDefs []sql.ColumnDef) [][]string {
 	var list [][]string
 	// 1. PRIMARY KEY: column-level flags (covers the promoted table-level
 	// PK spelling) or the table-level PRIMARY KEY constraint columns.
+	if pkCols := autoindexPrimaryKeyCols(tableEntry, e, colDefs); len(pkCols) > 0 {
+		list = append(list, pkCols)
+	}
+	// 2. column-level UNIQUE declarations in column order.
+	// 3. table-level UNIQUE constraints in declaration order.
+	list = append(list, columnLevelUniqueLists(colDefs)...)
+	list = append(list, tableLevelUniqueColsLists(tableEntry, e)...)
+	return list
+}
+
+// autoindexPrimaryKeyCols resolves an autoindex PRIMARY KEY's columns: the
+// column-level PRIMARY KEY flags, else the first table-level PRIMARY KEY
+// constraint's columns.
+func autoindexPrimaryKeyCols(tableEntry *schema.Entry, e *DMLExecutor, colDefs []sql.ColumnDef) []string {
 	var pkCols []string
 	for i := range colDefs {
 		if colDefs[i].PrimaryKey {
 			pkCols = append(pkCols, colDefs[i].Name)
 		}
 	}
-	if len(pkCols) == 0 {
-		for _, tc := range e.ctx.TableConstraints(tableEntry.Name, tableEntry.SQL) {
-			if tc.Type != sql.ConstraintPrimaryKey {
-				continue
-			}
-			for _, ic := range tc.Columns {
-				pkCols = append(pkCols, ic.Name)
-			}
-			break
-		}
-	}
 	if len(pkCols) > 0 {
-		list = append(list, pkCols)
+		return pkCols
 	}
-	// 2. column-level UNIQUE declarations in column order.
+	for _, tc := range e.ctx.TableConstraints(tableEntry.Name, tableEntry.SQL) {
+		if tc.Type != sql.ConstraintPrimaryKey {
+			continue
+		}
+		for _, ic := range tc.Columns {
+			pkCols = append(pkCols, ic.Name)
+		}
+		break
+	}
+	return pkCols
+}
+
+// columnLevelUniqueLists collects one list per column-level UNIQUE
+// declaration, in column order.
+func columnLevelUniqueLists(colDefs []sql.ColumnDef) [][]string {
+	var lists [][]string
 	for i := range colDefs {
 		if colDefs[i].Unique {
-			list = append(list, []string{colDefs[i].Name})
+			lists = append(lists, []string{colDefs[i].Name})
 		}
 	}
-	// 3. table-level UNIQUE constraints in declaration order.
+	return lists
+}
+
+// tableLevelUniqueColsLists collects every table-level UNIQUE constraint's
+// column list, in declaration order (empty lists skipped).
+func tableLevelUniqueColsLists(tableEntry *schema.Entry, e *DMLExecutor) [][]string {
+	var lists [][]string
 	for _, tc := range e.ctx.TableConstraints(tableEntry.Name, tableEntry.SQL) {
 		if tc.Type != sql.ConstraintUnique {
 			continue
@@ -78,13 +117,10 @@ func autoindexKeyColumns(tableEntry *schema.Entry, e *DMLExecutor, colDefs []sql
 			cols = append(cols, ic.Name)
 		}
 		if len(cols) > 0 {
-			list = append(list, cols)
+			lists = append(lists, cols)
 		}
 	}
-	if ordinal > len(list) {
-		return nil
-	}
-	return list[ordinal-1]
+	return lists
 }
 
 // RebuildIndex clears one index's b-tree and re-inserts every table row's

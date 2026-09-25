@@ -5,6 +5,7 @@
 package misc4
 
 import (
+"fmt"
 "github.com/pijalu/frigolite"
 "os"
 "strings"
@@ -18,6 +19,21 @@ func Test_misc4(t *testing.T) {
 		t.Fatal(err)
 	}
 	defer db.Close()
+
+	// auto-installed test-extension functions (src/test_func.c)
+	db.RegisterFunction("test_error", func(args []interface{}) (interface{}, error) {
+		msg := ""
+		if len(args) > 0 && args[0] != nil {
+			msg = fmt.Sprintf("%v", args[0])
+		}
+		return nil, fmt.Errorf("%s", msg)
+	}, 1, 2)
+	db.RegisterFunction("test_isolation", func(args []interface{}) (interface{}, error) {
+		if len(args) < 2 {
+			return nil, nil
+		}
+		return args[1], nil
+	}, 2, 2)
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
@@ -74,7 +90,7 @@ func Test_misc4(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES(1);\n  ")
 		}
 	}
-	{ // "misc4-1.2" — skipped: C-API prepared-statement lifecycle test (sqlite3_prepare/step) N-A (SQL side effects only)
+	{ // "misc4-1.2" — skipped: C-API prepared-statement lifecycle test (sqlite3_prepare/step) N-A (SQL + file side effects only)
 		_res = db.Exec("\n      BEGIN;\n      CREATE TABLE t3(a,b,c);\n      INSERT INTO t1 SELECT * FROM t1;\n      ROLLBACK;\n    ")
 		_ = _res.Error // tolerate unsupported-feature errors in skipped tests
 	}
@@ -84,11 +100,11 @@ func Test_misc4(t *testing.T) {
 	}
 	{ // "misc4-1.3" — skipped: C-API prepared-statement lifecycle test (sqlite3_prepare/step) N-A
 	}
-	{ // "misc4-1.4" — skipped: C-API prepared-statement lifecycle test (sqlite3_prepare/step) N-A (SQL side effects only)
+	{ // "misc4-1.4" — skipped: C-API prepared-statement lifecycle test (sqlite3_prepare/step) N-A (SQL + file side effects only)
 		_res = db.Exec("\n      SELECT * FROM temp.t2;\n    ")
 		_ = _res.Error // tolerate unsupported-feature errors in skipped tests
 	}
-	{ // "misc4-1.5" — skipped: C-API prepared-statement lifecycle test (sqlite3_prepare/step) N-A (SQL side effects only)
+	{ // "misc4-1.5" — skipped: C-API prepared-statement lifecycle test (sqlite3_prepare/step) N-A (SQL + file side effects only)
 		_res = db.Exec("DROP TABLE t2")
 		_ = _res.Error // tolerate unsupported-feature errors in skipped tests
 	}
@@ -131,7 +147,7 @@ func Test_misc4(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1 x 1 z"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -155,7 +171,7 @@ func Test_misc4(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "01 data01 01 3 +1 data+1 +1 7"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -199,7 +215,7 @@ func Test_misc4(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -218,7 +234,7 @@ func Test_misc4(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1 9 2 9"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}

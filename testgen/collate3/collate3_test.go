@@ -5,6 +5,7 @@
 package collate3
 
 import (
+"fmt"
 "github.com/pijalu/frigolite"
 "github.com/pijalu/frigolite/internal/vtab"
 "os"
@@ -20,6 +21,21 @@ func Test_collate3(t *testing.T) {
 		t.Fatal(err)
 	}
 	defer db.Close()
+
+	// auto-installed test-extension functions (src/test_func.c)
+	db.RegisterFunction("test_error", func(args []interface{}) (interface{}, error) {
+		msg := ""
+		if len(args) > 0 && args[0] != nil {
+			msg = fmt.Sprintf("%v", args[0])
+		}
+		return nil, fmt.Errorf("%s", msg)
+	}, 1, 2)
+	db.RegisterFunction("test_isolation", func(args []interface{}) (interface{}, error) {
+		if len(args) < 2 {
+			return nil, nil
+		}
+		return args[1], nil
+	}, 2, 2)
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
@@ -478,13 +494,14 @@ func Test_collate3(t *testing.T) {
 	// proc numeric_compare collation (registered via db collate)
 	{ // do_test "collate3-4.9"
 		db.RegisterCollation("user_defined", func(a, b string) int {
-	if a == b { return 0 }
 	af, aerr := strconv.ParseFloat(a, 64)
 	bf, berr := strconv.ParseFloat(b, 64)
 	if aerr == nil && berr == nil {
-		if af < bf { return -1 }
-		return 1
+		if af == bf { return 0 }
+		if af > bf { return 1 }
+		return -1
 	}
+	if a == b { return 0 }
 	return strings.Compare(a, b)
 })
 		r = db.Query("\n    CREATE TABLE collate3t1(a, b);\n    INSERT INTO collate3t1 VALUES('2', NULL);\n    INSERT INTO collate3t1 VALUES('101', NULL);\n    INSERT INTO collate3t1 VALUES('12', NULL);\n    CREATE VIEW collate3v1 AS SELECT * FROM collate3t1 \n        ORDER BY 1 COLLATE user_defined;\n    SELECT * FROM collate3v1;\n  ")
@@ -502,13 +519,14 @@ func Test_collate3(t *testing.T) {
 	}
 	{ // do_test "collate3-4.11"
 		db.RegisterCollation("user_defined", func(a, b string) int {
-	if a == b { return 0 }
 	af, aerr := strconv.ParseFloat(a, 64)
 	bf, berr := strconv.ParseFloat(b, 64)
 	if aerr == nil && berr == nil {
-		if af < bf { return -1 }
-		return 1
+		if af == bf { return 0 }
+		if af > bf { return 1 }
+		return -1
 	}
+	if a == b { return 0 }
 	return strings.Compare(a, b)
 })
 		_res = db.Exec("\n    SELECT * FROM collate3v1;\n  ")
@@ -553,7 +571,7 @@ func Test_collate3(t *testing.T) {
 		_ = cfact_cnt // TCL namespace variable (query)
 		got := tclListFlatten(cfact_cnt)
 		want := tclListFlatten("1")
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "collate3-5.3")
 		}
 	}
@@ -567,7 +585,7 @@ func Test_collate3(t *testing.T) {
 		_ = cfact_cnt // TCL namespace variable (query)
 		got := tclListFlatten(cfact_cnt)
 		want := tclListFlatten("1")
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "collate3-5.5")
 		}
 	}

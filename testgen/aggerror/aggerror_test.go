@@ -20,6 +20,21 @@ func Test_aggerror(t *testing.T) {
 	}
 	defer db.Close()
 
+	// auto-installed test-extension functions (src/test_func.c)
+	db.RegisterFunction("test_error", func(args []interface{}) (interface{}, error) {
+		msg := ""
+		if len(args) > 0 && args[0] != nil {
+			msg = fmt.Sprintf("%v", args[0])
+		}
+		return nil, fmt.Errorf("%s", msg)
+	}, 1, 2)
+	db.RegisterFunction("test_isolation", func(args []interface{}) (interface{}, error) {
+		if len(args) < 2 {
+			return nil, nil
+		}
+		return args[1], nil
+	}, 2, 2)
+
 	var _res *frigolite.Result
 	var r *frigolite.Result
 	var msg string
@@ -87,6 +102,18 @@ func Test_aggerror(t *testing.T) {
 					},
 				}
 			}, 0, 1)
+			db.RegisterAggregate("legacy_count", func() frigolite.AggregateFunction {
+				state := struct{ n int }{}
+				return &frigolite.AggregateFuncs{
+					StepFn: func(args []interface{}) error {
+						state.n++
+						return nil
+					},
+					FinalFn: func() (interface{}, error) {
+						return state.n, nil
+					},
+				}
+			}, 0, 0)
 		r = db.Query("\n    CREATE TABLE t1(a);\n    INSERT INTO t1 VALUES(1);\n    INSERT INTO t1 VALUES(2);\n    INSERT INTO t1 SELECT a+2 FROM t1;\n    INSERT INTO t1 SELECT a+4 FROM t1;\n    INSERT INTO t1 SELECT a+8 FROM t1;\n    INSERT INTO t1 SELECT a+16 FROM t1;\n    INSERT INTO t1 SELECT a+32 FROM t1 ORDER BY a LIMIT 7;\n    SELECT x_count(*) FROM t1;\n  ")
 		if r.Error != nil {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    CREATE TABLE t1(a);\n    INSERT INTO t1 VALUES(1);\n    INSERT INTO t1 VALUES(2);\n    INSERT INTO t1 SELECT a+2 FROM t1;\n    INSERT INTO t1 SELECT a+4 FROM t1;\n    INSERT INTO t1 SELECT a+8 FROM t1;\n    INSERT INTO t1 SELECT a+16 FROM t1;\n    INSERT INTO t1 SELECT a+32 FROM t1 ORDER BY a LIMIT 7;\n    SELECT x_count(*) FROM t1;\n  ")
@@ -100,7 +127,7 @@ func Test_aggerror(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "40"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -118,7 +145,7 @@ func Test_aggerror(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "40"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}

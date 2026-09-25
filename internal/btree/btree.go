@@ -35,6 +35,14 @@ type Cursor struct {
 	// Cache for current page to avoid repeated ParsePage calls
 	currentPg   *pager.Page
 	currentPage *storage.BTreePage
+
+	// Cross-statement invalidation state (btree.c saveAllCursors): a nested
+	// statement's write saves this cursor's position as a key and the next
+	// use re-seeks to it (btree_cursor_save.go).
+	state       cursorState
+	savedRowID  int64
+	savedKey    []byte
+	skipNext    int8
 }
 
 // cursorPathEntry records one level of the traversal path.
@@ -172,6 +180,9 @@ func (t *BTree) OpenCursor() (*Cursor, error) {
 	if err := c.descendToFirstLeaf(); err != nil {
 		return nil, err
 	}
+	// Register for cross-statement invalidation: a nested statement's write
+	// on this tree saves the cursor's position (btree.c saveAllCursors).
+	registerTreeCursor(cursorTreeKey{pg: t.pager, root: t.rootPage}, c)
 	return c, nil
 }
 
@@ -418,6 +429,7 @@ func (t *BTree) lastRowIDFromInterior(pg *pager.Page, coff int, page *storage.BT
 // miss rows after the table is repopulated (fts4merge4's between-scenario
 // DELETE FROM %_segments: 72 of 187 blocks became unfindable).
 func (t *BTree) Clear() error {
+	t.saveAllCursors() // btree.c saveAllCursors on the clearTable path
 	pg, err := t.pager.ReadPage(t.rootPage)
 	if err != nil {
 		return err
@@ -626,8 +638,19 @@ func (c *Cursor) seekInInteriorIndex(pg *pager.Page, page *storage.BTreePage, ke
 
 // Next moves the cursor to the next entry. Returns false at end.
 func (c *Cursor) Next() (bool, error) {
+	// A nested statement's write saved the position: re-seek first
+	// (btree.c btreeNext's restoreCursorPosition / CURSOR_SKIPNEXT path).
+	if err := c.restoreIfNeeded(); err != nil {
+		return false, err
+	}
 	if c.endOfBTree {
 		return false, nil
+	}
+	if c.skipNext > 0 {
+		// The saved row is gone; the cursor already sits on the next-larger
+		// entry and THAT entry is the Next result — do not step past it.
+		c.skipNext = 0
+		return true, nil
 	}
 
 	if err := c.cachePage(); err != nil {
@@ -648,6 +671,13 @@ func (c *Cursor) Next() (bool, error) {
 
 // Prev moves the cursor to the previous entry.
 func (c *Cursor) Prev() (bool, error) {
+	if err := c.restoreIfNeeded(); err != nil {
+		return false, err
+	}
+	if c.skipNext < 0 {
+		c.skipNext = 0
+		return c.cellIdx >= 0, nil
+	}
 	if c.cellIdx > 0 {
 		c.cellIdx--
 		return true, nil
@@ -657,6 +687,9 @@ func (c *Cursor) Prev() (bool, error) {
 
 // ReadCell reads the cell at the current cursor position.
 func (c *Cursor) ReadCell() (*storage.Cell, error) {
+	if err := c.restoreIfNeeded(); err != nil {
+		return nil, err
+	}
 	if c.endOfBTree {
 		return nil, fmt.Errorf("btree: cursor at end")
 	}
@@ -727,6 +760,11 @@ func (c *Cursor) skipEmptyLeaves() error {
 // cells without allocating a Cell struct. This is the fast path for table scans.
 // For non-table-leaf pages, it falls back to ReadCell.
 func (c *Cursor) ReadCellData() (payload []byte, rowID int64, err error) {
+	// Re-seek past a nested statement's saved position (restoreCursorPosition
+	// precedes every cursor use in btree.c).
+	if err := c.restoreIfNeeded(); err != nil {
+		return nil, 0, err
+	}
 	if c.endOfBTree {
 		return nil, 0, fmt.Errorf("btree: cursor at end")
 	}
@@ -739,7 +777,6 @@ func (c *Cursor) ReadCellData() (payload []byte, rowID int64, err error) {
 	if err := c.skipEmptyLeaves(); err != nil {
 		return nil, 0, err
 	}
-	pg := c.currentPg
 	page := c.currentPage
 
 	if c.cellIdx < 0 || c.cellIdx >= int(page.CellCount) {
@@ -750,7 +787,14 @@ func (c *Cursor) ReadCellData() (payload []byte, rowID int64, err error) {
 		// Fall back to full cell decode for other page types
 		return c.readCellFallback()
 	}
+	return c.readTableLeafCellData()
+}
 
+// readTableLeafCellData decodes the current TABLE-LEAF cell straight from the
+// cached page (ReadCellData's fast path), following the overflow chain when
+// the payload spills.
+func (c *Cursor) readTableLeafCellData() (payload []byte, rowID int64, err error) {
+	pg := c.currentPg
 	cellOff := int(storage.CellPointer(pg.Data, contentOffset(pg.PageNum), c.cellIdx, int(c.tx.pageSize)))
 
 	// A corrupt cell pointer (outside the page buffer) must error, not panic
@@ -856,6 +900,7 @@ func leafHasRoom(pg *pager.Page, page *storage.BTreePage, cellData []byte, coff 
 // surviving cells are compacted with exact free-space accounting
 // (defragmentPage parity).
 func (t *BTree) DeleteCell(cellIdx int) error {
+	t.saveAllCursors() // btree.c saveAllCursors on the dropCell path
 	pg, err := t.pager.ReadPage(t.rootPage)
 	if err != nil {
 		return err

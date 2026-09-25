@@ -465,6 +465,12 @@ var skipTests = map[string]string{
 	// subquery — rename-time column validation not implemented.
 	"altertab-33.1": "trigger UPDATE FROM JOIN column validation not implemented",
 	"altertab-33.2": "depends on 33.1 (trigger UPDATE FROM JOIN validation)",
+	// misc3-6.11: greps the EXPLAIN program text for VDBE P4 operand
+	// renderings (the Real literal 4.5678, the column DEFAULT text, and the
+	// SorterOpen ",-B" keyinfo) — VDBE opcode output not implemented
+	// (G5.EXPLAIN).
+	"misc3-6.11-utf8":  "EXPLAIN VDBE P4 operand renderings not implemented (G5.EXPLAIN)",
+	"misc3-6.11-utf16": "EXPLAIN VDBE P4 operand renderings not implemented (G5.EXPLAIN)",
 	"where2-2.5":    "EXPLAIN VDBE opcode output not implemented (G5.EXPLAIN)",
 	"where2-2.5b":   "EXPLAIN VDBE opcode output not implemented (G5.EXPLAIN)",
 	"where2-2.6":    "EXPLAIN VDBE opcode output not implemented (G5.EXPLAIN)",

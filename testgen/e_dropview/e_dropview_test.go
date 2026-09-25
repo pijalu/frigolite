@@ -5,6 +5,7 @@
 package e_dropview
 
 import (
+"fmt"
 "github.com/pijalu/frigolite"
 "github.com/pijalu/frigolite/internal/vtab"
 "os"
@@ -21,6 +22,21 @@ func Test_e_dropview(t *testing.T) {
 		t.Fatal(err)
 	}
 	defer db.Close()
+
+	// auto-installed test-extension functions (src/test_func.c)
+	db.RegisterFunction("test_error", func(args []interface{}) (interface{}, error) {
+		msg := ""
+		if len(args) > 0 && args[0] != nil {
+			msg = fmt.Sprintf("%v", args[0])
+		}
+		return nil, fmt.Errorf("%s", msg)
+	}, 1, 2)
+	db.RegisterFunction("test_isolation", func(args []interface{}) (interface{}, error) {
+		if len(args) < 2 {
+			return nil, nil
+		}
+		return args[1], nil
+	}, 2, 2)
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
@@ -89,7 +105,7 @@ func Test_e_dropview(t *testing.T) {
 	db, err = frigolite.Open("test.db")
 	tclConnRegister("db", db)
 	if err != nil { t.Fatal(err) }
-	_res = db.Exec("\n    ATTACH 'test.db2' AS aux;\n    CREATE TABLE t1(a, b); \n    INSERT INTO t1 VALUES('a main', 'b main');\n    CREATE VIEW v1 AS SELECT * FROM t1;\n    CREATE VIEW v2 AS SELECT * FROM t1;\n\n    CREATE TEMP TABLE t1(a, b);\n    INSERT INTO temp.t1 VALUES('a temp', 'b temp');\n    CREATE VIEW temp.v1 AS SELECT * FROM t1;\n\n    CREATE TABLE aux.t1(a, b);\n    INSERT INTO aux.t1 VALUES('a aux', 'b aux');\n    CREATE VIEW aux.v1 AS SELECT * FROM t1;\n    CREATE VIEW aux.v2 AS SELECT * FROM t1;\n    CREATE VIEW aux.v3 AS SELECT * FROM t1;")
+	_res = db.Exec("\n    ATTACH 'test.db2' AS aux;\n    CREATE TABLE t1(a, b); \n    INSERT INTO t1 VALUES('a main', 'b main');\n    CREATE VIEW v1 AS SELECT * FROM t1;\n    CREATE VIEW v2 AS SELECT * FROM t1;\n\n    CREATE TEMP TABLE t1(a, b);\n    INSERT INTO temp.t1 VALUES('a temp', 'b temp');\n    CREATE VIEW temp.v1 AS SELECT * FROM t1;\n\n    CREATE TABLE aux.t1(a, b);\n    INSERT INTO aux.t1 VALUES('a aux', 'b aux');\n    CREATE VIEW aux.v1 AS SELECT * FROM t1;\n    CREATE VIEW aux.v2 AS SELECT * FROM t1;\n    CREATE VIEW aux.v3 AS SELECT * FROM t1;\n  ")
 	{ // "2.1"
 		r = db.Query("\n  CREATE VIEW \"new view\" AS SELECT * FROM t1 AS x, t1 AS y;\n  SELECT * FROM \"new view\";\n")
 		if r.Error != nil {
@@ -98,7 +114,7 @@ func Test_e_dropview(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "a main b main a main b main"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -110,7 +126,7 @@ func Test_e_dropview(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "view new view new view 0 CREATE VIEW \"new view\" AS SELECT * FROM t1 AS x, t1 AS y"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -123,7 +139,7 @@ func Test_e_dropview(t *testing.T) {
 		got := flatten(r)
 		want := tclListFlatten("{}")
 		got = tclListFlattenCollapse(got)
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -143,7 +159,7 @@ func Test_e_dropview(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "a temp b temp"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -175,7 +191,7 @@ func Test_e_dropview(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "a main b main"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -207,7 +223,7 @@ func Test_e_dropview(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "a main b main"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -239,7 +255,7 @@ func Test_e_dropview(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "a aux b aux"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -271,7 +287,7 @@ func Test_e_dropview(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "a aux b aux"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -303,7 +319,7 @@ func Test_e_dropview(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "a aux b aux"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}

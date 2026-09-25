@@ -6,12 +6,236 @@
 package exec
 
 import (
+	"fmt"
 	"strings"
 
 	"github.com/pijalu/frigolite/internal/schema"
+	"github.com/pijalu/frigolite/internal/sql"
 	"github.com/pijalu/frigolite/internal/storage"
 	"github.com/pijalu/frigolite/internal/util"
 )
+
+// reindexTargetNoIndexFallback resolves a targeted REINDEX that matched no
+// index entry (build.c sqlite3Reindex resolution order: collation, then
+// TABLE via sqlite3FindTable — virtual tables included — then index; only
+// when none resolve does it report "unable to identify the object to be
+// reindexed"). A named table with zero schema index entries — e.g. an rtree
+// virtual table (rtree PK/UNIQUE constraints are module-delegated and
+// materialize no sqlite_autoindex) or a plain indexless table — is a
+// successful no-op: reindexTable skips IsVirtual tables and iterates the
+// possibly-empty pIndex list.
+func (e *Engine) reindexTargetNoIndexFallback(target string) ([]reindexIndexTarget, error) {
+	obj := reindexTargetObject(target)
+	schemaQualified := strings.ContainsRune(target, '.')
+	for _, ctx := range e.databases {
+		if schemaQualified && !e.targetSchemaMatches(ctx, target) {
+			continue
+		}
+		if ent, err := ctx.Schema.FindTable(obj); err == nil && ent != nil {
+			return nil, nil
+		}
+	}
+	// A collation target that no index uses is still a successful no-op
+	// REINDEX (build.c matches the collation, finds nothing).
+	if e.collationExists(obj) || e.schemaReferencesCollationInAnyDb(obj) {
+		return nil, nil
+	}
+	return nil, fmt.Errorf("unable to identify the object to be reindexed")
+}
+
+// --- REINDEX execution (build.c sqlite3Reindex) ---
+
+func (e *Engine) execReindex(s *sql.ReindexStmt) *Result {
+	// A targeted or whole-schema REINDEX re-builds indexes whose keys use
+	// their tables' declared collations: an unknown collation fails with
+	// "no such collation sequence: NAME" (build.c sqlite3Reindex →
+	// sqlite3CheckCollationSeq; reindex-3.3: a second connection without
+	// the c1/c2 UDF collations registered).
+	if unknown := e.unknownSchemaCollation(s.Target); unknown != "" {
+		return &Result{Error: fmt.Errorf("no such collation sequence: %s", unknown)}
+	}
+	// REINDEX with a target that names no known collation, table, or index
+	// fails (build.c sqlite3Reindex: "unable to identify the object to be
+	// reindexed"; reindex.test 4.x "REINDEX bogus").
+	if target := strings.TrimSpace(s.Target); target != "" {
+		if !e.targetExistsForReindex(target) {
+			return &Result{Error: fmt.Errorf("unable to identify the object to be reindexed")}
+		}
+	}
+	seen := make(map[string]string) // index name -> table
+	if err := e.checkReindexIndexTables(seen); err != nil {
+		return &Result{Error: err}
+	}
+	if res := e.reindexCollationTargetGuard(s.Target); res != nil {
+		return res
+	}
+	// Physical rebuild: clear each target index b-tree and re-insert every
+	// table row's key (build.c sqlite3Reindex's clear+insert program), so
+	// indexes rebuilt under a CHANGED collation sequence take the new order.
+	targets, err := e.reindexTargets(s.Target)
+	if err != nil {
+		return &Result{Error: err}
+	}
+	for _, t := range targets {
+		if _, err := e.dml.RebuildIndex(t.ctx, t.table, t.index); err != nil {
+			return &Result{Error: fmt.Errorf("(at rebuild %s) %w", t.index.Name, err)}
+		}
+	}
+	return &Result{}
+}
+
+// reindexCollationTargetGuard fails a collation-named REINDEX target that the
+// schema references but this connection cannot resolve, before any rebuild
+// (build.c sqlite3Reindex → sqlite3CheckCollationSeq: reindex-3.1, a second
+// connection without the c1 collation registered).
+func (e *Engine) reindexCollationTargetGuard(target string) *Result {
+	target = strings.TrimSpace(target)
+	if target == "" {
+		return nil
+	}
+	obj := reindexTargetObject(target)
+	if !e.reindexTargetInAnyDb(obj) && !e.collationExists(obj) && e.LookupCollation(obj) == nil && e.schemaReferencesCollationInAnyDb(obj) {
+		return &Result{Error: fmt.Errorf("no such collation sequence: %s", obj)}
+	}
+	return nil
+}
+
+// reindexIndexTarget is one rebuild unit: an index entry, its table, and the
+// database context holding both.
+type reindexIndexTarget struct {
+	ctx   *DatabaseContext
+	table *schema.Entry
+	index *schema.Entry
+}
+
+// reindexTargets resolves a REINDEX target to the index entries to rebuild:
+// every index in every schema for an empty target, the named index, the
+// table's indexes, or — when the target names a collation — every index
+// whose keys use that collation (build.c sqlite3Reindex resolution).
+func (e *Engine) reindexTargets(target string) ([]reindexIndexTarget, error) {
+	target = strings.TrimSpace(target)
+	var out []reindexIndexTarget
+	matched := false
+	for _, ctx := range e.databases {
+		m, targets := e.reindexTargetsInDb(ctx, target)
+		out = append(out, targets...)
+		matched = matched || m
+	}
+	if target != "" && !matched {
+		return e.reindexTargetNoIndexFallback(target)
+	}
+	return out, nil
+}
+
+// reindexTargetsInDb collects one database context's rebuildable index
+// targets. matched reports whether any entry matched the target.
+func (e *Engine) reindexTargetsInDb(ctx *DatabaseContext, target string) (matched bool, out []reindexIndexTarget) {
+	indexEntries, err := ctx.Schema.GetEntries(schema.TypeIndex)
+	if err != nil {
+		return false, nil
+	}
+	for _, idxEnt := range indexEntries {
+		if target != "" && !e.reindexEntryMatchesTarget(ctx, idxEnt, target) {
+			continue
+		}
+		tblEnt, err := ctx.Schema.FindTable(idxEnt.TblName)
+		if err != nil || tblEnt == nil {
+			continue
+		}
+		out = append(out, reindexIndexTarget{ctx: ctx, table: tblEnt, index: idxEnt})
+		matched = true
+	}
+	return matched, out
+}
+
+// reindexEntryMatchesTarget applies build.c sqlite3Reindex's target match for
+// one index entry: a schema-qualified target matches only within its schema;
+// a target naming the index or its table selects it; any other target is a
+// collation name the index's keys must use.
+func (e *Engine) reindexEntryMatchesTarget(ctx *DatabaseContext, idxEnt *schema.Entry, target string) bool {
+	obj := reindexTargetObject(target)
+	schemaQualified := strings.ContainsRune(target, '.')
+	namedIndex := strings.EqualFold(idxEnt.Name, obj)
+	namedTable := strings.EqualFold(idxEnt.TblName, obj)
+	schemaOK := !schemaQualified || e.targetSchemaMatches(ctx, target)
+	switch {
+	case namedIndex && schemaOK:
+		// named index
+	case namedTable && schemaOK:
+		// named table: all its indexes
+	default:
+		return e.indexUsesCollation(ctx, idxEnt, obj)
+	}
+	return true
+}
+
+// targetSchemaMatches reports whether a schema-qualified REINDEX target
+// ("main.t1") names the given database context.
+func (e *Engine) targetSchemaMatches(ctx *DatabaseContext, target string) bool {
+	idx := strings.IndexByte(target, '.')
+	if idx < 0 {
+		return true
+	}
+	return strings.EqualFold(target[:idx], e.schemaNameOf(ctx))
+}
+
+// schemaNameOf returns the registered name of a database context.
+func (e *Engine) schemaNameOf(ctx *DatabaseContext) string {
+	for name, c := range e.databases {
+		if c == ctx {
+			return name
+		}
+	}
+	return ""
+}
+
+// indexUsesCollation reports whether an index's key collations include the
+// named collation.
+func (e *Engine) indexUsesCollation(ctx *DatabaseContext, idxEnt *schema.Entry, collation string) bool {
+	if !e.collationExists(collation) && !e.schemaReferencesCollation(ctx, collation) {
+		return false
+	}
+	colDefs := e.indexTableColumnDefs(ctx, idxEnt.TblName)
+	tblEnt, _ := ctx.Schema.FindTable(idxEnt.TblName)
+	for _, name := range e.dml.IndexEntryKeyCollations(ctx, tblEnt, idxEnt, colDefs) {
+		if strings.EqualFold(name, collation) {
+			return true
+		}
+	}
+	return false
+}
+
+// schemaReferencesCollationInAnyDb reports whether any stored schema SQL
+// references the collation.
+func (e *Engine) schemaReferencesCollationInAnyDb(name string) bool {
+	for _, ctx := range e.databases {
+		if e.schemaReferencesCollation(ctx, name) {
+			return true
+		}
+	}
+	return false
+}
+
+// checkReindexIndexTables verifies that duplicate index names across attached
+// databases resolve to the same table (SQLite's integrity rule behind
+// REINDEX's name-keyed index lookup); a mismatch is a malformed image.
+func (e *Engine) checkReindexIndexTables(seen map[string]string) error {
+	for _, ctx := range e.databases {
+		entries, err := ctx.Schema.GetEntries(schema.TypeIndex)
+		if err != nil {
+			continue
+		}
+		for _, ent := range entries {
+			if prev, ok := seen[strings.ToUpper(ent.Name)]; ok {
+				if !strings.EqualFold(prev, ent.TblName) {
+					return fmt.Errorf("database disk image is malformed")
+				}
+			}
+			seen[strings.ToUpper(ent.Name)] = ent.TblName
+		}
+	}
+	return nil
+}
 
 // stat1RowMatchesTbl reports whether a sqlite_stat1 row names the given table.
 func stat1RowMatchesTbl(row RowMap, tblName string) bool {

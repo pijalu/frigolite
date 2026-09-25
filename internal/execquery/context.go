@@ -270,6 +270,13 @@ type SelectEngine struct {
 	// (tabfunc01-1420). Correlated EXISTS/scalar subqueries keep normal
 	// outer-visibility rules.
 	derivedScope bool
+	// viewOuterStmt, when non-nil, is the statement expanding a view whose
+	// body is about to execute; the freshly parsed body consumes it to
+	// apply the omit-unused-subquery-column optimization
+	// (disableUnusedSubqueryColumns) and clears it, so a body that itself
+	// expands another view does not inherit stale usage.
+	viewOuterStmt  *sql.SelectStmt
+	viewOuterQuals []string
 	// aggRowMaps, when non-nil, holds the row set an aggregate query is
 	// evaluating over. Nested aggregate functions (e.g. round(avg(x),2))
 	// resolve through it instead of evaluating per-row.

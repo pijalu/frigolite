@@ -1,13 +1,13 @@
 // Package main implements the tcl2go tool.
 //
-// This file handles execsql / db commands (processExecSQL, processDB,
-// processDBForName).
+// This file handles execsql / db commands (processExecSQL, processDB and the
+// db serialize/deserialize dispatch). UDF registrations live in
+// processdb_func.go / processdb_registered.go / processdb_varfuncs.go, the
+// hexdb image decode in processdb_hexdb.go, and the row-callback eval forms
+// in processdb_dbeval.go / processdb_dbevalrows.go.
 package main
 
 import (
-	"fmt"
-	"regexp"
-	"strconv"
 	"strings"
 
 	"github.com/pijalu/frigolite/tools/tclconvert/tcl"
@@ -56,43 +56,74 @@ func (tp *transpiler) processExecSQL(args []tcl.RawWord, sqlType string) {
 // underlying handle. The connection name is args[1] for `execsql $sql db2`,
 // or args[2] for `execsql {SQL} db2`.
 func (tp *transpiler) resolveSQLConnection(args []tcl.RawWord) string {
-	dbConn := "db"
 	connIdx := sqlConnectionIndex(args)
-	if connIdx >= 0 && connIdx < len(args) {
-		h := tclVarToGo(args[connIdx].Text)
-		// A TCL variable shadowed by a foreach loop var (e.g. `foreach db
-		// {db db2}` renames db→db_iter): resolve the reference through the
-		// rename map.
-		if renamed, ok := tp.varRenames[h]; ok {
-			h = renamed
-		}
-		// A runtime connection-name variable (foreach db {db db2} loop var):
-		// dispatch through tclConnByName at runtime.
-		if h != "" && tp.runtimeConnVars[h] {
-			return "tclConnByName(" + h + ", db, db1, db2, db3, db4, db5, db6, db7, db8, db9)"
-		}
-		isConn := h == "db" || isPreDeclaredDB(h) || tp.dbConnVars[h]
-		if h != "" && h != "db" && isConn {
-			if target, ok := tp.dbAliases[h]; ok {
-				dbConn = target
-			} else {
-				dbConn = h
-			}
-		} else if h != "" && h != "db" {
-			// The argument is a variable (e.g. `set db_dest db2` then
-			// `execsql {SQL} $db_dest`); resolve its constant value to a
-			// connection name when it names a declared DB variable.
-			if conn, ok := tp.varConstValues[h]; ok {
-				connGo := tclVarToGo(conn)
-				if connGo != "" && connGo != "db" && (isPreDeclaredDB(connGo) || tp.dbConnVars[connGo]) {
-					dbConn = connGo
-				} else if connGo == "db" {
-					dbConn = "db"
-				}
-			}
-		}
+	if connIdx < 0 || connIdx >= len(args) {
+		return "db"
 	}
-	return dbConn
+	if conn := tp.resolveSQLConnHandle(tp.sqlConnHandle(args[connIdx].Text)); conn != "" {
+		return conn
+	}
+	return "db"
+}
+
+// sqlConnHandle converts a raw connection-name word into its Go variable
+// name, following the foreach rename map (a TCL variable shadowed by a
+// foreach loop var, e.g. `foreach db {db db2}` renames db→db_iter).
+func (tp *transpiler) sqlConnHandle(raw string) string {
+	h := tclVarToGo(raw)
+	if renamed, ok := tp.varRenames[h]; ok {
+		return renamed
+	}
+	return h
+}
+
+// resolveSQLConnHandle maps a Go connection handle to the connection the
+// harness executes on, or "" when the handle names nothing known.
+func (tp *transpiler) resolveSQLConnHandle(h string) string {
+	if h == "" {
+		return ""
+	}
+	// A runtime connection-name variable (foreach db {db db2} loop var):
+	// dispatch through tclConnByName at runtime.
+	if tp.runtimeConnVars[h] {
+		return "tclConnByName(" + h + ", db, db1, db2, db3, db4, db5, db6, db7, db8, db9)"
+	}
+	if h == "db" {
+		return "db"
+	}
+	if isPreDeclaredDB(h) || tp.dbConnVars[h] {
+		return tp.dbAliasOrSelf(h)
+	}
+	// The argument is a variable (e.g. `set db_dest db2` then
+	// `execsql {SQL} $db_dest`); resolve its constant value to a
+	// connection name when it names a declared DB variable.
+	return tp.resolveConstConnValue(h)
+}
+
+// dbAliasOrSelf returns the aliased connection for h, or h itself.
+func (tp *transpiler) dbAliasOrSelf(h string) string {
+	if target, ok := tp.dbAliases[h]; ok {
+		return target
+	}
+	return h
+}
+
+// resolveConstConnValue resolves a connection-holding variable's constant
+// value to a connection name ("db", a declared DB variable, or "" when the
+// value names no known connection).
+func (tp *transpiler) resolveConstConnValue(h string) string {
+	conn, ok := tp.varConstValues[h]
+	if !ok {
+		return ""
+	}
+	connGo := tclVarToGo(conn)
+	if connGo == "db" {
+		return "db"
+	}
+	if connGo != "" && (isPreDeclaredDB(connGo) || tp.dbConnVars[connGo]) {
+		return connGo
+	}
+	return ""
 }
 
 // sqlConnectionIndex finds the connection-name argument index for
@@ -157,83 +188,89 @@ func (tp *transpiler) emitPlainExec(dbConn, sqlExpr string) {
 	}
 }
 
+// dbSubCmdHandlers lazily maps `db <subcommand>` to its transpile method. A
+// missing key is the former switch's no-op default. The main "db" connection
+// name is fixed for the delegating handlers. The map is built on first use
+// (not at package init) because the referenced handlers transitively reach
+// back into processDB, which would make a package-level initializer cycle.
+func dbSubCmdHandler(sub string) func(*transpiler, []tcl.RawWord) {
+	if dbSubCmdHandlers == nil {
+		dbSubCmdHandlers = map[string]func(*transpiler, []tcl.RawWord){
+			"close":            func(tp *transpiler, _ []tcl.RawWord) { tp.processDBClose() },
+			"backup":           func(tp *transpiler, rest []tcl.RawWord) { tp.processDBBackupRestore("backup", rest) },
+			"restore":          func(tp *transpiler, rest []tcl.RawWord) { tp.processDBBackupRestore("restore", rest) },
+			"null":             (*transpiler).processDBNullValue,
+			"nullvalue":        (*transpiler).processDBNullValue,
+			"eval":             (*transpiler).processDBEval,
+			"onecolumn":        (*transpiler).processDBOnecolumn,
+			"transaction":      (*transpiler).processDBTransaction,
+			"function":         (*transpiler).processDBFunction,
+			"func":             (*transpiler).processDBFunction,
+			"collate":          (*transpiler).processDBCollate,
+			"collation_needed": func(tp *transpiler, rest []tcl.RawWord) { tp.processNamedDBCollationNeeded("db", rest) },
+			"deserialize":      (*transpiler).processDBDeserialize,
+			"serialize":        (*transpiler).processDBSerialize,
+			"progress":         (*transpiler).processDBProgress,
+			"authorizer":       func(tp *transpiler, rest []tcl.RawWord) { tp.processNamedDBAuthorizer("db", rest) },
+			"incrblob":         (*transpiler).processDBIncrblob,
+			"changes":          (*transpiler).processDBChanges,
+			"total_changes":    (*transpiler).processDBTotalChanges,
+			"preupdate":        (*transpiler).processDBPreupdate,
+			"commit_hook":      (*transpiler).processDBCommitHook,
+			"rollback_hook":    (*transpiler).processDBRollbackHook,
+			"update_hook":      (*transpiler).processDBUpdateHook,
+			"trace":            func(tp *transpiler, rest []tcl.RawWord) { tp.processNamedDBTraceProfile("db", rest, "trace") },
+			"profile":          func(tp *transpiler, rest []tcl.RawWord) { tp.processNamedDBTraceProfile("db", rest, "profile") },
+			"trace_v2":         func(tp *transpiler, rest []tcl.RawWord) { tp.processNamedDBTraceV2("db", rest) },
+			"busy":             func(tp *transpiler, rest []tcl.RawWord) { tp.processNamedDBBusy("db", rest) },
+			"complete":         (*transpiler).processDBComplete,
+		}
+	}
+	return dbSubCmdHandlers[sub]
+}
+
+// dbSubCmdHandlers is the `db <subcommand>` dispatch table (see
+// dbSubCmdHandler).
+var dbSubCmdHandlers map[string]func(*transpiler, []tcl.RawWord)
+
 func (tp *transpiler) processDB(args []tcl.RawWord) {
 	if len(args) < 1 {
 		return
 	}
-	subCmd := args[0].Text
-	rest := args[1:]
+	if fn := dbSubCmdHandler(args[0].Text); fn != nil {
+		fn(tp, args[1:])
+	}
+	// no-op for other db subcommands
+}
 
-	switch subCmd {
-	case "close":
-		tp.processDBClose()
-	case "backup":
-		tp.processDBBackupRestore("backup", rest)
-	case "restore":
-		tp.processDBBackupRestore("restore", rest)
-	case "null", "nullvalue":
-		// TCL "db null <value>" / "db nullvalue <value>" sets how SQL NULL
-		// renders in query results.
-		if len(rest) >= 1 {
-			tp.emitLine("tcl_nullvalue = %s", tp.goStringLiteral(rest[0]))
-		}
-	case "eval":
-		tp.processDBEval(rest)
-	case "onecolumn":
-		tp.processDBOnecolumn(rest)
-	case "transaction":
-		tp.processDBTransaction(rest)
-	case "function", "func":
-		tp.processDBFunction(rest)
-	case "collate":
-		tp.processDBCollate(rest)
-	case "collation_needed":
-		// The collation-factory hook (collate3-5.x): transpile the named proc
-		// into a RegisterCollationNeeded registration (or a direct
-		// RegisterCollation for the static-name shape).
-		tp.processNamedDBCollationNeeded("db", rest)
-	case "deserialize":
-		tp.processDBDeserialize(rest)
-	case "serialize":
-		tp.processDBSerialize(rest)
-	case "progress":
-		tp.processDBProgress(rest)
-	case "authorizer":
-		tp.processNamedDBAuthorizer("db", rest)
-	case "incrblob":
-		tp.processDBIncrblob(rest)
-	case "changes":
-		tp.emitLine("_r = strconv.FormatInt(db.Changes(), 10)")
-	case "total_changes":
-		tp.emitLine("_r = strconv.FormatInt(db.TotalChanges(), 10)")
-	case "preupdate":
-		tp.processDBPreupdate(rest)
-	case "commit_hook":
-		tp.processDBCommitHook(rest)
-	case "rollback_hook":
-		tp.processDBRollbackHook(rest)
-	case "update_hook":
-		tp.processDBUpdateHook(rest)
-	case "trace":
-		tp.processNamedDBTraceProfile("db", rest, "trace")
-	case "profile":
-		tp.processNamedDBTraceProfile("db", rest, "profile")
-	case "trace_v2":
-		tp.processNamedDBTraceV2("db", rest)
-	case "busy":
-		tp.processNamedDBBusy("db", rest)
-	case "complete":
-		// db complete {SQL} — sqlite3_complete test: returns 1 when the SQL
-		// ends in a complete statement (semicolon outside strings/comments,
-		// trigger-aware ";END;" detection), 0 otherwise. Mirrors src/complete.c.
-		// Unlike execsql, db complete's braced argument is a LITERAL SQL string,
-		// not a substituted one, so $var inside it is NOT a TCL substitution.
-		if len(rest) >= 1 {
-			sqlExpr := tp.goStringLiteral(rest[0])
-			tp.emitLine("_r = tclBool01(db.Complete(%s))", sqlExpr)
-		}
-	default:
-		// no-op for other db subcommands
+// processDBNullValue handles TCL "db null <value>" / "db nullvalue <value>":
+// it sets how SQL NULL renders in query results.
+func (tp *transpiler) processDBNullValue(rest []tcl.RawWord) {
+	if len(rest) >= 1 {
+		tp.emitLine("tcl_nullvalue = %s", tp.goStringLiteral(rest[0]))
+	}
+}
+
+// processDBChanges emits the `db changes` query result.
+func (tp *transpiler) processDBChanges(_ []tcl.RawWord) {
+	tp.emitLine("_r = strconv.FormatInt(db.Changes(), 10)")
+}
+
+// processDBTotalChanges emits the `db total_changes` query result.
+func (tp *transpiler) processDBTotalChanges(_ []tcl.RawWord) {
+	tp.emitLine("_r = strconv.FormatInt(db.TotalChanges(), 10)")
+}
+
+// processDBComplete handles `db complete {SQL}` — sqlite3_complete test:
+// returns 1 when the SQL ends in a complete statement (semicolon outside
+// strings/comments, trigger-aware ";END;" detection), 0 otherwise. Mirrors
+// src/complete.c. Unlike execsql, db complete's braced argument is a LITERAL
+// SQL string, not a substituted one, so $var inside it is NOT a TCL
+// substitution.
+func (tp *transpiler) processDBComplete(rest []tcl.RawWord) {
+	if len(rest) >= 1 {
+		sqlExpr := tp.goStringLiteral(rest[0])
+		tp.emitLine("_r = tclBool01(db.Complete(%s))", sqlExpr)
 	}
 }
 
@@ -319,11 +356,7 @@ func (tp *transpiler) processDBSerialize(rest []tcl.RawWord) {
 // grouped by `| page N offset M`).
 func (tp *transpiler) processDBDeserialize(rest []tcl.RawWord) {
 	if len(rest) < 1 {
-		if tp.catchMode {
-			tp.emitLine("_catchErr = fmt.Errorf(%q)", "wrong # args: should be \"db deserialize ?DATABASE? VALUE\"")
-		} else {
-			tp.emitLine("t.Errorf(%q)", "wrong # args: should be \"db deserialize ?DATABASE? VALUE\"")
-		}
+		tp.emitDeserializeWrongArgs()
 		return
 	}
 	// memdb1.test forms: `db deserialize $db1` / `db deserialize main $ser` /
@@ -359,1277 +392,6 @@ func (tp *transpiler) processDBDeserialize(rest []tcl.RawWord) {
 	tp.dqsDML = true
 }
 
-// emitDBDeserializeValue handles `db deserialize [--flags] [SCHEMA] VALUE`
-// (memdb1.test: $db1/db1Blob image, aux-schema images, {} empty reset,
-// not-a-database corruption, -readonly/-maxsize flags, unknown options).
-// VALUE renders as a Go string expression; the bytes deserialize into the
-// named schema via DB.Deserialize (tclsqlite.c DB_DESERIALIZE contract).
-func (tp *transpiler) emitDBDeserializeValue(rest []tcl.RawWord) {
-	maxsize := "0"
-	readonly := "false"
-	schema := "main"
-	value := ""
-	i := 0
-	for i < len(rest) {
-		w := strings.TrimSpace(rest[i].Text)
-		if w == "-maxsize" && i+1 < len(rest) {
-			maxsize = tp.buildStringExpr(strings.TrimSpace(rest[i+1].Text))
-			maxsize = fmt.Sprintf("tclParseInt64(%s)", maxsize)
-			i += 2
-			continue
-		}
-		if w == "-readonly" && i+1 < len(rest) {
-			bexpr := tp.buildStringExpr(strings.TrimSpace(rest[i+1].Text))
-			readonly = fmt.Sprintf("tclBool(%s)", bexpr)
-			i += 2
-			continue
-		}
-		if strings.HasPrefix(w, "-") {
-			opt := strings.Trim(w, "{} ")
-			// TCL `catch {db deserialize -unknown 1 $db1} msg` consumes
-			// the unknown flag AND its value (memdb1.test 150): the error
-			// is "unknown option: -unknown", and no deserialize runs.
-			// In catch mode the error must reach _catchErr; in direct
-			// mode the do_test body comparison runs against _r.
-			if tp.catchMode {
-				tp.emitLine("_catchErr = fmt.Errorf(%q)", "unknown option: "+opt)
-			} else {
-				tp.emitLine("_r = %q", "unknown option: "+opt)
-			}
-			return
-		}
-		break
-	}
-	args := rest[i:]
-	if len(args) == 0 {
-		if tp.catchMode {
-			tp.emitLine("_catchErr = fmt.Errorf(%q)", "wrong # args: should be \"db deserialize ?DATABASE? VALUE\"")
-		} else {
-			tp.emitLine("t.Errorf(%q)", "wrong # args: should be \"db deserialize ?DATABASE? VALUE\"")
-		}
-		return
-	}
-	if len(args) == 2 {
-		schema = strings.Trim(args[0].Text, "{} ")
-		value = tp.deserializeValueExpr(args[1])
-	} else if len(args) == 1 {
-		value = tp.deserializeValueExpr(args[0])
-	} else {
-		if tp.catchMode {
-			tp.emitLine("_catchErr = fmt.Errorf(%q)", "unknown option: "+strings.TrimSpace(args[0].Text))
-		} else {
-			tp.emitLine("t.Errorf(%q)", "unknown option: "+strings.TrimSpace(args[0].Text))
-		}
-		return
-	}
-	tp.emitLine("if derr := db.Deserialize(%q, []byte(%s), frigolite.DeserializeOptions{ReadOnly: %s, MaxSize: %s}); derr != nil { tclDeserializeErr = derr } else { tclDeserializeErr = nil }", schema, value, readonly, maxsize)
-	// Inside a db-eval row callback (BeginActiveStatement open) or a
-	// catch-mode body, the deserialize error feeds the harness error
-	// variable (_catchErr), not a hard t.Errorf — memdb1.test 1010 expects
-	// {1 {unable to set MEMDB content}} from the catch, and 1020's backup
-	// interlock likewise flows through msg.
-	if tp.catchMode {
-		tp.emitLine("if tclDeserializeErr != nil { _catchErr = tclDeserializeErr }")
-	} else if tp.inDBEvalCb {
-		tp.emitLine("if tclDeserializeErr != nil { _catchErr = tclDeserializeErr }")
-	} else {
-		tp.emitLine("if tclDeserializeErr != nil { t.Errorf(%q, tclDeserializeErr) }", "deserialize failed: %v")
-	}
-}
-
-// deserializeValueExpr renders a deserialize VALUE word as a Go string:
-// $::db1 maps to the db1Blob image shadow; $vars map to Go vars; braced
-// literals ({} empty, not-a-database) render verbatim.
-func (tp *transpiler) deserializeValueExpr(w tcl.RawWord) string {
-	text := strings.TrimSpace(w.Text)
-	if text == "$::db1" || text == "$db1" || text == "::db1" || text == "db1" {
-		return "db1Blob"
-	}
-	if strings.HasPrefix(text, "$") {
-		return tp.buildStringExpr(text)
-	}
-	return tp.buildStringExpr(text)
-}
-
-// extractHexdbBlock pulls the braced block out of `[decode_hexdb {...}]`.
-func extractHexdbBlock(text string) string {
-	idx := strings.Index(text, "{")
-	if idx < 0 {
-		return ""
-	}
-	depth := 0
-	for i := idx; i < len(text); i++ {
-		switch text[i] {
-		case '{':
-			depth++
-		case '}':
-			depth--
-			if depth == 0 {
-				return text[idx+1 : i]
-			}
-		}
-	}
-	return text[idx+1:]
-}
-
-// parseHexdbImage converts an .open --hexdb block into the raw database bytes.
-// Lines are `| <offset>: <hex bytes>  <ascii>` grouped by `| page N offset M`.
-func parseHexdbImage(hexdb string) ([]byte, error) {
-	// The header lines carry the total size; pages fill the rest.
-	size := 0
-	pageSize := 4096
-	for _, line := range strings.Split(hexdb, "\n") {
-		line = strings.TrimSpace(line)
-		if m := hexdbKV(line, "size"); m != "" {
-			size, _ = strconv.Atoi(m)
-		}
-		if m := hexdbKV(line, "pagesize"); m != "" {
-			pageSize, _ = strconv.Atoi(m)
-		}
-	}
-	if size <= 0 {
-		size = pageSize // fall back to one page
-	}
-	out := make([]byte, size)
-	curPage := 0
-	for _, line := range strings.Split(hexdb, "\n") {
-		trimmed := strings.TrimSpace(line)
-		if !strings.HasPrefix(trimmed, "|") {
-			continue
-		}
-		rest := strings.TrimSpace(trimmed[1:])
-		if strings.HasPrefix(rest, "page ") {
-			// page N offset M
-			fields := strings.Fields(rest)
-			if len(fields) >= 2 {
-				curPage, _ = strconv.Atoi(fields[1])
-			}
-			continue
-		}
-		// <offset>: <hex bytes>
-		colon := strings.Index(rest, ":")
-		if colon < 0 {
-			continue
-		}
-		off, _ := strconv.Atoi(strings.TrimSpace(rest[:colon]))
-		hexPart := rest[colon+1:]
-		// Hex bytes are the first 2-char groups; strip the ascii column.
-		pairs := hexBytePairs(hexPart)
-		for i, b := range pairs {
-			pos := (curPage-1)*pageSize + off + i
-			if pos < len(out) {
-				out[pos] = b
-			}
-		}
-	}
-	return out, nil
-}
-
-// hexdbKV extracts a `key value` pair from an .open header line like
-// `| size 24576 pagesize 4096 filename x`.
-func hexdbKV(line, key string) string {
-	for i := 0; i+len(key) <= len(line); i++ {
-		if line[i:i+len(key)] == key {
-			j := i + len(key)
-			for j < len(line) && (line[j] == ' ' || line[j] == '\t') {
-				j++
-			}
-			k := j
-			for k < len(line) && line[k] != ' ' && line[k] != '\t' {
-				k++
-			}
-			return line[j:k]
-		}
-	}
-	return ""
-}
-
-// hexBytePairs extracts 2-hex-digit byte values from a hex dump line (the
-// part before the ASCII column).
-func hexBytePairs(s string) []byte {
-	var out []byte
-	for i := 0; i+1 < len(s); i++ {
-		if isHexByte(s[i]) && isHexByte(s[i+1]) {
-			if i+2 < len(s) && isHexByte(s[i+2]) {
-				// A triple of hex digits is a stray run (ASCII column); stop.
-				break
-			}
-			b := byte((hexByteVal(s[i]) << 4) | hexByteVal(s[i+1]))
-			out = append(out, b)
-			i++
-		}
-	}
-	return out
-}
-
-func isHexByte(c byte) bool {
-	return (c >= '0' && c <= '9') || (c >= 'a' && c <= 'f') || (c >= 'A' && c <= 'F')
-}
-
-func hexByteVal(c byte) int {
-	switch {
-	case c >= '0' && c <= '9':
-		return int(c - '0')
-	case c >= 'a' && c <= 'f':
-		return int(c-'a') + 10
-	default:
-		return int(c-'A') + 10
-	}
-}
-
-// processDBEval handles `db eval {SQL}` and the row-callback form
-// `db eval {SQL} {body}`.
-func (tp *transpiler) processDBEval(rest []tcl.RawWord) {
-	// db eval {SQL} ARRAYVAR: TCL populates the array variable with the
-	// first row's column names/values (column name is the key). The harness
-	// checks array keys via `set A(*)` which becomes the expected column names.
-	// For `db eval {SQL} A` where A is a known array variable, capture the
-	// query's column names into A_arr for the subsequent `set A(*)` check.
-	if len(rest) >= 2 && !rest[1].Braced && rest[1].Text != "" {
-		arrName := rest[1].Text
-		goName := tclVarToGo(arrName)
-		if goName != "" {
-			// Known array — capture column names (arrayKeys may be nil if declared in outer scope; still handle).
-			isArr := false
-			if tp.arrayKeys != nil {
-				_, isArr = tp.arrayKeys[arrName]
-			}
-			// Also treat single-letter array vars like A as arrays even if not pre-registered
-			if isArr || (len(arrName) == 1 && arrName[0] >= 'A' && arrName[0] <= 'Z') {
-				// Array + BODY form (`db eval $sql X { ... }`): each row sets
-				// X(column) for every result column, then the body runs —
-				// once per row (fts3sort.test).
-				if len(rest) >= 3 && rest[2].Braced {
-					tp.emitDBEvalArrayRows(arrName, rest)
-					return
-				}
-				sqlExpr := tp.collectSQLExpression(rest[:1])
-				if sqlExpr != `""` {
-					tp.emitLine("r = db.Query(%s)", sqlExpr)
-					tp.emitLine("if r.Error != nil {")
-					tp.emitLine("\tt.Errorf(\"query error: %%v\\n  sql: %%s\", r.Error, %s)", sqlExpr)
-					tp.emitLine("}")
-					arrStar := tclVarToGo(arrName + "(*)")
-					if !tp.isVarDeclared(arrStar) {
-						tp.emitLine("var %s string", arrStar)
-						tp.vars = append(tp.vars, arrStar)
-					}
-					tp.emitLine("%s = strings.Join(r.Columns, \" \")", arrStar)
-					// TCL's db eval sets A(*) to the column list; sync the
-					// tclvar registry so a later `set A(*)` reads it even
-					// when the read goes through the registry store
-					// (with1-17.2).
-					tp.emitLine("vtab.TclVarSet(%q, \"*\", %s)", arrName, arrStar)
-					tp.emitLine("_res = &frigolite.Result{Columns: r.Columns, Rows: r.Rows}")
-					return
-				}
-			} else if len(rest) >= 3 && rest[2].Braced && isValidGoIdent(goName) {
-				// `db eval SQL IDENT {BODY}` with an unregistered identifier:
-				// TCL semantics bind IDENT(column) per row then run BODY
-				// (lock.test's `db eval {SELECT ...} qv {set x ...}`).
-				// Register as array and use the array-rows emitter.
-				if tp.arrayKeys == nil {
-					tp.arrayKeys = map[string][]string{}
-				}
-				tp.arrayKeys[arrName] = nil
-				tp.emitDBEvalArrayRows(arrName, rest)
-				return
-			}
-		}
-		// Also handle the dynamic case: `db eval {SQL} $arrVar` or unknown array var.
-		// Fall through to generic Exec path; the harness may check via different var.
-	}
-	// db eval {SQL} {body}: TCL's row-callback form. SQLite steps the
-	// SELECT row by row, running the braced body for each row. A ROLLBACK
-	// executed inside the body succeeds but aborts the active SELECT with
-	// "abort due to ROLLBACK" (SQLite's sqlite3_step returns SQLITE_ABORT
-	// after a ROLLBACK invalidates the statement). Other statements
-	// (COMMIT, DML) inside the body do not abort the iteration.
-	if len(rest) >= 2 && rest[1].Braced {
-		tp.emitDBEvalCallback(rest)
-		return
-	}
-	sqlExpr := tp.collectSQLExpression(rest)
-	if sqlExpr == `""` {
-		return
-	}
-	sqlText := ""
-	if len(rest) > 0 {
-		sqlText = rest[0].Text
-	}
-	if reason := unsupportedSQL(sanitizeSQL(sqlText)); reason != "" {
-		tp.emitLine("// db eval skipped: %s", reason)
-		return
-	}
-	tp.emitLine("_res = db.Exec(%s)", sqlExpr)
-	if tp.catchMode {
-		// Inside a `catch { ... }` block, capture Exec errors into
-		// _catchErr so the enclosing `while {1}` break-on-error pattern
-		// (e.g. tkt2686's `while 1 { db eval {INSERT ...} }`) can unwind.
-		// Without this, the loop runs forever: `db eval` does NOT raise a
-		// Go panic on engine errors, it just sets _res.Error, so the
-		// transpiler must mirror TCL catch semantics explicitly here.
-		tp.emitLine("if _res.Error != nil { _catchErr = _res.Error }")
-	}
-	if tp.rollbackFlag != "" && isRollbackStmt(sqlText) {
-		// A ROLLBACK executed inside a db eval callback aborts the
-		// enclosing row iteration (SQLite "abort due to ROLLBACK").
-		tp.emitLine("%s = true", tp.rollbackFlag)
-	}
-	// db eval silently consumes Exec errors (TCL's `db eval` runs the
-	// body for each row and the body itself executes the SQL; errors
-	// inside the body are reported via the result code, not as a hard
-	// test failure). The transpiler must NOT promote them to t.Errorf
-	// here — a per-iteration error path on a 1000-row loop prints ~30s
-	// of failure traffic and times out the suite (incrvacuum-6/7).
-	_ = tp.catchMode // unused for the no-callback path
-}
-
-// processDBOnecolumn handles `db onecolumn {SQL}`.
-func (tp *transpiler) processDBOnecolumn(rest []tcl.RawWord) {
-	sqlExpr := tp.collectSQLExpression(rest)
-	if sqlExpr == `""` {
-		return
-	}
-	tp.emitLine("r = db.Query(%s)", sqlExpr)
-	if tp.catchMode {
-		tp.emitLine("if r.Error != nil { _catchErr = r.Error }")
-	} else {
-		tp.emitLine("if r.Error != nil {")
-		tp.emitLine("\tt.Errorf(\"query error: %%v\\n  sql: %%s\", r.Error, %s)", sqlExpr)
-		tp.emitLine("}")
-	}
-}
-
-// processDBTransaction handles `db transaction {BODY}` — transpile the body
-// as regular code.
-func (tp *transpiler) processDBTransaction(rest []tcl.RawWord) {
-	if len(rest) == 0 || !rest[0].Braced {
-		return
-	}
-	bodyCmds := parseCommands(rest[0].Text)
-	bodyTP := &transpiler{
-		sb:           tp.sb,
-		indent:       tp.indent,
-		dbVar:        tp.dbVar,
-		t:            tp.t,
-		varCount:     tp.varCount,
-		vars:         tp.vars,
-		arrayKeys:    tp.arrayKeys,
-		arrayMapVars: tp.arrayMapVars,
-		forIncrs:     tp.forIncrs,
-		testPrefix:   tp.testPrefix, preparedState: tp.preparedState,
-	}
-	bodyTP.processCommands(bodyCmds)
-	tp.varCount = bodyTP.varCount
-	tp.indent = bodyTP.indent
-}
-
-// isStringMatchBody reports whether a proc body is a single
-// `string match $a $b` command (like.test's test_match), the TCL-glob
-// MATCH overload shape.
-func isStringMatchBody(body string) bool {
-	b := strings.TrimSpace(body)
-	if strings.HasPrefix(b, "{") && strings.HasSuffix(b, "}") {
-		b = strings.TrimSpace(b[1 : len(b)-1])
-	}
-	if strings.HasPrefix(strings.ToLower(b), "return ") {
-		b = strings.TrimSpace(b[len("return "):])
-	}
-	// Allow both a bare command and a bracket-command word:
-	// `[string match $a $b]`.
-	if strings.HasPrefix(b, "[") && strings.HasSuffix(b, "]") {
-		b = strings.TrimSpace(b[1 : len(b)-1])
-	}
-	cmds := tcl.ParseCommands(b)
-	if len(cmds) != 1 {
-		return false
-	}
-	w := cmds[0]
-	if len(w) < 3 || w[0].Text != "string" || w[1].Text != "match" {
-		return false
-	}
-	for _, a := range w[2:] {
-		if !strings.HasPrefix(a.Text, "$") {
-			return false
-		}
-	}
-	return true
-}
-
-// processDBFunction handles `db function NAME procName` / `db func NAME
-// procName` — register a scalar SQL function whose behavior is a TCL proc.
-func (tp *transpiler) processDBFunction(rest []tcl.RawWord) {
-	if len(rest) < 2 {
-		tp.emitDBVarFunc(rest)
-		return
-	}
-	name := strings.TrimSpace(rest[0].Text)
-	procName := procNameFromRest(rest)
-	// `db func eval <proc>` where the proc runs SQL text (misc8.test's dbeval:
-	// `proc dbeval {sql} { db eval $sql }`). The engine's built-in eval()
-	// already runs SQL and returns the joined result (EvalExecSQL), so skip
-	// the variable-reader stub registration — a nil-returning stub would
-	// shadow the real eval and break DELETE/SELECT execution.
-	if strings.EqualFold(name, "eval") {
-		tp.emitLine("// db func eval %s (db-eval passthrough — built-in eval used)", procName)
-		return
-	}
-	// `db function hex {format 0x%X}` — an inline single-format-command body
-	// (emitted by emitInlineFormatUDF, processdb_format_udf.go).
-	if tp.emitInlineFormatUDF(name, rest) {
-		return
-	}
-	// A TCL proc whose body accumulates into a global variable (a counter or
-	// a log): selectH.test's counter (global selectH_cnt; incr ... $amt;
-	// return $amt-var), subquery.test's callcnt (incr ::callcnt; return $n)
-	// and wherelimit2.test's log (lappend ::log {*}$args). The generated UDF
-	// updates the SAME Go variable the assertions read back.
-	if tp.emitTclVarUDFFromProc(name, procName) {
-		return
-	}
-	// `db function match -argcount 2 test_match` — like.test's MATCH
-	// overload whose proc body is a single `string match $a $b` command
-	// (TCL glob): emit a real glob-based closure instead of a nil stub so
-	// the MATCH operator filters rows (like-2.3/2.4).
-	if body, ok := globalProcBodies[procName]; ok && isStringMatchBody(body) {
-		tp.emitLine("// db function %s %s (TCL string match UDF: anchored glob of args[1] against args[0])", name, procName)
-		tp.emitLine("%s.RegisterFunction(%q, func(args []interface{}) (interface{}, error) {", tp.dbVar, name)
-		tp.emitLine("\tif len(args) < 2 { return nil, nil }")
-		tp.emitLine("\tpat := function.ValueText(args[0])")
-		tp.emitLine("\tstr := function.ValueText(args[1])")
-		tp.emitLine("\tif tclStringMatch(pat, str) { return int64(1), nil }")
-		tp.emitLine("\treturn int64(0), nil")
-		tp.emitLine("}, 2, 2)")
-		return
-	}
-	// `db function execsql execsql` — the test-harness's execsql command
-	// (tkt3080.test) is registered as a SQL function. The body recursively
-	// runs its first argument as SQL and returns the joined cell result
-	// (or NULL for DDL/DML). This is a generic SQL-executing UDF — emit
-	// the same RegisterFunction that the native UCL test uses
-	// (frigolite_misc_native_test.go::TestNativeMiscUDFFromHarnessExecutesSQL).
-	if strings.EqualFold(name, "execsql") && strings.EqualFold(name, procName) {
-		tp.emitLine("// db function execsql execsql (test-harness SQL-executing UDF — P8.MISC)")
-		tp.emitLine("%s.RegisterFunction(%q, func(args []interface{}) (interface{}, error) {", tp.dbVar, name)
-		tp.emitLine("\tif len(args) < 1 || args[0] == nil { return nil, nil }")
-		tp.emitLine("\tsqlStr := function.ValueText(args[0])")
-		tp.emitLine("\tif sqlStr == \"\" { return nil, nil }")
-		tp.emitLine("\t// Mark the calling SELECT as an active read statement so")
-		tp.emitLine("\t// DROP TABLE inside the recursive SQL triggers the")
-		tp.emitLine("\t// OP_Destroy interlock (tkt3080.3 expects 'database table is locked').")
-		tp.emitLine("\tdb.BeginActiveStatement()")
-		tp.emitLine("\tdefer db.EndActiveStatement()")
-		tp.emitLine("\tupper := strings.TrimSpace(strings.ToUpper(sqlStr))")
-		tp.emitLine("\tisSelect := strings.HasPrefix(upper, \"SELECT\") || strings.HasPrefix(upper, \"WITH\")")
-		tp.emitLine("\tif isSelect {")
-		tp.emitLine("\t\tout, err := db.EvalExecSQL(sqlStr, \" \")")
-		tp.emitLine("\t\tif err != nil { return nil, err }")
-		tp.emitLine("\t\tif out == \"\" { return nil, nil }")
-		tp.emitLine("\t\treturn out, nil")
-		tp.emitLine("\t}")
-		tp.emitLine("\tif r := db.Exec(sqlStr); r.Error != nil { return nil, r.Error }")
-		tp.emitLine("\treturn nil, nil")
-		tp.emitLine("}, 1, -1)")
-		return
-	}
-	// `db func pmatch pmatch` (fts5phrase.test:81) — the substring-probe
-	// oracle UDF: proc pmatch {col expr} { return [expr {[string first
-	// $expr $col]>=0}] }. Its WHERE clauses generate the expected rowids
-	// for the phrase-query comparison loop.
-	if strings.EqualFold(name, "pmatch") && strings.EqualFold(procName, "pmatch") {
-		tp.emitLine("// db func pmatch pmatch (fts5phrase.test substring-probe oracle UDF)")
-		tp.emitLine("%s.RegisterFunction(%q, func(args []interface{}) (interface{}, error) {", tp.dbVar, name)
-		tp.emitLine("\tif len(args) < 2 || args[0] == nil || args[1] == nil { return int64(0), nil }")
-		tp.emitLine("\tcol := function.ValueText(args[0])")
-		tp.emitLine("\texpr := function.ValueText(args[1])")
-		tp.emitLine("\tif strings.Contains(col, expr) { return int64(1), nil }")
-		tp.emitLine("\treturn int64(0), nil")
-		tp.emitLine("}, 0, -1)")
-		return
-	}
-	// `db func f1 f1` / `db func f2 f2` (tkt3718.test) — the proc body
-	// recursively runs SQL via `db eval` or raises an error. Detect the
-	// tkt3718 proc body shapes and emit the equivalent Go UDF.
-	if tp.emitMiscRecurseSQLUDF(name, procName) {
-		return
-	}
-	// `db func sql [list sql]` (tkt3718-2.1+) — the proc body executes its
-	// second argument as SQL when the first is truthy. The transpiler
-	// tokenizes `[list sql]` as the literal word "[list sql]", so the
-	// procNameFromRest returns "[list"; detect either form.
-	if strings.EqualFold(name, "sql") && (strings.EqualFold(procName, "sql") || strings.EqualFold(procName, "[list")) {
-		tp.emitLine("// db func sql sql (test-harness conditional SQL-execute UDF — P8.MISC tkt3718)")
-		tp.emitLine("%s.RegisterFunction(%q, func(args []interface{}) (interface{}, error) {", tp.dbVar, name)
-		tp.emitLine("\tif len(args) < 2 || args[0] == nil || args[1] == nil { return nil, nil }")
-		tp.emitLine("\tdoit := function.ValueText(args[0])")
-		tp.emitLine("\tif doit == \"\" || doit == \"0\" { return nil, nil }")
-		tp.emitLine("\tzSql := function.ValueText(args[1])")
-		tp.emitLine("\tif zSql == \"\" { return nil, nil }")
-		tp.emitLine("\t// Mark the calling SELECT as an active read statement so")
-		tp.emitLine("\t// DDL/DML inside the recursive SQL triggers the OP_Destroy")
-		tp.emitLine("\t// interlock (tkt3718-* nesting case).")
-		tp.emitLine("\tdb.BeginActiveStatement()")
-		tp.emitLine("\tdefer db.EndActiveStatement()")
-		tp.emitLine("\t// Detect SELECT prefix and route through EvalExecSQL so the")
-		tp.emitLine("\t// joined cells come back as a string (matching TCL catchsql).")
-		tp.emitLine("\tupper := strings.TrimSpace(strings.ToUpper(zSql))")
-		tp.emitLine("\tif strings.HasPrefix(upper, \"SELECT\") || strings.HasPrefix(upper, \"WITH\") {")
-		tp.emitLine("\t\tout, err := db.EvalExecSQL(zSql, \" \")")
-		tp.emitLine("\t\tif err != nil { return nil, nil }")
-		tp.emitLine("\t\tif out == \"\" { return nil, nil }")
-		tp.emitLine("\t\treturn out, nil")
-		tp.emitLine("\t}")
-		tp.emitLine("\t// TCL's catchsql swallows errors and returns the result; mimic")
-		tp.emitLine("\t// by ignoring db.Exec error here so the calling INSERT survives.")
-		tp.emitLine("\tdb.Exec(zSql)")
-		tp.emitLine("\treturn nil, nil")
-		tp.emitLine("}, 2, 2)")
-		return
-	}
-	// `db function tcl eval` — SQL function backed by the TCL *eval*
-	// built-in command (tkt3992-2.3); see emitTclEvalCommandUDF.
-	if tp.emitTclEvalCommandUDF(name, procName) {
-		return
-	}
-	if tp.emitRegisteredFunction(name, procName, rest) {
-		return
-	}
-	// `db func extract extract` (fts3offsets.test) — the proc annotates the
-	// document text with parentheses at each offsets() hit span.
-	if name == "extract" && procName == "extract" {
-		tp.emitLine("%s.RegisterFunction(%q, func(args []interface{}) (interface{}, error) {", tp.dbVar, name)
-		tp.emitLine("\tif len(args) < 2 { return \"\", nil }")
-		tp.emitLine("\treturn tclExtractOffsets(tclStr(args[0]), tclStr(args[1])), nil")
-		tp.emitLine("}, 2, 2)")
-		return
-	}
-	// `db func blob blob` — the proc is a specialFunc (e.g. the test-harness
-	// blob() hex decoder, fts3corrupt4). Emit a RegisterFunction whose body
-	// decodes the argument.
-	if tp.specialFuncs != nil {
-		if tmpl, ok := tp.specialFuncs[procName]; ok && name != "" {
-			if tmpl == "tclBlobHexDecode" {
-				tp.emitLine("%s.RegisterFunction(%q, func(args []interface{}) (interface{}, error) {", tp.dbVar, name)
-				tp.emitLine("\tif len(args) < 1 || args[0] == nil { return []byte{}, nil }")
-				// Engine-level BLOBs (zipfile() archive results feeding
-				// remove_timestamps) arrive as []byte, not hex text.
-				if procName == "remove_timestamps" {
-					tp.emitLine("\tif b, ok := args[0].([]byte); ok { return tclRemoveTimestamps(b), nil }")
-					tp.emitLine("\tif s, ok := args[0].(string); ok { return tclRemoveTimestamps(tclHexDecode(s)), nil }")
-					tp.emitLine("\treturn tclHexDecode(tclStr(args[0])), nil")
-				} else {
-					tp.emitLine("\treturn tclHexDecode(tclStr(args[0])), nil")
-				}
-				tp.emitLine("}, 0, -1)")
-				return
-			}
-			if tmpl == "tclMatchinfoDecode" {
-				tp.emitLine("%s.RegisterFunction(%q, func(args []interface{}) (interface{}, error) {", tp.dbVar, name)
-				tp.emitLine("\tif len(args) < 1 || args[0] == nil { return \"\", nil }")
-				tp.emitLine("\treturn tclMatchinfoDecode(args[0]), nil")
-				tp.emitLine("}, 0, -1)")
-				return
-			}
-			if tmpl == "tclFts3Record" {
-				// `db func record make_record_wrapper` — the wrapper calls
-				// make_fts3record $args: build an FTS3 segment record blob
-				// from the SQL function's arguments (fts4record.test).
-				tp.emitLine("%s.RegisterFunction(%q, func(args []interface{}) (interface{}, error) {", tp.dbVar, name)
-				tp.emitLine("\treturn tclFts3Record(args), nil")
-				tp.emitLine("}, 0, -1)")
-				return
-			}
-		}
-	}
-	// `db func swap_int32 swap_int32` / `db func set_int32 set_int32` —
-	// rtreecheck.test's blob surgery over %_node data blobs (big-endian u32
-	// word swap / overwrite). Real closures, not $data templates: both procs
-	// take exactly three arguments.
-	if procName == "swap_int32" && (name == procName || !strings.HasPrefix(name, "$")) {
-		tp.emitLine("%s.RegisterFunction(%q, func(args []interface{}) (interface{}, error) {", tp.dbVar, name)
-		tp.emitLine("\tb, err := tclSwapInt32Args(args, false)")
-		tp.emitLine("\tif err != nil { return nil, err }")
-		tp.emitLine("\treturn b, nil")
-		tp.emitLine("}, 3, 3)")
-		return
-	}
-	if procName == "set_int32" && (name == procName || !strings.HasPrefix(name, "$")) {
-		tp.emitLine("%s.RegisterFunction(%q, func(args []interface{}) (interface{}, error) {", tp.dbVar, name)
-		tp.emitLine("\tb, err := tclSwapInt32Args(args, true)")
-		tp.emitLine("\tif err != nil { return nil, err }")
-		tp.emitLine("\treturn b, nil")
-		tp.emitLine("}, 3, 3)")
-		return
-	}
-	// `db func $zip zip` — the name is a runtime variable (loop var holding
-	// "zip" or "z.i.p!!") and the proc is the fts3comp1 compression harness.
-	// Emit a stateful closure registered under the runtime variable value so
-	// FTS4 compress='<value>' finds it (fts3comp1 1.x: content table stores
-	// the integer keys returned by zip).
-	if strings.HasPrefix(name, "$") && tp.zipUnzipFunc(procName) {
-		if tp.specialFuncs != nil {
-			if tmpl, ok := tp.specialFuncs[procName]; ok {
-				tp.emitZipUnzipFunction(strings.TrimPrefix(name, "$"), procName, tmpl)
-				return
-			}
-		}
-	}
-	tp.emitDBVarFunc(rest)
-}
-
-// emitTclEvalCommandUDF emits the RegisterFunction for `db function tcl
-// eval` (tkt3992-2.3) — the SQL function `tcl` is backed by the TCL *eval*
-// built-in command: `tcl('set res', <value>)` concatenates its arguments
-// and evaluates "set res <value>", i.e. the scalar variable res receives
-// the second argument. The generated code only depends on that
-// `set VAR VALUE` shape; wire each pre-scanned variable (genTclEvalSetVars,
-// see scanTclEvalSetVars) into the closure. Returns true when emitted.
-func (tp *transpiler) emitTclEvalCommandUDF(name, procName string) bool {
-	if !strings.EqualFold(name, "tcl") || !strings.EqualFold(procName, "eval") || len(genTclEvalSetVars) == 0 {
-		return false
-	}
-	tp.emitLine("// db function tcl eval (TCL eval-command UDF: tcl('set VAR', value) sets VAR)")
-	tp.emitLine("%s.RegisterFunction(%q, func(args []interface{}) (interface{}, error) {", tp.dbVar, name)
-	tp.emitLine("\tif len(args) >= 2 {")
-	tp.emitLine("\t\tparts := make([]string, 0, len(args))")
-	tp.emitLine("\t\tfor _, a := range args { parts = append(parts, tclStr(a)) }")
-	tp.emitLine("\t\tf := strings.Fields(strings.Join(parts, \" \"))")
-	tp.emitLine("\t\tif len(f) == 3 && f[0] == \"set\" {")
-	tp.emitLine("\t\t\tswitch f[1] {")
-	for _, v := range genTclEvalSetVars {
-		tp.emitLine("\t\t\tcase %q:", v)
-		tp.emitLine("\t\t\t\t%s = f[2]", v)
-		tp.emitLine("\t\t\t\tvtab.TclVarSet(%q, \"\", f[2])", v)
-	}
-	tp.emitLine("\t\t\t}")
-	tp.emitLine("\t\t}")
-	tp.emitLine("\t}")
-	tp.emitLine("\treturn nil, nil")
-	tp.emitLine("}, 0, -1)")
-	return true
-}
-
-// procNameFromRest finds the TCL proc name in `db func NAME [-deterministic]
-// PROC` — the first non-flag argument (a braced word like {joinx cross}
-// contributes its first token). Value-taking flags (-argcount N,
-// -returntype T) consume their value; boolean flags (-deterministic,
-// -directonly, -innocuous) do not — `-deterministic myfunc` previously
-// swallowed the proc name and the registration degraded to a nil stub
-// (check-7.x).
-func procNameFromRest(rest []tcl.RawWord) string {
-	skipNext := false
-	for _, a := range rest[1:] {
-		arg := strings.TrimSpace(a.Text)
-		if arg == "" {
-			continue
-		}
-		if skipNext {
-			skipNext = false
-			continue
-		}
-		if strings.HasPrefix(arg, "-") {
-			flag := strings.ToLower(strings.TrimPrefix(arg, "-"))
-			switch flag {
-			case "deterministic", "directonly", "innocuous":
-				// Boolean flags: no value consumed.
-			default:
-				// Flags taking a separate value (-argcount 2, -returntype T)
-				// consume it; -flag=value forms carry it inline.
-				if !strings.Contains(arg, "=") {
-					skipNext = true
-				}
-			}
-			continue
-		}
-		fields := strings.Fields(arg)
-		if len(fields) == 0 {
-			continue
-		}
-		return fields[0]
-	}
-	return ""
-}
-
-// emitMiscRecurseSQLUDF detects the tkt3718.test proc body shapes (f1/f2)
-// and the filefmt.test a_string shape, and emits an equivalent
-// RegisterFunction:
-//
-//	f2: {set a [lindex $args 0]; if {$a == "three"} { error "Three!!" };
-//	    return $a}  →  identity UDF with "three" → error("Three!!")
-//	f1: {set a [lindex $args 0]; catch { db eval {SELECT f2($a)} } msg;
-//	    set msg}     →  recurse-and-return UDF (DB->Query SELECT f2($a),
-//	                     return first row cell or error message)
-//
-// Returns true when a recognized body matched and an emission was emitted.
-func (tp *transpiler) emitMiscRecurseSQLUDF(name, procName string) bool {
-	if tp.procBodies == nil {
-		return false
-	}
-	body, ok := tp.procBodies[procName]
-	if !ok {
-		return false
-	}
-	body = strings.TrimSpace(body)
-	// Strip the outer braces if present.
-	if strings.HasPrefix(body, "{") && strings.HasSuffix(body, "}") {
-		body = strings.TrimSpace(body[1 : len(body)-1])
-	}
-	// Generic literal-SQL db-eval proc: the body is exactly
-	// `catch {db eval {SQL}}` or `db eval {SQL}` with a literal SQL string
-	// (no $vars, single statement). The UDF executes the SQL on the same
-	// connection re-entrantly: TCL's catch swallows the error
-	// (tkt-f777251dc7a's force_rollback: INSERT OR ROLLBACK mid-statement
-	// aborts the enclosing statement with "abort due to ROLLBACK"), while
-	// the bare form propagates it (tkt-f777251dc7a's ins: INSERT INTO t3
-	// from a SELECT scan).
-	if sqlText, swallow, ok := literalDBEvalProcBody(body); ok {
-		tp.emitLine("// db func %s %s (literal-SQL db-eval UDF%s)", name, procName, map[bool]string{true: ", catch form", false: ""}[swallow])
-		tp.emitLine("%s.RegisterFunction(%q, func(args []interface{}) (interface{}, error) {", tp.dbVar, name)
-		if swallow {
-			tp.emitLine("\t%s.Exec(%q)", tp.dbVar, sqlText)
-		} else {
-			tp.emitLine("\tif r := %s.Exec(%q); r.Error != nil { return nil, r.Error }", tp.dbVar, sqlText)
-		}
-		tp.emitLine("\treturn nil, nil")
-		tp.emitLine("}, 0, -1)")
-		return true
-	}
-	// f2 shape: ... if {$a == "three"} { error "Three!!" } ... return $a
-	if strings.EqualFold(name, "f2") && strings.EqualFold(procName, "f2") &&
-		strings.Contains(body, `error "Three!!"`) && strings.Contains(body, "return $a") {
-		tp.emitLine("// db func f2 f2 (tkt3718 — identity with 'three' → error(\"Three!!\"))")
-		tp.emitLine("%s.RegisterFunction(%q, func(args []interface{}) (interface{}, error) {", tp.dbVar, name)
-		tp.emitLine("\tif len(args) < 1 || args[0] == nil { return nil, nil }")
-		tp.emitLine("\ta := function.ValueText(args[0])")
-		tp.emitLine("\tif a == \"three\" { return nil, fmt.Errorf(\"Three!!\") }")
-		tp.emitLine("\treturn a, nil")
-		tp.emitLine("}, 1, 1)")
-		return true
-	}
-	// f1 shape: ... catch { db eval {SELECT f2($a)} } msg; set msg
-	if strings.EqualFold(name, "f1") && strings.EqualFold(procName, "f1") &&
-		strings.Contains(body, "SELECT f2(") && strings.Contains(body, "catch") &&
-		strings.Contains(body, "db eval") {
-		tp.emitLine("// db func f1 f1 (tkt3718 — recursive db eval SELECT f2($a), returns row cell or error msg)")
-		tp.emitLine("%s.RegisterFunction(%q, func(args []interface{}) (interface{}, error) {", tp.dbVar, name)
-		tp.emitLine("\tif len(args) < 1 || args[0] == nil { return nil, nil }")
-		tp.emitLine("\ta := function.ValueText(args[0])")
-		tp.emitLine("\tq := fmt.Sprintf(\"SELECT f2(%%s)\", sqlLiteral(a))")
-		tp.emitLine("\tr := db.Query(q)")
-		tp.emitLine("\tif r.Error != nil { return r.Error.Error(), nil }")
-		tp.emitLine("\tif len(r.Rows) == 0 || len(r.Rows[0]) == 0 { return nil, nil }")
-		tp.emitLine("\treturn r.Rows[0][0], nil")
-		tp.emitLine("}, 1, 1)")
-		return true
-	}
-	// a_string shape (filefmt.test): {incr ::a_string_counter; string range
-	// [string repeat "${::a_string_counter}." $n] 1 $n} → counter-suffixed
-	// string of length n (tclAString implements the counter + repeat/range).
-	if strings.EqualFold(procName, "a_string") &&
-		strings.Contains(body, "a_string_counter") && strings.Contains(body, "string repeat") {
-		tp.emitLine("// db func a_string a_string (filefmt — counter-suffixed string)")
-		tp.emitLine("%s.RegisterFunction(%q, func(args []interface{}) (interface{}, error) {", tp.dbVar, name)
-		tp.emitLine("\tif len(args) < 1 || args[0] == nil { return \"\", nil }")
-		tp.emitLine("\tn := tclToInt(tclStr(args[0]))")
-		tp.emitLine("\treturn tclAString(&a_string_counter, n), nil")
-		tp.emitLine("}, 1, 1)")
-		return true
-	}
-	return false
-}
-
-// emitFormatFunction recognizes `proc NAME {v} { format FMT $v }` — a
-// single printf-style format command over one integer argument (rollback2's
-// int2hex: format %.2X $i) — and emits the equivalent Go closure.
-func (tp *transpiler) emitFormatFunction(name, procName string) bool {
-	if tp.procBodies == nil || name == "" || procName == "" {
-		return false
-	}
-	body, ok := tp.procBodies[procName]
-	if !ok {
-		return false
-	}
-	body = strings.TrimSpace(body)
-	if strings.HasPrefix(body, "{") && strings.HasSuffix(body, "}") {
-		body = strings.TrimSpace(body[1 : len(body)-1])
-	}
-	fields := strings.Fields(body)
-	if len(fields) != 3 || !strings.EqualFold(fields[0], "format") || !strings.HasPrefix(fields[2], "$") {
-		return false
-	}
-	verb := fields[1]
-	switch verb {
-	case "%.2X", "%02X", "%X", "%x", "%d", "%o":
-	default:
-		return false
-	}
-	tp.emitLine("// db func %s %s (format %s)", name, procName, verb)
-	tp.emitLine("%s.RegisterFunction(%q, func(args []interface{}) (interface{}, error) {", tp.dbVar, name)
-	tp.emitLine("\tif len(args) < 1 || args[0] == nil { return nil, nil }")
-	tp.emitLine("\tn, err := strconv.ParseInt(strings.TrimSpace(tclStr(args[0])), 0, 64)")
-	tp.emitLine("\tif err != nil { return nil, err }")
-	tp.emitLine("\treturn fmt.Sprintf(%q, n), nil", verb)
-	tp.emitLine("}, 1, 1)")
-	return true
-}
-
-// emitRegisteredFunction emits a RegisterFunction call for a recognized
-// test-suite proc pattern. Returns true when a pattern matched.
-func (tp *transpiler) emitRegisteredFunction(name, procName string, rest []tcl.RawWord) bool {
-	// Recorder proc: `proc trigfunc {args} { set ::TRIGGER $args }` becomes a
-	// scalar SQL function replacing the Go variable with the TCL rendering of
-	// its arguments (alter.test alter-3.1.x/3.3.x trigger probes).
-	if tp.emitRecorderFunctionIfMatched(name, procName) {
-		return true
-	}
-	if tp.emitSleeperFunction(name, procName) {
-		return true
-	}
-	if tp.emitConstFunction(name, procName) {
-		return true
-	}
-	if tp.emitStringConstFunction(name, procName) {
-		return true
-	}
-	if tp.emitStringMapFunction(name, procName) {
-		return true
-	}
-	if tp.emitIdentityFunction(name, procName, rest) {
-		return true
-	}
-	if tp.emitLIndexFunction(name, procName) {
-		return true
-	}
-	if tp.emitIncrRetFunction(name, procName, rest) {
-		return true
-	}
-	if tp.emitCounterFunction(name, procName) {
-		return true
-	}
-	// db func int2str int2str — the test-harness int2str builds a
-	// 900-char deterministic string from its integer argument.
-	if procName == "int2str" && name != "" {
-		tp.emitInt2strFunction(name)
-		return true
-	}
-	// db func NAME {joinx PREFIX} — the join proc is called with a
-	// literal prefix plus the SQL arguments (func8.test's cross/full/
-	// inner/... functions): cross(a,b,c) → "cross-a-b-c".
-	if tp.emitJoinFunction(name, procName, rest) {
-		return true
-	}
-	// db func my_changes my_changes — the e_changes.test harness proc:
-	// `proc my_changes {x} { set res [db changes]; lappend ::changes $x
-	// $res; return $res }`. The SQL function returns the connection's
-	// changes() count and records the (arg, count) pair in the ::changes
-	// TCL global (verified by do_test 5.1.2).
-	if procName == "my_changes" && name != "" {
-		tp.emitMyChangesFunction(name)
-		return true
-	}
-	// db func NAME NAME — a prefix proc (window6.test's winproc):
-	// window('hello world') → "window: hello world".
-	if tp.emitPrefixFunction(name, procName) {
-		return true
-	}
-	// Predicate proc: `proc myfunc {x} {expr $x < 10}` becomes a
-	// scalar SQL function applying the comparison to its first
-	// argument (numeric).
-	if tp.emitPredFunction(name, procName) {
-		return true
-	}
-	// Format proc: `proc int2hex {i} { format %.2X $i }` (rollback2)
-	// becomes a scalar SQL function applying the printf verb to its
-	// integer argument.
-	if tp.emitFormatFunction(name, procName) {
-		return true
-	}
-	// Error-raising proc: `proc NAME {} { error "MSG" }` becomes a
-	// scalar SQL function that returns the error (regexp2.test's
-	// `proc sql_error {} { error "SQL error!" }` registered as
-	// `db func error sql_error`).
-	if msg, ok := tp.errorFuncs[procName]; ok && name != "" {
-		tp.emitErrorFunction(name, msg)
-		return true
-	}
-	return false
-}
-
-// emitSleeperFunction registers the sleeper proc (`proc sleeper {} {after
-// 100}`), which pauses 100ms and returns NULL. It is used by date.test to
-// verify that 'now' is cached per statement across a user-function sleep.
-func (tp *transpiler) emitSleeperFunction(name, procName string) bool {
-	if procName != "sleeper" || name == "" {
-		return false
-	}
-	tp.emitLine("%s.RegisterFunction(%q, func(args []interface{}) (interface{}, error) { time.Sleep(100 * time.Millisecond); return nil, nil }, 0, -1)", tp.dbVar, name)
-	return true
-}
-
-// emitMyChangesFunction registers the e_changes.test my_changes harness
-// function: `proc my_changes {x} { set res [db changes]; lappend ::changes $x
-// $res; return $res }`. The SQL function returns the connection's changes()
-// count and appends "(arg, count)" to the ::changes TCL-global variable
-// (verified by do_test 5.1.2). The Go variable for ::changes is `changes`.
-func (tp *transpiler) emitMyChangesFunction(name string) {
-	tp.emitLine("// db func %s: my_changes (returns db changes, logs to ::changes)", name)
-	tp.emitLine("%s.RegisterFunction(%q, func(args []interface{}) (interface{}, error) {", tp.dbVar, name)
-	tp.emitLine("\tv := db.Changes()")
-	tp.emitLine("\targ := \"\"")
-	tp.emitLine("\tif len(args) > 0 { arg = tclStr(args[0]) }")
-	tp.emitLine("\tchanges = tclListAppend(changes, arg, strconv.FormatInt(v, 10))")
-	tp.emitLine("\treturn v, nil")
-	tp.emitLine("}, 0, -1)")
-}
-
-// emitConstFunction registers a constant-returning proc as a scalar SQL
-// function returning the constant.
-func (tp *transpiler) emitConstFunction(name, procName string) bool {
-	constVal, ok := tp.constFuncs[procName]
-	if !ok || name == "" {
-		return false
-	}
-	tp.emitLine("%s.RegisterFunction(%q, func(args []interface{}) (interface{}, error) { return int64(%s), nil }, 0, -1)", tp.dbVar, name, constVal)
-	return true
-}
-
-// emitStringConstFunction registers a fixed-string-returning proc
-// (`proc target {} { return "test.db2" }` — vacuum-into-410's VACUUM INTO
-// target() filename) as a scalar SQL function returning the constant. The
-// proc body is resolved by the pre-pass (collectStringConstFuncs), so the
-// registration may appear BEFORE the proc definition in the test file.
-func (tp *transpiler) emitStringConstFunction(name, procName string) bool {
-	constVal, ok := tp.stringConstFuncs[procName]
-	if !ok || name == "" {
-		return false
-	}
-	tp.emitLine("%s.RegisterFunction(%q, func(args []interface{}) (interface{}, error) { return %q, nil }, 0, -1)", tp.dbVar, name, constVal)
-	return true
-}
-
-// emitIdentityFunction registers an identity proc (`proc NAME {x} {return
-// $x}`) as a scalar SQL function returning its first argument. It honors the
-// SQLite function-safety flags in `db function NAME [-innocuous]
-// [-directonly] [-deterministic] PROC` by emitting RegisterFunctionFlags
-// (trustschema1's f1/f2/f3).
-func (tp *transpiler) emitIdentityFunction(name, procName string, rest []tcl.RawWord) bool {
-	if !tp.identityFuncs[procName] || name == "" {
-		return false
-	}
-	innocuous, directOnly := dbFunctionSafetyFlags(rest)
-	flags := "false, false"
-	if innocuous && !directOnly {
-		flags = "true, false"
-	} else if directOnly {
-		flags = "false, true"
-	}
-	tp.emitLine("%s.RegisterFunctionFlags(%q, func(args []interface{}) (interface{}, error) {", tp.dbVar, name)
-	tp.emitLine("\tif len(args) < 1 || args[0] == nil { return nil, nil }")
-	tp.emitLine("\treturn args[0], nil")
-	tp.emitLine("}, 0, -1, %s)", flags)
-	return true
-}
-
-// dbFunctionSafetyFlags extracts the SQLite function-safety flags from a
-// `db function NAME [flags] PROC` argument list: -innocuous and -directonly
-// (SQLITE_INNOCUOUS / SQLITE_DIRECTONLY).
-func dbFunctionSafetyFlags(rest []tcl.RawWord) (innocuous, directOnly bool) {
-	for _, a := range rest[1:] {
-		switch strings.ToLower(strings.TrimSpace(a.Text)) {
-		case "-innocuous":
-			innocuous = true
-		case "-directonly":
-			directOnly = true
-		}
-	}
-	return innocuous, directOnly
-}
-
-// emitLIndexFunction registers a list-index proc (`proc NAME {x} { lindex $x
-// N }`) as a scalar SQL function returning the N-th element of its first
-// argument split as a TCL list (fts4growth.test's second: "0 114" → "114").
-func (tp *transpiler) emitLIndexFunction(name, procName string) bool {
-	idx, ok := tp.lindexFuncs[procName]
-	if !ok || name == "" {
-		return false
-	}
-	tp.emitLine("%s.RegisterFunction(%q, func(args []interface{}) (interface{}, error) {", tp.dbVar, name)
-	tp.emitLine("\tif len(args) < 1 || args[0] == nil { return nil, nil }")
-	tp.emitLine("\treturn tclLIndex(tclStr(args[0]), %d), nil", idx)
-	tp.emitLine("}, 0, -1)")
-	return true
-}
-
-// emitStringMapFunction registers a string-map proc (`proc NAME {x} {
-// return [string map {OLD NEW ...} $x] }`) as a scalar SQL function that
-// applies each OLD→NEW replacement in order (fts4intck1.test's slang:
-// th→d, e→eh makes 'the' → 'deh'). TCL string map applies left-to-right on
-// the current value, so chained strings.ReplaceAll is faithful.
-func (tp *transpiler) emitStringMapFunction(name, procName string) bool {
-	pairs, ok := tp.stringMapFuncs[procName]
-	if !ok || name == "" {
-		return false
-	}
-	items := tclCmdWords(pairs)
-	if len(items) < 2 || len(items)%2 != 0 {
-		return false
-	}
-	tp.emitLine("%s.RegisterFunction(%q, func(args []interface{}) (interface{}, error) {", tp.dbVar, name)
-	tp.emitLine("\tif len(args) < 1 || args[0] == nil { return nil, nil }")
-	tp.emitLine("\ts := tclStr(args[0])")
-	for i := 0; i+1 < len(items); i += 2 {
-		tp.emitLine("\ts = strings.ReplaceAll(s, %q, %q)", items[i], items[i+1])
-	}
-	tp.emitLine("\treturn s, nil")
-	tp.emitLine("}, 0, -1)")
-	return true
-}
-
-// emitCounterFunction registers a counter proc as a scalar SQL function that
-// increments a dedicated Go counter var.
-func (tp *transpiler) emitCounterFunction(name, procName string) bool {
-	goVar, ok := tp.counterFuncs[procName]
-	if !ok || name == "" {
-		return false
-	}
-	counterVar := goVar + "Counter"
-	tp.emitLine("var %s int64", counterVar)
-	tp.emitLine("%s.RegisterFunction(%q, func(args []interface{}) (interface{}, error) { %s++; return %s, nil }, 0, -1)", tp.dbVar, name, counterVar, counterVar)
-	return true
-}
-
-// emitJoinFunction registers a join proc called with a literal prefix plus
-// the SQL arguments (func8.test's cross/full/inner/... functions).
-func (tp *transpiler) emitJoinFunction(name, procName string, rest []tcl.RawWord) bool {
-	sep, ok := tp.joinFuncs[procName]
-	if !ok || name == "" {
-		return false
-	}
-	prefix := joinPrefixFromRest(rest, procName)
-	tp.emitLine("%s.RegisterFunction(%q, func(args []interface{}) (interface{}, error) {", tp.dbVar, name)
-	tp.emitLine("\tvar parts []string")
-	tp.emitLine("\tparts = append(parts, %q)", prefix)
-	tp.emitLine("\tfor _, a := range args { if a != nil { parts = append(parts, tclStr(a)) } }")
-	tp.emitLine("\treturn strings.Join(parts, %q), nil", sep)
-	tp.emitLine("}, 0, -1)")
-	return true
-}
-
-// emitPrefixFunction registers a prefix proc as a scalar SQL function that
-// joins its args with a space and prepends the fixed prefix (window6.test's
-// winproc: window('hello world') → "window: hello world").
-func (tp *transpiler) emitPrefixFunction(name, procName string) bool {
-	prefix, ok := tp.prefixFuncs[procName]
-	if !ok || name == "" {
-		return false
-	}
-	tp.emitLine("%s.RegisterFunction(%q, func(args []interface{}) (interface{}, error) {", tp.dbVar, name)
-	tp.emitLine("\tvar parts []string")
-	tp.emitLine("\tfor _, a := range args { if a != nil { parts = append(parts, tclStr(a)) } }")
-	tp.emitLine("\treturn %q + strings.Join(parts, \" \"), nil", prefix)
-	tp.emitLine("}, 0, -1)")
-	return true
-}
-
-// emitPredFunction registers a predicate proc as a scalar SQL function
-// applying the comparison to its first argument (numeric).
-func (tp *transpiler) emitPredFunction(name, procName string) bool {
-	pred, ok := tp.predFuncs[procName]
-	if !ok || name == "" {
-		return false
-	}
-	tp.emitLine("%s.RegisterFunction(%q, func(args []interface{}) (interface{}, error) {", tp.dbVar, name)
-	tp.emitLine("\tif len(args) < 1 || args[0] == nil { return nil, nil }")
-	tp.emitLine("\targ, _ := strconv.ParseFloat(tclStr(args[0]), 64)")
-	tp.emitLine("\tif %s { return int64(1), nil }", pred)
-	tp.emitLine("\treturn int64(0), nil")
-	tp.emitLine("}, 0, -1)")
-	return true
-}
-
-// emitInt2strFunction registers the test-harness int2str scalar function.
-func (tp *transpiler) emitInt2strFunction(name string) {
-	tp.emitLine("%s.RegisterFunction(\"int2str\", func(args []interface{}) (interface{}, error) {", tp.dbVar)
-	tp.emitLine("\tif len(args) < 1 || args[0] == nil { return nil, nil }")
-	tp.emitLine("\treturn tclInt2str(args[0]), nil")
-	tp.emitLine("}, 0, -1)")
-}
-
-// emitErrorFunction registers an error-raising scalar SQL function.
-func (tp *transpiler) emitErrorFunction(name, msg string) {
-	tp.emitLine("%s.RegisterFunction(%q, func(args []interface{}) (interface{}, error) {", tp.dbVar, name)
-	tp.emitLine("\treturn nil, fmt.Errorf(%q)", msg)
-	tp.emitLine("}, 0, -1)")
-}
-
-// joinPrefixFromRest extracts the literal prefix from a braced registration
-// word like `{joinx cross}` (the second token when the first is the proc
-// name).
-
-// emitDBEvalArrayRows handles `db eval SQL ARRAYVAR {BODY}`: each result row
-// binds ARRAYVAR(column) to the row's cell values, then BODY runs — once per
-// row (fts3sort.test's per-row array capture).
-func (tp *transpiler) emitDBEvalArrayRows(arrName string, rest []tcl.RawWord) {
-	sqlExpr := tp.collectSQLExpression(rest[:1])
-	if sqlExpr == `""` {
-		return
-	}
-	bodyText := strings.TrimSpace(rest[2].Text)
-	bodyText = strings.TrimSuffix(strings.TrimPrefix(bodyText, "{"), "}")
-
-	// Collect the ARRAY(key) references the body reads so per-row scalar
-	// bindings can be pre-declared.
-	keyRe := regexp.MustCompile(`\$` + regexp.QuoteMeta(arrName) + `\(([A-Za-z0-9_]+)\)`)
-	var keys []string
-	seen := map[string]bool{}
-	for _, m := range keyRe.FindAllStringSubmatch(bodyText, -1) {
-		if !seen[m[1]] {
-			seen[m[1]] = true
-			keys = append(keys, m[1])
-		}
-	}
-
-	arrStar := tclVarToGo(arrName + "(*)")
-	if !tp.isVarDeclared(arrStar) {
-		tp.emitLine("var %s string", arrStar)
-		tp.vars = append(tp.vars, arrStar)
-		tp.emitLine("_ = %s // suppress unused warning", arrStar)
-	}
-	for _, k := range keys {
-		kv := tclVarToGo(arrName + "(" + k + ")")
-		if tp.isVarDeclared(kv) || !isValidGoIdent(kv) {
-			continue
-		}
-		tp.emitLine("var %s string", kv)
-		tp.vars = append(tp.vars, kv)
-		tp.emitLine("_ = %s // suppress unused warning", kv)
-	}
-
-	rowsVar := fmt.Sprintf("_dbevalRows%d", tp.varCount)
-	tp.varCount++
-	flatVar := fmt.Sprintf("_%sFlat%d", arrName, tp.varCount)
-	tp.varCount++
-	if tp.rowFlatVars == nil {
-		tp.rowFlatVars = make(map[string]string)
-	}
-	tp.rowFlatVars[arrName] = flatVar
-	defer func() { delete(tp.rowFlatVars, arrName) }()
-	tp.emitLine("%s := db.Query(%s)", rowsVar, sqlExpr)
-	tp.emitLine("if %s.Error == nil {", rowsVar)
-	tp.indent++
-	// Active-read wrapper: the scanned SELECT is a RUN-state VM for the whole
-	// callback loop upstream (db->nVdbeRead) — DDL in the body hits the
-	// OP_Destroy interlock.
-	tp.emitLine("db.BeginActiveStatement()")
-	arrStarAssign := tclVarToGo(arrName + "(*)")
-	tp.emitLine("%s = strings.Join(%s.Columns, \" \")", arrStarAssign, rowsVar)
-	// TCL's db eval sets A(*) to the column list; sync the tclvar registry
-	// so a later `set A(*)` reads it even when the read goes through the
-	// registry store (with1-17.2).
-	tp.emitLine("vtab.TclVarSet(%q, \"*\", %s)", arrName, arrStarAssign)
-	tp.emitLine("for _ri := 0; _ri < len(%s.Rows); _ri++ {", rowsVar)
-	tp.indent++
-	tp.emitLine("%s := tclRowFlatPairs(%s.Columns, %s.Rows[_ri])", flatVar, rowsVar, rowsVar)
-	tp.emitLine("_ = %s", flatVar)
-	tp.emitLine("for _ci := 0; _ci < len(%s.Columns); _ci++ {", rowsVar)
-	tp.indent++
-	tp.emitLine("switch %s.Columns[_ci] {", rowsVar)
-	tp.indent++
-	for _, k := range keys {
-		kv := tclVarToGo(arrName + "(" + k + ")")
-		if !isValidGoIdent(kv) {
-			continue
-		}
-		tp.emitLine("case %q:", k)
-		tp.indent++
-		tp.emitLine("%s = tclStr(%s.Rows[_ri][_ci])", kv, rowsVar)
-		tp.indent--
-	}
-	tp.indent--
-	tp.emitLine("}")
-	tp.indent--
-	tp.emitLine("}")
-	bodyTP := &transpiler{
-		sb:           tp.sb,
-		indent:       tp.indent,
-		dbVar:        tp.dbVar,
-		t:            tp.t,
-		varCount:     tp.varCount,
-		vars:         tp.vars,
-		arrayKeys:    tp.arrayKeys,
-		arrayMapVars: tp.arrayMapVars,
-		forIncrs:     tp.forIncrs,
-		testPrefix:   tp.testPrefix,
-		queryVars:    tp.queryVars,
-		queryFuncs:   tp.queryFuncs,
-		specialFuncs: tp.specialFuncs, procStringMaps: tp.procStringMaps,
-		collateGoFuncs:      tp.collateGoFuncs,
-		collateEmittedProcs: tp.collateEmittedProcs,
-		procBodies:          tp.procBodies,
-		preparedState:       tp.preparedState,
-		varConstValues:      tp.varConstValues,
-		sqlVarValues:        tp.sqlVarValues,
-		foreachLitValues:    tp.foreachLitValues,
-		rowFlatVars:         tp.rowFlatVars,
-	}
-	bodyTP.processCommands(parseCommands(bodyText))
-	tp.varCount = bodyTP.varCount
-	tp.indent = bodyTP.indent
-	tp.indent--
-	tp.emitLine("}")
-	tp.emitLine("db.EndActiveStatement()")
-	tp.indent--
-	tp.emitLine("}")
-}
-
-// emitIncrRetFunction registers `db func OP -argcount N PROC` where PROC's
-// body is `incr ::VAR [AMOUNT]; return RET`: the closure increments the Go
-// variable mirroring ::VAR and returns RET, so harness counters observe one
-// invocation per TRUE operator evaluation (vtabH 2.x).
-func (tp *transpiler) emitIncrRetFunction(name, procName string, rest []tcl.RawWord) bool {
-	info, ok := tp.incrRetFuncs[procName]
-	if !ok || name == "" {
-		return false
-	}
-	arityLo, arityHi := 0, -1
-	if n, has := dbFuncArgCount(rest); has {
-		arityLo, arityHi = n, n
-	}
-	tp.emitLine("%s.RegisterFunction(%q, func(args []interface{}) (interface{}, error) {", tp.dbVar, name)
-	tp.emitLine("\tif n, err := strconv.Atoi(%s); err == nil { %s = strconv.Itoa(n + %d) }", info.GoVar, info.GoVar, info.Amount)
-	tp.emitLine("\treturn int64(%d), nil", info.Ret)
-	tp.emitLine("}, %d, %d)", arityLo, arityHi)
-	return true
-}
-
-// emitRecorderFunctionIfMatched emits the recorder closure when procName is
-// a recognized `proc P {args} { set ::V $args }` kind. Returns false when not
-// a match (the caller keeps scanning other kinds).
-func (tp *transpiler) emitRecorderFunctionIfMatched(name, procName string) bool {
-	goVar, ok := tp.recorderFuncs[procName]
-	if !ok || name == "" {
-		return false
-	}
-	tp.emitRecorderFunction(name, goVar)
-	return true
-}
-
-// emitRecorderFunction emits a scalar SQL function that replaces the named
-// Go variable with the TCL list rendering of its arguments on every call
-// (`proc trigfunc {args} { set ::TRIGGER $args }`, alter.test).
-func (tp *transpiler) emitRecorderFunction(name, goVar string) {
-	tp.emitLine("// db function %s: replaces %s with the TCL rendering of its args", name, goVar)
-	tp.emitLine("%s.RegisterFunction(%q, func(args []interface{}) (interface{}, error) {", tp.dbVar, name)
-	tp.emitLine("\tparts := make([]string, 0, len(args))")
-	tp.emitLine("\tfor _, a := range args {")
-	tp.emitLine("\t\tparts = append(parts, tclListElem(tclStr(a)))")
-	tp.emitLine("\t}")
-	tp.emitLine("\t%s = tclList(parts)", goVar)
-	tp.emitLine("\treturn nil, nil")
-	tp.emitLine("}, 0, -1)")
-}
-
 // recoverProcNames are TCL proc names whose hardcoded in-process handlers
 // take precedence over file-local proc bodies (see processCommand).
 var recoverProcNames = map[string]bool{
@@ -1648,147 +410,4 @@ var recoverProcNames = map[string]bool{
 // precedence rule as recoverProcNames).
 var sideEffectOnlyProcs = map[string]bool{
 	"execsqlS": true,
-}
-
-// stripOneBraced strips one balanced {...} layer from the start of s and
-// returns the content. A proc body stored via raw word text can be missing
-// its final closing brace (lexer artifact on nested braced words —
-// tkt-f777251dc7a's `catch {db eval {...}}` stored with one trailing "}"),
-// so a single unclosed open brace is tolerated as the word's terminator.
-func stripOneBraced(s string) (string, bool) {
-	if len(s) == 0 || s[0] != '{' {
-		return "", false
-	}
-	depth := 0
-	for i := 0; i < len(s); i++ {
-		switch s[i] {
-		case '{':
-			depth++
-		case '}':
-			depth--
-			if depth == 0 {
-				return s[1:i], true
-			}
-		}
-	}
-	if depth == 1 {
-		return s[1:], true
-	}
-	return "", false
-}
-
-// literalDBEvalProcBody recognizes a TCL proc body whose entire content is a
-// single `db eval {SQL}` command, optionally wrapped in `catch {...}`, where
-// SQL is a literal script (no variable references). It returns the SQL text,
-// whether the call was error-swallowing (catch), and whether the body matched.
-func literalDBEvalProcBody(body string) (sqlText string, swallow bool, ok bool) {
-	body = strings.TrimSpace(body)
-	if body == "catch" || strings.HasPrefix(body, "catch ") {
-		swallow = true
-		inner, ok2 := stripOneBraced(strings.TrimSpace(body[len("catch"):]))
-		if !ok2 {
-			return "", false, false
-		}
-		body = strings.TrimSpace(inner)
-	}
-	if !strings.HasPrefix(strings.ToLower(body), "db eval ") {
-		return "", false, false
-	}
-	rest := strings.TrimSpace(body[len("db eval "):])
-	inner, ok2 := stripOneBraced(rest)
-	if !ok2 {
-		return "", false, false
-	}
-	sqlText = strings.TrimSpace(inner)
-	if sqlText == "" || strings.Contains(sqlText, "$") {
-		return "", false, false
-	}
-	return sqlText, swallow, true
-}
-
-// emitTclVarUDFFromProc registers a scalar SQL function backed by a TCL proc
-// whose body accumulates into a global variable. Three corpus shapes are
-// recognized (everything else returns false and keeps the stub registration):
-//
-//   - selectH.test: proc P {amt} { global V; incr V $amt; return $V }
-//     -> UDF adds the (integer) argument to V and returns the new value.
-//   - subquery.test: proc P {n} { incr ::V; return $n }
-//     -> UDF adds 1 to V and returns its argument.
-//   - wherelimit2.test: proc P {args} { lappend ::V {*}$args }
-//     -> UDF space-appends every argument to V (TCL list accumulation).
-//
-// The closure mutates the generated Go variable the assertions read back, so
-// the side effect is observable exactly like the TCL global.
-func (tp *transpiler) emitTclVarUDFFromProc(name, procName string) bool {
-	body := tp.procBodies[procName]
-	if body == "" {
-		return false
-	}
-	// Shape C: lappend ::V {*}$args
-	if m := tclVarUDFLappendRe.FindStringSubmatch(body); m != nil {
-		goVar := tclVarToGo(m[1])
-		tp.emitTclVarUDF(name, goVar, m[1], "lappend")
-		return true
-	}
-	// Shape A: global V ... incr V $amt ... return $V
-	if m := tclVarUDFGlobalIncrRe.FindStringSubmatch(body); m != nil &&
-		m[1] == m[2] && m[4] == m[1] {
-		goVar := tclVarToGo(m[1])
-		tp.emitTclVarUDF(name, goVar, m[1], "incrReturnNew")
-		return true
-	}
-	// Shape B: incr ::V ... return $n
-	if m := tclVarUDFIncrReturnArgRe.FindStringSubmatch(body); m != nil {
-		goVar := tclVarToGo(m[1])
-		tp.emitTclVarUDF(name, goVar, m[1], "incrReturnArg")
-		return true
-	}
-	return false
-}
-
-// tclVarUDF body-shape patterns (compiled once; bodies are tiny TCL scripts).
-var (
-	tclVarUDFLappendRe       = regexp.MustCompile(`lappend\s+::?([A-Za-z_][A-Za-z0-9_]*)\s+\{\*\}\$args`)
-	tclVarUDFGlobalIncrRe    = regexp.MustCompile(`global\s+([A-Za-z_][A-Za-z0-9_]*)[\s;]+incr\s+([A-Za-z_][A-Za-z0-9_]*)\s+\$([A-Za-z_][A-Za-z0-9_]*)[\s;]+return\s+\$([A-Za-z_][A-Za-z0-9_]*)`)
-	tclVarUDFIncrReturnArgRe = regexp.MustCompile(`incr\s+::?([A-Za-z_][A-Za-z0-9_]*)[\s;]*return\s+\$([A-Za-z_][A-Za-z0-9_]*)`)
-)
-
-// emitTclVarUDF writes the RegisterFunction emission for the three
-// variable-accumulating proc shapes recognized by emitTclVarUDFFromProc.
-func (tp *transpiler) emitTclVarUDF(name, goVar, tclVar, shape string) {
-	if !tp.isVarDeclared(goVar) {
-		tp.emitLine("var %s = \"0\"", goVar)
-		tp.vars = append(tp.vars, goVar)
-	}
-	tp.emitLine("// db func %s %s (TCL proc accumulating ::%s)", name, name, tclVar)
-	tp.emitLine("%s.RegisterFunction(%q, func(args []interface{}) (interface{}, error) {", tp.dbVar, name)
-	switch shape {
-	case "lappend":
-		tp.emitLine("\tparts := []string{}")
-		tp.emitLine("\tif %s != \"\" { parts = append(parts, %s) }", goVar, goVar)
-		tp.emitLine("\tfor _, a := range args { parts = append(parts, function.ValueText(a)) }")
-		tp.emitLine("\t%s = strings.Join(parts, \" \")", goVar)
-		tp.emitLine("\tvtab.TclVarSet(%q, \"\", %s)", tclVar, goVar)
-		tp.emitLine("\treturn %s, nil", goVar)
-	case "incrReturnNew":
-		tp.emitLine("\tcur := int64(0)")
-		tp.emitLine("\tif n, err := strconv.ParseInt(strings.TrimSpace(%s), 10, 64); err == nil { cur = n }", goVar)
-		tp.emitLine("\tamt := int64(1)")
-		tp.emitLine("\tif len(args) > 0 {")
-		tp.emitLine("\t\tif n, err := strconv.ParseInt(function.ValueText(args[0]), 10, 64); err == nil { amt = n }")
-		tp.emitLine("\t}")
-		tp.emitLine("\tcur += amt")
-		tp.emitLine("\t%s = strconv.FormatInt(cur, 10)", goVar)
-		tp.emitLine("\tvtab.TclVarSet(%q, \"\", %s)", tclVar, goVar)
-		tp.emitLine("\treturn cur, nil")
-	default: // incrReturnArg
-		tp.emitLine("\tcur := int64(0)")
-		tp.emitLine("\tif n, err := strconv.ParseInt(strings.TrimSpace(%s), 10, 64); err == nil { cur = n }", goVar)
-		tp.emitLine("\tcur++")
-		tp.emitLine("\t%s = strconv.FormatInt(cur, 10)", goVar)
-		tp.emitLine("\tvtab.TclVarSet(%q, \"\", %s)", tclVar, goVar)
-		tp.emitLine("\tif len(args) > 0 { return function.ValueText(args[0]), nil }")
-		tp.emitLine("\treturn nil, nil")
-	}
-	tp.emitLine("}, 0, -1)")
 }

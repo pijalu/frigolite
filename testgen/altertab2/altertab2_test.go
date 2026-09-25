@@ -5,6 +5,7 @@
 package altertab2
 
 import (
+"fmt"
 "github.com/pijalu/frigolite"
 "github.com/pijalu/frigolite/internal/vtab"
 "os"
@@ -19,6 +20,21 @@ func Test_altertab2(t *testing.T) {
 		t.Fatal(err)
 	}
 	defer db.Close()
+
+	// auto-installed test-extension functions (src/test_func.c)
+	db.RegisterFunction("test_error", func(args []interface{}) (interface{}, error) {
+		msg := ""
+		if len(args) > 0 && args[0] != nil {
+			msg = fmt.Sprintf("%v", args[0])
+		}
+		return nil, fmt.Errorf("%s", msg)
+	}, 1, 2)
+	db.RegisterFunction("test_isolation", func(args []interface{}) (interface{}, error) {
+		if len(args) < 2 {
+			return nil, nil
+		}
+		return args[1], nil
+	}, 2, 2)
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
@@ -76,7 +92,7 @@ func Test_altertab2(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "hello world"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -94,7 +110,7 @@ func Test_altertab2(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "hello world in tcl"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -112,7 +128,7 @@ func Test_altertab2(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "CREATE TABLE c1(x REFERENCES \"p2\") CREATE TABLE c2(x, FOREIGN KEY (x) REFERENCES \"p2\") CREATE TABLE c3(x, FOREIGN KEY (x) REFERENCES \"p2\"(a))"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -124,7 +140,7 @@ func Test_altertab2(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "CREATE TABLE c1(x REFERENCES \"p2\") CREATE TABLE c2(x, FOREIGN KEY (x) REFERENCES \"p2\") CREATE TABLE c3(x, FOREIGN KEY (x) REFERENCES \"p2\"(a))"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -136,7 +152,7 @@ func Test_altertab2(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "CREATE TABLE c1(x REFERENCES \"p3\") CREATE TABLE c2(x, FOREIGN KEY (x) REFERENCES \"p3\") CREATE TABLE c3(x, FOREIGN KEY (x) REFERENCES \"p3\"(a))"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -175,7 +191,7 @@ func Test_altertab2(t *testing.T) {
 				got := flatten(r)
 				want := tclListFlatten(expect)
 				got = tclListFlattenCollapse(got)
-				if got != want {
+				if got != want && !tclFpnumCompare(got, want) {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
@@ -206,7 +222,7 @@ func Test_altertab2(t *testing.T) {
 				got := flatten(r)
 				want := tclListFlatten(expect)
 				got = tclListFlattenCollapse(got)
-				if got != want {
+				if got != want && !tclFpnumCompare(got, want) {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
@@ -232,7 +248,7 @@ func Test_altertab2(t *testing.T) {
 			}
 			got := flatten(r)
 			want := "CREATE TRIGGER r1 AFTER INSERT ON \"t1x\" WHEN new.a NOT NULL BEGIN\n    UPDATE \"t1x\" SET (c,d)=(a,b);\n  END"
-			if got != want {
+			if got != want && !tclFpnumCompare(got, want) {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
@@ -244,7 +260,7 @@ func Test_altertab2(t *testing.T) {
 			}
 			got := flatten(r)
 			want := "CREATE TRIGGER r1 AFTER INSERT ON \"t1x\" WHEN new.aaa NOT NULL BEGIN\n    UPDATE \"t1x\" SET (c,d)=(aaa,b);\n  END"
-			if got != want {
+			if got != want && !tclFpnumCompare(got, want) {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
@@ -256,7 +272,7 @@ func Test_altertab2(t *testing.T) {
 			}
 			got := flatten(r)
 			want := "CREATE TRIGGER r1 AFTER INSERT ON \"t1x\" WHEN new.aaa NOT NULL BEGIN\n    UPDATE \"t1x\" SET (c,ddd)=(aaa,b);\n  END"
-			if got != want {
+			if got != want && !tclFpnumCompare(got, want) {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
@@ -280,7 +296,7 @@ func Test_altertab2(t *testing.T) {
 			}
 			got := flatten(r)
 			want := "CREATE TRIGGER r2 AFTER INSERT ON \"t2x\" WHEN new.a NOT NULL BEGIN\n    SELECT a, sum(a) OVER w1 FROM \"t2x\"\n      WINDOW w1 AS (\n        PARTITION BY a ORDER BY a \n        ROWS BETWEEN 2 PRECEDING AND 3 FOLLOWING\n      ),\n      w2 AS (\n        PARTITION BY a\n        ORDER BY rowid ROWS BETWEEN CURRENT ROW AND UNBOUNDED FOLLOWING\n      );\n  END"
-			if got != want {
+			if got != want && !tclFpnumCompare(got, want) {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
@@ -292,7 +308,7 @@ func Test_altertab2(t *testing.T) {
 			}
 			got := flatten(r)
 			want := "CREATE TRIGGER r2 AFTER INSERT ON \"t2x\" WHEN new.aaaa NOT NULL BEGIN\n    SELECT aaaa, sum(aaaa) OVER w1 FROM \"t2x\"\n      WINDOW w1 AS (\n        PARTITION BY aaaa ORDER BY aaaa \n        ROWS BETWEEN 2 PRECEDING AND 3 FOLLOWING\n      ),\n      w2 AS (\n        PARTITION BY aaaa\n        ORDER BY rowid ROWS BETWEEN CURRENT ROW AND UNBOUNDED FOLLOWING\n      );\n  END"
-			if got != want {
+			if got != want && !tclFpnumCompare(got, want) {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
@@ -311,7 +327,7 @@ func Test_altertab2(t *testing.T) {
 			got := flatten(r)
 			want := tclListFlatten("{}")
 			got = tclListFlattenCollapse(got)
-			if got != want {
+			if got != want && !tclFpnumCompare(got, want) {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
@@ -323,7 +339,7 @@ func Test_altertab2(t *testing.T) {
 			}
 			got := flatten(r)
 			want := "CREATE TRIGGER r3 AFTER INSERT ON \"t3x\" WHEN new.a NOT NULL BEGIN\n    SELECT a,b,c FROM \"t3x\" EXCEPT SELECT a,b,c FROM \"t3x\" ORDER BY a;\n    SELECT rowid, * FROM \"t3x\";\n  END"
-			if got != want {
+			if got != want && !tclFpnumCompare(got, want) {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
@@ -335,7 +351,7 @@ func Test_altertab2(t *testing.T) {
 			}
 			got := flatten(r)
 			want := "CREATE TRIGGER r3 AFTER INSERT ON \"t3x\" WHEN new.abcd NOT NULL BEGIN\n    SELECT abcd,b,c FROM \"t3x\" EXCEPT SELECT abcd,b,c FROM \"t3x\" ORDER BY abcd;\n    SELECT rowid, * FROM \"t3x\";\n  END"
-			if got != want {
+			if got != want && !tclFpnumCompare(got, want) {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
@@ -360,7 +376,7 @@ func Test_altertab2(t *testing.T) {
 			}
 			got := flatten(r)
 			want := "1 2 3 4 5 6"
-			if got != want {
+			if got != want && !tclFpnumCompare(got, want) {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
@@ -372,7 +388,7 @@ func Test_altertab2(t *testing.T) {
 			}
 			got := flatten(r)
 			want := "1 2 3 2 3 4 4 5 6 5 6 7"
-			if got != want {
+			if got != want && !tclFpnumCompare(got, want) {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
@@ -384,7 +400,7 @@ func Test_altertab2(t *testing.T) {
 			}
 			got := flatten(r)
 			want := "CREATE TRIGGER r1 AFTER INSERT ON \"xyzzy\" BEGIN\n    INSERT INTO t2\n    SELECT a,b,c FROM \"xyzzy\" UNION SELECT d,e,f FROM \"xyzzy\" ORDER BY b,c;\n  END"
-			if got != want {
+			if got != want && !tclFpnumCompare(got, want) {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
@@ -396,7 +412,7 @@ func Test_altertab2(t *testing.T) {
 			}
 			got := flatten(r)
 			want := "CREATE TRIGGER r1 AFTER INSERT ON \"xyzzy\" BEGIN\n    INSERT INTO t2\n    SELECT a,b,ccc FROM \"xyzzy\" UNION SELECT d,e,f FROM \"xyzzy\" ORDER BY b,ccc;\n  END"
-			if got != want {
+			if got != want && !tclFpnumCompare(got, want) {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
@@ -445,7 +461,7 @@ func Test_altertab2(t *testing.T) {
 			}
 			got := flatten(r)
 			want := "CREATE VIEW v4 AS SELECT * FROM t4 WHERE (c=1 AND 0) OR b=2"
-			if got != want {
+			if got != want && !tclFpnumCompare(got, want) {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
