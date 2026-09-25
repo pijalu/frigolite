@@ -5,6 +5,7 @@
 package savepoint
 
 import (
+"fmt"
 "github.com/pijalu/frigolite"
 "github.com/pijalu/frigolite/internal/vtab"
 "os"
@@ -21,6 +22,21 @@ func Test_savepoint(t *testing.T) {
 		t.Fatal(err)
 	}
 	defer db.Close()
+
+	// auto-installed test-extension functions (src/test_func.c)
+	db.RegisterFunction("test_error", func(args []interface{}) (interface{}, error) {
+		msg := ""
+		if len(args) > 0 && args[0] != nil {
+			msg = fmt.Sprintf("%v", args[0])
+		}
+		return nil, fmt.Errorf("%s", msg)
+	}, 1, 2)
+	db.RegisterFunction("test_isolation", func(args []interface{}) (interface{}, error) {
+		if len(args) < 2 {
+			return nil, nil
+		}
+		return args[1], nil
+	}, 2, 2)
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
@@ -461,7 +477,7 @@ func Test_savepoint(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "CREATE TABLE t1(a, b, c) CREATE TABLE t2(d, e, f)"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -499,7 +515,7 @@ func Test_savepoint(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "CREATE TABLE t1(a, b, c) CREATE TABLE t2(d, e, f)"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -570,7 +586,7 @@ func Test_savepoint(t *testing.T) {
 		_res = db.Exec("ROLLBACK TO def")
 		_ = _res // catchsql
 	}
-	{ // "savepoint-5.3.2.1" — skipped: blob channel seek/read emitted as comments (transpiler); incremental-blob IO natively covered (SQL side effects only)
+	{ // "savepoint-5.3.2.1" — skipped: blob channel seek/read emitted as comments (transpiler); incremental-blob IO natively covered (SQL + file side effects only)
 		_res = db.Exec("SAVEPOINT def")
 		_ = _res.Error // tolerate unsupported-feature errors in skipped tests
 	}
@@ -597,7 +613,7 @@ func Test_savepoint(t *testing.T) {
 		}
 		got := tclListFlatten(rc)
 		want := tclListFlatten("0")
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "savepoint-5.3.2.3")
 		}
 	}
@@ -677,7 +693,7 @@ func Test_savepoint(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "another blob"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -689,7 +705,7 @@ func Test_savepoint(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "2"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -743,7 +759,7 @@ func Test_savepoint(t *testing.T) {
 		got := flatten(r)
 		want := tclListFlatten("{}")
 		got = tclListFlattenCollapse(got)
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -785,7 +801,7 @@ func Test_savepoint(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "ok"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -834,7 +850,7 @@ func Test_savepoint(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "ok"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -866,15 +882,15 @@ func Test_savepoint(t *testing.T) {
 		}
 	}
 	// proc definition (not transpiled)
-	{ // "savepoint-9.1" — skipped: authorizer fixture (db auth xAuth) untranspiled; engine contract pinned in frigolite_alterauth_pin_test.go (SQL side effects only)
+	{ // "savepoint-9.1" — skipped: authorizer fixture (db auth xAuth) untranspiled; engine contract pinned in frigolite_alterauth_pin_test.go (SQL + file side effects only)
 		_res = db.Exec(" SAVEPOINT sp1 ")
 		_ = _res.Error // tolerate unsupported-feature errors in skipped tests
 	}
-	{ // "savepoint-9.2" — skipped: authorizer fixture (db auth xAuth) untranspiled; engine contract pinned in frigolite_alterauth_pin_test.go (SQL side effects only)
+	{ // "savepoint-9.2" — skipped: authorizer fixture (db auth xAuth) untranspiled; engine contract pinned in frigolite_alterauth_pin_test.go (SQL + file side effects only)
 		_res = db.Exec(" ROLLBACK TO sp1 ")
 		_ = _res.Error // tolerate unsupported-feature errors in skipped tests
 	}
-	{ // "savepoint-9.3" — skipped: authorizer fixture (db auth xAuth) untranspiled; engine contract pinned in frigolite_alterauth_pin_test.go (SQL side effects only)
+	{ // "savepoint-9.3" — skipped: authorizer fixture (db auth xAuth) untranspiled; engine contract pinned in frigolite_alterauth_pin_test.go (SQL + file side effects only)
 		_res = db.Exec(" RELEASE sp1 ")
 		_ = _res.Error // tolerate unsupported-feature errors in skipped tests
 	}
@@ -961,7 +977,7 @@ func Test_savepoint(t *testing.T) {
 			}
 			got := flatten(r)
 			want := "main"+" "+"unlocked"+" "+"temp"+" "+templockstate+" "+"aux1"+" "+"unlocked"+" "+"aux2"+" "+"unlocked"
-			if got != want {
+			if got != want && !tclFpnumCompare(got, want) {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
@@ -973,7 +989,7 @@ func Test_savepoint(t *testing.T) {
 			}
 			got := flatten(r)
 			want := "main"+" "+"reserved"+" "+"temp"+" "+templockstate+" "+"aux1"+" "+"unlocked"+" "+"aux2"+" "+"unlocked"
-			if got != want {
+			if got != want && !tclFpnumCompare(got, want) {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
@@ -985,7 +1001,7 @@ func Test_savepoint(t *testing.T) {
 			}
 			got := flatten(r)
 			want := "main"+" "+"reserved"+" "+"temp"+" "+templockstate+" "+"aux1"+" "+"unlocked"+" "+"aux2"+" "+"reserved"
-			if got != want {
+			if got != want && !tclFpnumCompare(got, want) {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
@@ -997,7 +1013,7 @@ func Test_savepoint(t *testing.T) {
 			}
 			got := flatten(r)
 			want := "main"+" "+"reserved"+" "+"temp"+" "+templockstate+" "+"aux1"+" "+"reserved"+" "+"aux2"+" "+"reserved"
-			if got != want {
+			if got != want && !tclFpnumCompare(got, want) {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
@@ -1009,7 +1025,7 @@ func Test_savepoint(t *testing.T) {
 			}
 			got := flatten(r)
 			want := "5 6"
-			if got != want {
+			if got != want && !tclFpnumCompare(got, want) {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
@@ -1031,7 +1047,7 @@ func Test_savepoint(t *testing.T) {
 			}
 			got := flatten(r)
 			want := "main"+" "+"reserved"+" "+"temp"+" "+templockstate+" "+"aux1"+" "+"reserved"+" "+"aux2"+" "+"reserved"
-			if got != want {
+			if got != want && !tclFpnumCompare(got, want) {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
@@ -1043,7 +1059,7 @@ func Test_savepoint(t *testing.T) {
 			}
 			got := flatten(r)
 			want := "a 1 2 b 3 4"
-			if got != want {
+			if got != want && !tclFpnumCompare(got, want) {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
@@ -1065,7 +1081,7 @@ func Test_savepoint(t *testing.T) {
 			}
 			got := flatten(r)
 			want := "main"+" "+"unlocked"+" "+"temp"+" "+templockstate+" "+"aux1"+" "+"unlocked"+" "+"aux2"+" "+"unlocked"
-			if got != want {
+			if got != want && !tclFpnumCompare(got, want) {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
@@ -1117,7 +1133,7 @@ func Test_savepoint(t *testing.T) {
 			}
 			got := flatten(r)
 			want := "main"+" "+"unlocked"+" "+"temp"+" "+templockstate+" "+"aux1"+" "+"unlocked"+" "+"aux2"+" "+"unlocked"
-			if got != want {
+			if got != want && !tclFpnumCompare(got, want) {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
@@ -1162,7 +1178,7 @@ func Test_savepoint(t *testing.T) {
 	}
 	_res = db.Exec("PRAGMA integrity_check")
 	if _res.Error != nil { t.Errorf("integrity check: %v", _res.Error) }
-	{ // "savepoint-11.8" — skipped: autovacuum freelist/PTRMAP page layout not implemented (P8.INCRVACUUM pager gap) (SQL side effects only)
+	{ // "savepoint-11.8" — skipped: autovacuum freelist/PTRMAP page layout not implemented (P8.INCRVACUUM pager gap) (SQL + file side effects only)
 		_res = db.Exec(" ROLLBACK ")
 		_ = _res.Error // tolerate unsupported-feature errors in skipped tests
 		_res = db.Exec(" PRAGMA wal_checkpoint ")
@@ -1198,7 +1214,7 @@ func Test_savepoint(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1 2 3 4"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -1262,7 +1278,7 @@ func Test_savepoint(t *testing.T) {
 			}
 			got := flatten(r)
 			want := "1 2 3 4 5 6 7 8 9 10 11 12"
-			if got != want {
+			if got != want && !tclFpnumCompare(got, want) {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
@@ -1283,7 +1299,7 @@ func Test_savepoint(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1 2"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}

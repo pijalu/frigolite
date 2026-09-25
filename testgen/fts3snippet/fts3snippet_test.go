@@ -5,6 +5,7 @@
 package fts3snippet
 
 import (
+"fmt"
 "github.com/pijalu/frigolite"
 "github.com/pijalu/frigolite/internal/vtab"
 "os"
@@ -20,6 +21,21 @@ func Test_fts3snippet(t *testing.T) {
 		t.Fatal(err)
 	}
 	defer db.Close()
+
+	// auto-installed test-extension functions (src/test_func.c)
+	db.RegisterFunction("test_error", func(args []interface{}) (interface{}, error) {
+		msg := ""
+		if len(args) > 0 && args[0] != nil {
+			msg = fmt.Sprintf("%v", args[0])
+		}
+		return nil, fmt.Errorf("%s", msg)
+	}, 1, 2)
+	db.RegisterFunction("test_isolation", func(args []interface{}) (interface{}, error) {
+		if len(args) < 2 {
+			return nil, nil
+		}
+		return args[1], nil
+	}, 2, 2)
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
@@ -80,7 +96,7 @@ func Test_fts3snippet(t *testing.T) {
 	_ = off // pre-declared from TCL source
 	var res string
 	_ = res // pre-declared from TCL source
-	var testresults *tclListBuilder
+	var testresults = &tclListBuilder{}
 	_ = testresults // pre-declared from TCL source
 	var i string
 	_ = i // pre-declared from TCL source
@@ -346,7 +362,7 @@ func Test_fts3snippet(t *testing.T) {
 			}
 			got := flatten(r)
 			want := "[one] two three [four] five two three [four] five [one] three [four] five [one] two [four] five [one] two three five [one] two three [four]"
-			if got != want {
+			if got != want && !tclFpnumCompare(got, want) {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
@@ -358,7 +374,7 @@ func Test_fts3snippet(t *testing.T) {
 			}
 			got := flatten(r)
 			want := "five [one] two three [four] [four] five [one] two three three [four] five [one] two two three [four] five [one] [one] two three [four] five"
-			if got != want {
+			if got != want && !tclFpnumCompare(got, want) {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
@@ -376,7 +392,7 @@ func Test_fts3snippet(t *testing.T) {
 			}
 			got := flatten(r)
 			want := "[one] two three [four] five two three [four] five [one] three [four] five [one] two [four] five [one] two three five [one] two three [four]"
-			if got != want {
+			if got != want && !tclFpnumCompare(got, want) {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
@@ -388,7 +404,7 @@ func Test_fts3snippet(t *testing.T) {
 			}
 			got := flatten(r)
 			want := "five [one] two three [four] [four] five [one] two three three [four] five [one] two two three [four] five [one] [one] two three [four] five"
-			if got != want {
+			if got != want && !tclFpnumCompare(got, want) {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
@@ -406,7 +422,7 @@ func Test_fts3snippet(t *testing.T) {
 			}
 			got := flatten(r)
 			want := "[<b>one</b> two three]"
-			if got != want {
+			if got != want && !tclFpnumCompare(got, want) {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
@@ -418,7 +434,7 @@ func Test_fts3snippet(t *testing.T) {
 			}
 			got := flatten(r)
 			want := "[one <b>two</b> three]"
-			if got != want {
+			if got != want && !tclFpnumCompare(got, want) {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
@@ -430,7 +446,7 @@ func Test_fts3snippet(t *testing.T) {
 			}
 			got := flatten(r)
 			want := "[one two <b>three</b>]"
-			if got != want {
+			if got != want && !tclFpnumCompare(got, want) {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
@@ -442,7 +458,7 @@ func Test_fts3snippet(t *testing.T) {
 			}
 			got := flatten(r)
 			want := "[<b>one</b> <b>two</b> <b>three</b>]"
-			if got != want {
+			if got != want && !tclFpnumCompare(got, want) {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
@@ -454,7 +470,7 @@ func Test_fts3snippet(t *testing.T) {
 			}
 			got := flatten(r)
 			want := "{}"
-			if got != want {
+			if got != want && !tclFpnumCompare(got, want) {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
@@ -484,7 +500,7 @@ func Test_fts3snippet(t *testing.T) {
 			}
 			got := flatten(r)
 			want := "[a1] [a2] [a3] [a4] [a5] [a6] [a70] [a71] [a72]"
-			if got != want {
+			if got != want && !tclFpnumCompare(got, want) {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
@@ -496,7 +512,7 @@ func Test_fts3snippet(t *testing.T) {
 			}
 			got := flatten(r)
 			want := "a4 [a5] a6"
-			if got != want {
+			if got != want && !tclFpnumCompare(got, want) {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}

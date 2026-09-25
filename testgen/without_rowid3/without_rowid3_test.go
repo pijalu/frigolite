@@ -22,6 +22,21 @@ func Test_without_rowid3(t *testing.T) {
 	}
 	defer db.Close()
 
+	// auto-installed test-extension functions (src/test_func.c)
+	db.RegisterFunction("test_error", func(args []interface{}) (interface{}, error) {
+		msg := ""
+		if len(args) > 0 && args[0] != nil {
+			msg = fmt.Sprintf("%v", args[0])
+		}
+		return nil, fmt.Errorf("%s", msg)
+	}, 1, 2)
+	db.RegisterFunction("test_isolation", func(args []interface{}) (interface{}, error) {
+		if len(args) < 2 {
+			return nil, nil
+		}
+		return args[1], nil
+	}, 2, 2)
+
 	var _res *frigolite.Result
 	var r *frigolite.Result
 	var msg string
@@ -276,7 +291,7 @@ func Test_without_rowid3(t *testing.T) {
 				got := flatten(r)
 				want := tclListFlatten("{}")
 				got = tclListFlattenCollapse(got)
-				if got != want {
+				if got != want && !tclFpnumCompare(got, want) {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
@@ -289,7 +304,7 @@ func Test_without_rowid3(t *testing.T) {
 				got := flatten(r)
 				want := tclListFlatten("{}")
 				got = tclListFlattenCollapse(got)
-				if got != want {
+				if got != want && !tclFpnumCompare(got, want) {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
@@ -302,7 +317,7 @@ func Test_without_rowid3(t *testing.T) {
 				got := flatten(r)
 				want := tclListFlatten("{}")
 				got = tclListFlattenCollapse(got)
-				if got != want {
+				if got != want && !tclFpnumCompare(got, want) {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
@@ -315,7 +330,7 @@ func Test_without_rowid3(t *testing.T) {
 				got := flatten(r)
 				want := tclListFlatten("{}")
 				got = tclListFlattenCollapse(got)
-				if got != want {
+				if got != want && !tclFpnumCompare(got, want) {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
@@ -328,7 +343,7 @@ func Test_without_rowid3(t *testing.T) {
 				got := flatten(r)
 				want := tclListFlatten("{}")
 				got = tclListFlattenCollapse(got)
-				if got != want {
+				if got != want && !tclFpnumCompare(got, want) {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
@@ -341,7 +356,7 @@ func Test_without_rowid3(t *testing.T) {
 				got := flatten(r)
 				want := tclListFlatten("{}")
 				got = tclListFlattenCollapse(got)
-				if got != want {
+				if got != want && !tclFpnumCompare(got, want) {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
@@ -395,7 +410,7 @@ func Test_without_rowid3(t *testing.T) {
 					got := flatten(r)
 					want := tclListFlatten("{}")
 					got = tclListFlattenCollapse(got)
-					if got != want {
+					if got != want && !tclFpnumCompare(got, want) {
 						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 					}
 				}
@@ -408,7 +423,7 @@ func Test_without_rowid3(t *testing.T) {
 					got := flatten(r)
 					want := tclListFlatten("{}")
 					got = tclListFlattenCollapse(got)
-					if got != want {
+					if got != want && !tclFpnumCompare(got, want) {
 						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 					}
 				}
@@ -421,7 +436,7 @@ func Test_without_rowid3(t *testing.T) {
 					got := flatten(r)
 					want := tclListFlatten("{}")
 					got = tclListFlattenCollapse(got)
-					if got != want {
+					if got != want && !tclFpnumCompare(got, want) {
 						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 					}
 				}
@@ -434,7 +449,7 @@ func Test_without_rowid3(t *testing.T) {
 					got := flatten(r)
 					want := tclListFlatten("{}")
 					got = tclListFlattenCollapse(got)
-					if got != want {
+					if got != want && !tclFpnumCompare(got, want) {
 						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 					}
 				}
@@ -447,7 +462,7 @@ func Test_without_rowid3(t *testing.T) {
 					got := flatten(r)
 					want := tclListFlatten("{}")
 					got = tclListFlattenCollapse(got)
-					if got != want {
+					if got != want && !tclFpnumCompare(got, want) {
 						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 					}
 				}
@@ -460,7 +475,7 @@ func Test_without_rowid3(t *testing.T) {
 					got := flatten(r)
 					want := tclListFlatten("{}")
 					got = tclListFlattenCollapse(got)
-					if got != want {
+					if got != want && !tclFpnumCompare(got, want) {
 						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 					}
 				}
@@ -523,7 +538,7 @@ func Test_without_rowid3(t *testing.T) {
 						got := flatten(r)
 						want := tclListFlatten("{}")
 						got = tclListFlattenCollapse(got)
-						if got != want {
+						if got != want && !tclFpnumCompare(got, want) {
 							t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 						}
 					}
@@ -536,7 +551,7 @@ func Test_without_rowid3(t *testing.T) {
 						got := flatten(r)
 						want := tclListFlatten("{}")
 						got = tclListFlattenCollapse(got)
-						if got != want {
+						if got != want && !tclFpnumCompare(got, want) {
 							t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 						}
 					}
@@ -549,7 +564,7 @@ func Test_without_rowid3(t *testing.T) {
 						got := flatten(r)
 						want := tclListFlatten("{}")
 						got = tclListFlattenCollapse(got)
-						if got != want {
+						if got != want && !tclFpnumCompare(got, want) {
 							t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 						}
 					}
@@ -562,7 +577,7 @@ func Test_without_rowid3(t *testing.T) {
 						got := flatten(r)
 						want := tclListFlatten("{}")
 						got = tclListFlattenCollapse(got)
-						if got != want {
+						if got != want && !tclFpnumCompare(got, want) {
 							t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 						}
 					}
@@ -575,7 +590,7 @@ func Test_without_rowid3(t *testing.T) {
 						got := flatten(r)
 						want := tclListFlatten("{}")
 						got = tclListFlattenCollapse(got)
-						if got != want {
+						if got != want && !tclFpnumCompare(got, want) {
 							t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 						}
 					}
@@ -588,7 +603,7 @@ func Test_without_rowid3(t *testing.T) {
 						got := flatten(r)
 						want := tclListFlatten("{}")
 						got = tclListFlattenCollapse(got)
-						if got != want {
+						if got != want && !tclFpnumCompare(got, want) {
 							t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 						}
 					}
@@ -685,7 +700,7 @@ func Test_without_rowid3(t *testing.T) {
 						}
 						got := flatten(r)
 						want := "35.0 text"
-						if got != want {
+						if got != want && !tclFpnumCompare(got, want) {
 							t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 						}
 					}
@@ -721,7 +736,7 @@ func Test_without_rowid3(t *testing.T) {
 						}
 						got := flatten(r)
 						want := "35.0 text 35 integer"
-						if got != want {
+						if got != want && !tclFpnumCompare(got, want) {
 							t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 						}
 					}
@@ -912,7 +927,7 @@ func Test_without_rowid3(t *testing.T) {
 						}
 						got := flatten(r)
 						want := "1 b"
-						if got != want {
+						if got != want && !tclFpnumCompare(got, want) {
 							t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 						}
 					}
@@ -994,7 +1009,7 @@ func Test_without_rowid3(t *testing.T) {
 						}
 						got := flatten(r)
 						want := "4 5 6 7"
-						if got != want {
+						if got != want && !tclFpnumCompare(got, want) {
 							t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 						}
 					}
@@ -1017,7 +1032,7 @@ func Test_without_rowid3(t *testing.T) {
 						got := flatten(r)
 						want := tclListFlatten("{}")
 						got = tclListFlattenCollapse(got)
-						if got != want {
+						if got != want && !tclFpnumCompare(got, want) {
 							t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 						}
 					}
@@ -1082,7 +1097,7 @@ func Test_without_rowid3(t *testing.T) {
 						got := flatten(r)
 						want := tclListFlatten("{}")
 						got = tclListFlattenCollapse(got)
-						if got != want {
+						if got != want && !tclFpnumCompare(got, want) {
 							t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 						}
 					}
@@ -1243,7 +1258,7 @@ func Test_without_rowid3(t *testing.T) {
 						}
 						got := flatten(r)
 						want := "1 2 1 1"
-						if got != want {
+						if got != want && !tclFpnumCompare(got, want) {
 							t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 						}
 					}
@@ -1255,7 +1270,7 @@ func Test_without_rowid3(t *testing.T) {
 						}
 						got := flatten(r)
 						want := "1 2"
-						if got != want {
+						if got != want && !tclFpnumCompare(got, want) {
 							t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 						}
 					}
@@ -1267,7 +1282,7 @@ func Test_without_rowid3(t *testing.T) {
 						}
 						got := flatten(r)
 						want := "2 two"
-						if got != want {
+						if got != want && !tclFpnumCompare(got, want) {
 							t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 						}
 					}
@@ -1291,7 +1306,7 @@ func Test_without_rowid3(t *testing.T) {
 						}
 						got := flatten(r)
 						want := "6 A 5 6 B 5 3 A 2 3 B 2"
-						if got != want {
+						if got != want && !tclFpnumCompare(got, want) {
 							t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 						}
 					}
@@ -1303,7 +1318,7 @@ func Test_without_rowid3(t *testing.T) {
 						}
 						got := flatten(r)
 						want := "{} A {} {} B {} 3 A 2 3 B 2"
-						if got != want {
+						if got != want && !tclFpnumCompare(got, want) {
 							t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 						}
 					}
@@ -1453,7 +1468,7 @@ func Test_without_rowid3(t *testing.T) {
 						}
 						got := flatten(r)
 						want := "15 100"
-						if got != want {
+						if got != want && !tclFpnumCompare(got, want) {
 							t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 						}
 					}
@@ -1547,7 +1562,7 @@ func Test_without_rowid3(t *testing.T) {
 						}
 						got := flatten(r)
 						want := "A B a b"
-						if got != want {
+						if got != want && !tclFpnumCompare(got, want) {
 							t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 						}
 					}
@@ -1577,7 +1592,7 @@ func Test_without_rowid3(t *testing.T) {
 						}
 						got := flatten(r)
 						want := "A B a b"
-						if got != want {
+						if got != want && !tclFpnumCompare(got, want) {
 							t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 						}
 					}
@@ -1613,7 +1628,7 @@ func Test_without_rowid3(t *testing.T) {
 						}
 						got := flatten(r)
 						want := "no possibly"
-						if got != want {
+						if got != want && !tclFpnumCompare(got, want) {
 							t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 						}
 					}
@@ -1639,7 +1654,7 @@ func Test_without_rowid3(t *testing.T) {
 						}
 						got := flatten(r)
 						want := "yes no yes no"
-						if got != want {
+						if got != want && !tclFpnumCompare(got, want) {
 							t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 						}
 					}
@@ -1689,7 +1704,7 @@ func Test_without_rowid3(t *testing.T) {
 								}
 								got := flatten(r)
 								want := "1 2 3 2 3 1"
-								if got != want {
+								if got != want && !tclFpnumCompare(got, want) {
 									t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 								}
 							}
@@ -1709,7 +1724,7 @@ func Test_without_rowid3(t *testing.T) {
 								}
 								got := flatten(r)
 								want := "1 2 3 2 3 1"
-								if got != want {
+								if got != want && !tclFpnumCompare(got, want) {
 									t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 								}
 							}
@@ -1772,7 +1787,7 @@ func Test_without_rowid3(t *testing.T) {
 							}
 							got := flatten(r)
 							want := "CREATE TABLE t2(a, b, c REFERENCES t1, d DEFAULT NULL REFERENCES t1, e REFERENCES t1 DEFAULT NULL, h DEFAULT 'text' REFERENCES t1)"
-							if got != want {
+							if got != want && !tclFpnumCompare(got, want) {
 								t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 							}
 						}
@@ -1912,7 +1927,7 @@ func Test_without_rowid3(t *testing.T) {
 							}
 							got := flatten(r)
 							want := "CREATE TABLE t2(a, b, c REFERENCES t1, d DEFAULT NULL REFERENCES t1, e REFERENCES t1 DEFAULT NULL, h DEFAULT 'text' REFERENCES t1)"
-							if got != want {
+							if got != want && !tclFpnumCompare(got, want) {
 								t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 							}
 						}
@@ -2051,7 +2066,7 @@ func Test_without_rowid3(t *testing.T) {
 							}
 							got := flatten(r)
 							want := "CREATE TABLE t2(a, b, c REFERENCES t1, d DEFAULT NULL REFERENCES t1, e REFERENCES t1 DEFAULT NULL, h DEFAULT 'text' REFERENCES t1)"
-							if got != want {
+							if got != want && !tclFpnumCompare(got, want) {
 								t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 							}
 						}
@@ -2453,7 +2468,7 @@ func Test_without_rowid3(t *testing.T) {
 								}
 								got := flatten(r)
 								want := "1 2 3 5 5 3 | 2 3 4 6 6 4 | x y 1.5 fizzle fizzle 1.5 |"
-								if got != want {
+								if got != want && !tclFpnumCompare(got, want) {
 									t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 								}
 							}
@@ -2465,7 +2480,7 @@ func Test_without_rowid3(t *testing.T) {
 								}
 								got := flatten(r)
 								want := "1 2 99 5 5 99 | 2 3 4 6 6 4 | x y 1.5 fizzle fizzle 1.5 |"
-								if got != want {
+								if got != want && !tclFpnumCompare(got, want) {
 									t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 								}
 							}
@@ -2477,7 +2492,7 @@ func Test_without_rowid3(t *testing.T) {
 								}
 								got := flatten(r)
 								want := "1 2 99 5 5 99 | 2 3 4 876 876 4 | x y 1.5 fizzle fizzle 1.5 |"
-								if got != want {
+								if got != want && !tclFpnumCompare(got, want) {
 									t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 								}
 							}
@@ -2501,7 +2516,7 @@ func Test_without_rowid3(t *testing.T) {
 								}
 								got := flatten(r)
 								want := "2 3 4 876 876 4 | x y 1.5 fizzle fizzle 1.5 |"
-								if got != want {
+								if got != want && !tclFpnumCompare(got, want) {
 									t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 								}
 							}
@@ -2513,7 +2528,7 @@ func Test_without_rowid3(t *testing.T) {
 								}
 								got := flatten(r)
 								want := "1 2 3 5 5 3 | 2 3 4 6 6 4 | x y 1.5 fizzle fizzle 1.5 |"
-								if got != want {
+								if got != want && !tclFpnumCompare(got, want) {
 									t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 								}
 							}
@@ -2525,7 +2540,7 @@ func Test_without_rowid3(t *testing.T) {
 								}
 								got := flatten(r)
 								want := "1 2 99 5 5 99 | 2 3 4 6 6 4 | x y 1.5 fizzle fizzle 1.5 |"
-								if got != want {
+								if got != want && !tclFpnumCompare(got, want) {
 									t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 								}
 							}
@@ -2537,7 +2552,7 @@ func Test_without_rowid3(t *testing.T) {
 								}
 								got := flatten(r)
 								want := "1 2 99 5 5 99 | 2 3 4 876 876 4 | x y 1.5 fizzle fizzle 1.5 |"
-								if got != want {
+								if got != want && !tclFpnumCompare(got, want) {
 									t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 								}
 							}
@@ -2561,7 +2576,7 @@ func Test_without_rowid3(t *testing.T) {
 								}
 								got := flatten(r)
 								want := "2 3 4 876 876 4 | x y 1.5 fizzle fizzle 1.5 |"
-								if got != want {
+								if got != want && !tclFpnumCompare(got, want) {
 									t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 								}
 							}
@@ -2628,7 +2643,7 @@ func Test_without_rowid3(t *testing.T) {
 								}
 								got := flatten(r)
 								want := "1 2 3 2 3 4 3 4 5 0 0 0"
-								if got != want {
+								if got != want && !tclFpnumCompare(got, want) {
 									t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 								}
 							}
@@ -2640,7 +2655,7 @@ func Test_without_rowid3(t *testing.T) {
 								}
 								got := flatten(r)
 								want := "1 2 3 2 3 4 3 4 5"
-								if got != want {
+								if got != want && !tclFpnumCompare(got, want) {
 									t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 								}
 							}
@@ -2726,7 +2741,7 @@ func Test_without_rowid3(t *testing.T) {
 								}
 								got := flatten(r)
 								want := "c b b c"
-								if got != want {
+								if got != want && !tclFpnumCompare(got, want) {
 									t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 								}
 							}
@@ -2751,7 +2766,7 @@ func Test_without_rowid3(t *testing.T) {
 								got := flatten(r)
 								want := tclListFlatten("{}")
 								got = tclListFlattenCollapse(got)
-								if got != want {
+								if got != want && !tclFpnumCompare(got, want) {
 									t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 								}
 							}
@@ -2769,25 +2784,25 @@ func Test_without_rowid3(t *testing.T) {
 							vtab.TclVarSet("authargs", "", "")
 							authargs = ""
 							_ = authargs // suppress unused warning
-							{ // "without_rowid3-18.2" — skipped: authorizer framework (db auth C callback harness N-A) (SQL side effects only)
+							{ // "without_rowid3-18.2" — skipped: authorizer framework (db auth C callback harness N-A) (SQL + file side effects only)
 								_res = db.Exec(" INSERT INTO long VALUES(1, 2, 3) ")
 								_ = _res.Error // tolerate unsupported-feature errors in skipped tests
 							}
 							vtab.TclVarSet("authargs", "", "")
 							authargs = ""
 							_ = authargs // suppress unused warning
-							{ // "without_rowid3-18.3" — skipped: authorizer framework (db auth C callback harness N-A) (SQL side effects only)
+							{ // "without_rowid3-18.3" — skipped: authorizer framework (db auth C callback harness N-A) (SQL + file side effects only)
 								_res = db.Exec(" INSERT INTO short VALUES(1, 3, 2) ")
 								_ = _res.Error // tolerate unsupported-feature errors in skipped tests
 							}
 							vtab.TclVarSet("authargs", "", "")
 							authargs = ""
 							_ = authargs // suppress unused warning
-							{ // "without_rowid3-18.4" — skipped: authorizer framework (db auth C callback harness N-A) (SQL side effects only)
+							{ // "without_rowid3-18.4" — skipped: authorizer framework (db auth C callback harness N-A) (SQL + file side effects only)
 								_res = db.Exec(" INSERT INTO mid VALUES(1, 3, 2) ")
 								_ = _res.Error // tolerate unsupported-feature errors in skipped tests
 							}
-							{ // "without_rowid3-18.5" — skipped: authorizer framework (db auth C callback harness N-A) (SQL side effects only)
+							{ // "without_rowid3-18.5" — skipped: authorizer framework (db auth C callback harness N-A) (SQL + file side effects only)
 								_res = db.Exec("\n      CREATE TABLE nought(a, b PRIMARY KEY, c) WITHOUT rowid;\n      CREATE TABLE cross(d, e, f,\n        FOREIGN KEY(e) REFERENCES nought(b) ON UPDATE CASCADE\n      );\n    ")
 								_ = _res.Error // tolerate unsupported-feature errors in skipped tests
 								_res = db.Exec(" INSERT INTO nought VALUES(2, 1, 2) ")
@@ -2797,11 +2812,11 @@ func Test_without_rowid3(t *testing.T) {
 								_res = db.Exec(" UPDATE nought SET b = 5 ")
 								_ = _res.Error // tolerate unsupported-feature errors in skipped tests
 							}
-							{ // "without_rowid3-18.6" — skipped: authorizer framework (db auth C callback harness N-A; 18.5 setup skipped, cross table not created) (SQL side effects only)
+							{ // "without_rowid3-18.6" — skipped: authorizer framework (db auth C callback harness N-A; 18.5 setup skipped, cross table not created) (SQL + file side effects only)
 								_res = db.Exec("SELECT * FROM cross")
 								_ = _res.Error // tolerate unsupported-feature errors in skipped tests
 							}
-							{ // "without_rowid3-18.7" — skipped: authorizer framework (db auth C callback harness N-A) (SQL side effects only)
+							{ // "without_rowid3-18.7" — skipped: authorizer framework (db auth C callback harness N-A) (SQL + file side effects only)
 								_res = db.Exec("\n      CREATE TABLE one(a INT PRIMARY KEY, b) WITHOUT rowid;\n      CREATE TABLE two(b, c REFERENCES one);\n      INSERT INTO one VALUES(101, 102);\n    ")
 								_ = _res.Error // tolerate unsupported-feature errors in skipped tests
 								_res = db.Exec(" INSERT INTO two VALUES(100, 101); ")
@@ -2810,11 +2825,11 @@ func Test_without_rowid3(t *testing.T) {
 							// proc definition (not transpiled)
 							{ // "without_rowid3-18.8" — skipped: authorizer framework (db auth C callback harness N-A; 18.2 setup skipped)
 							}
-							{ // "without_rowid3-18.9" — skipped: authorizer framework (db auth C callback harness N-A; 18.8 skipped) (SQL side effects only)
+							{ // "without_rowid3-18.9" — skipped: authorizer framework (db auth C callback harness N-A; 18.8 skipped) (SQL + file side effects only)
 								_res = db.Exec(" INSERT INTO short VALUES(1, 3, NULL) ")
 								_ = _res.Error // tolerate unsupported-feature errors in skipped tests
 							}
-							{ // "without_rowid3-18.10" — skipped: authorizer framework (db auth C callback harness N-A; 18.8 skipped) (SQL side effects only)
+							{ // "without_rowid3-18.10" — skipped: authorizer framework (db auth C callback harness N-A; 18.8 skipped) (SQL + file side effects only)
 								_res = db.Exec(" SELECT * FROM short ")
 								_ = _res.Error // tolerate unsupported-feature errors in skipped tests
 							}
@@ -2893,7 +2908,7 @@ func Test_without_rowid3(t *testing.T) {
 										got := flatten(r)
 										want := tclListFlatten("{}")
 										got = tclListFlattenCollapse(got)
-										if got != want {
+										if got != want && !tclFpnumCompare(got, want) {
 											t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 										}
 									}
@@ -2913,7 +2928,7 @@ func Test_without_rowid3(t *testing.T) {
 										}
 										got := flatten(r)
 										want := "1 2"
-										if got != want {
+										if got != want && !tclFpnumCompare(got, want) {
 											t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 										}
 									}
@@ -2952,7 +2967,7 @@ func Test_without_rowid3(t *testing.T) {
 											}
 											got := flatten(r)
 											want := "2 two"
-											if got != want {
+											if got != want && !tclFpnumCompare(got, want) {
 												t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 											}
 										}
@@ -2970,7 +2985,7 @@ func Test_without_rowid3(t *testing.T) {
 											}
 											got := flatten(r)
 											want := "1 2"
-											if got != want {
+											if got != want && !tclFpnumCompare(got, want) {
 												t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 											}
 										}
@@ -2990,7 +3005,7 @@ func Test_without_rowid3(t *testing.T) {
 											}
 											got := flatten(r)
 											want := "2 two 3 three"
-											if got != want {
+											if got != want && !tclFpnumCompare(got, want) {
 												t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 											}
 										}
@@ -3010,7 +3025,7 @@ func Test_without_rowid3(t *testing.T) {
 											}
 											got := flatten(r)
 											want := "1 2 2 2"
-											if got != want {
+											if got != want && !tclFpnumCompare(got, want) {
 												t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 											}
 										}
@@ -3191,7 +3206,7 @@ func Test_without_rowid3(t *testing.T) {
 										}
 										got := flatten(r)
 										want := "2 one 4 four"
-										if got != want {
+										if got != want && !tclFpnumCompare(got, want) {
 											t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 										}
 									}
@@ -3203,7 +3218,7 @@ func Test_without_rowid3(t *testing.T) {
 										}
 										got := flatten(r)
 										want := "2 one"
-										if got != want {
+										if got != want && !tclFpnumCompare(got, want) {
 											t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 										}
 									}
@@ -3215,7 +3230,7 @@ func Test_without_rowid3(t *testing.T) {
 										}
 										got := flatten(r)
 										want := "hello 2 2"
-										if got != want {
+										if got != want && !tclFpnumCompare(got, want) {
 											t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 										}
 									}
@@ -3228,7 +3243,7 @@ func Test_without_rowid3(t *testing.T) {
 										got := flatten(r)
 										want := tclListFlatten("{}")
 										got = tclListFlattenCollapse(got)
-										if got != want {
+										if got != want && !tclFpnumCompare(got, want) {
 											t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 										}
 									}
@@ -3270,7 +3285,7 @@ func Test_without_rowid3(t *testing.T) {
 										}
 										got := flatten(r)
 										want := "{} one 4 four"
-										if got != want {
+										if got != want && !tclFpnumCompare(got, want) {
 											t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 										}
 									}
@@ -3282,7 +3297,7 @@ func Test_without_rowid3(t *testing.T) {
 										}
 										got := flatten(r)
 										want := "{} one {} four"
-										if got != want {
+										if got != want && !tclFpnumCompare(got, want) {
 											t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 										}
 									}
@@ -3294,7 +3309,7 @@ func Test_without_rowid3(t *testing.T) {
 										}
 										got := flatten(r)
 										want := "hello {} {}"
-										if got != want {
+										if got != want && !tclFpnumCompare(got, want) {
 											t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 										}
 									}
@@ -3306,7 +3321,7 @@ func Test_without_rowid3(t *testing.T) {
 										}
 										got := flatten(r)
 										want := "hello {} {}"
-										if got != want {
+										if got != want && !tclFpnumCompare(got, want) {
 											t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 										}
 									}
@@ -3319,7 +3334,7 @@ func Test_without_rowid3(t *testing.T) {
 										got := flatten(r)
 										want := tclListFlatten("{}")
 										got = tclListFlattenCollapse(got)
-										if got != want {
+										if got != want && !tclFpnumCompare(got, want) {
 											t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 										}
 									}
@@ -3337,7 +3352,7 @@ func Test_without_rowid3(t *testing.T) {
 										}
 										got := flatten(r)
 										want := "200 300"
-										if got != want {
+										if got != want && !tclFpnumCompare(got, want) {
 											t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 										}
 									}
@@ -3367,7 +3382,7 @@ func Test_without_rowid3(t *testing.T) {
 										}
 										got := flatten(r)
 										want := "100 200 300 100 200"
-										if got != want {
+										if got != want && !tclFpnumCompare(got, want) {
 											t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 										}
 									}
@@ -3391,7 +3406,7 @@ func Test_without_rowid3(t *testing.T) {
 										}
 										got := flatten(r)
 										want := "100 200 300 100 200"
-										if got != want {
+										if got != want && !tclFpnumCompare(got, want) {
 											t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 										}
 									}
@@ -3419,7 +3434,7 @@ func Test_without_rowid3(t *testing.T) {
 										}
 										got := flatten(r)
 										want := "3"
-										if got != want {
+										if got != want && !tclFpnumCompare(got, want) {
 											t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 										}
 									}
@@ -3431,7 +3446,7 @@ func Test_without_rowid3(t *testing.T) {
 										}
 										got := flatten(r)
 										want := "3"
-										if got != want {
+										if got != want && !tclFpnumCompare(got, want) {
 											t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 										}
 									}

@@ -5,6 +5,7 @@
 package speed3
 
 import (
+"fmt"
 "github.com/pijalu/frigolite"
 "github.com/pijalu/frigolite/internal/vtab"
 "os"
@@ -19,6 +20,21 @@ func Test_speed3(t *testing.T) {
 		t.Fatal(err)
 	}
 	defer db.Close()
+
+	// auto-installed test-extension functions (src/test_func.c)
+	db.RegisterFunction("test_error", func(args []interface{}) (interface{}, error) {
+		msg := ""
+		if len(args) > 0 && args[0] != nil {
+			msg = fmt.Sprintf("%v", args[0])
+		}
+		return nil, fmt.Errorf("%s", msg)
+	}, 1, 2)
+	db.RegisterFunction("test_isolation", func(args []interface{}) (interface{}, error) {
+		if len(args) < 2 {
+			return nil, nil
+		}
+		return args[1], nil
+	}, 2, 2)
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
@@ -110,7 +126,7 @@ func Test_speed3(t *testing.T) {
 	db, err = frigolite.Open("test.db")
 	tclConnRegister("db", db)
 	if err != nil { t.Fatal(err) }
-	_res = db.Exec(" \n    PRAGMA main.cache_size = 200000;\n    PRAGMA main.auto_vacuum = 'incremental';\n    ATTACH 'test2.db' AS 'aux'; \n    PRAGMA aux.auto_vacuum = 'none';")
+	_res = db.Exec(" \n    PRAGMA main.cache_size = 200000;\n    PRAGMA main.auto_vacuum = 'incremental';\n    ATTACH 'test2.db' AS 'aux'; \n    PRAGMA aux.auto_vacuum = 'none';\n  ")
 	{ // do_test "speed3-0.1"
 		_res = db.Exec("\n    CREATE TABLE main.t1(a INTEGER, b TEXT, c INTEGER);\n  ")
 		if _res.Error != nil {
@@ -146,7 +162,7 @@ func Test_speed3(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "2 0"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -154,7 +170,7 @@ func Test_speed3(t *testing.T) {
 	db, err = frigolite.Open("test.db")
 	tclConnRegister("db", db)
 	if err != nil { t.Fatal(err) }
-	_res = db.Exec(" \n    PRAGMA main.cache_size = 200000;\n    PRAGMA main.auto_vacuum = 'incremental';\n    ATTACH 'test2.db' AS 'aux'; \n    PRAGMA aux.auto_vacuum = 'none';")
+	_res = db.Exec(" \n    PRAGMA main.cache_size = 200000;\n    PRAGMA main.auto_vacuum = 'incremental';\n    ATTACH 'test2.db' AS 'aux'; \n    PRAGMA aux.auto_vacuum = 'none';\n  ")
 	// speed_trial speed3-1.incrvacuum $::NROW row {DELETE FROM main.t1 WHERE 1} (unsupported command, not transpiled)
 	// speed_trial speed3-1.normal $::NROW row {DELETE FROM aux.t1 WHERE 1} (unsupported command, not transpiled)
 	// io_log db (unsupported command, not transpiled)
@@ -177,7 +193,7 @@ func Test_speed3(t *testing.T) {
 	db, err = frigolite.Open("test.db")
 	tclConnRegister("db", db)
 	if err != nil { t.Fatal(err) }
-	_res = db.Exec(" \n    PRAGMA main.cache_size = 200000;\n    PRAGMA main.auto_vacuum = 'incremental';\n    ATTACH 'test2.db' AS 'aux'; \n    PRAGMA aux.auto_vacuum = 'none';")
+	_res = db.Exec(" \n    PRAGMA main.cache_size = 200000;\n    PRAGMA main.auto_vacuum = 'incremental';\n    ATTACH 'test2.db' AS 'aux'; \n    PRAGMA aux.auto_vacuum = 'none';\n  ")
 	// speed_trial speed3-2.incrvacuum $::NROW row {SELECT c FROM main.t1} (unsupported command, not transpiled)
 	// speed_trial speed3-2.normal $::NROW row {SELECT c FROM aux.t1} (unsupported command, not transpiled)
 	// io_log db (unsupported command, not transpiled)

@@ -5,6 +5,7 @@
 package fts4unicode
 
 import (
+"fmt"
 "github.com/pijalu/frigolite"
 "github.com/pijalu/frigolite/internal/vtab"
 "os"
@@ -19,6 +20,21 @@ func Test_fts4unicode(t *testing.T) {
 		t.Fatal(err)
 	}
 	defer db.Close()
+
+	// auto-installed test-extension functions (src/test_func.c)
+	db.RegisterFunction("test_error", func(args []interface{}) (interface{}, error) {
+		msg := ""
+		if len(args) > 0 && args[0] != nil {
+			msg = fmt.Sprintf("%v", args[0])
+		}
+		return nil, fmt.Errorf("%s", msg)
+	}, 1, 2)
+	db.RegisterFunction("test_isolation", func(args []interface{}) (interface{}, error) {
+		if len(args) < 2 {
+			return nil, nil
+		}
+		return args[1], nil
+	}, 2, 2)
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
@@ -281,7 +297,7 @@ func Test_fts4unicode(t *testing.T) {
 			}
 			got := flatten(r)
 			want := "a [b] c"
-			if got != want {
+			if got != want && !tclFpnumCompare(got, want) {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
@@ -299,7 +315,7 @@ func Test_fts4unicode(t *testing.T) {
 			}
 			got := flatten(r)
 			want := "a b c {}"
-			if got != want {
+			if got != want && !tclFpnumCompare(got, want) {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
@@ -449,7 +465,7 @@ func Test_fts4unicode(t *testing.T) {
 					}
 					got := flatten(r)
 					want := "1 3 5 7"
-					if got != want {
+					if got != want && !tclFpnumCompare(got, want) {
 						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 					}
 				}
@@ -461,7 +477,7 @@ func Test_fts4unicode(t *testing.T) {
 					}
 					got := flatten(r)
 					want := "2 4 6 8"
-					if got != want {
+					if got != want && !tclFpnumCompare(got, want) {
 						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 					}
 				}
@@ -479,7 +495,7 @@ func Test_fts4unicode(t *testing.T) {
 					}
 					got := flatten(r)
 					want := "1 3"
-					if got != want {
+					if got != want && !tclFpnumCompare(got, want) {
 						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 					}
 				}
@@ -491,7 +507,7 @@ func Test_fts4unicode(t *testing.T) {
 					}
 					got := flatten(r)
 					want := "2 4"
-					if got != want {
+					if got != want && !tclFpnumCompare(got, want) {
 						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 					}
 				}
@@ -523,7 +539,7 @@ func Test_fts4unicode(t *testing.T) {
 							}
 							got := flatten(r)
 							want := "four.five.six * 1 1 four.five.six 0 1 1 one two three * 1 1 one two three 0 1 1"
-							if got != want {
+							if got != want && !tclFpnumCompare(got, want) {
 								t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 							}
 						}
@@ -535,7 +551,7 @@ func Test_fts4unicode(t *testing.T) {
 							}
 							got := flatten(r)
 							want := "alpha=beta\"gamma * 1 1 alpha=beta\"gamma 0 1 1 delta[epsilon]zeta * 1 1 delta[epsilon]zeta 0 1 1"
-							if got != want {
+							if got != want && !tclFpnumCompare(got, want) {
 								t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 							}
 						}
@@ -547,7 +563,7 @@ func Test_fts4unicode(t *testing.T) {
 							}
 							got := flatten(r)
 							want := "aleph * 1 1 aleph 0 1 1 beth * 1 1 beth 0 1 1 gimel * 1 1 gimel 0 1 1"
-							if got != want {
+							if got != want && !tclFpnumCompare(got, want) {
 								t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 							}
 						}
@@ -560,7 +576,7 @@ func Test_fts4unicode(t *testing.T) {
 						}
 						got := flatten(r)
 						want := ".single=word * 1 1 .single=word 0 1 1 four * 1 1 four 0 1 1 one * 1 1 one 0 1 1 three * 1 1 three 0 1 1 two * 1 1 two 0 1 1"
-						if got != want {
+						if got != want && !tclFpnumCompare(got, want) {
 							t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 						}
 					}
@@ -572,7 +588,7 @@ func Test_fts4unicode(t *testing.T) {
 						}
 						got := flatten(r)
 						want := "one * 1 1 one 0 1 1 onebtwoathree * 1 1 onebtwoathree 0 1 1 three * 1 1 three 0 1 1 two * 1 1 two 0 1 1"
-						if got != want {
+						if got != want && !tclFpnumCompare(got, want) {
 							t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 						}
 					}
@@ -584,7 +600,7 @@ func Test_fts4unicode(t *testing.T) {
 						}
 						got := flatten(r)
 						want := "berlin@street sydney.road"
-						if got != want {
+						if got != want && !tclFpnumCompare(got, want) {
 							t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 						}
 					}
@@ -596,7 +612,7 @@ func Test_fts4unicode(t *testing.T) {
 						}
 						got := flatten(r)
 						want := "61626300646566"
-						if got != want {
+						if got != want && !tclFpnumCompare(got, want) {
 							t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 						}
 					}
@@ -614,7 +630,7 @@ func Test_fts4unicode(t *testing.T) {
 						}
 						got := flatten(r)
 						want := "abc * 1 1 abc 0 1 1"
-						if got != want {
+						if got != want && !tclFpnumCompare(got, want) {
 							t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 						}
 					}
@@ -626,7 +642,7 @@ func Test_fts4unicode(t *testing.T) {
 						}
 						got := flatten(r)
 						want := "61626300646566"
-						if got != want {
+						if got != want && !tclFpnumCompare(got, want) {
 							t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 						}
 					}

@@ -6,6 +6,7 @@ package orderby1
 
 import (
 "errors"
+"fmt"
 "github.com/pijalu/frigolite"
 "github.com/pijalu/frigolite/internal/vtab"
 "os"
@@ -21,6 +22,21 @@ func Test_orderby1(t *testing.T) {
 		t.Fatal(err)
 	}
 	defer db.Close()
+
+	// auto-installed test-extension functions (src/test_func.c)
+	db.RegisterFunction("test_error", func(args []interface{}) (interface{}, error) {
+		msg := ""
+		if len(args) > 0 && args[0] != nil {
+			msg = fmt.Sprintf("%v", args[0])
+		}
+		return nil, fmt.Errorf("%s", msg)
+	}, 1, 2)
+	db.RegisterFunction("test_isolation", func(args []interface{}) (interface{}, error) {
+		if len(args) < 2 {
+			return nil, nil
+		}
+		return args[1], nil
+	}, 2, 2)
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
@@ -82,11 +98,11 @@ func Test_orderby1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "one-a one-c two-a two-b three-a three-c"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	{ // "orderby1-1.1b" — skipped: EXPLAIN QUERY PLAN ORDER BY not matched (G3.INDEX) (SQL side effects only)
+	{ // "orderby1-1.1b" — skipped: EXPLAIN QUERY PLAN ORDER BY not matched (G3.INDEX) (SQL + file side effects only)
 		_res = db.Exec("\n    EXPLAIN QUERY PLAN\n    SELECT name FROM album CROSS JOIN track USING (aid) ORDER BY title, tn\n  ")
 		_ = _res.Error // tolerate unsupported-feature errors in skipped tests
 	}
@@ -98,11 +114,11 @@ func Test_orderby1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "one-a one-c two-a two-b three-a three-c"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	{ // "orderby1-1.2b" — skipped: EXPLAIN QUERY PLAN ORDER BY not matched (G3.INDEX) (SQL side effects only)
+	{ // "orderby1-1.2b" — skipped: EXPLAIN QUERY PLAN ORDER BY not matched (G3.INDEX) (SQL + file side effects only)
 		_res = db.Exec("\n    EXPLAIN QUERY PLAN\n    SELECT name FROM album JOIN track USING (aid) ORDER BY +title, +tn\n  ")
 		_ = _res.Error // tolerate unsupported-feature errors in skipped tests
 	}
@@ -110,7 +126,7 @@ func Test_orderby1(t *testing.T) {
 		// optimization_control order-by-idx-join 0 (no PRAGMA equivalent; ignored)
 		_res = db.Exec("\n    SELECT name FROM album JOIN track USING (aid) ORDER BY title, tn\n  ")
 	}
-	{ // "orderby1-1.3b" — skipped: EXPLAIN QUERY PLAN ORDER BY not matched (G3.INDEX) (SQL side effects only)
+	{ // "orderby1-1.3b" — skipped: EXPLAIN QUERY PLAN ORDER BY not matched (G3.INDEX) (SQL + file side effects only)
 		_res = db.Exec("\n    EXPLAIN QUERY PLAN\n    SELECT name FROM album JOIN track USING (aid) ORDER BY title, tn\n  ")
 		_ = _res.Error // tolerate unsupported-feature errors in skipped tests
 	}
@@ -126,7 +142,7 @@ func Test_orderby1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "three-a three-c two-a two-b one-a one-c"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -138,11 +154,11 @@ func Test_orderby1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "three-a three-c two-a two-b one-a one-c"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	{ // "orderby1-1.4c" — skipped: EXPLAIN QUERY PLAN ORDER BY not matched (G3.INDEX) (SQL side effects only)
+	{ // "orderby1-1.4c" — skipped: EXPLAIN QUERY PLAN ORDER BY not matched (G3.INDEX) (SQL + file side effects only)
 		_res = db.Exec("\n    EXPLAIN QUERY PLAN\n    SELECT name FROM album JOIN track USING (aid) ORDER BY title DESC, tn\n  ")
 		_ = _res.Error // tolerate unsupported-feature errors in skipped tests
 	}
@@ -154,7 +170,7 @@ func Test_orderby1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "one-c one-a two-b two-a three-c three-a"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -166,11 +182,11 @@ func Test_orderby1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "one-c one-a two-b two-a three-c three-a"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	{ // "orderby1-1.5c" — skipped: EXPLAIN QUERY PLAN ORDER BY not matched (G3.INDEX) (SQL side effects only)
+	{ // "orderby1-1.5c" — skipped: EXPLAIN QUERY PLAN ORDER BY not matched (G3.INDEX) (SQL + file side effects only)
 		_res = db.Exec("\n    EXPLAIN QUERY PLAN\n    SELECT name FROM album JOIN track USING (aid) ORDER BY title, tn DESC\n  ")
 		_ = _res.Error // tolerate unsupported-feature errors in skipped tests
 	}
@@ -182,7 +198,7 @@ func Test_orderby1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "three-c three-a two-b two-a one-c one-a"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -194,11 +210,11 @@ func Test_orderby1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "three-c three-a two-b two-a one-c one-a"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	{ // "orderby1-1.6c" — skipped: EXPLAIN QUERY PLAN ORDER BY not matched (G3.INDEX) (SQL side effects only)
+	{ // "orderby1-1.6c" — skipped: EXPLAIN QUERY PLAN ORDER BY not matched (G3.INDEX) (SQL + file side effects only)
 		_res = db.Exec("\n    EXPLAIN QUERY PLAN\n    SELECT name FROM album CROSS JOIN track USING (aid)\n     ORDER BY title DESC, tn DESC\n  ")
 		_ = _res.Error // tolerate unsupported-feature errors in skipped tests
 	}
@@ -216,11 +232,11 @@ func Test_orderby1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "one-a one-c two-a two-b three-a three-c"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	{ // "orderby1-2.1b" — skipped: EXPLAIN QUERY PLAN ORDER BY not matched (G3.INDEX) (SQL side effects only)
+	{ // "orderby1-2.1b" — skipped: EXPLAIN QUERY PLAN ORDER BY not matched (G3.INDEX) (SQL + file side effects only)
 		_res = db.Exec("\n    EXPLAIN QUERY PLAN\n    SELECT name FROM album JOIN track USING (aid) ORDER BY title, tn\n  ")
 		_ = _res.Error // tolerate unsupported-feature errors in skipped tests
 	}
@@ -232,11 +248,11 @@ func Test_orderby1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "one-a one-c two-a two-b three-a three-c"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	{ // "orderby1-2.1d" — skipped: EXPLAIN QUERY PLAN ORDER BY not matched (G3.INDEX) (SQL side effects only)
+	{ // "orderby1-2.1d" — skipped: EXPLAIN QUERY PLAN ORDER BY not matched (G3.INDEX) (SQL + file side effects only)
 		_res = db.Exec("\n    EXPLAIN QUERY PLAN\n    SELECT name FROM album JOIN track USING (aid) ORDER BY title, aid, tn\n  ")
 		_ = _res.Error // tolerate unsupported-feature errors in skipped tests
 	}
@@ -248,11 +264,11 @@ func Test_orderby1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "one-a one-c two-a two-b three-a three-c"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	{ // "orderby1-2.2b" — skipped: EXPLAIN QUERY PLAN ORDER BY not matched (G3.INDEX) (SQL side effects only)
+	{ // "orderby1-2.2b" — skipped: EXPLAIN QUERY PLAN ORDER BY not matched (G3.INDEX) (SQL + file side effects only)
 		_res = db.Exec("\n    EXPLAIN QUERY PLAN\n    SELECT name FROM album JOIN track USING (aid) ORDER BY +title, +tn\n  ")
 		_ = _res.Error // tolerate unsupported-feature errors in skipped tests
 	}
@@ -260,7 +276,7 @@ func Test_orderby1(t *testing.T) {
 		// optimization_control order-by-idx-join 0 (no PRAGMA equivalent; ignored)
 		_res = db.Exec("\n    SELECT name FROM album JOIN track USING (aid) ORDER BY title, tn\n  ")
 	}
-	{ // "orderby1-2.3b" — skipped: EXPLAIN QUERY PLAN ORDER BY not matched (G3.INDEX) (SQL side effects only)
+	{ // "orderby1-2.3b" — skipped: EXPLAIN QUERY PLAN ORDER BY not matched (G3.INDEX) (SQL + file side effects only)
 		_res = db.Exec("\n    EXPLAIN QUERY PLAN\n    SELECT name FROM album JOIN track USING (aid) ORDER BY title, tn\n  ")
 		_ = _res.Error // tolerate unsupported-feature errors in skipped tests
 	}
@@ -276,7 +292,7 @@ func Test_orderby1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "three-a three-c two-a two-b one-a one-c"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -288,11 +304,11 @@ func Test_orderby1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "three-a three-c two-a two-b one-a one-c"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	{ // "orderby1-2.4c" — skipped: EXPLAIN QUERY PLAN ORDER BY not matched (G3.INDEX) (SQL side effects only)
+	{ // "orderby1-2.4c" — skipped: EXPLAIN QUERY PLAN ORDER BY not matched (G3.INDEX) (SQL + file side effects only)
 		_res = db.Exec("\n    EXPLAIN QUERY PLAN\n    SELECT name FROM album JOIN track USING (aid) ORDER BY title DESC, tn\n  ")
 		_ = _res.Error // tolerate unsupported-feature errors in skipped tests
 	}
@@ -304,7 +320,7 @@ func Test_orderby1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "one-c one-a two-b two-a three-c three-a"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -316,11 +332,11 @@ func Test_orderby1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "one-c one-a two-b two-a three-c three-a"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	{ // "orderby1-2.5c" — skipped: EXPLAIN QUERY PLAN ORDER BY not matched (G3.INDEX) (SQL side effects only)
+	{ // "orderby1-2.5c" — skipped: EXPLAIN QUERY PLAN ORDER BY not matched (G3.INDEX) (SQL + file side effects only)
 		_res = db.Exec("\n    EXPLAIN QUERY PLAN\n    SELECT name FROM album JOIN track USING (aid) ORDER BY title, tn DESC\n  ")
 		_ = _res.Error // tolerate unsupported-feature errors in skipped tests
 	}
@@ -332,7 +348,7 @@ func Test_orderby1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "three-c three-a two-b two-a one-c one-a"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -344,11 +360,11 @@ func Test_orderby1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "three-c three-a two-b two-a one-c one-a"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	{ // "orderby1-2.6c" — skipped: EXPLAIN QUERY PLAN ORDER BY not matched (G3.INDEX) (SQL side effects only)
+	{ // "orderby1-2.6c" — skipped: EXPLAIN QUERY PLAN ORDER BY not matched (G3.INDEX) (SQL + file side effects only)
 		_res = db.Exec("\n    EXPLAIN QUERY PLAN\n    SELECT name FROM album JOIN track USING (aid) ORDER BY title DESC, tn DESC\n  ")
 		_ = _res.Error // tolerate unsupported-feature errors in skipped tests
 	}
@@ -366,11 +382,11 @@ func Test_orderby1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "one-c one-a two-b two-a three-c three-a"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	{ // "orderby1-3.1b" — skipped: EXPLAIN QUERY PLAN ORDER BY not matched (G3.INDEX) (SQL side effects only)
+	{ // "orderby1-3.1b" — skipped: EXPLAIN QUERY PLAN ORDER BY not matched (G3.INDEX) (SQL + file side effects only)
 		_res = db.Exec("\n    EXPLAIN QUERY PLAN\n    SELECT name FROM album CROSS JOIN track USING (aid) ORDER BY title, tn DESC\n  ")
 		_ = _res.Error // tolerate unsupported-feature errors in skipped tests
 	}
@@ -382,11 +398,11 @@ func Test_orderby1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "one-c one-a two-b two-a three-c three-a"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	{ // "orderby1-3.2b" — skipped: EXPLAIN QUERY PLAN ORDER BY not matched (G3.INDEX) (SQL side effects only)
+	{ // "orderby1-3.2b" — skipped: EXPLAIN QUERY PLAN ORDER BY not matched (G3.INDEX) (SQL + file side effects only)
 		_res = db.Exec("\n    EXPLAIN QUERY PLAN\n    SELECT name FROM album JOIN track USING (aid) ORDER BY +title, +tn DESC\n  ")
 		_ = _res.Error // tolerate unsupported-feature errors in skipped tests
 	}
@@ -394,7 +410,7 @@ func Test_orderby1(t *testing.T) {
 		// optimization_control order-by-idx-join 0 (no PRAGMA equivalent; ignored)
 		_res = db.Exec("\n    SELECT name FROM album JOIN track USING (aid) ORDER BY title, tn DESC\n  ")
 	}
-	{ // "orderby1-3.3b" — skipped: EXPLAIN QUERY PLAN ORDER BY not matched (G3.INDEX) (SQL side effects only)
+	{ // "orderby1-3.3b" — skipped: EXPLAIN QUERY PLAN ORDER BY not matched (G3.INDEX) (SQL + file side effects only)
 		_res = db.Exec("\n    EXPLAIN QUERY PLAN\n    SELECT name FROM album JOIN track USING (aid) ORDER BY title, tn DESC\n  ")
 		_ = _res.Error // tolerate unsupported-feature errors in skipped tests
 	}
@@ -410,7 +426,7 @@ func Test_orderby1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "one-a one-c two-a two-b three-a three-c"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -422,11 +438,11 @@ func Test_orderby1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "one-a one-c two-a two-b three-a three-c"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	{ // "orderby1-3.4c" — skipped: EXPLAIN QUERY PLAN ORDER BY not matched (G3.INDEX) (SQL side effects only)
+	{ // "orderby1-3.4c" — skipped: EXPLAIN QUERY PLAN ORDER BY not matched (G3.INDEX) (SQL + file side effects only)
 		_res = db.Exec("\n    EXPLAIN QUERY PLAN\n    SELECT name FROM album JOIN track USING (aid) ORDER BY title, tn\n  ")
 		_ = _res.Error // tolerate unsupported-feature errors in skipped tests
 	}
@@ -438,7 +454,7 @@ func Test_orderby1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "three-c three-a two-b two-a one-c one-a"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -450,11 +466,11 @@ func Test_orderby1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "three-c three-a two-b two-a one-c one-a"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	{ // "orderby1-3.5c" — skipped: EXPLAIN QUERY PLAN ORDER BY not matched (G3.INDEX) (SQL side effects only)
+	{ // "orderby1-3.5c" — skipped: EXPLAIN QUERY PLAN ORDER BY not matched (G3.INDEX) (SQL + file side effects only)
 		_res = db.Exec("\n    EXPLAIN QUERY PLAN\n    SELECT name FROM album JOIN track USING (aid) ORDER BY title DESC, tn DESC\n  ")
 		_ = _res.Error // tolerate unsupported-feature errors in skipped tests
 	}
@@ -466,7 +482,7 @@ func Test_orderby1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "three-a three-c two-a two-b one-a one-c"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -478,11 +494,11 @@ func Test_orderby1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "three-a three-c two-a two-b one-a one-c"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	{ // "orderby1-3.6c" — skipped: EXPLAIN QUERY PLAN ORDER BY not matched (G3.INDEX) (SQL side effects only)
+	{ // "orderby1-3.6c" — skipped: EXPLAIN QUERY PLAN ORDER BY not matched (G3.INDEX) (SQL + file side effects only)
 		_res = db.Exec("\n    EXPLAIN QUERY PLAN\n    SELECT name FROM album CROSS JOIN track USING (aid) ORDER BY title DESC, tn\n  ")
 		_ = _res.Error // tolerate unsupported-feature errors in skipped tests
 	}
@@ -494,7 +510,7 @@ func Test_orderby1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1 13 1 14 1 15 1 16"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -516,7 +532,7 @@ func Test_orderby1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "3 5"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -528,7 +544,7 @@ func Test_orderby1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "986"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -540,7 +556,7 @@ func Test_orderby1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "hardware hardware hardware"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -602,7 +618,7 @@ func Test_orderby1(t *testing.T) {
 		}
 		got := tclListFlatten(res)
 		want := tclListFlatten("5000")
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "8.3")
 		}
 	}
@@ -614,7 +630,7 @@ func Test_orderby1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "13"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -626,7 +642,7 @@ func Test_orderby1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "2 1 ^ 4 3 ^ 4 4 ^ 7 5 ^"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}

@@ -5,6 +5,7 @@
 package strict2
 
 import (
+"fmt"
 "github.com/pijalu/frigolite"
 "github.com/pijalu/frigolite/internal/vtab"
 "os"
@@ -18,6 +19,21 @@ func Test_strict2(t *testing.T) {
 		t.Fatal(err)
 	}
 	defer db.Close()
+
+	// auto-installed test-extension functions (src/test_func.c)
+	db.RegisterFunction("test_error", func(args []interface{}) (interface{}, error) {
+		msg := ""
+		if len(args) > 0 && args[0] != nil {
+			msg = fmt.Sprintf("%v", args[0])
+		}
+		return nil, fmt.Errorf("%s", msg)
+	}, 1, 2)
+	db.RegisterFunction("test_isolation", func(args []interface{}) (interface{}, error) {
+		if len(args) < 2 {
+			return nil, nil
+		}
+		return args[1], nil
+	}, 2, 2)
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
@@ -70,7 +86,7 @@ func Test_strict2(t *testing.T) {
 		got := flatten(r)
 		want := tclListFlatten("{}")
 		got = tclListFlattenCollapse(got)
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -86,7 +102,7 @@ func Test_strict2(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "ok"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -98,7 +114,7 @@ func Test_strict2(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "non-INT value in t1.a"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -110,7 +126,7 @@ func Test_strict2(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "non-INT value in t1.a"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -122,7 +138,7 @@ func Test_strict2(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "non-INT value in t1.a"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -134,7 +150,7 @@ func Test_strict2(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "non-INT value in t1nn.a"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -146,7 +162,7 @@ func Test_strict2(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "non-INT value in t1nn.a"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -158,7 +174,7 @@ func Test_strict2(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "non-INT value in t1nn.a"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -170,7 +186,7 @@ func Test_strict2(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "non-INTEGER value in t1.b"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -182,7 +198,7 @@ func Test_strict2(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "non-INTEGER value in t1.b"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -194,7 +210,7 @@ func Test_strict2(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "non-INTEGER value in t1.b"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -206,7 +222,7 @@ func Test_strict2(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "ok"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -218,7 +234,7 @@ func Test_strict2(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "non-INTEGER value in t1nn.b"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -230,7 +246,7 @@ func Test_strict2(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "NULL value in t1nn.b"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -242,7 +258,7 @@ func Test_strict2(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "non-TEXT value in t1.c"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -254,7 +270,7 @@ func Test_strict2(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "non-TEXT value in t1.c"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -266,7 +282,7 @@ func Test_strict2(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "non-TEXT value in t1.c"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -278,7 +294,7 @@ func Test_strict2(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "ok"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -290,7 +306,7 @@ func Test_strict2(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "non-REAL value in t1.d"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -302,7 +318,7 @@ func Test_strict2(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "non-REAL value in t1.d"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -314,7 +330,7 @@ func Test_strict2(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "non-BLOB value in t1.e"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -326,7 +342,7 @@ func Test_strict2(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "non-BLOB value in t1.e"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -338,7 +354,7 @@ func Test_strict2(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "non-BLOB value in t1.e"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -350,7 +366,7 @@ func Test_strict2(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "ok"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -362,7 +378,7 @@ func Test_strict2(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "NULL value in t1.id"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}

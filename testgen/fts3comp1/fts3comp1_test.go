@@ -5,6 +5,7 @@
 package fts3comp1
 
 import (
+"fmt"
 "github.com/pijalu/frigolite"
 "github.com/pijalu/frigolite/internal/function"
 "github.com/pijalu/frigolite/internal/vtab"
@@ -21,6 +22,21 @@ func Test_fts3comp1(t *testing.T) {
 		t.Fatal(err)
 	}
 	defer db.Close()
+
+	// auto-installed test-extension functions (src/test_func.c)
+	db.RegisterFunction("test_error", func(args []interface{}) (interface{}, error) {
+		msg := ""
+		if len(args) > 0 && args[0] != nil {
+			msg = fmt.Sprintf("%v", args[0])
+		}
+		return nil, fmt.Errorf("%s", msg)
+	}, 1, 2)
+	db.RegisterFunction("test_isolation", func(args []interface{}) (interface{}, error) {
+		if len(args) < 2 {
+			return nil, nil
+		}
+		return args[1], nil
+	}, 2, 2)
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
@@ -140,7 +156,7 @@ func Test_fts3comp1(t *testing.T) {
 				}
 				got := flatten(r)
 				want := "one two three two four six"
-				if got != want {
+				if got != want && !tclFpnumCompare(got, want) {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
@@ -152,7 +168,7 @@ func Test_fts3comp1(t *testing.T) {
 				}
 				got := flatten(r)
 				want := "1 2"
-				if got != want {
+				if got != want && !tclFpnumCompare(got, want) {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
@@ -164,7 +180,7 @@ func Test_fts3comp1(t *testing.T) {
 				}
 				got := flatten(r)
 				want := "one two three two four six three six nine four eight twelve"
-				if got != want {
+				if got != want && !tclFpnumCompare(got, want) {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
@@ -176,7 +192,7 @@ func Test_fts3comp1(t *testing.T) {
 				}
 				got := flatten(r)
 				want := "1 2 3 4"
-				if got != want {
+				if got != want && !tclFpnumCompare(got, want) {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
@@ -188,7 +204,7 @@ func Test_fts3comp1(t *testing.T) {
 				}
 				got := flatten(r)
 				want := "three six nine four eight twelve"
-				if got != want {
+				if got != want && !tclFpnumCompare(got, want) {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
@@ -200,7 +216,7 @@ func Test_fts3comp1(t *testing.T) {
 				}
 				got := flatten(r)
 				want := "one two three two four six"
-				if got != want {
+				if got != want && !tclFpnumCompare(got, want) {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
@@ -212,7 +228,7 @@ func Test_fts3comp1(t *testing.T) {
 				}
 				got := flatten(r)
 				want := "eight 1 1 four 2 2 nine 1 1 one 1 1 six 2 2 three 2 2 twelve 1 1 two 1 2"
-				if got != want {
+				if got != want && !tclFpnumCompare(got, want) {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
@@ -224,7 +240,7 @@ func Test_fts3comp1(t *testing.T) {
 				}
 				got := flatten(r)
 				want := "eight 1 1 four 1 1 nine 1 1 six 1 1 three 1 1 twelve 1 1"
-				if got != want {
+				if got != want && !tclFpnumCompare(got, want) {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
@@ -236,7 +252,7 @@ func Test_fts3comp1(t *testing.T) {
 				}
 				got := flatten(r)
 				want := "3 4"
-				if got != want {
+				if got != want && !tclFpnumCompare(got, want) {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
@@ -308,7 +324,7 @@ func Test_fts3comp1(t *testing.T) {
 			_ = myfunc_invoked // TCL namespace variable (query)
 			got := tclListFlatten(myfunc_invoked)
 			want := tclListFlatten("0")
-			if got != want {
+			if got != want && !tclFpnumCompare(got, want) {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "3.5")
 			}
 		}

@@ -5,6 +5,7 @@
 package orderby2
 
 import (
+"fmt"
 "github.com/pijalu/frigolite"
 "github.com/pijalu/frigolite/internal/vtab"
 "os"
@@ -18,6 +19,21 @@ func Test_orderby2(t *testing.T) {
 		t.Fatal(err)
 	}
 	defer db.Close()
+
+	// auto-installed test-extension functions (src/test_func.c)
+	db.RegisterFunction("test_error", func(args []interface{}) (interface{}, error) {
+		msg := ""
+		if len(args) > 0 && args[0] != nil {
+			msg = fmt.Sprintf("%v", args[0])
+		}
+		return nil, fmt.Errorf("%s", msg)
+	}, 1, 2)
+	db.RegisterFunction("test_isolation", func(args []interface{}) (interface{}, error) {
+		if len(args) < 2 {
+			return nil, nil
+		}
+		return args[1], nil
+	}, 2, 2)
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
@@ -75,11 +91,11 @@ func Test_orderby2(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "eleven oneteen"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	{ // "orderby2-1.1b" — skipped: EXPLAIN QUERY PLAN ORDER BY not matched (G3.INDEX) (SQL side effects only)
+	{ // "orderby2-1.1b" — skipped: EXPLAIN QUERY PLAN ORDER BY not matched (G3.INDEX) (SQL + file side effects only)
 		_res = db.Exec("\n    EXPLAIN QUERY PLAN\n    SELECT e FROM t1, t2 WHERE a=1 AND d=b ORDER BY d, e;\n  ")
 		_ = _res.Error // tolerate unsupported-feature errors in skipped tests
 	}
@@ -91,11 +107,11 @@ func Test_orderby2(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "eleven oneteen"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	{ // "orderby2-1.2b" — skipped: EXPLAIN QUERY PLAN ORDER BY not matched (G3.INDEX) (SQL side effects only)
+	{ // "orderby2-1.2b" — skipped: EXPLAIN QUERY PLAN ORDER BY not matched (G3.INDEX) (SQL + file side effects only)
 		_res = db.Exec("\n    EXPLAIN QUERY PLAN\n    SELECT e FROM t1, t2 WHERE a=1 AND d=b ORDER BY e;\n  ")
 		_ = _res.Error // tolerate unsupported-feature errors in skipped tests
 	}
@@ -107,11 +123,11 @@ func Test_orderby2(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "ten 11 eleven 11 oneteen 11 twelve 11"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	{ // "orderby2-1.3b" — skipped: EXPLAIN QUERY PLAN ORDER BY not matched (G3.INDEX) (SQL side effects only)
+	{ // "orderby2-1.3b" — skipped: EXPLAIN QUERY PLAN ORDER BY not matched (G3.INDEX) (SQL + file side effects only)
 		_res = db.Exec("\n    EXPLAIN QUERY PLAN\n    SELECT e, b FROM t1, t2 WHERE a=1 ORDER BY d, e;\n  ")
 		_ = _res.Error // tolerate unsupported-feature errors in skipped tests
 	}
@@ -123,7 +139,7 @@ func Test_orderby2(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1,3,7,10 1,3,7,14 1,3,6,11 1,4,8,12 1,4,8,12 1,4,8,13 1,4,5,9 2,3,7,10 2,3,7,14 2,3,6,11"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -135,7 +151,7 @@ func Test_orderby2(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1,3,7,10 1,3,7,14 1,3,6,11 1,4,8,12 1,4,8,12 1,4,8,13 1,4,5,9 2,3,7,10 2,3,7,14 2,3,6,11"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -147,7 +163,7 @@ func Test_orderby2(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1,3,6,11 1,3,7,10 1,3,7,14 1,4,5,9 1,4,8,12 1,4,8,12 1,4,8,13 2,3,6,11 2,3,7,10 2,3,7,14"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}

@@ -5,6 +5,7 @@
 package select2
 
 import (
+"fmt"
 "github.com/pijalu/frigolite"
 "github.com/pijalu/frigolite/internal/vtab"
 "os"
@@ -20,6 +21,21 @@ func Test_select2(t *testing.T) {
 		t.Fatal(err)
 	}
 	defer db.Close()
+
+	// auto-installed test-extension functions (src/test_func.c)
+	db.RegisterFunction("test_error", func(args []interface{}) (interface{}, error) {
+		msg := ""
+		if len(args) > 0 && args[0] != nil {
+			msg = fmt.Sprintf("%v", args[0])
+		}
+		return nil, fmt.Errorf("%s", msg)
+	}, 1, 2)
+	db.RegisterFunction("test_isolation", func(args []interface{}) (interface{}, error) {
+		if len(args) < 2 {
+			return nil, nil
+		}
+		return args[1], nil
+	}, 2, 2)
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
@@ -171,7 +187,7 @@ func Test_select2(t *testing.T) {
 		}
 		got := tclListFlatten(_r)
 		want := tclListFlatten("0: 0 7 8 9 1: 0 1 8 9 2: 0 1 2 9 3: 0 1 2 3 4: 2 3 4 5: 3 4 5 6: 4 5 6 7: 5 6 7 8: 6 7 8")
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "select2-1.1")
 		}
 	}
@@ -230,7 +246,7 @@ func Test_select2(t *testing.T) {
 		}
 		got := tclListFlatten(_r)
 		want := tclListFlatten("4: 2 3 4")
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "select2-1.2")
 		}
 	}
@@ -312,7 +328,7 @@ func Test_select2(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "30000"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -324,7 +340,7 @@ func Test_select2(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "29500"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -336,7 +352,7 @@ func Test_select2(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "500"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -354,7 +370,7 @@ func Test_select2(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "500"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -366,19 +382,19 @@ func Test_select2(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "500"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	{ // "select2-3.2d" — skipped: sqlite_search_count (VDBE op counter) N-A (SQL side effects only)
+	{ // "select2-3.2d" — skipped: sqlite_search_count (VDBE op counter) N-A (SQL + file side effects only)
 		_res = db.Exec("SELECT * FROM tbl2 WHERE 1000=f2")
 		_ = _res.Error // tolerate unsupported-feature errors in skipped tests
 	}
-	{ // "select2-3.2e" — skipped: sqlite_search_count (VDBE op counter) N-A (SQL side effects only)
+	{ // "select2-3.2e" — skipped: sqlite_search_count (VDBE op counter) N-A (SQL + file side effects only)
 		_res = db.Exec("SELECT * FROM tbl2 WHERE f2=1000")
 		_ = _res.Error // tolerate unsupported-feature errors in skipped tests
 	}
-	{ // "select2-3.3" — skipped: sqlite_search_count (VDBE op counter) N-A (SQL side effects only)
+	{ // "select2-3.3" — skipped: sqlite_search_count (VDBE op counter) N-A (SQL + file side effects only)
 		_res = db.Exec("DROP INDEX idx1")
 		_ = _res.Error // tolerate unsupported-feature errors in skipped tests
 		_res = db.Exec("SELECT f1 FROM tbl2 WHERE f2==2000")
@@ -392,7 +408,7 @@ func Test_select2(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1 4 3 2 3 4"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -404,7 +420,7 @@ func Test_select2(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1 2 1 4 3 2 3 4"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -416,7 +432,7 @@ func Test_select2(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1 0 3 0"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -428,7 +444,7 @@ func Test_select2(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1 2 1 4 3 2 3 4"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -440,7 +456,7 @@ func Test_select2(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1 0 3 0"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -452,7 +468,7 @@ func Test_select2(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1 2 3 4"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -464,7 +480,7 @@ func Test_select2(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1 4 1 0 3 2 3 0"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}

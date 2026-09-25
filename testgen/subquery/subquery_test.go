@@ -5,6 +5,7 @@
 package subquery
 
 import (
+"fmt"
 "github.com/pijalu/frigolite"
 "github.com/pijalu/frigolite/internal/function"
 "github.com/pijalu/frigolite/internal/vtab"
@@ -22,6 +23,21 @@ func Test_subquery(t *testing.T) {
 		t.Fatal(err)
 	}
 	defer db.Close()
+
+	// auto-installed test-extension functions (src/test_func.c)
+	db.RegisterFunction("test_error", func(args []interface{}) (interface{}, error) {
+		msg := ""
+		if len(args) > 0 && args[0] != nil {
+			msg = fmt.Sprintf("%v", args[0])
+		}
+		return nil, fmt.Errorf("%s", msg)
+	}, 1, 2)
+	db.RegisterFunction("test_isolation", func(args []interface{}) (interface{}, error) {
+		if len(args) < 2 {
+			return nil, nil
+		}
+		return args[1], nil
+	}, 2, 2)
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
@@ -82,7 +98,7 @@ func Test_subquery(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1 3 3 13 5 31 7 57"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -94,7 +110,7 @@ func Test_subquery(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -106,7 +122,7 @@ func Test_subquery(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "13 31 57"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -118,7 +134,7 @@ func Test_subquery(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1 1 3 3 5 5 7 7"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -130,7 +146,7 @@ func Test_subquery(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1 1 3 3 5 5 7 7"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -142,7 +158,7 @@ func Test_subquery(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1 1 3 3 5 5 7 7"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -154,7 +170,7 @@ func Test_subquery(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "2"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -166,7 +182,7 @@ func Test_subquery(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "0 1 1 1"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -178,7 +194,7 @@ func Test_subquery(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "3 5 7"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -190,7 +206,7 @@ func Test_subquery(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1 3 3 13 5 31 7 57"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -202,7 +218,7 @@ func Test_subquery(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1 3 3 13 5 31 7 57"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -214,7 +230,7 @@ func Test_subquery(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "16"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -226,7 +242,7 @@ func Test_subquery(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "2002-2 30 2002-3 25 2002-4 15"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -238,7 +254,7 @@ func Test_subquery(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "2002-2 30 2002-3 25 2002-4 15"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -256,7 +272,7 @@ func Test_subquery(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "10"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -274,7 +290,7 @@ func Test_subquery(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1 2"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -290,7 +306,7 @@ func Test_subquery(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE TABLE t3(a TEXT);\n    INSERT INTO t3 VALUES('10');\n  ")
 		}
 	}
-	{ // "subquery-2.3.2" — skipped: IN-list affinity: TEXT column vs REAL literals must compare as TEXT (oracle 0); engine applies numeric affinity (T12 affinity class) (SQL side effects only)
+	{ // "subquery-2.3.2" — skipped: IN-list affinity: TEXT column vs REAL literals must compare as TEXT (oracle 0); engine applies numeric affinity (T12 affinity class) (SQL + file side effects only)
 		_res = db.Exec("\n    SELECT a IN (10.0, 20) FROM t3;\n  ")
 		_ = _res.Error // tolerate unsupported-feature errors in skipped tests
 	}
@@ -314,7 +330,7 @@ func Test_subquery(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -338,7 +354,7 @@ func Test_subquery(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "10.0"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -350,7 +366,7 @@ func Test_subquery(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "10.0"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -390,7 +406,7 @@ func Test_subquery(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "2"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -410,7 +426,7 @@ func Test_subquery(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1 2"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -430,7 +446,7 @@ func Test_subquery(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "2 two"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -442,15 +458,15 @@ func Test_subquery(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1 one 2 two"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	{ // "subquery-3.3.5" — skipped: correlated count(*) referencing outer column inside scalar subquery: promotion row multiplicity (T4 queue #2652 class) (SQL side effects only)
+	{ // "subquery-3.3.5" — skipped: correlated count(*) referencing outer column inside scalar subquery: promotion row multiplicity (T4 queue #2652 class) (SQL + file side effects only)
 		_res = db.Exec("\n    SELECT a, (SELECT count(*) FROM t2 WHERE a=c) FROM t1;\n  ")
 		_ = _res.Error // tolerate unsupported-feature errors in skipped tests
 	}
-	{ // "subquery-3.4.1" — skipped: HAVING NOT EXISTS over a grouped correlated-avg subquery: outer-aggregate promotion across subquery boundary (T4 queue #2652 class) (SQL side effects only)
+	{ // "subquery-3.4.1" — skipped: HAVING NOT EXISTS over a grouped correlated-avg subquery: outer-aggregate promotion across subquery boundary (T4 queue #2652 class) (SQL + file side effects only)
 		_res = db.Exec("\n    CREATE TABLE t34(x,y);\n    INSERT INTO t34 VALUES(106,4), (107,3), (106,5), (107,5);\n    SELECT a.x, avg(a.y)\n      FROM t34 AS a\n     GROUP BY a.x\n     HAVING NOT EXISTS( SELECT b.x, avg(b.y)\n                          FROM t34 AS b\n                         GROUP BY b.x\n                         HAVING avg(a.y) > avg(b.y));\n  ")
 		_ = _res.Error // tolerate unsupported-feature errors in skipped tests
 	}
@@ -462,11 +478,11 @@ func Test_subquery(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "107 4.0"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	{ // "subquery-3.4.3" — skipped: HAVING NOT EXISTS over a grouped correlated-avg subquery: outer-aggregate promotion across subquery boundary (T4 queue #2652 class) (SQL side effects only)
+	{ // "subquery-3.4.3" — skipped: HAVING NOT EXISTS over a grouped correlated-avg subquery: outer-aggregate promotion across subquery boundary (T4 queue #2652 class) (SQL + file side effects only)
 		_res = db.Exec("\n    SELECT\n       a.x,\n       avg(a.y),\n       NOT EXISTS ( SELECT b.x, avg(b.y)\n                      FROM t34 AS b\n                      GROUP BY b.x\n                     HAVING avg(a.y) > avg(b.y)),\n       EXISTS ( SELECT c.x, avg(c.y)\n                  FROM t34 AS c\n                  GROUP BY c.x\n                 HAVING avg(a.y) > avg(c.y))\n      FROM t34 AS a\n     GROUP BY a.x\n     ORDER BY a.x;\n  ")
 		_ = _res.Error // tolerate unsupported-feature errors in skipped tests
 	}
@@ -478,7 +494,7 @@ func Test_subquery(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "98.5"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -490,7 +506,7 @@ func Test_subquery(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "2"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -502,7 +518,7 @@ func Test_subquery(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "2"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -532,7 +548,7 @@ func Test_subquery(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "2"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -544,7 +560,7 @@ func Test_subquery(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -556,7 +572,7 @@ func Test_subquery(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "{}"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -629,7 +645,7 @@ func Test_subquery(t *testing.T) {
 			}
 			got := flatten(r)
 			want := "101 201 301"
-			if got != want {
+			if got != want && !tclFpnumCompare(got, want) {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
@@ -641,7 +657,7 @@ func Test_subquery(t *testing.T) {
 			}
 			got := flatten(r)
 			want := "103 203 303"
-			if got != want {
+			if got != want && !tclFpnumCompare(got, want) {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
@@ -653,7 +669,7 @@ func Test_subquery(t *testing.T) {
 			}
 			got := flatten(r)
 			want := "301"
-			if got != want {
+			if got != want && !tclFpnumCompare(got, want) {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
@@ -665,7 +681,7 @@ func Test_subquery(t *testing.T) {
 			}
 			got := flatten(r)
 			want := "303"
-			if got != want {
+			if got != want && !tclFpnumCompare(got, want) {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
@@ -677,7 +693,7 @@ func Test_subquery(t *testing.T) {
 			}
 			got := flatten(r)
 			want := "300"
-			if got != want {
+			if got != want && !tclFpnumCompare(got, want) {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
@@ -689,7 +705,7 @@ func Test_subquery(t *testing.T) {
 			}
 			got := flatten(r)
 			want := "30101 30102 30103"
-			if got != want {
+			if got != want && !tclFpnumCompare(got, want) {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
@@ -701,7 +717,7 @@ func Test_subquery(t *testing.T) {
 			}
 			got := flatten(r)
 			want := "30101 30102 30103"
-			if got != want {
+			if got != want && !tclFpnumCompare(got, want) {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
@@ -713,7 +729,7 @@ func Test_subquery(t *testing.T) {
 			}
 			got := flatten(r)
 			want := "10103"
-			if got != want {
+			if got != want && !tclFpnumCompare(got, want) {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
@@ -725,7 +741,7 @@ func Test_subquery(t *testing.T) {
 			}
 			got := flatten(r)
 			want := "10301 10302 10303"
-			if got != want {
+			if got != want && !tclFpnumCompare(got, want) {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
@@ -737,7 +753,7 @@ func Test_subquery(t *testing.T) {
 			}
 			got := flatten(r)
 			want := "30101 30102 30103"
-			if got != want {
+			if got != want && !tclFpnumCompare(got, want) {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
@@ -749,7 +765,7 @@ func Test_subquery(t *testing.T) {
 			}
 			got := flatten(r)
 			want := "30303"
-			if got != want {
+			if got != want && !tclFpnumCompare(got, want) {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
@@ -763,7 +779,7 @@ func Test_subquery(t *testing.T) {
 		got := flatten(r)
 		want := tclListFlatten("{}")
 		got = tclListFlattenCollapse(got)
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -782,7 +798,7 @@ func Test_subquery(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "{} {} {}"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -794,7 +810,7 @@ func Test_subquery(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1 1 1"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -806,7 +822,7 @@ func Test_subquery(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "2 2 2 2"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -818,7 +834,7 @@ func Test_subquery(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "{} {} {} {}"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -868,7 +884,7 @@ func Test_subquery(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "text text text text"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -880,7 +896,7 @@ func Test_subquery(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "blob blob blob blob"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -892,7 +908,7 @@ func Test_subquery(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "blob blob blob blob"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -904,7 +920,7 @@ func Test_subquery(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "text text text text"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -916,7 +932,7 @@ func Test_subquery(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "text text text text"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -928,7 +944,7 @@ func Test_subquery(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "integer integer integer integer"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -940,7 +956,7 @@ func Test_subquery(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "integer integer integer integer"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -952,7 +968,7 @@ func Test_subquery(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "blob blob blob blob"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -964,7 +980,7 @@ func Test_subquery(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "integer integer integer integer"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -976,7 +992,7 @@ func Test_subquery(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "real real real real"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -988,7 +1004,7 @@ func Test_subquery(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "blob blob blob blob"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -1000,7 +1016,7 @@ func Test_subquery(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "real real real real"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -1012,7 +1028,7 @@ func Test_subquery(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "real real real real"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}

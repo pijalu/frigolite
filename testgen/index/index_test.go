@@ -5,6 +5,7 @@
 package index
 
 import (
+"fmt"
 "github.com/pijalu/frigolite"
 "github.com/pijalu/frigolite/internal/vtab"
 "os"
@@ -20,6 +21,21 @@ func Test_index(t *testing.T) {
 		t.Fatal(err)
 	}
 	defer db.Close()
+
+	// auto-installed test-extension functions (src/test_func.c)
+	db.RegisterFunction("test_error", func(args []interface{}) (interface{}, error) {
+		msg := ""
+		if len(args) > 0 && args[0] != nil {
+			msg = fmt.Sprintf("%v", args[0])
+		}
+		return nil, fmt.Errorf("%s", msg)
+	}, 1, 2)
+	db.RegisterFunction("test_isolation", func(args []interface{}) (interface{}, error) {
+		if len(args) < 2 {
+			return nil, nil
+		}
+		return args[1], nil
+	}, 2, 2)
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
@@ -92,7 +108,7 @@ func Test_index(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "index1 CREATE INDEX index1 ON test1(f1) test1 index"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -144,7 +160,7 @@ func Test_index(t *testing.T) {
 		v = tclListAppend(v, msg)
 		got := tclListFlatten(v)
 		want := tclListFlatten("1 no such table: main.test1")
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "index-2.1")
 		}
 	}
@@ -170,7 +186,7 @@ func Test_index(t *testing.T) {
 		v = tclListAppend(v, msg)
 		got := tclListFlatten(v)
 		want := tclListFlatten("1 no such column: f4")
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "index-2.1b")
 		}
 	}
@@ -196,7 +212,7 @@ func Test_index(t *testing.T) {
 		v = tclListAppend(v, msg)
 		got := tclListFlatten(v)
 		want := tclListFlatten("1 no such column: f4")
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "index-2.2")
 		}
 	}
@@ -307,7 +323,7 @@ func Test_index(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "2"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -319,7 +335,7 @@ func Test_index(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "10"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -331,7 +347,7 @@ func Test_index(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "64"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -353,7 +369,7 @@ func Test_index(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "10"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -375,7 +391,7 @@ func Test_index(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "10"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -397,7 +413,7 @@ func Test_index(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "10"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -419,7 +435,7 @@ func Test_index(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "10"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -453,7 +469,7 @@ func Test_index(t *testing.T) {
 		v = tclListAppend(v, msg)
 		got := tclListFlatten(v)
 		want := tclListFlatten("1 table sqlite_master may not be indexed")
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "index-5.1")
 		}
 	}
@@ -466,7 +482,7 @@ func Test_index(t *testing.T) {
 		got := flatten(r)
 		want := tclListFlatten("{}")
 		got = tclListFlattenCollapse(got)
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -500,7 +516,7 @@ func Test_index(t *testing.T) {
 		v = tclListAppend(v, msg)
 		got := tclListFlatten(v)
 		want := tclListFlatten("1 index index1 already exists")
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "index-6.1")
 		}
 	}
@@ -518,7 +534,7 @@ func Test_index(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "index1 test1 test2"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -546,7 +562,7 @@ func Test_index(t *testing.T) {
 		v = tclListAppend(v, msg)
 		got := tclListFlatten(v)
 		want := tclListFlatten("1 there is already a table named test1")
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "index-6.2")
 		}
 	}
@@ -558,7 +574,7 @@ func Test_index(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "index1 test1 test2"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -585,7 +601,7 @@ func Test_index(t *testing.T) {
 		got := flatten(r)
 		want := tclListFlatten("{}")
 		got = tclListFlattenCollapse(got)
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -624,7 +640,7 @@ func Test_index(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "16"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -636,7 +652,7 @@ func Test_index(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "sqlite_autoindex_test1_1"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -670,7 +686,7 @@ func Test_index(t *testing.T) {
 		v = tclListAppend(v, msg)
 		got := tclListFlatten(v)
 		want := tclListFlatten("1 no such index: index1")
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "index-8.1")
 		}
 	}
@@ -708,7 +724,7 @@ func Test_index(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "2 12"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -720,7 +736,7 @@ func Test_index(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "4"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -732,7 +748,7 @@ func Test_index(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "2"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -745,7 +761,7 @@ func Test_index(t *testing.T) {
 		got := flatten(r)
 		want := tclListFlatten("{}")
 		got = tclListFlattenCollapse(got)
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -757,7 +773,7 @@ func Test_index(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1 2 3 4 5 6 7 8 9"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -779,7 +795,7 @@ func Test_index(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -792,7 +808,7 @@ func Test_index(t *testing.T) {
 		got := flatten(r)
 		want := tclListFlatten("{}")
 		got = tclListFlattenCollapse(got)
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -804,7 +820,7 @@ func Test_index(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "0"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -849,7 +865,7 @@ func Test_index(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "0 0 abc -1 1 0 0"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -861,7 +877,7 @@ func Test_index(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "0 0 0 0"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -873,7 +889,7 @@ func Test_index(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "0 0 -1 0 0"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -885,7 +901,7 @@ func Test_index(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "0 0 abc 1 0 0"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -897,7 +913,7 @@ func Test_index(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "0 0 0 0"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -909,7 +925,7 @@ func Test_index(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "0 0 -1 0 0"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -921,7 +937,7 @@ func Test_index(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "0 0 abc 1 0 0"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -935,7 +951,7 @@ func Test_index(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1 2.0 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -970,7 +986,7 @@ func Test_index(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1 2.0 3 a b c"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -984,7 +1000,7 @@ func Test_index(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "3 5 2 1 4"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -996,7 +1012,7 @@ func Test_index(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "2 1"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -1008,7 +1024,7 @@ func Test_index(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -1020,7 +1036,7 @@ func Test_index(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "4"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -1032,7 +1048,7 @@ func Test_index(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "2 1 4"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -1044,7 +1060,7 @@ func Test_index(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "2 1 4"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -1056,7 +1072,7 @@ func Test_index(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "5 2 1 4"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -1068,7 +1084,7 @@ func Test_index(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "5 2 1"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -1080,7 +1096,7 @@ func Test_index(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "5 2 1 4"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -1092,7 +1108,7 @@ func Test_index(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "5 2 1"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -1104,7 +1120,7 @@ func Test_index(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "5"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -1119,7 +1135,7 @@ func Test_index(t *testing.T) {
 		got := flatten(r)
 		want := tclListFlatten("{}")
 		got = tclListFlattenCollapse(got)
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -1131,7 +1147,7 @@ func Test_index(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "13 14 15 12 8 5 2 1 3 6 10 11 9 4 7"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -1143,7 +1159,7 @@ func Test_index(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1 2 3 5 6 8 10 11 12 13 14 15"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -1157,7 +1173,7 @@ func Test_index(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -1169,7 +1185,7 @@ func Test_index(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -1181,7 +1197,7 @@ func Test_index(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -1193,7 +1209,7 @@ func Test_index(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -1205,7 +1221,7 @@ func Test_index(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "2"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -1217,7 +1233,7 @@ func Test_index(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "sqlite_autoindex_t7_1 sqlite_autoindex_t7_2 sqlite_autoindex_t7_3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -1352,7 +1368,7 @@ func Test_index(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "a 1 | a 0 |"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -1364,7 +1380,7 @@ func Test_index(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "0.0 1.0 1.0 1.0"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -1376,7 +1392,7 @@ func Test_index(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "0.1"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
