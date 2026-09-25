@@ -5,6 +5,7 @@
 package pragma4
 
 import (
+"fmt"
 "github.com/pijalu/frigolite"
 "github.com/pijalu/frigolite/internal/vtab"
 "os"
@@ -19,6 +20,21 @@ func Test_pragma4(t *testing.T) {
 		t.Fatal(err)
 	}
 	defer db.Close()
+
+	// auto-installed test-extension functions (src/test_func.c)
+	db.RegisterFunction("test_error", func(args []interface{}) (interface{}, error) {
+		msg := ""
+		if len(args) > 0 && args[0] != nil {
+			msg = fmt.Sprintf("%v", args[0])
+		}
+		return nil, fmt.Errorf("%s", msg)
+	}, 1, 2)
+	db.RegisterFunction("test_isolation", func(args []interface{}) (interface{}, error) {
+		if len(args) < 2 {
+			return nil, nil
+		}
+		return args[1], nil
+	}, 2, 2)
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
@@ -137,7 +153,7 @@ func Test_pragma4(t *testing.T) {
 				}
 				got := flatten(r)
 				want := "0 a {} 0 {} 0 1 b {} 0 {} 0 2 c {} 0 {} 0"
-				if got != want {
+				if got != want && !tclFpnumCompare(got, want) {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
@@ -149,7 +165,7 @@ func Test_pragma4(t *testing.T) {
 				}
 				got := flatten(r)
 				want := "0 d {} 0 {} 0 1 e {} 0 {} 0 2 f {} 0 {} 0"
-				if got != want {
+				if got != want && !tclFpnumCompare(got, want) {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
@@ -213,7 +229,7 @@ func Test_pragma4(t *testing.T) {
 				}
 				got := flatten(r)
 				want := "0 a {} 0 {} 0 1 b {} 0 {} 0 2 c {} 0 {} 0"
-				if got != want {
+				if got != want && !tclFpnumCompare(got, want) {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
@@ -225,7 +241,7 @@ func Test_pragma4(t *testing.T) {
 				}
 				got := flatten(r)
 				want := "0 d {} 0 {} 0 1 e {} 0 {} 0 2 f {} 0 {} 0"
-				if got != want {
+				if got != want && !tclFpnumCompare(got, want) {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
@@ -281,7 +297,7 @@ func Test_pragma4(t *testing.T) {
 				}
 				got := flatten(r)
 				want := "0 1 b"
-				if got != want {
+				if got != want && !tclFpnumCompare(got, want) {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
@@ -293,7 +309,7 @@ func Test_pragma4(t *testing.T) {
 				}
 				got := flatten(r)
 				want := "0 1 e"
-				if got != want {
+				if got != want && !tclFpnumCompare(got, want) {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
@@ -347,7 +363,7 @@ func Test_pragma4(t *testing.T) {
 				}
 				got := flatten(r)
 				want := "0 i1 0 c 0"
-				if got != want {
+				if got != want && !tclFpnumCompare(got, want) {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
@@ -359,7 +375,7 @@ func Test_pragma4(t *testing.T) {
 				}
 				got := flatten(r)
 				want := "0 i2 0 c 0"
-				if got != want {
+				if got != want && !tclFpnumCompare(got, want) {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
@@ -386,7 +402,7 @@ func Test_pragma4(t *testing.T) {
 				got := flatten(r)
 				want := tclListFlatten("{}")
 				got = tclListFlattenCollapse(got)
-				if got != want {
+				if got != want && !tclFpnumCompare(got, want) {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
@@ -399,7 +415,7 @@ func Test_pragma4(t *testing.T) {
 				got := flatten(r)
 				want := tclListFlatten("{}")
 				got = tclListFlattenCollapse(got)
-				if got != want {
+				if got != want && !tclFpnumCompare(got, want) {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
@@ -421,7 +437,7 @@ func Test_pragma4(t *testing.T) {
 				}
 				got := flatten(r)
 				want := "0 0 t1 c a NO ACTION NO ACTION NONE"
-				if got != want {
+				if got != want && !tclFpnumCompare(got, want) {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
@@ -433,7 +449,7 @@ func Test_pragma4(t *testing.T) {
 				}
 				got := flatten(r)
 				want := "0 0 t2 r d NO ACTION NO ACTION NONE"
-				if got != want {
+				if got != want && !tclFpnumCompare(got, want) {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
@@ -481,7 +497,7 @@ func Test_pragma4(t *testing.T) {
 				}
 				got := flatten(r)
 				want := "c1 1 t1 0"
-				if got != want {
+				if got != want && !tclFpnumCompare(got, want) {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
@@ -493,7 +509,7 @@ func Test_pragma4(t *testing.T) {
 				}
 				got := flatten(r)
 				want := "c2 1 t2 0"
-				if got != want {
+				if got != want && !tclFpnumCompare(got, want) {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
@@ -511,7 +527,7 @@ func Test_pragma4(t *testing.T) {
 				}
 				got := flatten(r)
 				want := "c1 1 t1 0"
-				if got != want {
+				if got != want && !tclFpnumCompare(got, want) {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
@@ -529,7 +545,7 @@ func Test_pragma4(t *testing.T) {
 				}
 				got := flatten(r)
 				want := "0 a {} 0 'abc' 0 1 b {} 0 -1 0 2 c {} 0 +4.0 0"
-				if got != want {
+				if got != want && !tclFpnumCompare(got, want) {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
@@ -560,7 +576,7 @@ func Test_pragma4(t *testing.T) {
 				}
 				got := flatten(r)
 				want := "t2 t1 d a 1"
-				if got != want {
+				if got != want && !tclFpnumCompare(got, want) {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
@@ -577,7 +593,7 @@ func Test_pragma4(t *testing.T) {
 				got := flatten(r)
 				want := tclListFlatten("{}")
 				got = tclListFlattenCollapse(got)
-				if got != want {
+				if got != want && !tclFpnumCompare(got, want) {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
@@ -589,7 +605,7 @@ func Test_pragma4(t *testing.T) {
 				}
 				got := flatten(r)
 				want := "main v1 view 0 0 0 main t2 table 2 0 0 main t1 table 2 0 0 main sqlite_schema table 5 0 0 temp sqlite_temp_schema table 5 0 0"
-				if got != want {
+				if got != want && !tclFpnumCompare(got, want) {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
@@ -597,7 +613,7 @@ func Test_pragma4(t *testing.T) {
 				_ = log // TCL namespace variable (query)
 				got := tclListFlatten(log)
 				want := tclListFlatten("{}")
-				if got != want {
+				if got != want && !tclFpnumCompare(got, want) {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "6.3")
 				}
 			}
@@ -626,7 +642,7 @@ func Test_pragma4(t *testing.T) {
 				}
 				got := flatten(r)
 				want := "a a b b"
-				if got != want {
+				if got != want && !tclFpnumCompare(got, want) {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}

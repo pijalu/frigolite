@@ -5,6 +5,7 @@
 package pragma3
 
 import (
+"fmt"
 "github.com/pijalu/frigolite"
 "os"
 "testing"
@@ -17,6 +18,21 @@ func Test_pragma3(t *testing.T) {
 		t.Fatal(err)
 	}
 	defer db.Close()
+
+	// auto-installed test-extension functions (src/test_func.c)
+	db.RegisterFunction("test_error", func(args []interface{}) (interface{}, error) {
+		msg := ""
+		if len(args) > 0 && args[0] != nil {
+			msg = fmt.Sprintf("%v", args[0])
+		}
+		return nil, fmt.Errorf("%s", msg)
+	}, 1, 2)
+	db.RegisterFunction("test_isolation", func(args []interface{}) (interface{}, error) {
+		if len(args) < 2 {
+			return nil, nil
+		}
+		return args[1], nil
+	}, 2, 2)
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
@@ -74,7 +90,7 @@ func Test_pragma3(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -86,7 +102,7 @@ func Test_pragma3(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -98,7 +114,7 @@ func Test_pragma3(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1 1"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -110,7 +126,7 @@ func Test_pragma3(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1 1 1 100 200 300 1"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -129,7 +145,7 @@ func Test_pragma3(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1 1 1 100 200 300 400 500 1"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -141,29 +157,30 @@ func Test_pragma3(t *testing.T) {
 		_res = db.Exec("\n  SELECT * FROM t1;\n  PRAGMA data_version;\n")
 		_ = _res.Error // tolerate unsupported-feature errors in skipped tests
 	}
-	{ // "pragma3-160" — skipped: data_version cross-connection bump not representable with db2 aliasing (SQL side effects only)
+	{ // "pragma3-160" — skipped: data_version cross-connection bump not representable with db2 aliasing (SQL + file side effects only)
 		_res = db.Exec("\n    BEGIN;\n    PRAGMA data_version;\n    UPDATE t1 SET a=555 WHERE a=501;\n    PRAGMA data_version;\n    SELECT * FROM t1 ORDER BY a;\n    PRAGMA data_version;\n  ")
 		_ = _res.Error // tolerate unsupported-feature errors in skipped tests
 	}
-	{ // "pragma3-170" — skipped: data_version cross-connection bump not representable with db2 aliasing (SQL side effects only)
+	{ // "pragma3-170" — skipped: data_version cross-connection bump not representable with db2 aliasing (SQL + file side effects only)
 		_res = db2.Exec("\n    PRAGMA data_version;\n  ")
 		_ = _res.Error // tolerate unsupported-feature errors in skipped tests
 	}
-	{ // "pragma3-180" — skipped: data_version cross-connection bump not representable with db2 aliasing (SQL side effects only)
+	{ // "pragma3-180" — skipped: data_version cross-connection bump not representable with db2 aliasing (SQL + file side effects only)
 		_res = db.Exec("\n    COMMIT;\n    PRAGMA data_version;\n  ")
 		_ = _res.Error // tolerate unsupported-feature errors in skipped tests
 	}
-	{ // "pragma3-190" — skipped: data_version cross-connection bump not representable with db2 aliasing (SQL side effects only)
+	{ // "pragma3-190" — skipped: data_version cross-connection bump not representable with db2 aliasing (SQL + file side effects only)
 		_res = db2.Exec("\n    PRAGMA data_version;\n  ")
 		_ = _res.Error // tolerate unsupported-feature errors in skipped tests
 	}
 	{ // "pragma3-195" — skipped: data_version cross-connection bump not representable with db2 aliasing
 	}
-	{ // "pragma3-200" — skipped: data_version cross-connection bump not representable with db2 aliasing (SQL side effects only)
+	{ // "pragma3-200" — skipped: data_version cross-connection bump not representable with db2 aliasing (SQL + file side effects only)
 		_res = db.Exec("PRAGMA data_version; SELECT * FROM t1;")
 		_ = _res.Error // tolerate unsupported-feature errors in skipped tests
 	}
-	{ // "pragma3-201" — skipped: data_version cross-connection bump not representable with db2 aliasing (SQL side effects only)
+	{ // "pragma3-201" — skipped: data_version cross-connection bump not representable with db2 aliasing (SQL + file side effects only)
+		os.RemoveAll("pragma3.txt")
 		_res = db.Exec("\n    PRAGMA data_version;\n    SELECT * FROM t1;\n  ")
 		_ = _res.Error // tolerate unsupported-feature errors in skipped tests
 	}
@@ -178,19 +195,19 @@ func Test_pragma3(t *testing.T) {
 			db2, err = frigolite.Open("test.db")
 			tclConnRegister("db2", db2)
 			if err != nil { t.Fatal(err) }
-			{ // "pragma3-400" — skipped: WAL-mode data_version reopen not supported (SQL side effects only)
+			{ // "pragma3-400" — skipped: WAL-mode data_version reopen not supported (SQL + file side effects only)
 				_res = db.Exec("\n      PRAGMA data_version;\n      PRAGMA journal_mode;\n      SELECT * FROM t1;\n    ")
 				_ = _res.Error // tolerate unsupported-feature errors in skipped tests
 			}
-			{ // "pragma3-410" — skipped: WAL-mode data_version reopen not supported (SQL side effects only)
+			{ // "pragma3-410" — skipped: WAL-mode data_version reopen not supported (SQL + file side effects only)
 				_res = db2.Exec("\n      PRAGMA data_version;\n      PRAGMA journal_mode;\n      SELECT * FROM t1;\n    ")
 				_ = _res.Error // tolerate unsupported-feature errors in skipped tests
 			}
-			{ // "pragma3-420" — skipped: WAL-mode data_version reopen not supported (SQL side effects only)
+			{ // "pragma3-420" — skipped: WAL-mode data_version reopen not supported (SQL + file side effects only)
 				_res = db.Exec("UPDATE t1 SET a=111*(a/100); PRAGMA data_version; SELECT * FROM t1")
 				_ = _res.Error // tolerate unsupported-feature errors in skipped tests
 			}
-			{ // "pragma3-430" — skipped: WAL-mode data_version reopen not supported (SQL side effects only)
+			{ // "pragma3-430" — skipped: WAL-mode data_version reopen not supported (SQL + file side effects only)
 				_res = db2.Exec("PRAGMA data_version; SELECT * FROM t1;")
 				_ = _res.Error // tolerate unsupported-feature errors in skipped tests
 			}
@@ -224,7 +241,7 @@ func Test_pragma3(t *testing.T) {
 				}
 				got := flatten(r)
 				want := "1"
-				if got != want {
+				if got != want && !tclFpnumCompare(got, want) {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
@@ -236,7 +253,7 @@ func Test_pragma3(t *testing.T) {
 				}
 				got := flatten(r)
 				want := "1"
-				if got != want {
+				if got != want && !tclFpnumCompare(got, want) {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}

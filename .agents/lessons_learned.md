@@ -9029,3 +9029,39 @@ regenerated; suite net −2274 fails vs pre-tranche baseline (7230 → ~4950).
   13→5 gocyclo. Files: pragma_table.go 1098→332 (+pragma_tableinfo.go 470,
   +vtab_tvf.go 395); pragma_analyze.go 1026→850 (REINDEX → pragma_reindex.go 561).
   7 commits on fleet/t33d-exec, validation set green after every commit.
+
+## T33d-cmd (2026-09-25) — §5d tcl2go cmd-expression/generator golang-check closure
+
+- **Stale committed testgen/ is a fleet-wide condition, not a worktree error**: at
+  branch start, `go run ./tools/tcl2go/ -testdir ori/sqlite/test` produced a
+  ~2,181-file diff vs committed testgen/ because main's merged emitter fixes
+  postdate the last full-corpus regen. Protocol: commit the full regen FIRST as
+  one dedicated `5d.tcl2go: baseline full-corpus regen sync...` commit
+  (testgen/ paths only), then measure every later regen gate against that
+  synced baseline (`git status --short testgen/` must stay empty).
+- **Worktree `ori` setup**: git tracks a sparse `ori/` (2 files); `ln -s
+  ../ori ori` inside the worktree creates a stray `ori/ori` symlink. Replace
+  the dir: `rm -rf ori && ln -s /Users/muaddib/dev/frigolite/ori ori` (1221
+  tcl files). The 2 tracked-file deletions stay uncommitted; scope regen
+  checks to `testgen/`.
+- **tcl2go package-level handler tables CANNOT be map literals**: any
+  package-level `var X = map[string]cmdExprHandler{...}` whose handlers
+  transitively reach `cmdExpr` (via buildStringExpr → renderStringPart →
+  cmdExpr) fails with `initialization cycle`. Use the sync.Once lazy-ref
+  pattern (cmdExprHandlersRef) — same reason the original used it.
+- **gocognit counts nested closures into the enclosing function** (each `if`
+  inside a func literal in a map literal adds to the outer function's
+  complexity) — buildCmdExprHandlers was 84 even though the literal is
+  "flat". Extracting closures to named methods collapses it to ~3.
+- **Refactor-verification loop that worked**: (1) baseline checksum snapshot
+  of regen (`find testgen -type f -print0 | sort -z | xargs -0 shasum`), (2)
+  verify generator determinism with a second run BEFORE editing, (3) after
+  each tranche: regen + checksum diff. Caught two silent hazards: a typo'd
+  boolean (`== "db" == false`) and import drift.
+- **Split recipe for oversized tcl2go files**: cut by handler family (trace/
+  busy, proc registration, string/list expressions, dispatch table, preamble,
+  scans, imports), keep the dispatcher in the original file, and move shared
+  lookups (e.g. procBodyFor resolving globalProcBodies→tp.procBodies) into
+  the family file that uses them. Emission ORDER is the invariant: extract
+  helpers so emitLine sequences stay byte-identical (e.g. trace_v2 emits
+  tclTraceNameSet BEFORE the unrecognized-body check).

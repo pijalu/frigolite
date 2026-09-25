@@ -5,6 +5,7 @@
 package dbpage
 
 import (
+"fmt"
 "github.com/pijalu/frigolite"
 "github.com/pijalu/frigolite/internal/vtab"
 "os"
@@ -19,6 +20,21 @@ func Test_dbpage(t *testing.T) {
 		t.Fatal(err)
 	}
 	defer db.Close()
+
+	// auto-installed test-extension functions (src/test_func.c)
+	db.RegisterFunction("test_error", func(args []interface{}) (interface{}, error) {
+		msg := ""
+		if len(args) > 0 && args[0] != nil {
+			msg = fmt.Sprintf("%v", args[0])
+		}
+		return nil, fmt.Errorf("%s", msg)
+	}, 1, 2)
+	db.RegisterFunction("test_isolation", func(args []interface{}) (interface{}, error) {
+		if len(args) < 2 {
+			return nil, nil
+		}
+		return args[1], nil
+	}, 2, 2)
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
@@ -91,7 +107,7 @@ func Test_dbpage(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1 X'53514C6974' 2 X'0500000001' 3 X'0D0000004E' 4 X'0D00000016'"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -103,7 +119,7 @@ func Test_dbpage(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "2 X'0500000001'"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -115,7 +131,7 @@ func Test_dbpage(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "4 X'0D00000016'"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -128,7 +144,7 @@ func Test_dbpage(t *testing.T) {
 		got := flatten(r)
 		want := tclListFlatten("{}")
 		got = tclListFlattenCollapse(got)
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -141,7 +157,7 @@ func Test_dbpage(t *testing.T) {
 		got := flatten(r)
 		want := tclListFlatten("{}")
 		got = tclListFlattenCollapse(got)
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -153,7 +169,7 @@ func Test_dbpage(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1 X'53514C6974' 2 X'0D00000001'"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -165,7 +181,7 @@ func Test_dbpage(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1 main SQLite 1 aux1 SQLite"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -189,7 +205,7 @@ func Test_dbpage(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1 X'53514C6974' 2 X'0500000001' 3 X'0D0000004E' 4 X'0000000000'"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -248,7 +264,7 @@ func Test_dbpage(t *testing.T) {
 		got := flatten(r)
 		want := tclListFlatten("{}")
 		got = tclListFlattenCollapse(got)
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -286,11 +302,11 @@ func Test_dbpage(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "18"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	{ // "dbpage-510" — skipped: cross-connection raw page copy needs shared pager N-A (P7 concurrency) (SQL side effects only)
+	{ // "dbpage-510" — skipped: cross-connection raw page copy needs shared pager N-A (P7 concurrency) (SQL + file side effects only)
 		_res = db.Exec("BEGIN")
 		_ = _res.Error // tolerate unsupported-feature errors in skipped tests
 		_res = db2.Exec(" PRAGMA page_count ")
@@ -353,7 +369,7 @@ func Test_dbpage(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1234"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -379,7 +395,7 @@ func Test_dbpage(t *testing.T) {
 	if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 	max = "db2 one {PRAGMA page_count}"
 	_ = max // suppress unused warning
-	{ // "dbpage-710" — skipped: cross-connection page copy loop needs shared pager N-A (P7 concurrency) (SQL side effects only)
+	{ // "dbpage-710" — skipped: cross-connection page copy loop needs shared pager N-A (P7 concurrency) (SQL + file side effects only)
 		_res = db.Exec("\n    BEGIN;\n  ")
 		_ = _res.Error // tolerate unsupported-feature errors in skipped tests
 		_res = db.Exec("\n      SAVEPOINT abc;\n        INSERT INTO sqlite_dbpage VALUES(2, NULL);\n      ROLLBACK TO abc;\n    COMMIT;\n  ")
@@ -397,7 +413,7 @@ func Test_dbpage(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "ok"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -423,7 +439,7 @@ func Test_dbpage(t *testing.T) {
 		got := flatten(r)
 		want := tclListFlatten("{}")
 		got = tclListFlattenCollapse(got)
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -436,7 +452,7 @@ func Test_dbpage(t *testing.T) {
 		got := flatten(r)
 		want := tclListFlatten("{}")
 		got = tclListFlattenCollapse(got)
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}

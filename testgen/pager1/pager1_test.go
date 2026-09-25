@@ -6,6 +6,7 @@ package pager1
 
 import (
 "errors"
+"fmt"
 "github.com/pijalu/frigolite"
 "github.com/pijalu/frigolite/internal/vtab"
 "os"
@@ -21,6 +22,21 @@ func Test_pager1(t *testing.T) {
 		t.Fatal(err)
 	}
 	defer db.Close()
+
+	// auto-installed test-extension functions (src/test_func.c)
+	db.RegisterFunction("test_error", func(args []interface{}) (interface{}, error) {
+		msg := ""
+		if len(args) > 0 && args[0] != nil {
+			msg = fmt.Sprintf("%v", args[0])
+		}
+		return nil, fmt.Errorf("%s", msg)
+	}, 1, 2)
+	db.RegisterFunction("test_isolation", func(args []interface{}) (interface{}, error) {
+		if len(args) < 2 {
+			return nil, nil
+		}
+		return args[1], nil
+	}, 2, 2)
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
@@ -371,7 +387,7 @@ func Test_pager1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "3 0"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -389,7 +405,7 @@ func Test_pager1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "3 0"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -401,7 +417,7 @@ func Test_pager1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1 2 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -470,7 +486,7 @@ func Test_pager1(t *testing.T) {
 				}
 				got := flatten(r)
 				want := "99"
-				if got != want {
+				if got != want && !tclFpnumCompare(got, want) {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
@@ -482,7 +498,7 @@ func Test_pager1(t *testing.T) {
 				}
 				got := flatten(r)
 				want := "258"
-				if got != want {
+				if got != want && !tclFpnumCompare(got, want) {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
@@ -500,7 +516,7 @@ func Test_pager1(t *testing.T) {
 				}
 				got := flatten(r)
 				want := "258 ok"
-				if got != want {
+				if got != want && !tclFpnumCompare(got, want) {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
@@ -545,7 +561,7 @@ func Test_pager1(t *testing.T) {
 			}
 			got := flatten(r)
 			want := "1 2"
-			if got != want {
+			if got != want && !tclFpnumCompare(got, want) {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
@@ -667,15 +683,15 @@ func Test_pager1(t *testing.T) {
 			// tstvfs delete (unsupported command, not transpiled)
 		}
 		// foreach {tn ofst value result} "2   20    31       {1 2 3 4}\n          3   20    32       {1 2 3 4}\n          4   20    33       {1 2 3 4}\n          5   20    65536    {1 2 3 4}\n          6   20    131072   {1 2 3 4}\n\n          7   24    511      {1 2 3 4}\n          8   24    513      {1 2 3 4}\n          9   24    131072   {1 2 3 4}\n\n         10   32    65536    {1 2}"
-		_itemsA := tclSplitList("2   20    31       {1 2 3 4}\n          3   20    32       {1 2 3 4}\n          4   20    33       {1 2 3 4}\n          5   20    65536    {1 2 3 4}\n          6   20    131072   {1 2 3 4}\n\n          7   24    511      {1 2 3 4}\n          8   24    513      {1 2 3 4}\n          9   24    131072   {1 2 3 4}\n\n         10   32    65536    {1 2}")
-		for _idx0 := 0; _idx0+4 <= len(_itemsA); _idx0 += 4 {
-			tn := _itemsA[_idx0+0]
+		_items0 := tclSplitList("2   20    31       {1 2 3 4}\n          3   20    32       {1 2 3 4}\n          4   20    33       {1 2 3 4}\n          5   20    65536    {1 2 3 4}\n          6   20    131072   {1 2 3 4}\n\n          7   24    511      {1 2 3 4}\n          8   24    513      {1 2 3 4}\n          9   24    131072   {1 2 3 4}\n\n         10   32    65536    {1 2}")
+		for _idx0 := 0; _idx0+4 <= len(_items0); _idx0 += 4 {
+			tn := _items0[_idx0+0]
 			_ = tn // suppress unused warning
-			ofst := _itemsA[_idx0+1]
+			ofst := _items0[_idx0+1]
 			_ = ofst // suppress unused warning
-			value := _itemsA[_idx0+2]
+			value := _items0[_idx0+2]
 			_ = value // suppress unused warning
-			result := _itemsA[_idx0+3]
+			result := _items0[_idx0+3]
 			_ = result // suppress unused warning
 			_ = _idx0
 				{ // do_test "pager1.4.3." + tn
@@ -784,7 +800,7 @@ func Test_pager1(t *testing.T) {
 								_ = mj_delete_cnt // TCL namespace variable (query)
 								got := tclListFlatten(mj_delete_cnt)
 								want := tclListFlatten(usesMJ)
-								if got != want {
+								if got != want && !tclFpnumCompare(got, want) {
 									t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "pager1-4.4." + tn + ".1b")
 								}
 							}
@@ -796,7 +812,7 @@ func Test_pager1(t *testing.T) {
 								}
 								got := flatten(r)
 								want := "double-you why zed won too free"
-								if got != want {
+								if got != want && !tclFpnumCompare(got, want) {
 									t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 								}
 							}
@@ -808,7 +824,7 @@ func Test_pager1(t *testing.T) {
 								}
 								got := flatten(r)
 								want := "won too free double-you why zed"
-								if got != want {
+								if got != want && !tclFpnumCompare(got, want) {
 									t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 								}
 							}
@@ -836,7 +852,7 @@ func Test_pager1(t *testing.T) {
 									}
 									got := flatten(r)
 									want := "double-you why zed"
-									if got != want {
+									if got != want && !tclFpnumCompare(got, want) {
 										t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 									}
 								}
@@ -848,7 +864,7 @@ func Test_pager1(t *testing.T) {
 									}
 									got := flatten(r)
 									want := "won too free"
-									if got != want {
+									if got != want && !tclFpnumCompare(got, want) {
 										t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 									}
 								}
@@ -888,7 +904,7 @@ func Test_pager1(t *testing.T) {
 								}
 								got := flatten(r)
 								want := "double-you why zed won too free"
-								if got != want {
+								if got != want && !tclFpnumCompare(got, want) {
 									t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 								}
 							}
@@ -900,7 +916,7 @@ func Test_pager1(t *testing.T) {
 								}
 								got := flatten(r)
 								want := "won too free double-you why zed"
-								if got != want {
+								if got != want && !tclFpnumCompare(got, want) {
 									t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 								}
 							}
@@ -929,7 +945,7 @@ func Test_pager1(t *testing.T) {
 						}
 						got := flatten(r)
 						want := "delete"
-						if got != want {
+						if got != want && !tclFpnumCompare(got, want) {
 							t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 						}
 					}
@@ -942,7 +958,7 @@ func Test_pager1(t *testing.T) {
 						}
 						got := flatten(r)
 						want := "I II 1 2 III IV 3 4"
-						if got != want {
+						if got != want && !tclFpnumCompare(got, want) {
 							t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 						}
 					}
@@ -963,7 +979,7 @@ func Test_pager1(t *testing.T) {
 						}
 						got := flatten(r)
 						want := "I II III IV"
-						if got != want {
+						if got != want && !tclFpnumCompare(got, want) {
 							t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 						}
 					}
@@ -985,7 +1001,7 @@ func Test_pager1(t *testing.T) {
 						}
 						got := flatten(r)
 						want := "I II 1 2 III IV 3 4"
-						if got != want {
+						if got != want && !tclFpnumCompare(got, want) {
 							t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 						}
 					}
@@ -1007,7 +1023,7 @@ func Test_pager1(t *testing.T) {
 						}
 						got := flatten(r)
 						want := "I II III IV 3 4"
-						if got != want {
+						if got != want && !tclFpnumCompare(got, want) {
 							t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 						}
 					}
@@ -1066,7 +1082,7 @@ func Test_pager1(t *testing.T) {
 						}
 						got := flatten(r)
 						want := "1 t1.1"
-						if got != want {
+						if got != want && !tclFpnumCompare(got, want) {
 							t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 						}
 					}
@@ -1081,7 +1097,7 @@ func Test_pager1(t *testing.T) {
 						}
 						got := flatten(r)
 						want := "1 t2.1"
-						if got != want {
+						if got != want && !tclFpnumCompare(got, want) {
 							t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 						}
 					}
@@ -1113,7 +1129,7 @@ func Test_pager1(t *testing.T) {
 						// expr $::mj_filename1 != $::mj_filename (not evaluated)
 						got := mj_filename1 != mj_filename
 						want := tclBool("1")
-						if got != want {
+						if got != want && !tclFpnumCompare(got, want) {
 							t.Errorf("result mismatch\n  got:  [%v]\n  want: [%v]\n  body: do_test %s", got, want, "pager1.4.6.8")
 						}
 					}
@@ -1144,7 +1160,7 @@ func Test_pager1(t *testing.T) {
 						}
 						got := flatten(r)
 						want := "1 t1.1"
-						if got != want {
+						if got != want && !tclFpnumCompare(got, want) {
 							t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 						}
 					}
@@ -1162,7 +1178,7 @@ func Test_pager1(t *testing.T) {
 						}
 						got := flatten(r)
 						want := "1 t2.1"
-						if got != want {
+						if got != want && !tclFpnumCompare(got, want) {
 							t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 						}
 					}
@@ -1177,7 +1193,7 @@ func Test_pager1(t *testing.T) {
 						}
 						got := flatten(r)
 						want := "1 t3.1"
-						if got != want {
+						if got != want && !tclFpnumCompare(got, want) {
 							t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 						}
 					}
@@ -1205,7 +1221,7 @@ func Test_pager1(t *testing.T) {
 						}
 						got := flatten(r)
 						want := "delete"
-						if got != want {
+						if got != want && !tclFpnumCompare(got, want) {
 							t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 						}
 					}
@@ -1373,7 +1389,7 @@ func Test_pager1(t *testing.T) {
 						}
 						got := flatten(r)
 						want := "memory"
-						if got != want {
+						if got != want && !tclFpnumCompare(got, want) {
 							t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 						}
 					}
@@ -1385,7 +1401,7 @@ func Test_pager1(t *testing.T) {
 						}
 						got := flatten(r)
 						want := "off"
-						if got != want {
+						if got != want && !tclFpnumCompare(got, want) {
 							t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 						}
 					}
@@ -1478,7 +1494,7 @@ func Test_pager1(t *testing.T) {
 						}
 						got := flatten(r)
 						want := "10"
-						if got != want {
+						if got != want && !tclFpnumCompare(got, want) {
 							t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 						}
 					}
@@ -1490,7 +1506,7 @@ func Test_pager1(t *testing.T) {
 						}
 						got := flatten(r)
 						want := "15"
-						if got != want {
+						if got != want && !tclFpnumCompare(got, want) {
 							t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 						}
 					}
@@ -1508,7 +1524,7 @@ func Test_pager1(t *testing.T) {
 						}
 						got := flatten(r)
 						want := "13"
-						if got != want {
+						if got != want && !tclFpnumCompare(got, want) {
 							t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 						}
 					}
@@ -1520,7 +1536,7 @@ func Test_pager1(t *testing.T) {
 						}
 						got := flatten(r)
 						want := "11"
-						if got != want {
+						if got != want && !tclFpnumCompare(got, want) {
 							t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 						}
 					}
@@ -1538,7 +1554,7 @@ func Test_pager1(t *testing.T) {
 						}
 						got := flatten(r)
 						want := "11"
-						if got != want {
+						if got != want && !tclFpnumCompare(got, want) {
 							t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 						}
 					}
@@ -1550,7 +1566,7 @@ func Test_pager1(t *testing.T) {
 						}
 						got := flatten(r)
 						want := "1 2 3 4"
-						if got != want {
+						if got != want && !tclFpnumCompare(got, want) {
 							t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 						}
 					}
@@ -1562,7 +1578,7 @@ func Test_pager1(t *testing.T) {
 						}
 						got := flatten(r)
 						want := "11"
-						if got != want {
+						if got != want && !tclFpnumCompare(got, want) {
 							t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 						}
 					}
@@ -1573,17 +1589,17 @@ func Test_pager1(t *testing.T) {
 					if err != nil { t.Fatal(err) }
 					tcl_nullvalue = "{}" // fresh connection resets nullvalue
 					// foreach {tn sql res js ws} tclListElem("1  {\n      CREATE TABLE t1(a, b);\n      PRAGMA auto_vacuum=OFF;\n      PRAGMA synchronous=NORMAL;\n      PRAGMA page_size=1024;\n      PRAGMA locking_mode=EXCLUSIVE;\n      PRAGMA journal_mode=TRUNCATE;\n      INSERT INTO t1 VALUES(1, 2);\n    } {exclusive truncate} 0 -1\n  \n    2  {\n      BEGIN IMMEDIATE;\n        SELECT * FROM t1;\n      COMMIT;\n    } {1 2} 0 -1\n  \n    3  {\n      BEGIN;\n        SELECT * FROM t1;\n      COMMIT;\n    } {1 2} 0 -1\n  \n    4  { PRAGMA journal_mode = WAL }    wal       -1 -1\n    5  { INSERT INTO t1 VALUES(3, 4) }  {}        -1 " + "wal_file_size 1 1024" + "\n    6  { PRAGMA locking_mode = NORMAL } exclusive -1 " + "wal_file_size 1 1024" + "\n    7  { INSERT INTO t1 VALUES(5, 6); } {}        -1 " + "wal_file_size 2 1024" + "\n  \n    8  { PRAGMA journal_mode = TRUNCATE } truncate          0 -1\n    9  { INSERT INTO t1 VALUES(7, 8) }    {}                0 -1\n    10 { SELECT * FROM t1 }               {1 2 3 4 5 6 7 8} 0 -1")
-					_itemsB := tclSplitList(tclListElem("1  {\n      CREATE TABLE t1(a, b);\n      PRAGMA auto_vacuum=OFF;\n      PRAGMA synchronous=NORMAL;\n      PRAGMA page_size=1024;\n      PRAGMA locking_mode=EXCLUSIVE;\n      PRAGMA journal_mode=TRUNCATE;\n      INSERT INTO t1 VALUES(1, 2);\n    } {exclusive truncate} 0 -1\n  \n    2  {\n      BEGIN IMMEDIATE;\n        SELECT * FROM t1;\n      COMMIT;\n    } {1 2} 0 -1\n  \n    3  {\n      BEGIN;\n        SELECT * FROM t1;\n      COMMIT;\n    } {1 2} 0 -1\n  \n    4  { PRAGMA journal_mode = WAL }    wal       -1 -1\n    5  { INSERT INTO t1 VALUES(3, 4) }  {}        -1 " + "wal_file_size 1 1024" + "\n    6  { PRAGMA locking_mode = NORMAL } exclusive -1 " + "wal_file_size 1 1024" + "\n    7  { INSERT INTO t1 VALUES(5, 6); } {}        -1 " + "wal_file_size 2 1024" + "\n  \n    8  { PRAGMA journal_mode = TRUNCATE } truncate          0 -1\n    9  { INSERT INTO t1 VALUES(7, 8) }    {}                0 -1\n    10 { SELECT * FROM t1 }               {1 2 3 4 5 6 7 8} 0 -1"))
-					for _idx1 := 0; _idx1+5 <= len(_itemsB); _idx1 += 5 {
-						tn := _itemsB[_idx1+0]
+					_items1 := tclSplitList(tclListElem("1  {\n      CREATE TABLE t1(a, b);\n      PRAGMA auto_vacuum=OFF;\n      PRAGMA synchronous=NORMAL;\n      PRAGMA page_size=1024;\n      PRAGMA locking_mode=EXCLUSIVE;\n      PRAGMA journal_mode=TRUNCATE;\n      INSERT INTO t1 VALUES(1, 2);\n    } {exclusive truncate} 0 -1\n  \n    2  {\n      BEGIN IMMEDIATE;\n        SELECT * FROM t1;\n      COMMIT;\n    } {1 2} 0 -1\n  \n    3  {\n      BEGIN;\n        SELECT * FROM t1;\n      COMMIT;\n    } {1 2} 0 -1\n  \n    4  { PRAGMA journal_mode = WAL }    wal       -1 -1\n    5  { INSERT INTO t1 VALUES(3, 4) }  {}        -1 " + "wal_file_size 1 1024" + "\n    6  { PRAGMA locking_mode = NORMAL } exclusive -1 " + "wal_file_size 1 1024" + "\n    7  { INSERT INTO t1 VALUES(5, 6); } {}        -1 " + "wal_file_size 2 1024" + "\n  \n    8  { PRAGMA journal_mode = TRUNCATE } truncate          0 -1\n    9  { INSERT INTO t1 VALUES(7, 8) }    {}                0 -1\n    10 { SELECT * FROM t1 }               {1 2 3 4 5 6 7 8} 0 -1"))
+					for _idx1 := 0; _idx1+5 <= len(_items1); _idx1 += 5 {
+						tn := _items1[_idx1+0]
 						_ = tn // suppress unused warning
-						sql := _itemsB[_idx1+1]
+						sql := _items1[_idx1+1]
 						_ = sql // suppress unused warning
-						res := _itemsB[_idx1+2]
+						res := _items1[_idx1+2]
 						_ = res // suppress unused warning
-						js := _itemsB[_idx1+3]
+						js := _items1[_idx1+3]
 						_ = js // suppress unused warning
-						ws := _itemsB[_idx1+4]
+						ws := _items1[_idx1+4]
 						_ = ws // suppress unused warning
 						_ = _idx1
 							{ // "pager1-7.1." + tn + ".1"
@@ -1763,7 +1779,7 @@ func Test_pager1(t *testing.T) {
 								}
 								got := flatten(r)
 								want := "128"
-								if got != want {
+								if got != want && !tclFpnumCompare(got, want) {
 									t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 								}
 							}
@@ -1804,7 +1820,7 @@ func Test_pager1(t *testing.T) {
 								}
 								got := flatten(r)
 								want := "128"
-								if got != want {
+								if got != want && !tclFpnumCompare(got, want) {
 									t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 								}
 							}
@@ -2088,7 +2104,7 @@ func Test_pager1(t *testing.T) {
 								}
 								got := flatten(r)
 								want := "delete"
-								if got != want {
+								if got != want && !tclFpnumCompare(got, want) {
 									t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 								}
 							}
@@ -2123,7 +2139,7 @@ func Test_pager1(t *testing.T) {
 								}
 								got := flatten(r)
 								want := "32"
-								if got != want {
+								if got != want && !tclFpnumCompare(got, want) {
 									t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 								}
 							}
@@ -2177,7 +2193,7 @@ func Test_pager1(t *testing.T) {
 									}
 									got := flatten(r)
 									want := "1"+" "+eff
-									if got != want {
+									if got != want && !tclFpnumCompare(got, want) {
 										t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 									}
 								}
@@ -2209,7 +2225,7 @@ func Test_pager1(t *testing.T) {
 								}
 								got := flatten(r)
 								want := "persist"
-								if got != want {
+								if got != want && !tclFpnumCompare(got, want) {
 									t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 								}
 							}
@@ -2232,7 +2248,7 @@ func Test_pager1(t *testing.T) {
 										}
 										got := flatten(r)
 										want := "ok"
-										if got != want {
+										if got != want && !tclFpnumCompare(got, want) {
 											t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 										}
 									}
@@ -2248,7 +2264,7 @@ func Test_pager1(t *testing.T) {
 										got := flatten(r)
 										want := tclListFlatten(tclExprWith("128*400 - ($nUp-1)", map[string]string{"nUp": nUp}))
 										got = tclListFlattenCollapse(got)
-										if got != want {
+										if got != want && !tclFpnumCompare(got, want) {
 											t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 										}
 									}
@@ -2260,7 +2276,7 @@ func Test_pager1(t *testing.T) {
 										}
 										got := flatten(r)
 										want := "ok"
-										if got != want {
+										if got != want && !tclFpnumCompare(got, want) {
 											t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 										}
 									}
@@ -2298,7 +2314,7 @@ func Test_pager1(t *testing.T) {
 										}
 										got := flatten(r)
 										want := "ok"
-										if got != want {
+										if got != want && !tclFpnumCompare(got, want) {
 											t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 										}
 									}
@@ -2314,7 +2330,7 @@ func Test_pager1(t *testing.T) {
 										got := flatten(r)
 										want := tclListFlatten(tclExprWith("128*400 - ($nUp-1)", map[string]string{"nUp": nUp}))
 										got = tclListFlattenCollapse(got)
-										if got != want {
+										if got != want && !tclFpnumCompare(got, want) {
 											t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 										}
 									}
@@ -2326,7 +2342,7 @@ func Test_pager1(t *testing.T) {
 										}
 										got := flatten(r)
 										want := "ok"
-										if got != want {
+										if got != want && !tclFpnumCompare(got, want) {
 											t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 										}
 									}
@@ -2356,7 +2372,7 @@ func Test_pager1(t *testing.T) {
 									}
 									got := flatten(r)
 									want := "off 1 2"
-									if got != want {
+									if got != want && !tclFpnumCompare(got, want) {
 										t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 									}
 								}
@@ -2374,7 +2390,7 @@ func Test_pager1(t *testing.T) {
 									}
 									got := flatten(r)
 									want := "1 2"
-									if got != want {
+									if got != want && !tclFpnumCompare(got, want) {
 										t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 									}
 								}
@@ -2398,7 +2414,7 @@ func Test_pager1(t *testing.T) {
 									}
 									got := flatten(r)
 									want := "1 2 2 2"
-									if got != want {
+									if got != want && !tclFpnumCompare(got, want) {
 										t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 									}
 								}
@@ -2434,7 +2450,7 @@ func Test_pager1(t *testing.T) {
 									}
 									got := flatten(r)
 									want := "Ayutthaya Beijing London Tokyo"
-									if got != want {
+									if got != want && !tclFpnumCompare(got, want) {
 										t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 									}
 								}
@@ -2654,7 +2670,7 @@ func Test_pager1(t *testing.T) {
 								}
 								got := tclListFlatten(synccount)
 								want := tclListFlatten("0")
-								if got != want {
+								if got != want && !tclFpnumCompare(got, want) {
 									t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "pager1-22.2.1")
 								}
 							}
@@ -2802,7 +2818,7 @@ func Test_pager1(t *testing.T) {
 									}
 									got := flatten(r)
 									want := "exclusive"
-									if got != want {
+									if got != want && !tclFpnumCompare(got, want) {
 										t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 									}
 								}
@@ -2814,7 +2830,7 @@ func Test_pager1(t *testing.T) {
 									}
 									got := flatten(r)
 									want := "exclusive"
-									if got != want {
+									if got != want && !tclFpnumCompare(got, want) {
 										t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 									}
 								}
@@ -2826,7 +2842,7 @@ func Test_pager1(t *testing.T) {
 									}
 									got := flatten(r)
 									want := "exclusive"
-									if got != want {
+									if got != want && !tclFpnumCompare(got, want) {
 										t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 									}
 								}
@@ -2838,7 +2854,7 @@ func Test_pager1(t *testing.T) {
 									}
 									got := flatten(r)
 									want := "exclusive"
-									if got != want {
+									if got != want && !tclFpnumCompare(got, want) {
 										t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 									}
 								}
@@ -2875,7 +2891,7 @@ func Test_pager1(t *testing.T) {
 									}
 									got := flatten(r)
 									want := "ok 33"
-									if got != want {
+									if got != want && !tclFpnumCompare(got, want) {
 										t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 									}
 								}
@@ -3155,7 +3171,7 @@ func Test_pager1(t *testing.T) {
 											}
 											got := flatten(r)
 											want := "ok"
-											if got != want {
+											if got != want && !tclFpnumCompare(got, want) {
 												t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 											}
 										}
@@ -3218,7 +3234,7 @@ func Test_pager1(t *testing.T) {
 												}
 												got := flatten(r)
 												want := "1"
-												if got != want {
+												if got != want && !tclFpnumCompare(got, want) {
 													t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 												}
 											}
@@ -3451,7 +3467,7 @@ func Test_pager1(t *testing.T) {
 											}
 											got := flatten(r)
 											want := "31"
-											if got != want {
+											if got != want && !tclFpnumCompare(got, want) {
 												t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 											}
 										}
@@ -3463,7 +3479,7 @@ func Test_pager1(t *testing.T) {
 											}
 											got := flatten(r)
 											want := "16 16"
-											if got != want {
+											if got != want && !tclFpnumCompare(got, want) {
 												t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 											}
 										}
@@ -3475,7 +3491,7 @@ func Test_pager1(t *testing.T) {
 											}
 											got := flatten(r)
 											want := "31 31"
-											if got != want {
+											if got != want && !tclFpnumCompare(got, want) {
 												t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 											}
 										}

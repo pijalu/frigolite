@@ -5,6 +5,7 @@
 package fts3aj
 
 import (
+"fmt"
 "github.com/pijalu/frigolite"
 "os"
 "testing"
@@ -19,6 +20,21 @@ func Test_fts3aj(t *testing.T) {
 		t.Fatal(err)
 	}
 	defer db.Close()
+
+	// auto-installed test-extension functions (src/test_func.c)
+	db.RegisterFunction("test_error", func(args []interface{}) (interface{}, error) {
+		msg := ""
+		if len(args) > 0 && args[0] != nil {
+			msg = fmt.Sprintf("%v", args[0])
+		}
+		return nil, fmt.Errorf("%s", msg)
+	}, 1, 2)
+	db.RegisterFunction("test_isolation", func(args []interface{}) (interface{}, error) {
+		if len(args) < 2 {
+			return nil, nil
+		}
+		return args[1], nil
+	}, 2, 2)
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
@@ -71,7 +87,7 @@ func Test_fts3aj(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1 2"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -90,7 +106,7 @@ func Test_fts3aj(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1 2"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -101,7 +117,7 @@ func Test_fts3aj(t *testing.T) {
 		_res = db.Exec("DETACH DATABASE two")
 		if _res.Error != nil { _catchErr = _res.Error }
 	}
-	{ // "fts3aj-1.3" — skipped: ATTACH of a file already open as the same connection's main db reports 'database is locked' (C shares the pager; engine same-file-attach gap) (SQL side effects only)
+	{ // "fts3aj-1.3" — skipped: ATTACH of a file already open as the same connection's main db reports 'database is locked' (C shares the pager; engine same-file-attach gap) (SQL + file side effects only)
 		_res = db2.Exec("\n    ATTACH DATABASE 'test2.db' AS two;\n\n    CREATE VIRTUAL TABLE two.t3 USING fts3(content);\n    INSERT INTO two.t3 (rowid, content) VALUES(2, 'hello there');\n    INSERT INTO two.t3 (rowid, content) VALUES(3, 'cruel world');\n    SELECT rowid FROM two.t3 WHERE t3 MATCH 'hello';\n\n    DETACH DATABASE two;\n  ")
 		_ = _res.Error // tolerate unsupported-feature errors in skipped tests
 	}

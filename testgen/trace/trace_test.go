@@ -6,9 +6,11 @@ package trace
 
 import (
 "errors"
+"fmt"
 "github.com/pijalu/frigolite"
 "github.com/pijalu/frigolite/internal/vtab"
 "os"
+"strconv"
 "testing"
 )
 
@@ -19,6 +21,21 @@ func Test_trace(t *testing.T) {
 		t.Fatal(err)
 	}
 	defer db.Close()
+
+	// auto-installed test-extension functions (src/test_func.c)
+	db.RegisterFunction("test_error", func(args []interface{}) (interface{}, error) {
+		msg := ""
+		if len(args) > 0 && args[0] != nil {
+			msg = fmt.Sprintf("%v", args[0])
+		}
+		return nil, fmt.Errorf("%s", msg)
+	}, 1, 2)
+	db.RegisterFunction("test_isolation", func(args []interface{}) (interface{}, error) {
+		if len(args) < 2 {
+			return nil, nil
+		}
+		return args[1], nil
+	}, 2, 2)
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
@@ -111,7 +128,7 @@ func Test_trace(t *testing.T) {
 		rc = tclListAppend(rc, msg)
 		got := tclListFlatten(rc)
 		want := tclListFlatten("1 wrong # args: should be \"db trace ?CALLBACK?\"")
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "trace-1.1")
 		}
 	}
@@ -140,7 +157,7 @@ func Test_trace(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1 2"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -148,7 +165,7 @@ func Test_trace(t *testing.T) {
 		_ = stmtlist // TCL namespace variable (query)
 		got := tclListFlatten(stmtlist)
 		want := tclListFlatten("CREATE TABLE t1(a,b); INSERT INTO t1 VALUES(1,2); SELECT * FROM t1;")
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "trace-1.4")
 		}
 	}
@@ -177,7 +194,7 @@ func Test_trace(t *testing.T) {
 		_ = stmtlist // TCL namespace variable (query)
 		got := tclListFlatten(stmtlist)
 		want := tclListFlatten("SELECT y FROM t1b WHERE x GLOB 'a*'")
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "trace-1.7")
 		}
 	}
@@ -221,7 +238,7 @@ func Test_trace(t *testing.T) {
 		// sqlite3_reset $STMT
 		got := tclListFlatten(TRACE_OUT)
 		want := tclListFlatten("{}")
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "trace-2.2")
 		}
 	}
@@ -240,7 +257,7 @@ func Test_trace(t *testing.T) {
 	{ // do_test "trace-2.5"
 		got := tclListFlatten(TRACE_OUT)
 		want := tclListFlatten("SELECT * FROM t1")
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "trace-2.5")
 		}
 	}
@@ -258,7 +275,7 @@ func Test_trace(t *testing.T) {
 		_res = db.Exec("VACUUM")
 		got := tclListFlatten(TRACE_OUT)
 		want := tclListFlatten("VACUUM")
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "trace-2.6")
 		}
 	}
@@ -279,7 +296,7 @@ func Test_trace(t *testing.T) {
 		rc = tclListAppend(rc, msg)
 		got := tclListFlatten(rc)
 		want := tclListFlatten("1 wrong # args: should be \"db profile ?CALLBACK?\"")
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "trace-3.1")
 		}
 	}
@@ -313,7 +330,7 @@ func Test_trace(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1 2"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -321,7 +338,7 @@ func Test_trace(t *testing.T) {
 		_ = stmtlist // TCL namespace variable (query)
 		got := tclListFlatten(stmtlist)
 		want := tclListFlatten("CREATE TABLE t2(a,b); INSERT INTO t2 VALUES(1,2); SELECT * FROM t2;")
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "trace-3.4")
 		}
 	}
@@ -368,7 +385,7 @@ func Test_trace(t *testing.T) {
 		// sqlite3_reset $STMT
 		got := tclListFlatten(TRACE_OUT)
 		want := tclListFlatten("{}")
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "trace-4.2")
 		}
 	}
@@ -387,7 +404,7 @@ func Test_trace(t *testing.T) {
 	{ // do_test "trace-4.5"
 		got := tclListFlatten(TRACE_OUT)
 		want := tclListFlatten("SELECT * FROM t1")
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "trace-4.5")
 		}
 	}
@@ -411,7 +428,12 @@ func Test_trace(t *testing.T) {
 		for _ri := 0; _ri < len(_dbevalRows0.Rows) && _dbevalErr2 == nil; _ri++ {
 			for _ci := 0; _ci < len(_dbevalRows0.Columns); _ci++ {
 				switch _dbevalRows0.Columns[_ci] {
+					case "a":
+						a = tclStr(_dbevalRows0.Rows[_ri][_ci])
 				}
+			}
+			if func() bool { a_n, _a_e := strconv.Atoi(a); if _a_e != nil { return false }; return a_n >= 1 }() {
+				break
 			}
 			if _dbevalRb1 { _dbevalErr2 = errors.New("abort due to ROLLBACK") }
 			if _dbevalInt3 { _dbevalErr2 = errors.New("interrupted"); db.ClearInterrupt() }
@@ -422,7 +444,7 @@ func Test_trace(t *testing.T) {
 		}
 		got := tclListFlatten(TRACE_OUT)
 		want := tclListFlatten("SELECT * FROM t1")
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "trace-4.6")
 		}
 	}
@@ -481,7 +503,7 @@ func Test_trace(t *testing.T) {
 	{ // do_test "trace-6.4"
 		got := tclListFlatten(TRACE_OUT)
 		want := tclListFlatten("SELECT 6, 6, 6")
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "trace-6.4")
 		}
 	}

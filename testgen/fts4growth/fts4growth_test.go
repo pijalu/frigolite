@@ -30,6 +30,21 @@ func Test_fts4growth(t *testing.T) {
 	}
 	defer db.Close()
 
+	// auto-installed test-extension functions (src/test_func.c)
+	db.RegisterFunction("test_error", func(args []interface{}) (interface{}, error) {
+		msg := ""
+		if len(args) > 0 && args[0] != nil {
+			msg = fmt.Sprintf("%v", args[0])
+		}
+		return nil, fmt.Errorf("%s", msg)
+	}, 1, 2)
+	db.RegisterFunction("test_isolation", func(args []interface{}) (interface{}, error) {
+		if len(args) < 2 {
+			return nil, nil
+		}
+		return args[1], nil
+	}, 2, 2)
+
 	var _res *frigolite.Result
 	var r *frigolite.Result
 	var msg string
@@ -112,7 +127,7 @@ func Test_fts4growth(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "0 0 394 394"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -137,7 +152,7 @@ func Test_fts4growth(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "921 {}"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -162,7 +177,7 @@ func Test_fts4growth(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1230"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -331,7 +346,7 @@ func Test_fts4growth(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "0 0 117483 0 1 118006"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -343,7 +358,7 @@ func Test_fts4growth(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -355,7 +370,7 @@ func Test_fts4growth(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -367,7 +382,7 @@ func Test_fts4growth(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -427,7 +442,7 @@ func Test_fts4growth(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "752 integer"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -444,7 +459,7 @@ func Test_fts4growth(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "4"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -456,7 +471,7 @@ func Test_fts4growth(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "0 0 10 9216 0 1 21 9330 0 2 31 8850 0 3 40 8689 1 0 1320 -3117"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -468,7 +483,7 @@ func Test_fts4growth(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "0 0 10 9216 0 1 21 9330 0 2 31 8850 0 3 40 8689 1 0 1320 -3117 0 4 1329 8297"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -480,7 +495,7 @@ func Test_fts4growth(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "0 0 1329 8297 1 0 1320 28009"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -492,7 +507,7 @@ func Test_fts4growth(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "0 1 1329 8297 0 0 1320 28009 0 2 1449 118006"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -504,7 +519,7 @@ func Test_fts4growth(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "0 0 118 117483 0 1 238 118006 0 2 358 118006 0 3 478 118006 0 4 598 118006 0 5 718 118006"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -516,7 +531,7 @@ func Test_fts4growth(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "0 0 118 117483 0 1 238 118006 0 2 358 118006 0 3 478 118006 0 4 598 118006 0 5 718 118006 1 0 23694 -69477"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -528,7 +543,7 @@ func Test_fts4growth(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "0 0 118 117483 0 1 238 118006 0 2 358 118006 0 3 478 118006 0 4 598 118006 0 5 718 118006 1 0 23694"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}

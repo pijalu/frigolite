@@ -5,6 +5,7 @@
 package sync
 
 import (
+"fmt"
 "github.com/pijalu/frigolite"
 "github.com/pijalu/frigolite/internal/vtab"
 "os"
@@ -18,6 +19,21 @@ func Test_sync(t *testing.T) {
 		t.Fatal(err)
 	}
 	defer db.Close()
+
+	// auto-installed test-extension functions (src/test_func.c)
+	db.RegisterFunction("test_error", func(args []interface{}) (interface{}, error) {
+		msg := ""
+		if len(args) > 0 && args[0] != nil {
+			msg = fmt.Sprintf("%v", args[0])
+		}
+		return nil, fmt.Errorf("%s", msg)
+	}, 1, 2)
+	db.RegisterFunction("test_isolation", func(args []interface{}) (interface{}, error) {
+		if len(args) < 2 {
+			return nil, nil
+		}
+		return args[1], nil
+	}, 2, 2)
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
@@ -80,7 +96,7 @@ func Test_sync(t *testing.T) {
 		// cond_incr_sync_count 2 (unsupported command, not transpiled)
 		got := tclListFlatten(sqlite_sync_count)
 		want := tclListFlatten("8")
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "sync-1.1")
 		}
 	}
@@ -95,7 +111,7 @@ func Test_sync(t *testing.T) {
 		// cond_incr_sync_count 4 (unsupported command, not transpiled)
 		got := tclListFlatten(sqlite_sync_count)
 		want := tclListFlatten("9")
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "sync-1.2")
 		}
 	}
@@ -110,7 +126,7 @@ func Test_sync(t *testing.T) {
 		// cond_incr_sync_count 4 (unsupported command, not transpiled)
 		got := tclListFlatten(sqlite_sync_count)
 		want := tclListFlatten("11")
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "sync-1.3")
 		}
 	}
@@ -125,7 +141,7 @@ func Test_sync(t *testing.T) {
 			}
 			got := tclListFlatten(sqlite_sync_count)
 			want := tclListFlatten("0")
-			if got != want {
+			if got != want && !tclFpnumCompare(got, want) {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "sync-1.4")
 			}
 		}

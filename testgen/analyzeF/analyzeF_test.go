@@ -22,6 +22,21 @@ func Test_analyzeF(t *testing.T) {
 	}
 	defer db.Close()
 
+	// auto-installed test-extension functions (src/test_func.c)
+	db.RegisterFunction("test_error", func(args []interface{}) (interface{}, error) {
+		msg := ""
+		if len(args) > 0 && args[0] != nil {
+			msg = fmt.Sprintf("%v", args[0])
+		}
+		return nil, fmt.Errorf("%s", msg)
+	}, 1, 2)
+	db.RegisterFunction("test_isolation", func(args []interface{}) (interface{}, error) {
+		if len(args) < 2 {
+			return nil, nil
+		}
+		return args[1], nil
+	}, 2, 2)
+
 	var _res *frigolite.Result
 	var r *frigolite.Result
 	var msg string
@@ -194,7 +209,7 @@ func Test_analyzeF(t *testing.T) {
 				}
 				got := flatten(r)
 				want := "4000 {} 499 x08 500 x09 500 x0a 500 x0b 500 x0c 500 x0d 500 x0e 500 x0f 500 x10 500 x11 500 x12 498 x13 3 xyz"
-				if got != want {
+				if got != want && !tclFpnumCompare(got, want) {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
@@ -218,7 +233,7 @@ func Test_analyzeF(t *testing.T) {
 				}
 				got := flatten(r)
 				want := "9998 xyz 9998 9999 xyz 9999 10000 xyz 10000"
-				if got != want {
+				if got != want && !tclFpnumCompare(got, want) {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}

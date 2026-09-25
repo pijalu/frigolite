@@ -5,6 +5,7 @@
 package insert
 
 import (
+"fmt"
 "github.com/pijalu/frigolite"
 "os"
 "strconv"
@@ -19,6 +20,21 @@ func Test_insert(t *testing.T) {
 		t.Fatal(err)
 	}
 	defer db.Close()
+
+	// auto-installed test-extension functions (src/test_func.c)
+	db.RegisterFunction("test_error", func(args []interface{}) (interface{}, error) {
+		msg := ""
+		if len(args) > 0 && args[0] != nil {
+			msg = fmt.Sprintf("%v", args[0])
+		}
+		return nil, fmt.Errorf("%s", msg)
+	}, 1, 2)
+	db.RegisterFunction("test_isolation", func(args []interface{}) (interface{}, error) {
+		if len(args) < 2 {
+			return nil, nil
+		}
+		return args[1], nil
+	}, 2, 2)
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
@@ -83,7 +99,7 @@ func Test_insert(t *testing.T) {
 		v = tclListAppend(v, msg)
 		got := tclListFlatten(v)
 		want := tclListFlatten("1 no such table: test1")
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "insert-1.1")
 		}
 	}
@@ -105,7 +121,7 @@ func Test_insert(t *testing.T) {
 		v = tclListAppend(v, msg)
 		got := tclListFlatten(v)
 		want := tclListFlatten("1 table sqlite_master may not be modified")
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "insert-1.2")
 		}
 	}
@@ -131,7 +147,7 @@ func Test_insert(t *testing.T) {
 		v = tclListAppend(v, msg)
 		got := tclListFlatten(v)
 		want := tclListFlatten("1 table test1 has 3 columns but 2 values were supplied")
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "insert-1.3")
 		}
 	}
@@ -153,7 +169,7 @@ func Test_insert(t *testing.T) {
 		v = tclListAppend(v, msg)
 		got := tclListFlatten(v)
 		want := tclListFlatten("1 table test1 has 3 columns but 4 values were supplied")
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "insert-1.3b")
 		}
 	}
@@ -175,7 +191,7 @@ func Test_insert(t *testing.T) {
 		v = tclListAppend(v, msg)
 		got := tclListFlatten(v)
 		want := tclListFlatten("1 4 values for 2 columns")
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "insert-1.3c")
 		}
 	}
@@ -197,7 +213,7 @@ func Test_insert(t *testing.T) {
 		v = tclListAppend(v, msg)
 		got := tclListFlatten(v)
 		want := tclListFlatten("1 1 values for 2 columns")
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "insert-1.3d")
 		}
 	}
@@ -219,7 +235,7 @@ func Test_insert(t *testing.T) {
 		v = tclListAppend(v, msg)
 		got := tclListFlatten(v)
 		want := tclListFlatten("1 table test1 has no column named four")
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "insert-1.4")
 		}
 	}
@@ -366,7 +382,7 @@ func Test_insert(t *testing.T) {
 		got := flatten(r)
 		want := tclListFlatten("{}")
 		got = tclListFlattenCollapse(got)
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -398,7 +414,7 @@ func Test_insert(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "22 -4.44 hi abc-123 wham"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -418,7 +434,7 @@ func Test_insert(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "6 4 5"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -456,7 +472,7 @@ func Test_insert(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "6 7"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -474,7 +490,7 @@ func Test_insert(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1 3 99"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -486,7 +502,7 @@ func Test_insert(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -498,7 +514,7 @@ func Test_insert(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1 2"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -517,7 +533,7 @@ func Test_insert(t *testing.T) {
 		got := flatten(r)
 		want := tclListFlatten(tclExprWith("$AUTOVACUUM?3:2", map[string]string{"AUTOVACUUM": AUTOVACUUM}))
 		got = tclListFlattenCollapse(got)
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -529,7 +545,7 @@ func Test_insert(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "2"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -541,7 +557,7 @@ func Test_insert(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1 2 8"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -559,7 +575,7 @@ func Test_insert(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "2"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -572,7 +588,7 @@ func Test_insert(t *testing.T) {
 		got := flatten(r)
 		want := tclListFlatten("{}")
 		got = tclListFlattenCollapse(got)
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -584,7 +600,7 @@ func Test_insert(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "2 4"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -597,7 +613,7 @@ func Test_insert(t *testing.T) {
 		got := flatten(r)
 		want := tclListFlatten("{}")
 		got = tclListFlattenCollapse(got)
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -633,7 +649,7 @@ func Test_insert(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1 2 2"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -651,7 +667,7 @@ func Test_insert(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1 1 2 2 3 3 12 101 13 102 16 103"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -663,7 +679,7 @@ func Test_insert(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1 1 2 2 3 3 12 101 13 102 16 103"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -675,7 +691,7 @@ func Test_insert(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1 2 3 4 5 6 7 8 9"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -693,7 +709,7 @@ func Test_insert(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "123456789 '123456789' '123456789'"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -705,7 +721,7 @@ func Test_insert(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "102 101"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -717,7 +733,7 @@ func Test_insert(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "11 22"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -729,7 +745,7 @@ func Test_insert(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "one xyzzy two"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -741,7 +757,7 @@ func Test_insert(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "2 0 6 2 1 5"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -753,7 +769,7 @@ func Test_insert(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -767,7 +783,7 @@ func Test_insert(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "4 33000"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -789,7 +805,7 @@ func Test_insert(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "123 1"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -835,7 +851,7 @@ func Test_insert(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "2 2 x 4 3 x"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -847,7 +863,7 @@ func Test_insert(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "3 4"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -859,7 +875,7 @@ func Test_insert(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1 3 x 2 2 x 4 4 x"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -871,7 +887,7 @@ func Test_insert(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -889,7 +905,7 @@ func Test_insert(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1 1 1 1 x 2 1 3 2 x 4 4 8 9 x"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -901,7 +917,7 @@ func Test_insert(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1 1 1 1 x 4 4 8 9 x 5 1 11 2 x"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}

@@ -5,6 +5,7 @@
 package transitive1
 
 import (
+"fmt"
 "github.com/pijalu/frigolite"
 "github.com/pijalu/frigolite/internal/vtab"
 "os"
@@ -19,6 +20,21 @@ func Test_transitive1(t *testing.T) {
 		t.Fatal(err)
 	}
 	defer db.Close()
+
+	// auto-installed test-extension functions (src/test_func.c)
+	db.RegisterFunction("test_error", func(args []interface{}) (interface{}, error) {
+		msg := ""
+		if len(args) > 0 && args[0] != nil {
+			msg = fmt.Sprintf("%v", args[0])
+		}
+		return nil, fmt.Errorf("%s", msg)
+	}, 1, 2)
+	db.RegisterFunction("test_isolation", func(args []interface{}) (interface{}, error) {
+		if len(args) < 2 {
+			return nil, nil
+		}
+		return args[1], nil
+	}, 2, 2)
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
@@ -70,7 +86,7 @@ func Test_transitive1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "def def def"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -82,7 +98,7 @@ func Test_transitive1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "def def def ghi ghi GHI"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -94,7 +110,7 @@ func Test_transitive1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "abc abc Abc def def def"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -106,7 +122,7 @@ func Test_transitive1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "20 20 20"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -118,7 +134,7 @@ func Test_transitive1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "3 3 3 20 20 20"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -130,7 +146,7 @@ func Test_transitive1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "20 20 20 100 100 100"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -142,7 +158,7 @@ func Test_transitive1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1 2 1 3 3 4 3 6 5 6 5 7"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -154,7 +170,7 @@ func Test_transitive1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1 2 1 3 3 4 3 6 5 6 5 7"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -166,7 +182,7 @@ func Test_transitive1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1 2 1 3 3 4 3 6 5 6 5 7"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -178,7 +194,7 @@ func Test_transitive1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "3 4 3 6 5 6 5 7"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -190,7 +206,7 @@ func Test_transitive1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "3 4 3 6 5 6 5 7"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -202,7 +218,7 @@ func Test_transitive1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "5 6 5 7 3 4 3 6"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -214,7 +230,7 @@ func Test_transitive1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "3 4 3 6"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -226,7 +242,7 @@ func Test_transitive1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1 2 1 3 3 4 3 6"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -238,7 +254,7 @@ func Test_transitive1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "3 4 3 6 1 2 1 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -250,7 +266,7 @@ func Test_transitive1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1-row"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -262,7 +278,7 @@ func Test_transitive1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1-row"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -274,7 +290,7 @@ func Test_transitive1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1-row"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -286,7 +302,7 @@ func Test_transitive1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1-row"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -298,7 +314,7 @@ func Test_transitive1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1 /tmp/tvshows/The.Big.Bang.Theory/ The Big Bang Theory Leonard Hofstadter and Sheldon Cooper are brilliant physicists, the kind of \"beautiful minds\" that understand how the universe works. But none of that genius helps them interact with people, especially women. All this begins to change when a free-spirited beauty named Penny moves in next door. Sheldon, Leonard's roommate, is quite content spending his nights playing Klingon Boggle with their socially dysfunctional friends, fellow CalTech scientists Howard Wolowitz and Raj Koothrappali. However, Leonard sees in Penny a whole new universe of possibilities... including love. 2007-09-24 Comedy CBS TV-PG 3 1 0"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -315,7 +331,7 @@ func Test_transitive1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "10 10"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -327,7 +343,7 @@ func Test_transitive1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "abc ABC"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -340,7 +356,7 @@ func Test_transitive1(t *testing.T) {
 		got := flatten(r)
 		want := tclListFlatten("{}")
 		got = tclListFlattenCollapse(got)
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -352,7 +368,7 @@ func Test_transitive1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "00013 13 013"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -364,7 +380,7 @@ func Test_transitive1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "abc ABC"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -376,7 +392,7 @@ func Test_transitive1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "ABC ABC abc"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -388,7 +404,7 @@ func Test_transitive1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "ABC ABC abc"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -413,7 +429,7 @@ func Test_transitive1(t *testing.T) {
 		got := flatten(r)
 		want := tclListFlatten("{}")
 		got = tclListFlattenCollapse(got)
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -451,7 +467,7 @@ func Test_transitive1(t *testing.T) {
 		got := flatten(r)
 		want := tclListFlatten("{}")
 		got = tclListFlattenCollapse(got)
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -464,7 +480,7 @@ func Test_transitive1(t *testing.T) {
 		got := flatten(r)
 		want := tclListFlatten("{}")
 		got = tclListFlattenCollapse(got)
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -477,7 +493,7 @@ func Test_transitive1(t *testing.T) {
 		got := flatten(r)
 		want := tclListFlatten("{}")
 		got = tclListFlattenCollapse(got)
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -503,7 +519,7 @@ func Test_transitive1(t *testing.T) {
 		got := flatten(r)
 		want := tclListFlatten("{}")
 		got = tclListFlattenCollapse(got)
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -516,7 +532,7 @@ func Test_transitive1(t *testing.T) {
 		got := flatten(r)
 		want := tclListFlatten("{}")
 		got = tclListFlattenCollapse(got)
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -536,7 +552,7 @@ func Test_transitive1(t *testing.T) {
 		got := flatten(r)
 		want := tclListFlatten("{}")
 		got = tclListFlattenCollapse(got)
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -548,7 +564,7 @@ func Test_transitive1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "5 5"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -561,7 +577,7 @@ func Test_transitive1(t *testing.T) {
 		got := flatten(r)
 		want := tclListFlatten("{}")
 		got = tclListFlattenCollapse(got)
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -574,7 +590,7 @@ func Test_transitive1(t *testing.T) {
 		got := flatten(r)
 		want := tclListFlatten("{}")
 		got = tclListFlattenCollapse(got)
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -587,7 +603,7 @@ func Test_transitive1(t *testing.T) {
 		got := flatten(r)
 		want := tclListFlatten("{}")
 		got = tclListFlattenCollapse(got)
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -606,7 +622,7 @@ func Test_transitive1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "abc abc"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -632,7 +648,7 @@ func Test_transitive1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "hello hello Hello Hello HELLO HELLO HeLLo HeLLo"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -645,7 +661,7 @@ func Test_transitive1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "hello hello Hello Hello HELLO HELLO HeLLo HeLLo"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -671,7 +687,7 @@ func Test_transitive1(t *testing.T) {
 		got := flatten(r)
 		want := tclListFlatten("{}")
 		got = tclListFlattenCollapse(got)
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -696,7 +712,7 @@ func Test_transitive1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "ABC ABC"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}

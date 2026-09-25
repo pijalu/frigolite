@@ -5,6 +5,7 @@
 package quota
 
 import (
+"fmt"
 "github.com/pijalu/frigolite"
 "github.com/pijalu/frigolite/internal/vtab"
 "os"
@@ -22,6 +23,21 @@ func Test_quota(t *testing.T) {
 		t.Fatal(err)
 	}
 	defer db.Close()
+
+	// auto-installed test-extension functions (src/test_func.c)
+	db.RegisterFunction("test_error", func(args []interface{}) (interface{}, error) {
+		msg := ""
+		if len(args) > 0 && args[0] != nil {
+			msg = fmt.Sprintf("%v", args[0])
+		}
+		return nil, fmt.Errorf("%s", msg)
+	}, 1, 2)
+	db.RegisterFunction("test_isolation", func(args []interface{}) (interface{}, error) {
+		if len(args) < 2 {
+			return nil, nil
+		}
+		return args[1], nil
+	}, 2, 2)
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
@@ -74,7 +90,7 @@ func Test_quota(t *testing.T) {
 	_ = quota_request_ok // pre-declared from TCL source
 	var file string
 	_ = file // pre-declared from TCL source
-	var allq *tclListBuilder
+	var allq = &tclListBuilder{}
 	_ = allq // pre-declared from TCL source
 	var q string
 	_ = q // pre-declared from TCL source
@@ -148,7 +164,7 @@ func Test_quota(t *testing.T) {
 		_ = quota // TCL namespace variable (query)
 		got := tclListFlatten(quota)
 		want := tclListFlatten("{}")
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "quota-2.1.2")
 		}
 	}
@@ -171,7 +187,7 @@ func Test_quota(t *testing.T) {
 		_ = quota // TCL namespace variable (query)
 		got := tclListFlatten(quota)
 		want := tclListFlatten("4096 5120")
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "quota-2.1.5")
 		}
 	}
@@ -191,7 +207,7 @@ func Test_quota(t *testing.T) {
 		_ = quota // TCL namespace variable (query)
 		got := tclListFlatten(quota)
 		want := tclListFlatten("4096 5120")
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "quota-2.2.2")
 		}
 	}
@@ -224,7 +240,7 @@ func Test_quota(t *testing.T) {
 		_ = quota // TCL namespace variable (query)
 		got := tclListFlatten(quota)
 		want := tclListFlatten("5120 6144")
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "quota-2.4.3")
 		}
 	}
@@ -274,7 +290,7 @@ func Test_quota(t *testing.T) {
 		_ = quota // TCL namespace variable (query)
 		got := tclListFlatten(quota)
 		want := tclListFlatten("{}")
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "quota-3.1.3")
 		}
 	}
@@ -412,7 +428,7 @@ func Test_quota(t *testing.T) {
 		_ = quota // TCL namespace variable (query)
 		got := tclListFlatten(quota)
 		want := tclListFlatten(filepath.Join(tclGetPwd(), "test.db")+" "+"5120")
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "quota-3.3.1")
 		}
 	}

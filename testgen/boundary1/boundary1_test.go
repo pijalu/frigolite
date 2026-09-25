@@ -5,6 +5,7 @@
 package boundary1
 
 import (
+"fmt"
 "github.com/pijalu/frigolite"
 "os"
 "testing"
@@ -17,6 +18,21 @@ func Test_boundary1(t *testing.T) {
 		t.Fatal(err)
 	}
 	defer db.Close()
+
+	// auto-installed test-extension functions (src/test_func.c)
+	db.RegisterFunction("test_error", func(args []interface{}) (interface{}, error) {
+		msg := ""
+		if len(args) > 0 && args[0] != nil {
+			msg = fmt.Sprintf("%v", args[0])
+		}
+		return nil, fmt.Errorf("%s", msg)
+	}, 1, 2)
+	db.RegisterFunction("test_isolation", func(args []interface{}) (interface{}, error) {
+		if len(args) < 2 {
+			return nil, nil
+		}
+		return args[1], nil
+	}, 2, 2)
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
@@ -74,7 +90,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "64"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -86,7 +102,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "17 00ffffffffffffff"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -98,7 +114,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "72057594037927935 17"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -110,7 +126,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "72057594037927935 00ffffffffffffff"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -122,7 +138,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "3 28"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -134,7 +150,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "28 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -146,7 +162,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "28 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -158,7 +174,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "3 28"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -170,7 +186,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "28 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -182,7 +198,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "3 17 28"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -194,7 +210,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "28 17 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -206,7 +222,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "17 28 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -218,7 +234,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "3 28 17"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -230,7 +246,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "17 28 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -242,7 +258,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1 2 4 5 6 7 8 9 10 11 12 13 14 15 16 18 19 20 21 22 23 24 25 26 27 29 30 31 32 33 34 35 36 37 38 39 40 41 42 43 44 45 46 47 48 49 50 51 52 53 54 55 56 57 58 59 60 61 62 63 64"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -254,7 +270,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "64 63 62 61 60 59 58 57 56 55 54 53 52 51 50 49 48 47 46 45 44 43 42 41 40 39 38 37 36 35 34 33 32 31 30 29 27 26 25 24 23 22 21 20 19 18 16 15 14 13 12 11 10 9 8 7 6 5 4 2 1"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -266,7 +282,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "55 2 64 21 44 58 63 47 11 1 37 29 32 54 53 52 33 38 59 60 41 5 31 4 49 30 61 8 16 23 50 48 62 15 42 18 24 9 6 12 40 20 51 14 36 39 22 46 35 57 19 7 56 25 34 10 26 13 43 27 45"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -278,7 +294,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "45 27 43 13 26 10 34 25 56 7 19 57 35 46 22 39 36 14 51 20 40 12 6 9 24 18 42 15 62 48 50 23 16 8 61 30 49 4 31 5 41 60 59 38 33 52 53 54 32 29 37 1 11 47 63 58 44 21 64 2 55"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -290,7 +306,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "59 60 41 5 31 4 49 30 61 8 16 23 50 48 62 15 42 18 24 9 6 12 40 20 51 14 36 39 22 46 35 57 19 7 56 25 34 10 26 13 43 27 45 55 2 64 21 44 58 63 47 11 1 37 29 32 54 53 52 33 38"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -302,7 +318,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1 2 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 29 30 31 32 33 34 35 36 37 38 39 40 41 42 43 44 45 46 47 48 49 50 51 52 53 54 55 56 57 58 59 60 61 62 63 64"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -314,7 +330,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "64 63 62 61 60 59 58 57 56 55 54 53 52 51 50 49 48 47 46 45 44 43 42 41 40 39 38 37 36 35 34 33 32 31 30 29 27 26 25 24 23 22 21 20 19 18 17 16 15 14 13 12 11 10 9 8 7 6 5 4 2 1"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -326,7 +342,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "55 2 64 21 44 58 63 47 11 1 37 29 32 54 53 52 33 38 59 60 41 5 31 4 49 30 61 8 16 23 50 48 62 15 42 18 24 9 6 12 40 20 51 14 36 39 22 46 35 57 19 7 56 25 34 10 26 13 43 27 45 17"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -338,7 +354,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "17 45 27 43 13 26 10 34 25 56 7 19 57 35 46 22 39 36 14 51 20 40 12 6 9 24 18 42 15 62 48 50 23 16 8 61 30 49 4 31 5 41 60 59 38 33 52 53 54 32 29 37 1 11 47 63 58 44 21 64 2 55"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -350,7 +366,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "59 60 41 5 31 4 49 30 61 8 16 23 50 48 62 15 42 18 24 9 6 12 40 20 51 14 36 39 22 46 35 57 19 7 56 25 34 10 26 13 43 27 45 17 55 2 64 21 44 58 63 47 11 1 37 29 32 54 53 52 33 38"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -362,7 +378,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "16 0000000000004000"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -374,7 +390,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "16384 16"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -386,7 +402,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "16384 0000000000004000"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -398,7 +414,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "3 6 7 9 10 12 13 14 15 17 18 19 20 22 23 24 25 26 27 28 34 35 36 39 40 42 43 45 46 48 50 51 56 57 62"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -410,7 +426,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "62 57 56 51 50 48 46 45 43 42 40 39 36 35 34 28 27 26 25 24 23 22 20 19 18 17 15 14 13 12 10 9 7 6 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -422,7 +438,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "23 50 48 62 15 42 18 24 9 6 12 40 20 51 14 36 39 22 46 35 57 19 7 56 25 34 10 26 13 43 27 45 17 28 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -434,7 +450,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "3 28 17 45 27 43 13 26 10 34 25 56 7 19 57 35 46 22 39 36 14 51 20 40 12 6 9 24 18 42 15 62 48 50 23"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -446,7 +462,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "23 50 48 62 15 42 18 24 9 6 12 40 20 51 14 36 39 22 46 35 57 19 7 56 25 34 10 26 13 43 27 45 17 28 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -458,7 +474,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "3 6 7 9 10 12 13 14 15 16 17 18 19 20 22 23 24 25 26 27 28 34 35 36 39 40 42 43 45 46 48 50 51 56 57 62"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -470,7 +486,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "62 57 56 51 50 48 46 45 43 42 40 39 36 35 34 28 27 26 25 24 23 22 20 19 18 17 16 15 14 13 12 10 9 7 6 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -482,7 +498,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "16 23 50 48 62 15 42 18 24 9 6 12 40 20 51 14 36 39 22 46 35 57 19 7 56 25 34 10 26 13 43 27 45 17 28 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -494,7 +510,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "3 28 17 45 27 43 13 26 10 34 25 56 7 19 57 35 46 22 39 36 14 51 20 40 12 6 9 24 18 42 15 62 48 50 23 16"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -506,7 +522,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "16 23 50 48 62 15 42 18 24 9 6 12 40 20 51 14 36 39 22 46 35 57 19 7 56 25 34 10 26 13 43 27 45 17 28 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -518,7 +534,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1 2 4 5 8 11 21 29 30 31 32 33 37 38 41 44 47 49 52 53 54 55 58 59 60 61 63 64"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -530,7 +546,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "64 63 61 60 59 58 55 54 53 52 49 47 44 41 38 37 33 32 31 30 29 21 11 8 5 4 2 1"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -542,7 +558,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "55 2 64 21 44 58 63 47 11 1 37 29 32 54 53 52 33 38 59 60 41 5 31 4 49 30 61 8"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -554,7 +570,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "8 61 30 49 4 31 5 41 60 59 38 33 52 53 54 32 29 37 1 11 47 63 58 44 21 64 2 55"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -566,7 +582,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "59 60 41 5 31 4 49 30 61 8 55 2 64 21 44 58 63 47 11 1 37 29 32 54 53 52 33 38"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -578,7 +594,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1 2 4 5 8 11 16 21 29 30 31 32 33 37 38 41 44 47 49 52 53 54 55 58 59 60 61 63 64"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -590,7 +606,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "64 63 61 60 59 58 55 54 53 52 49 47 44 41 38 37 33 32 31 30 29 21 16 11 8 5 4 2 1"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -602,7 +618,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "55 2 64 21 44 58 63 47 11 1 37 29 32 54 53 52 33 38 59 60 41 5 31 4 49 30 61 8 16"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -614,7 +630,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "16 8 61 30 49 4 31 5 41 60 59 38 33 52 53 54 32 29 37 1 11 47 63 58 44 21 64 2 55"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -626,7 +642,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "59 60 41 5 31 4 49 30 61 8 16 55 2 64 21 44 58 63 47 11 1 37 29 32 54 53 52 33 38"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -638,7 +654,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "36 0000000100000000"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -650,7 +666,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "4294967296 36"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -662,7 +678,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "4294967296 0000000100000000"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -674,7 +690,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "3 7 10 13 17 19 22 25 26 27 28 34 35 39 43 45 46 56 57"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -686,7 +702,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "57 56 46 45 43 39 35 34 28 27 26 25 22 19 17 13 10 7 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -698,7 +714,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "39 22 46 35 57 19 7 56 25 34 10 26 13 43 27 45 17 28 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -710,7 +726,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "3 28 17 45 27 43 13 26 10 34 25 56 7 19 57 35 46 22 39"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -722,7 +738,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "39 22 46 35 57 19 7 56 25 34 10 26 13 43 27 45 17 28 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -734,7 +750,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "3 7 10 13 17 19 22 25 26 27 28 34 35 36 39 43 45 46 56 57"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -746,7 +762,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "57 56 46 45 43 39 36 35 34 28 27 26 25 22 19 17 13 10 7 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -758,7 +774,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "36 39 22 46 35 57 19 7 56 25 34 10 26 13 43 27 45 17 28 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -770,7 +786,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "3 28 17 45 27 43 13 26 10 34 25 56 7 19 57 35 46 22 39 36"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -782,7 +798,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "36 39 22 46 35 57 19 7 56 25 34 10 26 13 43 27 45 17 28 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -794,7 +810,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1 2 4 5 6 8 9 11 12 14 15 16 18 20 21 23 24 29 30 31 32 33 37 38 40 41 42 44 47 48 49 50 51 52 53 54 55 58 59 60 61 62 63 64"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -806,7 +822,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "64 63 62 61 60 59 58 55 54 53 52 51 50 49 48 47 44 42 41 40 38 37 33 32 31 30 29 24 23 21 20 18 16 15 14 12 11 9 8 6 5 4 2 1"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -818,7 +834,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "55 2 64 21 44 58 63 47 11 1 37 29 32 54 53 52 33 38 59 60 41 5 31 4 49 30 61 8 16 23 50 48 62 15 42 18 24 9 6 12 40 20 51 14"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -830,7 +846,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "14 51 20 40 12 6 9 24 18 42 15 62 48 50 23 16 8 61 30 49 4 31 5 41 60 59 38 33 52 53 54 32 29 37 1 11 47 63 58 44 21 64 2 55"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -842,7 +858,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "59 60 41 5 31 4 49 30 61 8 16 23 50 48 62 15 42 18 24 9 6 12 40 20 51 14 55 2 64 21 44 58 63 47 11 1 37 29 32 54 53 52 33 38"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -854,7 +870,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1 2 4 5 6 8 9 11 12 14 15 16 18 20 21 23 24 29 30 31 32 33 36 37 38 40 41 42 44 47 48 49 50 51 52 53 54 55 58 59 60 61 62 63 64"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -866,7 +882,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "64 63 62 61 60 59 58 55 54 53 52 51 50 49 48 47 44 42 41 40 38 37 36 33 32 31 30 29 24 23 21 20 18 16 15 14 12 11 9 8 6 5 4 2 1"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -878,7 +894,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "55 2 64 21 44 58 63 47 11 1 37 29 32 54 53 52 33 38 59 60 41 5 31 4 49 30 61 8 16 23 50 48 62 15 42 18 24 9 6 12 40 20 51 14 36"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -890,7 +906,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "36 14 51 20 40 12 6 9 24 18 42 15 62 48 50 23 16 8 61 30 49 4 31 5 41 60 59 38 33 52 53 54 32 29 37 1 11 47 63 58 44 21 64 2 55"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -902,7 +918,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "59 60 41 5 31 4 49 30 61 8 16 23 50 48 62 15 42 18 24 9 6 12 40 20 51 14 36 55 2 64 21 44 58 63 47 11 1 37 29 32 54 53 52 33 38"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -914,7 +930,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "6 0000000001000000"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -926,7 +942,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "16777216 6"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -938,7 +954,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "16777216 0000000001000000"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -950,7 +966,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "3 7 10 12 13 14 17 19 20 22 25 26 27 28 34 35 36 39 40 43 45 46 51 56 57"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -962,7 +978,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "57 56 51 46 45 43 40 39 36 35 34 28 27 26 25 22 20 19 17 14 13 12 10 7 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -974,7 +990,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "12 40 20 51 14 36 39 22 46 35 57 19 7 56 25 34 10 26 13 43 27 45 17 28 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -986,7 +1002,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "3 28 17 45 27 43 13 26 10 34 25 56 7 19 57 35 46 22 39 36 14 51 20 40 12"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -998,7 +1014,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "12 40 20 51 14 36 39 22 46 35 57 19 7 56 25 34 10 26 13 43 27 45 17 28 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -1010,7 +1026,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "3 6 7 10 12 13 14 17 19 20 22 25 26 27 28 34 35 36 39 40 43 45 46 51 56 57"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -1022,7 +1038,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "57 56 51 46 45 43 40 39 36 35 34 28 27 26 25 22 20 19 17 14 13 12 10 7 6 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -1034,7 +1050,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "6 12 40 20 51 14 36 39 22 46 35 57 19 7 56 25 34 10 26 13 43 27 45 17 28 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -1046,7 +1062,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "3 28 17 45 27 43 13 26 10 34 25 56 7 19 57 35 46 22 39 36 14 51 20 40 12 6"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -1058,7 +1074,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "6 12 40 20 51 14 36 39 22 46 35 57 19 7 56 25 34 10 26 13 43 27 45 17 28 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -1070,7 +1086,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1 2 4 5 8 9 11 15 16 18 21 23 24 29 30 31 32 33 37 38 41 42 44 47 48 49 50 52 53 54 55 58 59 60 61 62 63 64"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -1082,7 +1098,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "64 63 62 61 60 59 58 55 54 53 52 50 49 48 47 44 42 41 38 37 33 32 31 30 29 24 23 21 18 16 15 11 9 8 5 4 2 1"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -1094,7 +1110,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "55 2 64 21 44 58 63 47 11 1 37 29 32 54 53 52 33 38 59 60 41 5 31 4 49 30 61 8 16 23 50 48 62 15 42 18 24 9"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -1106,7 +1122,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "9 24 18 42 15 62 48 50 23 16 8 61 30 49 4 31 5 41 60 59 38 33 52 53 54 32 29 37 1 11 47 63 58 44 21 64 2 55"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -1118,7 +1134,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "59 60 41 5 31 4 49 30 61 8 16 23 50 48 62 15 42 18 24 9 55 2 64 21 44 58 63 47 11 1 37 29 32 54 53 52 33 38"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -1130,7 +1146,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1 2 4 5 6 8 9 11 15 16 18 21 23 24 29 30 31 32 33 37 38 41 42 44 47 48 49 50 52 53 54 55 58 59 60 61 62 63 64"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -1142,7 +1158,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "64 63 62 61 60 59 58 55 54 53 52 50 49 48 47 44 42 41 38 37 33 32 31 30 29 24 23 21 18 16 15 11 9 8 6 5 4 2 1"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -1154,7 +1170,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "55 2 64 21 44 58 63 47 11 1 37 29 32 54 53 52 33 38 59 60 41 5 31 4 49 30 61 8 16 23 50 48 62 15 42 18 24 9 6"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -1166,7 +1182,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "6 9 24 18 42 15 62 48 50 23 16 8 61 30 49 4 31 5 41 60 59 38 33 52 53 54 32 29 37 1 11 47 63 58 44 21 64 2 55"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -1178,7 +1194,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "59 60 41 5 31 4 49 30 61 8 16 23 50 48 62 15 42 18 24 9 6 55 2 64 21 44 58 63 47 11 1 37 29 32 54 53 52 33 38"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -1190,7 +1206,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "29 ffffffffffff7fff"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -1202,7 +1218,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "-32769 29"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -1214,7 +1230,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "-32769 ffffffffffff7fff"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -1226,7 +1242,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "3 4 5 6 7 8 9 10 12 13 14 15 16 17 18 19 20 22 23 24 25 26 27 28 30 31 32 33 34 35 36 38 39 40 41 42 43 45 46 48 49 50 51 52 53 54 56 57 59 60 61 62"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -1238,7 +1254,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "62 61 60 59 57 56 54 53 52 51 50 49 48 46 45 43 42 41 40 39 38 36 35 34 33 32 31 30 28 27 26 25 24 23 22 20 19 18 17 16 15 14 13 12 10 9 8 7 6 5 4 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -1250,7 +1266,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "32 54 53 52 33 38 59 60 41 5 31 4 49 30 61 8 16 23 50 48 62 15 42 18 24 9 6 12 40 20 51 14 36 39 22 46 35 57 19 7 56 25 34 10 26 13 43 27 45 17 28 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -1262,7 +1278,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "3 28 17 45 27 43 13 26 10 34 25 56 7 19 57 35 46 22 39 36 14 51 20 40 12 6 9 24 18 42 15 62 48 50 23 16 8 61 30 49 4 31 5 41 60 59 38 33 52 53 54 32"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -1274,7 +1290,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "59 60 41 5 31 4 49 30 61 8 16 23 50 48 62 15 42 18 24 9 6 12 40 20 51 14 36 39 22 46 35 57 19 7 56 25 34 10 26 13 43 27 45 17 28 3 32 54 53 52 33 38"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -1286,7 +1302,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "3 4 5 6 7 8 9 10 12 13 14 15 16 17 18 19 20 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 38 39 40 41 42 43 45 46 48 49 50 51 52 53 54 56 57 59 60 61 62"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -1298,7 +1314,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "62 61 60 59 57 56 54 53 52 51 50 49 48 46 45 43 42 41 40 39 38 36 35 34 33 32 31 30 29 28 27 26 25 24 23 22 20 19 18 17 16 15 14 13 12 10 9 8 7 6 5 4 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -1310,7 +1326,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "29 32 54 53 52 33 38 59 60 41 5 31 4 49 30 61 8 16 23 50 48 62 15 42 18 24 9 6 12 40 20 51 14 36 39 22 46 35 57 19 7 56 25 34 10 26 13 43 27 45 17 28 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -1322,7 +1338,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "3 28 17 45 27 43 13 26 10 34 25 56 7 19 57 35 46 22 39 36 14 51 20 40 12 6 9 24 18 42 15 62 48 50 23 16 8 61 30 49 4 31 5 41 60 59 38 33 52 53 54 32 29"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -1334,7 +1350,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "59 60 41 5 31 4 49 30 61 8 16 23 50 48 62 15 42 18 24 9 6 12 40 20 51 14 36 39 22 46 35 57 19 7 56 25 34 10 26 13 43 27 45 17 28 3 29 32 54 53 52 33 38"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -1346,7 +1362,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1 2 11 21 37 44 47 55 58 63 64"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -1358,7 +1374,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "64 63 58 55 47 44 37 21 11 2 1"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -1370,7 +1386,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "55 2 64 21 44 58 63 47 11 1 37"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -1382,7 +1398,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "37 1 11 47 63 58 44 21 64 2 55"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -1394,7 +1410,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "55 2 64 21 44 58 63 47 11 1 37"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -1406,7 +1422,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1 2 11 21 29 37 44 47 55 58 63 64"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -1418,7 +1434,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "64 63 58 55 47 44 37 29 21 11 2 1"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -1430,7 +1446,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "55 2 64 21 44 58 63 47 11 1 37 29"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -1442,7 +1458,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "29 37 1 11 47 63 58 44 21 64 2 55"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -1454,7 +1470,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "55 2 64 21 44 58 63 47 11 1 37 29"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -1466,7 +1482,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "21 ffff7fffffffffff"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -1478,7 +1494,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "-140737488355329 21"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -1490,7 +1506,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "-140737488355329 ffff7fffffffffff"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -1502,7 +1518,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 37 38 39 40 41 42 43 44 45 46 47 48 49 50 51 52 53 54 56 57 58 59 60 61 62 63"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -1514,7 +1530,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "63 62 61 60 59 58 57 56 54 53 52 51 50 49 48 47 46 45 44 43 42 41 40 39 38 37 36 35 34 33 32 31 30 29 28 27 26 25 24 23 22 20 19 18 17 16 15 14 13 12 11 10 9 8 7 6 5 4 3 1"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -1526,7 +1542,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "44 58 63 47 11 1 37 29 32 54 53 52 33 38 59 60 41 5 31 4 49 30 61 8 16 23 50 48 62 15 42 18 24 9 6 12 40 20 51 14 36 39 22 46 35 57 19 7 56 25 34 10 26 13 43 27 45 17 28 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -1538,7 +1554,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "3 28 17 45 27 43 13 26 10 34 25 56 7 19 57 35 46 22 39 36 14 51 20 40 12 6 9 24 18 42 15 62 48 50 23 16 8 61 30 49 4 31 5 41 60 59 38 33 52 53 54 32 29 37 1 11 47 63 58 44"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -1550,7 +1566,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "59 60 41 5 31 4 49 30 61 8 16 23 50 48 62 15 42 18 24 9 6 12 40 20 51 14 36 39 22 46 35 57 19 7 56 25 34 10 26 13 43 27 45 17 28 3 44 58 63 47 11 1 37 29 32 54 53 52 33 38"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -1562,7 +1578,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 37 38 39 40 41 42 43 44 45 46 47 48 49 50 51 52 53 54 56 57 58 59 60 61 62 63"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -1574,7 +1590,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "63 62 61 60 59 58 57 56 54 53 52 51 50 49 48 47 46 45 44 43 42 41 40 39 38 37 36 35 34 33 32 31 30 29 28 27 26 25 24 23 22 21 20 19 18 17 16 15 14 13 12 11 10 9 8 7 6 5 4 3 1"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -1586,7 +1602,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "21 44 58 63 47 11 1 37 29 32 54 53 52 33 38 59 60 41 5 31 4 49 30 61 8 16 23 50 48 62 15 42 18 24 9 6 12 40 20 51 14 36 39 22 46 35 57 19 7 56 25 34 10 26 13 43 27 45 17 28 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -1598,7 +1614,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "3 28 17 45 27 43 13 26 10 34 25 56 7 19 57 35 46 22 39 36 14 51 20 40 12 6 9 24 18 42 15 62 48 50 23 16 8 61 30 49 4 31 5 41 60 59 38 33 52 53 54 32 29 37 1 11 47 63 58 44 21"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -1610,7 +1626,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "59 60 41 5 31 4 49 30 61 8 16 23 50 48 62 15 42 18 24 9 6 12 40 20 51 14 36 39 22 46 35 57 19 7 56 25 34 10 26 13 43 27 45 17 28 3 21 44 58 63 47 11 1 37 29 32 54 53 52 33 38"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -1622,7 +1638,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "2 55 64"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -1634,7 +1650,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "64 55 2"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -1646,7 +1662,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "55 2 64"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -1658,7 +1674,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "64 2 55"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -1670,7 +1686,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "55 2 64"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -1682,7 +1698,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "2 21 55 64"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -1694,7 +1710,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "64 55 21 2"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -1706,7 +1722,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "55 2 64 21"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -1718,7 +1734,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "21 64 2 55"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -1730,7 +1746,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "55 2 64 21"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -1742,7 +1758,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "41 0000000000000002"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -1754,7 +1770,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "2 41"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -1766,7 +1782,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "2 0000000000000002"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -1778,7 +1794,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "3 4 5 6 7 8 9 10 12 13 14 15 16 17 18 19 20 22 23 24 25 26 27 28 30 31 34 35 36 39 40 42 43 45 46 48 49 50 51 56 57 61 62"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -1790,7 +1806,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "62 61 57 56 51 50 49 48 46 45 43 42 40 39 36 35 34 31 30 28 27 26 25 24 23 22 20 19 18 17 16 15 14 13 12 10 9 8 7 6 5 4 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -1802,7 +1818,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "5 31 4 49 30 61 8 16 23 50 48 62 15 42 18 24 9 6 12 40 20 51 14 36 39 22 46 35 57 19 7 56 25 34 10 26 13 43 27 45 17 28 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -1814,7 +1830,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "3 28 17 45 27 43 13 26 10 34 25 56 7 19 57 35 46 22 39 36 14 51 20 40 12 6 9 24 18 42 15 62 48 50 23 16 8 61 30 49 4 31 5"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -1826,7 +1842,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "5 31 4 49 30 61 8 16 23 50 48 62 15 42 18 24 9 6 12 40 20 51 14 36 39 22 46 35 57 19 7 56 25 34 10 26 13 43 27 45 17 28 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -1838,7 +1854,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "3 4 5 6 7 8 9 10 12 13 14 15 16 17 18 19 20 22 23 24 25 26 27 28 30 31 34 35 36 39 40 41 42 43 45 46 48 49 50 51 56 57 61 62"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -1850,7 +1866,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "62 61 57 56 51 50 49 48 46 45 43 42 41 40 39 36 35 34 31 30 28 27 26 25 24 23 22 20 19 18 17 16 15 14 13 12 10 9 8 7 6 5 4 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -1862,7 +1878,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "41 5 31 4 49 30 61 8 16 23 50 48 62 15 42 18 24 9 6 12 40 20 51 14 36 39 22 46 35 57 19 7 56 25 34 10 26 13 43 27 45 17 28 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -1874,7 +1890,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "3 28 17 45 27 43 13 26 10 34 25 56 7 19 57 35 46 22 39 36 14 51 20 40 12 6 9 24 18 42 15 62 48 50 23 16 8 61 30 49 4 31 5 41"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -1886,7 +1902,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "41 5 31 4 49 30 61 8 16 23 50 48 62 15 42 18 24 9 6 12 40 20 51 14 36 39 22 46 35 57 19 7 56 25 34 10 26 13 43 27 45 17 28 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -1898,7 +1914,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1 2 11 21 29 32 33 37 38 44 47 52 53 54 55 58 59 60 63 64"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -1910,7 +1926,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "64 63 60 59 58 55 54 53 52 47 44 38 37 33 32 29 21 11 2 1"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -1922,7 +1938,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "55 2 64 21 44 58 63 47 11 1 37 29 32 54 53 52 33 38 59 60"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -1934,7 +1950,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "60 59 38 33 52 53 54 32 29 37 1 11 47 63 58 44 21 64 2 55"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -1946,7 +1962,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "59 60 55 2 64 21 44 58 63 47 11 1 37 29 32 54 53 52 33 38"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -1958,7 +1974,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1 2 11 21 29 32 33 37 38 41 44 47 52 53 54 55 58 59 60 63 64"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -1970,7 +1986,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "64 63 60 59 58 55 54 53 52 47 44 41 38 37 33 32 29 21 11 2 1"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -1982,7 +1998,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "55 2 64 21 44 58 63 47 11 1 37 29 32 54 53 52 33 38 59 60 41"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -1994,7 +2010,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "41 60 59 38 33 52 53 54 32 29 37 1 11 47 63 58 44 21 64 2 55"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -2006,7 +2022,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "59 60 41 55 2 64 21 44 58 63 47 11 1 37 29 32 54 53 52 33 38"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -2018,7 +2034,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "31 0000000000000004"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -2030,7 +2046,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "4 31"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -2042,7 +2058,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "4 0000000000000004"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -2054,7 +2070,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "3 4 6 7 8 9 10 12 13 14 15 16 17 18 19 20 22 23 24 25 26 27 28 30 34 35 36 39 40 42 43 45 46 48 49 50 51 56 57 61 62"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -2066,7 +2082,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "62 61 57 56 51 50 49 48 46 45 43 42 40 39 36 35 34 30 28 27 26 25 24 23 22 20 19 18 17 16 15 14 13 12 10 9 8 7 6 4 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -2078,7 +2094,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "4 49 30 61 8 16 23 50 48 62 15 42 18 24 9 6 12 40 20 51 14 36 39 22 46 35 57 19 7 56 25 34 10 26 13 43 27 45 17 28 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -2090,7 +2106,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "3 28 17 45 27 43 13 26 10 34 25 56 7 19 57 35 46 22 39 36 14 51 20 40 12 6 9 24 18 42 15 62 48 50 23 16 8 61 30 49 4"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -2102,7 +2118,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "4 49 30 61 8 16 23 50 48 62 15 42 18 24 9 6 12 40 20 51 14 36 39 22 46 35 57 19 7 56 25 34 10 26 13 43 27 45 17 28 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -2114,7 +2130,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "3 4 6 7 8 9 10 12 13 14 15 16 17 18 19 20 22 23 24 25 26 27 28 30 31 34 35 36 39 40 42 43 45 46 48 49 50 51 56 57 61 62"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -2126,7 +2142,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "62 61 57 56 51 50 49 48 46 45 43 42 40 39 36 35 34 31 30 28 27 26 25 24 23 22 20 19 18 17 16 15 14 13 12 10 9 8 7 6 4 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -2138,7 +2154,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "31 4 49 30 61 8 16 23 50 48 62 15 42 18 24 9 6 12 40 20 51 14 36 39 22 46 35 57 19 7 56 25 34 10 26 13 43 27 45 17 28 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -2150,7 +2166,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "3 28 17 45 27 43 13 26 10 34 25 56 7 19 57 35 46 22 39 36 14 51 20 40 12 6 9 24 18 42 15 62 48 50 23 16 8 61 30 49 4 31"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -2162,7 +2178,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "31 4 49 30 61 8 16 23 50 48 62 15 42 18 24 9 6 12 40 20 51 14 36 39 22 46 35 57 19 7 56 25 34 10 26 13 43 27 45 17 28 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -2174,7 +2190,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1 2 5 11 21 29 32 33 37 38 41 44 47 52 53 54 55 58 59 60 63 64"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -2186,7 +2202,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "64 63 60 59 58 55 54 53 52 47 44 41 38 37 33 32 29 21 11 5 2 1"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -2198,7 +2214,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "55 2 64 21 44 58 63 47 11 1 37 29 32 54 53 52 33 38 59 60 41 5"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -2210,7 +2226,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "5 41 60 59 38 33 52 53 54 32 29 37 1 11 47 63 58 44 21 64 2 55"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -2222,7 +2238,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "59 60 41 5 55 2 64 21 44 58 63 47 11 1 37 29 32 54 53 52 33 38"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -2234,7 +2250,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1 2 5 11 21 29 31 32 33 37 38 41 44 47 52 53 54 55 58 59 60 63 64"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -2246,7 +2262,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "64 63 60 59 58 55 54 53 52 47 44 41 38 37 33 32 31 29 21 11 5 2 1"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -2258,7 +2274,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "55 2 64 21 44 58 63 47 11 1 37 29 32 54 53 52 33 38 59 60 41 5 31"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -2270,7 +2286,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "31 5 41 60 59 38 33 52 53 54 32 29 37 1 11 47 63 58 44 21 64 2 55"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -2282,7 +2298,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "59 60 41 5 31 55 2 64 21 44 58 63 47 11 1 37 29 32 54 53 52 33 38"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -2294,7 +2310,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "13 0001ffffffffffff"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -2306,7 +2322,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "562949953421311 13"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -2318,7 +2334,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "562949953421311 0001ffffffffffff"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -2330,7 +2346,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "3 17 27 28 43 45"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -2342,7 +2358,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "45 43 28 27 17 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -2354,7 +2370,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "43 27 45 17 28 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -2366,7 +2382,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "3 28 17 45 27 43"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -2378,7 +2394,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "43 27 45 17 28 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -2390,7 +2406,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "3 13 17 27 28 43 45"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -2402,7 +2418,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "45 43 28 27 17 13 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -2414,7 +2430,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "13 43 27 45 17 28 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -2426,7 +2442,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "3 28 17 45 27 43 13"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -2438,7 +2454,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "13 43 27 45 17 28 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -2450,7 +2466,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1 2 4 5 6 7 8 9 10 11 12 14 15 16 18 19 20 21 22 23 24 25 26 29 30 31 32 33 34 35 36 37 38 39 40 41 42 44 46 47 48 49 50 51 52 53 54 55 56 57 58 59 60 61 62 63 64"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -2462,7 +2478,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "64 63 62 61 60 59 58 57 56 55 54 53 52 51 50 49 48 47 46 44 42 41 40 39 38 37 36 35 34 33 32 31 30 29 26 25 24 23 22 21 20 19 18 16 15 14 12 11 10 9 8 7 6 5 4 2 1"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -2474,7 +2490,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "55 2 64 21 44 58 63 47 11 1 37 29 32 54 53 52 33 38 59 60 41 5 31 4 49 30 61 8 16 23 50 48 62 15 42 18 24 9 6 12 40 20 51 14 36 39 22 46 35 57 19 7 56 25 34 10 26"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -2486,7 +2502,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "26 10 34 25 56 7 19 57 35 46 22 39 36 14 51 20 40 12 6 9 24 18 42 15 62 48 50 23 16 8 61 30 49 4 31 5 41 60 59 38 33 52 53 54 32 29 37 1 11 47 63 58 44 21 64 2 55"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -2498,7 +2514,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "59 60 41 5 31 4 49 30 61 8 16 23 50 48 62 15 42 18 24 9 6 12 40 20 51 14 36 39 22 46 35 57 19 7 56 25 34 10 26 55 2 64 21 44 58 63 47 11 1 37 29 32 54 53 52 33 38"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -2510,7 +2526,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1 2 4 5 6 7 8 9 10 11 12 13 14 15 16 18 19 20 21 22 23 24 25 26 29 30 31 32 33 34 35 36 37 38 39 40 41 42 44 46 47 48 49 50 51 52 53 54 55 56 57 58 59 60 61 62 63 64"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -2522,7 +2538,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "64 63 62 61 60 59 58 57 56 55 54 53 52 51 50 49 48 47 46 44 42 41 40 39 38 37 36 35 34 33 32 31 30 29 26 25 24 23 22 21 20 19 18 16 15 14 13 12 11 10 9 8 7 6 5 4 2 1"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -2534,7 +2550,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "55 2 64 21 44 58 63 47 11 1 37 29 32 54 53 52 33 38 59 60 41 5 31 4 49 30 61 8 16 23 50 48 62 15 42 18 24 9 6 12 40 20 51 14 36 39 22 46 35 57 19 7 56 25 34 10 26 13"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -2546,7 +2562,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "13 26 10 34 25 56 7 19 57 35 46 22 39 36 14 51 20 40 12 6 9 24 18 42 15 62 48 50 23 16 8 61 30 49 4 31 5 41 60 59 38 33 52 53 54 32 29 37 1 11 47 63 58 44 21 64 2 55"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -2558,7 +2574,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "59 60 41 5 31 4 49 30 61 8 16 23 50 48 62 15 42 18 24 9 6 12 40 20 51 14 36 39 22 46 35 57 19 7 56 25 34 10 26 13 55 2 64 21 44 58 63 47 11 1 37 29 32 54 53 52 33 38"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -2570,7 +2586,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "61 0000000000000100"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -2582,7 +2598,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "256 61"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -2594,7 +2610,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "256 0000000000000100"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -2606,7 +2622,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "3 6 7 8 9 10 12 13 14 15 16 17 18 19 20 22 23 24 25 26 27 28 34 35 36 39 40 42 43 45 46 48 50 51 56 57 62"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -2618,7 +2634,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "62 57 56 51 50 48 46 45 43 42 40 39 36 35 34 28 27 26 25 24 23 22 20 19 18 17 16 15 14 13 12 10 9 8 7 6 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -2630,7 +2646,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "8 16 23 50 48 62 15 42 18 24 9 6 12 40 20 51 14 36 39 22 46 35 57 19 7 56 25 34 10 26 13 43 27 45 17 28 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -2642,7 +2658,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "3 28 17 45 27 43 13 26 10 34 25 56 7 19 57 35 46 22 39 36 14 51 20 40 12 6 9 24 18 42 15 62 48 50 23 16 8"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -2654,7 +2670,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "8 16 23 50 48 62 15 42 18 24 9 6 12 40 20 51 14 36 39 22 46 35 57 19 7 56 25 34 10 26 13 43 27 45 17 28 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -2666,7 +2682,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "3 6 7 8 9 10 12 13 14 15 16 17 18 19 20 22 23 24 25 26 27 28 34 35 36 39 40 42 43 45 46 48 50 51 56 57 61 62"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -2678,7 +2694,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "62 61 57 56 51 50 48 46 45 43 42 40 39 36 35 34 28 27 26 25 24 23 22 20 19 18 17 16 15 14 13 12 10 9 8 7 6 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -2690,7 +2706,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "61 8 16 23 50 48 62 15 42 18 24 9 6 12 40 20 51 14 36 39 22 46 35 57 19 7 56 25 34 10 26 13 43 27 45 17 28 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -2702,7 +2718,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "3 28 17 45 27 43 13 26 10 34 25 56 7 19 57 35 46 22 39 36 14 51 20 40 12 6 9 24 18 42 15 62 48 50 23 16 8 61"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -2714,7 +2730,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "61 8 16 23 50 48 62 15 42 18 24 9 6 12 40 20 51 14 36 39 22 46 35 57 19 7 56 25 34 10 26 13 43 27 45 17 28 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -2726,7 +2742,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1 2 4 5 11 21 29 30 31 32 33 37 38 41 44 47 49 52 53 54 55 58 59 60 63 64"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -2738,7 +2754,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "64 63 60 59 58 55 54 53 52 49 47 44 41 38 37 33 32 31 30 29 21 11 5 4 2 1"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -2750,7 +2766,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "55 2 64 21 44 58 63 47 11 1 37 29 32 54 53 52 33 38 59 60 41 5 31 4 49 30"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -2762,7 +2778,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "30 49 4 31 5 41 60 59 38 33 52 53 54 32 29 37 1 11 47 63 58 44 21 64 2 55"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -2774,7 +2790,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "59 60 41 5 31 4 49 30 55 2 64 21 44 58 63 47 11 1 37 29 32 54 53 52 33 38"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -2786,7 +2802,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1 2 4 5 11 21 29 30 31 32 33 37 38 41 44 47 49 52 53 54 55 58 59 60 61 63 64"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -2798,7 +2814,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "64 63 61 60 59 58 55 54 53 52 49 47 44 41 38 37 33 32 31 30 29 21 11 5 4 2 1"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -2810,7 +2826,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "55 2 64 21 44 58 63 47 11 1 37 29 32 54 53 52 33 38 59 60 41 5 31 4 49 30 61"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -2822,7 +2838,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "61 30 49 4 31 5 41 60 59 38 33 52 53 54 32 29 37 1 11 47 63 58 44 21 64 2 55"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -2834,7 +2850,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "59 60 41 5 31 4 49 30 61 55 2 64 21 44 58 63 47 11 1 37 29 32 54 53 52 33 38"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -2846,7 +2862,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "22 0000000800000000"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -2858,7 +2874,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "34359738368 22"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -2870,7 +2886,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "34359738368 0000000800000000"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -2882,7 +2898,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "3 7 10 13 17 19 25 26 27 28 34 35 43 45 46 56 57"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -2894,7 +2910,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "57 56 46 45 43 35 34 28 27 26 25 19 17 13 10 7 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -2906,7 +2922,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "46 35 57 19 7 56 25 34 10 26 13 43 27 45 17 28 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -2918,7 +2934,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "3 28 17 45 27 43 13 26 10 34 25 56 7 19 57 35 46"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -2930,7 +2946,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "46 35 57 19 7 56 25 34 10 26 13 43 27 45 17 28 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -2942,7 +2958,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "3 7 10 13 17 19 22 25 26 27 28 34 35 43 45 46 56 57"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -2954,7 +2970,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "57 56 46 45 43 35 34 28 27 26 25 22 19 17 13 10 7 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -2966,7 +2982,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "22 46 35 57 19 7 56 25 34 10 26 13 43 27 45 17 28 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -2978,7 +2994,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "3 28 17 45 27 43 13 26 10 34 25 56 7 19 57 35 46 22"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -2990,7 +3006,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "22 46 35 57 19 7 56 25 34 10 26 13 43 27 45 17 28 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -3002,7 +3018,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1 2 4 5 6 8 9 11 12 14 15 16 18 20 21 23 24 29 30 31 32 33 36 37 38 39 40 41 42 44 47 48 49 50 51 52 53 54 55 58 59 60 61 62 63 64"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -3014,7 +3030,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "64 63 62 61 60 59 58 55 54 53 52 51 50 49 48 47 44 42 41 40 39 38 37 36 33 32 31 30 29 24 23 21 20 18 16 15 14 12 11 9 8 6 5 4 2 1"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -3026,7 +3042,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "55 2 64 21 44 58 63 47 11 1 37 29 32 54 53 52 33 38 59 60 41 5 31 4 49 30 61 8 16 23 50 48 62 15 42 18 24 9 6 12 40 20 51 14 36 39"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -3038,7 +3054,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "39 36 14 51 20 40 12 6 9 24 18 42 15 62 48 50 23 16 8 61 30 49 4 31 5 41 60 59 38 33 52 53 54 32 29 37 1 11 47 63 58 44 21 64 2 55"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -3050,7 +3066,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "59 60 41 5 31 4 49 30 61 8 16 23 50 48 62 15 42 18 24 9 6 12 40 20 51 14 36 39 55 2 64 21 44 58 63 47 11 1 37 29 32 54 53 52 33 38"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -3062,7 +3078,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1 2 4 5 6 8 9 11 12 14 15 16 18 20 21 22 23 24 29 30 31 32 33 36 37 38 39 40 41 42 44 47 48 49 50 51 52 53 54 55 58 59 60 61 62 63 64"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -3074,7 +3090,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "64 63 62 61 60 59 58 55 54 53 52 51 50 49 48 47 44 42 41 40 39 38 37 36 33 32 31 30 29 24 23 22 21 20 18 16 15 14 12 11 9 8 6 5 4 2 1"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -3086,7 +3102,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "55 2 64 21 44 58 63 47 11 1 37 29 32 54 53 52 33 38 59 60 41 5 31 4 49 30 61 8 16 23 50 48 62 15 42 18 24 9 6 12 40 20 51 14 36 39 22"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -3098,7 +3114,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "22 39 36 14 51 20 40 12 6 9 24 18 42 15 62 48 50 23 16 8 61 30 49 4 31 5 41 60 59 38 33 52 53 54 32 29 37 1 11 47 63 58 44 21 64 2 55"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -3110,7 +3126,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "59 60 41 5 31 4 49 30 61 8 16 23 50 48 62 15 42 18 24 9 6 12 40 20 51 14 36 39 22 55 2 64 21 44 58 63 47 11 1 37 29 32 54 53 52 33 38"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -3122,7 +3138,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "62 0000000000010000"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -3134,7 +3150,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "65536 62"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -3146,7 +3162,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "65536 0000000000010000"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -3158,7 +3174,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "3 6 7 9 10 12 13 14 15 17 18 19 20 22 24 25 26 27 28 34 35 36 39 40 42 43 45 46 51 56 57"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -3170,7 +3186,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "57 56 51 46 45 43 42 40 39 36 35 34 28 27 26 25 24 22 20 19 18 17 15 14 13 12 10 9 7 6 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -3182,7 +3198,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "15 42 18 24 9 6 12 40 20 51 14 36 39 22 46 35 57 19 7 56 25 34 10 26 13 43 27 45 17 28 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -3194,7 +3210,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "3 28 17 45 27 43 13 26 10 34 25 56 7 19 57 35 46 22 39 36 14 51 20 40 12 6 9 24 18 42 15"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -3206,7 +3222,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "15 42 18 24 9 6 12 40 20 51 14 36 39 22 46 35 57 19 7 56 25 34 10 26 13 43 27 45 17 28 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -3218,7 +3234,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "3 6 7 9 10 12 13 14 15 17 18 19 20 22 24 25 26 27 28 34 35 36 39 40 42 43 45 46 51 56 57 62"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -3230,7 +3246,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "62 57 56 51 46 45 43 42 40 39 36 35 34 28 27 26 25 24 22 20 19 18 17 15 14 13 12 10 9 7 6 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -3242,7 +3258,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "62 15 42 18 24 9 6 12 40 20 51 14 36 39 22 46 35 57 19 7 56 25 34 10 26 13 43 27 45 17 28 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -3254,7 +3270,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "3 28 17 45 27 43 13 26 10 34 25 56 7 19 57 35 46 22 39 36 14 51 20 40 12 6 9 24 18 42 15 62"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -3266,7 +3282,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "62 15 42 18 24 9 6 12 40 20 51 14 36 39 22 46 35 57 19 7 56 25 34 10 26 13 43 27 45 17 28 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -3278,7 +3294,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1 2 4 5 8 11 16 21 23 29 30 31 32 33 37 38 41 44 47 48 49 50 52 53 54 55 58 59 60 61 63 64"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -3290,7 +3306,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "64 63 61 60 59 58 55 54 53 52 50 49 48 47 44 41 38 37 33 32 31 30 29 23 21 16 11 8 5 4 2 1"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -3302,7 +3318,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "55 2 64 21 44 58 63 47 11 1 37 29 32 54 53 52 33 38 59 60 41 5 31 4 49 30 61 8 16 23 50 48"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -3314,7 +3330,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "48 50 23 16 8 61 30 49 4 31 5 41 60 59 38 33 52 53 54 32 29 37 1 11 47 63 58 44 21 64 2 55"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -3326,7 +3342,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "59 60 41 5 31 4 49 30 61 8 16 23 50 48 55 2 64 21 44 58 63 47 11 1 37 29 32 54 53 52 33 38"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -3338,7 +3354,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1 2 4 5 8 11 16 21 23 29 30 31 32 33 37 38 41 44 47 48 49 50 52 53 54 55 58 59 60 61 62 63 64"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -3350,7 +3366,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "64 63 62 61 60 59 58 55 54 53 52 50 49 48 47 44 41 38 37 33 32 31 30 29 23 21 16 11 8 5 4 2 1"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -3362,7 +3378,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "55 2 64 21 44 58 63 47 11 1 37 29 32 54 53 52 33 38 59 60 41 5 31 4 49 30 61 8 16 23 50 48 62"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -3374,7 +3390,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "62 48 50 23 16 8 61 30 49 4 31 5 41 60 59 38 33 52 53 54 32 29 37 1 11 47 63 58 44 21 64 2 55"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -3386,7 +3402,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "59 60 41 5 31 4 49 30 61 8 16 23 50 48 62 55 2 64 21 44 58 63 47 11 1 37 29 32 54 53 52 33 38"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -3398,7 +3414,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "40 0000000010000000"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -3410,7 +3426,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "268435456 40"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -3422,7 +3438,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "268435456 0000000010000000"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -3434,7 +3450,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "3 7 10 13 14 17 19 20 22 25 26 27 28 34 35 36 39 43 45 46 51 56 57"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -3446,7 +3462,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "57 56 51 46 45 43 39 36 35 34 28 27 26 25 22 20 19 17 14 13 10 7 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -3458,7 +3474,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "20 51 14 36 39 22 46 35 57 19 7 56 25 34 10 26 13 43 27 45 17 28 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -3470,7 +3486,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "3 28 17 45 27 43 13 26 10 34 25 56 7 19 57 35 46 22 39 36 14 51 20"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -3482,7 +3498,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "20 51 14 36 39 22 46 35 57 19 7 56 25 34 10 26 13 43 27 45 17 28 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -3494,7 +3510,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "3 7 10 13 14 17 19 20 22 25 26 27 28 34 35 36 39 40 43 45 46 51 56 57"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -3506,7 +3522,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "57 56 51 46 45 43 40 39 36 35 34 28 27 26 25 22 20 19 17 14 13 10 7 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -3518,7 +3534,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "40 20 51 14 36 39 22 46 35 57 19 7 56 25 34 10 26 13 43 27 45 17 28 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -3530,7 +3546,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "3 28 17 45 27 43 13 26 10 34 25 56 7 19 57 35 46 22 39 36 14 51 20 40"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -3542,7 +3558,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "40 20 51 14 36 39 22 46 35 57 19 7 56 25 34 10 26 13 43 27 45 17 28 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -3554,7 +3570,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1 2 4 5 6 8 9 11 12 15 16 18 21 23 24 29 30 31 32 33 37 38 41 42 44 47 48 49 50 52 53 54 55 58 59 60 61 62 63 64"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -3566,7 +3582,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "64 63 62 61 60 59 58 55 54 53 52 50 49 48 47 44 42 41 38 37 33 32 31 30 29 24 23 21 18 16 15 12 11 9 8 6 5 4 2 1"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -3578,7 +3594,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "55 2 64 21 44 58 63 47 11 1 37 29 32 54 53 52 33 38 59 60 41 5 31 4 49 30 61 8 16 23 50 48 62 15 42 18 24 9 6 12"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -3590,7 +3606,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "12 6 9 24 18 42 15 62 48 50 23 16 8 61 30 49 4 31 5 41 60 59 38 33 52 53 54 32 29 37 1 11 47 63 58 44 21 64 2 55"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -3602,7 +3618,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "59 60 41 5 31 4 49 30 61 8 16 23 50 48 62 15 42 18 24 9 6 12 55 2 64 21 44 58 63 47 11 1 37 29 32 54 53 52 33 38"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -3614,7 +3630,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1 2 4 5 6 8 9 11 12 15 16 18 21 23 24 29 30 31 32 33 37 38 40 41 42 44 47 48 49 50 52 53 54 55 58 59 60 61 62 63 64"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -3626,7 +3642,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "64 63 62 61 60 59 58 55 54 53 52 50 49 48 47 44 42 41 40 38 37 33 32 31 30 29 24 23 21 18 16 15 12 11 9 8 6 5 4 2 1"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -3638,7 +3654,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "55 2 64 21 44 58 63 47 11 1 37 29 32 54 53 52 33 38 59 60 41 5 31 4 49 30 61 8 16 23 50 48 62 15 42 18 24 9 6 12 40"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -3650,7 +3666,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "40 12 6 9 24 18 42 15 62 48 50 23 16 8 61 30 49 4 31 5 41 60 59 38 33 52 53 54 32 29 37 1 11 47 63 58 44 21 64 2 55"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -3662,7 +3678,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "59 60 41 5 31 4 49 30 61 8 16 23 50 48 62 15 42 18 24 9 6 12 40 55 2 64 21 44 58 63 47 11 1 37 29 32 54 53 52 33 38"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -3674,7 +3690,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "44 ffff800000000000"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -3686,7 +3702,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "-140737488355328 44"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -3698,7 +3714,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "-140737488355328 ffff800000000000"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -3710,7 +3726,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 37 38 39 40 41 42 43 45 46 47 48 49 50 51 52 53 54 56 57 58 59 60 61 62 63"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -3722,7 +3738,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "63 62 61 60 59 58 57 56 54 53 52 51 50 49 48 47 46 45 43 42 41 40 39 38 37 36 35 34 33 32 31 30 29 28 27 26 25 24 23 22 20 19 18 17 16 15 14 13 12 11 10 9 8 7 6 5 4 3 1"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -3734,7 +3750,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "58 63 47 11 1 37 29 32 54 53 52 33 38 59 60 41 5 31 4 49 30 61 8 16 23 50 48 62 15 42 18 24 9 6 12 40 20 51 14 36 39 22 46 35 57 19 7 56 25 34 10 26 13 43 27 45 17 28 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -3746,7 +3762,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "3 28 17 45 27 43 13 26 10 34 25 56 7 19 57 35 46 22 39 36 14 51 20 40 12 6 9 24 18 42 15 62 48 50 23 16 8 61 30 49 4 31 5 41 60 59 38 33 52 53 54 32 29 37 1 11 47 63 58"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -3758,7 +3774,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "59 60 41 5 31 4 49 30 61 8 16 23 50 48 62 15 42 18 24 9 6 12 40 20 51 14 36 39 22 46 35 57 19 7 56 25 34 10 26 13 43 27 45 17 28 3 58 63 47 11 1 37 29 32 54 53 52 33 38"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -3770,7 +3786,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 37 38 39 40 41 42 43 44 45 46 47 48 49 50 51 52 53 54 56 57 58 59 60 61 62 63"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -3782,7 +3798,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "63 62 61 60 59 58 57 56 54 53 52 51 50 49 48 47 46 45 44 43 42 41 40 39 38 37 36 35 34 33 32 31 30 29 28 27 26 25 24 23 22 20 19 18 17 16 15 14 13 12 11 10 9 8 7 6 5 4 3 1"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -3794,7 +3810,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "44 58 63 47 11 1 37 29 32 54 53 52 33 38 59 60 41 5 31 4 49 30 61 8 16 23 50 48 62 15 42 18 24 9 6 12 40 20 51 14 36 39 22 46 35 57 19 7 56 25 34 10 26 13 43 27 45 17 28 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -3806,7 +3822,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "3 28 17 45 27 43 13 26 10 34 25 56 7 19 57 35 46 22 39 36 14 51 20 40 12 6 9 24 18 42 15 62 48 50 23 16 8 61 30 49 4 31 5 41 60 59 38 33 52 53 54 32 29 37 1 11 47 63 58 44"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -3818,7 +3834,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "59 60 41 5 31 4 49 30 61 8 16 23 50 48 62 15 42 18 24 9 6 12 40 20 51 14 36 39 22 46 35 57 19 7 56 25 34 10 26 13 43 27 45 17 28 3 44 58 63 47 11 1 37 29 32 54 53 52 33 38"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -3830,7 +3846,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "2 21 55 64"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -3842,7 +3858,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "64 55 21 2"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -3854,7 +3870,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "55 2 64 21"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -3866,7 +3882,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "21 64 2 55"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -3878,7 +3894,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "55 2 64 21"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -3890,7 +3906,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "2 21 44 55 64"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -3902,7 +3918,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "64 55 44 21 2"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -3914,7 +3930,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "55 2 64 21 44"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -3926,7 +3942,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "44 21 64 2 55"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -3938,7 +3954,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "55 2 64 21 44"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -3950,7 +3966,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "19 0000010000000000"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -3962,7 +3978,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1099511627776 19"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -3974,7 +3990,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1099511627776 0000010000000000"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -3986,7 +4002,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "3 7 10 13 17 25 26 27 28 34 43 45 56"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -3998,7 +4014,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "56 45 43 34 28 27 26 25 17 13 10 7 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -4010,7 +4026,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "7 56 25 34 10 26 13 43 27 45 17 28 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -4022,7 +4038,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "3 28 17 45 27 43 13 26 10 34 25 56 7"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -4034,7 +4050,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "7 56 25 34 10 26 13 43 27 45 17 28 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -4046,7 +4062,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "3 7 10 13 17 19 25 26 27 28 34 43 45 56"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -4058,7 +4074,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "56 45 43 34 28 27 26 25 19 17 13 10 7 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -4070,7 +4086,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "19 7 56 25 34 10 26 13 43 27 45 17 28 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -4082,7 +4098,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "3 28 17 45 27 43 13 26 10 34 25 56 7 19"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -4094,7 +4110,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "19 7 56 25 34 10 26 13 43 27 45 17 28 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -4106,7 +4122,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1 2 4 5 6 8 9 11 12 14 15 16 18 20 21 22 23 24 29 30 31 32 33 35 36 37 38 39 40 41 42 44 46 47 48 49 50 51 52 53 54 55 57 58 59 60 61 62 63 64"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -4118,7 +4134,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "64 63 62 61 60 59 58 57 55 54 53 52 51 50 49 48 47 46 44 42 41 40 39 38 37 36 35 33 32 31 30 29 24 23 22 21 20 18 16 15 14 12 11 9 8 6 5 4 2 1"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -4130,7 +4146,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "55 2 64 21 44 58 63 47 11 1 37 29 32 54 53 52 33 38 59 60 41 5 31 4 49 30 61 8 16 23 50 48 62 15 42 18 24 9 6 12 40 20 51 14 36 39 22 46 35 57"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -4142,7 +4158,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "57 35 46 22 39 36 14 51 20 40 12 6 9 24 18 42 15 62 48 50 23 16 8 61 30 49 4 31 5 41 60 59 38 33 52 53 54 32 29 37 1 11 47 63 58 44 21 64 2 55"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -4154,7 +4170,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "59 60 41 5 31 4 49 30 61 8 16 23 50 48 62 15 42 18 24 9 6 12 40 20 51 14 36 39 22 46 35 57 55 2 64 21 44 58 63 47 11 1 37 29 32 54 53 52 33 38"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -4166,7 +4182,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1 2 4 5 6 8 9 11 12 14 15 16 18 19 20 21 22 23 24 29 30 31 32 33 35 36 37 38 39 40 41 42 44 46 47 48 49 50 51 52 53 54 55 57 58 59 60 61 62 63 64"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -4178,7 +4194,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "64 63 62 61 60 59 58 57 55 54 53 52 51 50 49 48 47 46 44 42 41 40 39 38 37 36 35 33 32 31 30 29 24 23 22 21 20 19 18 16 15 14 12 11 9 8 6 5 4 2 1"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -4190,7 +4206,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "55 2 64 21 44 58 63 47 11 1 37 29 32 54 53 52 33 38 59 60 41 5 31 4 49 30 61 8 16 23 50 48 62 15 42 18 24 9 6 12 40 20 51 14 36 39 22 46 35 57 19"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -4202,7 +4218,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "19 57 35 46 22 39 36 14 51 20 40 12 6 9 24 18 42 15 62 48 50 23 16 8 61 30 49 4 31 5 41 60 59 38 33 52 53 54 32 29 37 1 11 47 63 58 44 21 64 2 55"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -4214,7 +4230,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "59 60 41 5 31 4 49 30 61 8 16 23 50 48 62 15 42 18 24 9 6 12 40 20 51 14 36 39 22 46 35 57 19 55 2 64 21 44 58 63 47 11 1 37 29 32 54 53 52 33 38"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -4226,7 +4242,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "{}"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -4238,7 +4254,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "{}"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -4250,7 +4266,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "{}"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -4262,7 +4278,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "{}"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -4274,7 +4290,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "{}"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -4286,7 +4302,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -4298,7 +4314,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -4310,7 +4326,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -4322,7 +4338,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -4334,7 +4350,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -4346,7 +4362,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1 2 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 37 38 39 40 41 42 43 44 45 46 47 48 49 50 51 52 53 54 55 56 57 58 59 60 61 62 63 64"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -4358,7 +4374,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "64 63 62 61 60 59 58 57 56 55 54 53 52 51 50 49 48 47 46 45 44 43 42 41 40 39 38 37 36 35 34 33 32 31 30 29 28 27 26 25 24 23 22 21 20 19 18 17 16 15 14 13 12 11 10 9 8 7 6 5 4 2 1"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -4370,7 +4386,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "55 2 64 21 44 58 63 47 11 1 37 29 32 54 53 52 33 38 59 60 41 5 31 4 49 30 61 8 16 23 50 48 62 15 42 18 24 9 6 12 40 20 51 14 36 39 22 46 35 57 19 7 56 25 34 10 26 13 43 27 45 17 28"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -4382,7 +4398,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "28 17 45 27 43 13 26 10 34 25 56 7 19 57 35 46 22 39 36 14 51 20 40 12 6 9 24 18 42 15 62 48 50 23 16 8 61 30 49 4 31 5 41 60 59 38 33 52 53 54 32 29 37 1 11 47 63 58 44 21 64 2 55"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -4394,7 +4410,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "59 60 41 5 31 4 49 30 61 8 16 23 50 48 62 15 42 18 24 9 6 12 40 20 51 14 36 39 22 46 35 57 19 7 56 25 34 10 26 13 43 27 45 17 28 55 2 64 21 44 58 63 47 11 1 37 29 32 54 53 52 33 38"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -4406,7 +4422,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 37 38 39 40 41 42 43 44 45 46 47 48 49 50 51 52 53 54 55 56 57 58 59 60 61 62 63 64"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -4418,7 +4434,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "64 63 62 61 60 59 58 57 56 55 54 53 52 51 50 49 48 47 46 45 44 43 42 41 40 39 38 37 36 35 34 33 32 31 30 29 28 27 26 25 24 23 22 21 20 19 18 17 16 15 14 13 12 11 10 9 8 7 6 5 4 3 2 1"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -4430,7 +4446,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "55 2 64 21 44 58 63 47 11 1 37 29 32 54 53 52 33 38 59 60 41 5 31 4 49 30 61 8 16 23 50 48 62 15 42 18 24 9 6 12 40 20 51 14 36 39 22 46 35 57 19 7 56 25 34 10 26 13 43 27 45 17 28 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -4442,7 +4458,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "3 28 17 45 27 43 13 26 10 34 25 56 7 19 57 35 46 22 39 36 14 51 20 40 12 6 9 24 18 42 15 62 48 50 23 16 8 61 30 49 4 31 5 41 60 59 38 33 52 53 54 32 29 37 1 11 47 63 58 44 21 64 2 55"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -4454,7 +4470,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "59 60 41 5 31 4 49 30 61 8 16 23 50 48 62 15 42 18 24 9 6 12 40 20 51 14 36 39 22 46 35 57 19 7 56 25 34 10 26 13 43 27 45 17 28 3 55 2 64 21 44 58 63 47 11 1 37 29 32 54 53 52 33 38"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -4466,7 +4482,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "50 0000000000008000"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -4478,7 +4494,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "32768 50"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -4490,7 +4506,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "32768 0000000000008000"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -4502,7 +4518,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "3 6 7 9 10 12 13 14 15 17 18 19 20 22 24 25 26 27 28 34 35 36 39 40 42 43 45 46 48 51 56 57 62"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -4514,7 +4530,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "62 57 56 51 48 46 45 43 42 40 39 36 35 34 28 27 26 25 24 22 20 19 18 17 15 14 13 12 10 9 7 6 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -4526,7 +4542,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "48 62 15 42 18 24 9 6 12 40 20 51 14 36 39 22 46 35 57 19 7 56 25 34 10 26 13 43 27 45 17 28 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -4538,7 +4554,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "3 28 17 45 27 43 13 26 10 34 25 56 7 19 57 35 46 22 39 36 14 51 20 40 12 6 9 24 18 42 15 62 48"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -4550,7 +4566,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "48 62 15 42 18 24 9 6 12 40 20 51 14 36 39 22 46 35 57 19 7 56 25 34 10 26 13 43 27 45 17 28 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -4562,7 +4578,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "3 6 7 9 10 12 13 14 15 17 18 19 20 22 24 25 26 27 28 34 35 36 39 40 42 43 45 46 48 50 51 56 57 62"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -4574,7 +4590,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "62 57 56 51 50 48 46 45 43 42 40 39 36 35 34 28 27 26 25 24 22 20 19 18 17 15 14 13 12 10 9 7 6 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -4586,7 +4602,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "50 48 62 15 42 18 24 9 6 12 40 20 51 14 36 39 22 46 35 57 19 7 56 25 34 10 26 13 43 27 45 17 28 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -4598,7 +4614,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "3 28 17 45 27 43 13 26 10 34 25 56 7 19 57 35 46 22 39 36 14 51 20 40 12 6 9 24 18 42 15 62 48 50"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -4610,7 +4626,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "50 48 62 15 42 18 24 9 6 12 40 20 51 14 36 39 22 46 35 57 19 7 56 25 34 10 26 13 43 27 45 17 28 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -4622,7 +4638,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1 2 4 5 8 11 16 21 23 29 30 31 32 33 37 38 41 44 47 49 52 53 54 55 58 59 60 61 63 64"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -4634,7 +4650,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "64 63 61 60 59 58 55 54 53 52 49 47 44 41 38 37 33 32 31 30 29 23 21 16 11 8 5 4 2 1"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -4646,7 +4662,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "55 2 64 21 44 58 63 47 11 1 37 29 32 54 53 52 33 38 59 60 41 5 31 4 49 30 61 8 16 23"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -4658,7 +4674,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "23 16 8 61 30 49 4 31 5 41 60 59 38 33 52 53 54 32 29 37 1 11 47 63 58 44 21 64 2 55"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -4670,7 +4686,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "59 60 41 5 31 4 49 30 61 8 16 23 55 2 64 21 44 58 63 47 11 1 37 29 32 54 53 52 33 38"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -4682,7 +4698,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1 2 4 5 8 11 16 21 23 29 30 31 32 33 37 38 41 44 47 49 50 52 53 54 55 58 59 60 61 63 64"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -4694,7 +4710,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "64 63 61 60 59 58 55 54 53 52 50 49 47 44 41 38 37 33 32 31 30 29 23 21 16 11 8 5 4 2 1"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -4706,7 +4722,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "55 2 64 21 44 58 63 47 11 1 37 29 32 54 53 52 33 38 59 60 41 5 31 4 49 30 61 8 16 23 50"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -4718,7 +4734,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "50 23 16 8 61 30 49 4 31 5 41 60 59 38 33 52 53 54 32 29 37 1 11 47 63 58 44 21 64 2 55"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -4730,7 +4746,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "59 60 41 5 31 4 49 30 61 8 16 23 50 55 2 64 21 44 58 63 47 11 1 37 29 32 54 53 52 33 38"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -4742,7 +4758,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "64 ff80000000000000"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -4754,7 +4770,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "-36028797018963968 64"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -4766,7 +4782,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "-36028797018963968 ff80000000000000"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -4778,7 +4794,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 37 38 39 40 41 42 43 44 45 46 47 48 49 50 51 52 53 54 56 57 58 59 60 61 62 63"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -4790,7 +4806,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "63 62 61 60 59 58 57 56 54 53 52 51 50 49 48 47 46 45 44 43 42 41 40 39 38 37 36 35 34 33 32 31 30 29 28 27 26 25 24 23 22 21 20 19 18 17 16 15 14 13 12 11 10 9 8 7 6 5 4 3 1"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -4802,7 +4818,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "21 44 58 63 47 11 1 37 29 32 54 53 52 33 38 59 60 41 5 31 4 49 30 61 8 16 23 50 48 62 15 42 18 24 9 6 12 40 20 51 14 36 39 22 46 35 57 19 7 56 25 34 10 26 13 43 27 45 17 28 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -4814,7 +4830,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "3 28 17 45 27 43 13 26 10 34 25 56 7 19 57 35 46 22 39 36 14 51 20 40 12 6 9 24 18 42 15 62 48 50 23 16 8 61 30 49 4 31 5 41 60 59 38 33 52 53 54 32 29 37 1 11 47 63 58 44 21"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -4826,7 +4842,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "59 60 41 5 31 4 49 30 61 8 16 23 50 48 62 15 42 18 24 9 6 12 40 20 51 14 36 39 22 46 35 57 19 7 56 25 34 10 26 13 43 27 45 17 28 3 21 44 58 63 47 11 1 37 29 32 54 53 52 33 38"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -4838,7 +4854,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 37 38 39 40 41 42 43 44 45 46 47 48 49 50 51 52 53 54 56 57 58 59 60 61 62 63 64"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -4850,7 +4866,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "64 63 62 61 60 59 58 57 56 54 53 52 51 50 49 48 47 46 45 44 43 42 41 40 39 38 37 36 35 34 33 32 31 30 29 28 27 26 25 24 23 22 21 20 19 18 17 16 15 14 13 12 11 10 9 8 7 6 5 4 3 1"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -4862,7 +4878,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "64 21 44 58 63 47 11 1 37 29 32 54 53 52 33 38 59 60 41 5 31 4 49 30 61 8 16 23 50 48 62 15 42 18 24 9 6 12 40 20 51 14 36 39 22 46 35 57 19 7 56 25 34 10 26 13 43 27 45 17 28 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -4874,7 +4890,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "3 28 17 45 27 43 13 26 10 34 25 56 7 19 57 35 46 22 39 36 14 51 20 40 12 6 9 24 18 42 15 62 48 50 23 16 8 61 30 49 4 31 5 41 60 59 38 33 52 53 54 32 29 37 1 11 47 63 58 44 21 64"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -4886,7 +4902,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "59 60 41 5 31 4 49 30 61 8 16 23 50 48 62 15 42 18 24 9 6 12 40 20 51 14 36 39 22 46 35 57 19 7 56 25 34 10 26 13 43 27 45 17 28 3 64 21 44 58 63 47 11 1 37 29 32 54 53 52 33 38"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -4898,7 +4914,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "2 55"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -4910,7 +4926,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "55 2"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -4922,7 +4938,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "55 2"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -4934,7 +4950,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "2 55"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -4946,7 +4962,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "55 2"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -4958,7 +4974,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "2 55 64"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -4970,7 +4986,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "64 55 2"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -4982,7 +4998,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "55 2 64"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -4994,7 +5010,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "64 2 55"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -5006,7 +5022,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "55 2 64"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -5018,7 +5034,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "48 000000000000ffff"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -5030,7 +5046,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "65535 48"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -5042,7 +5058,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "65535 000000000000ffff"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -5054,7 +5070,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "3 6 7 9 10 12 13 14 15 17 18 19 20 22 24 25 26 27 28 34 35 36 39 40 42 43 45 46 51 56 57 62"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -5066,7 +5082,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "62 57 56 51 46 45 43 42 40 39 36 35 34 28 27 26 25 24 22 20 19 18 17 15 14 13 12 10 9 7 6 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -5078,7 +5094,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "62 15 42 18 24 9 6 12 40 20 51 14 36 39 22 46 35 57 19 7 56 25 34 10 26 13 43 27 45 17 28 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -5090,7 +5106,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "3 28 17 45 27 43 13 26 10 34 25 56 7 19 57 35 46 22 39 36 14 51 20 40 12 6 9 24 18 42 15 62"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -5102,7 +5118,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "62 15 42 18 24 9 6 12 40 20 51 14 36 39 22 46 35 57 19 7 56 25 34 10 26 13 43 27 45 17 28 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -5114,7 +5130,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "3 6 7 9 10 12 13 14 15 17 18 19 20 22 24 25 26 27 28 34 35 36 39 40 42 43 45 46 48 51 56 57 62"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -5126,7 +5142,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "62 57 56 51 48 46 45 43 42 40 39 36 35 34 28 27 26 25 24 22 20 19 18 17 15 14 13 12 10 9 7 6 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -5138,7 +5154,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "48 62 15 42 18 24 9 6 12 40 20 51 14 36 39 22 46 35 57 19 7 56 25 34 10 26 13 43 27 45 17 28 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -5150,7 +5166,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "3 28 17 45 27 43 13 26 10 34 25 56 7 19 57 35 46 22 39 36 14 51 20 40 12 6 9 24 18 42 15 62 48"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -5162,7 +5178,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "48 62 15 42 18 24 9 6 12 40 20 51 14 36 39 22 46 35 57 19 7 56 25 34 10 26 13 43 27 45 17 28 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -5174,7 +5190,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1 2 4 5 8 11 16 21 23 29 30 31 32 33 37 38 41 44 47 49 50 52 53 54 55 58 59 60 61 63 64"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -5186,7 +5202,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "64 63 61 60 59 58 55 54 53 52 50 49 47 44 41 38 37 33 32 31 30 29 23 21 16 11 8 5 4 2 1"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -5198,7 +5214,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "55 2 64 21 44 58 63 47 11 1 37 29 32 54 53 52 33 38 59 60 41 5 31 4 49 30 61 8 16 23 50"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -5210,7 +5226,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "50 23 16 8 61 30 49 4 31 5 41 60 59 38 33 52 53 54 32 29 37 1 11 47 63 58 44 21 64 2 55"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -5222,7 +5238,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "59 60 41 5 31 4 49 30 61 8 16 23 50 55 2 64 21 44 58 63 47 11 1 37 29 32 54 53 52 33 38"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -5234,7 +5250,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1 2 4 5 8 11 16 21 23 29 30 31 32 33 37 38 41 44 47 48 49 50 52 53 54 55 58 59 60 61 63 64"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -5246,7 +5262,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "64 63 61 60 59 58 55 54 53 52 50 49 48 47 44 41 38 37 33 32 31 30 29 23 21 16 11 8 5 4 2 1"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -5258,7 +5274,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "55 2 64 21 44 58 63 47 11 1 37 29 32 54 53 52 33 38 59 60 41 5 31 4 49 30 61 8 16 23 50 48"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -5270,7 +5286,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "48 50 23 16 8 61 30 49 4 31 5 41 60 59 38 33 52 53 54 32 29 37 1 11 47 63 58 44 21 64 2 55"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -5282,7 +5298,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "59 60 41 5 31 4 49 30 61 8 16 23 50 48 55 2 64 21 44 58 63 47 11 1 37 29 32 54 53 52 33 38"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -5294,7 +5310,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "14 00000000ffffffff"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -5306,7 +5322,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "4294967295 14"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -5318,7 +5334,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "4294967295 00000000ffffffff"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -5330,7 +5346,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "3 7 10 13 17 19 22 25 26 27 28 34 35 36 39 43 45 46 56 57"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -5342,7 +5358,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "57 56 46 45 43 39 36 35 34 28 27 26 25 22 19 17 13 10 7 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -5354,7 +5370,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "36 39 22 46 35 57 19 7 56 25 34 10 26 13 43 27 45 17 28 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -5366,7 +5382,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "3 28 17 45 27 43 13 26 10 34 25 56 7 19 57 35 46 22 39 36"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -5378,7 +5394,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "36 39 22 46 35 57 19 7 56 25 34 10 26 13 43 27 45 17 28 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -5390,7 +5406,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "3 7 10 13 14 17 19 22 25 26 27 28 34 35 36 39 43 45 46 56 57"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -5402,7 +5418,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "57 56 46 45 43 39 36 35 34 28 27 26 25 22 19 17 14 13 10 7 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -5414,7 +5430,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "14 36 39 22 46 35 57 19 7 56 25 34 10 26 13 43 27 45 17 28 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -5426,7 +5442,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "3 28 17 45 27 43 13 26 10 34 25 56 7 19 57 35 46 22 39 36 14"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -5438,7 +5454,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "14 36 39 22 46 35 57 19 7 56 25 34 10 26 13 43 27 45 17 28 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -5450,7 +5466,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1 2 4 5 6 8 9 11 12 15 16 18 20 21 23 24 29 30 31 32 33 37 38 40 41 42 44 47 48 49 50 51 52 53 54 55 58 59 60 61 62 63 64"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -5462,7 +5478,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "64 63 62 61 60 59 58 55 54 53 52 51 50 49 48 47 44 42 41 40 38 37 33 32 31 30 29 24 23 21 20 18 16 15 12 11 9 8 6 5 4 2 1"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -5474,7 +5490,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "55 2 64 21 44 58 63 47 11 1 37 29 32 54 53 52 33 38 59 60 41 5 31 4 49 30 61 8 16 23 50 48 62 15 42 18 24 9 6 12 40 20 51"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -5486,7 +5502,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "51 20 40 12 6 9 24 18 42 15 62 48 50 23 16 8 61 30 49 4 31 5 41 60 59 38 33 52 53 54 32 29 37 1 11 47 63 58 44 21 64 2 55"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -5498,7 +5514,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "59 60 41 5 31 4 49 30 61 8 16 23 50 48 62 15 42 18 24 9 6 12 40 20 51 55 2 64 21 44 58 63 47 11 1 37 29 32 54 53 52 33 38"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -5510,7 +5526,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1 2 4 5 6 8 9 11 12 14 15 16 18 20 21 23 24 29 30 31 32 33 37 38 40 41 42 44 47 48 49 50 51 52 53 54 55 58 59 60 61 62 63 64"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -5522,7 +5538,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "64 63 62 61 60 59 58 55 54 53 52 51 50 49 48 47 44 42 41 40 38 37 33 32 31 30 29 24 23 21 20 18 16 15 14 12 11 9 8 6 5 4 2 1"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -5534,7 +5550,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "55 2 64 21 44 58 63 47 11 1 37 29 32 54 53 52 33 38 59 60 41 5 31 4 49 30 61 8 16 23 50 48 62 15 42 18 24 9 6 12 40 20 51 14"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -5546,7 +5562,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "14 51 20 40 12 6 9 24 18 42 15 62 48 50 23 16 8 61 30 49 4 31 5 41 60 59 38 33 52 53 54 32 29 37 1 11 47 63 58 44 21 64 2 55"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -5558,7 +5574,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "59 60 41 5 31 4 49 30 61 8 16 23 50 48 62 15 42 18 24 9 6 12 40 20 51 14 55 2 64 21 44 58 63 47 11 1 37 29 32 54 53 52 33 38"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -5570,7 +5586,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "57 000000ffffffffff"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -5582,7 +5598,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1099511627775 57"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -5594,7 +5610,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1099511627775 000000ffffffffff"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -5606,7 +5622,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "3 7 10 13 17 19 25 26 27 28 34 43 45 56"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -5618,7 +5634,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "56 45 43 34 28 27 26 25 19 17 13 10 7 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -5630,7 +5646,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "19 7 56 25 34 10 26 13 43 27 45 17 28 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -5642,7 +5658,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "3 28 17 45 27 43 13 26 10 34 25 56 7 19"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -5654,7 +5670,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "19 7 56 25 34 10 26 13 43 27 45 17 28 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -5666,7 +5682,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "3 7 10 13 17 19 25 26 27 28 34 43 45 56 57"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -5678,7 +5694,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "57 56 45 43 34 28 27 26 25 19 17 13 10 7 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -5690,7 +5706,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "57 19 7 56 25 34 10 26 13 43 27 45 17 28 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -5702,7 +5718,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "3 28 17 45 27 43 13 26 10 34 25 56 7 19 57"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -5714,7 +5730,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "57 19 7 56 25 34 10 26 13 43 27 45 17 28 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -5726,7 +5742,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1 2 4 5 6 8 9 11 12 14 15 16 18 20 21 22 23 24 29 30 31 32 33 35 36 37 38 39 40 41 42 44 46 47 48 49 50 51 52 53 54 55 58 59 60 61 62 63 64"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -5738,7 +5754,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "64 63 62 61 60 59 58 55 54 53 52 51 50 49 48 47 46 44 42 41 40 39 38 37 36 35 33 32 31 30 29 24 23 22 21 20 18 16 15 14 12 11 9 8 6 5 4 2 1"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -5750,7 +5766,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "55 2 64 21 44 58 63 47 11 1 37 29 32 54 53 52 33 38 59 60 41 5 31 4 49 30 61 8 16 23 50 48 62 15 42 18 24 9 6 12 40 20 51 14 36 39 22 46 35"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -5762,7 +5778,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "35 46 22 39 36 14 51 20 40 12 6 9 24 18 42 15 62 48 50 23 16 8 61 30 49 4 31 5 41 60 59 38 33 52 53 54 32 29 37 1 11 47 63 58 44 21 64 2 55"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -5774,7 +5790,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "59 60 41 5 31 4 49 30 61 8 16 23 50 48 62 15 42 18 24 9 6 12 40 20 51 14 36 39 22 46 35 55 2 64 21 44 58 63 47 11 1 37 29 32 54 53 52 33 38"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -5786,7 +5802,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1 2 4 5 6 8 9 11 12 14 15 16 18 20 21 22 23 24 29 30 31 32 33 35 36 37 38 39 40 41 42 44 46 47 48 49 50 51 52 53 54 55 57 58 59 60 61 62 63 64"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -5798,7 +5814,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "64 63 62 61 60 59 58 57 55 54 53 52 51 50 49 48 47 46 44 42 41 40 39 38 37 36 35 33 32 31 30 29 24 23 22 21 20 18 16 15 14 12 11 9 8 6 5 4 2 1"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -5810,7 +5826,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "55 2 64 21 44 58 63 47 11 1 37 29 32 54 53 52 33 38 59 60 41 5 31 4 49 30 61 8 16 23 50 48 62 15 42 18 24 9 6 12 40 20 51 14 36 39 22 46 35 57"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -5822,7 +5838,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "57 35 46 22 39 36 14 51 20 40 12 6 9 24 18 42 15 62 48 50 23 16 8 61 30 49 4 31 5 41 60 59 38 33 52 53 54 32 29 37 1 11 47 63 58 44 21 64 2 55"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -5834,7 +5850,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "59 60 41 5 31 4 49 30 61 8 16 23 50 48 62 15 42 18 24 9 6 12 40 20 51 14 36 39 22 46 35 57 55 2 64 21 44 58 63 47 11 1 37 29 32 54 53 52 33 38"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -5846,7 +5862,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "37 ffffffffff800000"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -5858,7 +5874,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "-8388608 37"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -5870,7 +5886,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "-8388608 ffffffffff800000"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -5882,7 +5898,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "3 4 5 6 7 8 9 10 12 13 14 15 16 17 18 19 20 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 38 39 40 41 42 43 45 46 48 49 50 51 52 53 54 56 57 59 60 61 62"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -5894,7 +5910,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "62 61 60 59 57 56 54 53 52 51 50 49 48 46 45 43 42 41 40 39 38 36 35 34 33 32 31 30 29 28 27 26 25 24 23 22 20 19 18 17 16 15 14 13 12 10 9 8 7 6 5 4 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -5906,7 +5922,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "29 32 54 53 52 33 38 59 60 41 5 31 4 49 30 61 8 16 23 50 48 62 15 42 18 24 9 6 12 40 20 51 14 36 39 22 46 35 57 19 7 56 25 34 10 26 13 43 27 45 17 28 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -5918,7 +5934,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "3 28 17 45 27 43 13 26 10 34 25 56 7 19 57 35 46 22 39 36 14 51 20 40 12 6 9 24 18 42 15 62 48 50 23 16 8 61 30 49 4 31 5 41 60 59 38 33 52 53 54 32 29"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -5930,7 +5946,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "59 60 41 5 31 4 49 30 61 8 16 23 50 48 62 15 42 18 24 9 6 12 40 20 51 14 36 39 22 46 35 57 19 7 56 25 34 10 26 13 43 27 45 17 28 3 29 32 54 53 52 33 38"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -5942,7 +5958,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "3 4 5 6 7 8 9 10 12 13 14 15 16 17 18 19 20 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 37 38 39 40 41 42 43 45 46 48 49 50 51 52 53 54 56 57 59 60 61 62"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -5954,7 +5970,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "62 61 60 59 57 56 54 53 52 51 50 49 48 46 45 43 42 41 40 39 38 37 36 35 34 33 32 31 30 29 28 27 26 25 24 23 22 20 19 18 17 16 15 14 13 12 10 9 8 7 6 5 4 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -5966,7 +5982,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "37 29 32 54 53 52 33 38 59 60 41 5 31 4 49 30 61 8 16 23 50 48 62 15 42 18 24 9 6 12 40 20 51 14 36 39 22 46 35 57 19 7 56 25 34 10 26 13 43 27 45 17 28 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -5978,7 +5994,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "3 28 17 45 27 43 13 26 10 34 25 56 7 19 57 35 46 22 39 36 14 51 20 40 12 6 9 24 18 42 15 62 48 50 23 16 8 61 30 49 4 31 5 41 60 59 38 33 52 53 54 32 29 37"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -5990,7 +6006,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "59 60 41 5 31 4 49 30 61 8 16 23 50 48 62 15 42 18 24 9 6 12 40 20 51 14 36 39 22 46 35 57 19 7 56 25 34 10 26 13 43 27 45 17 28 3 37 29 32 54 53 52 33 38"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -6002,7 +6018,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1 2 11 21 44 47 55 58 63 64"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -6014,7 +6030,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "64 63 58 55 47 44 21 11 2 1"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -6026,7 +6042,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "55 2 64 21 44 58 63 47 11 1"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -6038,7 +6054,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1 11 47 63 58 44 21 64 2 55"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -6050,7 +6066,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "55 2 64 21 44 58 63 47 11 1"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -6062,7 +6078,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1 2 11 21 37 44 47 55 58 63 64"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -6074,7 +6090,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "64 63 58 55 47 44 37 21 11 2 1"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -6086,7 +6102,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "55 2 64 21 44 58 63 47 11 1 37"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -6098,7 +6114,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "37 1 11 47 63 58 44 21 64 2 55"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -6110,7 +6126,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "55 2 64 21 44 58 63 47 11 1 37"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -6122,7 +6138,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "35 0000008000000000"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -6134,7 +6150,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "549755813888 35"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -6146,7 +6162,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "549755813888 0000008000000000"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -6158,7 +6174,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "3 7 10 13 17 19 25 26 27 28 34 43 45 56 57"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -6170,7 +6186,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "57 56 45 43 34 28 27 26 25 19 17 13 10 7 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -6182,7 +6198,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "57 19 7 56 25 34 10 26 13 43 27 45 17 28 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -6194,7 +6210,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "3 28 17 45 27 43 13 26 10 34 25 56 7 19 57"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -6206,7 +6222,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "57 19 7 56 25 34 10 26 13 43 27 45 17 28 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -6218,7 +6234,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "3 7 10 13 17 19 25 26 27 28 34 35 43 45 56 57"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -6230,7 +6246,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "57 56 45 43 35 34 28 27 26 25 19 17 13 10 7 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -6242,7 +6258,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "35 57 19 7 56 25 34 10 26 13 43 27 45 17 28 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -6254,7 +6270,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "3 28 17 45 27 43 13 26 10 34 25 56 7 19 57 35"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -6266,7 +6282,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "35 57 19 7 56 25 34 10 26 13 43 27 45 17 28 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -6278,7 +6294,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1 2 4 5 6 8 9 11 12 14 15 16 18 20 21 22 23 24 29 30 31 32 33 36 37 38 39 40 41 42 44 46 47 48 49 50 51 52 53 54 55 58 59 60 61 62 63 64"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -6290,7 +6306,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "64 63 62 61 60 59 58 55 54 53 52 51 50 49 48 47 46 44 42 41 40 39 38 37 36 33 32 31 30 29 24 23 22 21 20 18 16 15 14 12 11 9 8 6 5 4 2 1"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -6302,7 +6318,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "55 2 64 21 44 58 63 47 11 1 37 29 32 54 53 52 33 38 59 60 41 5 31 4 49 30 61 8 16 23 50 48 62 15 42 18 24 9 6 12 40 20 51 14 36 39 22 46"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -6314,7 +6330,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "46 22 39 36 14 51 20 40 12 6 9 24 18 42 15 62 48 50 23 16 8 61 30 49 4 31 5 41 60 59 38 33 52 53 54 32 29 37 1 11 47 63 58 44 21 64 2 55"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -6326,7 +6342,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "59 60 41 5 31 4 49 30 61 8 16 23 50 48 62 15 42 18 24 9 6 12 40 20 51 14 36 39 22 46 55 2 64 21 44 58 63 47 11 1 37 29 32 54 53 52 33 38"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -6338,7 +6354,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1 2 4 5 6 8 9 11 12 14 15 16 18 20 21 22 23 24 29 30 31 32 33 35 36 37 38 39 40 41 42 44 46 47 48 49 50 51 52 53 54 55 58 59 60 61 62 63 64"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -6350,7 +6366,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "64 63 62 61 60 59 58 55 54 53 52 51 50 49 48 47 46 44 42 41 40 39 38 37 36 35 33 32 31 30 29 24 23 22 21 20 18 16 15 14 12 11 9 8 6 5 4 2 1"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -6362,7 +6378,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "55 2 64 21 44 58 63 47 11 1 37 29 32 54 53 52 33 38 59 60 41 5 31 4 49 30 61 8 16 23 50 48 62 15 42 18 24 9 6 12 40 20 51 14 36 39 22 46 35"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -6374,7 +6390,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "35 46 22 39 36 14 51 20 40 12 6 9 24 18 42 15 62 48 50 23 16 8 61 30 49 4 31 5 41 60 59 38 33 52 53 54 32 29 37 1 11 47 63 58 44 21 64 2 55"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -6386,7 +6402,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "59 60 41 5 31 4 49 30 61 8 16 23 50 48 62 15 42 18 24 9 6 12 40 20 51 14 36 39 22 46 35 55 2 64 21 44 58 63 47 11 1 37 29 32 54 53 52 33 38"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -6398,7 +6414,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "18 00000000007fffff"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -6410,7 +6426,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "8388607 18"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -6422,7 +6438,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "8388607 00000000007fffff"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -6434,7 +6450,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "3 6 7 9 10 12 13 14 17 19 20 22 24 25 26 27 28 34 35 36 39 40 43 45 46 51 56 57"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -6446,7 +6462,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "57 56 51 46 45 43 40 39 36 35 34 28 27 26 25 24 22 20 19 17 14 13 12 10 9 7 6 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -6458,7 +6474,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "24 9 6 12 40 20 51 14 36 39 22 46 35 57 19 7 56 25 34 10 26 13 43 27 45 17 28 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -6470,7 +6486,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "3 28 17 45 27 43 13 26 10 34 25 56 7 19 57 35 46 22 39 36 14 51 20 40 12 6 9 24"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -6482,7 +6498,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "24 9 6 12 40 20 51 14 36 39 22 46 35 57 19 7 56 25 34 10 26 13 43 27 45 17 28 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -6494,7 +6510,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "3 6 7 9 10 12 13 14 17 18 19 20 22 24 25 26 27 28 34 35 36 39 40 43 45 46 51 56 57"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -6506,7 +6522,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "57 56 51 46 45 43 40 39 36 35 34 28 27 26 25 24 22 20 19 18 17 14 13 12 10 9 7 6 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -6518,7 +6534,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "18 24 9 6 12 40 20 51 14 36 39 22 46 35 57 19 7 56 25 34 10 26 13 43 27 45 17 28 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -6530,7 +6546,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "3 28 17 45 27 43 13 26 10 34 25 56 7 19 57 35 46 22 39 36 14 51 20 40 12 6 9 24 18"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -6542,7 +6558,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "18 24 9 6 12 40 20 51 14 36 39 22 46 35 57 19 7 56 25 34 10 26 13 43 27 45 17 28 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -6554,7 +6570,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1 2 4 5 8 11 15 16 21 23 29 30 31 32 33 37 38 41 42 44 47 48 49 50 52 53 54 55 58 59 60 61 62 63 64"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -6566,7 +6582,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "64 63 62 61 60 59 58 55 54 53 52 50 49 48 47 44 42 41 38 37 33 32 31 30 29 23 21 16 15 11 8 5 4 2 1"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -6578,7 +6594,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "55 2 64 21 44 58 63 47 11 1 37 29 32 54 53 52 33 38 59 60 41 5 31 4 49 30 61 8 16 23 50 48 62 15 42"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -6590,7 +6606,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "42 15 62 48 50 23 16 8 61 30 49 4 31 5 41 60 59 38 33 52 53 54 32 29 37 1 11 47 63 58 44 21 64 2 55"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -6602,7 +6618,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "59 60 41 5 31 4 49 30 61 8 16 23 50 48 62 15 42 55 2 64 21 44 58 63 47 11 1 37 29 32 54 53 52 33 38"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -6614,7 +6630,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1 2 4 5 8 11 15 16 18 21 23 29 30 31 32 33 37 38 41 42 44 47 48 49 50 52 53 54 55 58 59 60 61 62 63 64"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -6626,7 +6642,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "64 63 62 61 60 59 58 55 54 53 52 50 49 48 47 44 42 41 38 37 33 32 31 30 29 23 21 18 16 15 11 8 5 4 2 1"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -6638,7 +6654,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "55 2 64 21 44 58 63 47 11 1 37 29 32 54 53 52 33 38 59 60 41 5 31 4 49 30 61 8 16 23 50 48 62 15 42 18"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -6650,7 +6666,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "18 42 15 62 48 50 23 16 8 61 30 49 4 31 5 41 60 59 38 33 52 53 54 32 29 37 1 11 47 63 58 44 21 64 2 55"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -6662,7 +6678,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "59 60 41 5 31 4 49 30 61 8 16 23 50 48 62 15 42 18 55 2 64 21 44 58 63 47 11 1 37 29 32 54 53 52 33 38"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -6674,7 +6690,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "52 fffffffffffffffd"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -6686,7 +6702,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "-3 52"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -6698,7 +6714,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "-3 fffffffffffffffd"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -6710,7 +6726,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "3 4 5 6 7 8 9 10 12 13 14 15 16 17 18 19 20 22 23 24 25 26 27 28 30 31 33 34 35 36 38 39 40 41 42 43 45 46 48 49 50 51 56 57 59 60 61 62"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -6722,7 +6738,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "62 61 60 59 57 56 51 50 49 48 46 45 43 42 41 40 39 38 36 35 34 33 31 30 28 27 26 25 24 23 22 20 19 18 17 16 15 14 13 12 10 9 8 7 6 5 4 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -6734,7 +6750,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "33 38 59 60 41 5 31 4 49 30 61 8 16 23 50 48 62 15 42 18 24 9 6 12 40 20 51 14 36 39 22 46 35 57 19 7 56 25 34 10 26 13 43 27 45 17 28 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -6746,7 +6762,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "3 28 17 45 27 43 13 26 10 34 25 56 7 19 57 35 46 22 39 36 14 51 20 40 12 6 9 24 18 42 15 62 48 50 23 16 8 61 30 49 4 31 5 41 60 59 38 33"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -6758,7 +6774,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "59 60 41 5 31 4 49 30 61 8 16 23 50 48 62 15 42 18 24 9 6 12 40 20 51 14 36 39 22 46 35 57 19 7 56 25 34 10 26 13 43 27 45 17 28 3 33 38"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -6770,7 +6786,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "3 4 5 6 7 8 9 10 12 13 14 15 16 17 18 19 20 22 23 24 25 26 27 28 30 31 33 34 35 36 38 39 40 41 42 43 45 46 48 49 50 51 52 56 57 59 60 61 62"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -6782,7 +6798,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "62 61 60 59 57 56 52 51 50 49 48 46 45 43 42 41 40 39 38 36 35 34 33 31 30 28 27 26 25 24 23 22 20 19 18 17 16 15 14 13 12 10 9 8 7 6 5 4 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -6794,7 +6810,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "52 33 38 59 60 41 5 31 4 49 30 61 8 16 23 50 48 62 15 42 18 24 9 6 12 40 20 51 14 36 39 22 46 35 57 19 7 56 25 34 10 26 13 43 27 45 17 28 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -6806,7 +6822,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "3 28 17 45 27 43 13 26 10 34 25 56 7 19 57 35 46 22 39 36 14 51 20 40 12 6 9 24 18 42 15 62 48 50 23 16 8 61 30 49 4 31 5 41 60 59 38 33 52"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -6818,7 +6834,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "59 60 41 5 31 4 49 30 61 8 16 23 50 48 62 15 42 18 24 9 6 12 40 20 51 14 36 39 22 46 35 57 19 7 56 25 34 10 26 13 43 27 45 17 28 3 52 33 38"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -6830,7 +6846,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1 2 11 21 29 32 37 44 47 53 54 55 58 63 64"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -6842,7 +6858,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "64 63 58 55 54 53 47 44 37 32 29 21 11 2 1"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -6854,7 +6870,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "55 2 64 21 44 58 63 47 11 1 37 29 32 54 53"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -6866,7 +6882,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "53 54 32 29 37 1 11 47 63 58 44 21 64 2 55"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -6878,7 +6894,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "55 2 64 21 44 58 63 47 11 1 37 29 32 54 53"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -6890,7 +6906,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1 2 11 21 29 32 37 44 47 52 53 54 55 58 63 64"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -6902,7 +6918,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "64 63 58 55 54 53 52 47 44 37 32 29 21 11 2 1"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -6914,7 +6930,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "55 2 64 21 44 58 63 47 11 1 37 29 32 54 53 52"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -6926,7 +6942,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "52 53 54 32 29 37 1 11 47 63 58 44 21 64 2 55"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -6938,7 +6954,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "55 2 64 21 44 58 63 47 11 1 37 29 32 54 53 52"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -6950,7 +6966,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "59 0000000000000000"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -6962,7 +6978,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "0 59"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -6974,7 +6990,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "0 0000000000000000"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -6986,7 +7002,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "3 4 5 6 7 8 9 10 12 13 14 15 16 17 18 19 20 22 23 24 25 26 27 28 30 31 34 35 36 39 40 41 42 43 45 46 48 49 50 51 56 57 60 61 62"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -6998,7 +7014,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "62 61 60 57 56 51 50 49 48 46 45 43 42 41 40 39 36 35 34 31 30 28 27 26 25 24 23 22 20 19 18 17 16 15 14 13 12 10 9 8 7 6 5 4 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -7010,7 +7026,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "60 41 5 31 4 49 30 61 8 16 23 50 48 62 15 42 18 24 9 6 12 40 20 51 14 36 39 22 46 35 57 19 7 56 25 34 10 26 13 43 27 45 17 28 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -7022,7 +7038,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "3 28 17 45 27 43 13 26 10 34 25 56 7 19 57 35 46 22 39 36 14 51 20 40 12 6 9 24 18 42 15 62 48 50 23 16 8 61 30 49 4 31 5 41 60"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -7034,7 +7050,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "60 41 5 31 4 49 30 61 8 16 23 50 48 62 15 42 18 24 9 6 12 40 20 51 14 36 39 22 46 35 57 19 7 56 25 34 10 26 13 43 27 45 17 28 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -7046,7 +7062,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "3 4 5 6 7 8 9 10 12 13 14 15 16 17 18 19 20 22 23 24 25 26 27 28 30 31 34 35 36 39 40 41 42 43 45 46 48 49 50 51 56 57 59 60 61 62"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -7058,7 +7074,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "62 61 60 59 57 56 51 50 49 48 46 45 43 42 41 40 39 36 35 34 31 30 28 27 26 25 24 23 22 20 19 18 17 16 15 14 13 12 10 9 8 7 6 5 4 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -7070,7 +7086,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "59 60 41 5 31 4 49 30 61 8 16 23 50 48 62 15 42 18 24 9 6 12 40 20 51 14 36 39 22 46 35 57 19 7 56 25 34 10 26 13 43 27 45 17 28 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -7082,7 +7098,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "3 28 17 45 27 43 13 26 10 34 25 56 7 19 57 35 46 22 39 36 14 51 20 40 12 6 9 24 18 42 15 62 48 50 23 16 8 61 30 49 4 31 5 41 60 59"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -7094,7 +7110,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "59 60 41 5 31 4 49 30 61 8 16 23 50 48 62 15 42 18 24 9 6 12 40 20 51 14 36 39 22 46 35 57 19 7 56 25 34 10 26 13 43 27 45 17 28 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -7106,7 +7122,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1 2 11 21 29 32 33 37 38 44 47 52 53 54 55 58 63 64"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -7118,7 +7134,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "64 63 58 55 54 53 52 47 44 38 37 33 32 29 21 11 2 1"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -7130,7 +7146,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "55 2 64 21 44 58 63 47 11 1 37 29 32 54 53 52 33 38"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -7142,7 +7158,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "38 33 52 53 54 32 29 37 1 11 47 63 58 44 21 64 2 55"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -7154,7 +7170,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "55 2 64 21 44 58 63 47 11 1 37 29 32 54 53 52 33 38"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -7166,7 +7182,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1 2 11 21 29 32 33 37 38 44 47 52 53 54 55 58 59 63 64"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -7178,7 +7194,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "64 63 59 58 55 54 53 52 47 44 38 37 33 32 29 21 11 2 1"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -7190,7 +7206,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "55 2 64 21 44 58 63 47 11 1 37 29 32 54 53 52 33 38 59"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -7202,7 +7218,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "59 38 33 52 53 54 32 29 37 1 11 47 63 58 44 21 64 2 55"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -7214,7 +7230,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "59 55 2 64 21 44 58 63 47 11 1 37 29 32 54 53 52 33 38"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -7226,7 +7242,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "38 ffffffffffffffff"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -7238,7 +7254,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "-1 38"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -7250,7 +7266,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "-1 ffffffffffffffff"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -7262,7 +7278,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "3 4 5 6 7 8 9 10 12 13 14 15 16 17 18 19 20 22 23 24 25 26 27 28 30 31 34 35 36 39 40 41 42 43 45 46 48 49 50 51 56 57 59 60 61 62"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -7274,7 +7290,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "62 61 60 59 57 56 51 50 49 48 46 45 43 42 41 40 39 36 35 34 31 30 28 27 26 25 24 23 22 20 19 18 17 16 15 14 13 12 10 9 8 7 6 5 4 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -7286,7 +7302,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "59 60 41 5 31 4 49 30 61 8 16 23 50 48 62 15 42 18 24 9 6 12 40 20 51 14 36 39 22 46 35 57 19 7 56 25 34 10 26 13 43 27 45 17 28 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -7298,7 +7314,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "3 28 17 45 27 43 13 26 10 34 25 56 7 19 57 35 46 22 39 36 14 51 20 40 12 6 9 24 18 42 15 62 48 50 23 16 8 61 30 49 4 31 5 41 60 59"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -7310,7 +7326,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "59 60 41 5 31 4 49 30 61 8 16 23 50 48 62 15 42 18 24 9 6 12 40 20 51 14 36 39 22 46 35 57 19 7 56 25 34 10 26 13 43 27 45 17 28 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -7322,7 +7338,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "3 4 5 6 7 8 9 10 12 13 14 15 16 17 18 19 20 22 23 24 25 26 27 28 30 31 34 35 36 38 39 40 41 42 43 45 46 48 49 50 51 56 57 59 60 61 62"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -7334,7 +7350,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "62 61 60 59 57 56 51 50 49 48 46 45 43 42 41 40 39 38 36 35 34 31 30 28 27 26 25 24 23 22 20 19 18 17 16 15 14 13 12 10 9 8 7 6 5 4 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -7346,7 +7362,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "38 59 60 41 5 31 4 49 30 61 8 16 23 50 48 62 15 42 18 24 9 6 12 40 20 51 14 36 39 22 46 35 57 19 7 56 25 34 10 26 13 43 27 45 17 28 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -7358,7 +7374,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "3 28 17 45 27 43 13 26 10 34 25 56 7 19 57 35 46 22 39 36 14 51 20 40 12 6 9 24 18 42 15 62 48 50 23 16 8 61 30 49 4 31 5 41 60 59 38"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -7370,7 +7386,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "59 60 41 5 31 4 49 30 61 8 16 23 50 48 62 15 42 18 24 9 6 12 40 20 51 14 36 39 22 46 35 57 19 7 56 25 34 10 26 13 43 27 45 17 28 3 38"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -7382,7 +7398,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1 2 11 21 29 32 33 37 44 47 52 53 54 55 58 63 64"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -7394,7 +7410,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "64 63 58 55 54 53 52 47 44 37 33 32 29 21 11 2 1"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -7406,7 +7422,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "55 2 64 21 44 58 63 47 11 1 37 29 32 54 53 52 33"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -7418,7 +7434,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "33 52 53 54 32 29 37 1 11 47 63 58 44 21 64 2 55"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -7430,7 +7446,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "55 2 64 21 44 58 63 47 11 1 37 29 32 54 53 52 33"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -7442,7 +7458,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1 2 11 21 29 32 33 37 38 44 47 52 53 54 55 58 63 64"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -7454,7 +7470,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "64 63 58 55 54 53 52 47 44 38 37 33 32 29 21 11 2 1"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -7466,7 +7482,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "55 2 64 21 44 58 63 47 11 1 37 29 32 54 53 52 33 38"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -7478,7 +7494,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "38 33 52 53 54 32 29 37 1 11 47 63 58 44 21 64 2 55"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -7490,7 +7506,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "55 2 64 21 44 58 63 47 11 1 37 29 32 54 53 52 33 38"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -7502,7 +7518,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "33 fffffffffffffffe"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -7514,7 +7530,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "-2 33"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -7526,7 +7542,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "-2 fffffffffffffffe"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -7538,7 +7554,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "3 4 5 6 7 8 9 10 12 13 14 15 16 17 18 19 20 22 23 24 25 26 27 28 30 31 34 35 36 38 39 40 41 42 43 45 46 48 49 50 51 56 57 59 60 61 62"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -7550,7 +7566,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "62 61 60 59 57 56 51 50 49 48 46 45 43 42 41 40 39 38 36 35 34 31 30 28 27 26 25 24 23 22 20 19 18 17 16 15 14 13 12 10 9 8 7 6 5 4 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -7562,7 +7578,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "38 59 60 41 5 31 4 49 30 61 8 16 23 50 48 62 15 42 18 24 9 6 12 40 20 51 14 36 39 22 46 35 57 19 7 56 25 34 10 26 13 43 27 45 17 28 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -7574,7 +7590,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "3 28 17 45 27 43 13 26 10 34 25 56 7 19 57 35 46 22 39 36 14 51 20 40 12 6 9 24 18 42 15 62 48 50 23 16 8 61 30 49 4 31 5 41 60 59 38"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -7586,7 +7602,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "59 60 41 5 31 4 49 30 61 8 16 23 50 48 62 15 42 18 24 9 6 12 40 20 51 14 36 39 22 46 35 57 19 7 56 25 34 10 26 13 43 27 45 17 28 3 38"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -7598,7 +7614,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "3 4 5 6 7 8 9 10 12 13 14 15 16 17 18 19 20 22 23 24 25 26 27 28 30 31 33 34 35 36 38 39 40 41 42 43 45 46 48 49 50 51 56 57 59 60 61 62"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -7610,7 +7626,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "62 61 60 59 57 56 51 50 49 48 46 45 43 42 41 40 39 38 36 35 34 33 31 30 28 27 26 25 24 23 22 20 19 18 17 16 15 14 13 12 10 9 8 7 6 5 4 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -7622,7 +7638,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "33 38 59 60 41 5 31 4 49 30 61 8 16 23 50 48 62 15 42 18 24 9 6 12 40 20 51 14 36 39 22 46 35 57 19 7 56 25 34 10 26 13 43 27 45 17 28 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -7634,7 +7650,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "3 28 17 45 27 43 13 26 10 34 25 56 7 19 57 35 46 22 39 36 14 51 20 40 12 6 9 24 18 42 15 62 48 50 23 16 8 61 30 49 4 31 5 41 60 59 38 33"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -7646,7 +7662,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "59 60 41 5 31 4 49 30 61 8 16 23 50 48 62 15 42 18 24 9 6 12 40 20 51 14 36 39 22 46 35 57 19 7 56 25 34 10 26 13 43 27 45 17 28 3 33 38"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -7658,7 +7674,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1 2 11 21 29 32 37 44 47 52 53 54 55 58 63 64"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -7670,7 +7686,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "64 63 58 55 54 53 52 47 44 37 32 29 21 11 2 1"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -7682,7 +7698,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "55 2 64 21 44 58 63 47 11 1 37 29 32 54 53 52"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -7694,7 +7710,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "52 53 54 32 29 37 1 11 47 63 58 44 21 64 2 55"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -7706,7 +7722,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "55 2 64 21 44 58 63 47 11 1 37 29 32 54 53 52"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -7718,7 +7734,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1 2 11 21 29 32 33 37 44 47 52 53 54 55 58 63 64"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -7730,7 +7746,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "64 63 58 55 54 53 52 47 44 37 33 32 29 21 11 2 1"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -7742,7 +7758,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "55 2 64 21 44 58 63 47 11 1 37 29 32 54 53 52 33"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -7754,7 +7770,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "33 52 53 54 32 29 37 1 11 47 63 58 44 21 64 2 55"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -7766,7 +7782,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "55 2 64 21 44 58 63 47 11 1 37 29 32 54 53 52 33"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -7778,7 +7794,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "42 0000000000200000"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -7790,7 +7806,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "2097152 42"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -7802,7 +7818,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "2097152 0000000000200000"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -7814,7 +7830,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "3 6 7 9 10 12 13 14 17 18 19 20 22 24 25 26 27 28 34 35 36 39 40 43 45 46 51 56 57"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -7826,7 +7842,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "57 56 51 46 45 43 40 39 36 35 34 28 27 26 25 24 22 20 19 18 17 14 13 12 10 9 7 6 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -7838,7 +7854,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "18 24 9 6 12 40 20 51 14 36 39 22 46 35 57 19 7 56 25 34 10 26 13 43 27 45 17 28 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -7850,7 +7866,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "3 28 17 45 27 43 13 26 10 34 25 56 7 19 57 35 46 22 39 36 14 51 20 40 12 6 9 24 18"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -7862,7 +7878,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "18 24 9 6 12 40 20 51 14 36 39 22 46 35 57 19 7 56 25 34 10 26 13 43 27 45 17 28 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -7874,7 +7890,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "3 6 7 9 10 12 13 14 17 18 19 20 22 24 25 26 27 28 34 35 36 39 40 42 43 45 46 51 56 57"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -7886,7 +7902,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "57 56 51 46 45 43 42 40 39 36 35 34 28 27 26 25 24 22 20 19 18 17 14 13 12 10 9 7 6 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -7898,7 +7914,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "42 18 24 9 6 12 40 20 51 14 36 39 22 46 35 57 19 7 56 25 34 10 26 13 43 27 45 17 28 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -7910,7 +7926,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "3 28 17 45 27 43 13 26 10 34 25 56 7 19 57 35 46 22 39 36 14 51 20 40 12 6 9 24 18 42"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -7922,7 +7938,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "42 18 24 9 6 12 40 20 51 14 36 39 22 46 35 57 19 7 56 25 34 10 26 13 43 27 45 17 28 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -7934,7 +7950,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1 2 4 5 8 11 15 16 21 23 29 30 31 32 33 37 38 41 44 47 48 49 50 52 53 54 55 58 59 60 61 62 63 64"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -7946,7 +7962,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "64 63 62 61 60 59 58 55 54 53 52 50 49 48 47 44 41 38 37 33 32 31 30 29 23 21 16 15 11 8 5 4 2 1"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -7958,7 +7974,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "55 2 64 21 44 58 63 47 11 1 37 29 32 54 53 52 33 38 59 60 41 5 31 4 49 30 61 8 16 23 50 48 62 15"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -7970,7 +7986,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "15 62 48 50 23 16 8 61 30 49 4 31 5 41 60 59 38 33 52 53 54 32 29 37 1 11 47 63 58 44 21 64 2 55"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -7982,7 +7998,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "59 60 41 5 31 4 49 30 61 8 16 23 50 48 62 15 55 2 64 21 44 58 63 47 11 1 37 29 32 54 53 52 33 38"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -7994,7 +8010,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1 2 4 5 8 11 15 16 21 23 29 30 31 32 33 37 38 41 42 44 47 48 49 50 52 53 54 55 58 59 60 61 62 63 64"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -8006,7 +8022,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "64 63 62 61 60 59 58 55 54 53 52 50 49 48 47 44 42 41 38 37 33 32 31 30 29 23 21 16 15 11 8 5 4 2 1"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -8018,7 +8034,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "55 2 64 21 44 58 63 47 11 1 37 29 32 54 53 52 33 38 59 60 41 5 31 4 49 30 61 8 16 23 50 48 62 15 42"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -8030,7 +8046,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "42 15 62 48 50 23 16 8 61 30 49 4 31 5 41 60 59 38 33 52 53 54 32 29 37 1 11 47 63 58 44 21 64 2 55"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -8042,7 +8058,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "59 60 41 5 31 4 49 30 61 8 16 23 50 48 62 15 42 55 2 64 21 44 58 63 47 11 1 37 29 32 54 53 52 33 38"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -8054,7 +8070,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "49 0000000000000080"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -8066,7 +8082,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "128 49"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -8078,7 +8094,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "128 0000000000000080"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -8090,7 +8106,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "3 6 7 8 9 10 12 13 14 15 16 17 18 19 20 22 23 24 25 26 27 28 30 34 35 36 39 40 42 43 45 46 48 50 51 56 57 61 62"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -8102,7 +8118,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "62 61 57 56 51 50 48 46 45 43 42 40 39 36 35 34 30 28 27 26 25 24 23 22 20 19 18 17 16 15 14 13 12 10 9 8 7 6 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -8114,7 +8130,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "30 61 8 16 23 50 48 62 15 42 18 24 9 6 12 40 20 51 14 36 39 22 46 35 57 19 7 56 25 34 10 26 13 43 27 45 17 28 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -8126,7 +8142,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "3 28 17 45 27 43 13 26 10 34 25 56 7 19 57 35 46 22 39 36 14 51 20 40 12 6 9 24 18 42 15 62 48 50 23 16 8 61 30"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -8138,7 +8154,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "30 61 8 16 23 50 48 62 15 42 18 24 9 6 12 40 20 51 14 36 39 22 46 35 57 19 7 56 25 34 10 26 13 43 27 45 17 28 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -8150,7 +8166,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "3 6 7 8 9 10 12 13 14 15 16 17 18 19 20 22 23 24 25 26 27 28 30 34 35 36 39 40 42 43 45 46 48 49 50 51 56 57 61 62"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -8162,7 +8178,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "62 61 57 56 51 50 49 48 46 45 43 42 40 39 36 35 34 30 28 27 26 25 24 23 22 20 19 18 17 16 15 14 13 12 10 9 8 7 6 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -8174,7 +8190,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "49 30 61 8 16 23 50 48 62 15 42 18 24 9 6 12 40 20 51 14 36 39 22 46 35 57 19 7 56 25 34 10 26 13 43 27 45 17 28 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -8186,7 +8202,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "3 28 17 45 27 43 13 26 10 34 25 56 7 19 57 35 46 22 39 36 14 51 20 40 12 6 9 24 18 42 15 62 48 50 23 16 8 61 30 49"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -8198,7 +8214,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "49 30 61 8 16 23 50 48 62 15 42 18 24 9 6 12 40 20 51 14 36 39 22 46 35 57 19 7 56 25 34 10 26 13 43 27 45 17 28 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -8210,7 +8226,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1 2 4 5 11 21 29 31 32 33 37 38 41 44 47 52 53 54 55 58 59 60 63 64"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -8222,7 +8238,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "64 63 60 59 58 55 54 53 52 47 44 41 38 37 33 32 31 29 21 11 5 4 2 1"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -8234,7 +8250,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "55 2 64 21 44 58 63 47 11 1 37 29 32 54 53 52 33 38 59 60 41 5 31 4"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -8246,7 +8262,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "4 31 5 41 60 59 38 33 52 53 54 32 29 37 1 11 47 63 58 44 21 64 2 55"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -8258,7 +8274,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "59 60 41 5 31 4 55 2 64 21 44 58 63 47 11 1 37 29 32 54 53 52 33 38"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -8270,7 +8286,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1 2 4 5 11 21 29 31 32 33 37 38 41 44 47 49 52 53 54 55 58 59 60 63 64"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -8282,7 +8298,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "64 63 60 59 58 55 54 53 52 49 47 44 41 38 37 33 32 31 29 21 11 5 4 2 1"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -8294,7 +8310,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "55 2 64 21 44 58 63 47 11 1 37 29 32 54 53 52 33 38 59 60 41 5 31 4 49"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -8306,7 +8322,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "49 4 31 5 41 60 59 38 33 52 53 54 32 29 37 1 11 47 63 58 44 21 64 2 55"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -8318,7 +8334,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "59 60 41 5 31 4 49 55 2 64 21 44 58 63 47 11 1 37 29 32 54 53 52 33 38"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -8330,7 +8346,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "30 00000000000000ff"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -8342,7 +8358,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "255 30"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -8354,7 +8370,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "255 00000000000000ff"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -8366,7 +8382,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "3 6 7 8 9 10 12 13 14 15 16 17 18 19 20 22 23 24 25 26 27 28 34 35 36 39 40 42 43 45 46 48 50 51 56 57 61 62"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -8378,7 +8394,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "62 61 57 56 51 50 48 46 45 43 42 40 39 36 35 34 28 27 26 25 24 23 22 20 19 18 17 16 15 14 13 12 10 9 8 7 6 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -8390,7 +8406,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "61 8 16 23 50 48 62 15 42 18 24 9 6 12 40 20 51 14 36 39 22 46 35 57 19 7 56 25 34 10 26 13 43 27 45 17 28 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -8402,7 +8418,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "3 28 17 45 27 43 13 26 10 34 25 56 7 19 57 35 46 22 39 36 14 51 20 40 12 6 9 24 18 42 15 62 48 50 23 16 8 61"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -8414,7 +8430,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "61 8 16 23 50 48 62 15 42 18 24 9 6 12 40 20 51 14 36 39 22 46 35 57 19 7 56 25 34 10 26 13 43 27 45 17 28 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -8426,7 +8442,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "3 6 7 8 9 10 12 13 14 15 16 17 18 19 20 22 23 24 25 26 27 28 30 34 35 36 39 40 42 43 45 46 48 50 51 56 57 61 62"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -8438,7 +8454,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "62 61 57 56 51 50 48 46 45 43 42 40 39 36 35 34 30 28 27 26 25 24 23 22 20 19 18 17 16 15 14 13 12 10 9 8 7 6 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -8450,7 +8466,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "30 61 8 16 23 50 48 62 15 42 18 24 9 6 12 40 20 51 14 36 39 22 46 35 57 19 7 56 25 34 10 26 13 43 27 45 17 28 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -8462,7 +8478,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "3 28 17 45 27 43 13 26 10 34 25 56 7 19 57 35 46 22 39 36 14 51 20 40 12 6 9 24 18 42 15 62 48 50 23 16 8 61 30"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -8474,7 +8490,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "30 61 8 16 23 50 48 62 15 42 18 24 9 6 12 40 20 51 14 36 39 22 46 35 57 19 7 56 25 34 10 26 13 43 27 45 17 28 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -8486,7 +8502,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1 2 4 5 11 21 29 31 32 33 37 38 41 44 47 49 52 53 54 55 58 59 60 63 64"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -8498,7 +8514,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "64 63 60 59 58 55 54 53 52 49 47 44 41 38 37 33 32 31 29 21 11 5 4 2 1"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -8510,7 +8526,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "55 2 64 21 44 58 63 47 11 1 37 29 32 54 53 52 33 38 59 60 41 5 31 4 49"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -8522,7 +8538,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "49 4 31 5 41 60 59 38 33 52 53 54 32 29 37 1 11 47 63 58 44 21 64 2 55"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -8534,7 +8550,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "59 60 41 5 31 4 49 55 2 64 21 44 58 63 47 11 1 37 29 32 54 53 52 33 38"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -8546,7 +8562,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1 2 4 5 11 21 29 30 31 32 33 37 38 41 44 47 49 52 53 54 55 58 59 60 63 64"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -8558,7 +8574,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "64 63 60 59 58 55 54 53 52 49 47 44 41 38 37 33 32 31 30 29 21 11 5 4 2 1"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -8570,7 +8586,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "55 2 64 21 44 58 63 47 11 1 37 29 32 54 53 52 33 38 59 60 41 5 31 4 49 30"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -8582,7 +8598,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "30 49 4 31 5 41 60 59 38 33 52 53 54 32 29 37 1 11 47 63 58 44 21 64 2 55"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -8594,7 +8610,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "59 60 41 5 31 4 49 30 55 2 64 21 44 58 63 47 11 1 37 29 32 54 53 52 33 38"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -8606,7 +8622,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "11 ffffffff80000000"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -8618,7 +8634,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "-2147483648 11"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -8630,7 +8646,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "-2147483648 ffffffff80000000"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -8642,7 +8658,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1 3 4 5 6 7 8 9 10 12 13 14 15 16 17 18 19 20 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 37 38 39 40 41 42 43 45 46 48 49 50 51 52 53 54 56 57 59 60 61 62"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -8654,7 +8670,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "62 61 60 59 57 56 54 53 52 51 50 49 48 46 45 43 42 41 40 39 38 37 36 35 34 33 32 31 30 29 28 27 26 25 24 23 22 20 19 18 17 16 15 14 13 12 10 9 8 7 6 5 4 3 1"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -8666,7 +8682,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1 37 29 32 54 53 52 33 38 59 60 41 5 31 4 49 30 61 8 16 23 50 48 62 15 42 18 24 9 6 12 40 20 51 14 36 39 22 46 35 57 19 7 56 25 34 10 26 13 43 27 45 17 28 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -8678,7 +8694,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "3 28 17 45 27 43 13 26 10 34 25 56 7 19 57 35 46 22 39 36 14 51 20 40 12 6 9 24 18 42 15 62 48 50 23 16 8 61 30 49 4 31 5 41 60 59 38 33 52 53 54 32 29 37 1"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -8690,7 +8706,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "59 60 41 5 31 4 49 30 61 8 16 23 50 48 62 15 42 18 24 9 6 12 40 20 51 14 36 39 22 46 35 57 19 7 56 25 34 10 26 13 43 27 45 17 28 3 1 37 29 32 54 53 52 33 38"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -8702,7 +8718,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 37 38 39 40 41 42 43 45 46 48 49 50 51 52 53 54 56 57 59 60 61 62"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -8714,7 +8730,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "62 61 60 59 57 56 54 53 52 51 50 49 48 46 45 43 42 41 40 39 38 37 36 35 34 33 32 31 30 29 28 27 26 25 24 23 22 20 19 18 17 16 15 14 13 12 11 10 9 8 7 6 5 4 3 1"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -8726,7 +8742,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "11 1 37 29 32 54 53 52 33 38 59 60 41 5 31 4 49 30 61 8 16 23 50 48 62 15 42 18 24 9 6 12 40 20 51 14 36 39 22 46 35 57 19 7 56 25 34 10 26 13 43 27 45 17 28 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -8738,7 +8754,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "3 28 17 45 27 43 13 26 10 34 25 56 7 19 57 35 46 22 39 36 14 51 20 40 12 6 9 24 18 42 15 62 48 50 23 16 8 61 30 49 4 31 5 41 60 59 38 33 52 53 54 32 29 37 1 11"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -8750,7 +8766,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "59 60 41 5 31 4 49 30 61 8 16 23 50 48 62 15 42 18 24 9 6 12 40 20 51 14 36 39 22 46 35 57 19 7 56 25 34 10 26 13 43 27 45 17 28 3 11 1 37 29 32 54 53 52 33 38"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -8762,7 +8778,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "2 21 44 47 55 58 63 64"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -8774,7 +8790,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "64 63 58 55 47 44 21 2"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -8786,7 +8802,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "55 2 64 21 44 58 63 47"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -8798,7 +8814,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "47 63 58 44 21 64 2 55"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -8810,7 +8826,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "55 2 64 21 44 58 63 47"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -8822,7 +8838,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "2 11 21 44 47 55 58 63 64"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -8834,7 +8850,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "64 63 58 55 47 44 21 11 2"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -8846,7 +8862,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "55 2 64 21 44 58 63 47 11"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -8858,7 +8874,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "11 47 63 58 44 21 64 2 55"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -8870,7 +8886,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "55 2 64 21 44 58 63 47 11"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -8882,7 +8898,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "39 00000007ffffffff"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -8894,7 +8910,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "34359738367 39"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -8906,7 +8922,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "34359738367 00000007ffffffff"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -8918,7 +8934,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "3 7 10 13 17 19 22 25 26 27 28 34 35 43 45 46 56 57"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -8930,7 +8946,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "57 56 46 45 43 35 34 28 27 26 25 22 19 17 13 10 7 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -8942,7 +8958,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "22 46 35 57 19 7 56 25 34 10 26 13 43 27 45 17 28 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -8954,7 +8970,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "3 28 17 45 27 43 13 26 10 34 25 56 7 19 57 35 46 22"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -8966,7 +8982,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "22 46 35 57 19 7 56 25 34 10 26 13 43 27 45 17 28 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -8978,7 +8994,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "3 7 10 13 17 19 22 25 26 27 28 34 35 39 43 45 46 56 57"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -8990,7 +9006,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "57 56 46 45 43 39 35 34 28 27 26 25 22 19 17 13 10 7 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -9002,7 +9018,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "39 22 46 35 57 19 7 56 25 34 10 26 13 43 27 45 17 28 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -9014,7 +9030,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "3 28 17 45 27 43 13 26 10 34 25 56 7 19 57 35 46 22 39"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -9026,7 +9042,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "39 22 46 35 57 19 7 56 25 34 10 26 13 43 27 45 17 28 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -9038,7 +9054,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1 2 4 5 6 8 9 11 12 14 15 16 18 20 21 23 24 29 30 31 32 33 36 37 38 40 41 42 44 47 48 49 50 51 52 53 54 55 58 59 60 61 62 63 64"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -9050,7 +9066,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "64 63 62 61 60 59 58 55 54 53 52 51 50 49 48 47 44 42 41 40 38 37 36 33 32 31 30 29 24 23 21 20 18 16 15 14 12 11 9 8 6 5 4 2 1"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -9062,7 +9078,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "55 2 64 21 44 58 63 47 11 1 37 29 32 54 53 52 33 38 59 60 41 5 31 4 49 30 61 8 16 23 50 48 62 15 42 18 24 9 6 12 40 20 51 14 36"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -9074,7 +9090,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "36 14 51 20 40 12 6 9 24 18 42 15 62 48 50 23 16 8 61 30 49 4 31 5 41 60 59 38 33 52 53 54 32 29 37 1 11 47 63 58 44 21 64 2 55"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -9086,7 +9102,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "59 60 41 5 31 4 49 30 61 8 16 23 50 48 62 15 42 18 24 9 6 12 40 20 51 14 36 55 2 64 21 44 58 63 47 11 1 37 29 32 54 53 52 33 38"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -9098,7 +9114,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1 2 4 5 6 8 9 11 12 14 15 16 18 20 21 23 24 29 30 31 32 33 36 37 38 39 40 41 42 44 47 48 49 50 51 52 53 54 55 58 59 60 61 62 63 64"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -9110,7 +9126,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "64 63 62 61 60 59 58 55 54 53 52 51 50 49 48 47 44 42 41 40 39 38 37 36 33 32 31 30 29 24 23 21 20 18 16 15 14 12 11 9 8 6 5 4 2 1"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -9122,7 +9138,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "55 2 64 21 44 58 63 47 11 1 37 29 32 54 53 52 33 38 59 60 41 5 31 4 49 30 61 8 16 23 50 48 62 15 42 18 24 9 6 12 40 20 51 14 36 39"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -9134,7 +9150,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "39 36 14 51 20 40 12 6 9 24 18 42 15 62 48 50 23 16 8 61 30 49 4 31 5 41 60 59 38 33 52 53 54 32 29 37 1 11 47 63 58 44 21 64 2 55"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -9146,7 +9162,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "59 60 41 5 31 4 49 30 61 8 16 23 50 48 62 15 42 18 24 9 6 12 40 20 51 14 36 39 55 2 64 21 44 58 63 47 11 1 37 29 32 54 53 52 33 38"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -9158,7 +9174,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "58 ffffff7fffffffff"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -9170,7 +9186,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "-549755813889 58"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -9182,7 +9198,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "-549755813889 ffffff7fffffffff"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -9194,7 +9210,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 37 38 39 40 41 42 43 45 46 47 48 49 50 51 52 53 54 56 57 59 60 61 62 63"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -9206,7 +9222,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "63 62 61 60 59 57 56 54 53 52 51 50 49 48 47 46 45 43 42 41 40 39 38 37 36 35 34 33 32 31 30 29 28 27 26 25 24 23 22 20 19 18 17 16 15 14 13 12 11 10 9 8 7 6 5 4 3 1"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -9218,7 +9234,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "63 47 11 1 37 29 32 54 53 52 33 38 59 60 41 5 31 4 49 30 61 8 16 23 50 48 62 15 42 18 24 9 6 12 40 20 51 14 36 39 22 46 35 57 19 7 56 25 34 10 26 13 43 27 45 17 28 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -9230,7 +9246,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "3 28 17 45 27 43 13 26 10 34 25 56 7 19 57 35 46 22 39 36 14 51 20 40 12 6 9 24 18 42 15 62 48 50 23 16 8 61 30 49 4 31 5 41 60 59 38 33 52 53 54 32 29 37 1 11 47 63"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -9242,7 +9258,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "59 60 41 5 31 4 49 30 61 8 16 23 50 48 62 15 42 18 24 9 6 12 40 20 51 14 36 39 22 46 35 57 19 7 56 25 34 10 26 13 43 27 45 17 28 3 63 47 11 1 37 29 32 54 53 52 33 38"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -9254,7 +9270,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 37 38 39 40 41 42 43 45 46 47 48 49 50 51 52 53 54 56 57 58 59 60 61 62 63"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -9266,7 +9282,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "63 62 61 60 59 58 57 56 54 53 52 51 50 49 48 47 46 45 43 42 41 40 39 38 37 36 35 34 33 32 31 30 29 28 27 26 25 24 23 22 20 19 18 17 16 15 14 13 12 11 10 9 8 7 6 5 4 3 1"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -9278,7 +9294,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "58 63 47 11 1 37 29 32 54 53 52 33 38 59 60 41 5 31 4 49 30 61 8 16 23 50 48 62 15 42 18 24 9 6 12 40 20 51 14 36 39 22 46 35 57 19 7 56 25 34 10 26 13 43 27 45 17 28 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -9290,7 +9306,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "3 28 17 45 27 43 13 26 10 34 25 56 7 19 57 35 46 22 39 36 14 51 20 40 12 6 9 24 18 42 15 62 48 50 23 16 8 61 30 49 4 31 5 41 60 59 38 33 52 53 54 32 29 37 1 11 47 63 58"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -9302,7 +9318,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "59 60 41 5 31 4 49 30 61 8 16 23 50 48 62 15 42 18 24 9 6 12 40 20 51 14 36 39 22 46 35 57 19 7 56 25 34 10 26 13 43 27 45 17 28 3 58 63 47 11 1 37 29 32 54 53 52 33 38"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -9314,7 +9330,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "2 21 44 55 64"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -9326,7 +9342,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "64 55 44 21 2"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -9338,7 +9354,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "55 2 64 21 44"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -9350,7 +9366,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "44 21 64 2 55"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -9362,7 +9378,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "55 2 64 21 44"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -9374,7 +9390,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "2 21 44 55 58 64"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -9386,7 +9402,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "64 58 55 44 21 2"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -9398,7 +9414,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "55 2 64 21 44 58"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -9410,7 +9426,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "58 44 21 64 2 55"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -9422,7 +9438,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "55 2 64 21 44 58"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -9434,7 +9450,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "32 ffffffffffff8000"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -9446,7 +9462,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "-32768 32"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -9458,7 +9474,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "-32768 ffffffffffff8000"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -9470,7 +9486,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "3 4 5 6 7 8 9 10 12 13 14 15 16 17 18 19 20 22 23 24 25 26 27 28 30 31 33 34 35 36 38 39 40 41 42 43 45 46 48 49 50 51 52 53 54 56 57 59 60 61 62"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -9482,7 +9498,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "62 61 60 59 57 56 54 53 52 51 50 49 48 46 45 43 42 41 40 39 38 36 35 34 33 31 30 28 27 26 25 24 23 22 20 19 18 17 16 15 14 13 12 10 9 8 7 6 5 4 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -9494,7 +9510,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "54 53 52 33 38 59 60 41 5 31 4 49 30 61 8 16 23 50 48 62 15 42 18 24 9 6 12 40 20 51 14 36 39 22 46 35 57 19 7 56 25 34 10 26 13 43 27 45 17 28 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -9506,7 +9522,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "3 28 17 45 27 43 13 26 10 34 25 56 7 19 57 35 46 22 39 36 14 51 20 40 12 6 9 24 18 42 15 62 48 50 23 16 8 61 30 49 4 31 5 41 60 59 38 33 52 53 54"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -9518,7 +9534,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "59 60 41 5 31 4 49 30 61 8 16 23 50 48 62 15 42 18 24 9 6 12 40 20 51 14 36 39 22 46 35 57 19 7 56 25 34 10 26 13 43 27 45 17 28 3 54 53 52 33 38"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -9530,7 +9546,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "3 4 5 6 7 8 9 10 12 13 14 15 16 17 18 19 20 22 23 24 25 26 27 28 30 31 32 33 34 35 36 38 39 40 41 42 43 45 46 48 49 50 51 52 53 54 56 57 59 60 61 62"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -9542,7 +9558,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "62 61 60 59 57 56 54 53 52 51 50 49 48 46 45 43 42 41 40 39 38 36 35 34 33 32 31 30 28 27 26 25 24 23 22 20 19 18 17 16 15 14 13 12 10 9 8 7 6 5 4 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -9554,7 +9570,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "32 54 53 52 33 38 59 60 41 5 31 4 49 30 61 8 16 23 50 48 62 15 42 18 24 9 6 12 40 20 51 14 36 39 22 46 35 57 19 7 56 25 34 10 26 13 43 27 45 17 28 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -9566,7 +9582,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "3 28 17 45 27 43 13 26 10 34 25 56 7 19 57 35 46 22 39 36 14 51 20 40 12 6 9 24 18 42 15 62 48 50 23 16 8 61 30 49 4 31 5 41 60 59 38 33 52 53 54 32"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -9578,7 +9594,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "59 60 41 5 31 4 49 30 61 8 16 23 50 48 62 15 42 18 24 9 6 12 40 20 51 14 36 39 22 46 35 57 19 7 56 25 34 10 26 13 43 27 45 17 28 3 32 54 53 52 33 38"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -9590,7 +9606,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1 2 11 21 29 37 44 47 55 58 63 64"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -9602,7 +9618,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "64 63 58 55 47 44 37 29 21 11 2 1"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -9614,7 +9630,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "55 2 64 21 44 58 63 47 11 1 37 29"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -9626,7 +9642,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "29 37 1 11 47 63 58 44 21 64 2 55"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -9638,7 +9654,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "55 2 64 21 44 58 63 47 11 1 37 29"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -9650,7 +9666,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1 2 11 21 29 32 37 44 47 55 58 63 64"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -9662,7 +9678,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "64 63 58 55 47 44 37 32 29 21 11 2 1"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -9674,7 +9690,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "55 2 64 21 44 58 63 47 11 1 37 29 32"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -9686,7 +9702,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "32 29 37 1 11 47 63 58 44 21 64 2 55"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -9698,7 +9714,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "55 2 64 21 44 58 63 47 11 1 37 29 32"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -9710,7 +9726,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "20 000000007fffffff"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -9722,7 +9738,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "2147483647 20"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -9734,7 +9750,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "2147483647 000000007fffffff"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -9746,7 +9762,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "3 7 10 13 14 17 19 22 25 26 27 28 34 35 36 39 43 45 46 51 56 57"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -9758,7 +9774,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "57 56 51 46 45 43 39 36 35 34 28 27 26 25 22 19 17 14 13 10 7 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -9770,7 +9786,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "51 14 36 39 22 46 35 57 19 7 56 25 34 10 26 13 43 27 45 17 28 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -9782,7 +9798,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "3 28 17 45 27 43 13 26 10 34 25 56 7 19 57 35 46 22 39 36 14 51"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -9794,7 +9810,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "51 14 36 39 22 46 35 57 19 7 56 25 34 10 26 13 43 27 45 17 28 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -9806,7 +9822,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "3 7 10 13 14 17 19 20 22 25 26 27 28 34 35 36 39 43 45 46 51 56 57"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -9818,7 +9834,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "57 56 51 46 45 43 39 36 35 34 28 27 26 25 22 20 19 17 14 13 10 7 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -9830,7 +9846,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "20 51 14 36 39 22 46 35 57 19 7 56 25 34 10 26 13 43 27 45 17 28 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -9842,7 +9858,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "3 28 17 45 27 43 13 26 10 34 25 56 7 19 57 35 46 22 39 36 14 51 20"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -9854,7 +9870,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "20 51 14 36 39 22 46 35 57 19 7 56 25 34 10 26 13 43 27 45 17 28 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -9866,7 +9882,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1 2 4 5 6 8 9 11 12 15 16 18 21 23 24 29 30 31 32 33 37 38 40 41 42 44 47 48 49 50 52 53 54 55 58 59 60 61 62 63 64"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -9878,7 +9894,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "64 63 62 61 60 59 58 55 54 53 52 50 49 48 47 44 42 41 40 38 37 33 32 31 30 29 24 23 21 18 16 15 12 11 9 8 6 5 4 2 1"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -9890,7 +9906,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "55 2 64 21 44 58 63 47 11 1 37 29 32 54 53 52 33 38 59 60 41 5 31 4 49 30 61 8 16 23 50 48 62 15 42 18 24 9 6 12 40"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -9902,7 +9918,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "40 12 6 9 24 18 42 15 62 48 50 23 16 8 61 30 49 4 31 5 41 60 59 38 33 52 53 54 32 29 37 1 11 47 63 58 44 21 64 2 55"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -9914,7 +9930,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "59 60 41 5 31 4 49 30 61 8 16 23 50 48 62 15 42 18 24 9 6 12 40 55 2 64 21 44 58 63 47 11 1 37 29 32 54 53 52 33 38"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -9926,7 +9942,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1 2 4 5 6 8 9 11 12 15 16 18 20 21 23 24 29 30 31 32 33 37 38 40 41 42 44 47 48 49 50 52 53 54 55 58 59 60 61 62 63 64"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -9938,7 +9954,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "64 63 62 61 60 59 58 55 54 53 52 50 49 48 47 44 42 41 40 38 37 33 32 31 30 29 24 23 21 20 18 16 15 12 11 9 8 6 5 4 2 1"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -9950,7 +9966,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "55 2 64 21 44 58 63 47 11 1 37 29 32 54 53 52 33 38 59 60 41 5 31 4 49 30 61 8 16 23 50 48 62 15 42 18 24 9 6 12 40 20"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -9962,7 +9978,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "20 40 12 6 9 24 18 42 15 62 48 50 23 16 8 61 30 49 4 31 5 41 60 59 38 33 52 53 54 32 29 37 1 11 47 63 58 44 21 64 2 55"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -9974,7 +9990,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "59 60 41 5 31 4 49 30 61 8 16 23 50 48 62 15 42 18 24 9 6 12 40 20 55 2 64 21 44 58 63 47 11 1 37 29 32 54 53 52 33 38"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -9986,7 +10002,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "54 ffffffffffffff7f"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -9998,7 +10014,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "-129 54"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -10010,7 +10026,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "-129 ffffffffffffff7f"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -10022,7 +10038,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "3 4 5 6 7 8 9 10 12 13 14 15 16 17 18 19 20 22 23 24 25 26 27 28 30 31 33 34 35 36 38 39 40 41 42 43 45 46 48 49 50 51 52 53 56 57 59 60 61 62"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -10034,7 +10050,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "62 61 60 59 57 56 53 52 51 50 49 48 46 45 43 42 41 40 39 38 36 35 34 33 31 30 28 27 26 25 24 23 22 20 19 18 17 16 15 14 13 12 10 9 8 7 6 5 4 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -10046,7 +10062,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "53 52 33 38 59 60 41 5 31 4 49 30 61 8 16 23 50 48 62 15 42 18 24 9 6 12 40 20 51 14 36 39 22 46 35 57 19 7 56 25 34 10 26 13 43 27 45 17 28 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -10058,7 +10074,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "3 28 17 45 27 43 13 26 10 34 25 56 7 19 57 35 46 22 39 36 14 51 20 40 12 6 9 24 18 42 15 62 48 50 23 16 8 61 30 49 4 31 5 41 60 59 38 33 52 53"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -10070,7 +10086,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "59 60 41 5 31 4 49 30 61 8 16 23 50 48 62 15 42 18 24 9 6 12 40 20 51 14 36 39 22 46 35 57 19 7 56 25 34 10 26 13 43 27 45 17 28 3 53 52 33 38"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -10082,7 +10098,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "3 4 5 6 7 8 9 10 12 13 14 15 16 17 18 19 20 22 23 24 25 26 27 28 30 31 33 34 35 36 38 39 40 41 42 43 45 46 48 49 50 51 52 53 54 56 57 59 60 61 62"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -10094,7 +10110,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "62 61 60 59 57 56 54 53 52 51 50 49 48 46 45 43 42 41 40 39 38 36 35 34 33 31 30 28 27 26 25 24 23 22 20 19 18 17 16 15 14 13 12 10 9 8 7 6 5 4 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -10106,7 +10122,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "54 53 52 33 38 59 60 41 5 31 4 49 30 61 8 16 23 50 48 62 15 42 18 24 9 6 12 40 20 51 14 36 39 22 46 35 57 19 7 56 25 34 10 26 13 43 27 45 17 28 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -10118,7 +10134,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "3 28 17 45 27 43 13 26 10 34 25 56 7 19 57 35 46 22 39 36 14 51 20 40 12 6 9 24 18 42 15 62 48 50 23 16 8 61 30 49 4 31 5 41 60 59 38 33 52 53 54"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -10130,7 +10146,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "59 60 41 5 31 4 49 30 61 8 16 23 50 48 62 15 42 18 24 9 6 12 40 20 51 14 36 39 22 46 35 57 19 7 56 25 34 10 26 13 43 27 45 17 28 3 54 53 52 33 38"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -10142,7 +10158,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1 2 11 21 29 32 37 44 47 55 58 63 64"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -10154,7 +10170,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "64 63 58 55 47 44 37 32 29 21 11 2 1"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -10166,7 +10182,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "55 2 64 21 44 58 63 47 11 1 37 29 32"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -10178,7 +10194,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "32 29 37 1 11 47 63 58 44 21 64 2 55"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -10190,7 +10206,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "55 2 64 21 44 58 63 47 11 1 37 29 32"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -10202,7 +10218,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1 2 11 21 29 32 37 44 47 54 55 58 63 64"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -10214,7 +10230,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "64 63 58 55 54 47 44 37 32 29 21 11 2 1"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -10226,7 +10242,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "55 2 64 21 44 58 63 47 11 1 37 29 32 54"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -10238,7 +10254,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "54 32 29 37 1 11 47 63 58 44 21 64 2 55"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -10250,7 +10266,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "55 2 64 21 44 58 63 47 11 1 37 29 32 54"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -10262,7 +10278,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "53 ffffffffffffff80"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -10274,7 +10290,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "-128 53"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -10286,7 +10302,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "-128 ffffffffffffff80"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -10298,7 +10314,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "3 4 5 6 7 8 9 10 12 13 14 15 16 17 18 19 20 22 23 24 25 26 27 28 30 31 33 34 35 36 38 39 40 41 42 43 45 46 48 49 50 51 52 56 57 59 60 61 62"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -10310,7 +10326,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "62 61 60 59 57 56 52 51 50 49 48 46 45 43 42 41 40 39 38 36 35 34 33 31 30 28 27 26 25 24 23 22 20 19 18 17 16 15 14 13 12 10 9 8 7 6 5 4 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -10322,7 +10338,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "52 33 38 59 60 41 5 31 4 49 30 61 8 16 23 50 48 62 15 42 18 24 9 6 12 40 20 51 14 36 39 22 46 35 57 19 7 56 25 34 10 26 13 43 27 45 17 28 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -10334,7 +10350,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "3 28 17 45 27 43 13 26 10 34 25 56 7 19 57 35 46 22 39 36 14 51 20 40 12 6 9 24 18 42 15 62 48 50 23 16 8 61 30 49 4 31 5 41 60 59 38 33 52"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -10346,7 +10362,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "59 60 41 5 31 4 49 30 61 8 16 23 50 48 62 15 42 18 24 9 6 12 40 20 51 14 36 39 22 46 35 57 19 7 56 25 34 10 26 13 43 27 45 17 28 3 52 33 38"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -10358,7 +10374,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "3 4 5 6 7 8 9 10 12 13 14 15 16 17 18 19 20 22 23 24 25 26 27 28 30 31 33 34 35 36 38 39 40 41 42 43 45 46 48 49 50 51 52 53 56 57 59 60 61 62"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -10370,7 +10386,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "62 61 60 59 57 56 53 52 51 50 49 48 46 45 43 42 41 40 39 38 36 35 34 33 31 30 28 27 26 25 24 23 22 20 19 18 17 16 15 14 13 12 10 9 8 7 6 5 4 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -10382,7 +10398,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "53 52 33 38 59 60 41 5 31 4 49 30 61 8 16 23 50 48 62 15 42 18 24 9 6 12 40 20 51 14 36 39 22 46 35 57 19 7 56 25 34 10 26 13 43 27 45 17 28 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -10394,7 +10410,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "3 28 17 45 27 43 13 26 10 34 25 56 7 19 57 35 46 22 39 36 14 51 20 40 12 6 9 24 18 42 15 62 48 50 23 16 8 61 30 49 4 31 5 41 60 59 38 33 52 53"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -10406,7 +10422,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "59 60 41 5 31 4 49 30 61 8 16 23 50 48 62 15 42 18 24 9 6 12 40 20 51 14 36 39 22 46 35 57 19 7 56 25 34 10 26 13 43 27 45 17 28 3 53 52 33 38"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -10418,7 +10434,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1 2 11 21 29 32 37 44 47 54 55 58 63 64"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -10430,7 +10446,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "64 63 58 55 54 47 44 37 32 29 21 11 2 1"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -10442,7 +10458,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "55 2 64 21 44 58 63 47 11 1 37 29 32 54"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -10454,7 +10470,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "54 32 29 37 1 11 47 63 58 44 21 64 2 55"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -10466,7 +10482,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "55 2 64 21 44 58 63 47 11 1 37 29 32 54"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -10478,7 +10494,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1 2 11 21 29 32 37 44 47 53 54 55 58 63 64"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -10490,7 +10506,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "64 63 58 55 54 53 47 44 37 32 29 21 11 2 1"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -10502,7 +10518,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "55 2 64 21 44 58 63 47 11 1 37 29 32 54 53"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -10514,7 +10530,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "53 54 32 29 37 1 11 47 63 58 44 21 64 2 55"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -10526,7 +10542,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "55 2 64 21 44 58 63 47 11 1 37 29 32 54 53"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -10538,7 +10554,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "28 0100000000000000"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -10550,7 +10566,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "72057594037927936 28"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -10562,7 +10578,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "72057594037927936 0100000000000000"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -10574,7 +10590,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -10586,7 +10602,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -10598,7 +10614,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -10610,7 +10626,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -10622,7 +10638,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -10634,7 +10650,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "3 28"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -10646,7 +10662,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "28 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -10658,7 +10674,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "28 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -10670,7 +10686,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "3 28"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -10682,7 +10698,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "28 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -10694,7 +10710,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1 2 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 29 30 31 32 33 34 35 36 37 38 39 40 41 42 43 44 45 46 47 48 49 50 51 52 53 54 55 56 57 58 59 60 61 62 63 64"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -10706,7 +10722,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "64 63 62 61 60 59 58 57 56 55 54 53 52 51 50 49 48 47 46 45 44 43 42 41 40 39 38 37 36 35 34 33 32 31 30 29 27 26 25 24 23 22 21 20 19 18 17 16 15 14 13 12 11 10 9 8 7 6 5 4 2 1"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -10718,7 +10734,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "55 2 64 21 44 58 63 47 11 1 37 29 32 54 53 52 33 38 59 60 41 5 31 4 49 30 61 8 16 23 50 48 62 15 42 18 24 9 6 12 40 20 51 14 36 39 22 46 35 57 19 7 56 25 34 10 26 13 43 27 45 17"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -10730,7 +10746,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "17 45 27 43 13 26 10 34 25 56 7 19 57 35 46 22 39 36 14 51 20 40 12 6 9 24 18 42 15 62 48 50 23 16 8 61 30 49 4 31 5 41 60 59 38 33 52 53 54 32 29 37 1 11 47 63 58 44 21 64 2 55"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -10742,7 +10758,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "59 60 41 5 31 4 49 30 61 8 16 23 50 48 62 15 42 18 24 9 6 12 40 20 51 14 36 39 22 46 35 57 19 7 56 25 34 10 26 13 43 27 45 17 55 2 64 21 44 58 63 47 11 1 37 29 32 54 53 52 33 38"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -10754,7 +10770,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1 2 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 37 38 39 40 41 42 43 44 45 46 47 48 49 50 51 52 53 54 55 56 57 58 59 60 61 62 63 64"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -10766,7 +10782,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "64 63 62 61 60 59 58 57 56 55 54 53 52 51 50 49 48 47 46 45 44 43 42 41 40 39 38 37 36 35 34 33 32 31 30 29 28 27 26 25 24 23 22 21 20 19 18 17 16 15 14 13 12 11 10 9 8 7 6 5 4 2 1"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -10778,7 +10794,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "55 2 64 21 44 58 63 47 11 1 37 29 32 54 53 52 33 38 59 60 41 5 31 4 49 30 61 8 16 23 50 48 62 15 42 18 24 9 6 12 40 20 51 14 36 39 22 46 35 57 19 7 56 25 34 10 26 13 43 27 45 17 28"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -10790,7 +10806,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "28 17 45 27 43 13 26 10 34 25 56 7 19 57 35 46 22 39 36 14 51 20 40 12 6 9 24 18 42 15 62 48 50 23 16 8 61 30 49 4 31 5 41 60 59 38 33 52 53 54 32 29 37 1 11 47 63 58 44 21 64 2 55"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -10802,7 +10818,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "59 60 41 5 31 4 49 30 61 8 16 23 50 48 62 15 42 18 24 9 6 12 40 20 51 14 36 39 22 46 35 57 19 7 56 25 34 10 26 13 43 27 45 17 28 55 2 64 21 44 58 63 47 11 1 37 29 32 54 53 52 33 38"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -10814,7 +10830,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "51 0000000080000000"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -10826,7 +10842,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "2147483648 51"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -10838,7 +10854,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "2147483648 0000000080000000"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -10850,7 +10866,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "3 7 10 13 14 17 19 22 25 26 27 28 34 35 36 39 43 45 46 56 57"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -10862,7 +10878,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "57 56 46 45 43 39 36 35 34 28 27 26 25 22 19 17 14 13 10 7 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -10874,7 +10890,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "14 36 39 22 46 35 57 19 7 56 25 34 10 26 13 43 27 45 17 28 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -10886,7 +10902,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "3 28 17 45 27 43 13 26 10 34 25 56 7 19 57 35 46 22 39 36 14"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -10898,7 +10914,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "14 36 39 22 46 35 57 19 7 56 25 34 10 26 13 43 27 45 17 28 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -10910,7 +10926,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "3 7 10 13 14 17 19 22 25 26 27 28 34 35 36 39 43 45 46 51 56 57"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -10922,7 +10938,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "57 56 51 46 45 43 39 36 35 34 28 27 26 25 22 19 17 14 13 10 7 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -10934,7 +10950,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "51 14 36 39 22 46 35 57 19 7 56 25 34 10 26 13 43 27 45 17 28 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -10946,7 +10962,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "3 28 17 45 27 43 13 26 10 34 25 56 7 19 57 35 46 22 39 36 14 51"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -10958,7 +10974,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "51 14 36 39 22 46 35 57 19 7 56 25 34 10 26 13 43 27 45 17 28 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -10970,7 +10986,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1 2 4 5 6 8 9 11 12 15 16 18 20 21 23 24 29 30 31 32 33 37 38 40 41 42 44 47 48 49 50 52 53 54 55 58 59 60 61 62 63 64"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -10982,7 +10998,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "64 63 62 61 60 59 58 55 54 53 52 50 49 48 47 44 42 41 40 38 37 33 32 31 30 29 24 23 21 20 18 16 15 12 11 9 8 6 5 4 2 1"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -10994,7 +11010,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "55 2 64 21 44 58 63 47 11 1 37 29 32 54 53 52 33 38 59 60 41 5 31 4 49 30 61 8 16 23 50 48 62 15 42 18 24 9 6 12 40 20"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -11006,7 +11022,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "20 40 12 6 9 24 18 42 15 62 48 50 23 16 8 61 30 49 4 31 5 41 60 59 38 33 52 53 54 32 29 37 1 11 47 63 58 44 21 64 2 55"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -11018,7 +11034,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "59 60 41 5 31 4 49 30 61 8 16 23 50 48 62 15 42 18 24 9 6 12 40 20 55 2 64 21 44 58 63 47 11 1 37 29 32 54 53 52 33 38"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -11030,7 +11046,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1 2 4 5 6 8 9 11 12 15 16 18 20 21 23 24 29 30 31 32 33 37 38 40 41 42 44 47 48 49 50 51 52 53 54 55 58 59 60 61 62 63 64"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -11042,7 +11058,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "64 63 62 61 60 59 58 55 54 53 52 51 50 49 48 47 44 42 41 40 38 37 33 32 31 30 29 24 23 21 20 18 16 15 12 11 9 8 6 5 4 2 1"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -11054,7 +11070,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "55 2 64 21 44 58 63 47 11 1 37 29 32 54 53 52 33 38 59 60 41 5 31 4 49 30 61 8 16 23 50 48 62 15 42 18 24 9 6 12 40 20 51"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -11066,7 +11082,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "51 20 40 12 6 9 24 18 42 15 62 48 50 23 16 8 61 30 49 4 31 5 41 60 59 38 33 52 53 54 32 29 37 1 11 47 63 58 44 21 64 2 55"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -11078,7 +11094,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "59 60 41 5 31 4 49 30 61 8 16 23 50 48 62 15 42 18 24 9 6 12 40 20 51 55 2 64 21 44 58 63 47 11 1 37 29 32 54 53 52 33 38"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -11090,7 +11106,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "46 0000007fffffffff"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -11102,7 +11118,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "549755813887 46"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -11114,7 +11130,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "549755813887 0000007fffffffff"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -11126,7 +11142,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "3 7 10 13 17 19 25 26 27 28 34 35 43 45 56 57"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -11138,7 +11154,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "57 56 45 43 35 34 28 27 26 25 19 17 13 10 7 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -11150,7 +11166,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "35 57 19 7 56 25 34 10 26 13 43 27 45 17 28 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -11162,7 +11178,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "3 28 17 45 27 43 13 26 10 34 25 56 7 19 57 35"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -11174,7 +11190,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "35 57 19 7 56 25 34 10 26 13 43 27 45 17 28 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -11186,7 +11202,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "3 7 10 13 17 19 25 26 27 28 34 35 43 45 46 56 57"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -11198,7 +11214,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "57 56 46 45 43 35 34 28 27 26 25 19 17 13 10 7 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -11210,7 +11226,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "46 35 57 19 7 56 25 34 10 26 13 43 27 45 17 28 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -11222,7 +11238,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "3 28 17 45 27 43 13 26 10 34 25 56 7 19 57 35 46"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -11234,7 +11250,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "46 35 57 19 7 56 25 34 10 26 13 43 27 45 17 28 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -11246,7 +11262,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1 2 4 5 6 8 9 11 12 14 15 16 18 20 21 22 23 24 29 30 31 32 33 36 37 38 39 40 41 42 44 47 48 49 50 51 52 53 54 55 58 59 60 61 62 63 64"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -11258,7 +11274,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "64 63 62 61 60 59 58 55 54 53 52 51 50 49 48 47 44 42 41 40 39 38 37 36 33 32 31 30 29 24 23 22 21 20 18 16 15 14 12 11 9 8 6 5 4 2 1"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -11270,7 +11286,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "55 2 64 21 44 58 63 47 11 1 37 29 32 54 53 52 33 38 59 60 41 5 31 4 49 30 61 8 16 23 50 48 62 15 42 18 24 9 6 12 40 20 51 14 36 39 22"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -11282,7 +11298,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "22 39 36 14 51 20 40 12 6 9 24 18 42 15 62 48 50 23 16 8 61 30 49 4 31 5 41 60 59 38 33 52 53 54 32 29 37 1 11 47 63 58 44 21 64 2 55"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -11294,7 +11310,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "59 60 41 5 31 4 49 30 61 8 16 23 50 48 62 15 42 18 24 9 6 12 40 20 51 14 36 39 22 55 2 64 21 44 58 63 47 11 1 37 29 32 54 53 52 33 38"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -11306,7 +11322,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1 2 4 5 6 8 9 11 12 14 15 16 18 20 21 22 23 24 29 30 31 32 33 36 37 38 39 40 41 42 44 46 47 48 49 50 51 52 53 54 55 58 59 60 61 62 63 64"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -11318,7 +11334,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "64 63 62 61 60 59 58 55 54 53 52 51 50 49 48 47 46 44 42 41 40 39 38 37 36 33 32 31 30 29 24 23 22 21 20 18 16 15 14 12 11 9 8 6 5 4 2 1"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -11330,7 +11346,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "55 2 64 21 44 58 63 47 11 1 37 29 32 54 53 52 33 38 59 60 41 5 31 4 49 30 61 8 16 23 50 48 62 15 42 18 24 9 6 12 40 20 51 14 36 39 22 46"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -11342,7 +11358,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "46 22 39 36 14 51 20 40 12 6 9 24 18 42 15 62 48 50 23 16 8 61 30 49 4 31 5 41 60 59 38 33 52 53 54 32 29 37 1 11 47 63 58 44 21 64 2 55"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -11354,7 +11370,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "59 60 41 5 31 4 49 30 61 8 16 23 50 48 62 15 42 18 24 9 6 12 40 20 51 14 36 39 22 46 55 2 64 21 44 58 63 47 11 1 37 29 32 54 53 52 33 38"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -11366,7 +11382,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "63 ffffff8000000000"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -11378,7 +11394,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "-549755813888 63"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -11390,7 +11406,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "-549755813888 ffffff8000000000"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -11402,7 +11418,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 37 38 39 40 41 42 43 45 46 47 48 49 50 51 52 53 54 56 57 59 60 61 62"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -11414,7 +11430,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "62 61 60 59 57 56 54 53 52 51 50 49 48 47 46 45 43 42 41 40 39 38 37 36 35 34 33 32 31 30 29 28 27 26 25 24 23 22 20 19 18 17 16 15 14 13 12 11 10 9 8 7 6 5 4 3 1"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -11426,7 +11442,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "47 11 1 37 29 32 54 53 52 33 38 59 60 41 5 31 4 49 30 61 8 16 23 50 48 62 15 42 18 24 9 6 12 40 20 51 14 36 39 22 46 35 57 19 7 56 25 34 10 26 13 43 27 45 17 28 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -11438,7 +11454,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "3 28 17 45 27 43 13 26 10 34 25 56 7 19 57 35 46 22 39 36 14 51 20 40 12 6 9 24 18 42 15 62 48 50 23 16 8 61 30 49 4 31 5 41 60 59 38 33 52 53 54 32 29 37 1 11 47"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -11450,7 +11466,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "59 60 41 5 31 4 49 30 61 8 16 23 50 48 62 15 42 18 24 9 6 12 40 20 51 14 36 39 22 46 35 57 19 7 56 25 34 10 26 13 43 27 45 17 28 3 47 11 1 37 29 32 54 53 52 33 38"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -11462,7 +11478,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 37 38 39 40 41 42 43 45 46 47 48 49 50 51 52 53 54 56 57 59 60 61 62 63"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -11474,7 +11490,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "63 62 61 60 59 57 56 54 53 52 51 50 49 48 47 46 45 43 42 41 40 39 38 37 36 35 34 33 32 31 30 29 28 27 26 25 24 23 22 20 19 18 17 16 15 14 13 12 11 10 9 8 7 6 5 4 3 1"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -11486,7 +11502,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "63 47 11 1 37 29 32 54 53 52 33 38 59 60 41 5 31 4 49 30 61 8 16 23 50 48 62 15 42 18 24 9 6 12 40 20 51 14 36 39 22 46 35 57 19 7 56 25 34 10 26 13 43 27 45 17 28 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -11498,7 +11514,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "3 28 17 45 27 43 13 26 10 34 25 56 7 19 57 35 46 22 39 36 14 51 20 40 12 6 9 24 18 42 15 62 48 50 23 16 8 61 30 49 4 31 5 41 60 59 38 33 52 53 54 32 29 37 1 11 47 63"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -11510,7 +11526,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "59 60 41 5 31 4 49 30 61 8 16 23 50 48 62 15 42 18 24 9 6 12 40 20 51 14 36 39 22 46 35 57 19 7 56 25 34 10 26 13 43 27 45 17 28 3 63 47 11 1 37 29 32 54 53 52 33 38"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -11522,7 +11538,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "2 21 44 55 58 64"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -11534,7 +11550,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "64 58 55 44 21 2"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -11546,7 +11562,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "55 2 64 21 44 58"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -11558,7 +11574,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "58 44 21 64 2 55"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -11570,7 +11586,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "55 2 64 21 44 58"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -11582,7 +11598,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "2 21 44 55 58 63 64"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -11594,7 +11610,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "64 63 58 55 44 21 2"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -11606,7 +11622,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "55 2 64 21 44 58 63"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -11618,7 +11634,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "63 58 44 21 64 2 55"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -11630,7 +11646,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "55 2 64 21 44 58 63"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -11642,7 +11658,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "10 0000ffffffffffff"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -11654,7 +11670,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "281474976710655 10"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -11666,7 +11682,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "281474976710655 0000ffffffffffff"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -11678,7 +11694,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "3 13 17 26 27 28 43 45"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -11690,7 +11706,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "45 43 28 27 26 17 13 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -11702,7 +11718,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "26 13 43 27 45 17 28 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -11714,7 +11730,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "3 28 17 45 27 43 13 26"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -11726,7 +11742,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "26 13 43 27 45 17 28 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -11738,7 +11754,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "3 10 13 17 26 27 28 43 45"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -11750,7 +11766,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "45 43 28 27 26 17 13 10 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -11762,7 +11778,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "10 26 13 43 27 45 17 28 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -11774,7 +11790,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "3 28 17 45 27 43 13 26 10"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -11786,7 +11802,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "10 26 13 43 27 45 17 28 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -11798,7 +11814,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1 2 4 5 6 7 8 9 11 12 14 15 16 18 19 20 21 22 23 24 25 29 30 31 32 33 34 35 36 37 38 39 40 41 42 44 46 47 48 49 50 51 52 53 54 55 56 57 58 59 60 61 62 63 64"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -11810,7 +11826,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "64 63 62 61 60 59 58 57 56 55 54 53 52 51 50 49 48 47 46 44 42 41 40 39 38 37 36 35 34 33 32 31 30 29 25 24 23 22 21 20 19 18 16 15 14 12 11 9 8 7 6 5 4 2 1"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -11822,7 +11838,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "55 2 64 21 44 58 63 47 11 1 37 29 32 54 53 52 33 38 59 60 41 5 31 4 49 30 61 8 16 23 50 48 62 15 42 18 24 9 6 12 40 20 51 14 36 39 22 46 35 57 19 7 56 25 34"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -11834,7 +11850,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "34 25 56 7 19 57 35 46 22 39 36 14 51 20 40 12 6 9 24 18 42 15 62 48 50 23 16 8 61 30 49 4 31 5 41 60 59 38 33 52 53 54 32 29 37 1 11 47 63 58 44 21 64 2 55"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -11846,7 +11862,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "59 60 41 5 31 4 49 30 61 8 16 23 50 48 62 15 42 18 24 9 6 12 40 20 51 14 36 39 22 46 35 57 19 7 56 25 34 55 2 64 21 44 58 63 47 11 1 37 29 32 54 53 52 33 38"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -11858,7 +11874,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1 2 4 5 6 7 8 9 10 11 12 14 15 16 18 19 20 21 22 23 24 25 29 30 31 32 33 34 35 36 37 38 39 40 41 42 44 46 47 48 49 50 51 52 53 54 55 56 57 58 59 60 61 62 63 64"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -11870,7 +11886,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "64 63 62 61 60 59 58 57 56 55 54 53 52 51 50 49 48 47 46 44 42 41 40 39 38 37 36 35 34 33 32 31 30 29 25 24 23 22 21 20 19 18 16 15 14 12 11 10 9 8 7 6 5 4 2 1"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -11882,7 +11898,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "55 2 64 21 44 58 63 47 11 1 37 29 32 54 53 52 33 38 59 60 41 5 31 4 49 30 61 8 16 23 50 48 62 15 42 18 24 9 6 12 40 20 51 14 36 39 22 46 35 57 19 7 56 25 34 10"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -11894,7 +11910,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "10 34 25 56 7 19 57 35 46 22 39 36 14 51 20 40 12 6 9 24 18 42 15 62 48 50 23 16 8 61 30 49 4 31 5 41 60 59 38 33 52 53 54 32 29 37 1 11 47 63 58 44 21 64 2 55"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -11906,7 +11922,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "59 60 41 5 31 4 49 30 61 8 16 23 50 48 62 15 42 18 24 9 6 12 40 20 51 14 36 39 22 46 35 57 19 7 56 25 34 10 55 2 64 21 44 58 63 47 11 1 37 29 32 54 53 52 33 38"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -11918,7 +11934,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "7 000003ffffffffff"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -11930,7 +11946,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "4398046511103 7"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -11942,7 +11958,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "4398046511103 000003ffffffffff"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -11954,7 +11970,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "3 10 13 17 25 26 27 28 34 43 45 56"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -11966,7 +11982,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "56 45 43 34 28 27 26 25 17 13 10 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -11978,7 +11994,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "56 25 34 10 26 13 43 27 45 17 28 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -11990,7 +12006,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "3 28 17 45 27 43 13 26 10 34 25 56"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -12002,7 +12018,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "56 25 34 10 26 13 43 27 45 17 28 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -12014,7 +12030,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "3 7 10 13 17 25 26 27 28 34 43 45 56"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -12026,7 +12042,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "56 45 43 34 28 27 26 25 17 13 10 7 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -12038,7 +12054,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "7 56 25 34 10 26 13 43 27 45 17 28 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -12050,7 +12066,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "3 28 17 45 27 43 13 26 10 34 25 56 7"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -12062,7 +12078,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "7 56 25 34 10 26 13 43 27 45 17 28 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -12074,7 +12090,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1 2 4 5 6 8 9 11 12 14 15 16 18 19 20 21 22 23 24 29 30 31 32 33 35 36 37 38 39 40 41 42 44 46 47 48 49 50 51 52 53 54 55 57 58 59 60 61 62 63 64"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -12086,7 +12102,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "64 63 62 61 60 59 58 57 55 54 53 52 51 50 49 48 47 46 44 42 41 40 39 38 37 36 35 33 32 31 30 29 24 23 22 21 20 19 18 16 15 14 12 11 9 8 6 5 4 2 1"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -12098,7 +12114,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "55 2 64 21 44 58 63 47 11 1 37 29 32 54 53 52 33 38 59 60 41 5 31 4 49 30 61 8 16 23 50 48 62 15 42 18 24 9 6 12 40 20 51 14 36 39 22 46 35 57 19"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -12110,7 +12126,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "19 57 35 46 22 39 36 14 51 20 40 12 6 9 24 18 42 15 62 48 50 23 16 8 61 30 49 4 31 5 41 60 59 38 33 52 53 54 32 29 37 1 11 47 63 58 44 21 64 2 55"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -12122,7 +12138,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "59 60 41 5 31 4 49 30 61 8 16 23 50 48 62 15 42 18 24 9 6 12 40 20 51 14 36 39 22 46 35 57 19 55 2 64 21 44 58 63 47 11 1 37 29 32 54 53 52 33 38"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -12134,7 +12150,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1 2 4 5 6 7 8 9 11 12 14 15 16 18 19 20 21 22 23 24 29 30 31 32 33 35 36 37 38 39 40 41 42 44 46 47 48 49 50 51 52 53 54 55 57 58 59 60 61 62 63 64"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -12146,7 +12162,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "64 63 62 61 60 59 58 57 55 54 53 52 51 50 49 48 47 46 44 42 41 40 39 38 37 36 35 33 32 31 30 29 24 23 22 21 20 19 18 16 15 14 12 11 9 8 7 6 5 4 2 1"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -12158,7 +12174,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "55 2 64 21 44 58 63 47 11 1 37 29 32 54 53 52 33 38 59 60 41 5 31 4 49 30 61 8 16 23 50 48 62 15 42 18 24 9 6 12 40 20 51 14 36 39 22 46 35 57 19 7"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -12170,7 +12186,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "7 19 57 35 46 22 39 36 14 51 20 40 12 6 9 24 18 42 15 62 48 50 23 16 8 61 30 49 4 31 5 41 60 59 38 33 52 53 54 32 29 37 1 11 47 63 58 44 21 64 2 55"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -12182,7 +12198,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "59 60 41 5 31 4 49 30 61 8 16 23 50 48 62 15 42 18 24 9 6 12 40 20 51 14 36 39 22 46 35 57 19 7 55 2 64 21 44 58 63 47 11 1 37 29 32 54 53 52 33 38"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -12194,7 +12210,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "12 000000000fffffff"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -12206,7 +12222,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "268435455 12"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -12218,7 +12234,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "268435455 000000000fffffff"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -12230,7 +12246,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "3 7 10 13 14 17 19 20 22 25 26 27 28 34 35 36 39 40 43 45 46 51 56 57"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -12242,7 +12258,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "57 56 51 46 45 43 40 39 36 35 34 28 27 26 25 22 20 19 17 14 13 10 7 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -12254,7 +12270,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "40 20 51 14 36 39 22 46 35 57 19 7 56 25 34 10 26 13 43 27 45 17 28 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -12266,7 +12282,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "3 28 17 45 27 43 13 26 10 34 25 56 7 19 57 35 46 22 39 36 14 51 20 40"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -12278,7 +12294,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "40 20 51 14 36 39 22 46 35 57 19 7 56 25 34 10 26 13 43 27 45 17 28 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -12290,7 +12306,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "3 7 10 12 13 14 17 19 20 22 25 26 27 28 34 35 36 39 40 43 45 46 51 56 57"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -12302,7 +12318,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "57 56 51 46 45 43 40 39 36 35 34 28 27 26 25 22 20 19 17 14 13 12 10 7 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -12314,7 +12330,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "12 40 20 51 14 36 39 22 46 35 57 19 7 56 25 34 10 26 13 43 27 45 17 28 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -12326,7 +12342,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "3 28 17 45 27 43 13 26 10 34 25 56 7 19 57 35 46 22 39 36 14 51 20 40 12"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -12338,7 +12354,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "12 40 20 51 14 36 39 22 46 35 57 19 7 56 25 34 10 26 13 43 27 45 17 28 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -12350,7 +12366,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1 2 4 5 6 8 9 11 15 16 18 21 23 24 29 30 31 32 33 37 38 41 42 44 47 48 49 50 52 53 54 55 58 59 60 61 62 63 64"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -12362,7 +12378,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "64 63 62 61 60 59 58 55 54 53 52 50 49 48 47 44 42 41 38 37 33 32 31 30 29 24 23 21 18 16 15 11 9 8 6 5 4 2 1"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -12374,7 +12390,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "55 2 64 21 44 58 63 47 11 1 37 29 32 54 53 52 33 38 59 60 41 5 31 4 49 30 61 8 16 23 50 48 62 15 42 18 24 9 6"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -12386,7 +12402,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "6 9 24 18 42 15 62 48 50 23 16 8 61 30 49 4 31 5 41 60 59 38 33 52 53 54 32 29 37 1 11 47 63 58 44 21 64 2 55"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -12398,7 +12414,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "59 60 41 5 31 4 49 30 61 8 16 23 50 48 62 15 42 18 24 9 6 55 2 64 21 44 58 63 47 11 1 37 29 32 54 53 52 33 38"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -12410,7 +12426,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1 2 4 5 6 8 9 11 12 15 16 18 21 23 24 29 30 31 32 33 37 38 41 42 44 47 48 49 50 52 53 54 55 58 59 60 61 62 63 64"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -12422,7 +12438,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "64 63 62 61 60 59 58 55 54 53 52 50 49 48 47 44 42 41 38 37 33 32 31 30 29 24 23 21 18 16 15 12 11 9 8 6 5 4 2 1"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -12434,7 +12450,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "55 2 64 21 44 58 63 47 11 1 37 29 32 54 53 52 33 38 59 60 41 5 31 4 49 30 61 8 16 23 50 48 62 15 42 18 24 9 6 12"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -12446,7 +12462,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "12 6 9 24 18 42 15 62 48 50 23 16 8 61 30 49 4 31 5 41 60 59 38 33 52 53 54 32 29 37 1 11 47 63 58 44 21 64 2 55"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -12458,7 +12474,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "59 60 41 5 31 4 49 30 61 8 16 23 50 48 62 15 42 18 24 9 6 12 55 2 64 21 44 58 63 47 11 1 37 29 32 54 53 52 33 38"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -12470,7 +12486,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "55 8000000000000000"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -12482,7 +12498,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "-9223372036854775808 55"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -12494,7 +12510,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "-9223372036854775808 8000000000000000"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -12506,7 +12522,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 37 38 39 40 41 42 43 44 45 46 47 48 49 50 51 52 53 54 56 57 58 59 60 61 62 63 64"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -12518,7 +12534,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "64 63 62 61 60 59 58 57 56 54 53 52 51 50 49 48 47 46 45 44 43 42 41 40 39 38 37 36 35 34 33 32 31 30 29 28 27 26 25 24 23 22 21 20 19 18 17 16 15 14 13 12 11 10 9 8 7 6 5 4 3 2 1"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -12530,7 +12546,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "2 64 21 44 58 63 47 11 1 37 29 32 54 53 52 33 38 59 60 41 5 31 4 49 30 61 8 16 23 50 48 62 15 42 18 24 9 6 12 40 20 51 14 36 39 22 46 35 57 19 7 56 25 34 10 26 13 43 27 45 17 28 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -12542,7 +12558,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "3 28 17 45 27 43 13 26 10 34 25 56 7 19 57 35 46 22 39 36 14 51 20 40 12 6 9 24 18 42 15 62 48 50 23 16 8 61 30 49 4 31 5 41 60 59 38 33 52 53 54 32 29 37 1 11 47 63 58 44 21 64 2"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -12554,7 +12570,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "59 60 41 5 31 4 49 30 61 8 16 23 50 48 62 15 42 18 24 9 6 12 40 20 51 14 36 39 22 46 35 57 19 7 56 25 34 10 26 13 43 27 45 17 28 3 2 64 21 44 58 63 47 11 1 37 29 32 54 53 52 33 38"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -12566,7 +12582,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 37 38 39 40 41 42 43 44 45 46 47 48 49 50 51 52 53 54 55 56 57 58 59 60 61 62 63 64"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -12578,7 +12594,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "64 63 62 61 60 59 58 57 56 55 54 53 52 51 50 49 48 47 46 45 44 43 42 41 40 39 38 37 36 35 34 33 32 31 30 29 28 27 26 25 24 23 22 21 20 19 18 17 16 15 14 13 12 11 10 9 8 7 6 5 4 3 2 1"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -12590,7 +12606,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "55 2 64 21 44 58 63 47 11 1 37 29 32 54 53 52 33 38 59 60 41 5 31 4 49 30 61 8 16 23 50 48 62 15 42 18 24 9 6 12 40 20 51 14 36 39 22 46 35 57 19 7 56 25 34 10 26 13 43 27 45 17 28 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -12602,7 +12618,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "3 28 17 45 27 43 13 26 10 34 25 56 7 19 57 35 46 22 39 36 14 51 20 40 12 6 9 24 18 42 15 62 48 50 23 16 8 61 30 49 4 31 5 41 60 59 38 33 52 53 54 32 29 37 1 11 47 63 58 44 21 64 2 55"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -12614,7 +12630,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "59 60 41 5 31 4 49 30 61 8 16 23 50 48 62 15 42 18 24 9 6 12 40 20 51 14 36 39 22 46 35 57 19 7 56 25 34 10 26 13 43 27 45 17 28 3 55 2 64 21 44 58 63 47 11 1 37 29 32 54 53 52 33 38"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -12626,7 +12642,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "{}"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -12638,7 +12654,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "{}"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -12650,7 +12666,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "{}"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -12662,7 +12678,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "{}"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -12674,7 +12690,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "{}"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -12686,7 +12702,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "55"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -12698,7 +12714,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "55"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -12710,7 +12726,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "55"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -12722,7 +12738,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "55"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -12734,7 +12750,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "55"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -12746,7 +12762,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "43 0002000000000000"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -12758,7 +12774,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "562949953421312 43"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -12770,7 +12786,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "562949953421312 0002000000000000"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -12782,7 +12798,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "3 17 27 28 45"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -12794,7 +12810,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "45 28 27 17 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -12806,7 +12822,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "27 45 17 28 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -12818,7 +12834,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "3 28 17 45 27"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -12830,7 +12846,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "27 45 17 28 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -12842,7 +12858,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "3 17 27 28 43 45"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -12854,7 +12870,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "45 43 28 27 17 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -12866,7 +12882,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "43 27 45 17 28 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -12878,7 +12894,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "3 28 17 45 27 43"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -12890,7 +12906,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "43 27 45 17 28 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -12902,7 +12918,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1 2 4 5 6 7 8 9 10 11 12 13 14 15 16 18 19 20 21 22 23 24 25 26 29 30 31 32 33 34 35 36 37 38 39 40 41 42 44 46 47 48 49 50 51 52 53 54 55 56 57 58 59 60 61 62 63 64"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -12914,7 +12930,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "64 63 62 61 60 59 58 57 56 55 54 53 52 51 50 49 48 47 46 44 42 41 40 39 38 37 36 35 34 33 32 31 30 29 26 25 24 23 22 21 20 19 18 16 15 14 13 12 11 10 9 8 7 6 5 4 2 1"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -12926,7 +12942,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "55 2 64 21 44 58 63 47 11 1 37 29 32 54 53 52 33 38 59 60 41 5 31 4 49 30 61 8 16 23 50 48 62 15 42 18 24 9 6 12 40 20 51 14 36 39 22 46 35 57 19 7 56 25 34 10 26 13"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -12938,7 +12954,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "13 26 10 34 25 56 7 19 57 35 46 22 39 36 14 51 20 40 12 6 9 24 18 42 15 62 48 50 23 16 8 61 30 49 4 31 5 41 60 59 38 33 52 53 54 32 29 37 1 11 47 63 58 44 21 64 2 55"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -12950,7 +12966,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "59 60 41 5 31 4 49 30 61 8 16 23 50 48 62 15 42 18 24 9 6 12 40 20 51 14 36 39 22 46 35 57 19 7 56 25 34 10 26 13 55 2 64 21 44 58 63 47 11 1 37 29 32 54 53 52 33 38"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -12962,7 +12978,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1 2 4 5 6 7 8 9 10 11 12 13 14 15 16 18 19 20 21 22 23 24 25 26 29 30 31 32 33 34 35 36 37 38 39 40 41 42 43 44 46 47 48 49 50 51 52 53 54 55 56 57 58 59 60 61 62 63 64"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -12974,7 +12990,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "64 63 62 61 60 59 58 57 56 55 54 53 52 51 50 49 48 47 46 44 43 42 41 40 39 38 37 36 35 34 33 32 31 30 29 26 25 24 23 22 21 20 19 18 16 15 14 13 12 11 10 9 8 7 6 5 4 2 1"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -12986,7 +13002,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "55 2 64 21 44 58 63 47 11 1 37 29 32 54 53 52 33 38 59 60 41 5 31 4 49 30 61 8 16 23 50 48 62 15 42 18 24 9 6 12 40 20 51 14 36 39 22 46 35 57 19 7 56 25 34 10 26 13 43"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -12998,7 +13014,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "43 13 26 10 34 25 56 7 19 57 35 46 22 39 36 14 51 20 40 12 6 9 24 18 42 15 62 48 50 23 16 8 61 30 49 4 31 5 41 60 59 38 33 52 53 54 32 29 37 1 11 47 63 58 44 21 64 2 55"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -13010,7 +13026,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "59 60 41 5 31 4 49 30 61 8 16 23 50 48 62 15 42 18 24 9 6 12 40 20 51 14 36 39 22 46 35 57 19 7 56 25 34 10 26 13 43 55 2 64 21 44 58 63 47 11 1 37 29 32 54 53 52 33 38"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -13022,7 +13038,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1 ffffffffff7fffff"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -13034,7 +13050,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "-8388609 1"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -13046,7 +13062,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "-8388609 ffffffffff7fffff"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -13058,7 +13074,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "3 4 5 6 7 8 9 10 12 13 14 15 16 17 18 19 20 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 37 38 39 40 41 42 43 45 46 48 49 50 51 52 53 54 56 57 59 60 61 62"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -13070,7 +13086,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "62 61 60 59 57 56 54 53 52 51 50 49 48 46 45 43 42 41 40 39 38 37 36 35 34 33 32 31 30 29 28 27 26 25 24 23 22 20 19 18 17 16 15 14 13 12 10 9 8 7 6 5 4 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -13082,7 +13098,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "37 29 32 54 53 52 33 38 59 60 41 5 31 4 49 30 61 8 16 23 50 48 62 15 42 18 24 9 6 12 40 20 51 14 36 39 22 46 35 57 19 7 56 25 34 10 26 13 43 27 45 17 28 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -13094,7 +13110,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "3 28 17 45 27 43 13 26 10 34 25 56 7 19 57 35 46 22 39 36 14 51 20 40 12 6 9 24 18 42 15 62 48 50 23 16 8 61 30 49 4 31 5 41 60 59 38 33 52 53 54 32 29 37"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -13106,7 +13122,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "59 60 41 5 31 4 49 30 61 8 16 23 50 48 62 15 42 18 24 9 6 12 40 20 51 14 36 39 22 46 35 57 19 7 56 25 34 10 26 13 43 27 45 17 28 3 37 29 32 54 53 52 33 38"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -13118,7 +13134,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1 3 4 5 6 7 8 9 10 12 13 14 15 16 17 18 19 20 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 37 38 39 40 41 42 43 45 46 48 49 50 51 52 53 54 56 57 59 60 61 62"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -13130,7 +13146,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "62 61 60 59 57 56 54 53 52 51 50 49 48 46 45 43 42 41 40 39 38 37 36 35 34 33 32 31 30 29 28 27 26 25 24 23 22 20 19 18 17 16 15 14 13 12 10 9 8 7 6 5 4 3 1"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -13142,7 +13158,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1 37 29 32 54 53 52 33 38 59 60 41 5 31 4 49 30 61 8 16 23 50 48 62 15 42 18 24 9 6 12 40 20 51 14 36 39 22 46 35 57 19 7 56 25 34 10 26 13 43 27 45 17 28 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -13154,7 +13170,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "3 28 17 45 27 43 13 26 10 34 25 56 7 19 57 35 46 22 39 36 14 51 20 40 12 6 9 24 18 42 15 62 48 50 23 16 8 61 30 49 4 31 5 41 60 59 38 33 52 53 54 32 29 37 1"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -13166,7 +13182,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "59 60 41 5 31 4 49 30 61 8 16 23 50 48 62 15 42 18 24 9 6 12 40 20 51 14 36 39 22 46 35 57 19 7 56 25 34 10 26 13 43 27 45 17 28 3 1 37 29 32 54 53 52 33 38"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -13178,7 +13194,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "2 11 21 44 47 55 58 63 64"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -13190,7 +13206,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "64 63 58 55 47 44 21 11 2"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -13202,7 +13218,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "55 2 64 21 44 58 63 47 11"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -13214,7 +13230,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "11 47 63 58 44 21 64 2 55"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -13226,7 +13242,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "55 2 64 21 44 58 63 47 11"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -13238,7 +13254,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1 2 11 21 44 47 55 58 63 64"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -13250,7 +13266,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "64 63 58 55 47 44 21 11 2 1"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -13262,7 +13278,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "55 2 64 21 44 58 63 47 11 1"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -13274,7 +13290,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1 11 47 63 58 44 21 64 2 55"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -13286,7 +13302,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "55 2 64 21 44 58 63 47 11 1"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -13298,7 +13314,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "9 0000000000ffffff"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -13310,7 +13326,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "16777215 9"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -13322,7 +13338,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "16777215 0000000000ffffff"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -13334,7 +13350,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "3 6 7 10 12 13 14 17 19 20 22 25 26 27 28 34 35 36 39 40 43 45 46 51 56 57"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -13346,7 +13362,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "57 56 51 46 45 43 40 39 36 35 34 28 27 26 25 22 20 19 17 14 13 12 10 7 6 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -13358,7 +13374,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "6 12 40 20 51 14 36 39 22 46 35 57 19 7 56 25 34 10 26 13 43 27 45 17 28 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -13370,7 +13386,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "3 28 17 45 27 43 13 26 10 34 25 56 7 19 57 35 46 22 39 36 14 51 20 40 12 6"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -13382,7 +13398,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "6 12 40 20 51 14 36 39 22 46 35 57 19 7 56 25 34 10 26 13 43 27 45 17 28 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -13394,7 +13410,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "3 6 7 9 10 12 13 14 17 19 20 22 25 26 27 28 34 35 36 39 40 43 45 46 51 56 57"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -13406,7 +13422,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "57 56 51 46 45 43 40 39 36 35 34 28 27 26 25 22 20 19 17 14 13 12 10 9 7 6 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -13418,7 +13434,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "9 6 12 40 20 51 14 36 39 22 46 35 57 19 7 56 25 34 10 26 13 43 27 45 17 28 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -13430,7 +13446,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "3 28 17 45 27 43 13 26 10 34 25 56 7 19 57 35 46 22 39 36 14 51 20 40 12 6 9"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -13442,7 +13458,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "9 6 12 40 20 51 14 36 39 22 46 35 57 19 7 56 25 34 10 26 13 43 27 45 17 28 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -13454,7 +13470,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1 2 4 5 8 11 15 16 18 21 23 24 29 30 31 32 33 37 38 41 42 44 47 48 49 50 52 53 54 55 58 59 60 61 62 63 64"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -13466,7 +13482,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "64 63 62 61 60 59 58 55 54 53 52 50 49 48 47 44 42 41 38 37 33 32 31 30 29 24 23 21 18 16 15 11 8 5 4 2 1"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -13478,7 +13494,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "55 2 64 21 44 58 63 47 11 1 37 29 32 54 53 52 33 38 59 60 41 5 31 4 49 30 61 8 16 23 50 48 62 15 42 18 24"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -13490,7 +13506,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "24 18 42 15 62 48 50 23 16 8 61 30 49 4 31 5 41 60 59 38 33 52 53 54 32 29 37 1 11 47 63 58 44 21 64 2 55"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -13502,7 +13518,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "59 60 41 5 31 4 49 30 61 8 16 23 50 48 62 15 42 18 24 55 2 64 21 44 58 63 47 11 1 37 29 32 54 53 52 33 38"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -13514,7 +13530,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1 2 4 5 8 9 11 15 16 18 21 23 24 29 30 31 32 33 37 38 41 42 44 47 48 49 50 52 53 54 55 58 59 60 61 62 63 64"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -13526,7 +13542,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "64 63 62 61 60 59 58 55 54 53 52 50 49 48 47 44 42 41 38 37 33 32 31 30 29 24 23 21 18 16 15 11 9 8 5 4 2 1"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -13538,7 +13554,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "55 2 64 21 44 58 63 47 11 1 37 29 32 54 53 52 33 38 59 60 41 5 31 4 49 30 61 8 16 23 50 48 62 15 42 18 24 9"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -13550,7 +13566,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "9 24 18 42 15 62 48 50 23 16 8 61 30 49 4 31 5 41 60 59 38 33 52 53 54 32 29 37 1 11 47 63 58 44 21 64 2 55"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -13562,7 +13578,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "59 60 41 5 31 4 49 30 61 8 16 23 50 48 62 15 42 18 24 9 55 2 64 21 44 58 63 47 11 1 37 29 32 54 53 52 33 38"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -13574,7 +13590,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "24 0000000000800000"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -13586,7 +13602,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "8388608 24"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -13598,7 +13614,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "8388608 0000000000800000"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -13610,7 +13626,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "3 6 7 9 10 12 13 14 17 19 20 22 25 26 27 28 34 35 36 39 40 43 45 46 51 56 57"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -13622,7 +13638,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "57 56 51 46 45 43 40 39 36 35 34 28 27 26 25 22 20 19 17 14 13 12 10 9 7 6 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -13634,7 +13650,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "9 6 12 40 20 51 14 36 39 22 46 35 57 19 7 56 25 34 10 26 13 43 27 45 17 28 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -13646,7 +13662,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "3 28 17 45 27 43 13 26 10 34 25 56 7 19 57 35 46 22 39 36 14 51 20 40 12 6 9"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -13658,7 +13674,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "9 6 12 40 20 51 14 36 39 22 46 35 57 19 7 56 25 34 10 26 13 43 27 45 17 28 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -13670,7 +13686,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "3 6 7 9 10 12 13 14 17 19 20 22 24 25 26 27 28 34 35 36 39 40 43 45 46 51 56 57"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -13682,7 +13698,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "57 56 51 46 45 43 40 39 36 35 34 28 27 26 25 24 22 20 19 17 14 13 12 10 9 7 6 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -13694,7 +13710,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "24 9 6 12 40 20 51 14 36 39 22 46 35 57 19 7 56 25 34 10 26 13 43 27 45 17 28 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -13706,7 +13722,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "3 28 17 45 27 43 13 26 10 34 25 56 7 19 57 35 46 22 39 36 14 51 20 40 12 6 9 24"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -13718,7 +13734,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "24 9 6 12 40 20 51 14 36 39 22 46 35 57 19 7 56 25 34 10 26 13 43 27 45 17 28 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -13730,7 +13746,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1 2 4 5 8 11 15 16 18 21 23 29 30 31 32 33 37 38 41 42 44 47 48 49 50 52 53 54 55 58 59 60 61 62 63 64"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -13742,7 +13758,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "64 63 62 61 60 59 58 55 54 53 52 50 49 48 47 44 42 41 38 37 33 32 31 30 29 23 21 18 16 15 11 8 5 4 2 1"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -13754,7 +13770,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "55 2 64 21 44 58 63 47 11 1 37 29 32 54 53 52 33 38 59 60 41 5 31 4 49 30 61 8 16 23 50 48 62 15 42 18"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -13766,7 +13782,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "18 42 15 62 48 50 23 16 8 61 30 49 4 31 5 41 60 59 38 33 52 53 54 32 29 37 1 11 47 63 58 44 21 64 2 55"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -13778,7 +13794,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "59 60 41 5 31 4 49 30 61 8 16 23 50 48 62 15 42 18 55 2 64 21 44 58 63 47 11 1 37 29 32 54 53 52 33 38"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -13790,7 +13806,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1 2 4 5 8 11 15 16 18 21 23 24 29 30 31 32 33 37 38 41 42 44 47 48 49 50 52 53 54 55 58 59 60 61 62 63 64"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -13802,7 +13818,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "64 63 62 61 60 59 58 55 54 53 52 50 49 48 47 44 42 41 38 37 33 32 31 30 29 24 23 21 18 16 15 11 8 5 4 2 1"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -13814,7 +13830,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "55 2 64 21 44 58 63 47 11 1 37 29 32 54 53 52 33 38 59 60 41 5 31 4 49 30 61 8 16 23 50 48 62 15 42 18 24"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -13826,7 +13842,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "24 18 42 15 62 48 50 23 16 8 61 30 49 4 31 5 41 60 59 38 33 52 53 54 32 29 37 1 11 47 63 58 44 21 64 2 55"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -13838,7 +13854,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "59 60 41 5 31 4 49 30 61 8 16 23 50 48 62 15 42 18 24 55 2 64 21 44 58 63 47 11 1 37 29 32 54 53 52 33 38"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -13850,7 +13866,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "8 0000000000003fff"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -13862,7 +13878,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "16383 8"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -13874,7 +13890,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "16383 0000000000003fff"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -13886,7 +13902,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "3 6 7 9 10 12 13 14 15 16 17 18 19 20 22 23 24 25 26 27 28 34 35 36 39 40 42 43 45 46 48 50 51 56 57 62"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -13898,7 +13914,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "62 57 56 51 50 48 46 45 43 42 40 39 36 35 34 28 27 26 25 24 23 22 20 19 18 17 16 15 14 13 12 10 9 7 6 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -13910,7 +13926,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "16 23 50 48 62 15 42 18 24 9 6 12 40 20 51 14 36 39 22 46 35 57 19 7 56 25 34 10 26 13 43 27 45 17 28 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -13922,7 +13938,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "3 28 17 45 27 43 13 26 10 34 25 56 7 19 57 35 46 22 39 36 14 51 20 40 12 6 9 24 18 42 15 62 48 50 23 16"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -13934,7 +13950,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "16 23 50 48 62 15 42 18 24 9 6 12 40 20 51 14 36 39 22 46 35 57 19 7 56 25 34 10 26 13 43 27 45 17 28 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -13946,7 +13962,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "3 6 7 8 9 10 12 13 14 15 16 17 18 19 20 22 23 24 25 26 27 28 34 35 36 39 40 42 43 45 46 48 50 51 56 57 62"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -13958,7 +13974,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "62 57 56 51 50 48 46 45 43 42 40 39 36 35 34 28 27 26 25 24 23 22 20 19 18 17 16 15 14 13 12 10 9 8 7 6 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -13970,7 +13986,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "8 16 23 50 48 62 15 42 18 24 9 6 12 40 20 51 14 36 39 22 46 35 57 19 7 56 25 34 10 26 13 43 27 45 17 28 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -13982,7 +13998,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "3 28 17 45 27 43 13 26 10 34 25 56 7 19 57 35 46 22 39 36 14 51 20 40 12 6 9 24 18 42 15 62 48 50 23 16 8"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -13994,7 +14010,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "8 16 23 50 48 62 15 42 18 24 9 6 12 40 20 51 14 36 39 22 46 35 57 19 7 56 25 34 10 26 13 43 27 45 17 28 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -14006,7 +14022,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1 2 4 5 11 21 29 30 31 32 33 37 38 41 44 47 49 52 53 54 55 58 59 60 61 63 64"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -14018,7 +14034,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "64 63 61 60 59 58 55 54 53 52 49 47 44 41 38 37 33 32 31 30 29 21 11 5 4 2 1"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -14030,7 +14046,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "55 2 64 21 44 58 63 47 11 1 37 29 32 54 53 52 33 38 59 60 41 5 31 4 49 30 61"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -14042,7 +14058,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "61 30 49 4 31 5 41 60 59 38 33 52 53 54 32 29 37 1 11 47 63 58 44 21 64 2 55"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -14054,7 +14070,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "59 60 41 5 31 4 49 30 61 55 2 64 21 44 58 63 47 11 1 37 29 32 54 53 52 33 38"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -14066,7 +14082,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1 2 4 5 8 11 21 29 30 31 32 33 37 38 41 44 47 49 52 53 54 55 58 59 60 61 63 64"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -14078,7 +14094,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "64 63 61 60 59 58 55 54 53 52 49 47 44 41 38 37 33 32 31 30 29 21 11 8 5 4 2 1"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -14090,7 +14106,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "55 2 64 21 44 58 63 47 11 1 37 29 32 54 53 52 33 38 59 60 41 5 31 4 49 30 61 8"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -14102,7 +14118,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "8 61 30 49 4 31 5 41 60 59 38 33 52 53 54 32 29 37 1 11 47 63 58 44 21 64 2 55"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -14114,7 +14130,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "59 60 41 5 31 4 49 30 61 8 55 2 64 21 44 58 63 47 11 1 37 29 32 54 53 52 33 38"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -14126,7 +14142,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "34 0000800000000000"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -14138,7 +14154,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "140737488355328 34"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -14150,7 +14166,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "140737488355328 0000800000000000"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -14162,7 +14178,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "3 10 13 17 26 27 28 43 45"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -14174,7 +14190,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "45 43 28 27 26 17 13 10 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -14186,7 +14202,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "10 26 13 43 27 45 17 28 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -14198,7 +14214,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "3 28 17 45 27 43 13 26 10"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -14210,7 +14226,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "10 26 13 43 27 45 17 28 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -14222,7 +14238,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "3 10 13 17 26 27 28 34 43 45"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -14234,7 +14250,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "45 43 34 28 27 26 17 13 10 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -14246,7 +14262,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "34 10 26 13 43 27 45 17 28 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -14258,7 +14274,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "3 28 17 45 27 43 13 26 10 34"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -14270,7 +14286,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "34 10 26 13 43 27 45 17 28 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -14282,7 +14298,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1 2 4 5 6 7 8 9 11 12 14 15 16 18 19 20 21 22 23 24 25 29 30 31 32 33 35 36 37 38 39 40 41 42 44 46 47 48 49 50 51 52 53 54 55 56 57 58 59 60 61 62 63 64"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -14294,7 +14310,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "64 63 62 61 60 59 58 57 56 55 54 53 52 51 50 49 48 47 46 44 42 41 40 39 38 37 36 35 33 32 31 30 29 25 24 23 22 21 20 19 18 16 15 14 12 11 9 8 7 6 5 4 2 1"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -14306,7 +14322,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "55 2 64 21 44 58 63 47 11 1 37 29 32 54 53 52 33 38 59 60 41 5 31 4 49 30 61 8 16 23 50 48 62 15 42 18 24 9 6 12 40 20 51 14 36 39 22 46 35 57 19 7 56 25"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -14318,7 +14334,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "25 56 7 19 57 35 46 22 39 36 14 51 20 40 12 6 9 24 18 42 15 62 48 50 23 16 8 61 30 49 4 31 5 41 60 59 38 33 52 53 54 32 29 37 1 11 47 63 58 44 21 64 2 55"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -14330,7 +14346,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "59 60 41 5 31 4 49 30 61 8 16 23 50 48 62 15 42 18 24 9 6 12 40 20 51 14 36 39 22 46 35 57 19 7 56 25 55 2 64 21 44 58 63 47 11 1 37 29 32 54 53 52 33 38"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -14342,7 +14358,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1 2 4 5 6 7 8 9 11 12 14 15 16 18 19 20 21 22 23 24 25 29 30 31 32 33 34 35 36 37 38 39 40 41 42 44 46 47 48 49 50 51 52 53 54 55 56 57 58 59 60 61 62 63 64"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -14354,7 +14370,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "64 63 62 61 60 59 58 57 56 55 54 53 52 51 50 49 48 47 46 44 42 41 40 39 38 37 36 35 34 33 32 31 30 29 25 24 23 22 21 20 19 18 16 15 14 12 11 9 8 7 6 5 4 2 1"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -14366,7 +14382,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "55 2 64 21 44 58 63 47 11 1 37 29 32 54 53 52 33 38 59 60 41 5 31 4 49 30 61 8 16 23 50 48 62 15 42 18 24 9 6 12 40 20 51 14 36 39 22 46 35 57 19 7 56 25 34"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -14378,7 +14394,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "34 25 56 7 19 57 35 46 22 39 36 14 51 20 40 12 6 9 24 18 42 15 62 48 50 23 16 8 61 30 49 4 31 5 41 60 59 38 33 52 53 54 32 29 37 1 11 47 63 58 44 21 64 2 55"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -14390,7 +14406,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "59 60 41 5 31 4 49 30 61 8 16 23 50 48 62 15 42 18 24 9 6 12 40 20 51 14 36 39 22 46 35 57 19 7 56 25 34 55 2 64 21 44 58 63 47 11 1 37 29 32 54 53 52 33 38"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -14402,7 +14418,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "15 00000000001fffff"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -14414,7 +14430,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "2097151 15"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -14426,7 +14442,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "2097151 00000000001fffff"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -14438,7 +14454,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "3 6 7 9 10 12 13 14 17 18 19 20 22 24 25 26 27 28 34 35 36 39 40 42 43 45 46 51 56 57"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -14450,7 +14466,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "57 56 51 46 45 43 42 40 39 36 35 34 28 27 26 25 24 22 20 19 18 17 14 13 12 10 9 7 6 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -14462,7 +14478,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "42 18 24 9 6 12 40 20 51 14 36 39 22 46 35 57 19 7 56 25 34 10 26 13 43 27 45 17 28 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -14474,7 +14490,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "3 28 17 45 27 43 13 26 10 34 25 56 7 19 57 35 46 22 39 36 14 51 20 40 12 6 9 24 18 42"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -14486,7 +14502,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "42 18 24 9 6 12 40 20 51 14 36 39 22 46 35 57 19 7 56 25 34 10 26 13 43 27 45 17 28 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -14498,7 +14514,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "3 6 7 9 10 12 13 14 15 17 18 19 20 22 24 25 26 27 28 34 35 36 39 40 42 43 45 46 51 56 57"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -14510,7 +14526,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "57 56 51 46 45 43 42 40 39 36 35 34 28 27 26 25 24 22 20 19 18 17 15 14 13 12 10 9 7 6 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -14522,7 +14538,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "15 42 18 24 9 6 12 40 20 51 14 36 39 22 46 35 57 19 7 56 25 34 10 26 13 43 27 45 17 28 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -14534,7 +14550,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "3 28 17 45 27 43 13 26 10 34 25 56 7 19 57 35 46 22 39 36 14 51 20 40 12 6 9 24 18 42 15"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -14546,7 +14562,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "15 42 18 24 9 6 12 40 20 51 14 36 39 22 46 35 57 19 7 56 25 34 10 26 13 43 27 45 17 28 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -14558,7 +14574,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1 2 4 5 8 11 16 21 23 29 30 31 32 33 37 38 41 44 47 48 49 50 52 53 54 55 58 59 60 61 62 63 64"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -14570,7 +14586,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "64 63 62 61 60 59 58 55 54 53 52 50 49 48 47 44 41 38 37 33 32 31 30 29 23 21 16 11 8 5 4 2 1"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -14582,7 +14598,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "55 2 64 21 44 58 63 47 11 1 37 29 32 54 53 52 33 38 59 60 41 5 31 4 49 30 61 8 16 23 50 48 62"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -14594,7 +14610,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "62 48 50 23 16 8 61 30 49 4 31 5 41 60 59 38 33 52 53 54 32 29 37 1 11 47 63 58 44 21 64 2 55"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -14606,7 +14622,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "59 60 41 5 31 4 49 30 61 8 16 23 50 48 62 55 2 64 21 44 58 63 47 11 1 37 29 32 54 53 52 33 38"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -14618,7 +14634,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1 2 4 5 8 11 15 16 21 23 29 30 31 32 33 37 38 41 44 47 48 49 50 52 53 54 55 58 59 60 61 62 63 64"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -14630,7 +14646,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "64 63 62 61 60 59 58 55 54 53 52 50 49 48 47 44 41 38 37 33 32 31 30 29 23 21 16 15 11 8 5 4 2 1"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -14642,7 +14658,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "55 2 64 21 44 58 63 47 11 1 37 29 32 54 53 52 33 38 59 60 41 5 31 4 49 30 61 8 16 23 50 48 62 15"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -14654,7 +14670,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "15 62 48 50 23 16 8 61 30 49 4 31 5 41 60 59 38 33 52 53 54 32 29 37 1 11 47 63 58 44 21 64 2 55"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -14666,7 +14682,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "59 60 41 5 31 4 49 30 61 8 16 23 50 48 62 15 55 2 64 21 44 58 63 47 11 1 37 29 32 54 53 52 33 38"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -14678,7 +14694,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "25 00007fffffffffff"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -14690,7 +14706,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "140737488355327 25"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -14702,7 +14718,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "140737488355327 00007fffffffffff"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -14714,7 +14730,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "3 10 13 17 26 27 28 34 43 45"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -14726,7 +14742,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "45 43 34 28 27 26 17 13 10 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -14738,7 +14754,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "34 10 26 13 43 27 45 17 28 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -14750,7 +14766,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "3 28 17 45 27 43 13 26 10 34"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -14762,7 +14778,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "34 10 26 13 43 27 45 17 28 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -14774,7 +14790,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "3 10 13 17 25 26 27 28 34 43 45"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -14786,7 +14802,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "45 43 34 28 27 26 25 17 13 10 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -14798,7 +14814,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "25 34 10 26 13 43 27 45 17 28 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -14810,7 +14826,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "3 28 17 45 27 43 13 26 10 34 25"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -14822,7 +14838,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "25 34 10 26 13 43 27 45 17 28 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -14834,7 +14850,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1 2 4 5 6 7 8 9 11 12 14 15 16 18 19 20 21 22 23 24 29 30 31 32 33 35 36 37 38 39 40 41 42 44 46 47 48 49 50 51 52 53 54 55 56 57 58 59 60 61 62 63 64"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -14846,7 +14862,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "64 63 62 61 60 59 58 57 56 55 54 53 52 51 50 49 48 47 46 44 42 41 40 39 38 37 36 35 33 32 31 30 29 24 23 22 21 20 19 18 16 15 14 12 11 9 8 7 6 5 4 2 1"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -14858,7 +14874,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "55 2 64 21 44 58 63 47 11 1 37 29 32 54 53 52 33 38 59 60 41 5 31 4 49 30 61 8 16 23 50 48 62 15 42 18 24 9 6 12 40 20 51 14 36 39 22 46 35 57 19 7 56"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -14870,7 +14886,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "56 7 19 57 35 46 22 39 36 14 51 20 40 12 6 9 24 18 42 15 62 48 50 23 16 8 61 30 49 4 31 5 41 60 59 38 33 52 53 54 32 29 37 1 11 47 63 58 44 21 64 2 55"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -14882,7 +14898,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "59 60 41 5 31 4 49 30 61 8 16 23 50 48 62 15 42 18 24 9 6 12 40 20 51 14 36 39 22 46 35 57 19 7 56 55 2 64 21 44 58 63 47 11 1 37 29 32 54 53 52 33 38"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -14894,7 +14910,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1 2 4 5 6 7 8 9 11 12 14 15 16 18 19 20 21 22 23 24 25 29 30 31 32 33 35 36 37 38 39 40 41 42 44 46 47 48 49 50 51 52 53 54 55 56 57 58 59 60 61 62 63 64"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -14906,7 +14922,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "64 63 62 61 60 59 58 57 56 55 54 53 52 51 50 49 48 47 46 44 42 41 40 39 38 37 36 35 33 32 31 30 29 25 24 23 22 21 20 19 18 16 15 14 12 11 9 8 7 6 5 4 2 1"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -14918,7 +14934,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "55 2 64 21 44 58 63 47 11 1 37 29 32 54 53 52 33 38 59 60 41 5 31 4 49 30 61 8 16 23 50 48 62 15 42 18 24 9 6 12 40 20 51 14 36 39 22 46 35 57 19 7 56 25"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -14930,7 +14946,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "25 56 7 19 57 35 46 22 39 36 14 51 20 40 12 6 9 24 18 42 15 62 48 50 23 16 8 61 30 49 4 31 5 41 60 59 38 33 52 53 54 32 29 37 1 11 47 63 58 44 21 64 2 55"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -14942,7 +14958,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "59 60 41 5 31 4 49 30 61 8 16 23 50 48 62 15 42 18 24 9 6 12 40 20 51 14 36 39 22 46 35 57 19 7 56 25 55 2 64 21 44 58 63 47 11 1 37 29 32 54 53 52 33 38"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -14954,7 +14970,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "26 0001000000000000"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -14966,7 +14982,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "281474976710656 26"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -14978,7 +14994,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "281474976710656 0001000000000000"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -14990,7 +15006,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "3 13 17 27 28 43 45"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -15002,7 +15018,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "45 43 28 27 17 13 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -15014,7 +15030,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "13 43 27 45 17 28 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -15026,7 +15042,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "3 28 17 45 27 43 13"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -15038,7 +15054,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "13 43 27 45 17 28 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -15050,7 +15066,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "3 13 17 26 27 28 43 45"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -15062,7 +15078,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "45 43 28 27 26 17 13 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -15074,7 +15090,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "26 13 43 27 45 17 28 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -15086,7 +15102,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "3 28 17 45 27 43 13 26"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -15098,7 +15114,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "26 13 43 27 45 17 28 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -15110,7 +15126,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1 2 4 5 6 7 8 9 10 11 12 14 15 16 18 19 20 21 22 23 24 25 29 30 31 32 33 34 35 36 37 38 39 40 41 42 44 46 47 48 49 50 51 52 53 54 55 56 57 58 59 60 61 62 63 64"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -15122,7 +15138,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "64 63 62 61 60 59 58 57 56 55 54 53 52 51 50 49 48 47 46 44 42 41 40 39 38 37 36 35 34 33 32 31 30 29 25 24 23 22 21 20 19 18 16 15 14 12 11 10 9 8 7 6 5 4 2 1"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -15134,7 +15150,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "55 2 64 21 44 58 63 47 11 1 37 29 32 54 53 52 33 38 59 60 41 5 31 4 49 30 61 8 16 23 50 48 62 15 42 18 24 9 6 12 40 20 51 14 36 39 22 46 35 57 19 7 56 25 34 10"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -15146,7 +15162,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "10 34 25 56 7 19 57 35 46 22 39 36 14 51 20 40 12 6 9 24 18 42 15 62 48 50 23 16 8 61 30 49 4 31 5 41 60 59 38 33 52 53 54 32 29 37 1 11 47 63 58 44 21 64 2 55"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -15158,7 +15174,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "59 60 41 5 31 4 49 30 61 8 16 23 50 48 62 15 42 18 24 9 6 12 40 20 51 14 36 39 22 46 35 57 19 7 56 25 34 10 55 2 64 21 44 58 63 47 11 1 37 29 32 54 53 52 33 38"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -15170,7 +15186,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1 2 4 5 6 7 8 9 10 11 12 14 15 16 18 19 20 21 22 23 24 25 26 29 30 31 32 33 34 35 36 37 38 39 40 41 42 44 46 47 48 49 50 51 52 53 54 55 56 57 58 59 60 61 62 63 64"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -15182,7 +15198,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "64 63 62 61 60 59 58 57 56 55 54 53 52 51 50 49 48 47 46 44 42 41 40 39 38 37 36 35 34 33 32 31 30 29 26 25 24 23 22 21 20 19 18 16 15 14 12 11 10 9 8 7 6 5 4 2 1"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -15194,7 +15210,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "55 2 64 21 44 58 63 47 11 1 37 29 32 54 53 52 33 38 59 60 41 5 31 4 49 30 61 8 16 23 50 48 62 15 42 18 24 9 6 12 40 20 51 14 36 39 22 46 35 57 19 7 56 25 34 10 26"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -15206,7 +15222,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "26 10 34 25 56 7 19 57 35 46 22 39 36 14 51 20 40 12 6 9 24 18 42 15 62 48 50 23 16 8 61 30 49 4 31 5 41 60 59 38 33 52 53 54 32 29 37 1 11 47 63 58 44 21 64 2 55"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -15218,7 +15234,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "59 60 41 5 31 4 49 30 61 8 16 23 50 48 62 15 42 18 24 9 6 12 40 20 51 14 36 39 22 46 35 57 19 7 56 25 34 10 26 55 2 64 21 44 58 63 47 11 1 37 29 32 54 53 52 33 38"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -15230,7 +15246,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "23 0000000000007fff"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -15242,7 +15258,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "32767 23"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -15254,7 +15270,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "32767 0000000000007fff"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -15266,7 +15282,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "3 6 7 9 10 12 13 14 15 17 18 19 20 22 24 25 26 27 28 34 35 36 39 40 42 43 45 46 48 50 51 56 57 62"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -15278,7 +15294,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "62 57 56 51 50 48 46 45 43 42 40 39 36 35 34 28 27 26 25 24 22 20 19 18 17 15 14 13 12 10 9 7 6 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -15290,7 +15306,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "50 48 62 15 42 18 24 9 6 12 40 20 51 14 36 39 22 46 35 57 19 7 56 25 34 10 26 13 43 27 45 17 28 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -15302,7 +15318,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "3 28 17 45 27 43 13 26 10 34 25 56 7 19 57 35 46 22 39 36 14 51 20 40 12 6 9 24 18 42 15 62 48 50"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -15314,7 +15330,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "50 48 62 15 42 18 24 9 6 12 40 20 51 14 36 39 22 46 35 57 19 7 56 25 34 10 26 13 43 27 45 17 28 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -15326,7 +15342,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "3 6 7 9 10 12 13 14 15 17 18 19 20 22 23 24 25 26 27 28 34 35 36 39 40 42 43 45 46 48 50 51 56 57 62"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -15338,7 +15354,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "62 57 56 51 50 48 46 45 43 42 40 39 36 35 34 28 27 26 25 24 23 22 20 19 18 17 15 14 13 12 10 9 7 6 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -15350,7 +15366,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "23 50 48 62 15 42 18 24 9 6 12 40 20 51 14 36 39 22 46 35 57 19 7 56 25 34 10 26 13 43 27 45 17 28 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -15362,7 +15378,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "3 28 17 45 27 43 13 26 10 34 25 56 7 19 57 35 46 22 39 36 14 51 20 40 12 6 9 24 18 42 15 62 48 50 23"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -15374,7 +15390,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "23 50 48 62 15 42 18 24 9 6 12 40 20 51 14 36 39 22 46 35 57 19 7 56 25 34 10 26 13 43 27 45 17 28 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -15386,7 +15402,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1 2 4 5 8 11 16 21 29 30 31 32 33 37 38 41 44 47 49 52 53 54 55 58 59 60 61 63 64"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -15398,7 +15414,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "64 63 61 60 59 58 55 54 53 52 49 47 44 41 38 37 33 32 31 30 29 21 16 11 8 5 4 2 1"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -15410,7 +15426,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "55 2 64 21 44 58 63 47 11 1 37 29 32 54 53 52 33 38 59 60 41 5 31 4 49 30 61 8 16"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -15422,7 +15438,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "16 8 61 30 49 4 31 5 41 60 59 38 33 52 53 54 32 29 37 1 11 47 63 58 44 21 64 2 55"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -15434,7 +15450,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "59 60 41 5 31 4 49 30 61 8 16 55 2 64 21 44 58 63 47 11 1 37 29 32 54 53 52 33 38"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -15446,7 +15462,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1 2 4 5 8 11 16 21 23 29 30 31 32 33 37 38 41 44 47 49 52 53 54 55 58 59 60 61 63 64"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -15458,7 +15474,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "64 63 61 60 59 58 55 54 53 52 49 47 44 41 38 37 33 32 31 30 29 23 21 16 11 8 5 4 2 1"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -15470,7 +15486,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "55 2 64 21 44 58 63 47 11 1 37 29 32 54 53 52 33 38 59 60 41 5 31 4 49 30 61 8 16 23"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -15482,7 +15498,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "23 16 8 61 30 49 4 31 5 41 60 59 38 33 52 53 54 32 29 37 1 11 47 63 58 44 21 64 2 55"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -15494,7 +15510,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "59 60 41 5 31 4 49 30 61 8 16 23 55 2 64 21 44 58 63 47 11 1 37 29 32 54 53 52 33 38"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -15506,7 +15522,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "4 000000000000007f"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -15518,7 +15534,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "127 4"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -15530,7 +15546,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "127 000000000000007f"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -15542,7 +15558,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "3 6 7 8 9 10 12 13 14 15 16 17 18 19 20 22 23 24 25 26 27 28 30 34 35 36 39 40 42 43 45 46 48 49 50 51 56 57 61 62"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -15554,7 +15570,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "62 61 57 56 51 50 49 48 46 45 43 42 40 39 36 35 34 30 28 27 26 25 24 23 22 20 19 18 17 16 15 14 13 12 10 9 8 7 6 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -15566,7 +15582,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "49 30 61 8 16 23 50 48 62 15 42 18 24 9 6 12 40 20 51 14 36 39 22 46 35 57 19 7 56 25 34 10 26 13 43 27 45 17 28 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -15578,7 +15594,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "3 28 17 45 27 43 13 26 10 34 25 56 7 19 57 35 46 22 39 36 14 51 20 40 12 6 9 24 18 42 15 62 48 50 23 16 8 61 30 49"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -15590,7 +15606,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "49 30 61 8 16 23 50 48 62 15 42 18 24 9 6 12 40 20 51 14 36 39 22 46 35 57 19 7 56 25 34 10 26 13 43 27 45 17 28 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -15602,7 +15618,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "3 4 6 7 8 9 10 12 13 14 15 16 17 18 19 20 22 23 24 25 26 27 28 30 34 35 36 39 40 42 43 45 46 48 49 50 51 56 57 61 62"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -15614,7 +15630,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "62 61 57 56 51 50 49 48 46 45 43 42 40 39 36 35 34 30 28 27 26 25 24 23 22 20 19 18 17 16 15 14 13 12 10 9 8 7 6 4 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -15626,7 +15642,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "4 49 30 61 8 16 23 50 48 62 15 42 18 24 9 6 12 40 20 51 14 36 39 22 46 35 57 19 7 56 25 34 10 26 13 43 27 45 17 28 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -15638,7 +15654,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "3 28 17 45 27 43 13 26 10 34 25 56 7 19 57 35 46 22 39 36 14 51 20 40 12 6 9 24 18 42 15 62 48 50 23 16 8 61 30 49 4"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -15650,7 +15666,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "4 49 30 61 8 16 23 50 48 62 15 42 18 24 9 6 12 40 20 51 14 36 39 22 46 35 57 19 7 56 25 34 10 26 13 43 27 45 17 28 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -15662,7 +15678,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1 2 5 11 21 29 31 32 33 37 38 41 44 47 52 53 54 55 58 59 60 63 64"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -15674,7 +15690,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "64 63 60 59 58 55 54 53 52 47 44 41 38 37 33 32 31 29 21 11 5 2 1"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -15686,7 +15702,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "55 2 64 21 44 58 63 47 11 1 37 29 32 54 53 52 33 38 59 60 41 5 31"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -15698,7 +15714,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "31 5 41 60 59 38 33 52 53 54 32 29 37 1 11 47 63 58 44 21 64 2 55"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -15710,7 +15726,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "59 60 41 5 31 55 2 64 21 44 58 63 47 11 1 37 29 32 54 53 52 33 38"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -15722,7 +15738,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1 2 4 5 11 21 29 31 32 33 37 38 41 44 47 52 53 54 55 58 59 60 63 64"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -15734,7 +15750,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "64 63 60 59 58 55 54 53 52 47 44 41 38 37 33 32 31 29 21 11 5 4 2 1"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -15746,7 +15762,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "55 2 64 21 44 58 63 47 11 1 37 29 32 54 53 52 33 38 59 60 41 5 31 4"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -15758,7 +15774,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "4 31 5 41 60 59 38 33 52 53 54 32 29 37 1 11 47 63 58 44 21 64 2 55"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -15770,7 +15786,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "59 60 41 5 31 4 55 2 64 21 44 58 63 47 11 1 37 29 32 54 53 52 33 38"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -15782,7 +15798,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "27 007fffffffffffff"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -15794,7 +15810,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "36028797018963967 27"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -15806,7 +15822,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "36028797018963967 007fffffffffffff"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -15818,7 +15834,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "3 17 28 45"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -15830,7 +15846,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "45 28 17 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -15842,7 +15858,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "45 17 28 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -15854,7 +15870,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "3 28 17 45"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -15866,7 +15882,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "45 17 28 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -15878,7 +15894,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "3 17 27 28 45"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -15890,7 +15906,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "45 28 27 17 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -15902,7 +15918,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "27 45 17 28 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -15914,7 +15930,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "3 28 17 45 27"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -15926,7 +15942,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "27 45 17 28 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -15938,7 +15954,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1 2 4 5 6 7 8 9 10 11 12 13 14 15 16 18 19 20 21 22 23 24 25 26 29 30 31 32 33 34 35 36 37 38 39 40 41 42 43 44 46 47 48 49 50 51 52 53 54 55 56 57 58 59 60 61 62 63 64"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -15950,7 +15966,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "64 63 62 61 60 59 58 57 56 55 54 53 52 51 50 49 48 47 46 44 43 42 41 40 39 38 37 36 35 34 33 32 31 30 29 26 25 24 23 22 21 20 19 18 16 15 14 13 12 11 10 9 8 7 6 5 4 2 1"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -15962,7 +15978,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "55 2 64 21 44 58 63 47 11 1 37 29 32 54 53 52 33 38 59 60 41 5 31 4 49 30 61 8 16 23 50 48 62 15 42 18 24 9 6 12 40 20 51 14 36 39 22 46 35 57 19 7 56 25 34 10 26 13 43"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -15974,7 +15990,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "43 13 26 10 34 25 56 7 19 57 35 46 22 39 36 14 51 20 40 12 6 9 24 18 42 15 62 48 50 23 16 8 61 30 49 4 31 5 41 60 59 38 33 52 53 54 32 29 37 1 11 47 63 58 44 21 64 2 55"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -15986,7 +16002,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "59 60 41 5 31 4 49 30 61 8 16 23 50 48 62 15 42 18 24 9 6 12 40 20 51 14 36 39 22 46 35 57 19 7 56 25 34 10 26 13 43 55 2 64 21 44 58 63 47 11 1 37 29 32 54 53 52 33 38"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -15998,7 +16014,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1 2 4 5 6 7 8 9 10 11 12 13 14 15 16 18 19 20 21 22 23 24 25 26 27 29 30 31 32 33 34 35 36 37 38 39 40 41 42 43 44 46 47 48 49 50 51 52 53 54 55 56 57 58 59 60 61 62 63 64"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -16010,7 +16026,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "64 63 62 61 60 59 58 57 56 55 54 53 52 51 50 49 48 47 46 44 43 42 41 40 39 38 37 36 35 34 33 32 31 30 29 27 26 25 24 23 22 21 20 19 18 16 15 14 13 12 11 10 9 8 7 6 5 4 2 1"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -16022,7 +16038,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "55 2 64 21 44 58 63 47 11 1 37 29 32 54 53 52 33 38 59 60 41 5 31 4 49 30 61 8 16 23 50 48 62 15 42 18 24 9 6 12 40 20 51 14 36 39 22 46 35 57 19 7 56 25 34 10 26 13 43 27"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -16034,7 +16050,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "27 43 13 26 10 34 25 56 7 19 57 35 46 22 39 36 14 51 20 40 12 6 9 24 18 42 15 62 48 50 23 16 8 61 30 49 4 31 5 41 60 59 38 33 52 53 54 32 29 37 1 11 47 63 58 44 21 64 2 55"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -16046,7 +16062,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "59 60 41 5 31 4 49 30 61 8 16 23 50 48 62 15 42 18 24 9 6 12 40 20 51 14 36 39 22 46 35 57 19 7 56 25 34 10 26 13 43 27 55 2 64 21 44 58 63 47 11 1 37 29 32 54 53 52 33 38"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -16058,7 +16074,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "56 0000040000000000"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -16070,7 +16086,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "4398046511104 56"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -16082,7 +16098,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "4398046511104 0000040000000000"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -16094,7 +16110,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "3 10 13 17 25 26 27 28 34 43 45"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -16106,7 +16122,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "45 43 34 28 27 26 25 17 13 10 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -16118,7 +16134,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "25 34 10 26 13 43 27 45 17 28 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -16130,7 +16146,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "3 28 17 45 27 43 13 26 10 34 25"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -16142,7 +16158,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "25 34 10 26 13 43 27 45 17 28 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -16154,7 +16170,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "3 10 13 17 25 26 27 28 34 43 45 56"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -16166,7 +16182,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "56 45 43 34 28 27 26 25 17 13 10 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -16178,7 +16194,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "56 25 34 10 26 13 43 27 45 17 28 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -16190,7 +16206,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "3 28 17 45 27 43 13 26 10 34 25 56"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -16202,7 +16218,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "56 25 34 10 26 13 43 27 45 17 28 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -16214,7 +16230,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1 2 4 5 6 7 8 9 11 12 14 15 16 18 19 20 21 22 23 24 29 30 31 32 33 35 36 37 38 39 40 41 42 44 46 47 48 49 50 51 52 53 54 55 57 58 59 60 61 62 63 64"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -16226,7 +16242,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "64 63 62 61 60 59 58 57 55 54 53 52 51 50 49 48 47 46 44 42 41 40 39 38 37 36 35 33 32 31 30 29 24 23 22 21 20 19 18 16 15 14 12 11 9 8 7 6 5 4 2 1"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -16238,7 +16254,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "55 2 64 21 44 58 63 47 11 1 37 29 32 54 53 52 33 38 59 60 41 5 31 4 49 30 61 8 16 23 50 48 62 15 42 18 24 9 6 12 40 20 51 14 36 39 22 46 35 57 19 7"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -16250,7 +16266,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "7 19 57 35 46 22 39 36 14 51 20 40 12 6 9 24 18 42 15 62 48 50 23 16 8 61 30 49 4 31 5 41 60 59 38 33 52 53 54 32 29 37 1 11 47 63 58 44 21 64 2 55"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -16262,7 +16278,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "59 60 41 5 31 4 49 30 61 8 16 23 50 48 62 15 42 18 24 9 6 12 40 20 51 14 36 39 22 46 35 57 19 7 55 2 64 21 44 58 63 47 11 1 37 29 32 54 53 52 33 38"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -16274,7 +16290,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1 2 4 5 6 7 8 9 11 12 14 15 16 18 19 20 21 22 23 24 29 30 31 32 33 35 36 37 38 39 40 41 42 44 46 47 48 49 50 51 52 53 54 55 56 57 58 59 60 61 62 63 64"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -16286,7 +16302,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "64 63 62 61 60 59 58 57 56 55 54 53 52 51 50 49 48 47 46 44 42 41 40 39 38 37 36 35 33 32 31 30 29 24 23 22 21 20 19 18 16 15 14 12 11 9 8 7 6 5 4 2 1"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -16298,7 +16314,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "55 2 64 21 44 58 63 47 11 1 37 29 32 54 53 52 33 38 59 60 41 5 31 4 49 30 61 8 16 23 50 48 62 15 42 18 24 9 6 12 40 20 51 14 36 39 22 46 35 57 19 7 56"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -16310,7 +16326,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "56 7 19 57 35 46 22 39 36 14 51 20 40 12 6 9 24 18 42 15 62 48 50 23 16 8 61 30 49 4 31 5 41 60 59 38 33 52 53 54 32 29 37 1 11 47 63 58 44 21 64 2 55"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -16322,7 +16338,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "59 60 41 5 31 4 49 30 61 8 16 23 50 48 62 15 42 18 24 9 6 12 40 20 51 14 36 39 22 46 35 57 19 7 56 55 2 64 21 44 58 63 47 11 1 37 29 32 54 53 52 33 38"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -16334,7 +16350,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "60 0000000000000001"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -16346,7 +16362,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1 60"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -16358,7 +16374,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1 0000000000000001"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -16370,7 +16386,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "3 4 5 6 7 8 9 10 12 13 14 15 16 17 18 19 20 22 23 24 25 26 27 28 30 31 34 35 36 39 40 41 42 43 45 46 48 49 50 51 56 57 61 62"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -16382,7 +16398,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "62 61 57 56 51 50 49 48 46 45 43 42 41 40 39 36 35 34 31 30 28 27 26 25 24 23 22 20 19 18 17 16 15 14 13 12 10 9 8 7 6 5 4 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -16394,7 +16410,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "41 5 31 4 49 30 61 8 16 23 50 48 62 15 42 18 24 9 6 12 40 20 51 14 36 39 22 46 35 57 19 7 56 25 34 10 26 13 43 27 45 17 28 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -16406,7 +16422,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "3 28 17 45 27 43 13 26 10 34 25 56 7 19 57 35 46 22 39 36 14 51 20 40 12 6 9 24 18 42 15 62 48 50 23 16 8 61 30 49 4 31 5 41"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -16418,7 +16434,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "41 5 31 4 49 30 61 8 16 23 50 48 62 15 42 18 24 9 6 12 40 20 51 14 36 39 22 46 35 57 19 7 56 25 34 10 26 13 43 27 45 17 28 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -16430,7 +16446,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "3 4 5 6 7 8 9 10 12 13 14 15 16 17 18 19 20 22 23 24 25 26 27 28 30 31 34 35 36 39 40 41 42 43 45 46 48 49 50 51 56 57 60 61 62"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -16442,7 +16458,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "62 61 60 57 56 51 50 49 48 46 45 43 42 41 40 39 36 35 34 31 30 28 27 26 25 24 23 22 20 19 18 17 16 15 14 13 12 10 9 8 7 6 5 4 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -16454,7 +16470,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "60 41 5 31 4 49 30 61 8 16 23 50 48 62 15 42 18 24 9 6 12 40 20 51 14 36 39 22 46 35 57 19 7 56 25 34 10 26 13 43 27 45 17 28 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -16466,7 +16482,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "3 28 17 45 27 43 13 26 10 34 25 56 7 19 57 35 46 22 39 36 14 51 20 40 12 6 9 24 18 42 15 62 48 50 23 16 8 61 30 49 4 31 5 41 60"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -16478,7 +16494,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "60 41 5 31 4 49 30 61 8 16 23 50 48 62 15 42 18 24 9 6 12 40 20 51 14 36 39 22 46 35 57 19 7 56 25 34 10 26 13 43 27 45 17 28 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -16490,7 +16506,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1 2 11 21 29 32 33 37 38 44 47 52 53 54 55 58 59 63 64"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -16502,7 +16518,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "64 63 59 58 55 54 53 52 47 44 38 37 33 32 29 21 11 2 1"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -16514,7 +16530,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "55 2 64 21 44 58 63 47 11 1 37 29 32 54 53 52 33 38 59"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -16526,7 +16542,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "59 38 33 52 53 54 32 29 37 1 11 47 63 58 44 21 64 2 55"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -16538,7 +16554,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "59 55 2 64 21 44 58 63 47 11 1 37 29 32 54 53 52 33 38"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -16550,7 +16566,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1 2 11 21 29 32 33 37 38 44 47 52 53 54 55 58 59 60 63 64"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -16562,7 +16578,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "64 63 60 59 58 55 54 53 52 47 44 38 37 33 32 29 21 11 2 1"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -16574,7 +16590,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "55 2 64 21 44 58 63 47 11 1 37 29 32 54 53 52 33 38 59 60"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -16586,7 +16602,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "60 59 38 33 52 53 54 32 29 37 1 11 47 63 58 44 21 64 2 55"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -16598,7 +16614,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "59 60 55 2 64 21 44 58 63 47 11 1 37 29 32 54 53 52 33 38"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -16610,7 +16626,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "45 0080000000000000"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -16622,7 +16638,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "36028797018963968 45"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -16634,7 +16650,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "36028797018963968 0080000000000000"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -16646,7 +16662,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "3 17 28"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -16658,7 +16674,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "28 17 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -16670,7 +16686,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "17 28 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -16682,7 +16698,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "3 28 17"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -16694,7 +16710,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "17 28 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -16706,7 +16722,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "3 17 28 45"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -16718,7 +16734,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "45 28 17 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -16730,7 +16746,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "45 17 28 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -16742,7 +16758,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "3 28 17 45"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -16754,7 +16770,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "45 17 28 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -16766,7 +16782,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1 2 4 5 6 7 8 9 10 11 12 13 14 15 16 18 19 20 21 22 23 24 25 26 27 29 30 31 32 33 34 35 36 37 38 39 40 41 42 43 44 46 47 48 49 50 51 52 53 54 55 56 57 58 59 60 61 62 63 64"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -16778,7 +16794,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "64 63 62 61 60 59 58 57 56 55 54 53 52 51 50 49 48 47 46 44 43 42 41 40 39 38 37 36 35 34 33 32 31 30 29 27 26 25 24 23 22 21 20 19 18 16 15 14 13 12 11 10 9 8 7 6 5 4 2 1"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -16790,7 +16806,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "55 2 64 21 44 58 63 47 11 1 37 29 32 54 53 52 33 38 59 60 41 5 31 4 49 30 61 8 16 23 50 48 62 15 42 18 24 9 6 12 40 20 51 14 36 39 22 46 35 57 19 7 56 25 34 10 26 13 43 27"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -16802,7 +16818,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "27 43 13 26 10 34 25 56 7 19 57 35 46 22 39 36 14 51 20 40 12 6 9 24 18 42 15 62 48 50 23 16 8 61 30 49 4 31 5 41 60 59 38 33 52 53 54 32 29 37 1 11 47 63 58 44 21 64 2 55"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -16814,7 +16830,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "59 60 41 5 31 4 49 30 61 8 16 23 50 48 62 15 42 18 24 9 6 12 40 20 51 14 36 39 22 46 35 57 19 7 56 25 34 10 26 13 43 27 55 2 64 21 44 58 63 47 11 1 37 29 32 54 53 52 33 38"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -16826,7 +16842,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1 2 4 5 6 7 8 9 10 11 12 13 14 15 16 18 19 20 21 22 23 24 25 26 27 29 30 31 32 33 34 35 36 37 38 39 40 41 42 43 44 45 46 47 48 49 50 51 52 53 54 55 56 57 58 59 60 61 62 63 64"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -16838,7 +16854,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "64 63 62 61 60 59 58 57 56 55 54 53 52 51 50 49 48 47 46 45 44 43 42 41 40 39 38 37 36 35 34 33 32 31 30 29 27 26 25 24 23 22 21 20 19 18 16 15 14 13 12 11 10 9 8 7 6 5 4 2 1"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -16850,7 +16866,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "55 2 64 21 44 58 63 47 11 1 37 29 32 54 53 52 33 38 59 60 41 5 31 4 49 30 61 8 16 23 50 48 62 15 42 18 24 9 6 12 40 20 51 14 36 39 22 46 35 57 19 7 56 25 34 10 26 13 43 27 45"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -16862,7 +16878,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "45 27 43 13 26 10 34 25 56 7 19 57 35 46 22 39 36 14 51 20 40 12 6 9 24 18 42 15 62 48 50 23 16 8 61 30 49 4 31 5 41 60 59 38 33 52 53 54 32 29 37 1 11 47 63 58 44 21 64 2 55"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -16874,7 +16890,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "59 60 41 5 31 4 49 30 61 8 16 23 50 48 62 15 42 18 24 9 6 12 40 20 51 14 36 39 22 46 35 57 19 7 56 25 34 10 26 13 43 27 45 55 2 64 21 44 58 63 47 11 1 37 29 32 54 53 52 33 38"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -16886,7 +16902,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "47 ffffffff7fffffff"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -16898,7 +16914,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "-2147483649 47"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -16910,7 +16926,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "-2147483649 ffffffff7fffffff"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -16922,7 +16938,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 37 38 39 40 41 42 43 45 46 48 49 50 51 52 53 54 56 57 59 60 61 62"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -16934,7 +16950,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "62 61 60 59 57 56 54 53 52 51 50 49 48 46 45 43 42 41 40 39 38 37 36 35 34 33 32 31 30 29 28 27 26 25 24 23 22 20 19 18 17 16 15 14 13 12 11 10 9 8 7 6 5 4 3 1"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -16946,7 +16962,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "11 1 37 29 32 54 53 52 33 38 59 60 41 5 31 4 49 30 61 8 16 23 50 48 62 15 42 18 24 9 6 12 40 20 51 14 36 39 22 46 35 57 19 7 56 25 34 10 26 13 43 27 45 17 28 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -16958,7 +16974,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "3 28 17 45 27 43 13 26 10 34 25 56 7 19 57 35 46 22 39 36 14 51 20 40 12 6 9 24 18 42 15 62 48 50 23 16 8 61 30 49 4 31 5 41 60 59 38 33 52 53 54 32 29 37 1 11"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -16970,7 +16986,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "59 60 41 5 31 4 49 30 61 8 16 23 50 48 62 15 42 18 24 9 6 12 40 20 51 14 36 39 22 46 35 57 19 7 56 25 34 10 26 13 43 27 45 17 28 3 11 1 37 29 32 54 53 52 33 38"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -16982,7 +16998,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 37 38 39 40 41 42 43 45 46 47 48 49 50 51 52 53 54 56 57 59 60 61 62"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -16994,7 +17010,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "62 61 60 59 57 56 54 53 52 51 50 49 48 47 46 45 43 42 41 40 39 38 37 36 35 34 33 32 31 30 29 28 27 26 25 24 23 22 20 19 18 17 16 15 14 13 12 11 10 9 8 7 6 5 4 3 1"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -17006,7 +17022,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "47 11 1 37 29 32 54 53 52 33 38 59 60 41 5 31 4 49 30 61 8 16 23 50 48 62 15 42 18 24 9 6 12 40 20 51 14 36 39 22 46 35 57 19 7 56 25 34 10 26 13 43 27 45 17 28 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -17018,7 +17034,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "3 28 17 45 27 43 13 26 10 34 25 56 7 19 57 35 46 22 39 36 14 51 20 40 12 6 9 24 18 42 15 62 48 50 23 16 8 61 30 49 4 31 5 41 60 59 38 33 52 53 54 32 29 37 1 11 47"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -17030,7 +17046,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "59 60 41 5 31 4 49 30 61 8 16 23 50 48 62 15 42 18 24 9 6 12 40 20 51 14 36 39 22 46 35 57 19 7 56 25 34 10 26 13 43 27 45 17 28 3 47 11 1 37 29 32 54 53 52 33 38"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -17042,7 +17058,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "2 21 44 55 58 63 64"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -17054,7 +17070,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "64 63 58 55 44 21 2"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -17066,7 +17082,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "55 2 64 21 44 58 63"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -17078,7 +17094,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "63 58 44 21 64 2 55"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -17090,7 +17106,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "55 2 64 21 44 58 63"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -17102,7 +17118,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "2 21 44 47 55 58 63 64"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -17114,7 +17130,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "64 63 58 55 47 44 21 2"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -17126,7 +17142,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "55 2 64 21 44 58 63 47"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -17138,7 +17154,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "47 63 58 44 21 64 2 55"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -17150,7 +17166,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "55 2 64 21 44 58 63 47"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -17162,7 +17178,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "2 ff7fffffffffffff"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -17174,7 +17190,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "-36028797018963969 2"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -17186,7 +17202,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "-36028797018963969 ff7fffffffffffff"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -17198,7 +17214,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 37 38 39 40 41 42 43 44 45 46 47 48 49 50 51 52 53 54 56 57 58 59 60 61 62 63 64"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -17210,7 +17226,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "64 63 62 61 60 59 58 57 56 54 53 52 51 50 49 48 47 46 45 44 43 42 41 40 39 38 37 36 35 34 33 32 31 30 29 28 27 26 25 24 23 22 21 20 19 18 17 16 15 14 13 12 11 10 9 8 7 6 5 4 3 1"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -17222,7 +17238,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "64 21 44 58 63 47 11 1 37 29 32 54 53 52 33 38 59 60 41 5 31 4 49 30 61 8 16 23 50 48 62 15 42 18 24 9 6 12 40 20 51 14 36 39 22 46 35 57 19 7 56 25 34 10 26 13 43 27 45 17 28 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -17234,7 +17250,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "3 28 17 45 27 43 13 26 10 34 25 56 7 19 57 35 46 22 39 36 14 51 20 40 12 6 9 24 18 42 15 62 48 50 23 16 8 61 30 49 4 31 5 41 60 59 38 33 52 53 54 32 29 37 1 11 47 63 58 44 21 64"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -17246,7 +17262,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "59 60 41 5 31 4 49 30 61 8 16 23 50 48 62 15 42 18 24 9 6 12 40 20 51 14 36 39 22 46 35 57 19 7 56 25 34 10 26 13 43 27 45 17 28 3 64 21 44 58 63 47 11 1 37 29 32 54 53 52 33 38"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -17258,7 +17274,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 37 38 39 40 41 42 43 44 45 46 47 48 49 50 51 52 53 54 56 57 58 59 60 61 62 63 64"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -17270,7 +17286,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "64 63 62 61 60 59 58 57 56 54 53 52 51 50 49 48 47 46 45 44 43 42 41 40 39 38 37 36 35 34 33 32 31 30 29 28 27 26 25 24 23 22 21 20 19 18 17 16 15 14 13 12 11 10 9 8 7 6 5 4 3 2 1"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -17282,7 +17298,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "2 64 21 44 58 63 47 11 1 37 29 32 54 53 52 33 38 59 60 41 5 31 4 49 30 61 8 16 23 50 48 62 15 42 18 24 9 6 12 40 20 51 14 36 39 22 46 35 57 19 7 56 25 34 10 26 13 43 27 45 17 28 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -17294,7 +17310,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "3 28 17 45 27 43 13 26 10 34 25 56 7 19 57 35 46 22 39 36 14 51 20 40 12 6 9 24 18 42 15 62 48 50 23 16 8 61 30 49 4 31 5 41 60 59 38 33 52 53 54 32 29 37 1 11 47 63 58 44 21 64 2"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -17306,7 +17322,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "59 60 41 5 31 4 49 30 61 8 16 23 50 48 62 15 42 18 24 9 6 12 40 20 51 14 36 39 22 46 35 57 19 7 56 25 34 10 26 13 43 27 45 17 28 3 2 64 21 44 58 63 47 11 1 37 29 32 54 53 52 33 38"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -17318,7 +17334,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "55"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -17330,7 +17346,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "55"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -17342,7 +17358,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "55"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -17354,7 +17370,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "55"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -17366,7 +17382,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "55"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -17378,7 +17394,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "2 55"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -17390,7 +17406,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "55 2"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -17402,7 +17418,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "55 2"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -17414,7 +17430,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "2 55"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -17426,7 +17442,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "55 2"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -17438,7 +17454,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "5 0000000000000003"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -17450,7 +17466,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "3 5"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -17462,7 +17478,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "3 0000000000000003"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -17474,7 +17490,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "3 4 6 7 8 9 10 12 13 14 15 16 17 18 19 20 22 23 24 25 26 27 28 30 31 34 35 36 39 40 42 43 45 46 48 49 50 51 56 57 61 62"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -17486,7 +17502,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "62 61 57 56 51 50 49 48 46 45 43 42 40 39 36 35 34 31 30 28 27 26 25 24 23 22 20 19 18 17 16 15 14 13 12 10 9 8 7 6 4 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -17498,7 +17514,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "31 4 49 30 61 8 16 23 50 48 62 15 42 18 24 9 6 12 40 20 51 14 36 39 22 46 35 57 19 7 56 25 34 10 26 13 43 27 45 17 28 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -17510,7 +17526,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "3 28 17 45 27 43 13 26 10 34 25 56 7 19 57 35 46 22 39 36 14 51 20 40 12 6 9 24 18 42 15 62 48 50 23 16 8 61 30 49 4 31"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -17522,7 +17538,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "31 4 49 30 61 8 16 23 50 48 62 15 42 18 24 9 6 12 40 20 51 14 36 39 22 46 35 57 19 7 56 25 34 10 26 13 43 27 45 17 28 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -17534,7 +17550,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "3 4 5 6 7 8 9 10 12 13 14 15 16 17 18 19 20 22 23 24 25 26 27 28 30 31 34 35 36 39 40 42 43 45 46 48 49 50 51 56 57 61 62"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -17546,7 +17562,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "62 61 57 56 51 50 49 48 46 45 43 42 40 39 36 35 34 31 30 28 27 26 25 24 23 22 20 19 18 17 16 15 14 13 12 10 9 8 7 6 5 4 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -17558,7 +17574,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "5 31 4 49 30 61 8 16 23 50 48 62 15 42 18 24 9 6 12 40 20 51 14 36 39 22 46 35 57 19 7 56 25 34 10 26 13 43 27 45 17 28 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -17570,7 +17586,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "3 28 17 45 27 43 13 26 10 34 25 56 7 19 57 35 46 22 39 36 14 51 20 40 12 6 9 24 18 42 15 62 48 50 23 16 8 61 30 49 4 31 5"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -17582,7 +17598,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "5 31 4 49 30 61 8 16 23 50 48 62 15 42 18 24 9 6 12 40 20 51 14 36 39 22 46 35 57 19 7 56 25 34 10 26 13 43 27 45 17 28 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -17594,7 +17610,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1 2 11 21 29 32 33 37 38 41 44 47 52 53 54 55 58 59 60 63 64"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -17606,7 +17622,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "64 63 60 59 58 55 54 53 52 47 44 41 38 37 33 32 29 21 11 2 1"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -17618,7 +17634,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "55 2 64 21 44 58 63 47 11 1 37 29 32 54 53 52 33 38 59 60 41"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -17630,7 +17646,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "41 60 59 38 33 52 53 54 32 29 37 1 11 47 63 58 44 21 64 2 55"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -17642,7 +17658,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "59 60 41 55 2 64 21 44 58 63 47 11 1 37 29 32 54 53 52 33 38"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -17654,7 +17670,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1 2 5 11 21 29 32 33 37 38 41 44 47 52 53 54 55 58 59 60 63 64"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -17666,7 +17682,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "64 63 60 59 58 55 54 53 52 47 44 41 38 37 33 32 29 21 11 5 2 1"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -17678,7 +17694,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "55 2 64 21 44 58 63 47 11 1 37 29 32 54 53 52 33 38 59 60 41 5"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -17690,7 +17706,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "5 41 60 59 38 33 52 53 54 32 29 37 1 11 47 63 58 44 21 64 2 55"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -17702,7 +17718,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "59 60 41 5 55 2 64 21 44 58 63 47 11 1 37 29 32 54 53 52 33 38"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -17714,7 +17730,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "{}"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -17726,7 +17742,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "{}"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -17738,7 +17754,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "{}"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -17750,7 +17766,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "{}"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -17762,7 +17778,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "{}"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -17774,7 +17790,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "{}"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -17786,7 +17802,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "{}"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -17798,7 +17814,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "{}"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -17810,7 +17826,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "{}"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -17822,7 +17838,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "{}"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -17834,7 +17850,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 37 38 39 40 41 42 43 44 45 46 47 48 49 50 51 52 53 54 55 56 57 58 59 60 61 62 63 64"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -17846,7 +17862,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "64 63 62 61 60 59 58 57 56 55 54 53 52 51 50 49 48 47 46 45 44 43 42 41 40 39 38 37 36 35 34 33 32 31 30 29 28 27 26 25 24 23 22 21 20 19 18 17 16 15 14 13 12 11 10 9 8 7 6 5 4 3 2 1"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -17858,7 +17874,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "55 2 64 21 44 58 63 47 11 1 37 29 32 54 53 52 33 38 59 60 41 5 31 4 49 30 61 8 16 23 50 48 62 15 42 18 24 9 6 12 40 20 51 14 36 39 22 46 35 57 19 7 56 25 34 10 26 13 43 27 45 17 28 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -17870,7 +17886,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "3 28 17 45 27 43 13 26 10 34 25 56 7 19 57 35 46 22 39 36 14 51 20 40 12 6 9 24 18 42 15 62 48 50 23 16 8 61 30 49 4 31 5 41 60 59 38 33 52 53 54 32 29 37 1 11 47 63 58 44 21 64 2 55"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -17882,7 +17898,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "59 60 41 5 31 4 49 30 61 8 16 23 50 48 62 15 42 18 24 9 6 12 40 20 51 14 36 39 22 46 35 57 19 7 56 25 34 10 26 13 43 27 45 17 28 3 55 2 64 21 44 58 63 47 11 1 37 29 32 54 53 52 33 38"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -17894,7 +17910,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 37 38 39 40 41 42 43 44 45 46 47 48 49 50 51 52 53 54 55 56 57 58 59 60 61 62 63 64"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -17906,7 +17922,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "64 63 62 61 60 59 58 57 56 55 54 53 52 51 50 49 48 47 46 45 44 43 42 41 40 39 38 37 36 35 34 33 32 31 30 29 28 27 26 25 24 23 22 21 20 19 18 17 16 15 14 13 12 11 10 9 8 7 6 5 4 3 2 1"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -17918,7 +17934,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "55 2 64 21 44 58 63 47 11 1 37 29 32 54 53 52 33 38 59 60 41 5 31 4 49 30 61 8 16 23 50 48 62 15 42 18 24 9 6 12 40 20 51 14 36 39 22 46 35 57 19 7 56 25 34 10 26 13 43 27 45 17 28 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -17930,7 +17946,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "3 28 17 45 27 43 13 26 10 34 25 56 7 19 57 35 46 22 39 36 14 51 20 40 12 6 9 24 18 42 15 62 48 50 23 16 8 61 30 49 4 31 5 41 60 59 38 33 52 53 54 32 29 37 1 11 47 63 58 44 21 64 2 55"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -17942,7 +17958,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "59 60 41 5 31 4 49 30 61 8 16 23 50 48 62 15 42 18 24 9 6 12 40 20 51 14 36 39 22 46 35 57 19 7 56 25 34 10 26 13 43 27 45 17 28 3 55 2 64 21 44 58 63 47 11 1 37 29 32 54 53 52 33 38"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -17954,7 +17970,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 37 38 39 40 41 42 43 44 45 46 47 48 49 50 51 52 53 54 55 56 57 58 59 60 61 62 63 64"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -17966,7 +17982,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "64 63 62 61 60 59 58 57 56 55 54 53 52 51 50 49 48 47 46 45 44 43 42 41 40 39 38 37 36 35 34 33 32 31 30 29 28 27 26 25 24 23 22 21 20 19 18 17 16 15 14 13 12 11 10 9 8 7 6 5 4 3 2 1"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -17978,7 +17994,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "55 2 64 21 44 58 63 47 11 1 37 29 32 54 53 52 33 38 59 60 41 5 31 4 49 30 61 8 16 23 50 48 62 15 42 18 24 9 6 12 40 20 51 14 36 39 22 46 35 57 19 7 56 25 34 10 26 13 43 27 45 17 28 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -17990,7 +18006,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "3 28 17 45 27 43 13 26 10 34 25 56 7 19 57 35 46 22 39 36 14 51 20 40 12 6 9 24 18 42 15 62 48 50 23 16 8 61 30 49 4 31 5 41 60 59 38 33 52 53 54 32 29 37 1 11 47 63 58 44 21 64 2 55"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -18002,7 +18018,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "59 60 41 5 31 4 49 30 61 8 16 23 50 48 62 15 42 18 24 9 6 12 40 20 51 14 36 39 22 46 35 57 19 7 56 25 34 10 26 13 43 27 45 17 28 3 55 2 64 21 44 58 63 47 11 1 37 29 32 54 53 52 33 38"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -18014,7 +18030,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 37 38 39 40 41 42 43 44 45 46 47 48 49 50 51 52 53 54 55 56 57 58 59 60 61 62 63 64"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -18026,7 +18042,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "64 63 62 61 60 59 58 57 56 55 54 53 52 51 50 49 48 47 46 45 44 43 42 41 40 39 38 37 36 35 34 33 32 31 30 29 28 27 26 25 24 23 22 21 20 19 18 17 16 15 14 13 12 11 10 9 8 7 6 5 4 3 2 1"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -18038,7 +18054,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "55 2 64 21 44 58 63 47 11 1 37 29 32 54 53 52 33 38 59 60 41 5 31 4 49 30 61 8 16 23 50 48 62 15 42 18 24 9 6 12 40 20 51 14 36 39 22 46 35 57 19 7 56 25 34 10 26 13 43 27 45 17 28 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -18050,7 +18066,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "3 28 17 45 27 43 13 26 10 34 25 56 7 19 57 35 46 22 39 36 14 51 20 40 12 6 9 24 18 42 15 62 48 50 23 16 8 61 30 49 4 31 5 41 60 59 38 33 52 53 54 32 29 37 1 11 47 63 58 44 21 64 2 55"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -18062,7 +18078,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "59 60 41 5 31 4 49 30 61 8 16 23 50 48 62 15 42 18 24 9 6 12 40 20 51 14 36 39 22 46 35 57 19 7 56 25 34 10 26 13 43 27 45 17 28 3 55 2 64 21 44 58 63 47 11 1 37 29 32 54 53 52 33 38"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -18074,7 +18090,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "{}"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -18086,7 +18102,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "{}"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -18098,7 +18114,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "{}"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -18110,7 +18126,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "{}"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -18122,7 +18138,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "{}"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -18134,7 +18150,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "{}"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -18146,7 +18162,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "{}"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -18158,7 +18174,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "{}"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -18170,7 +18186,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "{}"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -18182,7 +18198,7 @@ func Test_boundary1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "{}"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}

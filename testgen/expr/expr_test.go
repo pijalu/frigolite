@@ -5,6 +5,7 @@
 package expr
 
 import (
+"fmt"
 "github.com/pijalu/frigolite"
 "github.com/pijalu/frigolite/internal/function"
 "github.com/pijalu/frigolite/internal/vtab"
@@ -22,6 +23,21 @@ func Test_expr(t *testing.T) {
 		t.Fatal(err)
 	}
 	defer db.Close()
+
+	// auto-installed test-extension functions (src/test_func.c)
+	db.RegisterFunction("test_error", func(args []interface{}) (interface{}, error) {
+		msg := ""
+		if len(args) > 0 && args[0] != nil {
+			msg = fmt.Sprintf("%v", args[0])
+		}
+		return nil, fmt.Errorf("%s", msg)
+	}, 1, 2)
+	db.RegisterFunction("test_isolation", func(args []interface{}) (interface{}, error) {
+		if len(args) < 2 {
+			return nil, nil
+		}
+		return args[1], nil
+	}, 2, 2)
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
@@ -669,7 +685,7 @@ func Test_expr(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "{} 0 1 2 2 4 3 8 4 16 5 32 6 64 7 128 8 256 9 512 10 1024 11 2048 12 4096 13 8192 14 16384 15 32768 16 65536 17 131072 18 262144 19 524288 20 1048576"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -757,7 +773,7 @@ func Test_expr(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "15:34:09"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -769,7 +785,7 @@ func Test_expr(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "2006-09-01"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -781,7 +797,7 @@ func Test_expr(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "2006-09-01 15:34:09"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -793,7 +809,7 @@ func Test_expr(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -805,7 +821,7 @@ func Test_expr(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -817,7 +833,7 @@ func Test_expr(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -830,7 +846,7 @@ func Test_expr(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "123.0"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -854,7 +870,7 @@ func Test_expr(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "integer"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -866,7 +882,7 @@ func Test_expr(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "integer"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -878,7 +894,7 @@ func Test_expr(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "integer"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -890,7 +906,7 @@ func Test_expr(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "integer"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -902,7 +918,7 @@ func Test_expr(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "real"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -914,7 +930,7 @@ func Test_expr(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "real"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -926,7 +942,7 @@ func Test_expr(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "real"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -938,7 +954,7 @@ func Test_expr(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "real"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -950,7 +966,7 @@ func Test_expr(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "integer"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -962,7 +978,7 @@ func Test_expr(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "integer"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -974,7 +990,7 @@ func Test_expr(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "real"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -986,7 +1002,7 @@ func Test_expr(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "real"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -1012,7 +1028,7 @@ func Test_expr(t *testing.T) {
 			}
 			got := flatten(r)
 			want := "9223372036854775807"
-			if got != want {
+			if got != want && !tclFpnumCompare(got, want) {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
@@ -1024,7 +1040,7 @@ func Test_expr(t *testing.T) {
 			}
 			got := flatten(r)
 			want := "9223372036854775807"
-			if got != want {
+			if got != want && !tclFpnumCompare(got, want) {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
@@ -1042,7 +1058,7 @@ func Test_expr(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -1054,7 +1070,7 @@ func Test_expr(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -1066,7 +1082,7 @@ func Test_expr(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "0"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -1078,7 +1094,7 @@ func Test_expr(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "0"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -1090,7 +1106,7 @@ func Test_expr(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "0"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -1102,7 +1118,7 @@ func Test_expr(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "0"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -1140,7 +1156,7 @@ func Test_expr(t *testing.T) {
 				}
 				got := flatten(r)
 				want := "0"
-				if got != want {
+				if got != want && !tclFpnumCompare(got, want) {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
@@ -1152,7 +1168,7 @@ func Test_expr(t *testing.T) {
 				}
 				got := flatten(r)
 				want := "0"
-				if got != want {
+				if got != want && !tclFpnumCompare(got, want) {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
@@ -1164,7 +1180,7 @@ func Test_expr(t *testing.T) {
 				}
 				got := flatten(r)
 				want := "0"
-				if got != want {
+				if got != want && !tclFpnumCompare(got, want) {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
@@ -1176,7 +1192,7 @@ func Test_expr(t *testing.T) {
 				}
 				got := flatten(r)
 				want := "0"
-				if got != want {
+				if got != want && !tclFpnumCompare(got, want) {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
