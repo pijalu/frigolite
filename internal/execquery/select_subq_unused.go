@@ -21,15 +21,19 @@ import (
 // freshly parsed view body of outer) in place, converting every unused
 // result column of every eligible compound member to NULL. It returns the
 // number of member result columns converted; 0 means the optimization did
-// not apply and sub is left untouched.
+// not apply and sub is left untouched. declared is the view's declared
+// column list (CREATE VIEW v(x,y) AS ...) when sub is a view body, else nil.
 //
 // The select.c eligibility conditions are mirrored: the compound chain may
 // only use UNION ALL, every member must be non-DISTINCT and free of
 // aggregates and window functions, and the subquery must not be correlated.
-// Columns the outer statement references (by name through the subquery's
-// alias or unqualified) and the subquery's own ORDER BY columns are exempt
-// (select.c marks iOrderByCol columns in colUsed).
-func (e *SelectEngine) disableUnusedSubqueryColumns(outer *sql.SelectStmt, qualifiers []string, sub *sql.SelectStmt) int {
+// Columns the outer statement references — by name through the subquery's
+// alias or unqualified, or through a declared view column name, which maps
+// POSITIONALLY to the body's output column (resolve.c maps the reference to
+// iColumn on the subquery source and sets that colUsed bit) — and the
+// subquery's own ORDER BY columns are exempt (select.c marks iOrderByCol
+// columns in colUsed).
+func (e *SelectEngine) disableUnusedSubqueryColumns(outer *sql.SelectStmt, qualifiers []string, declared []string, sub *sql.SelectStmt) int {
 	if outer == nil || sub == nil {
 		return 0
 	}
@@ -53,6 +57,9 @@ func (e *SelectEngine) disableUnusedSubqueryColumns(outer *sql.SelectStmt, quali
 		outNames[i] = resultColumnNameOf(col)
 	}
 	use := newSubqueryColumnUse(outNames, qualifiers)
+	if len(declared) == len(outNames) {
+		use.declaredNames = declared
+	}
 	use.markOuterReferences(outer)
 	use.markSubqueryOrderBy(sub)
 	return rewriteUnusedSubqueryColumns(members, expanded, use.used)
@@ -158,6 +165,12 @@ type subqueryColumnUse struct {
 	// windows before name resolution (sqlite3WindowListPrune), so only
 	// referenced definitions ever set colUsed.
 	winRefs map[string]bool
+	// declaredNames, when its length matches outNames, is the view's
+	// declared column list: an outer reference to the i-th declared name
+	// observes output column i (resolve.c maps a view column reference to
+	// iColumn on the subquery source), even when the declared name differs
+	// from the body's own output name.
+	declaredNames []string
 }
 
 // newSubqueryColumnUse starts an empty used-column set over the expanded
@@ -177,12 +190,19 @@ func (u *subqueryColumnUse) qualMatch(q string) bool {
 	return false
 }
 
-// markName marks every output column whose name matches (case-insensitively).
+// markName marks every output column whose name matches (case-insensitively),
+// either as the body's own output name or — for view bodies — positionally
+// through the declared column list.
 func (u *subqueryColumnUse) markName(name string) {
 	if name == "" {
 		return
 	}
 	for i, n := range u.outNames {
+		if n != "" && strings.EqualFold(n, name) {
+			u.used[i] = true
+		}
+	}
+	for i, n := range u.declaredNames {
 		if n != "" && strings.EqualFold(n, name) {
 			u.used[i] = true
 		}

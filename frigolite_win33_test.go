@@ -83,6 +83,37 @@ func TestWin33WindowDefRangeSubqueryCol(t *testing.T) {
 	}
 }
 
+// TestWin33ViewDeclaredColumnList pins the P2-view shape of the same bug
+// class: for a view WITH a declared column list, outer references use the
+// DECLARED names (x, y), which map POSITIONALLY to the body's output columns
+// (a, b) — SQLite resolves x to source column 0 and sets that colUsed bit.
+// The use-analyzer must mark by declared position, not only by the body's
+// output names.
+func TestWin33ViewDeclaredColumnList(t *testing.T) {
+	db := openProbeDB(t)
+	if err := db.Exec(`CREATE TABLE t1(a, b, c);
+		INSERT INTO t1 VALUES(1, 2, 3);
+		INSERT INTO t1 VALUES(4, 5, 6);
+		CREATE VIEW v1c(x, y) AS SELECT a, b FROM t1;`).Error; err != nil {
+		t.Fatal(err)
+	}
+	for _, tc := range []struct{ name, sql, want string }{
+		{"select-list", `SELECT x, y FROM v1c`, "1 2 4 5"},
+		{"where", `SELECT y FROM v1c WHERE x = 4`, "5"},
+		{"qualified", `SELECT v1c.y FROM v1c WHERE x = 4`, "5"},
+		{"filter-other-col", `SELECT quote(x) FROM v1c WHERE y > 3`, "4"},
+	} {
+		res := db.Query(tc.sql)
+		if res.Error != nil {
+			t.Errorf("%s: query error: %v", tc.name, res.Error)
+			continue
+		}
+		if got := flatRows(res); got != tc.want {
+			t.Errorf("%s: got %q want %q", tc.name, got, tc.want)
+		}
+	}
+}
+
 // TestWin33WindowDefUseShapes pins the remaining outer constructs whose
 // expressions resolution walks (and therefore must keep subquery columns
 // alive): a FILTER clause, an aggregate ORDER BY inside the call, and a
