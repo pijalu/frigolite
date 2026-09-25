@@ -31,6 +31,30 @@ func unescapeBareWord(s string) string {
 	return b.String()
 }
 
+// foldLineContinuation handles a TCL line continuation: backslash-newline
+// (plus following spaces/tabs) folds to a single space (Tcl(n) backslash
+// substitution). i points at the backslash; next is s[i+1]. Returns the next
+// index and whether the fold applied (the space is then written).
+func foldLineContinuation(s string, i int, next byte, b *strings.Builder) (int, bool) {
+	if next == '\n' {
+		j := i + 2
+		for j < len(s) && (s[j] == ' ' || s[j] == '\t') {
+			j++
+		}
+		b.WriteByte(' ')
+		return j, true
+	}
+	if next == '\r' && i+2 < len(s) && s[i+2] == '\n' {
+		j := i + 3
+		for j < len(s) && (s[j] == ' ' || s[j] == '\t') {
+			j++
+		}
+		b.WriteByte(' ')
+		return j, true
+	}
+	return i, false
+}
+
 // unescapeBareWordEscape processes one backslash escape at position i (the
 // backslash), writing its expansion and returning the index of the next
 // unprocessed character.
@@ -41,23 +65,11 @@ func unescapeBareWordEscape(s string, i int, b *strings.Builder) int {
 		b.WriteByte('\\')
 		b.WriteByte(next)
 		return i + 2
-	case '\n':
+	case '\n', '\r':
 		// Line continuation folds to a single space (Tcl(n) backslash
-		// substitution). Consume following spaces/tabs; the space written
-		// here keeps `...;\<newline><spaces>INSERT...` statement-separated.
-		j := i + 2
-		for j < len(s) && (s[j] == ' ' || s[j] == '\t') {
-			j++
-		}
-		b.WriteByte(' ')
-		return j
-	case '\r':
-		if i+2 < len(s) && s[i+2] == '\n' {
-			j := i + 3
-			for j < len(s) && (s[j] == ' ' || s[j] == '\t') {
-				j++
-			}
-			b.WriteByte(' ')
+		// substitution). Consuming following spaces/tabs keeps
+		// `...;\<newline><spaces>INSERT...` statement-separated.
+		if j, folded := foldLineContinuation(s, i, next, b); folded {
 			return j
 		}
 	}
@@ -160,20 +172,7 @@ func tclUnescapeQuoted(s string) string {
 func tclUnescapeQuotedEscape(s string, i int, b *strings.Builder) int {
 	// TCL line continuation: backslash-newline plus following whitespace folds
 	// to a single space (Tcl(n) backslash substitution), even in quotes.
-	if s[i+1] == '\n' {
-		j := i + 2
-		for j < len(s) && (s[j] == ' ' || s[j] == '\t') {
-			j++
-		}
-		b.WriteByte(' ')
-		return j
-	}
-	if s[i+1] == '\r' && i+2 < len(s) && s[i+2] == '\n' {
-		j := i + 3
-		for j < len(s) && (s[j] == ' ' || s[j] == '\t') {
-			j++
-		}
-		b.WriteByte(' ')
+	if j, folded := foldLineContinuation(s, i, s[i+1], b); folded {
 		return j
 	}
 	j := i + 1 // escape character position
@@ -319,18 +318,64 @@ func splitListQuoted(s string, pos int) (string, int) {
 	return tclUnescapeQuoted(el), pos
 }
 
-// tclExprToGo converts a TCL expression string into a form the runtime tclExpr
-// helper can evaluate. It returns the list of $var names referenced (in order)
-// and the transformed expression string.
-//
-// Transformations:
-//   - $name references are left in place (the runtime helper substitutes them
-//     from a provided map).
-//   - TCL int(rand()*N) is replaced with a deterministic constant so generated
-//     tests are reproducible (the same value is used by both the query and the
-//     expected answer since they share the same Go variable).
-func tclExprToGo(expr string, vars []string) ([]string, string) {
-	s := expr
+// scanBracedExprVar consumes a braced ${name} reference at s[i]; on success it
+// records the (array-base) name and returns the position after the closing
+// brace. Returns ok=false when no closing brace exists.
+func scanBracedExprVar(s string, i int, seen map[string]bool, names *[]string) (int, bool) {
+	end := strings.Index(s[i+2:], "}")
+	if end < 0 {
+		return 0, false
+	}
+	j := i + 2 + end + 1
+	name := s[i+2 : j-1]
+	base := name
+	if idx := strings.Index(base, "("); idx >= 0 {
+		base = base[:idx]
+	}
+	if !seen[name] && !seen[base] {
+		// Record base name for var map lookup
+		n := name
+		if base != name {
+			n = base
+		}
+		seen[n] = true
+		seen[name] = true
+		*names = append(*names, n)
+	}
+	return j, true
+}
+
+// scanPlainExprVar consumes the plain $name reference at s[i] (with an
+// optional $name(key) array suffix), records it, and returns the next scan
+// position. ok=false when the reference is empty (a lone '$') — the scan
+// ends. Consuming the array suffix maps the full reference to the predeclared
+// var name (tclVarToGo turns "::name(key)" into "name_key"); without this,
+// "$::cmdlinearg(INFO_SCRIPT)" would be read as "$::cmdlinearg" and reference
+// an undeclared map variable.
+func scanPlainExprVar(s string, i int, seen map[string]bool, names *[]string) (int, bool) {
+	j := i + 1
+	for j < len(s) && isVarChar(s[j]) {
+		j++
+	}
+	if j < len(s) && s[j] == '(' {
+		if end := strings.IndexByte(s[j+1:], ')'); end >= 0 {
+			j = j + 1 + end + 1
+		}
+	}
+	if j == i+1 {
+		return 0, false
+	}
+	name := s[i+1 : j]
+	if !seen[name] {
+		seen[name] = true
+		*names = append(*names, name)
+	}
+	return j, true
+}
+
+// scanExprVarRefs collects the distinct $var names referenced by s, in
+// first-appearance order.
+func scanExprVarRefs(s string) []string {
 	var names []string
 	seen := make(map[string]bool)
 	searchFrom := 0
@@ -342,51 +387,35 @@ func tclExprToGo(expr string, vars []string) ([]string, string) {
 		i += searchFrom
 		// Braced variable ${name} — consume through matching }
 		if i+1 < len(s) && s[i+1] == '{' {
-			end := strings.Index(s[i+2:], "}")
-			if end >= 0 {
-				j := i + 2 + end + 1
-				name := s[i+2 : j-1]
-				base := name
-				if idx := strings.Index(base, "("); idx >= 0 {
-					base = base[:idx]
-				}
-				if !seen[name] && !seen[base] {
-					// Record base name for var map lookup
-					n := name
-					if base != name {
-						n = base
-					}
-					seen[n] = true
-					seen[name] = true
-					names = append(names, n)
-				}
-				searchFrom = j
-				continue
+			next, ok := scanBracedExprVar(s, i, seen, &names)
+			if !ok {
+				break
 			}
+			searchFrom = next
+			continue
 		}
-		j := i + 1
-		for j < len(s) && isVarChar(s[j]) {
-			j++
-		}
-		// Consume a TCL array suffix $name(key) so the full reference maps
-		// to the predeclared var name (tclVarToGo turns "::name(key)" into
-		// "name_key"). Without this, "$::cmdlinearg(INFO_SCRIPT)" would be
-		// read as "$::cmdlinearg" and reference an undeclared map variable.
-		if j < len(s) && s[j] == '(' {
-			if end := strings.IndexByte(s[j+1:], ')'); end >= 0 {
-				j = j + 1 + end + 1
-			}
-		}
-		if j == i+1 {
+		next, ok := scanPlainExprVar(s, i, seen, &names)
+		if !ok {
 			break
 		}
-		name := s[i+1 : j]
-		if !seen[name] {
-			seen[name] = true
-			names = append(names, name)
-		}
-		searchFrom = j
+		searchFrom = next
 	}
+	return names
+}
+
+// tclExprToGo converts a TCL expression string into a form the runtime tclExpr
+// helper can evaluate. It returns the list of $var names referenced (in order)
+// and the transformed expression string.
+//
+// Transformations:
+//   - $name references are left in place (the runtime helper substitutes them
+//     from a provided map).
+//   - TCL int(rand()*N) is replaced with a deterministic constant so generated
+//     tests are reproducible (the same value is used by both the query and the
+//     expected answer since they share the same Go variable).
+func tclExprToGo(expr string, vars []string) ([]string, string) {
+	names := scanExprVarRefs(expr)
+	s := expr
 	// Replace TCL rand usage with the deterministic tclRand() helper so the
 	// SQL-building and expected-answer generation call the same sequence.
 	re := regexp.MustCompile(`int\(\s*rand\(\)\s*\*\s*([0-9]+)\s*\)`)
@@ -427,39 +456,60 @@ func regexPatternNegated(goQuoted string) bool {
 	return strings.HasPrefix(s, "~/") || strings.HasPrefix(s, "~\"")
 }
 
-// regexPatternExpr converts a TCL regex-pattern expected value (a Go-quoted
-// string like `"/B-TREE/"` or `"~/SCAN/"`) into a Go regex pattern string
-// literal. The `~/.../` prefix means a regex; `/.../` is treated as a regex
-// too for EXPLAIN-plan comparisons.
-func regexPatternExpr(goQuoted string) string {
-	// A concatenated expected value ("/^" + strings.Trim(...) + "$/") —
-	// an interpolated TCL string rendered as Go concatenation — must stay
-	// an expression: strip the /.../ regex delimiters from the FIRST and
-	// LAST quoted literals and re-join verbatim. Quoting the whole text
-	// (the pre-fix behavior) folded the code into a string literal and
-	// left the package referencing strings only inside strings — a build
-	// break (trace3-5.x).
-	if strings.Contains(goQuoted, " + ") {
-		parts := strings.Split(goQuoted, " + ")
-		out := make([]string, len(parts))
-		for i, part := range parts {
-			part = strings.TrimSpace(part)
-			if len(part) >= 2 && part[0] == '"' && part[len(part)-1] == '"' {
-				if unq, err := strconv.Unquote(part); err == nil {
-					if i == 0 && strings.HasPrefix(unq, "/") {
-						unq = unq[1:]
-					}
-					if i == len(parts)-1 && strings.HasSuffix(unq, "/") {
-						unq = unq[:len(unq)-1]
-					}
-					out[i] = strconv.Quote(unq)
-					continue
-				}
-			}
-			out[i] = part
-		}
-		return strings.Join(out, " + ")
+// stripConcatPartDelims strips the regex delimiters from one quoted
+// concatenation part: a leading "/" on the first part and a trailing "/" on
+// the last. Non-quoted or unparseable parts pass through verbatim.
+func stripConcatPartDelims(part string, first, last bool) string {
+	if len(part) < 2 || part[0] != '"' || part[len(part)-1] != '"' {
+		return part
 	}
+	unq, err := strconv.Unquote(part)
+	if err != nil {
+		return part
+	}
+	if first && strings.HasPrefix(unq, "/") {
+		unq = unq[1:]
+	}
+	if last && strings.HasSuffix(unq, "/") {
+		unq = unq[:len(unq)-1]
+	}
+	return strconv.Quote(unq)
+}
+
+// stripDelimsFromConcat strips the /.../ regex delimiters from the FIRST and
+// LAST quoted literals of a concatenated Go expression ("/^" + ... + "$/"),
+// re-joining verbatim. Quoting the whole text (the pre-fix behavior) folded
+// the code into a string literal and left the package referencing strings
+// only inside strings — a build break (trace3-5.x).
+func stripDelimsFromConcat(goQuoted string) string {
+	parts := strings.Split(goQuoted, " + ")
+	out := make([]string, len(parts))
+	for i, part := range parts {
+		out[i] = stripConcatPartDelims(strings.TrimSpace(part), i == 0, i == len(parts)-1)
+	}
+	return strings.Join(out, " + ")
+}
+
+// normalizePatternText applies the TCL-to-Go regex text rewrites: the \y
+// word-boundary conversion, the do_select_tests `#` integer wildcard, and
+// alignment-space collapsing (flatten() joins cells with single spaces).
+func normalizePatternText(s string) string {
+	// TCL regex uses \y for a word boundary; RE2 (Go) uses \b. Convert so
+	// patterns like "SCAN t2\y" match in Go.
+	s = strings.ReplaceAll(s, `\y`, `\b`)
+	// do_select_tests uses `#` as a wildcard for any integer (including a
+	// leading minus) in result patterns: `#,#` matches "4,5", "-12,7".
+	// The TCL framework substitutes this before regex matching.
+	s = strings.ReplaceAll(s, "#", `-?[0-9]+`)
+	// Result patterns are written with alignment spaces; flatten() joins
+	// cells with single spaces, so collapse runs of spaces to one.
+	return strings.Join(strings.Fields(s), " ")
+}
+
+// unquotePatternText decodes a Go-quoted expected value to the raw pattern
+// text (falling back to a naive quote strip when Unquote fails) and trims the
+// TCL /.../ (~/.../) regex delimiters.
+func unquotePatternText(goQuoted string) string {
 	s := goQuoted
 	// expectedExpr is a Go string literal (e.g. "\"/.../\"" from
 	// goStringLiteral), so decode it with strconv.Unquote to get the real
@@ -473,20 +523,28 @@ func regexPatternExpr(goQuoted string) string {
 	}
 	s = strings.TrimSpace(s)
 	if strings.HasPrefix(s, "~/") && strings.HasSuffix(s, "/") {
-		s = s[2 : len(s)-1]
-	} else if len(s) >= 2 && s[0] == '/' && s[len(s)-1] == '/' {
-		s = s[1 : len(s)-1]
+		return s[2 : len(s)-1]
 	}
-	// TCL regex uses \y for a word boundary; RE2 (Go) uses \b. Convert so
-	// patterns like "SCAN t2\y" match in Go.
-	s = strings.ReplaceAll(s, `\y`, `\b`)
-	// do_select_tests uses `#` as a wildcard for any integer (including a
-	// leading minus) in result patterns: `#,#` matches "4,5", "-12,7".
-	// The TCL framework substitutes this before regex matching.
-	s = strings.ReplaceAll(s, "#", `-?[0-9]+`)
-	// Result patterns are written with alignment spaces; flatten() joins
-	// cells with single spaces, so collapse runs of spaces to one.
-	s = strings.Join(strings.Fields(s), " ")
+	if len(s) >= 2 && s[0] == '/' && s[len(s)-1] == '/' {
+		return s[1 : len(s)-1]
+	}
+	return s
+}
+
+// regexPatternExpr converts a TCL regex-pattern expected value (a Go-quoted
+// string like `"/B-TREE/"` or `"~/SCAN/"`) into a Go regex pattern string
+// literal. The `~/.../` prefix means a regex; `/.../` is treated as a regex
+// too for EXPLAIN-plan comparisons.
+func regexPatternExpr(goQuoted string) string {
+	// A concatenated expected value ("/^" + strings.Trim(...) + "$/") —
+	// an interpolated TCL string rendered as Go concatenation — must stay
+	// an expression: strip the /.../ regex delimiters from the FIRST and
+	// LAST quoted literals and re-join verbatim.
+	if strings.Contains(goQuoted, " + ") {
+		return stripDelimsFromConcat(goQuoted)
+	}
+	s := unquotePatternText(goQuoted)
+	s = normalizePatternText(s)
 	// TCL's tester.tcl at line 745 has special handling for `*` (glob) but no
 	// special handling for `{...}`. However, several skipscan test patterns
 	// (e.g. `/{SCAN t9a}/`) are written assuming `{` and `}` are decorative
