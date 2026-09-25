@@ -2,7 +2,6 @@
 package execquery
 
 import (
-	"fmt"
 	"sort"
 	"strings"
 
@@ -795,121 +794,6 @@ func (e *SelectEngine) buildGroupWindowRow(s *sql.SelectStmt, src RowMap, outRow
 	return m
 }
 
-// evalAggFuncCall evaluates a single aggregate function call across rowMaps,
-// applying its FILTER clause and ORDER BY ordering. Returns (nil, nil) for a
-// non-aggregate function over no rows.
-func (e *SelectEngine) evalAggFuncCall(v *sql.FuncCall, rowMaps []RowMap) (interface{}, error) {
-	fn, ok := e.ctx.Functions().Find(v.Name)
-	if !ok || fn.Type != function.TypeAggregate {
-		if len(rowMaps) > 0 {
-			val, _ := e.ctx.EvalExpr(v, rowMaps[0])
-			return val, nil
-		}
-		return nil, nil
-	}
-	if nested := e.findAggNestedAggregates(v); nested != "" {
-		return nil, fmt.Errorf("misuse of aggregate function %s()", nested)
-	}
-	// Single-argument MIN/MAX compares its argument values under the
-	// argument's collation (func.c minmaxStep: pColl =
-	// sqlite3GetFuncCollSeq — the collation of the first argument):
-	// x COLLATE nocase and x declared COLLATE nocase both order the
-	// reduction by nocase (minmax3-4.x). Reduced here (not in the
-	// function's Step) because the collation is statement context the
-	// registry's collation-free Step signature cannot carry.
-	if (strings.EqualFold(v.Name, "MIN") || strings.EqualFold(v.Name, "MAX")) && len(v.Args) == 1 {
-		return e.evalMinMaxAggregate(v, rowMaps)
-	}
-	agg := fn.AggregateFn()
-	rows := e.sortRowMapsByOrderBy(v.OrderBy, rowMaps)
-	for _, row := range rows {
-		if !e.aggRowPassesFilter(v, row) {
-			continue
-		}
-		if err := agg.Step(e.evalAggCallArgs(v, row)); err != nil {
-			e.aggPendingErr = err
-			return nil, err
-		}
-	}
-	// sumFinalize raises "integer overflow" from Final when an int64
-	// overflow was never absorbed by a later non-integer input (func-37.x):
-	// a Final error must propagate like a Step error, not collapse to NULL.
-	result, ferr := agg.Final()
-	if ferr != nil {
-		e.aggPendingErr = ferr
-		return nil, ferr
-	}
-	return result, nil
-}
-
-// evalMinMaxAggregate reduces a single-argument MIN/MAX under the argument's
-// collation: the first evaluated argument value carrying a CollatedValue
-// marker donates the collation (explicit COLLATE operator or the column's
-// declared COLLATE clause — SQLite's sqlite3ExprCollSeq of the argument).
-// NULLs are skipped; the first extreme on ties wins (minmaxStep keeps the
-// earliest row's value).
-func (e *SelectEngine) evalMinMaxAggregate(v *sql.FuncCall, rowMaps []RowMap) (interface{}, error) {
-	isMax := strings.EqualFold(v.Name, "MAX")
-	var best interface{}
-	collation := ""
-	for _, row := range rowMaps {
-		if !e.aggRowPassesFilter(v, row) {
-			continue
-		}
-		restore := e.ctx.EnterAuxAggArg()
-		raw, err := e.ctx.EvalExpr(v.Args[0], row)
-		restore()
-		if err != nil {
-			return nil, err
-		}
-		if raw == nil {
-			continue
-		}
-		val := util.UnwrapColumnValue(raw)
-		if cv, ok := raw.(*execexpr.CollatedValue); ok {
-			val = util.UnwrapColumnValue(cv.Value)
-			if collation == "" && cv.Collation != "" {
-				collation = cv.Collation
-			}
-		}
-		if val == nil {
-			continue
-		}
-		if best == nil {
-			best = val
-			continue
-		}
-		cmp := e.ctx.CompareValuesCollate(val, best, collation)
-		if (isMax && cmp > 0) || (!isMax && cmp < 0) {
-			best = val
-		}
-	}
-	return best, nil
-}
-
-// evalDistinctAggregate evaluates an aggregate with DISTINCT over the distinct
-// argument tuples (after applying the FILTER clause and ORDER BY ordering).
-func (e *SelectEngine) evalDistinctAggregate(v *sql.FuncCall, rowMaps []RowMap) interface{} {
-	fn, ok := e.ctx.Functions().Find(v.Name)
-	if !ok || fn.Type != function.TypeAggregate {
-		return nil
-	}
-	agg := fn.AggregateFn()
-	uniqueRows := e.dedupeAggRows(v, rowMaps)
-	uniqueRows = e.sortRowMapsByOrderBy(v.OrderBy, uniqueRows)
-	for _, row := range uniqueRows {
-		if err := agg.Step(e.evalAggCallArgs(v, row)); err != nil {
-			e.aggPendingErr = err
-			return nil
-		}
-	}
-	result, ferr := agg.Final()
-	if ferr != nil {
-		e.aggPendingErr = ferr
-		return nil
-	}
-	return result
-}
 
 // evalGroupByNoAggs handles GROUP BY without aggregate functions: groups rows
 // by key and builds output rows using buildOutputRow, emitting groups in key
@@ -1008,10 +892,4 @@ func (e *SelectEngine) evalNoAggGroupRow(s *sql.SelectStmt, colDefs []sql.Column
 		first = groupRows[0]
 	}
 	return outRow, first, true, nil
-}
-
-// EvalAggFuncCall evaluates an aggregate function call over the given row
-// maps. Exported for the expression evaluator's function-call dispatch.
-func (e *SelectEngine) EvalAggFuncCall(v *sql.FuncCall, rowMaps []RowMap) (interface{}, error) {
-	return e.evalAggFuncCall(v, rowMaps)
 }
