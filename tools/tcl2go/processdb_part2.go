@@ -13,6 +13,9 @@ import (
 
 // ---- SQL execution handlers ----
 
+// joinPrefixFromRest extracts the literal prefix from a braced registration
+// word like `{joinx cross}` (the second token when the first is the proc
+// name).
 func joinPrefixFromRest(rest []tcl.RawWord, procName string) string {
 	for _, a := range rest[1:] {
 		arg := strings.TrimSpace(a.Text)
@@ -525,6 +528,46 @@ func callbackColumnName(tok string) string {
 	return name
 }
 
+// namedDBSubCmdHandler returns the handler for a `dbN <subcommand>` on a
+// secondary connection. A missing key means the caller emits the unknown-
+// subcommand comment. The map is built on first use (not at package init)
+// because the referenced handlers transitively reach back into
+// processCommands, which would make a package-level initializer cycle.
+func namedDBSubCmdHandler(sub string) func(*transpiler, string, string, []tcl.RawWord) {
+	if namedDBSubCmds == nil {
+		namedDBSubCmds = map[string]func(*transpiler, string, string, []tcl.RawWord){
+			"close":            func(tp *transpiler, goName, dbName string, _ []tcl.RawWord) { tp.processNamedDBClose(goName, dbName) },
+			"backup":           func(tp *transpiler, goName, _ string, rest []tcl.RawWord) { tp.processNamedDBBackupRestore(goName, "backup", rest) },
+			"restore":          func(tp *transpiler, goName, _ string, rest []tcl.RawWord) { tp.processNamedDBBackupRestore(goName, "restore", rest) },
+			"eval":             func(tp *transpiler, goName, _ string, rest []tcl.RawWord) { tp.processNamedDBEval(goName, rest) },
+			"onecolumn":        func(tp *transpiler, goName, _ string, rest []tcl.RawWord) { tp.processNamedDBOnecolumn(goName, rest) },
+			"function":         func(tp *transpiler, goName, _ string, rest []tcl.RawWord) { tp.processNamedDBFunction(goName, rest) },
+			"func":             func(tp *transpiler, goName, _ string, rest []tcl.RawWord) { tp.processNamedDBFunction(goName, rest) },
+			"changes":          func(tp *transpiler, goName, _ string, _ []tcl.RawWord) { tp.emitLine("_r = strconv.FormatInt(%s.Changes(), 10)", goName) },
+			"total_changes":    func(tp *transpiler, goName, _ string, _ []tcl.RawWord) { tp.emitLine("_r = strconv.FormatInt(%s.TotalChanges(), 10)", goName) },
+			"transaction":      func(tp *transpiler, goName, _ string, rest []tcl.RawWord) { tp.processNamedDBTransaction(goName, rest) },
+			"cache":            namedDBNoop,
+			"create_function":  namedDBNoop,
+			"trace":            func(tp *transpiler, goName, _ string, rest []tcl.RawWord) { tp.processNamedDBTraceProfile(goName, rest, "trace") },
+			"profile":          func(tp *transpiler, goName, _ string, rest []tcl.RawWord) { tp.processNamedDBTraceProfile(goName, rest, "profile") },
+			"trace_v2":         func(tp *transpiler, goName, _ string, rest []tcl.RawWord) { tp.processNamedDBTraceV2(goName, rest) },
+			"busy":             func(tp *transpiler, goName, _ string, rest []tcl.RawWord) { tp.processNamedDBBusy(goName, rest) },
+			"collate":          func(tp *transpiler, goName, _ string, rest []tcl.RawWord) { tp.processNamedDBCollate(goName, rest) },
+			"collation_needed": func(tp *transpiler, goName, _ string, rest []tcl.RawWord) { tp.processNamedDBCollationNeeded(goName, rest) },
+			"progress":         func(tp *transpiler, _ string, _ string, rest []tcl.RawWord) { tp.processNamedDBProgress(rest) },
+			"authorizer":       func(tp *transpiler, goName, _ string, rest []tcl.RawWord) { tp.processNamedDBAuthorizer(goName, rest) },
+		}
+	}
+	return namedDBSubCmds[sub]
+}
+
+// namedDBSubCmds is the `dbN <subcommand>` dispatch table (see
+// namedDBSubCmdHandler). Handler signature: (tp, goName, dbName, rest).
+var namedDBSubCmds map[string]func(*transpiler, string, string, []tcl.RawWord)
+
+// namedDBNoop is the no-op handler for infrastructure subcommands.
+func namedDBNoop(*transpiler, string, string, []tcl.RawWord) {}
+
 // processDBForName handles dbN commands (db2, db3, etc.) — secondary DB connections.
 func (tp *transpiler) processDBForName(dbName string, args []tcl.RawWord) {
 	if len(args) == 0 {
@@ -532,48 +575,11 @@ func (tp *transpiler) processDBForName(dbName string, args []tcl.RawWord) {
 	}
 	goName := tclVarToGo(dbName)
 	sub := args[0].Text
-	rest := args[1:]
-
-	switch sub {
-	case "close":
-		tp.processNamedDBClose(goName, dbName)
-	case "backup":
-		tp.processNamedDBBackupRestore(goName, "backup", rest)
-	case "restore":
-		tp.processNamedDBBackupRestore(goName, "restore", rest)
-	case "eval":
-		tp.processNamedDBEval(goName, rest)
-	case "onecolumn":
-		tp.processNamedDBOnecolumn(goName, rest)
-	case "function", "func":
-		tp.processNamedDBFunction(goName, rest)
-	case "changes":
-		tp.emitLine("_r = strconv.FormatInt(%s.Changes(), 10)", goName)
-	case "total_changes":
-		tp.emitLine("_r = strconv.FormatInt(%s.TotalChanges(), 10)", goName)
-	case "transaction":
-		tp.processNamedDBTransaction(goName, rest)
-	case "cache", "create_function":
-		// no-op: infrastructure
-	case "trace":
-		tp.processNamedDBTraceProfile(goName, rest, "trace")
-	case "profile":
-		tp.processNamedDBTraceProfile(goName, rest, "profile")
-	case "trace_v2":
-		tp.processNamedDBTraceV2(goName, rest)
-	case "busy":
-		tp.processNamedDBBusy(goName, rest)
-	case "collate":
-		tp.processNamedDBCollate(goName, rest)
-	case "collation_needed":
-		tp.processNamedDBCollationNeeded(goName, rest)
-	case "progress":
-		tp.processNamedDBProgress(rest)
-	case "authorizer":
-		tp.processNamedDBAuthorizer(goName, rest)
-	default:
-		tp.emitLine("// %s.%s (db command)", goName, sub)
+	if fn := namedDBSubCmdHandler(sub); fn != nil {
+		fn(tp, goName, dbName, args[1:])
+		return
 	}
+	tp.emitLine("// %s.%s (db command)", goName, sub)
 }
 
 // processNamedDBBackupRestore handles `dbN backup [schema] FILE` and `dbN
