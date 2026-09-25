@@ -9266,3 +9266,14 @@ regenerated; suite net −2274 fails vs pre-tranche baseline (7230 → ~4950).
    new variables on left side of :=` — tcl2go emitter bug, owned by the
    transpiler agent). Same verification command on main reproduces it before
    spending any time on it in a worktree.
+7. **Full-JSON-harness baseline diffing:** a plain full `go test -run
+   ^TestSQLiteSuite$` run is chronically red at main (~3.9k subtest failures
+   over 387 files — the slowTestFiles/unsupportedTestFiles maps and the
+   FRIGOLITE_TEST pattern exist for this; the gate is the testgen corpus).
+   To prove an engine change adds no harness regression, diff the FAILING
+   FILE SETS (worktree vs main): identical sets = no new impact, regardless
+   of per-run subtest counts. Also: a fresh worktree CANNOT pass fixtures
+   depending on gitignored artifacts (*.db under testdata/, tools/orafixture
+   — oracle-generated runtime files that only exist in the long-lived main
+   checkout); triage such failures as environmental before suspecting the
+   engine.
