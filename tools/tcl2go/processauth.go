@@ -495,7 +495,6 @@ func authorizerBodyEndsWithBareReturn(body string) bool {
 	return false
 }
 
-
 // containsEmpty reports whether any element is the empty string (an
 // authorizer parameter the emitter could not map).
 func containsEmpty(elems []string) bool {

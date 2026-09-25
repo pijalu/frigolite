@@ -83,19 +83,25 @@ var userProcEmitterMatch = []struct {
 	key   string
 }{
 	// rtree8.test: INSERT ($i,$i,$i+2)
-	{"populate_t1", func(body string) bool { return strings.Contains(body, "DELETE FROM t1") && strings.Contains(body, "$i+2") }, "rtree8_populate"},
+	{"populate_t1", func(body string) bool {
+		return strings.Contains(body, "DELETE FROM t1") && strings.Contains(body, "$i+2")
+	}, "rtree8_populate"},
 	// rtreeA.test: 500-row BEGIN/COMMIT fill
 	{"populate_t1", func(body string) bool { return strings.Contains(body, "BEGIN") && strings.Contains(body, "500") }, "rtreea_populate"},
 	// reopen fresh file + rtree t1
 	{"create_t1", func(body string) bool { return strings.Contains(body, "CREATE VIRTUAL TABLE t1 USING rtree(") }, "rtreea_create"},
 	{"truncate_node", func(body string) bool { return strings.Contains(body, "string range") }, "rtreea_truncate"},
-	{"signature", func(body string) bool { return strings.Contains(body, "SELECT x FROM t3") && strings.Contains(body, "string length") }, "memdb_signature"},
+	{"signature", func(body string) bool {
+		return strings.Contains(body, "SELECT x FROM t3") && strings.Contains(body, "string length")
+	}, "memdb_signature"},
 	// cache.test: btree_pager_stats "page" count
 	{"pager_cache_size", func(body string) bool { return strings.Contains(body, "btree_pager_stats") }, "cache_pager_size"},
 	// tkt4018.test testsql SQL: spawns a separate PROCESS with a fresh
 	// sqlite3 connection on test.db (body embeds
 	// sqlite3_test_control_pending_byte and `catch { db eval {$sql} }`).
-	{"testsql", func(body string) bool { return strings.Contains(body, "sqlite3_test_control_pending_byte") && strings.Contains(body, "db eval") }, "testsql_subprocess"},
+	{"testsql", func(body string) bool {
+		return strings.Contains(body, "sqlite3_test_control_pending_byte") && strings.Contains(body, "db eval")
+	}, "testsql_subprocess"},
 }
 
 func userProcEmitterFor(name, body string) string {
