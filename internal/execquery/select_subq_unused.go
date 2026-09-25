@@ -33,46 +33,16 @@ func (e *SelectEngine) disableUnusedSubqueryColumns(outer *sql.SelectStmt, quali
 	if outer == nil || sub == nil {
 		return 0
 	}
-	// Member eligibility over the whole compound chain.
-	for m := sub; m != nil; m = m.Union {
-		if m.Distinct || m.GroupBy != nil || m.Having != nil {
-			return 0
-		}
-		if m.Union != nil && !(m.SetOp == sql.SetUnion && m.UnionAll) {
-			// select.c: "This optimization does not work for compound
-			// subqueries that use UNION, INTERSECT, or EXCEPT. Only
-			// UNION ALL is allowed."
-			return 0
-		}
-		for _, col := range m.Columns {
-			if e.exprHasAggregate(col.Expr) || e.exprHasWindowFunc(col.Expr) {
-				return 0
-			}
-		}
-		for _, ob := range m.OrderBy {
-			if e.exprHasAggregate(ob.Expr) || e.exprHasWindowFunc(ob.Expr) {
-				return 0
-			}
-		}
+	if !e.subqueryColumnsOmittable(sub) {
+		return 0
 	}
 	if e.selectUsesExternalTables(sub, nil) {
 		// Correlated subquery: leave it alone (select.c isCorrelated).
 		return 0
 	}
-	// Expand every member's result list: sqlite3ExpandStarArray has run
-	// before this optimization in sqlite3Select, so column positions (and
-	// the colUsed bitmask) are expanded positions. A member whose stars
-	// cannot be expanded (e.g. over a derived table) disables the
-	// optimization entirely.
-	members := make([]*sql.SelectStmt, 0, 4)
-	expanded := make([][]sql.SelectColumn, 0, 4)
-	for m := sub; m != nil; m = m.Union {
-		cols, ok := e.expandMemberResultColumns(m)
-		if !ok {
-			return 0
-		}
-		members = append(members, m)
-		expanded = append(expanded, cols)
+	members, expanded, ok := e.expandCompoundMembers(sub)
+	if !ok {
+		return 0
 	}
 	// Output column names come from the leftmost member (the compound's
 	// result set). Names that cannot be derived keep "" — an outer
@@ -82,112 +52,79 @@ func (e *SelectEngine) disableUnusedSubqueryColumns(outer *sql.SelectStmt, quali
 	for i, col := range expanded[0] {
 		outNames[i] = resultColumnNameOf(col)
 	}
-	used := make(map[int]bool)
-	markName := func(name string) {
-		if name == "" {
-			return
-		}
-		for i, n := range outNames {
-			if n != "" && strings.EqualFold(n, name) {
-				used[i] = true
-			}
-		}
-	}
-	markAll := func() {
-		for i := range outNames {
-			used[i] = true
-		}
-	}
-	// Which output columns does the outer statement observe? A qualified
-	// reference through one of the subquery's qualifiers (table/alias
-	// name) marks the named column; an unqualified reference marks every
-	// same-named column (it may resolve elsewhere — over-marking only
-	// shrinks the optimization). A wildcard over the subquery marks all.
-	qualMatch := func(q string) bool {
-		for _, qual := range qualifiers {
-			if qual != "" && strings.EqualFold(q, qual) {
-				return true
-			}
-		}
-		return false
-	}
-	// outerWalk descends expression children, but never treats a star
-	// function argument as a column wildcard: count(*) references no
-	// column (expr.c TK_AGG_COUNT carries no aggregate operand), while a
-	// bare SELECT-list star does.
-	var outerWalk func(expr sql.Expr, fn func(sql.Expr))
-	outerWalk = func(expr sql.Expr, fn func(sql.Expr)) {
-		if expr == nil {
-			return
-		}
-		fn(expr)
-		if fc, ok := expr.(*sql.FuncCall); ok {
-			for _, a := range fc.Args {
-				if ref, isRef := a.(*sql.ColumnRef); isRef && ref.Name == "*" {
-					continue
-				}
-				outerWalk(a, fn)
-			}
-			return
-		}
-		for _, child := range exprChildren(expr) {
-			outerWalk(child, fn)
-		}
-	}
-	outerRef := func(expr sql.Expr) {
-		outerWalk(expr, func(n sql.Expr) {
-			cr, ok := n.(*sql.ColumnRef)
-			if !ok {
-				return
-			}
-			if cr.Name == "*" {
-				if cr.Table == "" || qualMatch(cr.Table) {
-					markAll()
-				}
-				return
-			}
-			if cr.Table == "" || qualMatch(cr.Table) {
-				markName(cr.Name)
-			}
-		})
-	}
-	for _, col := range outer.Columns {
-		outerRef(col.Expr)
-	}
-	outerRef(outer.Where)
-	for i := range outer.Joins {
-		outerRef(outer.Joins[i].On)
-	}
-	for _, g := range outer.GroupBy {
-		outerRef(g)
-	}
-	outerRef(outer.Having)
-	for _, ob := range outer.OrderBy {
-		outerRef(ob.Expr)
-	}
-	outerRef(outer.Limit)
-	outerRef(outer.Offset)
-	// The subquery's own ORDER BY pins its sort columns: an ordinal marks
-	// that position; a bare name marks every same-named output column
-	// (select.c sets colUsed bits for iOrderByCol terms). The trailing
-	// compound ORDER BY is attached to the LAST member of the chain in the
-	// parser's AST, so every member's terms are scanned.
+	use := newSubqueryColumnUse(outNames, qualifiers)
+	use.markOuterReferences(outer)
+	use.markSubqueryOrderBy(sub)
+	return rewriteUnusedSubqueryColumns(members, expanded, use.used)
+}
+
+// subqueryColumnsOmittable reports the select.c member-eligibility conditions
+// over the whole compound chain: only UNION ALL, every member non-DISTINCT
+// and free of aggregates and window functions.
+func (e *SelectEngine) subqueryColumnsOmittable(sub *sql.SelectStmt) bool {
 	for m := sub; m != nil; m = m.Union {
-		for _, ob := range m.OrderBy {
-			if nl, ok := stripCollate(ob.Expr).(*sql.NumericLit); ok {
-				if pos, err := strconv.Atoi(nl.Value); err == nil && pos >= 1 && pos <= len(outNames) {
-					used[pos-1] = true
-				}
-				continue
-			}
-			if ref, ok := stripCollate(ob.Expr).(*sql.ColumnRef); ok && ref.Table == "" {
-				markName(ref.Name)
-			}
+		if m.Distinct || m.GroupBy != nil || m.Having != nil {
+			return false
+		}
+		if m.Union != nil && !(m.SetOp == sql.SetUnion && m.UnionAll) {
+			// select.c: "This optimization does not work for compound
+			// subqueries that use UNION, INTERSECT, or EXCEPT. Only
+			// UNION ALL is allowed."
+			return false
+		}
+		if e.memberHasAggregateOrWindowCol(m.Columns) || e.memberHasAggregateOrWindowOb(m.OrderBy) {
+			return false
 		}
 	}
-	// Rewrite: unused columns become NULL in every member (select.c walks
-	// the members per column and sets TK_NULL). Members without a change
-	// keep their original (star-shaped) result list.
+	return true
+}
+
+// memberHasAggregateOrWindowCol reports whether any result column expression
+// carries an aggregate or window function.
+func (e *SelectEngine) memberHasAggregateOrWindowCol(cols []sql.SelectColumn) bool {
+	for _, col := range cols {
+		if e.exprHasAggregate(col.Expr) || e.exprHasWindowFunc(col.Expr) {
+			return true
+		}
+	}
+	return false
+}
+
+// memberHasAggregateOrWindowOb reports whether any ORDER BY term expression
+// carries an aggregate or window function.
+func (e *SelectEngine) memberHasAggregateOrWindowOb(orderBy []sql.OrderByTerm) bool {
+	for _, ob := range orderBy {
+		if e.exprHasAggregate(ob.Expr) || e.exprHasWindowFunc(ob.Expr) {
+			return true
+		}
+	}
+	return false
+}
+
+// expandCompoundMembers expands every member's result list (sqlite3ExpandStarArray
+// has run before this optimization in sqlite3Select, so column positions —
+// and the colUsed bitmask — are expanded positions). ok is false when a
+// member's stars cannot be expanded (e.g. over a derived table), which
+// disables the optimization entirely.
+func (e *SelectEngine) expandCompoundMembers(sub *sql.SelectStmt) (members []*sql.SelectStmt, expanded [][]sql.SelectColumn, ok bool) {
+	members = make([]*sql.SelectStmt, 0, 4)
+	expanded = make([][]sql.SelectColumn, 0, 4)
+	for m := sub; m != nil; m = m.Union {
+		cols, colsOK := e.expandMemberResultColumns(m)
+		if !colsOK {
+			return nil, nil, false
+		}
+		members = append(members, m)
+		expanded = append(expanded, cols)
+	}
+	return members, expanded, true
+}
+
+// rewriteUnusedSubqueryColumns converts every unused column to NULL in every
+// member (select.c walks the members per column and sets TK_NULL). Members
+// without a change keep their original (star-shaped) result list. Returns
+// the number of member result columns converted.
+func rewriteUnusedSubqueryColumns(members []*sql.SelectStmt, expanded [][]sql.SelectColumn, used map[int]bool) int {
 	n := 0
 	for mi, cols := range expanded {
 		changed := false
@@ -209,6 +146,139 @@ func (e *SelectEngine) disableUnusedSubqueryColumns(outer *sql.SelectStmt, quali
 	return n
 }
 
+// subqueryColumnUse tracks which of the subquery's output columns the outer
+// statement observes while the omit-unused-column optimization runs.
+type subqueryColumnUse struct {
+	outNames   []string
+	used       map[int]bool
+	qualifiers []string
+}
+
+// newSubqueryColumnUse starts an empty used-column set over the expanded
+// output column names.
+func newSubqueryColumnUse(outNames []string, qualifiers []string) *subqueryColumnUse {
+	return &subqueryColumnUse{outNames: outNames, used: make(map[int]bool), qualifiers: qualifiers}
+}
+
+// qualMatch reports whether q names one of the subquery's qualifiers
+// (table/alias name).
+func (u *subqueryColumnUse) qualMatch(q string) bool {
+	for _, qual := range u.qualifiers {
+		if qual != "" && strings.EqualFold(q, qual) {
+			return true
+		}
+	}
+	return false
+}
+
+// markName marks every output column whose name matches (case-insensitively).
+func (u *subqueryColumnUse) markName(name string) {
+	if name == "" {
+		return
+	}
+	for i, n := range u.outNames {
+		if n != "" && strings.EqualFold(n, name) {
+			u.used[i] = true
+		}
+	}
+}
+
+// markAll marks every output column.
+func (u *subqueryColumnUse) markAll() {
+	for i := range u.outNames {
+		u.used[i] = true
+	}
+}
+
+// markExprWalk descends expression children, but never treats a star
+// function argument as a column wildcard: count(*) references no column
+// (expr.c TK_AGG_COUNT carries no aggregate operand), while a bare
+// SELECT-list star does.
+func (u *subqueryColumnUse) markExprWalk(expr sql.Expr, fn func(sql.Expr)) {
+	if expr == nil {
+		return
+	}
+	fn(expr)
+	if fc, ok := expr.(*sql.FuncCall); ok {
+		for _, a := range fc.Args {
+			if ref, isRef := a.(*sql.ColumnRef); isRef && ref.Name == "*" {
+				continue
+			}
+			u.markExprWalk(a, fn)
+		}
+		return
+	}
+	for _, child := range exprChildren(expr) {
+		u.markExprWalk(child, fn)
+	}
+}
+
+// markReferencedExpr marks the output columns referenced by the column
+// references inside expr. A qualified reference through one of the
+// subquery's qualifiers marks the named column; an unqualified reference
+// marks every same-named column (it may resolve elsewhere — over-marking
+// only shrinks the optimization). A wildcard over the subquery marks all.
+func (u *subqueryColumnUse) markReferencedExpr(expr sql.Expr) {
+	u.markExprWalk(expr, func(n sql.Expr) {
+		cr, ok := n.(*sql.ColumnRef)
+		if !ok {
+			return
+		}
+		if cr.Name == "*" {
+			if cr.Table == "" || u.qualMatch(cr.Table) {
+				u.markAll()
+			}
+			return
+		}
+		if cr.Table == "" || u.qualMatch(cr.Table) {
+			u.markName(cr.Name)
+		}
+	})
+}
+
+// markOuterReferences marks the subquery output columns observed by the
+// outer statement's clauses.
+func (u *subqueryColumnUse) markOuterReferences(outer *sql.SelectStmt) {
+	for _, col := range outer.Columns {
+		u.markReferencedExpr(col.Expr)
+	}
+	u.markReferencedExpr(outer.Where)
+	for i := range outer.Joins {
+		u.markReferencedExpr(outer.Joins[i].On)
+	}
+	for _, g := range outer.GroupBy {
+		u.markReferencedExpr(g)
+	}
+	u.markReferencedExpr(outer.Having)
+	for _, ob := range outer.OrderBy {
+		u.markReferencedExpr(ob.Expr)
+	}
+	u.markReferencedExpr(outer.Limit)
+	u.markReferencedExpr(outer.Offset)
+}
+
+// markSubqueryOrderBy pins the subquery's own ORDER BY sort columns: an
+// ordinal marks that position; a bare name marks every same-named output
+// column (select.c sets colUsed bits for iOrderByCol terms). The trailing
+// compound ORDER BY is attached to the LAST member of the chain in the
+// parser's AST, so every member's terms are scanned.
+func (u *subqueryColumnUse) markSubqueryOrderBy(sub *sql.SelectStmt) {
+	for m := sub; m != nil; m = m.Union {
+		for _, ob := range m.OrderBy {
+			expr := stripCollate(ob.Expr)
+			if nl, ok := expr.(*sql.NumericLit); ok {
+				if pos, err := strconv.Atoi(nl.Value); err == nil && pos >= 1 && pos <= len(u.outNames) {
+					u.used[pos-1] = true
+				}
+				continue
+			}
+			if ref, ok := expr.(*sql.ColumnRef); ok && ref.Table == "" {
+				u.markName(ref.Name)
+			}
+		}
+	}
+}
+
 // expandMemberResultColumns returns member's result list with every
 // "*" / "t.*" item replaced by the concrete output columns of the member's
 // FROM sources (sqlite3ExpandStarArray). ok is false when a star cannot be
@@ -221,33 +291,54 @@ func (e *SelectEngine) expandMemberResultColumns(m *sql.SelectStmt) ([]sql.Selec
 			out = append(out, col)
 			continue
 		}
+		var ok bool
 		if ref.Table != "" {
-			names, err := e.resolveTableColumnNames(m, ref.Table)
-			if err != nil {
-				return nil, false
-			}
-			for _, n := range names {
-				out = append(out, sql.SelectColumn{Expr: &sql.ColumnRef{Table: ref.Table, Name: n}})
-			}
-			continue
+			out, ok = e.expandQualifiedStarColumns(m, out, ref)
+		} else {
+			out, ok = e.expandBareStarColumns(m, out)
 		}
-		sources := memberSourceRefs(m)
-		if len(sources) == 0 {
+		if !ok {
 			return nil, false
 		}
-		for _, src := range sources {
-			if src.Subquery != nil || src.Name == "" {
-				// A star over a derived/table-valued source is left
-				// unexpanded: the caller disables the optimization.
-				return nil, false
-			}
-			names, err := e.resolveTableColumnNames(m, src.Name)
-			if err != nil {
-				return nil, false
-			}
-			for _, n := range names {
-				out = append(out, sql.SelectColumn{Expr: &sql.ColumnRef{Name: n}})
-			}
+	}
+	return out, true
+}
+
+// expandQualifiedStarColumns appends the concrete columns of a "t.*" item
+// (resolved through the member's FROM sources). ok is false on resolution
+// failure.
+func (e *SelectEngine) expandQualifiedStarColumns(m *sql.SelectStmt, out []sql.SelectColumn, ref *sql.ColumnRef) ([]sql.SelectColumn, bool) {
+	names, err := e.resolveTableColumnNames(m, ref.Table)
+	if err != nil {
+		return nil, false
+	}
+	for _, n := range names {
+		out = append(out, sql.SelectColumn{Expr: &sql.ColumnRef{Table: ref.Table, Name: n}})
+	}
+	return out, true
+}
+
+// expandBareStarColumns appends the concrete columns of a bare "*" item
+// through the member's FROM sources. ok is false when the star cannot be
+// expanded (no FROM source, a derived/table-valued source, or a resolution
+// failure): the caller disables the optimization.
+func (e *SelectEngine) expandBareStarColumns(m *sql.SelectStmt, out []sql.SelectColumn) ([]sql.SelectColumn, bool) {
+	sources := memberSourceRefs(m)
+	if len(sources) == 0 {
+		return nil, false
+	}
+	for _, src := range sources {
+		if src.Subquery != nil || src.Name == "" {
+			// A star over a derived/table-valued source is left
+			// unexpanded: the caller disables the optimization.
+			return nil, false
+		}
+		names, err := e.resolveTableColumnNames(m, src.Name)
+		if err != nil {
+			return nil, false
+		}
+		for _, n := range names {
+			out = append(out, sql.SelectColumn{Expr: &sql.ColumnRef{Name: n}})
 		}
 	}
 	return out, true
@@ -291,6 +382,19 @@ func (e *SelectEngine) selectUsesExternalTables(s *sql.SelectStmt, scopes []map[
 	if s == nil {
 		return false
 	}
+	inner := subqueryScopeWithLocals(s, scopes)
+	if e.selectClausesUseExternalTables(s, inner) {
+		return true
+	}
+	// FROM-clause subqueries, join derived tables, and CTE bodies resolve
+	// with this select's scope pushed (they may reference it), and their
+	// own contents are checked recursively.
+	return e.nestedSourcesUseExternalTables(s, inner)
+}
+
+// subqueryScopeWithLocals returns scopes extended with s's own FROM/join
+// sources and CTE names.
+func subqueryScopeWithLocals(s *sql.SelectStmt, scopes []map[string]bool) []map[string]bool {
 	local := map[string]bool{}
 	addSource := func(t sql.TableRef) {
 		if t.Name != "" {
@@ -311,37 +415,44 @@ func (e *SelectEngine) selectUsesExternalTables(s *sql.SelectStmt, scopes []map[
 	}
 	inner := make([]map[string]bool, 0, len(scopes)+1)
 	inner = append(inner, scopes...)
-	inner = append(inner, local)
-	uses := false
-	check := func(expr sql.Expr) {
-		if !uses && expr != nil && e.exprUsesExternalTables(expr, inner) {
-			uses = true
-		}
-	}
+	return append(inner, local)
+}
+
+// selectClausesUseExternalTables checks the statement's own clauses
+// (columns, WHERE, join ONs, GROUP BY, HAVING, ORDER BY, LIMIT, OFFSET).
+func (e *SelectEngine) selectClausesUseExternalTables(s *sql.SelectStmt, inner []map[string]bool) bool {
 	for _, col := range s.Columns {
-		check(col.Expr)
-	}
-	check(s.Where)
-	for i := range s.Joins {
-		check(s.Joins[i].On)
-	}
-	for _, g := range s.GroupBy {
-		check(g)
-	}
-	check(s.Having)
-	for _, ob := range s.OrderBy {
-		check(ob.Expr)
-	}
-	check(s.Limit)
-	check(s.Offset)
-	// FROM-clause subqueries, join derived tables, and CTE bodies resolve
-	// with this select's scope pushed (they may reference it), and their
-	// own contents are checked recursively.
-	if s.From.Subquery != nil {
-		check2 := e.selectUsesExternalTables(s.From.Subquery, inner)
-		if check2 {
+		if e.exprUsesExternalTables(col.Expr, inner) {
 			return true
 		}
+	}
+	for _, j := range s.Joins {
+		if e.exprUsesExternalTables(j.On, inner) {
+			return true
+		}
+	}
+	for _, g := range s.GroupBy {
+		if e.exprUsesExternalTables(g, inner) {
+			return true
+		}
+	}
+	for _, ob := range s.OrderBy {
+		if e.exprUsesExternalTables(ob.Expr, inner) {
+			return true
+		}
+	}
+	// exprUsesExternalTables treats a nil expression as internal.
+	return e.exprUsesExternalTables(s.Where, inner) ||
+		e.exprUsesExternalTables(s.Having, inner) ||
+		e.exprUsesExternalTables(s.Limit, inner) ||
+		e.exprUsesExternalTables(s.Offset, inner)
+}
+
+// nestedSourcesUseExternalTables checks FROM-clause subqueries, join derived
+// tables, and CTE bodies.
+func (e *SelectEngine) nestedSourcesUseExternalTables(s *sql.SelectStmt, inner []map[string]bool) bool {
+	if s.From.Subquery != nil && e.selectUsesExternalTables(s.From.Subquery, inner) {
+		return true
 	}
 	for i := range s.Joins {
 		if s.Joins[i].Table.Subquery != nil &&
@@ -354,7 +465,7 @@ func (e *SelectEngine) selectUsesExternalTables(s *sql.SelectStmt, scopes []map[
 			return true
 		}
 	}
-	return uses
+	return false
 }
 
 // exprUsesExternalTables walks expr (recursing through expression children
