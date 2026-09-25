@@ -574,6 +574,10 @@ func (t *Table) deleteDocsizeRow(rowid int64) error {
 // readExternalValues fetches one document's values from the external content
 // table (fts5StorageRead's content=<table> path).
 func (t *Table) readExternalValues(rowid int64) ([]interface{}, error) {
+	// The content lookup steps a %_content read statement (C's bLock scope):
+	// a nested query plan against this table while it runs is a content
+	// recursion (fts5content 6.x "recursively defined fts5 content table").
+	defer t.beginContentScan()()
 	cols := strings.Join(quoteCols(t.cfg.Columns), ", ")
 	sql := fmt.Sprintf("SELECT %s, %s FROM %s WHERE %s = %d",
 		quoteIdent(t.cfg.ContentRowid), cols, quoteIdent(t.cfg.ContentTable),
@@ -591,6 +595,10 @@ func (t *Table) readExternalValues(rowid int64) ([]interface{}, error) {
 // scanExternal reads the whole external content table in rowid order:
 // (rowid, values...) pairs (fts5StorageScan's content-table walk).
 func (t *Table) scanExternal() ([]int64, [][]interface{}, error) {
+	// The content scan steps FTS5_STMT_SCAN_ASC (C's bLock scope): a nested
+	// query plan against this table while it runs is a content recursion
+	// (fts5_main.c fts5BestIndexMethod's bLock check).
+	defer t.beginContentScan()()
 	cols := strings.Join(quoteCols(t.cfg.Columns), ", ")
 	sql := fmt.Sprintf("SELECT %s, %s FROM %s ORDER BY %s",
 		quoteIdent(t.cfg.ContentRowid), cols, quoteIdent(t.cfg.ContentTable), quoteIdent(t.cfg.ContentRowid))

@@ -50,11 +50,26 @@ func (t *Table) readSegmentBlob(segid int64) ([]blobDoc, error) {
 	return blob.Docs, nil
 }
 
-// removeSegmentRows deletes a segment's payload row (fts5DataRemoveSegment's
-// leaf half; tombstone pages are removed separately).
+// removeSegmentRows deletes a segment's payload row and its dlidx rows
+// (fts5DataRemoveSegment: the leaf half deletes from %_data, the pIdxDeleter
+// deletes from %_idx; tombstone pages are removed separately).
 func (t *Table) removeSegmentRows(seg *Segment) error {
 	qData := qual(t.dbName, t.cfg.Name+"_data")
-	_, err := t.db.ExecSQL(fmt.Sprintf("DELETE FROM %s WHERE id=%d", qData, segmentBlobRowid(seg.Segid)))
+	if _, err := t.db.ExecSQL(fmt.Sprintf("DELETE FROM %s WHERE id=%d", qData, segmentBlobRowid(seg.Segid))); err != nil {
+		return err
+	}
+	qIdx := qual(t.dbName, t.cfg.Name+"_idx")
+	_, err := t.db.ExecSQL(fmt.Sprintf("DELETE FROM %s WHERE segid=%d", qIdx, seg.Segid))
+	return err
+}
+
+// writeDlidxRow emits a flushed segment's btree row into %_idx
+// (fts5_index.c fts5WriteFlushBtree's pIdxWriter insert: one row per leaf —
+// term the empty blob and pgno bFlag+(leaf<<1) for the mirror model's
+// single-leaf segment blobs, bFlag 0 since no dlidx page flushes).
+func (t *Table) writeDlidxRow(seg *Segment) error {
+	qIdx := qual(t.dbName, t.cfg.Name+"_idx")
+	_, err := t.db.ExecSQL(fmt.Sprintf("INSERT OR REPLACE INTO %s(segid, term, pgno) VALUES(%d, X'', 2)", qIdx, seg.Segid))
 	return err
 }
 
@@ -199,6 +214,9 @@ func (t *Table) flushOneHash() error {
 		if err := t.writeSegmentBlob(seg, docs); err != nil {
 			return err
 		}
+		if err := t.writeDlidxRow(seg); err != nil {
+			return err
+		}
 		for len(t.structRec.Levels) == 0 {
 			t.structRec.Levels = append(t.structRec.Levels, nil)
 		}
@@ -323,33 +341,10 @@ func (t *Table) mergeLevel(iLvl int) {
 		PgnoFirst: 1,
 		Tombs:     map[int64]bool{},
 	}
-	for i, in := range inputs {
-		out.NEntry += in.NEntry - in.NEntryTombstone
-		if i == 0 {
-			out.Origin1 = in.Origin1
-		}
-		if i == len(inputs)-1 {
-			out.Origin2 = in.Origin2
-		}
-	}
+	mergeOutBounds(inputs, out)
 	// Output doclist: every input rowid that is not tombstoned in its own
 	// segment (tombstones are resolved by the merge, like C's bDel skip).
-	tomb := map[int64]bool{}
-	for _, in := range inputs {
-		for rowid := range in.Tombs {
-			tomb[rowid] = true
-		}
-	}
-	seen := map[int64]bool{}
-	for _, in := range inputs {
-		for _, rowid := range in.Rowids {
-			if tomb[rowid] || seen[rowid] {
-				continue
-			}
-			seen[rowid] = true
-			out.Rowids = append(out.Rowids, rowid)
-		}
-	}
+	out.Rowids = mergeSurvivingRowids(inputs)
 	sortRowids(out.Rowids)
 
 	// Persist the output (or drop it when annihilated), remove the inputs.
@@ -365,6 +360,45 @@ func (t *Table) mergeLevel(iLvl int) {
 		_ = t.removeTombstoneRows(in)
 	}
 	t.structRec.Levels[iLvl] = nil
+}
+
+// mergeOutBounds accumulates the merged segment's entry count and origin
+// range: nEntry is the live-entry sum; the origins span from the oldest
+// input's origin1 to the newest input's origin2 (fts5Merge's bounds).
+func mergeOutBounds(inputs []*Segment, out *Segment) {
+	for i, in := range inputs {
+		out.NEntry += in.NEntry - in.NEntryTombstone
+		if i == 0 {
+			out.Origin1 = in.Origin1
+		}
+		if i == len(inputs)-1 {
+			out.Origin2 = in.Origin2
+		}
+	}
+}
+
+// mergeSurvivingRowids collects the merged segment's rowid list: every input
+// rowid not tombstoned in any input segment, each source contributing its
+// own duplicates only once.
+func mergeSurvivingRowids(inputs []*Segment) []int64 {
+	tomb := map[int64]bool{}
+	for _, in := range inputs {
+		for rowid := range in.Tombs {
+			tomb[rowid] = true
+		}
+	}
+	seen := map[int64]bool{}
+	out := []int64{}
+	for _, in := range inputs {
+		for _, rowid := range in.Rowids {
+			if tomb[rowid] || seen[rowid] {
+				continue
+			}
+			seen[rowid] = true
+			out = append(out, rowid)
+		}
+	}
+	return out
 }
 
 // promote applies fts5StructurePromote's level bookkeeping after a merge

@@ -413,3 +413,43 @@ func fts5PinFlattenNull(rows [][]interface{}) string {
 	}
 	return strings.Join(parts, " ")
 }
+
+// TestFTS5ResumePinShadowTriggerReentrancy pins the fts5 re-entrancy guards:
+// a trigger on a shadow table selecting from the table being written fails
+// with C's corrupt error (fts5circref 1.1.x — the statement-boundary xSync
+// flush runs with the index write transaction open), and a mutual external-
+// content cycle fails any query with "recursively defined fts5 content
+// table" (fts5content 6.x — C's pConfig->bLock held across %_content
+// statement prepare/step, checked in fts5BestIndexMethod).
+func TestFTS5ResumePinShadowTriggerReentrancy(t *testing.T) {
+	for _, suffix := range []string{"tt_data", "tt_idx", "tt_content", "tt_docsize"} {
+		db := fts5ResumeOpen(t)
+		if res := db.Exec("CREATE VIRTUAL TABLE tt USING fts5(a)"); res.Error != nil {
+			t.Fatal(res.Error)
+		}
+		if res := db.Exec("CREATE TRIGGER tr1 AFTER INSERT ON tt_" + strings.TrimPrefix(suffix, "tt_") + " BEGIN SELECT * FROM tt; END"); res.Error != nil {
+			t.Fatal(res.Error)
+		}
+		res := db.Exec("INSERT INTO tt(a) VALUES('one two three')")
+		if res.Error == nil || !strings.Contains(res.Error.Error(), "database disk image is malformed") {
+			t.Errorf("%s trigger: expected malformed, got: %v", suffix, res.Error)
+		}
+	}
+	// Mutual external-content cycle: CREATEs and INSERTs succeed, any SELECT
+	// of either table reports the content recursion (oracle-validated).
+	db := fts5ResumeOpen(t)
+	for _, s := range []string{
+		"CREATE VIRTUAL TABLE t1 USING fts5(a, content=t2)",
+		"CREATE VIRTUAL TABLE t2 USING fts5(a, content=t1)",
+		"INSERT INTO t1(a) VALUES('abc')",
+	} {
+		if res := db.Exec(s); res.Error != nil {
+			t.Fatalf("%s: %v", s, res.Error)
+		}
+	}
+	for _, q := range []string{"SELECT * FROM t1", "SELECT count(*) FROM t1", "SELECT * FROM t1('abc')"} {
+		if r := db.Query(q); r.Error == nil || !strings.Contains(r.Error.Error(), "recursively defined fts5 content table") {
+			t.Errorf("%s: expected recursion error, got: %v", q, r.Error)
+		}
+	}
+}

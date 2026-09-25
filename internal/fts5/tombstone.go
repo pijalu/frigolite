@@ -63,47 +63,39 @@ func tombstonePageAdd(pg []byte, bForce bool, nPg int, rowid int64) int {
 		return 1
 	}
 	iSlot := int((uint64(rowid) / uint64(nPg)) % uint64(nSlot))
-	nCollide := nSlot
 
 	binary.BigEndian.PutUint32(pg[4:8], nElem+1)
+	tombstoneSlotInsert(pg, iSlot, rowid)
+	return 0
+}
+
+// tombstoneSlotInsert probes a page's slots from iSlot for the first free
+// slot and stores rowid there. Linear probing wraps at least once; a full
+// rotation stops the probe (C's exhausted-collision outcome: a silent
+// no-op).
+func tombstoneSlotInsert(pg []byte, iSlot int, rowid int64) {
+	szKey := tombstoneKeySize(pg)
+	nSlot := tombstoneNSlot(pg)
+	nCollide := nSlot
 	for {
 		off := 8 + iSlot*szKey
 		if szKey == 4 {
 			if binary.BigEndian.Uint32(pg[off:off+4]) == 0 {
 				binary.BigEndian.PutUint32(pg[off:off+4], uint32(rowid))
-				return 0
+				return
 			}
 		} else {
 			if binary.BigEndian.Uint64(pg[off:off+8]) == 0 {
 				binary.BigEndian.PutUint64(pg[off:off+8], uint64(rowid))
-				return 0
+				return
 			}
 		}
 		iSlot = (iSlot + 1) % nSlot
 		nCollide--
 		if nCollide == 0 {
-			return 0 // C's exhausted-collision outcome: a silent no-op
+			return
 		}
 	}
-}
-
-// tombstonePageHas reports whether rowid is present in the page.
-func tombstonePageHas(pg []byte, rowid int64) bool {
-	szKey := tombstoneKeySize(pg)
-	nSlot := tombstoneNSlot(pg)
-	for i := 0; i < nSlot; i++ {
-		off := 8 + i*szKey
-		if szKey == 4 {
-			if uint64(binary.BigEndian.Uint32(pg[off:off+4])) == uint64(rowid) {
-				return true
-			}
-		} else {
-			if binary.BigEndian.Uint64(pg[off:off+8]) == uint64(rowid) {
-				return true
-			}
-		}
-	}
-	return false
 }
 
 // tombstoneRowid renders a tombstone page's %_data rowid
@@ -155,48 +147,12 @@ func (t *Table) tombstoneAdd(seg *Segment, rowid int64) error {
 // add (fts5IndexTombstoneRebuild). pendingKey/pendingSz describe the rowid
 // that triggered the rebuild (already-read page may be nil).
 func (t *Table) rebuildTombstones(seg *Segment, data1 []byte, iPg1 int64, szKey int, pendingRowid int64) error {
-	if data1 != nil && szKey == 0 {
-		szKey = tombstoneKeySize(data1)
-	}
-	if rowidNeedsWideKey(pendingRowid) {
-		szKey = 8
-	}
-	if szKey == 0 {
-		szKey = 4
-	}
-	const minSlot = 32
-	slotPerPage := (int(t.cfg.Pgsz) - 8) / szKey
-	if slotPerPage < minSlot {
-		slotPerPage = minSlot
-	}
-	var nOut, nSlot int
-	switch {
-	case seg.NPgTombstone == 0:
-		nOut, nSlot = 1, minSlot
-	case seg.NPgTombstone == 1:
-		var nElem uint32
-		if data1 != nil {
-			nElem = binary.BigEndian.Uint32(data1[4:8])
-		}
-		nOut, nSlot = 1, minSlot
-		if int(nElem)*4 > nSlot {
-			nSlot = int(nElem) * 4
-		}
-		if nSlot > slotPerPage {
-			nOut = 0
-		}
-	default:
-		nOut, nSlot = int(seg.NPgTombstone)*2+1, slotPerPage
-	}
-	if nOut == 0 {
-		nOut, nSlot = int(seg.NPgTombstone)*2+1, slotPerPage
-	}
+	szKey = tombstoneRebuildKeySize(data1, szKey, pendingRowid)
+	slotPerPage := tombstoneSlotPerPage(int(t.cfg.Pgsz), szKey)
+	nOut, nSlot := tombstoneRebuildLayout(seg, data1, slotPerPage)
 
 	for {
-		pages := make([][]byte, nOut)
-		for i := range pages {
-			pages[i] = newTombstonePage(szKey, nSlot)
-		}
+		pages := newTombstonePageSet(szKey, nSlot, nOut)
 		ok, err := t.rehashTombstones(seg, data1, iPg1, pages, nOut)
 		if err != nil {
 			return err
@@ -207,16 +163,83 @@ func (t *Table) rebuildTombstones(seg *Segment, data1 []byte, iPg1 int64, szKey 
 				nOut, nSlot = nOut*2+1, slotPerPage
 				continue
 			}
-			for i, pg := range pages {
-				if err := t.writeTombstonePage(seg, int64(i), pg); err != nil {
-					return err
-				}
-			}
-			seg.NPgTombstone = int64(nOut)
-			return nil
+			return t.writeTombstonePageSet(seg, pages)
 		}
 		nOut, nSlot = nOut*2+1, slotPerPage
 	}
+}
+
+// tombstoneRebuildKeySize resolves the key width for a rebuild: an existing
+// page's width, widened when the pending rowid needs the 8-byte form, 4 as
+// the empty-set default.
+func tombstoneRebuildKeySize(data1 []byte, szKey int, pendingRowid int64) int {
+	if data1 != nil && szKey == 0 {
+		szKey = tombstoneKeySize(data1)
+	}
+	if rowidNeedsWideKey(pendingRowid) {
+		szKey = 8
+	}
+	if szKey == 0 {
+		szKey = 4
+	}
+	return szKey
+}
+
+// tombstoneSlotPerPage is one page's slot capacity for a key width, floored
+// at C's 32-slot minimum.
+func tombstoneSlotPerPage(pgsz, szKey int) int {
+	const minSlot = 32
+	n := (pgsz - 8) / szKey
+	if n < minSlot {
+		n = minSlot
+	}
+	return n
+}
+
+// tombstoneRebuildLayout picks the initial page count and slot count for a
+// rebuild (fts5IndexTombstoneRebuild's initial sizing).
+func tombstoneRebuildLayout(seg *Segment, data1 []byte, slotPerPage int) (nOut, nSlot int) {
+	switch {
+	case seg.NPgTombstone == 0:
+		return 1, 32
+	case seg.NPgTombstone == 1:
+		nOut, nSlot = 1, 32
+		if data1 != nil {
+			if nElem := int(binary.BigEndian.Uint32(data1[4:8])); nElem*4 > nSlot {
+				nSlot = nElem * 4
+			}
+		}
+		if nSlot > slotPerPage {
+			nOut = 0
+		}
+		if nOut == 0 {
+			return int(seg.NPgTombstone)*2 + 1, slotPerPage
+		}
+		return nOut, nSlot
+	default:
+		return int(seg.NPgTombstone)*2 + 1, slotPerPage
+	}
+}
+
+// newTombstonePageSet allocates nOut empty pages of nSlot slots.
+func newTombstonePageSet(szKey, nSlot, nOut int) [][]byte {
+	pages := make([][]byte, nOut)
+	for i := range pages {
+		pages[i] = newTombstonePage(szKey, nSlot)
+	}
+	return pages
+}
+
+// writeTombstonePageSet persists a rebuilt page set as the segment's page
+// sequence and records the new page count.
+func (t *Table) writeTombstonePageSet(seg *Segment, pages [][]byte) error {
+	for i, pg := range pages {
+		if err := t.writeTombstonePage(seg, int64(i), pg); err != nil {
+			return err
+		}
+	}
+	seg.NPgTombstone = int64(len(pages))
+	return nil
 }
 
 // rowidNeedsWideKey reports whether a rowid needs the 8-byte key form.
@@ -230,41 +253,53 @@ func (t *Table) rehashTombstones(seg *Segment, data1 []byte, iPg1 int64, pages [
 		binary.BigEndian.PutUint32(pages[i][4:8], 0)
 	}
 	for ii := int64(0); ii < seg.NPgTombstone; ii++ {
-		var pg []byte
-		if ii == iPg1 {
-			pg = data1
-		} else {
-			var err error
-			pg, err = t.readTombstonePage(seg, ii)
-			if err != nil {
-				return false, err
-			}
+		pg, err := t.rehashSourcePage(seg, data1, iPg1, ii)
+		if err != nil {
+			return false, err
 		}
 		if pg == nil {
 			continue
 		}
-		nSlotIn := tombstoneNSlot(pg)
-		for i := 0; i < nSlotIn; i++ {
-			off := 8 + i*tombstoneKeySize(pg)
-			var val uint64
-			if tombstoneKeySize(pg) == 4 {
-				val = uint64(binary.BigEndian.Uint32(pg[off : off+4]))
-			} else {
-				val = binary.BigEndian.Uint64(pg[off : off+8])
-			}
-			if val == 0 {
-				continue
-			}
-			dst := pages[val%uint64(nOut)]
-			if res := tombstonePageAdd(dst, false, nOut, int64(val)); res != 0 {
-				return false, nil
-			}
+		if !tombstoneRehashPage(pg, pages, nOut) {
+			return false, nil
 		}
 		if ii == 0 && iPg1 != 0 {
 			pages[0][1] = pg[1]
 		}
 	}
 	return true, nil
+}
+
+// rehashSourcePage loads the page to rehash at position ii: the in-hand
+// data1 page when ii matches, a fresh read otherwise.
+func (t *Table) rehashSourcePage(seg *Segment, data1 []byte, iPg1, ii int64) ([]byte, error) {
+	if ii == iPg1 {
+		return data1, nil
+	}
+	return t.readTombstonePage(seg, ii)
+}
+
+// tombstoneRehashPage copies every occupied slot of pg into the new page
+// set. ok is false when a destination page overflowed.
+func tombstoneRehashPage(pg []byte, pages [][]byte, nOut int) bool {
+	nSlotIn := tombstoneNSlot(pg)
+	for i := 0; i < nSlotIn; i++ {
+		off := 8 + i*tombstoneKeySize(pg)
+		var val uint64
+		if tombstoneKeySize(pg) == 4 {
+			val = uint64(binary.BigEndian.Uint32(pg[off : off+4]))
+		} else {
+			val = binary.BigEndian.Uint64(pg[off : off+8])
+		}
+		if val == 0 {
+			continue
+		}
+		dst := pages[val%uint64(nOut)]
+		if res := tombstonePageAdd(dst, false, nOut, int64(val)); res != 0 {
+			return false
+		}
+	}
+	return true
 }
 
 // readTombstonePage loads one tombstone page of a segment from %_data.
@@ -302,19 +337,3 @@ func (t *Table) removeTombstoneRows(seg *Segment) error {
 	return err
 }
 
-// tombstoneContains reports whether rowid is tombstoned in seg, reading the
-// page-set membership the way C's segment iterators do
-// (fts5IndexTombstoneHas: page = rowid % nPgTombstone, then probe).
-func (t *Table) tombstoneContains(seg *Segment, rowid int64) bool {
-	if seg.Tombs != nil {
-		return seg.Tombs[rowid]
-	}
-	if seg.NPgTombstone == 0 {
-		return false
-	}
-	pg, err := t.readTombstonePage(seg, rowid%seg.NPgTombstone)
-	if err != nil || pg == nil {
-		return false
-	}
-	return tombstonePageHas(pg, rowid)
-}

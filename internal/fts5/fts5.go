@@ -261,6 +261,12 @@ type Table struct {
 	// error (fts5circref: triggers on shadow tables reading the table being
 	// written).
 	writeActive int
+	// scanGuard counts in-flight external-content scans of this table (C's
+	// pConfig->bLock, held while the %_content read statements prepare and
+	// step): a query plan arriving while it is nonzero is a content-table
+	// recursion and fails with C's "recursively defined fts5 content table"
+	// (fts5_main.c fts5BestIndexMethod's bLock check).
+	scanGuard int
 }
 
 // pendingTerm is one term's state in the pending-hash byte accounting
@@ -357,6 +363,7 @@ func (t *Table) tokenizeFor(text string) []Token {
 
 // Insert adds a document (fts5UpdateMethod's insert path + fts5StorageInsert).
 func (t *Table) Insert(rowid int64, values []interface{}) error {
+	defer t.beginWrite()()
 	cols, err := t.tokenizeValues(values)
 	if err != nil {
 		return err
@@ -405,6 +412,7 @@ func (t *Table) Delete(rowid int64) (bool, error) {
 	if !t.ix.RemoveDoc(rowid) {
 		return false, nil
 	}
+	defer t.beginWrite()()
 	defer t.bumpVersion()
 	// A secure delete requests the one-time format upgrade (fts5_index.c
 	// fts5FlushSecureDelete's REPLACE INTO %_config when
@@ -507,6 +515,7 @@ func (t *Table) DiscardSecureUpgrade() { t.pendingSecureUpgrade = false }
 // DeleteAll clears the whole index (the 'delete-all' special command and a
 // WHERE-less DELETE on a contentless table: fts5SpecialDelete).
 func (t *Table) DeleteAll() error {
+	defer t.beginWrite()()
 	defer t.bumpVersion()
 	t.maxRowid = 0
 	t.ix = NewInvertedIndex(len(t.cfg.Columns))
@@ -532,6 +541,7 @@ func (t *Table) DeleteAll() error {
 // directives (fts5UpdateMethod's special-insert path). handled is false for
 // an unknown command.
 func (t *Table) SpecialCommand(cmd string, args []interface{}) (bool, error) {
+	defer t.beginWrite()()
 	switch strings.ToLower(cmd) {
 	case "delete-all":
 		return t.specialDeleteAll()

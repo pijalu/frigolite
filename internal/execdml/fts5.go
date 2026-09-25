@@ -28,6 +28,11 @@ func (e *DMLExecutor) flushFTS5Shadow(t5 *fts5.Table) error {
 	// transaction the pending hash stays pending until COMMIT/SAVEPOINT
 	// (fts5hash 2.2: %_data holds only the seed rows mid-transaction).
 	if !e.ctx.InTransaction() {
+		// The sync runs with the index write transaction still open (C's
+		// xSync → sqlite3Fts5IndexSync at statement end): its shadow writes
+		// (%_data/%_idx/%_config) fire shadow-table triggers mid-write, so
+		// the re-entrancy guard stays active through the flush.
+		defer t5.BeginWriteScope()()
 		if err := t5.ApplySecureUpgrade(); err != nil {
 			return err
 		}
