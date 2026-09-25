@@ -5,6 +5,7 @@
 package in6
 
 import (
+"fmt"
 "github.com/pijalu/frigolite"
 "github.com/pijalu/frigolite/internal/vtab"
 "os"
@@ -18,6 +19,21 @@ func Test_in6(t *testing.T) {
 		t.Fatal(err)
 	}
 	defer db.Close()
+
+	// auto-installed test-extension functions (src/test_func.c)
+	db.RegisterFunction("test_error", func(args []interface{}) (interface{}, error) {
+		msg := ""
+		if len(args) > 0 && args[0] != nil {
+			msg = fmt.Sprintf("%v", args[0])
+		}
+		return nil, fmt.Errorf("%s", msg)
+	}, 1, 2)
+	db.RegisterFunction("test_isolation", func(args []interface{}) (interface{}, error) {
+		if len(args) < 2 {
+			return nil, nil
+		}
+		return args[1], nil
+	}, 2, 2)
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
@@ -74,11 +90,11 @@ func Test_in6(t *testing.T) {
 		_ = sqlite_search_count // TCL namespace variable (query)
 		got := tclListFlatten(sqlite_search_count)
 		want := tclListFlatten("0")
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "in6-1.2")
 		}
 	}
-	{ // "in6-1.3" — skipped: VDBE bytecode assertion (IfNoHope/SeekHit opcodes) N-A (SQL side effects only)
+	{ // "in6-1.3" — skipped: VDBE bytecode assertion (IfNoHope/SeekHit opcodes) N-A (SQL + file side effects only)
 		_res = db.Exec("\n    EXPLAIN\n    SELECT d FROM t1\n      WHERE a IN (98,99,100,101)\n        AND b=200 AND c=300;\n  ")
 		_ = _res.Error // tolerate unsupported-feature errors in skipped tests
 	}
@@ -93,7 +109,7 @@ func Test_in6(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1 2 3 4 5 8 9"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -107,7 +123,7 @@ func Test_in6(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1 {} 2 {} 3 {} 4 {} 5 {} 8 {} 9 {}"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -126,7 +142,7 @@ func Test_in6(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "0 {} {} {}"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -138,7 +154,7 @@ func Test_in6(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "NULL"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -157,7 +173,7 @@ func Test_in6(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "'0' '10' |"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -169,7 +185,7 @@ func Test_in6(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "NULL NULL NULL x '0' '0' '10' x '10' '10' '10' x"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}

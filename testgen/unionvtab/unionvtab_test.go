@@ -5,6 +5,7 @@
 package unionvtab
 
 import (
+"fmt"
 "github.com/pijalu/frigolite"
 "github.com/pijalu/frigolite/internal/vtab"
 "os"
@@ -21,6 +22,21 @@ func Test_unionvtab(t *testing.T) {
 		t.Fatal(err)
 	}
 	defer db.Close()
+
+	// auto-installed test-extension functions (src/test_func.c)
+	db.RegisterFunction("test_error", func(args []interface{}) (interface{}, error) {
+		msg := ""
+		if len(args) > 0 && args[0] != nil {
+			msg = fmt.Sprintf("%v", args[0])
+		}
+		return nil, fmt.Errorf("%s", msg)
+	}, 1, 2)
+	db.RegisterFunction("test_isolation", func(args []interface{}) (interface{}, error) {
+		if len(args) < 2 {
+			return nil, nil
+		}
+		return args[1], nil
+	}, 2, 2)
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
@@ -101,7 +117,7 @@ func Test_unionvtab(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1 one 2 two 3 three 10 ten 11 eleven 12 twelve 20 twenty 21 twenty-one 22 twenty-two"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -113,7 +129,7 @@ func Test_unionvtab(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "0 a INTEGER 0 {} 0 1 b TEXT 0 {} 0"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -125,7 +141,7 @@ func Test_unionvtab(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "3 three 11 eleven"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -137,7 +153,7 @@ func Test_unionvtab(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "2 two 10 ten 12 twelve"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -149,7 +165,7 @@ func Test_unionvtab(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "3 three 10 ten 11 eleven"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -161,7 +177,7 @@ func Test_unionvtab(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "11 eleven 12 twelve"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -173,7 +189,7 @@ func Test_unionvtab(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1 one 2 two 3 three 10 ten 11 eleven 12 twelve 20 twenty 21 twenty-one 22 twenty-two"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -185,7 +201,7 @@ func Test_unionvtab(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1 one 2 two 3 three 10 ten 11 eleven 12 twelve 20 twenty 21 twenty-one 22 twenty-two"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -197,7 +213,7 @@ func Test_unionvtab(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "10 ten 11 eleven 12 twelve 20 twenty 21 twenty-one"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -369,7 +385,7 @@ func Test_unionvtab(t *testing.T) {
 				}
 				got := flatten(r)
 				want := "10 1.10"
-				if got != want {
+				if got != want && !tclFpnumCompare(got, want) {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
@@ -381,7 +397,7 @@ func Test_unionvtab(t *testing.T) {
 				}
 				got := flatten(r)
 				want := "25 1.25"
-				if got != want {
+				if got != want && !tclFpnumCompare(got, want) {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
@@ -393,7 +409,7 @@ func Test_unionvtab(t *testing.T) {
 				}
 				got := flatten(r)
 				want := "24"
-				if got != want {
+				if got != want && !tclFpnumCompare(got, want) {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
@@ -405,7 +421,7 @@ func Test_unionvtab(t *testing.T) {
 				}
 				got := flatten(r)
 				want := "100"
-				if got != want {
+				if got != want && !tclFpnumCompare(got, want) {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
@@ -417,7 +433,7 @@ func Test_unionvtab(t *testing.T) {
 				}
 				got := flatten(r)
 				want := "126"
-				if got != want {
+				if got != want && !tclFpnumCompare(got, want) {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
@@ -429,7 +445,7 @@ func Test_unionvtab(t *testing.T) {
 				}
 				got := flatten(r)
 				want := "173"
-				if got != want {
+				if got != want && !tclFpnumCompare(got, want) {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
@@ -441,7 +457,7 @@ func Test_unionvtab(t *testing.T) {
 				}
 				got := flatten(r)
 				want := "200"
-				if got != want {
+				if got != want && !tclFpnumCompare(got, want) {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
@@ -453,7 +469,7 @@ func Test_unionvtab(t *testing.T) {
 				}
 				got := flatten(r)
 				want := "275"
-				if got != want {
+				if got != want && !tclFpnumCompare(got, want) {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
@@ -465,7 +481,7 @@ func Test_unionvtab(t *testing.T) {
 				}
 				got := flatten(r)
 				want := "299"
-				if got != want {
+				if got != want && !tclFpnumCompare(got, want) {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
@@ -477,7 +493,7 @@ func Test_unionvtab(t *testing.T) {
 				}
 				got := flatten(r)
 				want := "300"
-				if got != want {
+				if got != want && !tclFpnumCompare(got, want) {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
@@ -489,7 +505,7 @@ func Test_unionvtab(t *testing.T) {
 				}
 				got := flatten(r)
 				want := "300"
-				if got != want {
+				if got != want && !tclFpnumCompare(got, want) {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
@@ -501,7 +517,7 @@ func Test_unionvtab(t *testing.T) {
 				}
 				got := flatten(r)
 				want := "24"
-				if got != want {
+				if got != want && !tclFpnumCompare(got, want) {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
@@ -513,7 +529,7 @@ func Test_unionvtab(t *testing.T) {
 				}
 				got := flatten(r)
 				want := "100"
-				if got != want {
+				if got != want && !tclFpnumCompare(got, want) {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
@@ -525,7 +541,7 @@ func Test_unionvtab(t *testing.T) {
 				}
 				got := flatten(r)
 				want := "126"
-				if got != want {
+				if got != want && !tclFpnumCompare(got, want) {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
@@ -537,7 +553,7 @@ func Test_unionvtab(t *testing.T) {
 				}
 				got := flatten(r)
 				want := "172"
-				if got != want {
+				if got != want && !tclFpnumCompare(got, want) {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
@@ -549,7 +565,7 @@ func Test_unionvtab(t *testing.T) {
 				}
 				got := flatten(r)
 				want := "173"
-				if got != want {
+				if got != want && !tclFpnumCompare(got, want) {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
@@ -561,7 +577,7 @@ func Test_unionvtab(t *testing.T) {
 				}
 				got := flatten(r)
 				want := "200"
-				if got != want {
+				if got != want && !tclFpnumCompare(got, want) {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
@@ -573,7 +589,7 @@ func Test_unionvtab(t *testing.T) {
 				}
 				got := flatten(r)
 				want := "275"
-				if got != want {
+				if got != want && !tclFpnumCompare(got, want) {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
@@ -585,7 +601,7 @@ func Test_unionvtab(t *testing.T) {
 				}
 				got := flatten(r)
 				want := "298"
-				if got != want {
+				if got != want && !tclFpnumCompare(got, want) {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
@@ -597,7 +613,7 @@ func Test_unionvtab(t *testing.T) {
 				}
 				got := flatten(r)
 				want := "299"
-				if got != want {
+				if got != want && !tclFpnumCompare(got, want) {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
@@ -609,7 +625,7 @@ func Test_unionvtab(t *testing.T) {
 				}
 				got := flatten(r)
 				want := "300"
-				if got != want {
+				if got != want && !tclFpnumCompare(got, want) {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
@@ -621,7 +637,7 @@ func Test_unionvtab(t *testing.T) {
 				}
 				got := flatten(r)
 				want := "276"
-				if got != want {
+				if got != want && !tclFpnumCompare(got, want) {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
@@ -633,7 +649,7 @@ func Test_unionvtab(t *testing.T) {
 				}
 				got := flatten(r)
 				want := "200"
-				if got != want {
+				if got != want && !tclFpnumCompare(got, want) {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
@@ -645,7 +661,7 @@ func Test_unionvtab(t *testing.T) {
 				}
 				got := flatten(r)
 				want := "174"
-				if got != want {
+				if got != want && !tclFpnumCompare(got, want) {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
@@ -657,7 +673,7 @@ func Test_unionvtab(t *testing.T) {
 				}
 				got := flatten(r)
 				want := "173"
-				if got != want {
+				if got != want && !tclFpnumCompare(got, want) {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
@@ -669,7 +685,7 @@ func Test_unionvtab(t *testing.T) {
 				}
 				got := flatten(r)
 				want := "127"
-				if got != want {
+				if got != want && !tclFpnumCompare(got, want) {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
@@ -681,7 +697,7 @@ func Test_unionvtab(t *testing.T) {
 				}
 				got := flatten(r)
 				want := "100"
-				if got != want {
+				if got != want && !tclFpnumCompare(got, want) {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
@@ -693,7 +709,7 @@ func Test_unionvtab(t *testing.T) {
 				}
 				got := flatten(r)
 				want := "25"
-				if got != want {
+				if got != want && !tclFpnumCompare(got, want) {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
@@ -705,7 +721,7 @@ func Test_unionvtab(t *testing.T) {
 				}
 				got := flatten(r)
 				want := "24"
-				if got != want {
+				if got != want && !tclFpnumCompare(got, want) {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
@@ -717,7 +733,7 @@ func Test_unionvtab(t *testing.T) {
 				}
 				got := flatten(r)
 				want := "1"
-				if got != want {
+				if got != want && !tclFpnumCompare(got, want) {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
@@ -729,7 +745,7 @@ func Test_unionvtab(t *testing.T) {
 				}
 				got := flatten(r)
 				want := "0"
-				if got != want {
+				if got != want && !tclFpnumCompare(got, want) {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
@@ -741,7 +757,7 @@ func Test_unionvtab(t *testing.T) {
 				}
 				got := flatten(r)
 				want := "0"
-				if got != want {
+				if got != want && !tclFpnumCompare(got, want) {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
@@ -753,7 +769,7 @@ func Test_unionvtab(t *testing.T) {
 				}
 				got := flatten(r)
 				want := "277"
-				if got != want {
+				if got != want && !tclFpnumCompare(got, want) {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
@@ -765,7 +781,7 @@ func Test_unionvtab(t *testing.T) {
 				}
 				got := flatten(r)
 				want := "276"
-				if got != want {
+				if got != want && !tclFpnumCompare(got, want) {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
@@ -777,7 +793,7 @@ func Test_unionvtab(t *testing.T) {
 				}
 				got := flatten(r)
 				want := "200"
-				if got != want {
+				if got != want && !tclFpnumCompare(got, want) {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
@@ -789,7 +805,7 @@ func Test_unionvtab(t *testing.T) {
 				}
 				got := flatten(r)
 				want := "174"
-				if got != want {
+				if got != want && !tclFpnumCompare(got, want) {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
@@ -801,7 +817,7 @@ func Test_unionvtab(t *testing.T) {
 				}
 				got := flatten(r)
 				want := "128"
-				if got != want {
+				if got != want && !tclFpnumCompare(got, want) {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
@@ -813,7 +829,7 @@ func Test_unionvtab(t *testing.T) {
 				}
 				got := flatten(r)
 				want := "127"
-				if got != want {
+				if got != want && !tclFpnumCompare(got, want) {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
@@ -825,7 +841,7 @@ func Test_unionvtab(t *testing.T) {
 				}
 				got := flatten(r)
 				want := "100"
-				if got != want {
+				if got != want && !tclFpnumCompare(got, want) {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
@@ -837,7 +853,7 @@ func Test_unionvtab(t *testing.T) {
 				}
 				got := flatten(r)
 				want := "25"
-				if got != want {
+				if got != want && !tclFpnumCompare(got, want) {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
@@ -849,7 +865,7 @@ func Test_unionvtab(t *testing.T) {
 				}
 				got := flatten(r)
 				want := "2"
-				if got != want {
+				if got != want && !tclFpnumCompare(got, want) {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
@@ -861,7 +877,7 @@ func Test_unionvtab(t *testing.T) {
 				}
 				got := flatten(r)
 				want := "1"
-				if got != want {
+				if got != want && !tclFpnumCompare(got, want) {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
@@ -873,7 +889,7 @@ func Test_unionvtab(t *testing.T) {
 				}
 				got := flatten(r)
 				want := "0"
-				if got != want {
+				if got != want && !tclFpnumCompare(got, want) {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
@@ -889,7 +905,7 @@ func Test_unionvtab(t *testing.T) {
 				}
 				got := flatten(r)
 				want := "300"
-				if got != want {
+				if got != want && !tclFpnumCompare(got, want) {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
@@ -901,7 +917,7 @@ func Test_unionvtab(t *testing.T) {
 				}
 				got := flatten(r)
 				want := "300"
-				if got != want {
+				if got != want && !tclFpnumCompare(got, want) {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
@@ -913,7 +929,7 @@ func Test_unionvtab(t *testing.T) {
 				}
 				got := flatten(r)
 				want := "0"
-				if got != want {
+				if got != want && !tclFpnumCompare(got, want) {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
@@ -925,7 +941,7 @@ func Test_unionvtab(t *testing.T) {
 				}
 				got := flatten(r)
 				want := "0"
-				if got != want {
+				if got != want && !tclFpnumCompare(got, want) {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
@@ -937,7 +953,7 @@ func Test_unionvtab(t *testing.T) {
 				}
 				got := flatten(r)
 				want := "0"
-				if got != want {
+				if got != want && !tclFpnumCompare(got, want) {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
@@ -949,7 +965,7 @@ func Test_unionvtab(t *testing.T) {
 				}
 				got := flatten(r)
 				want := "0"
-				if got != want {
+				if got != want && !tclFpnumCompare(got, want) {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
@@ -961,7 +977,7 @@ func Test_unionvtab(t *testing.T) {
 				}
 				got := flatten(r)
 				want := "300"
-				if got != want {
+				if got != want && !tclFpnumCompare(got, want) {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
@@ -973,7 +989,7 @@ func Test_unionvtab(t *testing.T) {
 				}
 				got := flatten(r)
 				want := "300"
-				if got != want {
+				if got != want && !tclFpnumCompare(got, want) {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
@@ -985,7 +1001,7 @@ func Test_unionvtab(t *testing.T) {
 				}
 				got := flatten(r)
 				want := "24"
-				if got != want {
+				if got != want && !tclFpnumCompare(got, want) {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
@@ -997,7 +1013,7 @@ func Test_unionvtab(t *testing.T) {
 				}
 				got := flatten(r)
 				want := "100"
-				if got != want {
+				if got != want && !tclFpnumCompare(got, want) {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
@@ -1009,7 +1025,7 @@ func Test_unionvtab(t *testing.T) {
 				}
 				got := flatten(r)
 				want := "126"
-				if got != want {
+				if got != want && !tclFpnumCompare(got, want) {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
@@ -1021,7 +1037,7 @@ func Test_unionvtab(t *testing.T) {
 				}
 				got := flatten(r)
 				want := "172"
-				if got != want {
+				if got != want && !tclFpnumCompare(got, want) {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
@@ -1033,7 +1049,7 @@ func Test_unionvtab(t *testing.T) {
 				}
 				got := flatten(r)
 				want := "173"
-				if got != want {
+				if got != want && !tclFpnumCompare(got, want) {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
@@ -1045,7 +1061,7 @@ func Test_unionvtab(t *testing.T) {
 				}
 				got := flatten(r)
 				want := "200"
-				if got != want {
+				if got != want && !tclFpnumCompare(got, want) {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
@@ -1057,7 +1073,7 @@ func Test_unionvtab(t *testing.T) {
 				}
 				got := flatten(r)
 				want := "275"
-				if got != want {
+				if got != want && !tclFpnumCompare(got, want) {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
@@ -1069,7 +1085,7 @@ func Test_unionvtab(t *testing.T) {
 				}
 				got := flatten(r)
 				want := "298"
-				if got != want {
+				if got != want && !tclFpnumCompare(got, want) {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
@@ -1081,7 +1097,7 @@ func Test_unionvtab(t *testing.T) {
 				}
 				got := flatten(r)
 				want := "299"
-				if got != want {
+				if got != want && !tclFpnumCompare(got, want) {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
@@ -1093,7 +1109,7 @@ func Test_unionvtab(t *testing.T) {
 				}
 				got := flatten(r)
 				want := "300"
-				if got != want {
+				if got != want && !tclFpnumCompare(got, want) {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
@@ -1111,7 +1127,7 @@ func Test_unionvtab(t *testing.T) {
 				}
 				got := flatten(r)
 				want := "-9223372036854775808 one -9223372036854775807 two -9223372036854775806 three 9223372036854775805 four 9223372036854775806 five 9223372036854775807 six"
-				if got != want {
+				if got != want && !tclFpnumCompare(got, want) {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
@@ -1131,7 +1147,7 @@ func Test_unionvtab(t *testing.T) {
 						}
 						got := flatten(r)
 						want := k + " " + v
-						if got != want {
+						if got != want && !tclFpnumCompare(got, want) {
 							t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 						}
 					}
@@ -1144,7 +1160,7 @@ func Test_unionvtab(t *testing.T) {
 					}
 					got := flatten(r)
 					want := "-9223372036854775807 two -9223372036854775806 three 9223372036854775805 four 9223372036854775806 five 9223372036854775807 six"
-					if got != want {
+					if got != want && !tclFpnumCompare(got, want) {
 						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 					}
 				}
@@ -1156,7 +1172,7 @@ func Test_unionvtab(t *testing.T) {
 					}
 					got := flatten(r)
 					want := "-9223372036854775808 one -9223372036854775807 two -9223372036854775806 three 9223372036854775805 four 9223372036854775806 five 9223372036854775807 six"
-					if got != want {
+					if got != want && !tclFpnumCompare(got, want) {
 						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 					}
 				}
@@ -1168,7 +1184,7 @@ func Test_unionvtab(t *testing.T) {
 					}
 					got := flatten(r)
 					want := "-9223372036854775808 one"
-					if got != want {
+					if got != want && !tclFpnumCompare(got, want) {
 						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 					}
 				}
@@ -1181,7 +1197,7 @@ func Test_unionvtab(t *testing.T) {
 					got := flatten(r)
 					want := tclListFlatten("{}")
 					got = tclListFlattenCollapse(got)
-					if got != want {
+					if got != want && !tclFpnumCompare(got, want) {
 						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 					}
 				}
@@ -1193,7 +1209,7 @@ func Test_unionvtab(t *testing.T) {
 					}
 					got := flatten(r)
 					want := "-9223372036854775808 one -9223372036854775807 two -9223372036854775806 three 9223372036854775805 four 9223372036854775806 five"
-					if got != want {
+					if got != want && !tclFpnumCompare(got, want) {
 						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 					}
 				}
@@ -1205,7 +1221,7 @@ func Test_unionvtab(t *testing.T) {
 					}
 					got := flatten(r)
 					want := "-9223372036854775808 one -9223372036854775807 two -9223372036854775806 three 9223372036854775805 four 9223372036854775806 five 9223372036854775807 six"
-					if got != want {
+					if got != want && !tclFpnumCompare(got, want) {
 						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 					}
 				}
@@ -1217,7 +1233,7 @@ func Test_unionvtab(t *testing.T) {
 					}
 					got := flatten(r)
 					want := "9223372036854775807 six"
-					if got != want {
+					if got != want && !tclFpnumCompare(got, want) {
 						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 					}
 				}
@@ -1230,7 +1246,7 @@ func Test_unionvtab(t *testing.T) {
 					got := flatten(r)
 					want := tclListFlatten("{}")
 					got = tclListFlattenCollapse(got)
-					if got != want {
+					if got != want && !tclFpnumCompare(got, want) {
 						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 					}
 				}
@@ -1242,7 +1258,7 @@ func Test_unionvtab(t *testing.T) {
 					}
 					got := flatten(r)
 					want := "45"
-					if got != want {
+					if got != want && !tclFpnumCompare(got, want) {
 						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 					}
 				}
@@ -1254,7 +1270,7 @@ func Test_unionvtab(t *testing.T) {
 					}
 					got := flatten(r)
 					want := "zero two three six seven"
-					if got != want {
+					if got != want && !tclFpnumCompare(got, want) {
 						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 					}
 				}
@@ -1266,7 +1282,7 @@ func Test_unionvtab(t *testing.T) {
 					}
 					got := flatten(r)
 					want := "six seven eight nine"
-					if got != want {
+					if got != want && !tclFpnumCompare(got, want) {
 						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 					}
 				}
@@ -1278,7 +1294,7 @@ func Test_unionvtab(t *testing.T) {
 					}
 					got := flatten(r)
 					want := "five six seven eight nine"
-					if got != want {
+					if got != want && !tclFpnumCompare(got, want) {
 						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 					}
 				}
@@ -1290,7 +1306,7 @@ func Test_unionvtab(t *testing.T) {
 					}
 					got := flatten(r)
 					want := "six 6"
-					if got != want {
+					if got != want && !tclFpnumCompare(got, want) {
 						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 					}
 				}

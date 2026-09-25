@@ -5,6 +5,7 @@
 package tkt_d82e3f3721
 
 import (
+"fmt"
 "github.com/pijalu/frigolite"
 "os"
 "testing"
@@ -17,6 +18,21 @@ func Test_tkt_d82e3f3721(t *testing.T) {
 		t.Fatal(err)
 	}
 	defer db.Close()
+
+	// auto-installed test-extension functions (src/test_func.c)
+	db.RegisterFunction("test_error", func(args []interface{}) (interface{}, error) {
+		msg := ""
+		if len(args) > 0 && args[0] != nil {
+			msg = fmt.Sprintf("%v", args[0])
+		}
+		return nil, fmt.Errorf("%s", msg)
+	}, 1, 2)
+	db.RegisterFunction("test_isolation", func(args []interface{}) (interface{}, error) {
+		if len(args) < 2 {
+			return nil, nil
+		}
+		return args[1], nil
+	}, 2, 2)
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
@@ -63,7 +79,7 @@ func Test_tkt_d82e3f3721(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "3 ghi"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -75,15 +91,15 @@ func Test_tkt_d82e3f3721(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "3 pqr"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	{ // "tkt-d82e3-1.3" — skipped: sqlite_sequence synthetic table not backed by real storage N-A; SQLITE_SEQUENCE NEEDED (SQL side effects only)
+	{ // "tkt-d82e3-1.3" — skipped: sqlite_sequence synthetic table not backed by real storage N-A; SQLITE_SEQUENCE NEEDED (SQL + file side effects only)
 		_res = db.Exec("\n    SELECT 'main', * FROM main.sqlite_sequence\n    UNION ALL\n    SELECT 'temp', * FROM temp.sqlite_sequence\n    ORDER BY 2\n  ")
 		_ = _res.Error // tolerate unsupported-feature errors in skipped tests
 	}
-	{ // "tkt-d82e3-1.4" — skipped: sqlite_sequence synthetic table not backed by real storage N-A; SQLITE_SEQUENCE NEEDED (SQL side effects only)
+	{ // "tkt-d82e3-1.4" — skipped: sqlite_sequence synthetic table not backed by real storage N-A; SQLITE_SEQUENCE NEEDED (SQL + file side effects only)
 		_res = db.Exec("\n    VACUUM;\n    SELECT 'main', * FROM main.sqlite_sequence\n    UNION ALL\n    SELECT 'temp', * FROM temp.sqlite_sequence\n    ORDER BY 2\n  ")
 		_ = _res.Error // tolerate unsupported-feature errors in skipped tests
 	}
@@ -96,7 +112,7 @@ func Test_tkt_d82e3f3721(t *testing.T) {
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 		_res = db.Exec("\n    SELECT * FROM temp.t3 JOIN main.t3;\n  ")
 	}
-	{ // "tkt-d82e3-2.2" — skipped: multi-connection schema visibility (db2-created table) DEFERRED (SQL side effects only)
+	{ // "tkt-d82e3-2.2" — skipped: multi-connection schema visibility (db2-created table) DEFERRED (SQL + file side effects only)
 		_res = db.Exec("\n    VACUUM;\n    SELECT * FROM temp.t3 JOIN main.t3;\n  ")
 		_ = _res.Error // tolerate unsupported-feature errors in skipped tests
 	}

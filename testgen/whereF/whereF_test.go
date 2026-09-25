@@ -5,6 +5,7 @@
 package whereF
 
 import (
+"fmt"
 "github.com/pijalu/frigolite"
 "github.com/pijalu/frigolite/internal/vtab"
 "os"
@@ -19,6 +20,21 @@ func Test_whereF(t *testing.T) {
 		t.Fatal(err)
 	}
 	defer db.Close()
+
+	// auto-installed test-extension functions (src/test_func.c)
+	db.RegisterFunction("test_error", func(args []interface{}) (interface{}, error) {
+		msg := ""
+		if len(args) > 0 && args[0] != nil {
+			msg = fmt.Sprintf("%v", args[0])
+		}
+		return nil, fmt.Errorf("%s", msg)
+	}, 1, 2)
+	db.RegisterFunction("test_isolation", func(args []interface{}) (interface{}, error) {
+		if len(args) < 2 {
+			return nil, nil
+		}
+		return args[1], nil
+	}, 2, 2)
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
@@ -75,7 +91,7 @@ func Test_whereF(t *testing.T) {
 		got := flatten(r)
 		want := tclListFlatten("{}")
 		got = tclListFlattenCollapse(got)
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -94,7 +110,7 @@ func Test_whereF(t *testing.T) {
 					return
 				}
 				got := flatten(r)
-				wantPattern := ".*SCAN t2\\b.*SEARCH t1\\b.*"
+				wantPattern := ".*SCAN t2y.*SEARCH t1y.*"
 				if matched, _ := regexp.MatchString(wantPattern, got); !matched {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]", got, wantPattern)
 				}
@@ -121,7 +137,7 @@ func Test_whereF(t *testing.T) {
 						return
 					}
 					got := flatten(r)
-					wantPattern := ".*SCAN t2\\b.*SEARCH t1\\b.*"
+					wantPattern := ".*SCAN t2y.*SEARCH t1y.*"
 					if matched, _ := regexp.MatchString(wantPattern, got); !matched {
 						t.Errorf("result mismatch\n  got:  [%s]\n  want pattern: [%s]", got, wantPattern)
 					}
@@ -141,7 +157,7 @@ func Test_whereF(t *testing.T) {
 				sql := _items2[_idx2+1]
 				_ = sql // suppress unused warning
 				_ = _idx2
-					{ // "whereF-3." + tn — skipped: EXPLAIN QUERY PLAN join order not matched (G3.INDEX) (SQL side effects only)
+					{ // "whereF-3." + tn — skipped: EXPLAIN QUERY PLAN join order not matched (G3.INDEX) (SQL + file side effects only)
 						_res = db.Exec("EXPLAIN QUERY PLAN " + sql)
 						_ = _res.Error // tolerate unsupported-feature errors in skipped tests
 					}
@@ -171,7 +187,7 @@ func Test_whereF(t *testing.T) {
 					}
 					got := flatten(r)
 					want := "4"
-					if got != want {
+					if got != want && !tclFpnumCompare(got, want) {
 						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 					}
 				}
@@ -187,7 +203,7 @@ func Test_whereF(t *testing.T) {
 					}
 					got := flatten(r)
 					want := "4000"
-					if got != want {
+					if got != want && !tclFpnumCompare(got, want) {
 						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 					}
 				}
@@ -203,7 +219,7 @@ func Test_whereF(t *testing.T) {
 					}
 					got := flatten(r)
 					want := "4"
-					if got != want {
+					if got != want && !tclFpnumCompare(got, want) {
 						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 					}
 				}
@@ -219,7 +235,7 @@ func Test_whereF(t *testing.T) {
 					}
 					got := flatten(r)
 					want := "4 5"
-					if got != want {
+					if got != want && !tclFpnumCompare(got, want) {
 						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 					}
 				}

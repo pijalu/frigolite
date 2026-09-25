@@ -5,6 +5,7 @@
 package autoinc
 
 import (
+"fmt"
 "github.com/pijalu/frigolite"
 "github.com/pijalu/frigolite/internal/vtab"
 "os"
@@ -19,6 +20,21 @@ func Test_autoinc(t *testing.T) {
 		t.Fatal(err)
 	}
 	defer db.Close()
+
+	// auto-installed test-extension functions (src/test_func.c)
+	db.RegisterFunction("test_error", func(args []interface{}) (interface{}, error) {
+		msg := ""
+		if len(args) > 0 && args[0] != nil {
+			msg = fmt.Sprintf("%v", args[0])
+		}
+		return nil, fmt.Errorf("%s", msg)
+	}, 1, 2)
+	db.RegisterFunction("test_isolation", func(args []interface{}) (interface{}, error) {
+		if len(args) < 2 {
+			return nil, nil
+		}
+		return args[1], nil
+	}, 2, 2)
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
@@ -89,7 +105,7 @@ func Test_autoinc(t *testing.T) {
 		got := flatten(r)
 		want := tclListFlatten("{}")
 		got = tclListFlattenCollapse(got)
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -101,7 +117,7 @@ func Test_autoinc(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "t1 sqlite_sequence"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -114,7 +130,7 @@ func Test_autoinc(t *testing.T) {
 		got := flatten(r)
 		want := tclListFlatten("{}")
 		got = tclListFlattenCollapse(got)
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -148,7 +164,7 @@ func Test_autoinc(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "t1 sqlite_sequence"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -161,7 +177,7 @@ func Test_autoinc(t *testing.T) {
 		got := flatten(r)
 		want := tclListFlatten("{}")
 		got = tclListFlattenCollapse(got)
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -173,7 +189,7 @@ func Test_autoinc(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "t1 12"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -185,7 +201,7 @@ func Test_autoinc(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "t1 12"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -197,7 +213,7 @@ func Test_autoinc(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "t1 123"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -209,7 +225,7 @@ func Test_autoinc(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "t1 124"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -221,7 +237,7 @@ func Test_autoinc(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "t1 124"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -233,7 +249,7 @@ func Test_autoinc(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "t1 125"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -245,7 +261,7 @@ func Test_autoinc(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "t1 125"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -257,7 +273,7 @@ func Test_autoinc(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "t1 125"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -269,7 +285,7 @@ func Test_autoinc(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "t1 125"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -281,7 +297,7 @@ func Test_autoinc(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "t1 125"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -293,7 +309,7 @@ func Test_autoinc(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "t1 234"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -305,7 +321,7 @@ func Test_autoinc(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "t1 235"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -317,7 +333,7 @@ func Test_autoinc(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "235 1"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -329,7 +345,7 @@ func Test_autoinc(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "235 1 1235 2"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -341,7 +357,7 @@ func Test_autoinc(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "t1 1235"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -353,7 +369,7 @@ func Test_autoinc(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "235 1 1235 2 1236 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -365,7 +381,7 @@ func Test_autoinc(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "t1 1236"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -377,7 +393,7 @@ func Test_autoinc(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "235 1 1235 2 1236 3 1237 4"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -389,7 +405,7 @@ func Test_autoinc(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "t1 1237"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -401,7 +417,7 @@ func Test_autoinc(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "235 1 1235 2 1236 3 1237 4 1238 5"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -413,7 +429,7 @@ func Test_autoinc(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "t1 1238"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -425,7 +441,7 @@ func Test_autoinc(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "235 1 1235 2 1236 3 1237 4 1238 5 1239 6"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -437,7 +453,7 @@ func Test_autoinc(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "t1 1239"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -449,7 +465,7 @@ func Test_autoinc(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "235 1 1235 2 1240 3 1241 4"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -461,7 +477,7 @@ func Test_autoinc(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "t1 1241"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -483,7 +499,7 @@ func Test_autoinc(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "t1 1245"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -495,7 +511,7 @@ func Test_autoinc(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1246 1 1247 2 1248 3 1249 4"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -507,7 +523,7 @@ func Test_autoinc(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "t1 1249"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -527,7 +543,7 @@ func Test_autoinc(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "t1 1249 t2 2"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -539,7 +555,7 @@ func Test_autoinc(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "t1 10000 t2 2"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -551,7 +567,7 @@ func Test_autoinc(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "t1 10000 t2 2 t3 1"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -563,7 +579,7 @@ func Test_autoinc(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "t1 10000 t2 100 t3 1"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -575,7 +591,7 @@ func Test_autoinc(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "t1 t2 t3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -587,7 +603,7 @@ func Test_autoinc(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "t2 t3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -599,7 +615,7 @@ func Test_autoinc(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "t2"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -612,7 +628,7 @@ func Test_autoinc(t *testing.T) {
 		got := flatten(r)
 		want := tclListFlatten("{}")
 		got = tclListFlattenCollapse(got)
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -624,7 +640,7 @@ func Test_autoinc(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1 sqlite_sequence"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -636,7 +652,7 @@ func Test_autoinc(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1 sqlite_sequence 1 t1 2 t3 2 sqlite_sequence"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -649,7 +665,7 @@ func Test_autoinc(t *testing.T) {
 		got := flatten(r)
 		want := tclListFlatten("{}")
 		got = tclListFlattenCollapse(got)
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -667,7 +683,7 @@ func Test_autoinc(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "10 1 11 3 20 2 21 4"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -679,7 +695,7 @@ func Test_autoinc(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1 t1 11 2 t3 21"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -691,7 +707,7 @@ func Test_autoinc(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1 t1 21 2 t3 21"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -703,7 +719,7 @@ func Test_autoinc(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1 t1 21 2 t3 121"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -715,7 +731,7 @@ func Test_autoinc(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1 t1 21"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -727,7 +743,7 @@ func Test_autoinc(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "2 t2 21"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -740,7 +756,7 @@ func Test_autoinc(t *testing.T) {
 		got := flatten(r)
 		want := tclListFlatten("{}")
 		got = tclListFlattenCollapse(got)
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -767,7 +783,7 @@ func Test_autoinc(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "3 t4 1"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -779,7 +795,7 @@ func Test_autoinc(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "t4 1 t5 200"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -791,7 +807,7 @@ func Test_autoinc(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "3 t4 1 3 t5 200"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -803,7 +819,7 @@ func Test_autoinc(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "2147483647"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -821,7 +837,7 @@ func Test_autoinc(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "3 345.0"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -877,7 +893,7 @@ func Test_autoinc(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "t3 0"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -891,7 +907,7 @@ func Test_autoinc(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1 before1 2 after1 3 after2 4 before2 5 after1 6 after2 7 test 8 before1 9 before2 10 after1 11 before1 12 before2 13 after2"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -903,7 +919,7 @@ func Test_autoinc(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "t3928 13"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -915,7 +931,7 @@ func Test_autoinc(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1 456 14 before-int-456 15 after-int-456"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -927,7 +943,7 @@ func Test_autoinc(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "t3928 15"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -939,7 +955,7 @@ func Test_autoinc(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "16 before-del-100 17 after-del-100 18 before-del-200 19 after-del-200 20 before-del-300 21 after-del-300"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -951,7 +967,7 @@ func Test_autoinc(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1 before-del-100 2 after-del-100 3 before-del-200 4 after-del-200 5 before-del-300 6 after-del-300"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -963,7 +979,7 @@ func Test_autoinc(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "t3928 21 t3928c 6"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -975,7 +991,7 @@ func Test_autoinc(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1 124"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -987,7 +1003,7 @@ func Test_autoinc(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1 124 2 10123"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -999,7 +1015,7 @@ func Test_autoinc(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "t10a 888 t10b 888"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -1011,7 +1027,7 @@ func Test_autoinc(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "5"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -1044,7 +1060,7 @@ func Test_autoinc(t *testing.T) {
 		res = tclListAppend(res, msg)
 		got := tclListFlatten(res)
 		want := tclListFlatten("1 database disk image is malformed")
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "autoinc-12.1")
 		}
 	}
@@ -1077,7 +1093,7 @@ func Test_autoinc(t *testing.T) {
 		res = tclListAppend(res, msg)
 		got := tclListFlatten(res)
 		want := tclListFlatten("1 database disk image is malformed")
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "autoinc-12.2")
 		}
 	}
@@ -1113,7 +1129,7 @@ func Test_autoinc(t *testing.T) {
 		res = tclListAppend(res, msg)
 		got := tclListFlatten(res)
 		want := tclListFlatten("1"+" "+_err)
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "autoinc-12.3")
 		}
 	}
@@ -1153,7 +1169,7 @@ func Test_autoinc(t *testing.T) {
 		res = tclListAppend(res, msg)
 		got := tclListFlatten(res)
 		want := tclListFlatten("1 database disk image is malformed")
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "autoinc-12.4")
 		}
 	}
@@ -1186,7 +1202,7 @@ func Test_autoinc(t *testing.T) {
 		res = tclListAppend(res, msg)
 		got := tclListFlatten(res)
 		want := tclListFlatten("1 database disk image is malformed")
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "autoinc-12.5")
 		}
 	}
@@ -1209,7 +1225,7 @@ func Test_autoinc(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "t1 t2 t3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -1221,7 +1237,7 @@ func Test_autoinc(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "3 5"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}

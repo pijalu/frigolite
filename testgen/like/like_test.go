@@ -5,6 +5,7 @@
 package like
 
 import (
+"fmt"
 "github.com/pijalu/frigolite"
 "github.com/pijalu/frigolite/internal/function"
 "github.com/pijalu/frigolite/internal/vtab"
@@ -21,6 +22,21 @@ func Test_like(t *testing.T) {
 		t.Fatal(err)
 	}
 	defer db.Close()
+
+	// auto-installed test-extension functions (src/test_func.c)
+	db.RegisterFunction("test_error", func(args []interface{}) (interface{}, error) {
+		msg := ""
+		if len(args) > 0 && args[0] != nil {
+			msg = fmt.Sprintf("%v", args[0])
+		}
+		return nil, fmt.Errorf("%s", msg)
+	}, 1, 2)
+	db.RegisterFunction("test_isolation", func(args []interface{}) (interface{}, error) {
+		if len(args) < 2 {
+			return nil, nil
+		}
+		return args[1], nil
+	}, 2, 2)
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
@@ -124,7 +140,7 @@ func Test_like(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "ABC abc"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -136,7 +152,7 @@ func Test_like(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "abc"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -148,7 +164,7 @@ func Test_like(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "ABC abc"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -160,7 +176,7 @@ func Test_like(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "ABC abc"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -178,7 +194,7 @@ func Test_like(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "abc"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -190,7 +206,7 @@ func Test_like(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "abc"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -202,7 +218,7 @@ func Test_like(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "abc"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -214,7 +230,7 @@ func Test_like(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "ABC"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -227,7 +243,7 @@ func Test_like(t *testing.T) {
 		got := flatten(r)
 		want := tclListFlatten("{}")
 		got = tclListFlattenCollapse(got)
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -239,7 +255,7 @@ func Test_like(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "ABC abc"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -251,7 +267,7 @@ func Test_like(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "ABC abc"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -271,7 +287,7 @@ func Test_like(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "abc abcd"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -298,7 +314,7 @@ func Test_like(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "abc abcd"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -312,7 +328,7 @@ func Test_like(t *testing.T) {
 	{ // do_test "like-3.2"
 		got := tclListFlatten(tclLikeCount(db))
 		want := tclListFlatten("12")
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "like-3.2")
 		}
 	}
@@ -329,7 +345,7 @@ func Test_like(t *testing.T) {
 	{ // do_test "like-3.3.100.cnt"
 		got := tclListFlatten(tclLikeCount(db))
 		want := tclListFlatten("0")
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "like-3.3.100.cnt")
 		}
 	}
@@ -346,7 +362,7 @@ func Test_like(t *testing.T) {
 		{ // do_test "like-3.3.103"
 			got := tclListFlatten(tclLikeCount(db))
 			want := tclListFlatten("0")
-			if got != want {
+			if got != want && !tclFpnumCompare(got, want) {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "like-3.3.103")
 			}
 		}
@@ -361,7 +377,7 @@ func Test_like(t *testing.T) {
 	{ // do_test "like-3.3.105"
 		got := tclListFlatten(tclLikeCount(db))
 		want := tclListFlatten("12")
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "like-3.3.105")
 		}
 	}
@@ -374,7 +390,7 @@ func Test_like(t *testing.T) {
 	{ // do_test "like-3.3.106"
 		got := tclListFlatten(tclLikeCount(db))
 		want := tclListFlatten("0")
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "like-3.3.106")
 		}
 	}
@@ -400,7 +416,7 @@ func Test_like(t *testing.T) {
 	{ // do_test "like-3.6"
 		got := tclListFlatten(tclLikeCount(db))
 		want := tclListFlatten("6")
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "like-3.6")
 		}
 	}
@@ -413,7 +429,7 @@ func Test_like(t *testing.T) {
 	{ // do_test "like-3.8"
 		got := tclListFlatten(tclLikeCount(db))
 		want := tclListFlatten("4")
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "like-3.8")
 		}
 	}
@@ -426,7 +442,7 @@ func Test_like(t *testing.T) {
 	{ // do_test "like-3.10"
 		got := tclListFlatten(tclLikeCount(db))
 		want := tclListFlatten("6")
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "like-3.10")
 		}
 	}
@@ -439,7 +455,7 @@ func Test_like(t *testing.T) {
 	{ // do_test "like-3.12"
 		got := tclListFlatten(tclLikeCount(db))
 		want := tclListFlatten("12")
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "like-3.12")
 		}
 	}
@@ -453,7 +469,7 @@ func Test_like(t *testing.T) {
 	{ // do_test "like-3.14"
 		got := tclListFlatten(tclLikeCount(db))
 		want := tclListFlatten("12")
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "like-3.14")
 		}
 	}
@@ -467,7 +483,7 @@ func Test_like(t *testing.T) {
 	{ // do_test "like-3.16"
 		got := tclListFlatten(tclLikeCount(db))
 		want := tclListFlatten("12")
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "like-3.16")
 		}
 	}
@@ -480,7 +496,7 @@ func Test_like(t *testing.T) {
 	{ // do_test "like-3.18"
 		got := tclListFlatten(tclLikeCount(db))
 		want := tclListFlatten("12")
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "like-3.18")
 		}
 	}
@@ -494,7 +510,7 @@ func Test_like(t *testing.T) {
 	{ // do_test "like-3.20"
 		got := tclListFlatten(tclLikeCount(db))
 		want := tclListFlatten("0")
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "like-3.20")
 		}
 	}
@@ -508,7 +524,7 @@ func Test_like(t *testing.T) {
 	{ // do_test "like-3.22"
 		got := tclListFlatten(tclLikeCount(db))
 		want := tclListFlatten("0")
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "like-3.22")
 		}
 	}
@@ -522,7 +538,7 @@ func Test_like(t *testing.T) {
 	{ // do_test "like-3.24"
 		got := tclListFlatten(tclLikeCount(db))
 		want := tclListFlatten("6")
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "like-3.24")
 		}
 	}
@@ -548,7 +564,7 @@ func Test_like(t *testing.T) {
 	{ // do_test "like-4.2"
 		got := tclListFlatten(tclLikeCount(db))
 		want := tclListFlatten("0")
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "like-4.2")
 		}
 	}
@@ -561,7 +577,7 @@ func Test_like(t *testing.T) {
 	{ // do_test "like-4.4"
 		got := tclListFlatten(tclLikeCount(db))
 		want := tclListFlatten("12")
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "like-4.4")
 		}
 	}
@@ -574,7 +590,7 @@ func Test_like(t *testing.T) {
 	{ // do_test "like-4.6"
 		got := tclListFlatten(tclLikeCount(db))
 		want := tclListFlatten("12")
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "like-4.6")
 		}
 	}
@@ -591,7 +607,7 @@ func Test_like(t *testing.T) {
 	{ // do_test "like-5.2"
 		got := tclListFlatten(tclLikeCount(db))
 		want := tclListFlatten("12")
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "like-5.2")
 		}
 	}
@@ -608,7 +624,7 @@ func Test_like(t *testing.T) {
 	{ // do_test "like-5.4"
 		got := tclListFlatten(tclLikeCount(db))
 		want := tclListFlatten("0")
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "like-5.4")
 		}
 	}
@@ -625,7 +641,7 @@ func Test_like(t *testing.T) {
 	{ // do_test "like-5.6"
 		got := tclListFlatten(tclLikeCount(db))
 		want := tclListFlatten("12")
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "like-5.6")
 		}
 	}
@@ -642,7 +658,7 @@ func Test_like(t *testing.T) {
 	{ // do_test "like-5.8"
 		got := tclListFlatten(tclLikeCount(db))
 		want := tclListFlatten("12")
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "like-5.8")
 		}
 	}
@@ -659,7 +675,7 @@ func Test_like(t *testing.T) {
 	{ // do_test "like-5.12"
 		got := tclListFlatten(tclLikeCount(db))
 		want := tclListFlatten("12")
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "like-5.12")
 		}
 	}
@@ -672,7 +688,7 @@ func Test_like(t *testing.T) {
 	{ // do_test "like-5.14"
 		got := tclListFlatten(tclLikeCount(db))
 		want := tclListFlatten("0")
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "like-5.14")
 		}
 	}
@@ -689,7 +705,7 @@ func Test_like(t *testing.T) {
 	{ // do_test "like-5.16"
 		got := tclListFlatten(tclLikeCount(db))
 		want := tclListFlatten("12")
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "like-5.16")
 		}
 	}
@@ -706,7 +722,7 @@ func Test_like(t *testing.T) {
 	{ // do_test "like-5.18"
 		got := tclListFlatten(tclLikeCount(db))
 		want := tclListFlatten("12")
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "like-5.18")
 		}
 	}
@@ -760,7 +776,7 @@ func Test_like(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1 a 10 ABC 11 CDE 12 ABC abc xyz"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -772,7 +788,7 @@ func Test_like(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1 ghijkl 2 ghijkl"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -805,7 +821,7 @@ func Test_like(t *testing.T) {
 		_ = res // suppress unused warning
 		got := tclListFlatten(res)
 		want := tclListFlatten("0 x xyz")
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "like-9.3.1")
 		}
 	}
@@ -820,7 +836,7 @@ func Test_like(t *testing.T) {
 		_ = res // suppress unused warning
 		got := tclListFlatten(res)
 		want := tclListFlatten("0 x hello")
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "like-9.4.1")
 		}
 	}
@@ -829,7 +845,7 @@ func Test_like(t *testing.T) {
 		_ = res // suppress unused warning
 		got := tclListFlatten(res)
 		want := tclListFlatten("0 x hello")
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "like-9.4.2")
 		}
 	}
@@ -843,7 +859,7 @@ func Test_like(t *testing.T) {
 		_ = res // suppress unused warning
 		got := tclListFlatten(res)
 		want := tclListFlatten("0 1 1")
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "like-9.5.1")
 		}
 	}
@@ -909,7 +925,7 @@ func Test_like(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "12"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -960,7 +976,7 @@ func Test_like(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -972,7 +988,7 @@ func Test_like(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -984,7 +1000,7 @@ func Test_like(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -996,7 +1012,7 @@ func Test_like(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -1008,7 +1024,7 @@ func Test_like(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -1020,7 +1036,7 @@ func Test_like(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -1104,7 +1120,7 @@ func Test_like(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "0"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -1116,7 +1132,7 @@ func Test_like(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "0"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -1128,7 +1144,7 @@ func Test_like(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "0"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -1140,7 +1156,7 @@ func Test_like(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -1174,7 +1190,7 @@ func Test_like(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "2"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -1222,7 +1238,7 @@ func Test_like(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "32"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -1234,7 +1250,7 @@ func Test_like(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "2 41"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -1258,7 +1274,7 @@ func Test_like(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "22"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -1295,7 +1311,7 @@ func Test_like(t *testing.T) {
 		}
 		got := flatten(r)
 		want := " 1x  1-"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -1307,7 +1323,7 @@ func Test_like(t *testing.T) {
 		}
 		got := flatten(r)
 		want := " 1-"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -1319,7 +1335,7 @@ func Test_like(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "4"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -1331,7 +1347,7 @@ func Test_like(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "2"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -1343,7 +1359,7 @@ func Test_like(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -1364,7 +1380,7 @@ func Test_like(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1 abc 2 ABC 3 Abc"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -1376,7 +1392,7 @@ func Test_like(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1 abc 2 ABC 3 Abc"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -1388,7 +1404,7 @@ func Test_like(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1 abc"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}

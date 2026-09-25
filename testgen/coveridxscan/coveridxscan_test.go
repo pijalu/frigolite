@@ -5,6 +5,7 @@
 package coveridxscan
 
 import (
+"fmt"
 "github.com/pijalu/frigolite"
 "github.com/pijalu/frigolite/internal/vtab"
 "os"
@@ -20,6 +21,21 @@ func Test_coveridxscan(t *testing.T) {
 		t.Fatal(err)
 	}
 	defer db.Close()
+
+	// auto-installed test-extension functions (src/test_func.c)
+	db.RegisterFunction("test_error", func(args []interface{}) (interface{}, error) {
+		msg := ""
+		if len(args) > 0 && args[0] != nil {
+			msg = fmt.Sprintf("%v", args[0])
+		}
+		return nil, fmt.Errorf("%s", msg)
+	}, 1, 2)
+	db.RegisterFunction("test_isolation", func(args []interface{}) (interface{}, error) {
+		if len(args) < 2 {
+			return nil, nil
+		}
+		return args[1], nil
+	}, 2, 2)
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
@@ -69,7 +85,7 @@ func Test_coveridxscan(t *testing.T) {
 	vtab.TclVarSet("testprefix", "", "coveridxscan")
 	testprefix = "coveridxscan"
 	_ = testprefix // suppress unused warning
-	{ // "coveridxscan-1.1" — skipped: covering-index scan order not implemented (no index btrees) N-A (SQL side effects only)
+	{ // "coveridxscan-1.1" — skipped: covering-index scan order not implemented (no index btrees) N-A (SQL + file side effects only)
 		_res = db.Exec("\n    CREATE TABLE t1(a,b,c);\n    INSERT INTO t1 VALUES(5,4,3), (4,8,2), (3,2,1);\n    CREATE INDEX t1ab ON t1(a,b);\n    CREATE INDEX t1b ON t1(b);\n    SELECT a FROM t1;\n  ")
 		_ = _res.Error // tolerate unsupported-feature errors in skipped tests
 	}
@@ -81,11 +97,11 @@ func Test_coveridxscan(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "5 3 4 2 3 1"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	{ // "coveridxscan-1.3" — skipped: covering-index scan order not implemented (no index btrees) N-A (SQL side effects only)
+	{ // "coveridxscan-1.3" — skipped: covering-index scan order not implemented (no index btrees) N-A (SQL + file side effects only)
 		_res = db.Exec("\n    SELECT b FROM t1;\n  ")
 		_ = _res.Error // tolerate unsupported-feature errors in skipped tests
 	}
@@ -101,7 +117,7 @@ func Test_coveridxscan(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "5 3 4 2 3 1"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -113,7 +129,7 @@ func Test_coveridxscan(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "4 8 2"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -131,7 +147,7 @@ func Test_coveridxscan(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "5 4 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -143,7 +159,7 @@ func Test_coveridxscan(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "5 3 4 2 3 1"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -155,7 +171,7 @@ func Test_coveridxscan(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "4 8 2"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -165,7 +181,7 @@ func Test_coveridxscan(t *testing.T) {
 	db, err = frigolite.Open("test.db")
 	tclConnRegister("db", db)
 	if err != nil { t.Fatal(err) }
-	{ // "coveridxscan-4.1" — skipped: covering-index scan order not implemented (no index btrees) N-A (SQL side effects only)
+	{ // "coveridxscan-4.1" — skipped: covering-index scan order not implemented (no index btrees) N-A (SQL + file side effects only)
 		_res = db.Exec("SELECT a FROM t1")
 		_ = _res.Error // tolerate unsupported-feature errors in skipped tests
 	}
@@ -177,11 +193,11 @@ func Test_coveridxscan(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "5 3 4 2 3 1"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	{ // "coveridxscan-4.3" — skipped: covering-index scan order not implemented (no index btrees) N-A (SQL side effects only)
+	{ // "coveridxscan-4.3" — skipped: covering-index scan order not implemented (no index btrees) N-A (SQL + file side effects only)
 		_res = db.Exec("SELECT b FROM t1")
 		_ = _res.Error // tolerate unsupported-feature errors in skipped tests
 	}

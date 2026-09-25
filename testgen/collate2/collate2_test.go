@@ -5,6 +5,7 @@
 package collate2
 
 import (
+"fmt"
 "github.com/pijalu/frigolite"
 "github.com/pijalu/frigolite/internal/vtab"
 "os"
@@ -19,6 +20,21 @@ func Test_collate2(t *testing.T) {
 		t.Fatal(err)
 	}
 	defer db.Close()
+
+	// auto-installed test-extension functions (src/test_func.c)
+	db.RegisterFunction("test_error", func(args []interface{}) (interface{}, error) {
+		msg := ""
+		if len(args) > 0 && args[0] != nil {
+			msg = fmt.Sprintf("%v", args[0])
+		}
+		return nil, fmt.Errorf("%s", msg)
+	}, 1, 2)
+	db.RegisterFunction("test_isolation", func(args []interface{}) (interface{}, error) {
+		if len(args) < 2 {
+			return nil, nil
+		}
+		return args[1], nil
+	}, 2, 2)
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
@@ -107,7 +123,7 @@ func Test_collate2(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "ab bA bB ba bb"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -119,7 +135,7 @@ func Test_collate2(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "ab bA bB ba bb"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -131,7 +147,7 @@ func Test_collate2(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "ab bA bB ba bb"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -143,7 +159,7 @@ func Test_collate2(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "ab bA bB ba bb"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -155,7 +171,7 @@ func Test_collate2(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "ab aB Ab AB ba bA Ba BA bb bB Bb BB"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -167,7 +183,7 @@ func Test_collate2(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "ab aB Ab AB ba bA Ba BA bb bB Bb BB"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -179,7 +195,7 @@ func Test_collate2(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "ab aB Ab AB ba bA Ba BA bb bB Bb BB"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -191,7 +207,7 @@ func Test_collate2(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "ab aB Ab AB ba bA Ba BA bb bB Bb BB"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -203,7 +219,7 @@ func Test_collate2(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "ab aB Ab AB ba bA Ba BA bb bB Bb BB"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -215,7 +231,7 @@ func Test_collate2(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "ab aB Ab AB ba bA Ba BA bb bB Bb BB"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -227,7 +243,7 @@ func Test_collate2(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "ab aB Ab AB ba bA Ba BA bb bB Bb BB"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -239,7 +255,7 @@ func Test_collate2(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "ab aB Ab AB ba bA Ba BA bb bB Bb BB"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -251,7 +267,7 @@ func Test_collate2(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "ba Ab Bb ab bb"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -263,7 +279,7 @@ func Test_collate2(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "ba Ab Bb ab bb"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -275,7 +291,7 @@ func Test_collate2(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "ba Ab Bb ab bb"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -287,7 +303,7 @@ func Test_collate2(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "ba Ab Bb ab bb"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -299,7 +315,7 @@ func Test_collate2(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "AA AB Aa Ab BA BB Ba Bb aA aB"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -312,7 +328,7 @@ func Test_collate2(t *testing.T) {
 		got := flatten(r)
 		want := tclListFlatten("{}")
 		got = tclListFlattenCollapse(got)
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -325,7 +341,7 @@ func Test_collate2(t *testing.T) {
 		got := flatten(r)
 		want := tclListFlatten("{}")
 		got = tclListFlattenCollapse(got)
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -337,7 +353,7 @@ func Test_collate2(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "AA BA aA bA AB BB aB bB Aa Ba"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -349,7 +365,7 @@ func Test_collate2(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "aa"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -361,7 +377,7 @@ func Test_collate2(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "aa aA Aa AA"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -373,7 +389,7 @@ func Test_collate2(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "aa"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -385,7 +401,7 @@ func Test_collate2(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "aa ab bA bB ba bb"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -397,7 +413,7 @@ func Test_collate2(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "aa aA Aa AA ab aB Ab AB ba bA Ba BA bb bB Bb BB"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -409,7 +425,7 @@ func Test_collate2(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "aa ba Ab Bb ab bb"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -421,7 +437,7 @@ func Test_collate2(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "AA AB Aa Ab BA BB Ba Bb aA aB aa"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -433,7 +449,7 @@ func Test_collate2(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "aa aA Aa AA"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -445,7 +461,7 @@ func Test_collate2(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "AA BA aA bA AB BB aB bB Aa Ba aa"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -457,7 +473,7 @@ func Test_collate2(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "Aa Ab BA BB Ba Bb"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -469,7 +485,7 @@ func Test_collate2(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "aa aA Aa AA ab aB Ab AB ba bA Ba BA bb bB Bb BB"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -481,7 +497,7 @@ func Test_collate2(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "aa aA Aa AA ab aB Ab AB ba bA Ba BA bb bB Bb BB"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -493,7 +509,7 @@ func Test_collate2(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "Aa Ba aa ba Ab Bb"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -505,7 +521,7 @@ func Test_collate2(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "aa"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -517,7 +533,7 @@ func Test_collate2(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "aa aA Aa AA"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -529,7 +545,7 @@ func Test_collate2(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "aa"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -541,7 +557,7 @@ func Test_collate2(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "aa bb"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -553,7 +569,7 @@ func Test_collate2(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "aa aA Aa AA bb bB Bb BB"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -565,7 +581,7 @@ func Test_collate2(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "aa bb"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -577,7 +593,7 @@ func Test_collate2(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "aa bb"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -589,7 +605,7 @@ func Test_collate2(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "aa bb aA bB Aa Bb AA BB"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -601,7 +617,7 @@ func Test_collate2(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "aa bb"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -613,7 +629,7 @@ func Test_collate2(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "AA AB Aa Ab BA BB Ba Bb aA aB aa"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -625,7 +641,7 @@ func Test_collate2(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "aa aA Aa AA"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -637,7 +653,7 @@ func Test_collate2(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "AA BA aA bA AB BB aB bB Aa Ba aa"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -649,7 +665,7 @@ func Test_collate2(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "aa ab bA bB ba bb"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -661,7 +677,7 @@ func Test_collate2(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "aa aA Aa AA ab aB Ab AB ba bA Ba BA bb bB Bb BB"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -673,7 +689,7 @@ func Test_collate2(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "aa ba Ab Bb ab bb"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -685,7 +701,7 @@ func Test_collate2(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "ab ba bb aA aB bA bB Aa Ab Ba Bb AA AB BA BB"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -697,7 +713,7 @@ func Test_collate2(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "ab ba bb aB bA bB Ab Ba Bb AB BA BB"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -709,7 +725,7 @@ func Test_collate2(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "ab ba bb aA aB bA bB Aa Ab Ba Bb AA AB BA BB"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -721,7 +737,7 @@ func Test_collate2(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "AA AB Aa Ab BA BB Ba Bb aA aB"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -734,7 +750,7 @@ func Test_collate2(t *testing.T) {
 		got := flatten(r)
 		want := tclListFlatten("{}")
 		got = tclListFlattenCollapse(got)
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -746,7 +762,7 @@ func Test_collate2(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "AA BA aA bA AB BB aB bB Aa Ba"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -758,7 +774,7 @@ func Test_collate2(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "ab bA bB ba bb"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -770,7 +786,7 @@ func Test_collate2(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "ab aB Ab AB ba bA Ba BA bb bB Bb BB"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -782,7 +798,7 @@ func Test_collate2(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "ba Ab Bb ab bb"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -794,7 +810,7 @@ func Test_collate2(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "AA AB aA aB aa ab bA bB ba bb"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -807,7 +823,7 @@ func Test_collate2(t *testing.T) {
 		got := flatten(r)
 		want := tclListFlatten("{}")
 		got = tclListFlattenCollapse(got)
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -819,7 +835,7 @@ func Test_collate2(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "AA BA aA bA AB BB aB bB ab bb"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -831,7 +847,7 @@ func Test_collate2(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "{} ab ba bb aA aB bA bB Aa Ab Ba Bb AA AB BA BB"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -843,7 +859,7 @@ func Test_collate2(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "{} ab ba bb aB bA bB Ab Ba Bb AB BA BB"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -855,7 +871,7 @@ func Test_collate2(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "{} ab ba bb aA aB bA bB Aa Ab Ba Bb AA AB BA BB"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -867,7 +883,7 @@ func Test_collate2(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "ab ba aA aB bA bB Aa Ab Ba Bb AA AB BA BB"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -879,7 +895,7 @@ func Test_collate2(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "ab ba aB bA Ab Ba AB BA"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -891,7 +907,7 @@ func Test_collate2(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "ab ba aA aB bA bB Aa Ab Ba Bb AA AB BA BB"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -903,7 +919,7 @@ func Test_collate2(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "ab ba aA aB bA bB Aa Ab Ba Bb AA AB BA BB"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -915,7 +931,7 @@ func Test_collate2(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "ab ba aB bA Ab Ba AB BA"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -927,7 +943,7 @@ func Test_collate2(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "ab ba aA aB bA bB Aa Ab Ba Bb AA AB BA BB"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -939,7 +955,7 @@ func Test_collate2(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "{} 0 1 1 1 0 0 1 1 0 0 0 0 0 0 0 0"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -951,7 +967,7 @@ func Test_collate2(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "{} 0 1 1 1 0 1 1 1 0 1 1 1 0 1 1 1"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -963,7 +979,7 @@ func Test_collate2(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "{} 0 1 1 1 0 0 0 0 0 1 0 1 0 0 0 0"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -975,7 +991,7 @@ func Test_collate2(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "{} 0 0 0 0 1 1 0 0 1 1 1 1 1 1 1 1"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -987,7 +1003,7 @@ func Test_collate2(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "{} 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -999,7 +1015,7 @@ func Test_collate2(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "{} 0 0 0 0 1 1 1 1 1 0 1 0 1 1 1 1"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -1011,7 +1027,7 @@ func Test_collate2(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "{} 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -1023,7 +1039,7 @@ func Test_collate2(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "{} 1 0 0 0 1 0 0 0 1 0 0 0 1 0 0 0"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -1035,7 +1051,7 @@ func Test_collate2(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "{} 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -1047,7 +1063,7 @@ func Test_collate2(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "{} 1 0 0 0 1 1 0 0 1 1 1 1 1 1 1 1"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -1059,7 +1075,7 @@ func Test_collate2(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "{} 1 0 0 0 1 0 0 0 1 0 0 0 1 0 0 0"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -1071,7 +1087,7 @@ func Test_collate2(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "{} 1 0 0 0 1 1 1 1 1 0 1 0 1 1 1 1"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -1083,7 +1099,7 @@ func Test_collate2(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "{} 1 1 1 1 0 0 1 1 0 0 0 0 0 0 0 0"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -1095,7 +1111,7 @@ func Test_collate2(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "{} 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -1107,7 +1123,7 @@ func Test_collate2(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "{} 1 1 1 1 0 0 0 0 0 1 0 1 0 0 0 0"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -1119,7 +1135,7 @@ func Test_collate2(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "{} 0 0 0 0 0 0 0 0 1 1 1 1 0 0 1 1"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -1131,7 +1147,7 @@ func Test_collate2(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "{} 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1 1"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -1143,7 +1159,7 @@ func Test_collate2(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "{} 1 0 1 0 0 0 0 0 1 1 1 1 0 0 0 0"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -1155,7 +1171,7 @@ func Test_collate2(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -1167,7 +1183,7 @@ func Test_collate2(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "0 1 0 0 0 1 0 0 0 1 0 0 0 1 0 0 0"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -1179,7 +1195,7 @@ func Test_collate2(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "0 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -1191,7 +1207,7 @@ func Test_collate2(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "{} 1 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -1203,7 +1219,7 @@ func Test_collate2(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "{} 1 0 0 1 1 0 0 1 1 0 0 1 1 0 0 1"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -1215,7 +1231,7 @@ func Test_collate2(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "{} 1 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -1227,7 +1243,7 @@ func Test_collate2(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "{} 1 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -1239,7 +1255,7 @@ func Test_collate2(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "{} 1 0 0 1 1 0 0 1 1 0 0 1 1 0 0 1"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -1251,7 +1267,7 @@ func Test_collate2(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "{} 1 0 0 1 0 0 0 0 0 0 0 0 0 0 0 0"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -1269,7 +1285,7 @@ func Test_collate2(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "aa aA Aa AA"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -1281,7 +1297,7 @@ func Test_collate2(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "aa"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -1293,7 +1309,7 @@ func Test_collate2(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "aa aA Aa AA"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -1305,7 +1321,7 @@ func Test_collate2(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "aa aA Aa AA"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -1323,7 +1339,7 @@ func Test_collate2(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "aa aA Aa AA"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -1335,7 +1351,7 @@ func Test_collate2(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "aa"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -1347,7 +1363,7 @@ func Test_collate2(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "aa aA Aa AA"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -1359,7 +1375,7 @@ func Test_collate2(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "aa"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -1371,7 +1387,7 @@ func Test_collate2(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "{} aa {} {} {} aa {} {} {} aa {} {} {} aa {} {} {}"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -1383,7 +1399,7 @@ func Test_collate2(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "{} aa {} {} {} aa {} {} {} aa {} {} {} aa {} {} {}"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -1395,7 +1411,7 @@ func Test_collate2(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "{} aa {} {} {} {} {} {} {} {} {} {} {} {} {} {} {}"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -1407,7 +1423,7 @@ func Test_collate2(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "aa aa"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -1419,7 +1435,7 @@ func Test_collate2(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "aa aa"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -1437,7 +1453,7 @@ func Test_collate2(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "b B"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -1449,7 +1465,7 @@ func Test_collate2(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "b B"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -1461,7 +1477,7 @@ func Test_collate2(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "b B"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -1473,7 +1489,7 @@ func Test_collate2(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "b B"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -1485,7 +1501,7 @@ func Test_collate2(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "b B"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -1497,7 +1513,7 @@ func Test_collate2(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "b B"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}

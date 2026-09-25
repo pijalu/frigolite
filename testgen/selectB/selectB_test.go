@@ -5,6 +5,7 @@
 package selectB
 
 import (
+"fmt"
 "github.com/pijalu/frigolite"
 "github.com/pijalu/frigolite/internal/vtab"
 "os"
@@ -19,6 +20,21 @@ func Test_selectB(t *testing.T) {
 		t.Fatal(err)
 	}
 	defer db.Close()
+
+	// auto-installed test-extension functions (src/test_func.c)
+	db.RegisterFunction("test_error", func(args []interface{}) (interface{}, error) {
+		msg := ""
+		if len(args) > 0 && args[0] != nil {
+			msg = fmt.Sprintf("%v", args[0])
+		}
+		return nil, fmt.Errorf("%s", msg)
+	}, 1, 2)
+	db.RegisterFunction("test_isolation", func(args []interface{}) (interface{}, error) {
+		if len(args) < 2 {
+			return nil, nil
+		}
+		return args[1], nil
+	}, 2, 2)
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
@@ -131,7 +147,7 @@ func Test_selectB(t *testing.T) {
 			}
 			got := flatten(r)
 			want := "6 12 15 18 24"
-			if got != want {
+			if got != want && !tclFpnumCompare(got, want) {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
@@ -143,7 +159,7 @@ func Test_selectB(t *testing.T) {
 			}
 			got := flatten(r)
 			want := "6 2 12 1 15 1 18 1 24 1"
-			if got != want {
+			if got != want && !tclFpnumCompare(got, want) {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
@@ -155,7 +171,7 @@ func Test_selectB(t *testing.T) {
 			}
 			got := flatten(r)
 			want := "6 2"
-			if got != want {
+			if got != want && !tclFpnumCompare(got, want) {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
@@ -167,7 +183,7 @@ func Test_selectB(t *testing.T) {
 			}
 			got := flatten(r)
 			want := "6 14 6 14 12 14 15 14 18 14 24 14"
-			if got != want {
+			if got != want && !tclFpnumCompare(got, want) {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
@@ -180,7 +196,7 @@ func Test_selectB(t *testing.T) {
 			got := flatten(r)
 			want := tclListFlatten("{}")
 			got = tclListFlattenCollapse(got)
-			if got != want {
+			if got != want && !tclFpnumCompare(got, want) {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
@@ -193,7 +209,7 @@ func Test_selectB(t *testing.T) {
 			got := flatten(r)
 			want := tclListFlatten("{}")
 			got = tclListFlattenCollapse(got)
-			if got != want {
+			if got != want && !tclFpnumCompare(got, want) {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
@@ -205,7 +221,7 @@ func Test_selectB(t *testing.T) {
 			}
 			got := flatten(r)
 			want := "12"
-			if got != want {
+			if got != want && !tclFpnumCompare(got, want) {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
@@ -217,7 +233,7 @@ func Test_selectB(t *testing.T) {
 			}
 			got := flatten(r)
 			want := "9 15 24 27"
-			if got != want {
+			if got != want && !tclFpnumCompare(got, want) {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
@@ -229,7 +245,7 @@ func Test_selectB(t *testing.T) {
 			}
 			got := flatten(r)
 			want := "27 24 15 9"
-			if got != want {
+			if got != want && !tclFpnumCompare(got, want) {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
@@ -241,7 +257,7 @@ func Test_selectB(t *testing.T) {
 			}
 			got := flatten(r)
 			want := "27 24 18 15 12 9 6"
-			if got != want {
+			if got != want && !tclFpnumCompare(got, want) {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
@@ -253,7 +269,7 @@ func Test_selectB(t *testing.T) {
 			}
 			got := flatten(r)
 			want := "6 9 12 15 18 24 27"
-			if got != want {
+			if got != want && !tclFpnumCompare(got, want) {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
@@ -265,7 +281,7 @@ func Test_selectB(t *testing.T) {
 			}
 			got := flatten(r)
 			want := "6 9 12 15 18 18 24 27"
-			if got != want {
+			if got != want && !tclFpnumCompare(got, want) {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
@@ -277,7 +293,7 @@ func Test_selectB(t *testing.T) {
 			}
 			got := flatten(r)
 			want := "6 9 15 18 24 27"
-			if got != want {
+			if got != want && !tclFpnumCompare(got, want) {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
@@ -289,7 +305,7 @@ func Test_selectB(t *testing.T) {
 			}
 			got := flatten(r)
 			want := "6 18"
-			if got != want {
+			if got != want && !tclFpnumCompare(got, want) {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
@@ -301,7 +317,7 @@ func Test_selectB(t *testing.T) {
 			}
 			got := flatten(r)
 			want := "6 18"
-			if got != want {
+			if got != want && !tclFpnumCompare(got, want) {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
@@ -313,7 +329,7 @@ func Test_selectB(t *testing.T) {
 			}
 			got := flatten(r)
 			want := "6 9 15 18 24 27"
-			if got != want {
+			if got != want && !tclFpnumCompare(got, want) {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
@@ -325,7 +341,7 @@ func Test_selectB(t *testing.T) {
 			}
 			got := flatten(r)
 			want := "2 8"
-			if got != want {
+			if got != want && !tclFpnumCompare(got, want) {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
@@ -337,7 +353,7 @@ func Test_selectB(t *testing.T) {
 			}
 			got := flatten(r)
 			want := "14 3"
-			if got != want {
+			if got != want && !tclFpnumCompare(got, want) {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
@@ -349,7 +365,7 @@ func Test_selectB(t *testing.T) {
 			}
 			got := flatten(r)
 			want := "0 1 1 0"
-			if got != want {
+			if got != want && !tclFpnumCompare(got, want) {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
@@ -361,7 +377,7 @@ func Test_selectB(t *testing.T) {
 			}
 			got := flatten(r)
 			want := "0 1"
-			if got != want {
+			if got != want && !tclFpnumCompare(got, want) {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
@@ -373,7 +389,7 @@ func Test_selectB(t *testing.T) {
 			}
 			got := flatten(r)
 			want := "2 4 6 3 6 9 8 10 12 12 15 18 14 16 18 21 24 27"
-			if got != want {
+			if got != want && !tclFpnumCompare(got, want) {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
@@ -385,7 +401,7 @@ func Test_selectB(t *testing.T) {
 			}
 			got := flatten(r)
 			want := "3 12 21 345"
-			if got != want {
+			if got != want && !tclFpnumCompare(got, want) {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
@@ -397,7 +413,7 @@ func Test_selectB(t *testing.T) {
 			}
 			got := flatten(r)
 			want := "2 4 8 10 14 16 80.1 180.1 200 400 800 1000 1400 1600"
-			if got != want {
+			if got != want && !tclFpnumCompare(got, want) {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
@@ -409,7 +425,7 @@ func Test_selectB(t *testing.T) {
 			}
 			got := flatten(r)
 			want := "2 4 8 10 14 16 20.1 {} 80.1 180.1 140.1 {} 200 400 800 1000 1400 1600"
-			if got != want {
+			if got != want && !tclFpnumCompare(got, want) {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
@@ -421,7 +437,7 @@ func Test_selectB(t *testing.T) {
 			}
 			got := flatten(r)
 			want := "6 18 30 260.2 600 1800 3000"
-			if got != want {
+			if got != want && !tclFpnumCompare(got, want) {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}

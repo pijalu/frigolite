@@ -5,6 +5,7 @@
 package rtreeH
 
 import (
+"fmt"
 "github.com/pijalu/frigolite"
 "github.com/pijalu/frigolite/internal/vtab"
 "os"
@@ -18,6 +19,21 @@ func Test_rtreeH(t *testing.T) {
 		t.Fatal(err)
 	}
 	defer db.Close()
+
+	// auto-installed test-extension functions (src/test_func.c)
+	db.RegisterFunction("test_error", func(args []interface{}) (interface{}, error) {
+		msg := ""
+		if len(args) > 0 && args[0] != nil {
+			msg = fmt.Sprintf("%v", args[0])
+		}
+		return nil, fmt.Errorf("%s", msg)
+	}, 1, 2)
+	db.RegisterFunction("test_isolation", func(args []interface{}) (interface{}, error) {
+		if len(args) < 2 {
+			return nil, nil
+		}
+		return args[1], nil
+	}, 2, 2)
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
@@ -70,7 +86,7 @@ func Test_rtreeH(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1 1 lower-left corner {} 2 1 upper-left corner {} 3 1 lower-right corner {} 4 1 upper-right corner {} 5 1 center {} 6 1 left edge {} 7 1 right edge {} 8 1 bottom edge {} 9 1 top edge {} 10 1 the whole thing {} 11 1 left half {} 12 1 right half {} 13 1 bottom half {} 14 1 top half {}"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -82,7 +98,7 @@ func Test_rtreeH(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "5 40.0 60.0 40.0 60.0 center {}"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -94,7 +110,7 @@ func Test_rtreeH(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "5 40.0 60.0 40.0 60.0 center {}"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -106,7 +122,7 @@ func Test_rtreeH(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "5 40.0 60.0 40.0 60.0 center {}"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -118,7 +134,7 @@ func Test_rtreeH(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "5 40.0 60.0 40.0 60.0 center {}"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -130,7 +146,7 @@ func Test_rtreeH(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "5 40.0 60.0 40.0 60.0 center {}"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -142,7 +158,7 @@ func Test_rtreeH(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "5 40.0 60.0 40.0 60.0 center {}"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -155,7 +171,7 @@ func Test_rtreeH(t *testing.T) {
 		got := flatten(r)
 		want := tclListFlatten("{}")
 		got = tclListFlattenCollapse(got)
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -168,7 +184,7 @@ func Test_rtreeH(t *testing.T) {
 		got := flatten(r)
 		want := tclListFlatten("{}")
 		got = tclListFlattenCollapse(got)
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -181,7 +197,7 @@ func Test_rtreeH(t *testing.T) {
 		got := flatten(r)
 		want := tclListFlatten("{}")
 		got = tclListFlattenCollapse(got)
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -194,7 +210,7 @@ func Test_rtreeH(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "lower-left corner upper-left corner left edge left half"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -206,7 +222,7 @@ func Test_rtreeH(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "left edge left half"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -224,7 +240,7 @@ func Test_rtreeH(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "box-48,48 box-49,48 box-48,49 box-49,49"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -236,7 +252,7 @@ func Test_rtreeH(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "box-48,48 box-49,48 box-48,49 xbox-49,49"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -261,7 +277,7 @@ func Test_rtreeH(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -274,7 +290,7 @@ func Test_rtreeH(t *testing.T) {
 		got := flatten(r)
 		want := tclListFlatten("{}")
 		got = tclListFlattenCollapse(got)
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}

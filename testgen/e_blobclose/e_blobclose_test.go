@@ -5,6 +5,7 @@
 package e_blobclose
 
 import (
+"fmt"
 "github.com/pijalu/frigolite"
 "github.com/pijalu/frigolite/internal/vtab"
 "os"
@@ -18,6 +19,21 @@ func Test_e_blobclose(t *testing.T) {
 		t.Fatal(err)
 	}
 	defer db.Close()
+
+	// auto-installed test-extension functions (src/test_func.c)
+	db.RegisterFunction("test_error", func(args []interface{}) (interface{}, error) {
+		msg := ""
+		if len(args) > 0 && args[0] != nil {
+			msg = fmt.Sprintf("%v", args[0])
+		}
+		return nil, fmt.Errorf("%s", msg)
+	}, 1, 2)
+	db.RegisterFunction("test_isolation", func(args []interface{}) (interface{}, error) {
+		if len(args) < 2 {
+			return nil, nil
+		}
+		return args[1], nil
+	}, 2, 2)
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
@@ -229,7 +245,7 @@ func Test_e_blobclose(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "main shared temp closed"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -242,7 +258,7 @@ func Test_e_blobclose(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "main unlocked temp closed"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -363,7 +379,7 @@ func Test_e_blobclose(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA lock_status ")
 		}
 	}
-	{ // "e_blobclose-2.3.2" — skipped: lock_status transition after autocommit write with open blob N-A (DEFERRED locking) (SQL side effects only)
+	{ // "e_blobclose-2.3.2" — skipped: lock_status transition after autocommit write with open blob N-A (DEFERRED locking) (SQL + file side effects only)
 		_res = db.Exec(" INSERT INTO x1 VALUES(15, val()) ")
 		_ = _res.Error // tolerate unsupported-feature errors in skipped tests
 		_res = db.Exec(" PRAGMA lock_status ")

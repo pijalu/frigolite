@@ -6,6 +6,7 @@ package zipfile
 
 import (
 "errors"
+"fmt"
 "github.com/pijalu/frigolite"
 "github.com/pijalu/frigolite/internal/vtab"
 "os"
@@ -24,6 +25,21 @@ func Test_zipfile(t *testing.T) {
 		t.Fatal(err)
 	}
 	defer db.Close()
+
+	// auto-installed test-extension functions (src/test_func.c)
+	db.RegisterFunction("test_error", func(args []interface{}) (interface{}, error) {
+		msg := ""
+		if len(args) > 0 && args[0] != nil {
+			msg = fmt.Sprintf("%v", args[0])
+		}
+		return nil, fmt.Errorf("%s", msg)
+	}, 1, 2)
+	db.RegisterFunction("test_isolation", func(args []interface{}) (interface{}, error) {
+		if len(args) < 2 {
+			return nil, nil
+		}
+		return args[1], nil
+	}, 2, 2)
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
@@ -182,7 +198,7 @@ func Test_zipfile(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "0 name {} 1 {} 1 1 mode {} 0 {} 0 2 mtime {} 0 {} 0 3 sz {} 0 {} 0 4 rawdata {} 0 {} 0 5 data {} 0 {} 0 6 method {} 0 {} 0"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -230,7 +246,7 @@ func Test_zipfile(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "f.txt 1000000000 abcde g.txt 1000000002 12345"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -250,7 +266,7 @@ func Test_zipfile(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "f.txt 1000000000 abcde 0 g.txt 1000000002 12345 0 h.txt 1000000004 aaaaaaaaaabbbbbbbbbb 8"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -268,7 +284,7 @@ func Test_zipfile(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "f.txt g.txt h.txt i.txt"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -280,7 +296,7 @@ func Test_zipfile(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "f.txt g.txt h.txt i.txt"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -292,7 +308,7 @@ func Test_zipfile(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "zxcvb"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -304,7 +320,7 @@ func Test_zipfile(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "f.txt h.txt i.txt"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -316,7 +332,7 @@ func Test_zipfile(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "f.txt 33188 1000000000 abcde 0 h.txt 33188 1000000004 aaaaaaaaaabbbbbbbbbb 8 i.txt 33188 1000000006 zxcvb 0"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -329,7 +345,7 @@ func Test_zipfile(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "f.txt 33188 1000000000 abcde 0 h.txt 33188 1000000004 aaaaaaaaaabbbbbbbbbb 8 i.txt 33188 4 zxcvb 0"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -357,7 +373,7 @@ func Test_zipfile(t *testing.T) {
 		got := flatten(r)
 		want := tclListFlattenCollapse(strings.ReplaceAll("\n  f.txt 33188 1000000000 abcde 0\n  h.txt %perms% 1000000004 aaaaaaaaaabbbbbbbbbb 8\n  i.txt 33188 4 zxcvb 0\n", "%perms%", perms))
 		got = tclListFlattenCollapse(got)
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -371,7 +387,7 @@ func Test_zipfile(t *testing.T) {
 		got := flatten(r)
 		want := tclListFlattenCollapse(strings.ReplaceAll("\n  blue.txt 33188 1000000000 abcde 0\n  h.txt %perms% 1000000004 aaaaaaaaaabbbbbbbbbb 8\n  i.txt 33188 4 zxcvb 0\n", "%perms%", perms))
 		got = tclListFlattenCollapse(got)
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -385,7 +401,7 @@ func Test_zipfile(t *testing.T) {
 		got := flatten(r)
 		want := tclListFlattenCollapse(strings.ReplaceAll("\n  blue.txt 33188 1000000000 edcba 0\n  h.txt %perms% 1000000004 aaaaaaaaaabbbbbbbbbb 8\n  i.txt 33188 4 zxcvb 0\n", "%perms%", perms))
 		got = tclListFlattenCollapse(got)
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -398,7 +414,7 @@ func Test_zipfile(t *testing.T) {
 		got := flatten(r)
 		want := tclListFlatten(strings.ReplaceAll("\n  blue.txt/ 16877 1000000000 {} 0\n  h.txt %perms% 1000000004 aaaaaaaaaabbbbbbbbbb 8\n  i.txt 33188 4 zxcvb 0\n", "%perms%", perms))
 		got = tclListFlattenCollapse(got)
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -417,7 +433,7 @@ func Test_zipfile(t *testing.T) {
 		got := flatten(r)
 		want := tclListFlatten(strings.ReplaceAll("\n  blue.txt/ 16877 1000000000 {} 0\n  h.txt %perms% 1000000004 aaaaaaaaaabbbbbbbbbb 8\n  i.txt 33188 4 zxcvb 0\n", "%perms%", perms))
 		got = tclListFlattenCollapse(got)
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -430,7 +446,7 @@ func Test_zipfile(t *testing.T) {
 		got := flatten(r)
 		want := tclListFlatten(strings.ReplaceAll("\n  blue.txt/ 16877 1000000000 {} 0\n  h.txt %perms% 1000000004 aaaaaaaaaabbbbbbbbbb 8\n  i.txt 33188 4 {} 0\n", "%perms%", perms))
 		got = tclListFlattenCollapse(got)
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -442,7 +458,7 @@ func Test_zipfile(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "blue.txt/ {} h.txt aaaaaaaaaabbbbbbbbbb i.txt {}"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -454,7 +470,7 @@ func Test_zipfile(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "h.txt aaaaaaaaaabbbbbbbbbb i.txt {}"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -467,7 +483,7 @@ func Test_zipfile(t *testing.T) {
 		got := flatten(r)
 		want := tclListFlatten("{}")
 		got = tclListFlattenCollapse(got)
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -490,7 +506,7 @@ func Test_zipfile(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "dirname/ 16877 {}"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -502,7 +518,7 @@ func Test_zipfile(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "dirname/ 16877 {} dirname2/ 16877 {} dirname2/file1.txt 33188 abcdefghijklmnop"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -520,7 +536,7 @@ func Test_zipfile(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "dirname3/ 16877 {} dirname2/ 16877 {} dirname2/file1.txt 33188 abcdefghijklmnop"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -572,7 +588,7 @@ func Test_zipfile(t *testing.T) {
 			// close $fd
 			got := tclListFlatten(data)
 			want := tclListFlatten("abcdefghijklmnop")
-			if got != want {
+			if got != want && !tclFpnumCompare(got, want) {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "2.5.5")
 			}
 		}
@@ -703,7 +719,7 @@ func Test_zipfile(t *testing.T) {
 				}
 				got := flatten(r)
 				want := "a.txt 946684800 abc"
-				if got != want {
+				if got != want && !tclFpnumCompare(got, want) {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
@@ -727,7 +743,7 @@ func Test_zipfile(t *testing.T) {
 					}
 					got := flatten(r)
 					want := "3"
-					if got != want {
+					if got != want && !tclFpnumCompare(got, want) {
 						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 					}
 				}
@@ -739,7 +755,7 @@ func Test_zipfile(t *testing.T) {
 					}
 					got := flatten(r)
 					want := "a.txt 946684800 abc b.txt 1000000000 abc c.txt 1111111000 abc"
-					if got != want {
+					if got != want && !tclFpnumCompare(got, want) {
 						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 					}
 				}
@@ -757,7 +773,7 @@ func Test_zipfile(t *testing.T) {
 					}
 					got := flatten(r)
 					want := "a.txt 946684800 3 abc abc b.txt 1000000000 3 abc abc c.txt 1111111000 3 abc abc"
-					if got != want {
+					if got != want && !tclFpnumCompare(got, want) {
 						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 					}
 				}
@@ -810,7 +826,7 @@ func Test_zipfile(t *testing.T) {
 				}
 				got := flatten(r)
 				want := "a.txt 1 b.txt 2 c.txt 1 d.txt 2"
-				if got != want {
+				if got != want && !tclFpnumCompare(got, want) {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
@@ -933,7 +949,7 @@ func Test_zipfile(t *testing.T) {
 				}
 				got := flatten(r)
 				want := "dir1/ dir2/ dir3/ dir4/ /"
-				if got != want {
+				if got != want && !tclFpnumCompare(got, want) {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
@@ -970,7 +986,7 @@ func Test_zipfile(t *testing.T) {
 				}
 				got := flatten(r)
 				want := "a0 one"
-				if got != want {
+				if got != want && !tclFpnumCompare(got, want) {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
@@ -988,7 +1004,7 @@ func Test_zipfile(t *testing.T) {
 				}
 				got := flatten(r)
 				want := "a0 four"
-				if got != want {
+				if got != want && !tclFpnumCompare(got, want) {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
@@ -1006,7 +1022,7 @@ func Test_zipfile(t *testing.T) {
 				}
 				got := flatten(r)
 				want := "a0 four"
-				if got != want {
+				if got != want && !tclFpnumCompare(got, want) {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
@@ -1025,7 +1041,7 @@ func Test_zipfile(t *testing.T) {
 				got := flatten(r)
 				want := tclListFlatten("{}")
 				got = tclListFlattenCollapse(got)
-				if got != want {
+				if got != want && !tclFpnumCompare(got, want) {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
@@ -1037,7 +1053,7 @@ func Test_zipfile(t *testing.T) {
 				}
 				got := flatten(r)
 				want := "b0 one"
-				if got != want {
+				if got != want && !tclFpnumCompare(got, want) {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
@@ -1049,7 +1065,7 @@ func Test_zipfile(t *testing.T) {
 				}
 				got := flatten(r)
 				want := "b1 one"
-				if got != want {
+				if got != want && !tclFpnumCompare(got, want) {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
@@ -1061,7 +1077,7 @@ func Test_zipfile(t *testing.T) {
 				}
 				got := flatten(r)
 				want := "b0 one b1 one"
-				if got != want {
+				if got != want && !tclFpnumCompare(got, want) {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
@@ -1079,7 +1095,7 @@ func Test_zipfile(t *testing.T) {
 				}
 				got := flatten(r)
 				want := "b0 two b1 one"
-				if got != want {
+				if got != want && !tclFpnumCompare(got, want) {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
@@ -1103,7 +1119,7 @@ func Test_zipfile(t *testing.T) {
 				}
 				got := flatten(r)
 				want := "b0 two b2 one"
-				if got != want {
+				if got != want && !tclFpnumCompare(got, want) {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
@@ -1115,7 +1131,7 @@ func Test_zipfile(t *testing.T) {
 				}
 				got := flatten(r)
 				want := "b0suffix two b2suffix one"
-				if got != want {
+				if got != want && !tclFpnumCompare(got, want) {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
@@ -1159,7 +1175,7 @@ func Test_zipfile(t *testing.T) {
 						}
 						got := flatten(r)
 						want := "subdir subdir/x1.txt subdir/x2.txt"
-						if got != want {
+						if got != want && !tclFpnumCompare(got, want) {
 							t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 						}
 					}
@@ -1177,7 +1193,7 @@ func Test_zipfile(t *testing.T) {
 						}
 						got := flatten(r)
 						want := "subdir subdir/x1.txt subdir/x2.txt"
-						if got != want {
+						if got != want && !tclFpnumCompare(got, want) {
 							t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 						}
 					}
@@ -1189,7 +1205,7 @@ func Test_zipfile(t *testing.T) {
 						}
 						got := flatten(r)
 						want := ". ./x1.txt ./x2.txt"
-						if got != want {
+						if got != want && !tclFpnumCompare(got, want) {
 							t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 						}
 					}
@@ -1202,7 +1218,7 @@ func Test_zipfile(t *testing.T) {
 					}
 					got := flatten(r)
 					want := "'' 10 10 2 X'3130' X'3130' 0"
-					if got != want {
+					if got != want && !tclFpnumCompare(got, want) {
 						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 					}
 				}
@@ -1214,7 +1230,7 @@ func Test_zipfile(t *testing.T) {
 					}
 					got := flatten(r)
 					want := "3 ok"
-					if got != want {
+					if got != want && !tclFpnumCompare(got, want) {
 						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 					}
 				}
@@ -1250,7 +1266,7 @@ func Test_zipfile(t *testing.T) {
 					}
 					got := flatten(r)
 					want := "blob"
-					if got != want {
+					if got != want && !tclFpnumCompare(got, want) {
 						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 					}
 				}
@@ -1312,7 +1328,7 @@ func Test_zipfile(t *testing.T) {
 					}
 					got := flatten(r)
 					want := "A 33188 312768000 0 {} {} 0 new-entry.txt 33188 1780241241 5 HELLO HELLO 0"
-					if got != want {
+					if got != want && !tclFpnumCompare(got, want) {
 						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 					}
 				}
