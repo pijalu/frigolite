@@ -52,7 +52,36 @@ Coordinator-side baselines taken (main 9372fbb85):
   (same hot files — conflict avoidance), in 3 disjoint-file agents.
 - SOLID green at baseline.
 
-Merge log: (none merged yet)
+Merge log:
+- `43c1504f0` ← fleet/t33-solo (fts3corrupt6/rtree1/tpch01 green; verified
+  on main: 3 pkgs + SOLID green).
+- `771abb374` ← fleet/t33-misc (misc2/3/5/7/8 green; verified on main:
+  5 pkgs + SOLID + staticcheck 0 new).
+- `748fdb03a` ← fleet/t33-idx (permutations/index/reindex/skipscan2/
+  without_rowid4 green; verified on main: 5 pkgs + TestP5AnalyzeReindex +
+  GlobRangePin + tkt2822 pins green).
+- (next) ← fleet/t33-query (having/where6/window8/selectH; verified on
+  main: 4 pkgs + SOLID green — merged with the push above).
+- fleet/t33-fts5 STILL ACTIVE in frigolite-wt-t33-fts5 (fts5hash +
+  fts5unindexed + contentless3-2.x green at ef605a1ad; segment/structure
+  persistence model landed; 4 dirty files mid-work).
+
+Coordinator housekeeping: 46 stale pre-T33 worktrees removed (branches
+preserved; fleet/w5-tkt WIP 380a22c5d remains on its branch).
+
+§5d worklist after merges (gate scope, main tree):
+- over-1000-line files (16): tools/tcl2go/{processcmdextra 1915,
+  processdb 1826, cmdexpr 1537, processset_part2 1433, processloop 1355,
+  skiptests2_part2 1342, dotest 1285, processset 1266, processblob 1115,
+  gen 1075} + internal/exec/pragma_table 1098, exec/pragma_analyze 1026,
+  execquery/select_agg_validate 1037, execquery/select_columns 1024,
+  execquery/select_agg 1017, storage/storage 1005.
+- gocognit>15 non-vendored ≈17, gocyclo>12 ≈21, staticcheck U1000 ×4
+  (3 btree + schemaPrefixOf), vet ×1 pre-existing.
+- Dispatch plan: 3 refactor agents NOW (tcl2go family-1; exec pkg;
+  execquery+storage+btree+execdml), 4th agent (tcl2go family-2 incl.
+  skiptests2_part2) AFTER t33-fts5 lands (skip-entry conflict
+  avoidance).
 
 Mid-session progress (2026-09-24, ~30 min in):
 - t33-idx: 2 commits — permutations GREEN (stale-regen artifact: package
