@@ -25,23 +25,34 @@ func findTableSigProc() (table, col string, ok bool) {
 	return "", "", false
 }
 
-// tableSigProcInfo recognizes a table-fingerprint proc body:
-// "execsql {SELECT count(*), md5sum(COL) FROM TABLE} $db" (exclusive2.test's
-// t1sig). Returns the table and column, ok=false for other shapes.
-func tableSigProcInfo(body string) (table, col string, ok bool) {
+// tableSigSQLBody strips the t1sig proc-body wrapper — braces, the `execsql `
+// prefix, a trailing `]`, and one quoting layer — leaving the raw SQL text.
+// Returns ok=false when the body is not an execsql call.
+func tableSigSQLBody(body string) (string, bool) {
 	body = strings.TrimSpace(body)
 	if strings.HasPrefix(body, "{") && strings.HasSuffix(body, "}") {
 		body = strings.TrimSpace(body[1 : len(body)-1])
 	}
 	lower := strings.ToLower(body)
 	if !strings.HasPrefix(lower, "execsql ") {
-		return "", "", false
+		return "", false
 	}
 	rest := strings.TrimSpace(body[len("execsql "):])
 	rest = strings.TrimSuffix(rest, "]")
 	rest = strings.TrimSpace(rest)
 	if len(rest) >= 2 && ((rest[0] == '{' && rest[len(rest)-1] == '}') || (rest[0] == '"' && rest[len(rest)-1] == '"')) {
 		rest = rest[1 : len(rest)-1]
+	}
+	return rest, true
+}
+
+// tableSigProcInfo recognizes a table-fingerprint proc body:
+// "execsql {SELECT count(*), md5sum(COL) FROM TABLE} $db" (exclusive2.test's
+// t1sig). Returns the table and column, ok=false for other shapes.
+func tableSigProcInfo(body string) (table, col string, ok bool) {
+	rest, ok := tableSigSQLBody(body)
+	if !ok {
+		return "", "", false
 	}
 	up := strings.ToUpper(rest)
 	if !strings.Contains(up, "SELECT COUNT(*), MD5SUM(") {
@@ -64,41 +75,39 @@ func tableSigProcInfo(body string) (table, col string, ok bool) {
 	return table, col, table != "" && col != ""
 }
 
+// userProcEmitterMatch pairs a fixture-proc name with the body shape that
+// selects its emitter key.
+var userProcEmitterMatch = []struct {
+	name  string
+	match func(body string) bool
+	key   string
+}{
+	// rtree8.test: INSERT ($i,$i,$i+2)
+	{"populate_t1", func(body string) bool { return strings.Contains(body, "DELETE FROM t1") && strings.Contains(body, "$i+2") }, "rtree8_populate"},
+	// rtreeA.test: 500-row BEGIN/COMMIT fill
+	{"populate_t1", func(body string) bool { return strings.Contains(body, "BEGIN") && strings.Contains(body, "500") }, "rtreea_populate"},
+	// reopen fresh file + rtree t1
+	{"create_t1", func(body string) bool { return strings.Contains(body, "CREATE VIRTUAL TABLE t1 USING rtree(") }, "rtreea_create"},
+	{"truncate_node", func(body string) bool { return strings.Contains(body, "string range") }, "rtreea_truncate"},
+	{"signature", func(body string) bool { return strings.Contains(body, "SELECT x FROM t3") && strings.Contains(body, "string length") }, "memdb_signature"},
+	// cache.test: btree_pager_stats "page" count
+	{"pager_cache_size", func(body string) bool { return strings.Contains(body, "btree_pager_stats") }, "cache_pager_size"},
+	// tkt4018.test testsql SQL: spawns a separate PROCESS with a fresh
+	// sqlite3 connection on test.db (body embeds
+	// sqlite3_test_control_pending_byte and `catch { db eval {$sql} }`).
+	{"testsql", func(body string) bool { return strings.Contains(body, "sqlite3_test_control_pending_byte") && strings.Contains(body, "db eval") }, "testsql_subprocess"},
+}
+
 func userProcEmitterFor(name, body string) string {
-	switch name {
-	case "populate_t1":
-		switch {
-		case strings.Contains(body, "DELETE FROM t1") && strings.Contains(body, "$i+2"):
-			return "rtree8_populate" // rtree8.test: INSERT ($i,$i,$i+2)
-		case strings.Contains(body, "BEGIN") && strings.Contains(body, "500"):
-			return "rtreea_populate" // rtreeA.test: 500-row BEGIN/COMMIT fill
+	for _, e := range userProcEmitterMatch {
+		if e.name == name && e.match(body) {
+			return e.key
 		}
-	case "create_t1":
-		if strings.Contains(body, "CREATE VIRTUAL TABLE t1 USING rtree(") {
-			return "rtreea_create" // reopen fresh file + rtree t1
-		}
-	case "truncate_node":
-		if strings.Contains(body, "string range") {
-			return "rtreea_truncate"
-		}
-	case "signature":
-		if strings.Contains(body, "SELECT x FROM t3") && strings.Contains(body, "string length") {
-			return "memdb_signature"
-		}
-	case "t1sig":
+	}
+	// t1sig (exclusive2.test): count + md5sum fingerprint
+	if name == "t1sig" {
 		if _, _, ok := tableSigProcInfo(body); ok {
-			return "table_sig" // exclusive2.test: count + md5sum fingerprint
-		}
-	case "pager_cache_size":
-		if strings.Contains(body, "btree_pager_stats") {
-			return "cache_pager_size" // cache.test: btree_pager_stats "page" count
-		}
-	case "testsql":
-		// tkt4018.test testsql SQL: spawns a separate PROCESS with a fresh
-		// sqlite3 connection on test.db (body embeds
-		// sqlite3_test_control_pending_byte and `catch { db eval {$sql} }`).
-		if strings.Contains(body, "sqlite3_test_control_pending_byte") && strings.Contains(body, "db eval") {
-			return "testsql_subprocess"
+			return "table_sig"
 		}
 	}
 	return ""
@@ -121,15 +130,18 @@ func goArgWords(args []tcl.RawWord) []string {
 	return out
 }
 
+// goArgAt returns the i-th rendered Go argument, or the empty literal when
+// the proc was called with fewer arguments.
+func goArgAt(goArgs []string, i int) string {
+	if i < len(goArgs) {
+		return goArgs[i]
+	}
+	return `""`
+}
+
 // emitUserProc emits one faithful fixture-proc implementation at the call
 // site. goArgs carries rendered Go expressions for each TCL argument.
 func (tp *transpiler) emitUserProc(key string, goArgs []string) {
-	argAt := func(i int) string {
-		if i < len(goArgs) {
-			return goArgs[i]
-		}
-		return `""`
-	}
 	switch key {
 	case "table_sig":
 		// t1sig [CONN] (exclusive2.test): table fingerprint over the named
@@ -149,7 +161,7 @@ func (tp *transpiler) emitUserProc(key string, goArgs []string) {
 	case "rtree8_populate":
 		tp.emitLine("_res = %s.Exec(\"DELETE FROM t1\")", tp.dbVar)
 		tp.emitLine("if _res.Error != nil { t.Errorf(\"exec error: %%v\", _res.Error) }")
-		tp.emitLine("for _i := 1; _i <= tclInt(%s); _i++ {", argAt(0))
+		tp.emitLine("for _i := 1; _i <= tclInt(%s); _i++ {", goArgAt(goArgs, 0))
 		tp.indent++
 		tp.emitLine("_res = %s.Exec(fmt.Sprintf(\"INSERT INTO t1 VALUES(%%d, %%d, %%d)\", _i, _i, _i+2))", tp.dbVar)
 		tp.emitLine("if _res.Error != nil { t.Errorf(\"exec error: %%v\", _res.Error) }")
@@ -194,8 +206,8 @@ func (tp *transpiler) emitUserProc(key string, goArgs []string) {
 		// first nTrunc+1 bytes (TCL string range is inclusive).
 		tp.emitLine("{")
 		tp.indent++
-		tp.emitLine("_nodeno := tclInt(%s)", argAt(0))
-		tp.emitLine("_trunc := tclInt(%s)", argAt(1))
+		tp.emitLine("_nodeno := tclInt(%s)", goArgAt(goArgs, 0))
+		tp.emitLine("_trunc := tclInt(%s)", goArgAt(goArgs, 1))
 		tp.emitLine("_rrows := %s.Query(\"SELECT data FROM t1_node WHERE nodeno=\" + strconv.Itoa(_nodeno)).Rows", tp.dbVar)
 		tp.emitLine("if len(_rrows) == 1 {")
 		tp.indent++
@@ -240,7 +252,7 @@ func (tp *transpiler) emitUserProc(key string, goArgs []string) {
 		tp.emitLine("_tsx, _tsxerr := frigolite.Open(\"test.db\")")
 		tp.emitLine("if _tsxerr == nil {")
 		tp.indent++
-		tp.emitLine("_ = _tsx.Exec(%s)", argAt(0))
+		tp.emitLine("_ = _tsx.Exec(%s)", goArgAt(goArgs, 0))
 		tp.emitLine("_tsx.Close()")
 		tp.indent--
 		tp.emitLine("}")
