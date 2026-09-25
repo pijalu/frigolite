@@ -1,6 +1,7 @@
 // Package main implements the tcl2go tool.
 //
 // This file handles sqlite3 / bind / step / reset / finalize commands.
+// The frigolite.Open emission lives in processsqlite3_open.go.
 package main
 
 import (
@@ -34,11 +35,7 @@ func (tp *transpiler) processSqlite3(args []tcl.RawWord) {
 	// SQL side effect (the file is created/opened), matching the observable
 	// filesystem state of the TCL run.
 	if strings.HasPrefix(dbName, "$") {
-		tp.emitLine("// sqlite3 %s %s (dynamic connection name)", sanitizeTCLComment(dbName), strings.TrimSpace(args[len(args)-1].Text))
-		tp.emitLine("_dbtmp%d, err := frigolite.Open(%s)", tp.varCount, filename)
-		tp.emitLine("if err != nil { t.Logf(\"open dynamic connection failed: %%v (not fatal)\", err) }")
-		tp.emitLine("_ = _dbtmp%d", tp.varCount)
-		tp.varCount++
+		tp.emitDynamicSqlite3Open(args, filename)
 		return
 	}
 
@@ -48,13 +45,7 @@ func (tp *transpiler) processSqlite3(args []tcl.RawWord) {
 	// fixture connection stored in tclFixtureDBs[tp.fixtureVar] rather than the
 	// main test connection. `db` is shadowed to that connection inside the
 	// emitTestfixtureBlock scope, so assign into it and update the map.
-	if tp.fixtureVar != "" && goName == "db" {
-		tp.emitLine("db, err = frigolite.Open(%s)", filename)
-		tp.emitLine("if err != nil { t.Fatal(err) }")
-		tp.emitLine("tclFixtureDBs[%q] = db", tp.fixtureVar)
-		if style := tp.lockStyleForArgs(args); style != "" {
-			tp.emitLine("db.SetLockStyle(%s)", style)
-		}
+	if tp.emitFixtureSqlite3Open(goName, filename, args) {
 		return
 	}
 
@@ -62,35 +53,11 @@ func (tp *transpiler) processSqlite3(args []tcl.RawWord) {
 	// filename feature, which the pure-Go engine does not implement. Emit a
 	// no-op so the test still compiles (the URI-mode assertions are skipped
 	// by the do_test body detection).
-	if len(args) >= 2 && strings.Contains(args[1].Text, "?mode=") {
-		tp.emitLine("// sqlite3 %s %s (URI-mode open not implemented)", dbName, sanitizeTCLComment(args[1].Text))
-		if !tp.isVarDeclared(goName) {
-			tp.emitLine("var %s *frigolite.DB", goName)
-			tp.vars = append(tp.vars, goName)
-		}
+	if tp.emitURIModeNoop(dbName, goName, args) {
 		return
 	}
 
-	// Secondary connections opened on the main test database file
-	// ("sqlite3 db2 test.db") are real independent connections in the TCL
-	// framework. The transpiler runs against real files (testgen mode: the
-	// main "db" is frigolite.Open("test.db")), so a real second connection
-	// sees the same committed state and supports cross-connection scenarios
-	// (e.g. attach2-4.1 attaches the same file under the same name on two
-	// connections). No alias is emitted; the connection is opened normally
-	// below.
-	if goName != "db" && len(args) >= 2 && isMainTestFile(args[1].Text) {
-		// Fall through to the normal open path below (real connection).
-		// Keep any prior alias bookkeeping consistent.
-		tp.clearSecondaryAlias(goName)
-	}
-
-	// A secondary connection reopened on a DIFFERENT file clears any prior
-	// alias to the main connection (the TCL suite may open db2 on test.db
-	// for shared-cache tests, then reopen it on another file later).
-	if goName != "db" {
-		tp.clearSecondaryAlias(goName)
-	}
+	tp.clearStaleSecondaryAlias(goName, args)
 
 	// emitFatal reports whether the caller emits the t.Fatal(err) check
 	// (the already-declared tmp-var branch returns early instead).
@@ -100,20 +67,7 @@ func (tp *transpiler) processSqlite3(args []tcl.RawWord) {
 	}
 	emitFatal := tp.emitSqlite3Open(dbName, goName, filename, rawFilename, args)
 	if emitFatal {
-		// Inside `catch { sqlite3 db test.db }` the open failure is the
-		// catch's RESULT (quota-5.4.1: opening a directory reports
-		// "unable to open database file" as {1 ...}), not a fatal test
-		// error. Capture into _catchErr and nil the handle.
-		if tp.catchMode {
-			tp.emitLine("if err != nil {")
-			tp.emitLine("	_catchErr = err")
-			tp.emitLine("	%s = nil", goName)
-			tp.emitLine("} else {")
-			tp.emitLine("	tclConnRegister(%q, %s)", dbName, goName)
-			tp.emitLine("}")
-		} else {
-			tp.emitLine("if err != nil { t.Fatal(err) }")
-		}
+		tp.emitSqlite3OpenFatalCheck(goName, dbName)
 	}
 	// Apply the unix VFS locking style (unix-dotfile / unix-flock / unix-none)
 	// or the nolock=1 URI parameter as a per-connection lock model. Matches
@@ -122,6 +76,93 @@ func (tp *transpiler) processSqlite3(args []tcl.RawWord) {
 	// none disables cross-connection locking (test/lock5.test).
 	if style := tp.lockStyleForArgs(args); style != "" {
 		tp.emitLine("%s.SetLockStyle(%s)", goName, style)
+	}
+}
+
+// emitDynamicSqlite3Open handles `sqlite3 $con FILE`: the connection name is
+// a runtime TCL value, so open into a throwaway handle to preserve the SQL
+// side effect (the file is created/opened).
+func (tp *transpiler) emitDynamicSqlite3Open(args []tcl.RawWord, filename string) {
+	dbName := args[0].Text
+	tp.emitLine("// sqlite3 %s %s (dynamic connection name)", sanitizeTCLComment(dbName), strings.TrimSpace(args[len(args)-1].Text))
+	tp.emitLine("_dbtmp%d, err := frigolite.Open(%s)", tp.varCount, filename)
+	tp.emitLine("if err != nil { t.Logf(\"open dynamic connection failed: %%v (not fatal)\", err) }")
+	tp.emitLine("_ = _dbtmp%d", tp.varCount)
+	tp.varCount++
+}
+
+// emitFixtureSqlite3Open handles `sqlite3 db FILE` inside a testfixture
+// script: the main connection is the fixture connection stored in
+// tclFixtureDBs[tp.fixtureVar]. Reports whether it handled the open.
+func (tp *transpiler) emitFixtureSqlite3Open(goName, filename string, args []tcl.RawWord) bool {
+	if tp.fixtureVar == "" || goName != "db" {
+		return false
+	}
+	tp.emitLine("db, err = frigolite.Open(%s)", filename)
+	tp.emitLine("if err != nil { t.Fatal(err) }")
+	tp.emitLine("tclFixtureDBs[%q] = db", tp.fixtureVar)
+	if style := tp.lockStyleForArgs(args); style != "" {
+		tp.emitLine("db.SetLockStyle(%s)", style)
+	}
+	return true
+}
+
+// emitURIModeNoop handles `sqlite3 NAME file:...?mode=...` — URI-mode opens
+// are not implemented (the pure-Go engine lacks C-API URI filename
+// handling), so emit a declaration-only no-op. Reports whether it handled
+// the open.
+func (tp *transpiler) emitURIModeNoop(dbName, goName string, args []tcl.RawWord) bool {
+	if !(len(args) >= 2 && strings.Contains(args[1].Text, "?mode=")) {
+		return false
+	}
+	tp.emitLine("// sqlite3 %s %s (URI-mode open not implemented)", dbName, sanitizeTCLComment(args[1].Text))
+	if !tp.isVarDeclared(goName) {
+		tp.emitLine("var %s *frigolite.DB", goName)
+		tp.vars = append(tp.vars, goName)
+	}
+	return true
+}
+
+// clearStaleSecondaryAlias drops any prior alias bookkeeping for a secondary
+// connection before it is reopened: once when reopened on the main test
+// database file (kept as a real independent connection), and again for any
+// other file (the TCL suite may open db2 on test.db for shared-cache tests,
+// then reopen it on another file later).
+func (tp *transpiler) clearStaleSecondaryAlias(goName string, args []tcl.RawWord) {
+	if goName == "db" {
+		return
+	}
+	// Secondary connections opened on the main test database file
+	// ("sqlite3 db2 test.db") are real independent connections in the TCL
+	// framework. The transpiler runs against real files (testgen mode: the
+	// main "db" is frigolite.Open("test.db")), so a real second connection
+	// sees the same committed state and supports cross-connection scenarios
+	// (e.g. attach2-4.1 attaches the same file under the same name on two
+	// connections). No alias is emitted; the connection is opened normally
+	// below.
+	if len(args) >= 2 && isMainTestFile(args[1].Text) {
+		// Fall through to the normal open path below (real connection).
+		// Keep any prior alias bookkeeping consistent.
+		tp.clearSecondaryAlias(goName)
+	}
+	tp.clearSecondaryAlias(goName)
+}
+
+// emitSqlite3OpenFatalCheck emits the open-failure handling at the
+// `sqlite3 NAME FILE` call site: inside `catch { sqlite3 db test.db }` the
+// open failure is the catch's RESULT (quota-5.4.1: opening a directory
+// reports "unable to open database file" as {1 ...}), not a fatal test
+// error — capture into _catchErr and nil the handle; otherwise fail hard.
+func (tp *transpiler) emitSqlite3OpenFatalCheck(goName, dbName string) {
+	if tp.catchMode {
+		tp.emitLine("if err != nil {")
+		tp.emitLine("	_catchErr = err")
+		tp.emitLine("	%s = nil", goName)
+		tp.emitLine("} else {")
+		tp.emitLine("	tclConnRegister(%q, %s)", dbName, goName)
+		tp.emitLine("}")
+	} else {
+		tp.emitLine("if err != nil { t.Fatal(err) }")
 	}
 }
 
@@ -191,161 +232,6 @@ func (tp *transpiler) clearSecondaryAlias(goName string) {
 	}
 }
 
-// connReg is a pending (dbName, goName) pair queued for tclConnRegister
-// emission after the current sqlite3 NAME FILE call site.
-type connReg struct {
-	dbName string
-	goName string
-}
-
-// emitSqlite3Open emits the frigolite.Open call for a sqlite3 connection,
-// dispatching on the connection kind (predeclared dbN, main db reset modes,
-// new variable, closed-then-reopen, or already-declared). Returns true when
-// the caller should emit the trailing t.Fatal(err) check.
-//
-// Every Open call is followed by a tclConnRegister(dbName, X) so the runtime
-// dispatch (tclConnByName) can resolve arbitrary connection names like
-// "db1a"/"db2a" used in foreach dispatch (quota-3.2.1's
-// "foreach db {db1a db2a} { execsql {...} $db }").
-func (tp *transpiler) emitSqlite3Open(dbName, goName, filename, rawFilename string, args []tcl.RawWord) bool {
-	defer func() {
-		for _, r := range tp.pendingConnRegister {
-			tp.emitLine("tclConnRegister(%q, %s)", r.dbName, r.goName)
-		}
-		tp.pendingConnRegister = nil
-	}()
-	// `sqlite3 db FILE -readonly 1` — SQLITE_OPEN_READONLY
-	// (tkt-5ee23731f-1.1): every write on the returned connection fails with
-	// "attempt to write a readonly database". A missing file is an open
-	// error (no create).
-	for i := 2; i+1 < len(args); i++ {
-		if strings.TrimSpace(args[i].Text) == "-readonly" {
-			if strings.TrimSpace(args[i+1].Text) == "1" {
-				if tp.isVarDeclared(goName) && !isPreDeclaredDB(goName) {
-					tp.emitLine("%s, err = frigolite.OpenReadOnly(%s)", goName, filename)
-				} else {
-					tp.emitLine("%s, err = frigolite.OpenReadOnly(%s)", goName, filename)
-				}
-				if tp.catchMode {
-					tp.emitLine("if err != nil { _catchErr = err; %s = nil }", goName)
-				} else {
-					tp.emitLine("if err != nil { t.Fatal(err) }")
-				}
-				tp.dbConnVars[goName] = true
-				tp.pendingConnRegister = append(tp.pendingConnRegister, connReg{dbName: dbName, goName: goName})
-				return true
-			}
-		}
-	}
-	// Record that goName holds a *frigolite.DB connection so execsql/db
-	// dispatch resolves it as a connection rather than a string variable.
-	wasOpened := tp.dbConnVars[goName]
-	if tp.dbConnVars == nil {
-		tp.dbConnVars = make(map[string]bool)
-	}
-	tp.dbConnVars[goName] = true
-	// db1-db9 are pre-declared at function level; always use = for them
-	if isPreDeclaredDB(goName) {
-		tp.emitLine("%s, err = frigolite.Open(%s)", goName, filename)
-		tp.pendingConnRegister = append(tp.pendingConnRegister, connReg{dbName: dbName, goName: goName})
-		return true
-	}
-	if goName == "db" && (filename == `""` || filename == `":memory:"` || filename == `"'':memory:''"`) {
-		// SQLite's "db close; sqlite3 db :memory:" resets the main test
-		// connection to a fresh database (dropping all prior tables).
-		// Reopen it empty. (The preceding "db close" already emitted Close.)
-		tp.emitLine("db, err = frigolite.Open(\"\")")
-		tp.dqsDDL = true // a fresh connection resets DQS to SQLite defaults
-		tp.dqsDML = true
-		tp.pendingConnRegister = append(tp.pendingConnRegister, connReg{dbName: dbName, goName: goName})
-		return true
-	}
-	if goName == "db" && len(args) >= 2 && tp.pendingFileReset[args[1].Text] {
-		// "forcedelete test.db; sqlite3 db test.db": start from a fresh
-		// database on the real file (deleted by forcedelete, recreated
-		// empty by the reopen). Reopening on the actual filename matters:
-		// a later "db close; sqlite3 db test.db" must find writes made
-		// after the reset, matching SQLite's file-based close+reopen
-		// semantics (see default-4.0/default-4.1).
-		delete(tp.pendingFileReset, args[1].Text)
-		tp.emitLine("db, err = frigolite.Open(%s)", filename)
-		tp.dqsDDL = true // a fresh connection resets DQS to SQLite defaults
-		tp.dqsDML = true
-		tp.pendingConnRegister = append(tp.pendingConnRegister, connReg{dbName: dbName, goName: goName})
-		return true
-	}
-	if !tp.isVarDeclared(goName) {
-		// New DB connection variable
-		tp.emitLine("%s, err := frigolite.Open(%s)", goName, filename)
-		tp.emitLine("defer %s.Close()", goName)
-		tp.vars = append(tp.vars, goName)
-		tp.pendingConnRegister = append(tp.pendingConnRegister, connReg{dbName: dbName, goName: goName})
-		return true
-	}
-	// A named connection pre-declared in the preamble (sqlite3 tmp "") that
-	// has not been opened yet: emit a real open with assignment. The var is in
-	// tp.vars (predeclared) but not in dbConnVars (never opened).
-	if goName != "db" && !isPreDeclaredDB(goName) && tp.isVarDeclared(goName) && !wasOpened {
-		tp.emitLine("%s, err = frigolite.Open(%s)", goName, filename)
-		if tp.catchMode {
-			tp.emitLine("if err != nil { _catchErr = err; %s = nil } else { tclConnRegister(%q, %s) }", goName, dbName, goName)
-		} else {
-			tp.emitLine("if err != nil { t.Fatal(err) }")
-		}
-		tp.pendingConnRegister = append(tp.pendingConnRegister, connReg{dbName: dbName, goName: goName})
-		return true
-	}
-	if goName == "db" && tp.dbClosed {
-		// "db close" then "sqlite3 db <file>": the main connection was
-		// closed, so reopen it on the same file so prior writes persist
-		// (matching SQLite's close+reopen semantics). The compat suite
-		// runs in-memory; the filename keeps the logical database alive.
-		tp.emitLine("db, err = frigolite.Open(%s)", filename)
-		tp.dqsDDL = true // a fresh connection resets DQS to SQLite defaults
-		tp.dqsDML = true
-		tp.dbClosed = false
-		tp.pendingConnRegister = append(tp.pendingConnRegister, connReg{dbName: dbName, goName: goName})
-		return true
-	}
-	// Variable already declared (possibly as string from set) —
-	// use a temp variable to avoid type conflicts. Reopening a FILE
-	// database ("sqlite3 db test.db") is a no-op: the compat suite
-	// expects the test to keep running in-memory, and forcedelete
-	// emits os.Remove for explicit resets. Inside an eval-inlined script
-	// (backup.test's `eval $zOpenScript` with `sqlite3 db $zSrcFile`), or
-	// when the filename is a variable (backup-10's `sqlite3 db $file` in a
-	// foreach), the reopen must create a FRESH connection (the TCL replaces
-	// the connection), so emit a real close+reopen.
-	if goName == "db" && (tp.inEvalScript || strings.HasPrefix(strings.TrimSpace(rawFilename), "$")) {
-		tp.emitLine("db.Close()")
-		tp.emitLine("db, err = frigolite.Open(%s)", filename)
-		if tp.catchMode {
-			tp.emitLine("if err != nil { _catchErr = err; db = nil } else { tclConnRegister(%q, db) }", dbName)
-		} else {
-			tp.emitLine("if err != nil { t.Fatal(err) }")
-		}
-		tp.dqsDDL = true
-		tp.dqsDML = true
-		tp.pendingConnRegister = append(tp.pendingConnRegister, connReg{dbName: dbName, goName: goName})
-		return false
-	}
-	tmpVar := fmt.Sprintf("_dbtmp%d", tp.varCount)
-	tp.varCount++
-	tp.emitLine("%s, err := frigolite.Open(%s)", tmpVar, filename)
-	tp.emitLine("_ = %s // sqlite3 db connection", tmpVar)
-	tp.emitLine("if err != nil { t.Logf(\"open connection side effect failed: %%v (not fatal)\", err) }")
-	tp.emitLine("_ = err")
-	// Reopening the MAIN connection ("sqlite3 db test.db") creates a fresh
-	// sqlite3 handle whose changes()/total_changes() counters start at zero
-	// (e_totalchanges.test resets total_changes this way). The in-memory
-	// engine keeps the same DB handle for schema/data continuity, so reset
-	// the counters explicitly.
-	if goName == "db" {
-		tp.emitLine("db.ResetChangesCounters()")
-	}
-	return false
-}
-
 // debugTcl2go enables transpiler tracing when set (debug aid).
 var debugTcl2go = os.Getenv("TCL2GO_DEBUG") != ""
 
@@ -389,66 +275,77 @@ func (tp *transpiler) processBind(cmdName string, args []tcl.RawWord) {
 	}
 	stmtVar := tclVarToGo(strings.TrimPrefix(args[0].Text, "$"))
 	ps := tp.preparedStateRef()
-	sql, known := ps.stmts[stmtVar]
-	if !known {
-		if tp.catchMode {
-			// sqlite3_bind_* on a nil/closed statement handle (the TCL
-			// wrapper passes handle "0") raises SQLITE_MISUSE
-			// (test1.c test_bind — capi3-14.1-misuse).
-			tp.emitLine("_catchErr = fmt.Errorf(\"SQLITE_MISUSE\")")
-			return
-		}
-		if debugTcl2go {
-			fmt.Fprintf(os.Stderr, "DEBUG bind unknown: %q known=%v\n", stmtVar, keys(ps.stmts))
-		}
-		tp.emitLine("// %s $%s (unknown prepared statement)", cmdName, stmtVar)
+	if _, known := ps.stmts[stmtVar]; !known {
+		tp.emitUnknownStmtBind(ps, cmdName, stmtVar)
 		return
 	}
-	idxText := strings.TrimSpace(args[1].Text)
-	idx, err := strconv.Atoi(idxText)
-	idxExpr := strconv.Itoa(idx)
-	if err != nil {
-		// A dynamic bind index ("[expr $iMaxVar - 2]", bind-9.5) evaluates
-		// at runtime through the expr evaluator (tclExprWith → tclToInt);
-		// tclBindStmt's idx parameter takes the resulting int. The legacy
-		// literal-recording emulation needs a compile-time map key and
-		// keeps skipping.
-		idxExpr = tp.bindIndexGoExpr(idxText)
-		if idxExpr == "" || !stmtVMEnabled() {
-			tp.emitLine("// %s $%s %s (non-numeric bind index)", cmdName, stmtVar, args[1].Text)
-			return
-		}
+	idx, idxExpr, ok := tp.bindIndexExpr(args[1].Text, cmdName, stmtVar)
+	if !ok {
+		return
 	}
+	if !stmtVMEnabled() {
+		// Legacy literal-recording emulation.
+		tp.recordLegacyBind(ps, cmdName, stmtVar, idx, args)
+		return
+	}
+	tp.emitBindStmt(ps, cmdName, stmtVar, kind, idxExpr, args)
+}
+
+// emitUnknownStmtBind handles sqlite3_bind_* on a nil/closed statement
+// handle: the TCL wrapper raises SQLITE_MISUSE in catch mode (test1.c
+// test_bind — capi3-14.1-misuse); otherwise the statement is skipped.
+func (tp *transpiler) emitUnknownStmtBind(ps *preparedState, cmdName, stmtVar string) {
+	if tp.catchMode {
+		tp.emitLine("_catchErr = fmt.Errorf(\"SQLITE_MISUSE\")")
+		return
+	}
+	if debugTcl2go {
+		fmt.Fprintf(os.Stderr, "DEBUG bind unknown: %q known=%v\n", stmtVar, keys(ps.stmts))
+	}
+	tp.emitLine("// %s $%s (unknown prepared statement)", cmdName, stmtVar)
+}
+
+// bindIndexExpr resolves the bind index word to the index value and its Go
+// expression. A non-numeric index evaluates at runtime through the expr
+// evaluator (tclExprWith → tclToInt); ok is false when the index cannot be
+// emitted and the caller keeps the skip-comment behavior.
+func (tp *transpiler) bindIndexExpr(rawIdx, cmdName, stmtVar string) (idx int, idxExpr string, ok bool) {
+	idxText := strings.TrimSpace(rawIdx)
+	idx, err := strconv.Atoi(idxText)
+	if err == nil {
+		return idx, strconv.Itoa(idx), true
+	}
+	idxExpr = tp.bindIndexGoExpr(idxText)
+	if idxExpr == "" || !stmtVMEnabled() {
+		tp.emitLine("// %s $%s %s (non-numeric bind index)", cmdName, stmtVar, rawIdx)
+		return 0, "", false
+	}
+	return idx, idxExpr, true
+}
+
+// recordLegacyBind records a bind as an equivalent SQL literal for the
+// INSERT emulation (legacy non-Stmt-VM mode).
+func (tp *transpiler) recordLegacyBind(ps *preparedState, cmdName, stmtVar string, idx int, args []tcl.RawWord) {
+	lit := tp.bindValueSQL(cmdName, args[2].Text)
+	if ps.binds[stmtVar] == nil {
+		ps.binds[stmtVar] = make(map[int]string)
+	}
+	ps.binds[stmtVar][idx] = lit
+	tp.emitLine("// %s $%s %d %s → %s", cmdName, stmtVar, idx, args[2].Text, lit)
+}
+
+// emitBindStmt emits the runtime tclBindStmt call (catch mode raises a TCL
+// error on rc != SQLITE_OK; plain mode stores the code in _r).
+func (tp *transpiler) emitBindStmt(ps *preparedState, cmdName, stmtVar, kind, idxExpr string, args []tcl.RawWord) {
 	conn := ps.conns[stmtVar]
 	if conn == "" {
 		conn = "db"
 	}
-	if !stmtVMEnabled() {
-		// Legacy literal-recording emulation.
-		lit := tp.bindValueSQL(cmdName, args[2].Text)
-		if ps.binds[stmtVar] == nil {
-			ps.binds[stmtVar] = make(map[int]string)
-		}
-		ps.binds[stmtVar][idx] = lit
-		tp.emitLine("// %s $%s %d %s → %s", cmdName, stmtVar, idx, args[2].Text, lit)
-		return
-	}
-	nlenExpr := "-1"
-	// sqlite3_bind_text/text16 take an explicit byte count as a 4th
-	// argument — a literal or a $var (sqllimits1-5.14.6/5.14.8 bind with
-	// the runtime $np1/$n counts).
-	if len(args) >= 4 && (kind == "text" || kind == "text16") {
-		if n, nerr := strconv.Atoi(strings.TrimSpace(args[3].Text)); nerr == nil {
-			nlenExpr = strconv.Itoa(n)
-		} else if strings.HasPrefix(strings.TrimSpace(args[3].Text), "$") {
-			nlenExpr = fmt.Sprintf("toInt(%s)", tclVarToGo(strings.TrimPrefix(strings.TrimSpace(args[3].Text), "$")))
-		}
-	}
+	nlenExpr := tp.bindNlenExpr(kind, args)
 	rawExpr := `""`
 	if kind != "null" {
 		rawExpr = tp.buildStringExpr(args[2].Text)
 	}
-	_ = sql
 	if tp.catchMode {
 		// sqlite3_bind_* raises a TCL error (empty message) when the C API
 		// call does not return SQLITE_OK — including SQLITE_RANGE and the
@@ -459,6 +356,20 @@ func (tp *transpiler) processBind(cmdName string, args []tcl.RawWord) {
 		return
 	}
 	tp.emitLine("_r = tclBindStmt(%s, %q, %s, %q, %s, %s)", conn, stmtVar, idxExpr, kind, rawExpr, nlenExpr)
+}
+
+// bindNlenExpr renders the byte-count argument for text binds: a literal,
+// a $var (sqllimits1-5.14.6/5.14.8 bind with the runtime $np1/$n counts),
+// or the default -1.
+func (tp *transpiler) bindNlenExpr(kind string, args []tcl.RawWord) string {
+	if len(args) >= 4 && (kind == "text" || kind == "text16") {
+		if n, nerr := strconv.Atoi(strings.TrimSpace(args[3].Text)); nerr == nil {
+			return strconv.Itoa(n)
+		} else if strings.HasPrefix(strings.TrimSpace(args[3].Text), "$") {
+			return fmt.Sprintf("toInt(%s)", tclVarToGo(strings.TrimPrefix(strings.TrimSpace(args[3].Text), "$")))
+		}
+	}
+	return "-1"
 }
 
 // bindIndexGoExpr renders a TCL bind-index word as a Go int expression:
