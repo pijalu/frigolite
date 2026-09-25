@@ -501,15 +501,35 @@ func (e *SelectEngine) execSelectViewWithOuter(s *sql.SelectStmt, viewEntry *sch
 	if e.nestDepth >= e.ctx.ExprDepthLimit() {
 		return &Result{Error: fmt.Errorf("VIEWs and/or subqueries nested too deep")}
 	}
-	// Offer the outer statement to the view-body expansion for the
-	// omit-unused-subquery-column optimization (select.c
-	// disableUnusedSubqueryResultColumns applies to view materialization
-	// like any FROM-clause subquery). The freshly parsed body consumes and
-	// clears it, so a body expanding further views does not inherit stale
-	// usage.
+	restore := e.pushViewOuterScope(s, viewEntry)
+	defer restore()
+	viewResult := e.execViewBody(viewEntry, viewCtx)
+	if viewResult.Error != nil {
+		return viewResult
+	}
+	return e.applyOuterToViewResult(s, viewEntry, viewResult)
+}
+
+// pushViewOuterScope offers the outer statement to the view-body expansion
+// for the omit-unused-subquery-column optimization (select.c
+// disableUnusedSubqueryResultColumns applies to view materialization like
+// any FROM-clause subquery). The freshly parsed body consumes and clears it,
+// so a body expanding further views does not inherit stale usage. The
+// returned func restores the previous scope.
+func (e *SelectEngine) pushViewOuterScope(s *sql.SelectStmt, viewEntry *schema.Entry) func() {
 	prevOuterStmt := e.viewOuterStmt
 	prevOuterQuals := e.viewOuterQuals
 	e.viewOuterStmt = s
+	e.viewOuterQuals = viewOuterQualifiers(viewEntry, s)
+	return func() {
+		e.viewOuterStmt = prevOuterStmt
+		e.viewOuterQuals = prevOuterQuals
+	}
+}
+
+// viewOuterQualifiers lists the qualifiers an outer reference may use for the
+// view (the view name, the FROM operand's table name, and its alias).
+func viewOuterQualifiers(viewEntry *schema.Entry, s *sql.SelectStmt) []string {
 	quals := make([]string, 0, 3)
 	if viewEntry.Name != "" {
 		quals = append(quals, viewEntry.Name)
@@ -520,15 +540,12 @@ func (e *SelectEngine) execSelectViewWithOuter(s *sql.SelectStmt, viewEntry *sch
 	if s.From.As != "" {
 		quals = append(quals, s.From.As)
 	}
-	e.viewOuterQuals = quals
-	defer func() {
-		e.viewOuterStmt = prevOuterStmt
-		e.viewOuterQuals = prevOuterQuals
-	}()
-	viewResult := e.execViewBody(viewEntry, viewCtx)
-	if viewResult.Error != nil {
-		return viewResult
-	}
+	return quals
+}
+
+// applyOuterToViewResult projects the outer SELECT's column expressions,
+// aggregates, ORDER BY, etc. over the executed view body's rows.
+func (e *SelectEngine) applyOuterToViewResult(s *sql.SelectStmt, viewEntry *schema.Entry, viewResult *Result) *Result {
 	viewColDefs, colErr := e.viewColDefsFromResult(viewEntry, viewResult)
 	if colErr != nil {
 		return &Result{Error: colErr}
