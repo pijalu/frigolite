@@ -63,6 +63,55 @@ func isQueryStmt(stmt string) bool {
 	return strings.Contains(strings.ToUpper(stmt), "RETURNING")
 }
 
+// skipCTEName consumes the CTE name (up to whitespace or '(') and returns
+// the trimmed remainder. Returns ok=false for an empty name.
+func skipCTEName(rest string) (string, bool) {
+	nameEnd := len(rest)
+	for i := 0; i < len(rest); i++ {
+		if rest[i] == ' ' || rest[i] == '\t' || rest[i] == '\n' || rest[i] == '\r' || rest[i] == '(' {
+			nameEnd = i
+			break
+		}
+	}
+	if nameEnd == 0 {
+		return "", false
+	}
+	return strings.TrimSpace(rest[nameEnd:]), true
+}
+
+// skipCTEDefinition consumes one `NAME [(cols)] AS (body)` CTE definition
+// from the front of rest and returns the remainder (starting with either a
+// `,` for the next CTE or the main statement). Returns ok=false when the
+// shape does not match.
+func skipCTEDefinition(rest string) (string, bool) {
+	// Skip the CTE name (up to whitespace or '(').
+	rest, ok := skipCTEName(rest)
+	if !ok {
+		return "", false
+	}
+	// Skip an optional balanced column list.
+	if strings.HasPrefix(rest, "(") {
+		after, ok := skipBalancedParen(rest)
+		if !ok {
+			return "", false
+		}
+		rest = strings.TrimSpace(after)
+	}
+	// Skip AS and its balanced body.
+	if len(rest) < 2 || !strings.EqualFold(rest[:2], "AS") {
+		return "", false
+	}
+	rest = strings.TrimSpace(rest[2:])
+	if !strings.HasPrefix(rest, "(") {
+		return "", false
+	}
+	after, ok := skipBalancedParen(rest)
+	if !ok {
+		return "", false
+	}
+	return strings.TrimSpace(after), true
+}
+
 // cteMainVerbIsQuery reports whether a WITH statement's main verb (the first
 // keyword after the CTE definitions) is a query (SELECT/VALUES) rather than
 // DML (INSERT/UPDATE/DELETE). A WITH...INSERT produces no result rows.
@@ -77,39 +126,11 @@ func cteMainVerbIsQuery(stmt string) bool {
 	// Skip RECURSIVE.
 	rest = strings.TrimSpace(strings.TrimPrefix(rest, "RECURSIVE"))
 	for {
-		// Skip the CTE name (up to whitespace or '(').
-		nameEnd := len(rest)
-		for i := 0; i < len(rest); i++ {
-			if rest[i] == ' ' || rest[i] == '\t' || rest[i] == '\n' || rest[i] == '\r' || rest[i] == '(' {
-				nameEnd = i
-				break
-			}
-		}
-		if nameEnd == 0 {
-			return false
-		}
-		rest = strings.TrimSpace(rest[nameEnd:])
-		// Skip an optional balanced column list.
-		if strings.HasPrefix(rest, "(") {
-			after, ok := skipBalancedParen(rest)
-			if !ok {
-				return false
-			}
-			rest = strings.TrimSpace(after)
-		}
-		// Skip AS and its balanced body.
-		if len(rest) < 2 || !strings.EqualFold(rest[:2], "AS") {
-			return false
-		}
-		rest = strings.TrimSpace(rest[2:])
-		if !strings.HasPrefix(rest, "(") {
-			return false
-		}
-		after, ok := skipBalancedParen(rest)
+		next, ok := skipCTEDefinition(rest)
 		if !ok {
 			return false
 		}
-		rest = strings.TrimSpace(after)
+		rest = next
 		// Either another CTE (comma) or the main statement.
 		if strings.HasPrefix(rest, ",") {
 			rest = strings.TrimSpace(rest[1:])
@@ -138,8 +159,6 @@ func skipBalancedParen(s string) (string, bool) {
 	}
 	return "", false
 }
-
-
 
 func min(a, b int) int {
 	if a < b {

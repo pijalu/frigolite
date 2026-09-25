@@ -14,6 +14,36 @@ import (
 
 // (imports managed by goimports)
 
+// sqlite3TargetOf returns the Go variable name when cmd opens a `sqlite3
+// FILE VAR` connection, or "" otherwise. Dynamic targets ($con) hold
+// connection NAMES (strings), not handles — they must stay plain string
+// variables.
+func sqlite3TargetOf(cmd []tcl.RawWord) string {
+	if cmd[0].Text != "sqlite3" || len(cmd) < 2 {
+		return ""
+	}
+	if strings.HasPrefix(cmd[1].Text, "$") {
+		return ""
+	}
+	return tclVarToGo(cmd[1].Text)
+}
+
+// setSqlite3OpenTarget returns the Go variable name when cmd is the legacy
+// `set VAR [sqlite3_open FILE]` form used by tableapi.test and similar C-API
+// suites: its assignment target is also a database handle, despite the outer
+// command being `set`.
+func setSqlite3OpenTarget(cmd []tcl.RawWord) string {
+	if cmd[0].Text != "set" || len(cmd) < 2 {
+		return ""
+	}
+	for _, word := range cmd[1:] {
+		if strings.Contains(strings.TrimSpace(word.Text), "sqlite3_open") {
+			return tclVarToGo(cmd[1].Text)
+		}
+	}
+	return ""
+}
+
 // collectSqlite3Targets recursively walks TCL commands and returns a set of
 // variable names that are targets of sqlite3 commands (these are *frigolite.DB,
 // not string, so must NOT be pre-declared as string).
@@ -23,33 +53,11 @@ func collectSqlite3Targets(cmds [][]tcl.RawWord) map[string]bool {
 		if len(cmd) == 0 {
 			continue
 		}
-		if cmd[0].Text == "sqlite3" && len(cmd) >= 2 {
-			// Dynamic targets ($con) hold connection NAMES (strings), not
-			// handles — they must stay plain string variables.
-			if !strings.HasPrefix(cmd[1].Text, "$") {
-				gv := tclVarToGo(cmd[1].Text)
-				if gv != "" {
-					result[gv] = true
-				}
-			}
+		if gv := sqlite3TargetOf(cmd); gv != "" {
+			result[gv] = true
 		}
-		// `set VAR [sqlite3_open FILE]` is the legacy TCL form used by
-		// tableapi.test and similar C-API suites.  Its assignment target is
-		// also a database handle, despite the outer command being `set`.
-		if cmd[0].Text == "set" && len(cmd) >= 2 {
-			openExpr := false
-			for _, word := range cmd[1:] {
-				if strings.Contains(strings.TrimSpace(word.Text), "sqlite3_open") {
-					openExpr = true
-					break
-				}
-			}
-			if openExpr {
-				gv := tclVarToGo(cmd[1].Text)
-				if gv != "" {
-					result[gv] = true
-				}
-			}
+		if gv := setSqlite3OpenTarget(cmd); gv != "" {
+			result[gv] = true
 		}
 		collectSqlite3TargetsBodies(result, cmd)
 	}
@@ -79,59 +87,71 @@ func collectSetVars(cmds [][]tcl.RawWord) []string {
 	return c.names
 }
 
+// registerArrayMapVar records a wholesale-populated array (`array set NAME
+// {...}`) unless namespaced or not a valid Go identifier.
+func registerArrayMapVar(result map[string]bool, name string) {
+	if !strings.Contains(name, "::") && isValidGoIdent(tclVarToGo(name)) {
+		result[name] = true
+	}
+}
+
+// dynamicArrayElemName returns the base array name when the TCL variable
+// reference `name(key)` carries a DYNAMIC key (`$keyvar`), or "" (a
+// literal-key `set arr(K) V` can use the arr_K variable form).
+func dynamicArrayElemName(name string) string {
+	idx := strings.Index(name, "(")
+	if idx <= 0 || !strings.HasSuffix(name, ")") {
+		return ""
+	}
+	if !strings.HasPrefix(name[idx+1:len(name)-1], "$") {
+		return ""
+	}
+	return name[:idx]
+}
+
+// collectArrayMapFromCmd records the array-map name when cmd assigns a
+// dynamic array element or populates an array wholesale.
+func collectArrayMapFromCmd(result map[string]bool, cmd []tcl.RawWord) {
+	// `set arr($key) V` targets a dynamic element; `incr arr($key)` does the
+	// same (update2-5.2 accumulates EXPLAIN opcodes into A).
+	if (cmd[0].Text == "set" || cmd[0].Text == "incr") && len(cmd) >= 2 {
+		if base := dynamicArrayElemName(cmd[1].Text); base != "" {
+			result[base] = true
+		}
+		return
+	}
+	// `array set NAME {...}` populates NAME element-wise; the emitter
+	// writes NAMEMap[k] = v per pair, so the map must be declared.
+	if cmd[0].Text == "array" && len(cmd) >= 3 && cmd[1].Text == "set" {
+		registerArrayMapVar(result, cmd[2].Text)
+	}
+}
+
+// walkArrayMapCmds recurses into commands and their braced sub-bodies,
+// collecting dynamically-keyed array names.
+func walkArrayMapCmds(result map[string]bool, cc [][]tcl.RawWord) {
+	for _, cmd := range cc {
+		if len(cmd) == 0 {
+			continue
+		}
+		collectArrayMapFromCmd(result, cmd)
+		for i := 1; i < len(cmd); i++ {
+			if cmd[i].Braced && len(cmd[i].Text) > 2 {
+				if parsed := parseCommands(cmd[i].Text); len(parsed) > 0 {
+					walkArrayMapCmds(result, parsed)
+				}
+			}
+		}
+	}
+}
+
 // collectArrayMapVars recursively walks TCL commands and collects array names
 // that are assigned with a DYNAMIC key (`set arr($keyvar) V` / `incr
 // arr($keyvar)`) or populated wholesale (`array set NAME {...}`). Such arrays
-// must be transpiled to Go maps (a literal-key `set arr(K) V` can use the
-// arr_K variable form). Returns the base array names.
+// must be transpiled to Go maps. Returns the base array names.
 func collectArrayMapVars(cmds [][]tcl.RawWord) map[string]bool {
 	result := make(map[string]bool)
-	registerArray := func(name string) {
-		if !strings.Contains(name, "::") && isValidGoIdent(tclVarToGo(name)) {
-			result[name] = true
-		}
-	}
-	var walk func([][]tcl.RawWord)
-	walk = func(cc [][]tcl.RawWord) {
-		for _, cmd := range cc {
-			if len(cmd) == 0 {
-				continue
-			}
-			if cmd[0].Text == "set" && len(cmd) >= 2 {
-				name := cmd[1].Text
-				if idx := strings.Index(name, "("); idx > 0 && strings.HasSuffix(name, ")") {
-					key := name[idx+1 : len(name)-1]
-					if strings.HasPrefix(key, "$") {
-						result[name[:idx]] = true
-					}
-				}
-			}
-			// `incr arr($key)` targets a dynamic element the same way a set
-			// does (update2-5.2 accumulates EXPLAIN opcodes into A).
-			if cmd[0].Text == "incr" && len(cmd) >= 2 {
-				name := cmd[1].Text
-				if idx := strings.Index(name, "("); idx > 0 && strings.HasSuffix(name, ")") {
-					key := name[idx+1 : len(name)-1]
-					if strings.HasPrefix(key, "$") {
-						result[name[:idx]] = true
-					}
-				}
-			}
-			// `array set NAME {...}` populates NAME element-wise; the emitter
-			// writes NAMEMap[k] = v per pair, so the map must be declared.
-			if cmd[0].Text == "array" && len(cmd) >= 3 && cmd[1].Text == "set" {
-				registerArray(cmd[2].Text)
-			}
-			for i := 1; i < len(cmd); i++ {
-				if cmd[i].Braced && len(cmd[i].Text) > 2 {
-					if parsed := parseCommands(cmd[i].Text); len(parsed) > 0 {
-						walk(parsed)
-					}
-				}
-			}
-		}
-	}
-	walk(cmds)
+	walkArrayMapCmds(result, cmds)
 	return result
 }
 
@@ -266,30 +286,34 @@ func (c *varCollector) collectDB(cmd []tcl.RawWord) {
 	}
 }
 
+// collectNamespaceEval handles `namespace eval ::ns { ... }`: register the
+// namespace name for later ::ns::var rewriting and collect vars inside the
+// namespace body, qualifying plain `variable NAME` as NS::NAME so they
+// resolve to the same Go var as $NS::NAME references.
+func (c *varCollector) collectNamespaceEval(cmd []tcl.RawWord) {
+	nsName := ""
+	if len(cmd) >= 3 {
+		nsName = strings.TrimPrefix(strings.TrimSpace(cmd[2].Text), "::")
+		nsName = strings.TrimSpace(nsName)
+	}
+	parsed := parseCommands(cmd[3].Text)
+	if nsName != "" && len(parsed) > 0 {
+		for i := range parsed {
+			if len(parsed[i]) >= 2 && parsed[i][0].Text == "variable" && !strings.Contains(parsed[i][1].Text, "::") && !strings.Contains(parsed[i][1].Text, "$") {
+				parsed[i][1].Text = nsName + "::" + parsed[i][1].Text
+			}
+		}
+	}
+	if len(parsed) > 0 {
+		c.collect(parsed)
+	}
+}
+
 func (c *varCollector) collectDefault(cmd []tcl.RawWord) {
 	// Recognize TCL namespace helpers so `variable xyz 321` inside
 	// `namespace eval ::ns { variable xyz 321 }` is collected.
 	if cmd[0].Text == "namespace" && len(cmd) >= 4 && cmd[1].Text == "eval" && cmd[3].Braced {
-		// Register the namespace name for later ::ns::var rewriting, and
-		// collect vars inside the namespace body.
-		nsName := ""
-		if len(cmd) >= 3 {
-			nsName = strings.TrimPrefix(strings.TrimSpace(cmd[2].Text), "::")
-			nsName = strings.TrimSpace(nsName)
-		}
-		parsed := parseCommands(cmd[3].Text)
-		// Qualify plain `variable NAME` inside the namespace body as NS::NAME
-		// so they resolve to the same Go var as $NS::NAME references.
-		if nsName != "" && len(parsed) > 0 {
-			for i := range parsed {
-				if len(parsed[i]) >= 2 && parsed[i][0].Text == "variable" && !strings.Contains(parsed[i][1].Text, "::") && !strings.Contains(parsed[i][1].Text, "$") {
-					parsed[i][1].Text = nsName + "::" + parsed[i][1].Text
-				}
-			}
-		}
-		if len(parsed) > 0 {
-			c.collect(parsed)
-		}
+		c.collectNamespaceEval(cmd)
 		return
 	}
 	if cmd[0].Text == "variable" && len(cmd) >= 2 {
@@ -297,6 +321,12 @@ func (c *varCollector) collectDefault(cmd []tcl.RawWord) {
 		// variable NAME VALUE is an assignment — also capture the optional initial value
 		return
 	}
+	c.collectBracedSubBodies(cmd)
+}
+
+// collectBracedSubBodies recurses into a command's braced sub-bodies that
+// look like TCL scripts (multi-line, or containing `set `).
+func (c *varCollector) collectBracedSubBodies(cmd []tcl.RawWord) {
 	// For any other command, try to find braced sub-bodies
 	for i := 1; i < len(cmd); i++ {
 		if cmd[i].Braced && len(cmd[i].Text) > 10 {
@@ -629,11 +659,49 @@ func counterProcValue(body string) string {
 	return goName
 }
 
-
 type IncrProcInfo struct {
 	GoVar  string
 	Amount int
 	Ret    int
+}
+
+// isStmtSeparator splits proc bodies on ; or newline.
+func isStmtSeparator(r rune) bool { return r == ';' || r == '\n' }
+
+// incrRetProcInfo extracts the increment details from a proc body of the form
+// `incr ::VAR [N]; return M`. Returns ok=false when the body does not match.
+func incrRetProcInfo(body string) (info IncrProcInfo, ok bool) {
+	body = trimBraceBlock(body)
+	parts := strings.FieldsFunc(body, isStmtSeparator)
+	if len(parts) != 2 {
+		return info, false
+	}
+	incr := strings.Fields(strings.TrimSpace(parts[0]))
+	retPart := strings.TrimSpace(parts[1])
+	if len(incr) < 2 || !strings.EqualFold(incr[0], "incr") || !strings.HasPrefix(incr[1], "::") {
+		return info, false
+	}
+	goVar := tclVarToGo(strings.TrimPrefix(incr[1], "::"))
+	if !isValidGoIdent(goVar) {
+		return info, false
+	}
+	amount := 1
+	if len(incr) >= 3 {
+		n, err := strconv.Atoi(incr[2])
+		if err != nil {
+			return info, false
+		}
+		amount = n
+	}
+	retFields := strings.Fields(retPart)
+	if len(retFields) != 2 || !strings.EqualFold(retFields[0], "return") {
+		return info, false
+	}
+	ret, err := strconv.Atoi(retFields[1])
+	if err != nil {
+		return info, false
+	}
+	return IncrProcInfo{GoVar: goVar, Amount: amount, Ret: ret}, true
 }
 
 // collectIncrRetFuncs finds proc definitions whose body increments a
@@ -647,43 +715,9 @@ func collectIncrRetFuncs(cmds [][]tcl.RawWord) map[string]IncrProcInfo {
 			return
 		}
 		// cmd layout: proc NAME {params} {body}
-		body := strings.TrimSpace(cmd[3].Text)
-		if strings.HasPrefix(body, "{") && strings.HasSuffix(body, "}") {
-			body = strings.TrimSpace(body[1 : len(body)-1])
+		if info, ok := incrRetProcInfo(cmd[3].Text); ok {
+			result[cmd[1].Text] = info
 		}
-		parts := strings.FieldsFunc(body, func(r rune) bool { return r == ';' || r == '\n' })
-		if len(parts) != 2 {
-			return
-		}
-		incr := strings.Fields(strings.TrimSpace(parts[0]))
-		retPart := strings.TrimSpace(parts[1])
-		if len(incr) < 2 || !strings.EqualFold(incr[0], "incr") {
-			return
-		}
-		if !strings.HasPrefix(incr[1], "::") {
-			return
-		}
-		goVar := tclVarToGo(strings.TrimPrefix(incr[1], "::"))
-		if !isValidGoIdent(goVar) {
-			return
-		}
-		amount := 1
-		if len(incr) >= 3 {
-			n, err := strconv.Atoi(incr[2])
-			if err != nil {
-				return
-			}
-			amount = n
-		}
-		retFields := strings.Fields(retPart)
-		if len(retFields) != 2 || !strings.EqualFold(retFields[0], "return") {
-			return
-		}
-		ret, err := strconv.Atoi(retFields[1])
-		if err != nil {
-			return
-		}
-		result[cmd[1].Text] = IncrProcInfo{GoVar: goVar, Amount: amount, Ret: ret}
 	})
 	return result
 }

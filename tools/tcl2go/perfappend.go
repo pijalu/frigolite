@@ -171,6 +171,31 @@ func markReads(accs map[string]*accVar, order []string, text, exclude string) {
 	}
 }
 
+// varStillTerminalAfter scans the lines after write index idx: the candidate
+// dead store stays terminal while no later line reads or overwrites the var.
+// A chained self-append (or +=) consumes the stored value (not terminal);
+// any other wholesale write severs the dataflow — the stored value is
+// discarded, so the scan stops there either way.
+func varStillTerminalAfter(lines, codeOf []string, v string, idx int) bool {
+	for i := idx + 1; i < len(lines); i++ {
+		code := codeOf[i]
+		if isSuppressLine(code) {
+			continue
+		}
+		if w, rhs, ok := splitAssign(code); ok && w == v {
+			op, val := splitOp(rhs)
+			if _, isApp := splitListAppendCall(val, v); isApp || op == "+=" {
+				return false
+			}
+			return true
+		}
+		if identIn(code, v) {
+			return false
+		}
+	}
+	return true
+}
+
 // settleTerminalAssigns downgrades badAssign flags that are TERMINAL: no
 // occurrence of the var in any later line (suppress lines excepted). The
 // assigned value overwrites the built list in the original code and nothing
@@ -183,28 +208,8 @@ func settleTerminalAssigns(lines, codeOf []string, accs map[string]*accVar, orde
 		}
 		terminal := true
 		for _, idx := range a.badAssignIdxs {
-			for i := idx + 1; i < len(lines); i++ {
-				code := codeOf[i]
-				if isSuppressLine(code) {
-					continue
-				}
-				if w, rhs, ok := splitAssign(code); ok && w == v {
-					op, val := splitOp(rhs)
-					if _, isApp := splitListAppendCall(val, v); isApp || op == "+=" {
-						// A chained self-append (or +=) consumes the stored
-						// value: the assignment is not dead.
-						terminal = false
-					}
-					// Any other wholesale write severs the dataflow — the
-					// stored value is discarded, so stop scanning here.
-					break
-				}
-				if identIn(code, v) {
-					terminal = false
-					break
-				}
-			}
-			if !terminal {
+			if !varStillTerminalAfter(lines, codeOf, v, idx) {
+				terminal = false
 				break
 			}
 		}

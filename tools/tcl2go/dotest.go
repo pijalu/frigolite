@@ -34,6 +34,95 @@ func (tp *transpiler) processDoTest(args []tcl.RawWord) {
 		return
 	}
 
+	expectedExpr := tp.resolveDoTestExpected(args)
+
+	// TCL do_test compares the VALUE of the body script with the expected
+	// argument. The kind handlers below each recognize one specific body
+	// shape (a single sqlite3_limit / lsort / db eval / file size /
+	// catchsql / execsql command, or a fixture-proc call) and emit a real
+	// result comparison for it.
+	for _, handle := range doTestBodyKindHandlers {
+		if handle(tp, nameExpr, expectedExpr, bodyCmds, args) {
+			return
+		}
+	}
+
+	tp.emitDoTestTestfixtureBodyDispatch(nameExpr, expectedExpr, bodyCmds, args)
+}
+
+// doTestBodyKindHandler transpiles one recognized do_test body shape. It
+// returns true when the body was handled (and processDoTest should stop).
+type doTestBodyKindHandler = func(*transpiler, string, string, [][]tcl.RawWord, []tcl.RawWord) bool
+
+// doTestBodyKindHandlers lists the single-command do_test body shapes in the
+// order processDoTest must try them (first match wins).
+var doTestBodyKindHandlers = []doTestBodyKindHandler{
+	// A single `sqlite3_limit db LIMIT -1` body queries the current limit;
+	// the expected value is the limit number (e.g. attach4-1.1 expects
+	// $SQLITE_MAX_ATTACHED). Emit a direct value comparison.
+	(*transpiler).doTestHandleLimitComparison,
+	// A single `lsort -integer $VAR` body sorts a TCL list variable (the
+	// result of an earlier `set VAR [db eval ...]`) and compares it to the
+	// expected value (rowvalue4 2.1.x). The variable holds a space-separated
+	// list of query result cells.
+	(*transpiler).doTestHandleLSortComparison,
+	// The most common body form is a single `db eval { SQL }` command;
+	// transpile it with a real result comparison (query → flatten →
+	// compare), matching do_execsql_test semantics.
+	(*transpiler).emitDBEvalComparison,
+	// A single `file size PATH` body (extension01 1.5): compare the current
+	// file size against the expected value.
+	(*transpiler).doTestHandleBareFileSizeComparison,
+	// A single `lindex [catchsql SQL] 0` body (e.g. window1 2.x,
+	// tkt-bd484a090c 1.x): the do_test value is the catchsql success/error
+	// code, so run the SQL and compare (success when expected "0").
+	(*transpiler).emitDoTestCatchsqlLindexBody,
+	// A single `catchsql SQL` body (e.g. window1 2.x, tkt-bd484a090c 1.x):
+	// the do_test value is the catchsql success/error marker, so run the
+	// SQL and compare via emitCatchSQLComparison (which mirrors
+	// do_catchsql_test).
+	(*transpiler).emitDoTestCatchsqlBody,
+	// A single `execsql SQL` body whose SQL is a query (fts5simple
+	// 11.2/11.3: `do_test 11.3 { execsql "SELECT ..." } {2}`): the do_test
+	// value is the flattened query result, so compare it with the expected
+	// value.
+	(*transpiler).emitDoTestExecsqlCommandBody,
+	// A single `<fixtureProc> args...` body where the proc has a runtime Go
+	// implementation (vtabH 3.1: `sort_files [execsql {...}] true`): the
+	// proc's result is the do_test value; run it and compare.
+	(*transpiler).doTestHandleUserProcBody,
+}
+
+// doTestHandleLimitComparison adapts emitLimitComparison (which takes no
+// trailing args) to the doTestBodyKindHandler signature.
+func (tp *transpiler) doTestHandleLimitComparison(nameExpr, expectedExpr string, bodyCmds [][]tcl.RawWord, _ []tcl.RawWord) bool {
+	return tp.emitLimitComparison(nameExpr, expectedExpr, bodyCmds)
+}
+
+// doTestHandleLSortComparison adapts emitLSortComparison (which takes no
+// trailing args) to the doTestBodyKindHandler signature.
+func (tp *transpiler) doTestHandleLSortComparison(nameExpr, expectedExpr string, bodyCmds [][]tcl.RawWord, _ []tcl.RawWord) bool {
+	return tp.emitLSortComparison(nameExpr, expectedExpr, bodyCmds)
+}
+
+// doTestHandleBareFileSizeComparison adapts emitBareFileSizeComparison (which
+// takes no trailing args) to the doTestBodyKindHandler signature.
+func (tp *transpiler) doTestHandleBareFileSizeComparison(nameExpr, expectedExpr string, bodyCmds [][]tcl.RawWord, _ []tcl.RawWord) bool {
+	return tp.emitBareFileSizeComparison(nameExpr, expectedExpr, bodyCmds)
+}
+
+// doTestHandleUserProcBody adapts emitDoTestUserProcBody (which takes no
+// trailing args) to the doTestBodyKindHandler signature.
+func (tp *transpiler) doTestHandleUserProcBody(nameExpr, expectedExpr string, bodyCmds [][]tcl.RawWord, _ []tcl.RawWord) bool {
+	return tp.emitDoTestUserProcBody(nameExpr, expectedExpr, bodyCmds)
+}
+
+// resolveDoTestExpected renders the do_test expected argument (args[2]) as a
+// Go expression. A hexio read (db-header access) is returned as the second
+// value: TCL evaluates the expected argument BEFORE the body runs, so it
+// must be hoisted into a statement ahead of the transpiled body rather than
+// inlined at comparison time.
+func (tp *transpiler) resolveDoTestExpected(args []tcl.RawWord) string {
 	expectedExpr := `""`
 	hoistGoExpr := ""
 	if len(args) >= 3 {
@@ -58,65 +147,7 @@ func (tp *transpiler) processDoTest(args []tcl.RawWord) {
 		tp.emitLine("%s := %s", hoistVar, hoistGoExpr)
 		expectedExpr = hoistVar
 	}
-
-	// A single `sqlite3_limit db LIMIT -1` body queries the current limit;
-	// the expected value is the limit number (e.g. attach4-1.1 expects
-	// $SQLITE_MAX_ATTACHED). Emit a direct value comparison.
-	if tp.emitLimitComparison(nameExpr, expectedExpr, bodyCmds) {
-		return
-	}
-
-	// A single `lsort -integer $VAR` body sorts a TCL list variable (the
-	// result of an earlier `set VAR [db eval ...]`) and compares it to the
-	// expected value (rowvalue4 2.1.x). The variable holds a space-separated
-	// list of query result cells.
-	if tp.emitLSortComparison(nameExpr, expectedExpr, bodyCmds) {
-		return
-	}
-
-	// TCL do_test compares the VALUE of the body script with the expected
-	// argument. The most common body form is a single `db eval { SQL }`
-	// command; transpile it with a real result comparison (query → flatten
-	// → compare), matching do_execsql_test semantics.
-	if tp.emitDBEvalComparison(nameExpr, expectedExpr, bodyCmds, args) {
-		return
-	}
-
-	// A single `file size PATH` body (extension01 1.5): compare the current
-	// file size against the expected value.
-	if tp.emitBareFileSizeComparison(nameExpr, expectedExpr, bodyCmds) {
-		return
-	}
-
-	// A single `lindex [catchsql SQL] 0` body (e.g. window1 2.x,
-	// tkt-bd484a090c 1.x): the do_test value is the catchsql success/error
-	// code, so run the SQL and compare (success when expected "0").
-	if tp.emitDoTestCatchsqlLindexBody(nameExpr, expectedExpr, bodyCmds, args) {
-		return
-	}
-
-	// A single `catchsql SQL` body (e.g. window1 2.x, tkt-bd484a090c 1.x): the
-	// do_test value is the catchsql success/error marker, so run the SQL and
-	// compare via emitCatchSQLComparison (which mirrors do_catchsql_test).
-	if tp.emitDoTestCatchsqlBody(nameExpr, expectedExpr, bodyCmds, args) {
-		return
-	}
-
-	// A single `execsql SQL` body whose SQL is a query (fts5simple 11.2/11.3:
-	// `do_test 11.3 { execsql "SELECT ..." } {2}`): the do_test value is the
-	// flattened query result, so compare it with the expected value.
-	if tp.emitDoTestExecsqlCommandBody(nameExpr, expectedExpr, bodyCmds, args) {
-		return
-	}
-
-	// A single `<fixtureProc> args...` body where the proc has a runtime Go
-	// implementation (vtabH 3.1: `sort_files [execsql {...}] true`): the
-	// proc's result is the do_test value; run it and compare.
-	if tp.emitDoTestUserProcBody(nameExpr, expectedExpr, bodyCmds) {
-		return
-	}
-
-	tp.emitDoTestTestfixtureBodyDispatch(nameExpr, expectedExpr, bodyCmds, args)
+	return expectedExpr
 }
 
 // emitDoTestTestfixtureBody handles a do_test whose body opens a testfixture
@@ -212,39 +243,40 @@ func (tp *transpiler) emitDoTestExecsqlCommandBody(nameExpr, expectedExpr string
 // (RawWord.Text == "catchsql <SQL>"), so detect the prefix and run the SQL via
 // db.Exec, asserting success (expected "0") or an error (any other expected
 // code). Returns true when handled.
-func (tp *transpiler) emitDoTestCatchsqlLindexBody(nameExpr, expectedExpr string, bodyCmds [][]tcl.RawWord, args []tcl.RawWord) bool {
-	if len(bodyCmds) != 1 || len(bodyCmds[0]) != 3 {
-		return false
-	}
-	lcmd := bodyCmds[0]
-	if lcmd[0].Text != "lindex" || lcmd[2].Text != "0" {
-		return false
-	}
-	inner := strings.TrimSpace(lcmd[1].Text)
-	// The [catchsql SQL] is a TCL command substitution; the tcl parser keeps
-	// the surrounding brackets in RawWord.Text, so strip them before matching.
+// catchsqlLindexInner extracts the inner `catchsql <SQL>` text from an
+// `lindex [catchsql SQL] 0` body word. The [catchsql SQL] is a TCL command
+// substitution; the tcl parser keeps the surrounding brackets in
+// RawWord.Text, so strip them before matching. Returns ok=false when the
+// word is not a catchsql substitution.
+func catchsqlLindexInner(w tcl.RawWord) (string, bool) {
+	inner := strings.TrimSpace(w.Text)
 	if strings.HasPrefix(inner, "[") && strings.HasSuffix(inner, "]") {
 		inner = strings.TrimSpace(inner[1 : len(inner)-1])
 	}
 	const prefix = "catchsql "
 	if !strings.HasPrefix(inner, prefix) {
-		return false
+		return "", false
 	}
-	sqlPart := strings.TrimSpace(inner[len(prefix):])
-	var sqlWord tcl.RawWord
+	return strings.TrimSpace(inner[len(prefix):]), true
+}
+
+// catchsqlLindexSQLWord builds the SQL word for an `lindex [catchsql SQL] 0`
+// body from the raw SQL part: `$var` stays unbraced, `{...}` loses its outer
+// brace layer, anything else passes through verbatim.
+func catchsqlLindexSQLWord(sqlPart string) tcl.RawWord {
 	switch {
 	case strings.HasPrefix(sqlPart, "$"):
-		sqlWord = tcl.RawWord{Text: sqlPart, Braced: false}
+		return tcl.RawWord{Text: sqlPart, Braced: false}
 	case strings.HasPrefix(sqlPart, "{") && strings.HasSuffix(sqlPart, "}"):
-		sqlWord = tcl.RawWord{Text: sqlPart[1 : len(sqlPart)-1], Braced: true}
+		return tcl.RawWord{Text: sqlPart[1 : len(sqlPart)-1], Braced: true}
 	default:
-		sqlWord = tcl.RawWord{Text: sqlPart}
+		return tcl.RawWord{Text: sqlPart}
 	}
-	sqlExpr := tp.collectSQLExpression([]tcl.RawWord{sqlWord})
-	expectSuccess := true
-	if len(args) >= 3 && args[2].Text != "0" {
-		expectSuccess = false
-	}
+}
+
+// emitCatchsqlLindexAssert emits the SQL execution plus the success/error
+// assertion of an `lindex [catchsql SQL] 0` body (success when expected "0").
+func (tp *transpiler) emitCatchsqlLindexAssert(nameExpr, sqlExpr string, expectSuccess bool) {
 	tp.emitLine("{ // do_test %s", nameExpr)
 	tp.indent++
 	tp.emitLine("_res = db.Exec(%s)", sqlExpr)
@@ -259,6 +291,26 @@ func (tp *transpiler) emitDoTestCatchsqlLindexBody(nameExpr, expectedExpr string
 	}
 	tp.indent--
 	tp.emitLine("}")
+}
+
+func (tp *transpiler) emitDoTestCatchsqlLindexBody(nameExpr, expectedExpr string, bodyCmds [][]tcl.RawWord, args []tcl.RawWord) bool {
+	if len(bodyCmds) != 1 || len(bodyCmds[0]) != 3 {
+		return false
+	}
+	lcmd := bodyCmds[0]
+	if lcmd[0].Text != "lindex" || lcmd[2].Text != "0" {
+		return false
+	}
+	sqlPart, ok := catchsqlLindexInner(lcmd[1])
+	if !ok {
+		return false
+	}
+	sqlExpr := tp.collectSQLExpression([]tcl.RawWord{catchsqlLindexSQLWord(sqlPart)})
+	expectSuccess := true
+	if len(args) >= 3 && args[2].Text != "0" {
+		expectSuccess = false
+	}
+	tp.emitCatchsqlLindexAssert(nameExpr, sqlExpr, expectSuccess)
 	return true
 }
 
@@ -312,71 +364,6 @@ func (tp *transpiler) userProcArgExpr(w tcl.RawWord) string {
 		}
 	}
 	return strconv.Quote(t)
-}
-
-// emitDoTestSkippedByBodyKind dispatches a do_test body whose assertion cannot
-// be transpiled to the kind-specific skip emitter. Returns true when the body
-// was handled (and processDoTest should return). Three kinds are recognized:
-//
-//   - echo-module ABI probes: the final assertion reads the echo module's
-//     internal callback log ($echo_module Tcl variable, populated by the
-//     test-only C echo module in src/test8.c) and probes the C module ABI
-//     (xFilter/xCreate string logging). Frigolite's echo module is
-//     engine-implemented and does not expose such a log. Emit the SQL side
-//     effects (the setup CREATEs matter for later tests) but skip the
-//     C-ABI assertion.
-//
-//   - CLI shell subprocess invocations (catchcmd / catchcmdex): the body
-//     exercises shell.c behaviors — command-line option parsing, .import,
-//     .dump, .schema, .lint, .clone, .open, .mode, etc. The transpiler
-//     cannot reproduce the subprocess's file/DB manipulation (the shell
-//     creates and imports the database file), and later statements in the
-//     same body depend on those effects (e.g. `sqlite3 db test.db` then
-//     `db eval {SELECT ...}` after an .import). Emit the whole body as a
-//     comment: running only the SQL parts would assert against missing state.
-//
-//   - VDBE-internal state (statement journal usage, prepared-statement
-//     stepping): the commands are emitted as comments, but the assertion
-//     would compare the LAST sqlite3_exec result against a boolean/state
-//     value that has no SQL equivalent. Emit the SQL side effects (db
-//     eval/execsql run, and prepared-statement binds are emulated as
-//     INSERTs) so later tests see the same database state, but skip the
-//     meaningless assertion.
-func (tp *transpiler) emitDoTestSkippedByBodyKind(nameExpr string, bodyCmds [][]tcl.RawWord) bool {
-	if bodyCmds == nil {
-		return false
-	}
-	if doTestBodyReadsEchoModule(bodyCmds) {
-		tp.emitDoTestSideEffects(nameExpr, bodyCmds, "echo module callback log is C test-module ABI; SQL side effects only")
-		return true
-	}
-	if doTestBodyHasShellCommand(bodyCmds) {
-		tp.emitDoTestShellSkipped(nameExpr, bodyCmds)
-		return true
-	}
-	if doTestBodyUnsupported(bodyCmds) {
-		tp.emitDoTestSideEffects(nameExpr, bodyCmds, "prepare-step internals; SQL side effects only")
-		return true
-	}
-	if doTestBodyReadsArrayCounter(bodyCmds) {
-		tp.emitDoTestSideEffects(nameExpr, bodyCmds, "testvfs sync-counter introspection observes the VFS layer, not the engine; SQL side effects only")
-		return true
-	}
-	return false
-}
-
-// doTestBodyReadsArrayCounter reports whether the body's VALUE comes from a
-// TCL array read (`array get ::sync` — the testvfs xSync counter the 7xx
-// loop of vacuum-into.test compares). The array is harness-side state the
-// transpiler never populates ("array get (not transpiled)"), so the
-// assertion would compare a stale value; only the SQL side effects are
-// meaningful.
-func doTestBodyReadsArrayCounter(bodyCmds [][]tcl.RawWord) bool {
-	if len(bodyCmds) != 1 {
-		return false
-	}
-	cmd := bodyCmds[0]
-	return len(cmd) >= 2 && cmd[0].Text == "array" && cmd[1].Text == "get"
 }
 
 // runDoTestBody transpiles a do_test body in a fresh sub-transpiler (sharing
@@ -555,6 +542,47 @@ func isCommentOnlyBody(args []tcl.RawWord) bool {
 	return true
 }
 
+// limitIdentSplitRune reports whether r is a TCL variable-identifier
+// SEPARATOR (anything other than letters, digits, underscore, namespace
+// separator) — the FieldsFunc split predicate for limit tokenization.
+func limitIdentSplitRune(r rune) bool {
+	return !(r == '_' || r == ':' || (r >= 'A' && r <= 'Z') || (r >= 'a' && r <= 'z') || (r >= '0' && r <= '9'))
+}
+
+// limitExprVarNames collects the distinct SQLITE_MAX_* variable names
+// referenced by a sqlite3_limit SET expression, in first-appearance order.
+func limitExprVarNames(inner string) []string {
+	varNames := []string{}
+	seen := map[string]bool{}
+	for _, tok := range strings.FieldsFunc(inner, limitIdentSplitRune) {
+		t := strings.Trim(tok, ":")
+		if !strings.HasPrefix(t, "SQLITE_MAX_") || seen[t] {
+			continue
+		}
+		seen[t] = true
+		varNames = append(varNames, t)
+	}
+	return varNames
+}
+
+// limitExprRuntimeExpr renders a `[expr {...}]` sqlite3_limit SET value as a
+// runtime tclExprWith call so the helper-test constants divide at runtime.
+// Returns ok=false when the expression references no SQLITE_MAX_* variable
+// (the caller falls back to limitValueExpr).
+func (tp *transpiler) limitExprRuntimeExpr(rawVal string) (string, bool) {
+	inner := strings.TrimSpace(strings.TrimSuffix(strings.TrimPrefix(rawVal, "[expr "), "]"))
+	inner = strings.Trim(inner, "{}")
+	varNames := limitExprVarNames(inner)
+	if len(varNames) == 0 {
+		return "", false
+	}
+	pairs := make([]string, 0, len(varNames)*2)
+	for _, v := range varNames {
+		pairs = append(pairs, fmt.Sprintf("%q: %s", v, v))
+	}
+	return fmt.Sprintf("tclExprWith(%q, map[string]string{%s})", inner, strings.Join(pairs, ", ")), true
+}
+
 // limitSetRuntimeExpr renders a sqlite3_limit SET value as a runtime Go
 // int expression: [expr {$::SQLITE_MAX_*/2}] becomes
 // tclExprWith("$SQLITE_MAX_*/2", map[...]) so the helper-test constants
@@ -562,95 +590,85 @@ func isCommentOnlyBody(args []tcl.RawWord) bool {
 func (tp *transpiler) limitSetRuntimeExpr(rawVal string) string {
 	rawVal = strings.TrimSpace(rawVal)
 	if strings.HasPrefix(rawVal, "[expr ") {
-		inner := strings.TrimSpace(strings.TrimSuffix(strings.TrimPrefix(rawVal, "[expr "), "]"))
-		inner = strings.Trim(inner, "{}")
-		varNames := []string{}
-		for _, tok := range strings.FieldsFunc(inner, func(r rune) bool {
-			return !(r == '_' || r == ':' || (r >= 'A' && r <= 'Z') || (r >= 'a' && r <= 'z') || (r >= '0' && r <= '9'))
-		}) {
-			t := strings.Trim(tok, ":")
-			if strings.HasPrefix(t, "SQLITE_MAX_") {
-				found := false
-				for _, v := range varNames {
-					if v == t {
-						found = true
-						break
-					}
-				}
-				if !found {
-					varNames = append(varNames, t)
-				}
-			}
-		}
-		if len(varNames) > 0 {
-			pairs := make([]string, 0, len(varNames)*2)
-			for _, v := range varNames {
-				pairs = append(pairs, fmt.Sprintf("%q: %s", v, v))
-			}
-			return fmt.Sprintf("tclExprWith(%q, map[string]string{%s})", inner, strings.Join(pairs, ", "))
+		if expr, ok := tp.limitExprRuntimeExpr(rawVal); ok {
+			return expr
 		}
 	}
 	return tp.limitValueExpr(rawVal)
 }
 
-// emitLimitComparison handles `sqlite3_limit db LIMIT ...` do_test
-// bodies: single `-1` bodies query the current limit (e.g. attach4-1.1);
-// single SET bodies (sqllimits1-2.x) return the PRIOR limit, so capture it
-// before setting; two-command set-then-query bodies (sqllimits1-1.12/1.13)
-// compare the clamped new value. Returns true when handled.
-func (tp *transpiler) emitLimitComparison(nameExpr, expectedExpr string, bodyCmds [][]tcl.RawWord) bool {
-	// The connection is bodyCmds[0][1] (db or db2 — sqllimits1-3.x verify
-	// the UNTOUCHED db2 connection, so the check must read that handle).
+// limitBodyConn resolves the sqlite3_limit connection argument (bodyCmds[0][1]
+// — db or db2; sqllimits1-3.x verify the UNTOUCHED db2 connection, so the
+// check must read that handle) to the matching Go variable.
+func limitBodyConn(bodyCmds [][]tcl.RawWord) string {
 	conn := "db"
 	if len(bodyCmds) > 0 && len(bodyCmds[0]) >= 2 && bodyCmds[0][0].Text == "sqlite3_limit" {
 		if gv := tclVarToGo(strings.TrimSpace(bodyCmds[0][1].Text)); gv == "db" || gv == "db2" {
 			conn = gv
 		}
 	}
-	// sqlite3_limit's first argument is the connection (db or db2):
-	// resolve it to the matching Go variable so per-connection limits
-	// (sqllimits1-3.x verify db2 is unchanged by db's 2.x halves) read
-	// the right engine.
-	connVar := conn
-	if len(bodyCmds) == 2 && len(bodyCmds[0]) >= 4 && len(bodyCmds[1]) >= 4 &&
+	return conn
+}
+
+// isLimitSetThenQueryPair reports whether the body is two sqlite3_limit
+// commands that SET a limit then QUERY it back (sqllimits1-1.12/1.13 — the
+// same limit name in both, query arg -1): the comparison asserts the clamped
+// new value.
+func isLimitSetThenQueryPair(bodyCmds [][]tcl.RawWord) bool {
+	return len(bodyCmds) == 2 && len(bodyCmds[0]) >= 4 && len(bodyCmds[1]) >= 4 &&
 		bodyCmds[0][0].Text == "sqlite3_limit" && bodyCmds[1][0].Text == "sqlite3_limit" &&
 		strings.TrimSpace(bodyCmds[1][3].Text) == "-1" &&
-		strings.TrimSpace(bodyCmds[0][2].Text) == strings.TrimSpace(bodyCmds[1][2].Text) {
-		limitName := strings.TrimSpace(bodyCmds[0][2].Text)
-		setVal := strings.TrimSpace(bodyCmds[0][3].Text)
-		tp.emitLine("{ // do_test %s (sqlite3_limit %s set+query)", nameExpr, limitName)
-		tp.indent++
-		tp.emitLine("%s.SetLimit(%q, toInt(%s))", connVar, limitName, tp.limitValueExpr(setVal))
-		tp.emitLine("got := %s.Limit(%q)", connVar, limitName)
-		tp.emitLine("if strconv.Itoa(got) != %s {", expectedExpr)
-		tp.emitLine("\tt.Errorf(\"limit mismatch\\n  got:  [%%d]\\n  want: [%%s]\\n  body: do_test %%s\", got, %s, %s)", expectedExpr, nameExpr)
-		tp.emitLine("}")
-		tp.indent--
-		tp.emitLine("}")
-		return true
-	}
-	if len(bodyCmds) == 1 && len(bodyCmds[0]) >= 4 &&
+		strings.TrimSpace(bodyCmds[0][2].Text) == strings.TrimSpace(bodyCmds[1][2].Text)
+}
+
+// isLimitSingleSet reports whether the body is a single sqlite3_limit command
+// with a non-"-1" value (sqllimits1-2.x — the command returns the PRIOR
+// limit, so it must be captured before setting).
+func isLimitSingleSet(bodyCmds [][]tcl.RawWord) bool {
+	return len(bodyCmds) == 1 && len(bodyCmds[0]) >= 4 &&
 		bodyCmds[0][0].Text == "sqlite3_limit" &&
-		strings.TrimSpace(bodyCmds[0][3].Text) != "-1" {
-		limitName := strings.TrimSpace(bodyCmds[0][2].Text)
-		rawVal := strings.TrimSpace(bodyCmds[0][3].Text)
-		tp.emitLine("{ // do_test %s (sqlite3_limit %s set-prior)", nameExpr, limitName)
-		tp.indent++
-		tp.emitLine("prior := %s.Limit(%q)", connVar, limitName)
-		tp.emitLine("%s.SetLimit(%q, toInt(%s))", connVar, limitName, tp.limitSetRuntimeExpr(rawVal))
-		tp.emitLine("if strconv.Itoa(prior) != %s {", expectedExpr)
-		tp.emitLine("\tt.Errorf(\"limit mismatch\\n  got:  [%%d]\\n  want: [%%s]\\n  body: do_test %%s\", prior, %s, %s)", expectedExpr, nameExpr)
-		tp.emitLine("}")
-		tp.indent--
-		tp.emitLine("}")
-		return true
-	}
-	if !(len(bodyCmds) == 1 && len(bodyCmds[0]) >= 4 &&
+		strings.TrimSpace(bodyCmds[0][3].Text) != "-1"
+}
+
+// isLimitSingleQuery reports whether the body is a single sqlite3_limit
+// command with a "-1" query value (e.g. attach4-1.1).
+func isLimitSingleQuery(bodyCmds [][]tcl.RawWord) bool {
+	return len(bodyCmds) == 1 && len(bodyCmds[0]) >= 4 &&
 		bodyCmds[0][0].Text == "sqlite3_limit" &&
-		strings.TrimSpace(bodyCmds[0][3].Text) == "-1") {
-		return false
-	}
-	limitName := strings.TrimSpace(bodyCmds[0][2].Text)
+		strings.TrimSpace(bodyCmds[0][3].Text) == "-1"
+}
+
+// emitLimitSetQueryComparison emits the set-then-query form: the value
+// compared is the CLAMPED new limit.
+func (tp *transpiler) emitLimitSetQueryComparison(nameExpr, expectedExpr, connVar, limitName, setVal string) {
+	tp.emitLine("{ // do_test %s (sqlite3_limit %s set+query)", nameExpr, limitName)
+	tp.indent++
+	tp.emitLine("%s.SetLimit(%q, toInt(%s))", connVar, limitName, tp.limitValueExpr(setVal))
+	tp.emitLine("got := %s.Limit(%q)", connVar, limitName)
+	tp.emitLine("if strconv.Itoa(got) != %s {", expectedExpr)
+	tp.emitLine("\tt.Errorf(\"limit mismatch\\n  got:  [%%d]\\n  want: [%%s]\\n  body: do_test %%s\", got, %s, %s)", expectedExpr, nameExpr)
+	tp.emitLine("}")
+	tp.indent--
+	tp.emitLine("}")
+}
+
+// emitLimitSetPriorComparison emits the single-SET form: the value compared
+// is the PRIOR limit, captured before the SetLimit call.
+func (tp *transpiler) emitLimitSetPriorComparison(nameExpr, expectedExpr, connVar, limitName, rawVal string) {
+	tp.emitLine("{ // do_test %s (sqlite3_limit %s set-prior)", nameExpr, limitName)
+	tp.indent++
+	tp.emitLine("prior := %s.Limit(%q)", connVar, limitName)
+	tp.emitLine("%s.SetLimit(%q, toInt(%s))", connVar, limitName, tp.limitSetRuntimeExpr(rawVal))
+	tp.emitLine("if strconv.Itoa(prior) != %s {", expectedExpr)
+	tp.emitLine("\tt.Errorf(\"limit mismatch\\n  got:  [%%d]\\n  want: [%%s]\\n  body: do_test %%s\", prior, %s, %s)", expectedExpr, nameExpr)
+	tp.emitLine("}")
+	tp.indent--
+	tp.emitLine("}")
+}
+
+// emitLimitQueryComparison emits the single-query form (-1): the value
+// compared is the current limit.
+func (tp *transpiler) emitLimitQueryComparison(nameExpr, expectedExpr, connVar, limitName string) {
 	tp.emitLine("{ // do_test %s (sqlite3_limit %s -1)", nameExpr, limitName)
 	tp.indent++
 	tp.emitLine("got := %s.Limit(%q)", connVar, limitName)
@@ -659,7 +677,33 @@ func (tp *transpiler) emitLimitComparison(nameExpr, expectedExpr string, bodyCmd
 	tp.emitLine("}")
 	tp.indent--
 	tp.emitLine("}")
-	return true
+}
+
+// emitLimitComparison handles `sqlite3_limit db LIMIT ...` do_test
+// bodies: single `-1` bodies query the current limit (e.g. attach4-1.1);
+// single SET bodies (sqllimits1-2.x) return the PRIOR limit, so capture it
+// before setting; two-command set-then-query bodies (sqllimits1-1.12/1.13)
+// compare the clamped new value. Returns true when handled.
+func (tp *transpiler) emitLimitComparison(nameExpr, expectedExpr string, bodyCmds [][]tcl.RawWord) bool {
+	connVar := limitBodyConn(bodyCmds)
+	if isLimitSetThenQueryPair(bodyCmds) {
+		limitName := strings.TrimSpace(bodyCmds[0][2].Text)
+		setVal := strings.TrimSpace(bodyCmds[0][3].Text)
+		tp.emitLimitSetQueryComparison(nameExpr, expectedExpr, connVar, limitName, setVal)
+		return true
+	}
+	if isLimitSingleSet(bodyCmds) {
+		limitName := strings.TrimSpace(bodyCmds[0][2].Text)
+		rawVal := strings.TrimSpace(bodyCmds[0][3].Text)
+		tp.emitLimitSetPriorComparison(nameExpr, expectedExpr, connVar, limitName, rawVal)
+		return true
+	}
+	if isLimitSingleQuery(bodyCmds) {
+		limitName := strings.TrimSpace(bodyCmds[0][2].Text)
+		tp.emitLimitQueryComparison(nameExpr, expectedExpr, connVar, limitName)
+		return true
+	}
+	return false
 }
 
 // emitBareFileSizeComparison handles a single `file size PATH` do_test body
@@ -783,71 +827,99 @@ func (tp *transpiler) emitDBEvalQueryResult(nameExpr, expectedExpr, sqlExpr stri
 	tp.emitLine("}")
 	tp.emitLine("got := flatten(r)")
 	if isTCLRegexPattern(expectedExpr) {
-		negated := regexPatternNegated(expectedExpr)
-		inner := regexPatternInner(expectedExpr)
-		if strings.HasPrefix(inner, "*") {
-			// TCL glob (string match) — inner starts with * (mirrors TCL
-			// do_test branch: "if {[string index $re 0]==\"*\"} ...")
-			globExpr := fmt.Sprintf("%q", inner)
-			if negated {
-				tp.emitLine("wantGlob := %s", globExpr)
-				tp.emitLine("if globMatch(got, wantGlob) {")
-				tp.emitLine("\tt.Errorf(\"result mismatch\\n  got:  [%%s]\\n  must not match glob: [%%s]\", got, wantGlob)")
-				tp.emitLine("}")
-			} else {
-				tp.emitLine("wantGlob := %s", globExpr)
-				tp.emitLine("if !globMatch(got, wantGlob) {")
-				tp.emitLine("\tt.Errorf(\"result mismatch\\n  got:  [%%s]\\n  want glob: [%%s]\", got, wantGlob)")
-				tp.emitLine("}")
-			}
-			return
-		}
-		patternExpr := regexPatternExpr(expectedExpr)
-		tp.emitLine("wantPattern := %s", patternExpr)
-		if negated {
-			// "~/.../" — the pattern must NOT match.
-			tp.emitLine("if matched, _ := regexp.MatchString(wantPattern, got); matched {")
-			tp.emitLine("\tt.Errorf(\"result mismatch\\n  got:  [%%s]\\n  must not match pattern: [%%s]\", got, wantPattern)")
-			tp.emitLine("}")
-		} else {
-			tp.emitLine("if matched, _ := regexp.MatchString(wantPattern, got); !matched {")
-			tp.emitLine("\tt.Errorf(\"result mismatch\\n  got:  [%%s]\\n  want pattern: [%%s]\", got, wantPattern)")
-			tp.emitLine("}")
-		}
+		tp.emitDBEvalRegexWant(expectedExpr)
 		return
 	}
 	if dbEvalSQL, isSubst, quoted, ok := dbEvalExpected(args[2]); ok {
 		// [db eval { SQL }] or [db eval [subst -novar { SQL }]] —
 		// render $var/[cmd] refs as a Go string expression (double-
 		// quoted substitutes $var as RAW TEXT).
-		dbEvalExpr := fmt.Sprintf("%q", dbEvalSQL)
-		if hasVarRef(dbEvalSQL) {
-			if isSubst {
-				dbEvalExpr = tp.renderSubstNovarSQL(dbEvalSQL)
-			} else if quoted {
-				dbEvalExpr = tp.buildStringExpr(dbEvalSQL)
-			} else {
-				dbEvalExpr = tp.buildSQLStringExpr(dbEvalSQL)
-			}
-		}
-		wantVar := fmt.Sprintf("_want%d", tp.varCount)
-		tp.varCount++
-		tp.emitLine("%s := db.Query(%s)", wantVar, dbEvalExpr)
-		tp.emitLine("if %s.Error != nil {", wantVar)
-		tp.emitLine("\tt.Errorf(\"expected query error: %%v\\n  sql: %%s\", %s.Error, %s)", wantVar, dbEvalExpr)
-		tp.emitLine("\treturn")
-		tp.emitLine("}")
-		tp.emitLine("want := flatten(%s)", wantVar)
-		tp.emitLine("if got != want && !tclFpnumCompare(got, want) {")
-		tp.emitLine("\tt.Errorf(\"result mismatch\\n  got:  [%%s]\\n  want: [%%s]\", got, want)")
-		tp.emitLine("}")
+		tp.emitDBEvalNestedQueryWant(dbEvalSQL, isSubst, quoted)
 		return
 	}
 	// Normalize TCL list variable expectations (see processDoExecSQLTest).
+	tp.emitDBEvalPlainWant(expectedExpr)
+}
+
+// emitDBEvalRegexWant emits the comparison of the flattened result against a
+// /pattern/ (or ~/pattern/) expected value — a regexp (inverted) match, or a
+// TCL glob when the pattern starts with `*` (mirrors the TCL do_test branch:
+// "if {[string index $re 0]=="*"} ...").
+func (tp *transpiler) emitDBEvalRegexWant(expectedExpr string) {
+	negated := regexPatternNegated(expectedExpr)
+	inner := regexPatternInner(expectedExpr)
+	if strings.HasPrefix(inner, "*") {
+		tp.emitDBEvalGlobWant(inner, negated)
+		return
+	}
+	patternExpr := regexPatternExpr(expectedExpr)
+	tp.emitLine("wantPattern := %s", patternExpr)
+	if negated {
+		// "~/.../" — the pattern must NOT match.
+		tp.emitLine("if matched, _ := regexp.MatchString(wantPattern, got); matched {")
+		tp.emitLine("\tt.Errorf(\"result mismatch\\n  got:  [%%s]\\n  must not match pattern: [%%s]\", got, wantPattern)")
+		tp.emitLine("}")
+	} else {
+		tp.emitLine("if matched, _ := regexp.MatchString(wantPattern, got); !matched {")
+		tp.emitLine("\tt.Errorf(\"result mismatch\\n  got:  [%%s]\\n  want pattern: [%%s]\", got, wantPattern)")
+		tp.emitLine("}")
+	}
+}
+
+// emitDBEvalGlobWant emits the glob (string match) comparison of the
+// flattened result against a `*...` expected pattern.
+func (tp *transpiler) emitDBEvalGlobWant(inner string, negated bool) {
+	globExpr := fmt.Sprintf("%q", inner)
+	if negated {
+		tp.emitLine("wantGlob := %s", globExpr)
+		tp.emitLine("if globMatch(got, wantGlob) {")
+		tp.emitLine("\tt.Errorf(\"result mismatch\\n  got:  [%%s]\\n  must not match glob: [%%s]\", got, wantGlob)")
+		tp.emitLine("}")
+	} else {
+		tp.emitLine("wantGlob := %s", globExpr)
+		tp.emitLine("if !globMatch(got, wantGlob) {")
+		tp.emitLine("\tt.Errorf(\"result mismatch\\n  got:  [%%s]\\n  want glob: [%%s]\", got, wantGlob)")
+		tp.emitLine("}")
+	}
+}
+
+// emitDBEvalNestedQueryWant emits the comparison against a NESTED
+// `[db eval { SQL }]` expected value: the expected rows are themselves
+// queried at runtime and both sides are flattened. A $var/[cmd] reference in
+// the expected SQL is rendered as a Go string expression (double-quoted
+// substitutes $var as RAW TEXT).
+func (tp *transpiler) emitDBEvalNestedQueryWant(dbEvalSQL string, isSubst, quoted bool) {
+	dbEvalExpr := fmt.Sprintf("%q", dbEvalSQL)
+	if hasVarRef(dbEvalSQL) {
+		if isSubst {
+			dbEvalExpr = tp.renderSubstNovarSQL(dbEvalSQL)
+		} else if quoted {
+			dbEvalExpr = tp.buildStringExpr(dbEvalSQL)
+		} else {
+			dbEvalExpr = tp.buildSQLStringExpr(dbEvalSQL)
+		}
+	}
+	wantVar := fmt.Sprintf("_want%d", tp.varCount)
+	tp.varCount++
+	tp.emitLine("%s := db.Query(%s)", wantVar, dbEvalExpr)
+	tp.emitLine("if %s.Error != nil {", wantVar)
+	tp.emitLine("\tt.Errorf(\"expected query error: %%v\\n  sql: %%s\", %s.Error, %s)", wantVar, dbEvalExpr)
+	tp.emitLine("\treturn")
+	tp.emitLine("}")
+	tp.emitLine("want := flatten(%s)", wantVar)
+	tp.emitLine("if got != want && !tclFpnumCompare(got, want) {")
+	tp.emitLine("\tt.Errorf(\"result mismatch\\n  got:  [%%s]\\n  want: [%%s]\", got, want)")
+	tp.emitLine("}")
+}
+
+// emitDBEvalPlainWant emits the comparison against a literal/list-variable
+// expected value. Variable (bare-identifier) expectations and expectations
+// carrying embedded newlines are normalized through tclListFlattenCollapse;
+// the actual result is normalized identically (cells may carry embedded
+// newlines — rtreecheck reports — which collapse to single spaces).
+func (tp *transpiler) emitDBEvalPlainWant(expectedExpr string) {
 	if isBareGoIdent(expectedExpr) || strings.Contains(expectedExpr, `\n`) {
 		tp.emitLine("want := tclListFlattenCollapse(%s)", expectedExpr)
-		// Normalize the actual result identically: cells may carry embedded
-		// newlines (rtreecheck reports), which collapse to single spaces.
 		tp.emitLine("got = tclListFlattenCollapse(got)")
 	} else {
 		tp.emitLine("want := %s", expectedExpr)
@@ -879,407 +951,3 @@ func (tp *transpiler) emitDoTestGeneric(nameExpr, expectedExpr string, bodyCmds 
 	tp.indent--
 	tp.emitLine("}")
 }
-
-// emitDoTestBodyComparison emits the expected-value comparison for a
-// multi-command do_test body, dispatching on the body's final command shape.
-func (tp *transpiler) emitDoTestBodyComparison(nameExpr, expectedExpr string, bodyCmds [][]tcl.RawWord) {
-	// A body ending in `expr {$a==$b}` compares two TCL variables; its
-	// expected value is a literal boolean (dataversion1.test's dv1/dv2
-	// checks: expected "0" or "1"), so handle it before the bare-ident gate.
-	if bodyEndsWithExprCompare(bodyCmds) {
-		tp.emitExprCompareCheck(nameExpr, expectedExpr, bodyCmds)
-		return
-	}
-	// A body ending in a backup/errmsg/sqlite3_exec/file-size command leaves
-	// its value in _r; the expected value may be a TCL list (badutf.test's
-	// "{0 {x 80}}" sqlite3_exec results), so handle it before the gate.
-	if bodyEndsWithBackupResult(bodyCmds) {
-		if bodyEndsWithSqlite3Exec(bodyCmds) {
-			tp.emitSqlite3ExecResultCheck(nameExpr, expectedExpr)
-			return
-		}
-		tp.emitQueryFuncResultCheck(nameExpr, expectedExpr)
-		return
-	}
-	// A body ending in `lindex ...` extracts a value from a list variable
-	// (badutf2.test's `lindex [lindex $res 1] 1`); the lindex result was left
-	// in _r. The expected value is a scalar literal, so handle it before the
-	// bare-ident gate.
-	if bodyEndsWithLindex(bodyCmds) {
-		tp.emitQueryFuncResultCheck(nameExpr, expectedExpr)
-		return
-	}
-	// A body ending in `set VAR` compares the variable's value (a TCL list,
-	// e.g. e_changes.test's `set ::changes` vs "{update 2 trigger 3 ...}").
-	if setVar, ok := bodyEndsWithSetVar(tp, bodyCmds); ok {
-		tp.emitSetVarResultCheck(nameExpr, expectedExpr, setVar)
-		return
-	}
-	// A body ending in `lappend VAR $X` compares VAR's final list value
-	// (sqllimits1-6.3: `set rc [catch {sqlite3_prepare ...} STMT];
-	// lappend rc $STMT` vs "1 {(18) statement too long}").
-	if lappVar, ok := bodyEndsWithLappendVar(bodyCmds); ok {
-		tp.emitSetVarResultCheck(nameExpr, expectedExpr, lappVar)
-		return
-	}
-	if !isBareGoIdent(expectedExpr) {
-		return
-	}
-	if bodyIsCatchsqlCommand(bodyCmds) {
-		tp.emitCatchsqlResultCheck(nameExpr, expectedExpr)
-		return
-	}
-	if bodyEndsWithQueryFunc(bodyCmds, tp.queryFuncs) {
-		// The body ends with a query-proc call (e.g. `execsql {...}
-		// signature`); the last command's query result is in `_r` and the
-		// expected value is that result list.
-		tp.emitQueryFuncResultCheck(nameExpr, expectedExpr)
-		return
-	}
-	// memdb.test .2 bodies end in a bare `signature` call (the t3
-	// rollback fingerprint via tclMemdbSignature in _r). queryFuncs does
-	// not cover it (with-args proc), so dispatch on the fingerprint here.
-	if len(bodyCmds) >= 1 && len(bodyCmds[len(bodyCmds)-1]) == 1 && bodyCmds[len(bodyCmds)-1][0].Text == "signature" {
-		if body, ok := globalProcBodies["signature"]; ok && userProcEmitterFor("signature", body) == "memdb_signature" {
-			tp.emitQueryFuncResultCheck(nameExpr, expectedExpr)
-			return
-		}
-	}
-	if bodyEndsWithCommandName(bodyCmds, "quota_list") {
-		// quota.test: the body's last command is `quota_list`; the
-		// sorted pattern list is in `_r` and the expected value is
-		// that list (quota-4.4.1: [list $quotagroup]).
-		tp.emitQueryFuncResultCheck(nameExpr, expectedExpr)
-		return
-	}
-	if bodyEndsWithCommandName(bodyCmds, "quota_size") {
-		// quota.test: the body's last command is `quota_size NAME`;
-		// the tracked group size is in `_r` (quota-4.4.6/4.4.7).
-		tp.emitQueryFuncResultCheck(nameExpr, expectedExpr)
-		return
-	}
-	if bodyEndsWithQuotaValueCmd(bodyCmds) {
-		// The body's last command is a value-producing quota command
-		// (fopen/fread/fwrite/ftell/file_size/...); the transpiler
-		// left its result in _r and the expected value is that result
-		// (quota2.test 1.1/1.2.1/1.3/...).
-		tp.emitQueryFuncResultCheck(nameExpr, expectedExpr)
-		return
-	}
-	if bodyEndsWithQuotaGlob(bodyCmds) {
-		// test/quota-glob.test: the body's last command is
-		// `sqlite3_quota_glob PATTERN TEXT`; the transpiler mapped it to
-		// a runtime helper that left the "1"/"0" match result in `_r`.
-		tp.emitQueryFuncResultCheck(nameExpr, expectedExpr)
-		return
-	}
-	if bodyEndsWithEQP(bodyCmds) {
-		// The body ends with `eqp "SQL"` — the EXPLAIN QUERY PLAN detail
-		// list is in `_r` and the expected value is that list (e_fkey-26.x).
-		tp.emitQueryFuncResultCheck(nameExpr, expectedExpr)
-		return
-	}
-	if tp.bodyEndsWithExecsqlQuery(bodyCmds) {
-		// The body's SQL contains a query; processCommands ran it through
-		// db.Query and left the flattened result in `r`. Compare it with the
-		// expected variable (a RESULT list, e.g. foreach $t232 in
-		// without_rowid4-3.2), not an error message.
-		tp.emitExecsqlQueryResultCheck(nameExpr, expectedExpr)
-		return
-	}
-	if tp.bodyEndsWithDBEvalQuery(bodyCmds) {
-		// The body's last command is `db eval {SELECT ...}` or `db eval $var`
-		// (variable holding query SQL) — its result is the query rows, not an
-		// error. Re-run the SELECT as a query and compare the flattened result
-		// against the expected value (trans2.test's hash checks, autoindex4's
-		// foreach loops).
-		tp.emitDBEvalQueryResultCheck(nameExpr, expectedExpr, bodyCmds)
-		return
-	}
-	if bodyEndsWithStringResult(bodyCmds) {
-		// The body's last command is a `string map {...} [string tolower $x]`
-		// (or similar) chain whose RESULT is the do_test value, not an error.
-		// The earlier `set x [...]` commands populated the variables; emit the
-		// lowering/mapping comparison here.
-		tp.emitStringResultCheck(nameExpr, expectedExpr, bodyCmds)
-		return
-	}
-	if bodyEndsWithStringMatch(bodyCmds) {
-		// A body ending in `string match PATTERN STR` — the processStringMatch
-		// handler left the "1"/"0" result in `_r`; compare it.
-		tp.emitQueryFuncResultCheck(nameExpr, expectedExpr)
-		return
-	}
-	if bodyEndsWithFileAttributes(bodyCmds) {
-		// The body ends with `file attributes PATH -attr` (the one-arg
-		// form returns the current value as a string). The whole body
-		// runs in the sub-transpiler; the last `file attributes` call
-		// leaves its result in `_r`. Compare with the expected value
-		// (journal3.test 1.2.x.1: `file attributes test.db -permissions`
-		// returns the current Unix mode bits as a perm string).
-		tp.emitQueryFuncResultCheck(nameExpr, expectedExpr)
-		return
-	}
-	if bodyEndsWithIndexExpr(bodyCmds) {
-		// The body ends with `expr {$idx>=0}` after `set idx [lsearch $prg
-		// OpenEphemeral]` — compare the search result against the expected
-		// boolean (0/1). The lsearch index is >=0 when the opcode was found.
-		tp.emitIndexExprCheck(nameExpr, expectedExpr, bodyCmds)
-		return
-	}
-	if sqlText, pattern, ok := lsearchDBEvalExpr(bodyCmds); ok {
-		// The body is `expr {[lsearch [db eval {SQL}] PATTERN]>=0}` — assert
-		// that PATTERN appears in the db-eval result rows (ctime-3.0.1).
-		tp.emitLsearchDBEvalCheck(nameExpr, expectedExpr, sqlText, pattern)
-		return
-	}
-	if bodyEndsWithBackupResult(bodyCmds) {
-		// The body's last command is a backup/errmsg/file-size command; its
-		// value was left in `_r` by the transpiled handler. Compare it with
-		// the expected value.
-		tp.emitQueryFuncResultCheck(nameExpr, expectedExpr)
-		return
-	}
-	if bodyEndsWithStmtMetadata(bodyCmds) {
-		// The body's last command is a prepared-statement metadata query or
-		// step; its value was left in `_r` by the runtime Stmt helpers.
-		tp.emitQueryFuncResultCheck(nameExpr, expectedExpr)
-		return
-	}
-	if bodyEndsWithBlobResult(bodyCmds) {
-		// The body's last command is an incremental-blob command; its value
-		// was left in `_r` by the transpiled handler. Compare it with the
-		// expected value.
-		tp.emitQueryFuncResultCheck(nameExpr, expectedExpr)
-		return
-	}
-	if bodyEndsWithListResult(bodyCmds) {
-		// The body's last command is a `list ...` whose value (including a
-		// `[catch {...} VAR]` argument) was left in `_r`. Compare it with the
-		// expected value.
-		tp.emitQueryFuncResultCheck(nameExpr, expectedExpr)
-		return
-	}
-	if bodyEndsWithExprResult(bodyCmds) {
-		// The body ends with `expr [cmd ...] OP N` — processExpr resolved the
-		// command and left the TCL truth string in `_r` (dbstatus.test
-		// 5.5.x `expr [sqlite3_stmt_status ...]>0`). Compare it directly.
-		tp.emitQueryFuncResultCheck(nameExpr, expectedExpr)
-		return
-	}
-	// The body ends with a known value-returning TCL builtin
-	// (`pager_cache_size db`, `execsql {SELECT ...}`, etc.) — the last
-	// command's result is what the do_test compares against the expected
-	// value, and was left in `_r` by the transpiled handler
-	// (cache.test 1.3.x, memdb.test, etc.).
-	if bodyEndsWithValueBuiltin(bodyCmds) {
-		tp.emitQueryFuncResultCheck(nameExpr, expectedExpr)
-		return
-	}
-	tp.emitErrorResultCheck(nameExpr, expectedExpr)
-}
-
-// bodyEndsWithFileAttributes reports whether the do_test body's last command
-// is `file attributes PATH -ATTR` (the value-returning form, not the
-// setter form `file attributes PATH -ATTR VAL`). journal3.test 1.2.x.1 uses
-// this pattern: `file attributes test.db -permissions $perm ; file attributes
-// test.db -permissions` to read back the perms.
-func bodyEndsWithFileAttributes(bodyCmds [][]tcl.RawWord) bool {
-	if len(bodyCmds) < 1 {
-		return false
-	}
-	last := bodyCmds[len(bodyCmds)-1]
-	if len(last) < 2 {
-		return false
-	}
-	if last[0].Text != "file" || (last[1].Text != "attributes" && last[1].Text != "attr") {
-		return false
-	}
-	// file attributes PATH -ATTR      → 4 words: file attributes PATH -ATTR
-	// file attributes PATH -ATTR VAL  → 5 words (setter, no return value)
-	if len(last) == 5 {
-		return false
-	}
-	return true
-}
-
-// bodyIsCatchsqlCommand reports whether a do_test body's last command is a
-// catchsql command (its expected value is a {count message} list).
-func bodyIsCatchsqlCommand(bodyCmds [][]tcl.RawWord) bool {
-	return len(bodyCmds) >= 1 && len(bodyCmds[len(bodyCmds)-1]) >= 1 && bodyCmds[len(bodyCmds)-1][0].Text == "catchsql"
-}
-
-// bodyEndsWithExecsqlQuery reports whether a do_test body ends with (or is a
-// single) execsql command whose SQL contains a query.
-func (tp *transpiler) bodyEndsWithExecsqlQuery(bodyCmds [][]tcl.RawWord) bool {
-	// A single `execsql {SQL}` body whose SQL contains a query returns the
-	// flattened query results (e.g. foreach $t232 in without_rowid4-3.2).
-	if len(bodyCmds) == 1 && len(bodyCmds[0]) >= 2 && bodyCmds[0][0].Text == "execsql" {
-		if bodySQLContainsQuery(bodyCmds[0][1].Text) {
-			return true
-		}
-	}
-	// Multi-command bodies ending in `execsql $var` where $var holds query SQL
-	// (e.g. join3's `set sql "SELECT..."; ...; execsql $sql`) or in a braced
-	// `execsql {SELECT ...}` query also return the flattened query result.
-	if len(bodyCmds) >= 1 {
-		lastCmd := bodyCmds[len(bodyCmds)-1]
-		if len(lastCmd) >= 2 && lastCmd[0].Text == "execsql" {
-			if lastCmd[1].Braced {
-				// Braced SQL literal: detect a trailing query statement
-				// (e.g. do_test index-3.1 ends with
-				// `execsql {SELECT name FROM sqlite_master ...}`).
-				return bodySQLContainsQuery(lastCmd[1].Text)
-			}
-			varName := strings.TrimPrefix(lastCmd[1].Text, "$")
-			if tp.queryVars[varName] {
-				return true
-			}
-			// A non-braced execsql whose argument is a literal SQL query (not
-			// a $var reference) also returns the flattened query result (e.g.
-			// bigrow-2.2's `execsql "SELECT b FROM t1 WHERE a=='abc'"`).
-			if !strings.HasPrefix(strings.TrimSpace(lastCmd[1].Text), "$") {
-				return bodySQLContainsQuery(tclUnescapeQuoted(lastCmd[1].Text))
-			}
-		}
-	}
-	return false
-}
-
-// bodySQLContainsQuery reports whether a SQL text ends with a query statement
-// (a statement that produces result rows).
-func bodySQLContainsQuery(sqlText string) bool {
-	for _, stmt := range strings.Split(sqlText, ";") {
-		if isQueryStmt(lastStatementSQL(strings.TrimSpace(stmt))) {
-			return true
-		}
-	}
-	return false
-}
-
-// bodyEndsWithDBEvalQuery reports whether a do_test body's last command is
-// `db eval {SELECT ...}` or `db eval $var` (variable holding query SQL).
-func (tp *transpiler) bodyEndsWithDBEvalQuery(bodyCmds [][]tcl.RawWord) bool {
-	if len(bodyCmds) < 1 {
-		return false
-	}
-	lastCmd := bodyCmds[len(bodyCmds)-1]
-	if len(lastCmd) < 3 || lastCmd[0].Text != "db" || lastCmd[1].Text != "eval" {
-		return false
-	}
-	sqlText := lastCmd[2].Text
-	// `db eval $var` (a variable reference): treat as a query when the
-	// variable was assigned query SQL (tracked by markQueryVar), e.g.
-	// autoindex4's `set sql "SELECT * ..."; ... db eval $sql`.
-	if strings.HasPrefix(strings.TrimSpace(sqlText), "$") {
-		varName := strings.TrimPrefix(strings.TrimSpace(sqlText), "$")
-		return tp.queryVars[varName]
-	}
-	return bodySQLContainsQuery(sqlText)
-}
-
-// emitCatchsqlResultCheck emits a catchsql count-aware comparison.
-func (tp *transpiler) emitCatchsqlResultCheck(nameExpr, expectedExpr string) {
-	tp.emitLine("if !tclCatchsqlMatches(_res, %s) {", expectedExpr)
-	tp.emitLine("\tt.Errorf(\"catchsql mismatch\\n  got:  [%%v]\\n  want: [%%s]\\n  body: do_test %%s\", resErrString(_res), %s, %s)", expectedExpr, nameExpr)
-	tp.emitLine("}")
-}
-
-// emitSetVarResultCheck emits a comparison of a `set VAR`-ending body. The
-// variable holds a TCL list (e.g. e_changes.test's ::changes), so compare the
-// flattened forms to ignore list-rendering braces. When VAR is a
-// sqlite3_prepare TAIL variable (capi2-2.x), compare the collapsed forms: the
-// C-API tail pointer and the TCL braced expected may differ in leading/trailing
-// whitespace.
-func (tp *transpiler) emitSetVarResultCheck(nameExpr, expectedExpr, setVar string) {
-	// sqlite_like_count reads come from the engine's LIKE/GLOB invocation
-	// counter (func.c sqlite3_like_count, TCL-linked in tester.tcl), not the
-	// Go shadow variable — the counter observes the LIKE optimization
-	// (like.test 3.x: 12 calls without it, 0 with the index range scan).
-	if setVar == "sqlite_like_count" {
-		setVar = "tclLikeCount(db)"
-	}
-	// TCL do_test treats a /pattern/ (or ~/pattern/) expected value as a
-	// regexp (inverted) match, not literal equality — intarray-1.1b compares
-	// the registered intarray handle ("0 X5") against /0 [0-9A-Z]+/.
-	if isTCLRegexPattern(expectedExpr) {
-		// TCL regexes run against the RAW set result: `set ::stmtlist(record)`
-		// renders a list of sublists BRACED ("{19 {SELECT ...}}") and the C
-		// patterns match those braces (trace3-3.x/4.x/5.x) — do not flatten
-		// away the quoting level for pattern comparisons.
-		tp.emitLine("got := %s", setVar)
-		inner := regexPatternInner(expectedExpr)
-		negated := regexPatternNegated(expectedExpr)
-		if strings.HasPrefix(inner, "*") {
-			// TCL glob (string match): the inner pattern starts with *.
-			globExpr := fmt.Sprintf("%q", inner)
-			if negated {
-				tp.emitLine("if globMatch(got, %s) {", globExpr)
-				tp.emitLine("\tt.Errorf(\"result mismatch\\n  got:  [%%s]\\n  must not match glob: [%%s]\\n  body: do_test %%s\", got, %s, %s)", globExpr, nameExpr)
-				tp.emitLine("}")
-			} else {
-				tp.emitLine("if !globMatch(got, %s) {", globExpr)
-				tp.emitLine("\tt.Errorf(\"result mismatch\\n  got:  [%%s]\\n  want glob: [%%s]\\n  body: do_test %%s\", got, %s, %s)", globExpr, nameExpr)
-				tp.emitLine("}")
-			}
-			return
-		}
-		tp.emitLine("wantPattern := %s", regexPatternExpr(expectedExpr))
-		if negated {
-			tp.emitLine("if matched, _ := regexp.MatchString(wantPattern, got); matched {")
-			tp.emitLine("\tt.Errorf(\"result mismatch\\n  got:  [%%s]\\n  must not match pattern: [%%s]\\n  body: do_test %%s\", got, wantPattern, %s)", nameExpr)
-			tp.emitLine("}")
-		} else {
-			tp.emitLine("if matched, _ := regexp.MatchString(wantPattern, got); !matched {")
-			tp.emitLine("\tt.Errorf(\"result mismatch\\n  got:  [%%s]\\n  want pattern: [%%s]\\n  body: do_test %%s\", got, wantPattern, %s)", nameExpr)
-			tp.emitLine("}")
-		}
-		return
-	}
-	if tp.prepareTailVars[setVar] {
-		tp.emitLine("got := tclListFlattenCollapse(%s)", setVar)
-		tp.emitLine("want := tclListFlattenCollapse(%s)", expectedExpr)
-	} else {
-		tp.emitLine("got := tclListFlatten(%s)", setVar)
-		tp.emitLine("want := tclListFlatten(%s)", expectedExpr)
-	}
-	tp.emitLine("if got != want && !tclFpnumCompare(got, want) {")
-	tp.emitLine("\tt.Errorf(\"result mismatch\\n  got:  [%%s]\\n  want: [%%s]\\n  body: do_test %%s\", got, want, %s)", nameExpr)
-	tp.emitLine("}")
-}
-
-// emitQueryFuncResultCheck emits a comparison of a query-proc-ending body.
-func (tp *transpiler) emitQueryFuncResultCheck(nameExpr, expectedExpr string) {
-	tp.emitLine("if _r != %s {", expectedExpr)
-	tp.emitLine("\tt.Errorf(\"result mismatch\\n  got:  [%%s]\\n  want: [%%s]\\n  body: do_test %%s\", _r, %s, %s)", expectedExpr, nameExpr)
-	tp.emitLine("}")
-}
-
-// emitSqlite3ExecResultCheck emits a comparison of a body ending in
-// `sqlite3_exec db {SQL}`: the harness result "{code {headers values}}" is a
-// TCL list, so compare the flattened forms (the expected value's rendering
-// braces are normalized away by the transpiler).
-func (tp *transpiler) emitSqlite3ExecResultCheck(nameExpr, expectedExpr string) {
-	tp.emitLine("if tclListFlatten(_r) != tclListFlatten(%s) {", expectedExpr)
-	tp.emitLine("\tt.Errorf(\"result mismatch\\n  got:  [%%s]\\n  want: [%%s]\\n  body: do_test %%s\", _r, %s, %s)", expectedExpr, nameExpr)
-	tp.emitLine("}")
-}
-
-// emitExecsqlQueryResultCheck emits a comparison of an execsql-query body.
-func (tp *transpiler) emitExecsqlQueryResultCheck(nameExpr, expectedExpr string) {
-	// Normalize the expected value through tclListFlatten so empty TCL
-	// lists (raw "" after an lreplace that removed the last element)
-	// match flatten()'s "{}" rendering of an empty SELECT result.
-	tp.emitLine("if flatten(r) != tclListFlatten(%s) {", expectedExpr)
-	tp.emitLine("\tt.Errorf(\"result mismatch\\n  got:  [%%s]\\n  want: [%%s]\\n  body: do_test %%s\", flatten(r), tclListFlatten(%s), %s)", expectedExpr, nameExpr)
-	tp.emitLine("}")
-}
-
-// emitDBEvalQueryResultCheck emits a comparison of a db-eval-query body.
-
-// emitSkippedDoTestSideEffects handles a do_test whose body contains
-// `dbN eval {SQL}` or plain `execsql {SQL}` commands: emit the SQL side
-// effects (CREATE/INSERT/DROP) for later tests while dropping the
-// assertions (catchsql, lappend, etc. — a catchsql body is the "expect
-// error" form, so its SQL is deliberately not run). Returns true when at
-// least one SQL-running command was found.

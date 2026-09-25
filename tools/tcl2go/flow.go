@@ -579,57 +579,6 @@ func isIdentChar(c byte) bool {
 	return c >= '0' && c <= '9' || c >= 'a' && c <= 'z' || c >= 'A' && c <= 'Z' || c == '_'
 }
 
-
-// stripSQLComments removes SQL line comments (`-- ...` to end of line) and
-// block comments (`/* ... */`) from sql so keyword matching in
-// unsupportedSQL does not misfire on words inside comments. Single-quoted
-// string literals are preserved verbatim (doubled-quote escape respected) so a literal
-// containing '--' is not truncated.
-func stripSQLComments(sql string) string {
-	var b strings.Builder
-	b.Grow(len(sql))
-	inStr := false
-	for i := 0; i < len(sql); i++ {
-		c := sql[i]
-		if inStr {
-			b.WriteByte(c)
-			if c == '\'' {
-				if i+1 < len(sql) && sql[i+1] == '\'' {
-					b.WriteByte('\'')
-					i++
-				} else {
-					inStr = false
-				}
-			}
-			continue
-		}
-		switch {
-		case c == '\'':
-			inStr = true
-			b.WriteByte(c)
-		case c == '-' && i+1 < len(sql) && sql[i+1] == '-':
-			i += 2
-			for i < len(sql) && sql[i] != '\n' {
-				i++
-			}
-			if i < len(sql) {
-				b.WriteByte('\n')
-			}
-		case c == '/' && i+1 < len(sql) && sql[i+1] == '*':
-			i += 2
-			for i+1 < len(sql) && !(sql[i] == '*' && sql[i+1] == '/') {
-				i++
-			}
-			i++ // consume '*' of '*/'; the loop increment consumes '/'
-			b.WriteByte(' ')
-		default:
-			b.WriteByte(c)
-		}
-	}
-	return b.String()
-}
-
-// reSQLVerb matches a SQL statement keyword as a standalone word.
 var reSQLVerb = regexp.MustCompile(`(?i)\b(INSERT|UPDATE|DELETE|SELECT|CREATE|DROP|ALTER|PRAGMA|BEGIN|COMMIT|ROLLBACK|REPLACE|VACUUM|ANALYZE|REINDEX)\b`)
 
 // looksLikeSQLText reports whether s contains a SQL statement keyword.
@@ -701,45 +650,61 @@ func (tp *transpiler) collectSQLExpression(args []tcl.RawWord) string {
 		return `""`
 	}
 	if args[0].Braced {
-		// execsql args like { INSERT ... VALUES($i, $x) } are re-evaluated by
-		// TCL's uplevel, so $var references ARE substituted with the current
-		// loop/test variable values. TCL `db eval` binds $var as a VALUE (not
-		// SQL text), so build a Go string expression that renders each $var
-		// as a SQL literal via sqlLiteral(); otherwise keep the literal
-		// braced text. Bracketed SQL identifiers ([4], [t.1]) are literal in
-		// a braced word and must be preserved verbatim, never treated as TCL
-		// command substitutions.
-		// IMPORTANT: an undeclared $var (like $abc in a literal-token test such
-		// as `select $abc(`) is NOT a TCL substitution — it is literal SQL that
-		// exercises SQLite's tokenizer. Only substitute vars that were actually
-		// declared via `set`/`foreach`/`for`.
-		text := sanitizeSQL(args[0].Text)
-		// dbconfig_maindbname_<alias> test hook: rewrite alias. → main.
-		text = tp.rewriteMainDBAlias(text)
-		if hasDeclaredDollarVarRef(text, tp) || hasColonVarRef(text, tp) {
-			return tp.buildSQLStringExprNoCmd(text)
-		}
-		// A registered variable-reader function (e.g. tclvar('v1')) is
-		// inlined as the Go variable's current value.
-		if inlined := tp.inlineVarFuncs(text); inlined != "" {
-			return inlined
-		}
-		return fmt.Sprintf("%q", text)
+		return tp.collectBracedSQLExpression(args[0].Text)
 	}
 	// A bare (non-braced) TCL variable reference such as `db eval $::schema`
 	// means "execute the SQL stored in that variable". Emit the Go variable
 	// (e.g. `db.Exec(schema)`) rather than the literal text "$::schema".
-	if !args[0].Braced && strings.HasPrefix(args[0].Text, "$") && len(args) == 1 {
-		bare := strings.TrimPrefix(args[0].Text, "$")
-		bare = strings.TrimPrefix(bare, "::")
-		if isPlainTCLVarName(bare) {
-			v := tclVarToGo(args[0].Text)
-			if tp.isVarDeclared(v) || v == "schema" || v == "sql" {
-				return v
-			}
-		}
+	if v, ok := tp.collectBareVarSQLExpression(args); ok {
+		return v
 	}
 	return tp.goStringLiteral(tcl.RawWord{Text: sanitizeSQL(args[0].Text), Quoted: args[0].Quoted})
+}
+
+// collectBracedSQLExpression renders a braced execsql/db-eval SQL word.
+// Braced args like { INSERT ... VALUES($i, $x) } are re-evaluated by TCL's
+// uplevel, so $var references ARE substituted with the current loop/test
+// variable values. TCL `db eval` binds $var as a VALUE (not SQL text), so
+// build a Go string expression that renders each $var as a SQL literal via
+// sqlLiteral(); otherwise keep the literal braced text. Bracketed SQL
+// identifiers ([4], [t.1]) are literal in a braced word and must be
+// preserved verbatim, never treated as TCL command substitutions.
+// IMPORTANT: an undeclared $var (like $abc in a literal-token test such
+// as `select $abc(`) is NOT a TCL substitution — it is literal SQL that
+// exercises SQLite's tokenizer. Only substitute vars that were actually
+// declared via `set`/`foreach`/`for`.
+func (tp *transpiler) collectBracedSQLExpression(text string) string {
+	text = sanitizeSQL(text)
+	// dbconfig_maindbname_<alias> test hook: rewrite alias. → main.
+	text = tp.rewriteMainDBAlias(text)
+	if hasDeclaredDollarVarRef(text, tp) || hasColonVarRef(text, tp) {
+		return tp.buildSQLStringExprNoCmd(text)
+	}
+	// A registered variable-reader function (e.g. tclvar('v1')) is
+	// inlined as the Go variable's current value.
+	if inlined := tp.inlineVarFuncs(text); inlined != "" {
+		return inlined
+	}
+	return fmt.Sprintf("%q", text)
+}
+
+// collectBareVarSQLExpression renders a bare single `$var` SQL argument as
+// the Go variable when the variable is declared (schema/sql always resolve).
+// Returns ok=false otherwise.
+func (tp *transpiler) collectBareVarSQLExpression(args []tcl.RawWord) (string, bool) {
+	if args[0].Braced || !strings.HasPrefix(args[0].Text, "$") || len(args) != 1 {
+		return "", false
+	}
+	bare := strings.TrimPrefix(args[0].Text, "$")
+	bare = strings.TrimPrefix(bare, "::")
+	if !isPlainTCLVarName(bare) {
+		return "", false
+	}
+	v := tclVarToGo(args[0].Text)
+	if tp.isVarDeclared(v) || v == "schema" || v == "sql" {
+		return v, true
+	}
+	return "", false
 }
 
 // inlineVarFuncs rewrites calls to registered variable-reader SQL functions
@@ -865,6 +830,49 @@ func hasVarRef(s string) bool {
 	return false
 }
 
+// declaredBracedVarAt reports whether the ${name} reference at s[i] (s[i+1]
+// == '{') names a declared variable. It returns the index the caller's loop
+// should resume from (i when no closing brace exists — the scan continues
+// inside the braces; the closing brace's index when one exists) and whether
+// the variable is declared.
+func declaredBracedVarAt(s string, i int) (int, bool) {
+	end := strings.Index(s[i+2:], "}")
+	if end < 0 {
+		return i, false
+	}
+	name := s[i+2 : i+2+end]
+	// ${ns::var} — qualify the base name via tclVarToGo mapping
+	goName := tclVarToGo(name)
+	declared := goName != "" && (isAssignedTCLVar(goName) || goName == "schema" || goName == "sql")
+	return i + 2 + end, declared
+}
+
+// scanPlainDollarVar scans the plain $name reference starting at s[i]
+// (s[i+1] a var start char), collecting ::-qualified segments and array-key
+// free names. Returns the last consumed index and the qualified name.
+func scanPlainDollarVar(s string, i int) (int, string) {
+	j := i + 1
+	for j < len(s) && isVarChar(s[j]) {
+		j++
+	}
+	// Handle :: qualification and trailing (...)
+	name := s[i+1 : j]
+	// $ns::var — collect the full ::-qualified name
+	for j+1 < len(s) && s[j] == ':' && s[j+1] == ':' {
+		j += 2
+		k := j
+		for k < len(s) && isVarChar(s[k]) {
+			k++
+		}
+		if k == j {
+			break
+		}
+		name += "::" + s[j:k]
+		j = k
+	}
+	return j, name
+}
+
 // hasDeclaredDollarVarRef reports whether s contains a $var reference whose
 // variable was actually declared (set/foreach/for). Undeclared vars like
 // $abc in `select $abc(` are literal SQL tokens exercising the tokenizer,
@@ -875,41 +883,17 @@ func hasDeclaredDollarVarRef(s string, tp *transpiler) bool {
 			continue
 		}
 		if s[i+1] == '{' {
-			end := strings.Index(s[i+2:], "}")
-			if end < 0 {
-				continue
-			}
-			name := s[i+2 : i+2+end]
-			// ${ns::var} — qualify the base name via tclVarToGo mapping
-			goName := tclVarToGo(name)
-			if goName != "" && (isAssignedTCLVar(goName) || goName == "schema" || goName == "sql") {
+			end, declared := declaredBracedVarAt(s, i)
+			if declared {
 				return true
 			}
-			i += 2 + end
+			i = end
 			continue
 		}
 		if !isVarStartChar(s[i+1]) {
 			continue
 		}
-		j := i + 1
-		for j < len(s) && isVarChar(s[j]) {
-			j++
-		}
-		// Handle :: qualification and trailing (...)
-		name := s[i+1 : j]
-		// $ns::var — collect the full ::-qualified name
-		for j+1 < len(s) && s[j] == ':' && s[j+1] == ':' {
-			j += 2
-			k := j
-			for k < len(s) && isVarChar(s[k]) {
-				k++
-			}
-			if k == j {
-				break
-			}
-			name += "::" + s[j:k]
-			j = k
-		}
+		j, name := scanPlainDollarVar(s, i)
 		goName := tclVarToGo(name)
 		if goName != "" && (isAssignedTCLVar(goName) || name == "schema" || name == "sql") {
 			return true

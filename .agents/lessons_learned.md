@@ -9182,3 +9182,45 @@ regenerated; suite net −2274 fails vs pre-tranche baseline (7230 → ~4950).
   window slice). Recording the exact signature up front turned every later
   "FAIL" into a 5-line diff against baseline instead of a false alarm; the
   full 18-package validation set ran in ~40s so per-tranche re-runs were cheap.
+## T33d-flow (2026-09-25) — tcl2go flow/test-body/collect/expected §5d golang-check closure
+
+- **Stale corpus baseline at branch start**: main's committed testgen/ postdated
+  no full regen — emitter fixes merged by sibling fleets (fpnum_compare,
+  3-word db-eval, proc-brace strip) changed output corpus-wide. First regen
+  showed ~2,181 modified files. Protocol: commit that regen as ONE dedicated
+  baseline commit (testgen/ paths only) BEFORE any refactor commit, then gate
+  every tranche on `git status -- testgen/` being empty against it.
+- **Emitter nondeterminism is real but rare**: Go map iteration randomizes one
+  block of `vtab.TclVarSet(...)` emissions (indexfault's install_custom_faultsim
+  group) roughly once per several full regens. A single regen diff there is
+  NOISE: re-run the regen once — it settles back to byte-identical. Don't hunt
+  a refactor bug for a TclVarSet-order-only diff.
+- **gocognit/gocyclo count func literals INTO the enclosing function** (verified
+  empirically: closures with `if`s inflated the parent's score). Dispatch-chain
+  refactors must therefore use NAMED top-level check/emit functions in
+  table-driven dispatch, never inline closures.
+- **BSD sed trap that truncated a file**: `sed 'N,Mp'` WITHOUT `-n` prints the
+  whole file plus the range (junk extraction file); and replacing a file via
+  `awk NR==K` + append rebuilds it from line K (loses 1..K-1). After two such
+  slips on processvars.go, recovery was: `git checkout -- file` + re-apply the
+  known-good Edit pairs. Prefer the Edit tool with exact strings; verify line
+  counts after every mechanical splice.
+- **`return` inside a switch case is a WHOLE-FUNCTION return**: when splitting
+  `doTestBodyUnsupported`'s per-command switch into a helper, the stmt-VM
+  case (`return !stmtVMEnabled()`) must still short-circuit the entire scan —
+  a helper returning false only exits the per-command predicate, letting later
+  commands (sqlite3_prepare_v2) flag the body unsupported. Caught by regen diff
+  on capi3c-17.10 (generic body → skip emitter).
+- **`strings.FieldsFunc` takes the SEPARATOR predicate, not the keep
+  predicate** — inverting it silently empties the token list (sqllimits1
+  tclExprWith regressed to tclExpr). Caught by regen diff.
+- **Gate hygiene**: run gocognit and gocyclo with echo markers between them —
+  their outputs are otherwise indistinguishable lines, and a cyclo 13/14
+  slipped into a commit masked as a cognit result. gocognit `-over N` flags
+  complexity > N (15 = clean at ≤15), same convention as gocyclo `-over 12`.
+- **Behavior-preserving refactor recipe that survived every tranche**: split
+  guard-chain functions into ordered named predicates that check AND emit,
+  preserve exact branch ORDER (dispatch tables must keep the original
+  sequence; mutually-exclusive cmdName checks may be reordered into a switch),
+  keep emission byte-for-byte (copy emitLine format strings verbatim), and
+  re-run the full-corpus regen after every tranche.

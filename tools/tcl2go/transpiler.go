@@ -23,81 +23,81 @@ type transpiler struct {
 	varCount            int
 	fdmSeq              int // foreach_detail_mode counter (unique Go loop-var suffixes)
 	vars                []string
-	currentTestFile     string                  // TCL test file base name (e.g. "fts4aa"), for wantOverrides lookup
-	catchMode           bool                    // true when transpiling inside a catch {} block
-	forIncrs            [][][]tcl.RawWord       // stack of for-loop increment clauses (empty for while/foreach)
-	pendingFileReset    map[string]bool         // file removed by forcedelete; next sqlite3 open resets the db
-	varsetLoopVars      map[string]varsetInfo   // loop vars that iterate over varset structs
-	dbAliases           map[string]string       // secondary connection name -> main db var it aliases (same file)
-	dqsDDL              bool                    // current SQLITE_DBCONFIG_DQS_DDL state (default true)
-	dqsDML              bool                    // current SQLITE_DBCONFIG_DQS_DML state (default true)
-	unsetVars           map[string]bool         // TCL vars unset via `unset`; `$var` renders as SQL NULL
-	dbVarFuncs          map[string]bool         // `db function NAME proc` registrations: NAME reads a TCL var
-	constFuncs          map[string]string       // `proc NAME {args} { return CONST }`: NAME returns CONST
-	stringConstFuncs    map[string]string       // `proc NAME {} { return "LIT" }`: NAME returns a fixed string
-	identityFuncs       map[string]bool         // `proc NAME {x} { return $x }`: NAME returns its first argument
-	lindexFuncs         map[string]int          // `proc NAME {x} { lindex $x N }`: NAME returns element N of its arg
-	stringMapFuncs      map[string]string       // `proc NAME {x} { return [string map {O N ...} $x] }`: NAME applies replacements in order
-	counterFuncs        map[string]string       // `proc NAME {} { incr ::VAR }`: NAME increments VAR
-	incrRetFuncs        map[string]IncrProcInfo // `proc N {a} { incr ::V [n]; return K }`: vtabH-style counters
-	predFuncs           map[string]string       // `proc NAME {x} { expr $x < N }`: NAME compares its arg
-	errorFuncs          map[string]string       // `proc NAME {} { error "MSG" }`: NAME raises MSG
-	queryFuncs          map[string]string       // `proc NAME {} { return [db eval {SQL}] }`: NAME returns a query result
-	specialFuncs        map[string]string       // test-infra procs (scramble/random_uuid/hash1/hash2) mapped to Go helper calls
-	autovacCallbacks    map[string]string       // autovac_page_callback* procs (autovacuum2.test) → body for Go closure
-	quotaCallbacks      map[string]string       // quota_check/quota_callback procs → shape (extend/extendpath/zero)
-	procStringMaps      map[string][]string     // single-arg procs of the form `proc N x {return [string map [list K V ...] $x]}` (flat old/new pairs)
-	colmetaCmds         map[string]string       // colmeta.test: TCL var holding "sqlite3_table_column_metadata <args>"
-	collateGoFuncs      map[string]string       // `proc NAME {a b} {BODY}`: NAME is a collation proc → Go closure expr
-	collateEmittedProcs map[string]string       // collation PROC name → Go db var whose RegisterCollation was emitted (TCL late binding: a later proc redefinition re-registers)
-	collateDtorVars     map[string]string       // collation NAME → Go var incremented by sqlite3_create_collation_v2 destructor
-	unzipDirs           map[string]bool         // dirs created by `file mkdir D` + `exec ... -d D` procs (extraction skipped)
-	joinFuncs           map[string]string       // `proc NAME {args} { return [join $args -] }`: NAME joins its args with SEP
-	recorderFuncs       map[string]string       // `proc NAME {args} { set ::VAR $args }`: NAME records its args into VAR (alter.test trigfunc)
-	prefixFuncs         map[string]string       // `proc NAME {args} { return "P: $args" }`: NAME prepends a fixed prefix to its args
-	rangeListFuncs      map[string]string       // `proc NAME {} { set L [list]; for ... lappend ... }`: NAME returns a generated list
-	varConstValues      map[string]string       // TCL var name → last simple string value (set var "lit")
+	currentTestFile     string                       // TCL test file base name (e.g. "fts4aa"), for wantOverrides lookup
+	catchMode           bool                         // true when transpiling inside a catch {} block
+	forIncrs            [][][]tcl.RawWord            // stack of for-loop increment clauses (empty for while/foreach)
+	pendingFileReset    map[string]bool              // file removed by forcedelete; next sqlite3 open resets the db
+	varsetLoopVars      map[string]varsetInfo        // loop vars that iterate over varset structs
+	dbAliases           map[string]string            // secondary connection name -> main db var it aliases (same file)
+	dqsDDL              bool                         // current SQLITE_DBCONFIG_DQS_DDL state (default true)
+	dqsDML              bool                         // current SQLITE_DBCONFIG_DQS_DML state (default true)
+	unsetVars           map[string]bool              // TCL vars unset via `unset`; `$var` renders as SQL NULL
+	dbVarFuncs          map[string]bool              // `db function NAME proc` registrations: NAME reads a TCL var
+	constFuncs          map[string]string            // `proc NAME {args} { return CONST }`: NAME returns CONST
+	stringConstFuncs    map[string]string            // `proc NAME {} { return "LIT" }`: NAME returns a fixed string
+	identityFuncs       map[string]bool              // `proc NAME {x} { return $x }`: NAME returns its first argument
+	lindexFuncs         map[string]int               // `proc NAME {x} { lindex $x N }`: NAME returns element N of its arg
+	stringMapFuncs      map[string]string            // `proc NAME {x} { return [string map {O N ...} $x] }`: NAME applies replacements in order
+	counterFuncs        map[string]string            // `proc NAME {} { incr ::VAR }`: NAME increments VAR
+	incrRetFuncs        map[string]IncrProcInfo      // `proc N {a} { incr ::V [n]; return K }`: vtabH-style counters
+	predFuncs           map[string]string            // `proc NAME {x} { expr $x < N }`: NAME compares its arg
+	errorFuncs          map[string]string            // `proc NAME {} { error "MSG" }`: NAME raises MSG
+	queryFuncs          map[string]string            // `proc NAME {} { return [db eval {SQL}] }`: NAME returns a query result
+	specialFuncs        map[string]string            // test-infra procs (scramble/random_uuid/hash1/hash2) mapped to Go helper calls
+	autovacCallbacks    map[string]string            // autovac_page_callback* procs (autovacuum2.test) → body for Go closure
+	quotaCallbacks      map[string]string            // quota_check/quota_callback procs → shape (extend/extendpath/zero)
+	procStringMaps      map[string][]string          // single-arg procs of the form `proc N x {return [string map [list K V ...] $x]}` (flat old/new pairs)
+	colmetaCmds         map[string]string            // colmeta.test: TCL var holding "sqlite3_table_column_metadata <args>"
+	collateGoFuncs      map[string]string            // `proc NAME {a b} {BODY}`: NAME is a collation proc → Go closure expr
+	collateEmittedProcs map[string]string            // collation PROC name → Go db var whose RegisterCollation was emitted (TCL late binding: a later proc redefinition re-registers)
+	collateDtorVars     map[string]string            // collation NAME → Go var incremented by sqlite3_create_collation_v2 destructor
+	unzipDirs           map[string]bool              // dirs created by `file mkdir D` + `exec ... -d D` procs (extraction skipped)
+	joinFuncs           map[string]string            // `proc NAME {args} { return [join $args -] }`: NAME joins its args with SEP
+	recorderFuncs       map[string]string            // `proc NAME {args} { set ::VAR $args }`: NAME records its args into VAR (alter.test trigfunc)
+	prefixFuncs         map[string]string            // `proc NAME {args} { return "P: $args" }`: NAME prepends a fixed prefix to its args
+	rangeListFuncs      map[string]string            // `proc NAME {} { set L [list]; for ... lappend ... }`: NAME returns a generated list
+	varConstValues      map[string]string            // TCL var name → last simple string value (set var "lit")
 	foreachLitValues    map[string][]foreachLitValue // foreach var name → literal list elements (eval $var inlining)
-	intarrayEvalVars    map[string]bool         // TCL var built as an `sqlite3_intarray_bind` script (eval $var → runtime)
-	dbConnVars          map[string]bool         // Go var names that are *frigolite.DB connections (opened via sqlite3)
-	connPredeclared     map[string]bool         // Go var names pre-declared as *frigolite.DB in the preamble (sqlite3 NAME)
-	dbClosed            bool                    // main "db" connection was closed via `db close`
-	inEvalScript        bool                    // transpiling inside an eval-inlined script (real sqlite3 db reopen)
-	runtimeConnVars     map[string]bool         // Go vars holding a connection NAME at runtime (foreach db {db db2})
-	varRenames          map[string]string       // TCL var name → Go loop var it is shadowed by (foreach db {db db2} → db→db_iter)
-	testPrefix          string                  // TCL `set testprefix NAME`; prepended to bare test names in skip lookup
-	mainDBAlias         string                  // dbconfig_maindbname_<alias>: the test-hook alias for the main database
-	queryVars           map[string]bool         // TCL vars known to hold query SQL (set/append to SELECT...)
-	arrayKeys           map[string][]string     // TCL array name → literal keys seen (set arr(K) V)
-	arrayMapVars        map[string]bool         // TCL array names using dynamic keys (set arr($k) V) → Go map var
-	rollbackFlag        string                  // when set, `db eval ROLLBACK` also assigns this Go bool var (db eval {SQL} {body} callback abort)
-	interruptFlag       string                  // when set, `sqlite3_interrupt` in a db-eval callback also assigns this Go bool var; the loop aborts after the body
-	inDBEvalCb          bool                    // transpiling inside a db-eval row callback body (deserialize errors feed _catchErr)
-	preupdateHookBody   string                  // body of the TCL `proc preupdate_hook {args} {...}` (emitted as the db preupdate hook closure)
-	commitHookBodies    map[string]string       // TCL proc name → body for commit_hook/rollback_hook/update_cb/preupdate_cb procs
-	seenProcs           map[string]string       // TCL proc name → body last seen by processProc (redefinition detection)
-	procBodies          map[string]string       // every TCL proc body, for later registration sites (preupdate hooks)
-	procParams          map[string]string       // TCL proc name → parameter-list inner text, for hook closures needing the parameter name
-	inlineProcs         map[string]string       // zero-parameter procs transpiled inline at call sites
-	inlineProcParams    map[string]string       // inline proc name → RAW parameter word (for default binding)
-	rowFlatVars         map[string]string       // db-eval array var -> Go expression with the current row's flattened key/value pairs
-	commitHookName      string                  // name of the last registered commit hook proc (for `db commit_hook` queries)
-	rollbackHookName    string                  // name of the last registered rollback hook proc
-	updateHookName      string                  // name of the last registered update hook callback
-	preparedState       *preparedState          // shared sqlite3_prepare/bind/step emulation state (pointer so bodyTP copies share it)
-	prepareTailVars     map[string]bool         // sqlite3_prepare TAIL argument variables (whitespace-insensitive set-var comparison)
-	sqlVarValues        map[string]string       // braced set var → SQL text (for sqlite3_prepare $var classification; kept separate from varConstValues so concat/list accumulation is unaffected)
-	connFailedOpen      map[string]string       // connection → sqlite3_open error message (bad-path open emulation)
-	connClosed          map[string]bool         // connection closed via sqlite3_close (double-close misuse)
-	pendingConnRegister []connReg               // queued tclConnRegister pairs emitted after the current sqlite3 open
-	authTypeName        string                  // Go type name of the last registered TCL authorizer proc (db authorizer ::name)
-	authProcCount       int                     // counter for unique generated authorizer type names
-	authProcGo          map[string]string       // TCL authorizer proc name → emitted Go type name
-	authPreamble        *strings.Builder        // package-level authorizer declarations (authCurrent var + dispatcher)
-	authCurrentDeclared bool                    // authCurrent + authDispatcher already emitted in the preamble
-	testDir             string                  // TCL test directory (for sourcing helper files like genesis.tcl)
-	genesisPreamble     *strings.Builder        // package-level ftsKJVGenesis helper (fts_kjv_genesis data loader)
-	ftsBuildPreamble    *strings.Builder        // package-level fts3BuildDB1/fts3BuildDB2 helpers (fts3_build_db_1/2 data loaders)
+	intarrayEvalVars    map[string]bool              // TCL var built as an `sqlite3_intarray_bind` script (eval $var → runtime)
+	dbConnVars          map[string]bool              // Go var names that are *frigolite.DB connections (opened via sqlite3)
+	connPredeclared     map[string]bool              // Go var names pre-declared as *frigolite.DB in the preamble (sqlite3 NAME)
+	dbClosed            bool                         // main "db" connection was closed via `db close`
+	inEvalScript        bool                         // transpiling inside an eval-inlined script (real sqlite3 db reopen)
+	runtimeConnVars     map[string]bool              // Go vars holding a connection NAME at runtime (foreach db {db db2})
+	varRenames          map[string]string            // TCL var name → Go loop var it is shadowed by (foreach db {db db2} → db→db_iter)
+	testPrefix          string                       // TCL `set testprefix NAME`; prepended to bare test names in skip lookup
+	mainDBAlias         string                       // dbconfig_maindbname_<alias>: the test-hook alias for the main database
+	queryVars           map[string]bool              // TCL vars known to hold query SQL (set/append to SELECT...)
+	arrayKeys           map[string][]string          // TCL array name → literal keys seen (set arr(K) V)
+	arrayMapVars        map[string]bool              // TCL array names using dynamic keys (set arr($k) V) → Go map var
+	rollbackFlag        string                       // when set, `db eval ROLLBACK` also assigns this Go bool var (db eval {SQL} {body} callback abort)
+	interruptFlag       string                       // when set, `sqlite3_interrupt` in a db-eval callback also assigns this Go bool var; the loop aborts after the body
+	inDBEvalCb          bool                         // transpiling inside a db-eval row callback body (deserialize errors feed _catchErr)
+	preupdateHookBody   string                       // body of the TCL `proc preupdate_hook {args} {...}` (emitted as the db preupdate hook closure)
+	commitHookBodies    map[string]string            // TCL proc name → body for commit_hook/rollback_hook/update_cb/preupdate_cb procs
+	seenProcs           map[string]string            // TCL proc name → body last seen by processProc (redefinition detection)
+	procBodies          map[string]string            // every TCL proc body, for later registration sites (preupdate hooks)
+	procParams          map[string]string            // TCL proc name → parameter-list inner text, for hook closures needing the parameter name
+	inlineProcs         map[string]string            // zero-parameter procs transpiled inline at call sites
+	inlineProcParams    map[string]string            // inline proc name → RAW parameter word (for default binding)
+	rowFlatVars         map[string]string            // db-eval array var -> Go expression with the current row's flattened key/value pairs
+	commitHookName      string                       // name of the last registered commit hook proc (for `db commit_hook` queries)
+	rollbackHookName    string                       // name of the last registered rollback hook proc
+	updateHookName      string                       // name of the last registered update hook callback
+	preparedState       *preparedState               // shared sqlite3_prepare/bind/step emulation state (pointer so bodyTP copies share it)
+	prepareTailVars     map[string]bool              // sqlite3_prepare TAIL argument variables (whitespace-insensitive set-var comparison)
+	sqlVarValues        map[string]string            // braced set var → SQL text (for sqlite3_prepare $var classification; kept separate from varConstValues so concat/list accumulation is unaffected)
+	connFailedOpen      map[string]string            // connection → sqlite3_open error message (bad-path open emulation)
+	connClosed          map[string]bool              // connection closed via sqlite3_close (double-close misuse)
+	pendingConnRegister []connReg                    // queued tclConnRegister pairs emitted after the current sqlite3 open
+	authTypeName        string                       // Go type name of the last registered TCL authorizer proc (db authorizer ::name)
+	authProcCount       int                          // counter for unique generated authorizer type names
+	authProcGo          map[string]string            // TCL authorizer proc name → emitted Go type name
+	authPreamble        *strings.Builder             // package-level authorizer declarations (authCurrent var + dispatcher)
+	authCurrentDeclared bool                         // authCurrent + authDispatcher already emitted in the preamble
+	testDir             string                       // TCL test directory (for sourcing helper files like genesis.tcl)
+	genesisPreamble     *strings.Builder             // package-level ftsKJVGenesis helper (fts_kjv_genesis data loader)
+	ftsBuildPreamble    *strings.Builder             // package-level fts3BuildDB1/fts3BuildDB2 helpers (fts3_build_db_1/2 data loaders)
 
 	// blobChans maps the TCL variable names that hold incremental-blob
 	// channel names (`set blob [db incrblob ...]` → blob holds "incrblob_1")
@@ -288,8 +288,10 @@ func isValidGoIdent(s string) bool {
 	return true
 }
 
-// tclVarToGo converts a TCL variable name to a valid Go identifier.
-func tclVarToGo(name string) string {
+// sanitizeVarPunctuation rewrites punctuation characters in a TCL variable
+// name that have a fixed Go-identifier mapping (namespace separators, array
+// syntax, common operator characters).
+func sanitizeVarPunctuation(name string) string {
 	// Strip leading :: (global namespace prefix) so $::var maps to same name as $var
 	name = strings.TrimPrefix(name, "::")
 	name = strings.ReplaceAll(name, "::", "_")
@@ -320,19 +322,28 @@ func tclVarToGo(name string) string {
 	name = strings.ReplaceAll(name, "\\", "_")
 	name = strings.ReplaceAll(name, "[", "_")
 	name = strings.ReplaceAll(name, "]", "_")
+	return name
+}
+
+// quoteMapVarChar maps structurally-impossible characters (quotes and control
+// characters) in a mangled command-substitution variable name to '_'.
+// Operators like '='/'&' must stay INVALID so isValidGoIdent guards
+// downstream keep rejecting garbage names (where2-2.4's "$out2 && $out2!=$out3").
+func quoteMapVarChar(r rune) rune {
+	switch r {
+	case '"', '\'', '`', '\n', '\r', '\t', '\v', '\f':
+		return '_'
+	}
+	return r
+}
+
+// tclVarToGo converts a TCL variable name to a valid Go identifier.
+func tclVarToGo(name string) string {
+	name = sanitizeVarPunctuation(name)
 	// Quote and control-character sanitize: mangled command-substitution
 	// names (resetdb.test's multi-line sqlite3_prepare statement name) can
 	// contain quotes/newlines that would break single-line Go identifiers.
-	// Only structurally-impossible characters are mapped; operators like
-	// '='/'&' must stay INVALID so isValidGoIdent guards downstream keep
-	// rejecting garbage names (where2-2.4's "$out2 && $out2!=$out3").
-	name = strings.Map(func(r rune) rune {
-		switch r {
-		case '"', '\'', '`', '\n', '\r', '\t', '\v', '\f':
-			return '_'
-		}
-		return r
-	}, name)
+	name = strings.Map(quoteMapVarChar, name)
 	if len(name) > 0 && name[0] >= '0' && name[0] <= '9' {
 		name = "v_" + name
 	}
