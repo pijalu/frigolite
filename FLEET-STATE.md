@@ -93,10 +93,12 @@ regen flicker: indexfault 2-line alias-order swap from a map-range in
 emitTclProcAliasRegistrations (documented in lessons; fix must be its
 own corpus-wide regen commit).
 
-Still active: fleet/t33-fts5 (fts5hash/fts5unindexed/contentless3 green
-at ef605a1ad; now implementing structvtab — alive), fleet/t33d-flow
-(dotest/foreach/loop/collect/expected/strings tranches landing),
-fleet/t33-win (window1 repair).
+Still active: fleet/t33d-flow (final long-tail tranches), fleet/t33-win
+(window1 repair, alive — active edits 2026-09-25 23:1x).
+fleet/t33-fts5 AGENT DIED ~2026-09-24 23:12 (session interruption;
+uncommitted WIP: structvtab.go new + structure/vocab/engine_register
+edits). RESUMED per protocol: new agent (fleet/t33-fts5, same worktree,
+merge main first, adjudicate WIP file-by-file).
 - fleet/t33-fts5 STILL ACTIVE in frigolite-wt-t33-fts5 (fts5hash +
   fts5unindexed + contentless3-2.x green at ef605a1ad; segment/structure
   persistence model landed; 4 dirty files mid-work).
