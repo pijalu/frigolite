@@ -27,22 +27,15 @@ func (e *Engine) execCommit() *Result {
 	// SQLITE_INTERRUPT is a special error (src/vdbeaux.c:3358-3383), so the
 	// abort path rolls the whole transaction back — a later bare COMMIT
 	// fails with "cannot commit - no transaction is active" (interrupt-3.x).
-	if e.interruptCount > 0 {
-		e.interruptCount--
-		if e.interruptCount == 0 {
-			e.interrupted = true
-			e.execRollback()
-			return &Result{Error: fmt.Errorf("interrupted")}
-		}
+	if res, ok := e.commitInterruptCountdown(); !ok {
+		return res
 	}
 	// Deferred foreign key constraints are checked at COMMIT. On a violation
 	// the COMMIT fails and the transaction stays open (SQLite semantics:
 	// "cannot start a transaction within a transaction" after a failed
 	// COMMIT), so inTransaction/txSnapshots are NOT cleared.
-	if e.settings.foreignKeys && e.tx.inTransaction {
-		if err := e.constraints.CheckDeferredFK(false); err != nil {
-			return &Result{Error: err}
-		}
+	if res := e.commitCheckDeferredFK(); res != nil {
+		return res
 	}
 	// Cross-connection COMMIT gate: a writer must upgrade to EXCLUSIVE, which
 	// is blocked by another connection's SHARED (read transaction) or prepared
@@ -100,6 +93,38 @@ func (e *Engine) execCommit() *Result {
 		return res
 	}
 	return &Result{}
+}
+
+// commitCheckDeferredFK runs COMMIT's deferred foreign-key constraint checks
+// (deferred FKs are checked at COMMIT, not per statement). On a violation the
+// COMMIT fails and the transaction stays open, so inTransaction/txSnapshots
+// are NOT cleared.
+func (e *Engine) commitCheckDeferredFK() *Result {
+	if !e.settings.foreignKeys || !e.tx.inTransaction {
+		return nil
+	}
+	if err := e.constraints.CheckDeferredFK(false); err != nil {
+		return &Result{Error: err}
+	}
+	return nil
+}
+
+// commitInterruptCountdown applies the SQLITE_TEST interrupt countdown
+// (vdbe.c's per-opcode decrement) inside the COMMIT program. ok is false
+// when the countdown hit zero: the COMMIT was interrupted, the transaction
+// was rolled back (SQLITE_INTERRUPT's abort path, src/vdbeaux.c:3358-3383),
+// and res carries the "interrupted" error.
+func (e *Engine) commitInterruptCountdown() (res *Result, ok bool) {
+	if e.interruptCount == 0 {
+		return nil, true
+	}
+	e.interruptCount--
+	if e.interruptCount == 0 {
+		e.interrupted = true
+		e.execRollback()
+		return &Result{Error: fmt.Errorf("interrupted")}, false
+	}
+	return nil, true
 }
 
 // commitClearTxState clears the engine's transaction-scoped state once the
