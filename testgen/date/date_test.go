@@ -660,8 +660,8 @@ func Test_date(t *testing.T) {
 			tclConnRegister("db", db)
 			if err != nil { t.Fatal(err) }
 			{ // do_test "date-14.2." + i
-				_dbone0 := tclExecSQL(db, "{SELECT datetime(x) FROM t1}")
-				date = _dbone0
+				_dbone1 := tclExecSQL(db, "{SELECT datetime(x) FROM t1}")
+				date = _dbone1
 				_ = date // suppress unused warning
 				// expr $date eq "2008-06-12 00:00:00" || $date eq "2008-06-11 23:59:59" (not evaluated)
 			}

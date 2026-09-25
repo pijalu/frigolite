@@ -138,9 +138,9 @@ func Test_filectrl(t *testing.T) {
 			_ = handle // suppress unused warning
 			db.Close()
 			os.Remove("test2.db")
-			_list0 := tclList([]string{size, handle, tclExprWith("$handle != 0", map[string]string{"handle": handle})})
-			_ = _list0
-			_r = _list0
+			_list1 := tclList([]string{size, handle, tclExprWith("$handle != 0", map[string]string{"handle": handle})})
+			_ = _list1
+			_r = _list1
 		}
 		{ // do_test "filectrl-2.2"
 			db, err = frigolite.Open("test2.db")
@@ -156,9 +156,9 @@ func Test_filectrl(t *testing.T) {
 			_ = handle // suppress unused warning
 			db.Close()
 			os.Remove("test2.db")
-			_list1 := tclList([]string{size, handle, tclExprWith("$handle != 0", map[string]string{"handle": handle})})
-			_ = _list1
-			_r = _list1
+			_list2 := tclList([]string{size, handle, tclExprWith("$handle != 0", map[string]string{"handle": handle})})
+			_ = _list2
+			_r = _list2
 		}
 	}
 }

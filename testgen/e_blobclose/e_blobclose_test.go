@@ -385,7 +385,17 @@ func Test_e_blobclose(t *testing.T) {
 		_res = db.Exec(" PRAGMA lock_status ")
 		_ = _res.Error // tolerate unsupported-feature errors in skipped tests
 	}
-	{ // "e_blobclose-2.3.3" — skipped: val() UDF is a transpiled stub of a TCL proc that closes the blob handle and captures lock_status (C-harness handle choreography) (no-side-effects)
+	{ // do_test "2.3.3"
+		r = db.Query(" SELECT * FROM x1 WHERE a = 15 ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT * FROM x1 WHERE a = 15 ")
+			return
+		}
+		got := flatten(r)
+		want := "15 main reserved temp closed"
+		if got != want && !tclFpnumCompare(got, want) {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
 	}
 	{ // do_test "2.3.4"
 		B = "incrblob_8"
@@ -401,7 +411,17 @@ func Test_e_blobclose(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, " PRAGMA lock_status ")
 		}
 	}
-	{ // "e_blobclose-2.3.5" — skipped: val() UDF is a transpiled stub of a TCL proc that closes the blob handle and captures lock_status (C-harness handle choreography) (no-side-effects)
+	{ // do_test "2.3.5"
+		r = db.Query(" SELECT a, val() FROM x1 LIMIT 1 ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT a, val() FROM x1 LIMIT 1 ")
+			return
+		}
+		got := flatten(r)
+		want := "-10000 main shared temp closed"
+		if got != want && !tclFpnumCompare(got, want) {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
 	}
 	{ // do_test "3.1"
 		B = "incrblob_9"

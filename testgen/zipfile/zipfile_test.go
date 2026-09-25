@@ -1144,13 +1144,13 @@ func Test_zipfile(t *testing.T) {
 						_ = os.Remove("subdir")
 					}
 					// foreach {path sz} "subdir/x1.txt     143\n      subdir/x2.txt     153"
-					_items0 := tclSplitList("subdir/x1.txt     143\n      subdir/x2.txt     153")
-					for _idx0 := 0; _idx0+2 <= len(_items0); _idx0 += 2 {
-						path := _items0[_idx0+0]
+					_items11 := tclSplitList("subdir/x1.txt     143\n      subdir/x2.txt     153")
+					for _idx11 := 0; _idx11+2 <= len(_items11); _idx11 += 2 {
+						path := _items11[_idx11+0]
 						_ = path // suppress unused warning
-						sz := _items0[_idx0+1]
+						sz := _items11[_idx11+1]
 						_ = sz // suppress unused warning
-						_ = _idx0
+						_ = _idx11
 							dir = filepath.Dir(path)
 							_ = dir // suppress unused warning
 							{

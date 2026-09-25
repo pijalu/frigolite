@@ -169,8 +169,8 @@ func Test_sortfault(t *testing.T) {
 				str2 = tclStringRepeat(str, "10")
 				_ = str2 // suppress unused warning
 				// sqlite3_memdebug_vfs_oom_test 0 (unsupported command, not transpiled)
-				_dbtmp0, err := frigolite.Open("test.db")
-				_ = _dbtmp0 // sqlite3 db connection
+				_dbtmp1, err := frigolite.Open("test.db")
+				_ = _dbtmp1 // sqlite3 db connection
 				if err != nil { t.Logf("open connection side effect failed: %v (not fatal)", err) }
 				_ = err
 				db.ResetChangesCounters()

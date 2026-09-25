@@ -683,17 +683,17 @@ func Test_pager1(t *testing.T) {
 			// tstvfs delete (unsupported command, not transpiled)
 		}
 		// foreach {tn ofst value result} "2   20    31       {1 2 3 4}\n          3   20    32       {1 2 3 4}\n          4   20    33       {1 2 3 4}\n          5   20    65536    {1 2 3 4}\n          6   20    131072   {1 2 3 4}\n\n          7   24    511      {1 2 3 4}\n          8   24    513      {1 2 3 4}\n          9   24    131072   {1 2 3 4}\n\n         10   32    65536    {1 2}"
-		_items0 := tclSplitList("2   20    31       {1 2 3 4}\n          3   20    32       {1 2 3 4}\n          4   20    33       {1 2 3 4}\n          5   20    65536    {1 2 3 4}\n          6   20    131072   {1 2 3 4}\n\n          7   24    511      {1 2 3 4}\n          8   24    513      {1 2 3 4}\n          9   24    131072   {1 2 3 4}\n\n         10   32    65536    {1 2}")
-		for _idx0 := 0; _idx0+4 <= len(_items0); _idx0 += 4 {
-			tn := _items0[_idx0+0]
+		_items1 := tclSplitList("2   20    31       {1 2 3 4}\n          3   20    32       {1 2 3 4}\n          4   20    33       {1 2 3 4}\n          5   20    65536    {1 2 3 4}\n          6   20    131072   {1 2 3 4}\n\n          7   24    511      {1 2 3 4}\n          8   24    513      {1 2 3 4}\n          9   24    131072   {1 2 3 4}\n\n         10   32    65536    {1 2}")
+		for _idx1 := 0; _idx1+4 <= len(_items1); _idx1 += 4 {
+			tn := _items1[_idx1+0]
 			_ = tn // suppress unused warning
-			ofst := _items0[_idx0+1]
+			ofst := _items1[_idx1+1]
 			_ = ofst // suppress unused warning
-			value := _items0[_idx0+2]
+			value := _items1[_idx1+2]
 			_ = value // suppress unused warning
-			result := _items0[_idx0+3]
+			result := _items1[_idx1+3]
 			_ = result // suppress unused warning
-			_ = _idx0
+			_ = _idx1
 				{ // do_test "pager1.4.3." + tn
 					// db_restore_and_reopen: restore sv_test.db* snapshot
 					db.Close()
@@ -727,13 +727,13 @@ func Test_pager1(t *testing.T) {
 			_ = mj_delete_cnt // suppress unused warning
 			// proc definition (not transpiled)
 			// foreach {tn1 tcl} "1 { set prefix \"test.db\" }\n  2 { \n    # This test depends on the underlying VFS being able to open paths\n    # 512 bytes in length. The idea is to create a hot-journal file that\n    # contains a master-journal pointer so large that it could contain\n    # a valid page record (if the file page-size is 512 bytes). So as to\n    # make sure SQLite doesn't get confused by this.\n    #\n    set nPadding [expr 511 - $::mj_filename_length]\n    if {$tcl_platform(platform) eq \"windows\"} {\n      # TBD need to figure out how to do this correctly for Windows!!!\n      set nPadding [expr 255 - $::mj_filename_length]\n    }\n\n    # We cannot just create a really long database file name to open, as\n    # Linux limits a single component of a path to 255 bytes by default\n    # (and presumably other systems have limits too). So create a directory\n    # hierarchy to work in.\n    #\n    set dirname \"d123456789012345678901234567890/\"\n    set nDir [expr $nPadding / 32]\n    if { $nDir } {\n      set p [string repeat $dirname $nDir]\n      file mkdir $p\n      cd $p\n    }\n\n    set padding [string repeat x [expr $nPadding %32]]\n    set prefix \"test.db${padding}\"\n  }"
-			_items1 := tclSplitList("1 { set prefix \"test.db\" }\n  2 { \n    # This test depends on the underlying VFS being able to open paths\n    # 512 bytes in length. The idea is to create a hot-journal file that\n    # contains a master-journal pointer so large that it could contain\n    # a valid page record (if the file page-size is 512 bytes). So as to\n    # make sure SQLite doesn't get confused by this.\n    #\n    set nPadding [expr 511 - $::mj_filename_length]\n    if {$tcl_platform(platform) eq \"windows\"} {\n      # TBD need to figure out how to do this correctly for Windows!!!\n      set nPadding [expr 255 - $::mj_filename_length]\n    }\n\n    # We cannot just create a really long database file name to open, as\n    # Linux limits a single component of a path to 255 bytes by default\n    # (and presumably other systems have limits too). So create a directory\n    # hierarchy to work in.\n    #\n    set dirname \"d123456789012345678901234567890/\"\n    set nDir [expr $nPadding / 32]\n    if { $nDir } {\n      set p [string repeat $dirname $nDir]\n      file mkdir $p\n      cd $p\n    }\n\n    set padding [string repeat x [expr $nPadding %32]]\n    set prefix \"test.db${padding}\"\n  }")
-			for _idx1 := 0; _idx1+2 <= len(_items1); _idx1 += 2 {
-				tn1 := _items1[_idx1+0]
+			_items2 := tclSplitList("1 { set prefix \"test.db\" }\n  2 { \n    # This test depends on the underlying VFS being able to open paths\n    # 512 bytes in length. The idea is to create a hot-journal file that\n    # contains a master-journal pointer so large that it could contain\n    # a valid page record (if the file page-size is 512 bytes). So as to\n    # make sure SQLite doesn't get confused by this.\n    #\n    set nPadding [expr 511 - $::mj_filename_length]\n    if {$tcl_platform(platform) eq \"windows\"} {\n      # TBD need to figure out how to do this correctly for Windows!!!\n      set nPadding [expr 255 - $::mj_filename_length]\n    }\n\n    # We cannot just create a really long database file name to open, as\n    # Linux limits a single component of a path to 255 bytes by default\n    # (and presumably other systems have limits too). So create a directory\n    # hierarchy to work in.\n    #\n    set dirname \"d123456789012345678901234567890/\"\n    set nDir [expr $nPadding / 32]\n    if { $nDir } {\n      set p [string repeat $dirname $nDir]\n      file mkdir $p\n      cd $p\n    }\n\n    set padding [string repeat x [expr $nPadding %32]]\n    set prefix \"test.db${padding}\"\n  }")
+			for _idx2 := 0; _idx2+2 <= len(_items2); _idx2 += 2 {
+				tn1 := _items2[_idx2+0]
 				_ = tn1 // suppress unused warning
-				tcl := _items1[_idx1+1]
+				tcl := _items2[_idx2+1]
 				_ = tcl // suppress unused warning
-				_ = _idx1
+				_ = _idx2
 					if tcl == " set prefix \"test.db\" " {
 						vtab.TclVarSet("prefix", "", "test.db")
 						var prefix = "test.db"
@@ -763,15 +763,15 @@ func Test_pager1(t *testing.T) {
 						_ = prefix // suppress unused warning
 					}
 					// foreach {tn2 sql usesMJ} "o { \n      PRAGMA main.synchronous=OFF;\n      PRAGMA aux.synchronous=OFF;\n      PRAGMA journal_mode = DELETE;\n    } 0\n    o512 { \n      PRAGMA main.synchronous=OFF;\n      PRAGMA aux.synchronous=OFF;\n      PRAGMA main.page_size = 512;\n      PRAGMA aux.page_size = 512;\n      PRAGMA journal_mode = DELETE;\n    } 0\n    n { \n      PRAGMA main.synchronous=NORMAL;\n      PRAGMA aux.synchronous=NORMAL;\n      PRAGMA journal_mode = DELETE;\n    } 1\n    f { \n      PRAGMA main.synchronous=FULL;\n      PRAGMA aux.synchronous=FULL;\n      PRAGMA journal_mode = DELETE;\n    } 1\n    w1 { \n      PRAGMA main.synchronous=NORMAL;\n      PRAGMA aux.synchronous=NORMAL;\n      PRAGMA journal_mode = WAL;\n    } 0\n    w2 { \n      PRAGMA main.synchronous=NORMAL;\n      PRAGMA aux.synchronous=NORMAL;\n      PRAGMA main.journal_mode=DELETE;\n      PRAGMA aux.journal_mode=WAL;\n    } 0\n    o1a { \n      PRAGMA main.synchronous=FULL;\n      PRAGMA aux.synchronous=OFF;\n      PRAGMA journal_mode=DELETE;\n    } 0\n    o1b { \n      PRAGMA main.synchronous=OFF;\n      PRAGMA aux.synchronous=NORMAL;\n      PRAGMA journal_mode=DELETE;\n    } 0\n    m1 { \n      PRAGMA main.synchronous=NORMAL;\n      PRAGMA aux.synchronous=NORMAL;\n      PRAGMA main.journal_mode=DELETE;\n      PRAGMA aux.journal_mode = MEMORY;\n    } 0\n    t1 { \n      PRAGMA main.synchronous=NORMAL;\n      PRAGMA aux.synchronous=NORMAL;\n      PRAGMA main.journal_mode=DELETE;\n      PRAGMA aux.journal_mode = TRUNCATE;\n    } 1\n    p1 { \n      PRAGMA main.synchronous=NORMAL;\n      PRAGMA aux.synchronous=NORMAL;\n      PRAGMA main.journal_mode=DELETE;\n      PRAGMA aux.journal_mode = PERSIST;\n    } 1"
-					_items0 := tclSplitList("o { \n      PRAGMA main.synchronous=OFF;\n      PRAGMA aux.synchronous=OFF;\n      PRAGMA journal_mode = DELETE;\n    } 0\n    o512 { \n      PRAGMA main.synchronous=OFF;\n      PRAGMA aux.synchronous=OFF;\n      PRAGMA main.page_size = 512;\n      PRAGMA aux.page_size = 512;\n      PRAGMA journal_mode = DELETE;\n    } 0\n    n { \n      PRAGMA main.synchronous=NORMAL;\n      PRAGMA aux.synchronous=NORMAL;\n      PRAGMA journal_mode = DELETE;\n    } 1\n    f { \n      PRAGMA main.synchronous=FULL;\n      PRAGMA aux.synchronous=FULL;\n      PRAGMA journal_mode = DELETE;\n    } 1\n    w1 { \n      PRAGMA main.synchronous=NORMAL;\n      PRAGMA aux.synchronous=NORMAL;\n      PRAGMA journal_mode = WAL;\n    } 0\n    w2 { \n      PRAGMA main.synchronous=NORMAL;\n      PRAGMA aux.synchronous=NORMAL;\n      PRAGMA main.journal_mode=DELETE;\n      PRAGMA aux.journal_mode=WAL;\n    } 0\n    o1a { \n      PRAGMA main.synchronous=FULL;\n      PRAGMA aux.synchronous=OFF;\n      PRAGMA journal_mode=DELETE;\n    } 0\n    o1b { \n      PRAGMA main.synchronous=OFF;\n      PRAGMA aux.synchronous=NORMAL;\n      PRAGMA journal_mode=DELETE;\n    } 0\n    m1 { \n      PRAGMA main.synchronous=NORMAL;\n      PRAGMA aux.synchronous=NORMAL;\n      PRAGMA main.journal_mode=DELETE;\n      PRAGMA aux.journal_mode = MEMORY;\n    } 0\n    t1 { \n      PRAGMA main.synchronous=NORMAL;\n      PRAGMA aux.synchronous=NORMAL;\n      PRAGMA main.journal_mode=DELETE;\n      PRAGMA aux.journal_mode = TRUNCATE;\n    } 1\n    p1 { \n      PRAGMA main.synchronous=NORMAL;\n      PRAGMA aux.synchronous=NORMAL;\n      PRAGMA main.journal_mode=DELETE;\n      PRAGMA aux.journal_mode = PERSIST;\n    } 1")
-					for _idx0 := 0; _idx0+3 <= len(_items0); _idx0 += 3 {
-						tn2 := _items0[_idx0+0]
+					_items3 := tclSplitList("o { \n      PRAGMA main.synchronous=OFF;\n      PRAGMA aux.synchronous=OFF;\n      PRAGMA journal_mode = DELETE;\n    } 0\n    o512 { \n      PRAGMA main.synchronous=OFF;\n      PRAGMA aux.synchronous=OFF;\n      PRAGMA main.page_size = 512;\n      PRAGMA aux.page_size = 512;\n      PRAGMA journal_mode = DELETE;\n    } 0\n    n { \n      PRAGMA main.synchronous=NORMAL;\n      PRAGMA aux.synchronous=NORMAL;\n      PRAGMA journal_mode = DELETE;\n    } 1\n    f { \n      PRAGMA main.synchronous=FULL;\n      PRAGMA aux.synchronous=FULL;\n      PRAGMA journal_mode = DELETE;\n    } 1\n    w1 { \n      PRAGMA main.synchronous=NORMAL;\n      PRAGMA aux.synchronous=NORMAL;\n      PRAGMA journal_mode = WAL;\n    } 0\n    w2 { \n      PRAGMA main.synchronous=NORMAL;\n      PRAGMA aux.synchronous=NORMAL;\n      PRAGMA main.journal_mode=DELETE;\n      PRAGMA aux.journal_mode=WAL;\n    } 0\n    o1a { \n      PRAGMA main.synchronous=FULL;\n      PRAGMA aux.synchronous=OFF;\n      PRAGMA journal_mode=DELETE;\n    } 0\n    o1b { \n      PRAGMA main.synchronous=OFF;\n      PRAGMA aux.synchronous=NORMAL;\n      PRAGMA journal_mode=DELETE;\n    } 0\n    m1 { \n      PRAGMA main.synchronous=NORMAL;\n      PRAGMA aux.synchronous=NORMAL;\n      PRAGMA main.journal_mode=DELETE;\n      PRAGMA aux.journal_mode = MEMORY;\n    } 0\n    t1 { \n      PRAGMA main.synchronous=NORMAL;\n      PRAGMA aux.synchronous=NORMAL;\n      PRAGMA main.journal_mode=DELETE;\n      PRAGMA aux.journal_mode = TRUNCATE;\n    } 1\n    p1 { \n      PRAGMA main.synchronous=NORMAL;\n      PRAGMA aux.synchronous=NORMAL;\n      PRAGMA main.journal_mode=DELETE;\n      PRAGMA aux.journal_mode = PERSIST;\n    } 1")
+					for _idx3 := 0; _idx3+3 <= len(_items3); _idx3 += 3 {
+						tn2 := _items3[_idx3+0]
 						_ = tn2 // suppress unused warning
-						sql := _items0[_idx0+1]
+						sql := _items3[_idx3+1]
 						_ = sql // suppress unused warning
-						usesMJ := _items0[_idx0+2]
+						usesMJ := _items3[_idx3+2]
 						_ = usesMJ // suppress unused warning
-						_ = _idx0
+						_ = _idx3
 							vtab.TclVarSet("tn", "", tn1 + "." + tn2)
 							tn = tn1 + "." + tn2
 							_ = tn // suppress unused warning
@@ -1589,19 +1589,19 @@ func Test_pager1(t *testing.T) {
 					if err != nil { t.Fatal(err) }
 					tcl_nullvalue = "{}" // fresh connection resets nullvalue
 					// foreach {tn sql res js ws} tclListElem("1  {\n      CREATE TABLE t1(a, b);\n      PRAGMA auto_vacuum=OFF;\n      PRAGMA synchronous=NORMAL;\n      PRAGMA page_size=1024;\n      PRAGMA locking_mode=EXCLUSIVE;\n      PRAGMA journal_mode=TRUNCATE;\n      INSERT INTO t1 VALUES(1, 2);\n    } {exclusive truncate} 0 -1\n  \n    2  {\n      BEGIN IMMEDIATE;\n        SELECT * FROM t1;\n      COMMIT;\n    } {1 2} 0 -1\n  \n    3  {\n      BEGIN;\n        SELECT * FROM t1;\n      COMMIT;\n    } {1 2} 0 -1\n  \n    4  { PRAGMA journal_mode = WAL }    wal       -1 -1\n    5  { INSERT INTO t1 VALUES(3, 4) }  {}        -1 " + "wal_file_size 1 1024" + "\n    6  { PRAGMA locking_mode = NORMAL } exclusive -1 " + "wal_file_size 1 1024" + "\n    7  { INSERT INTO t1 VALUES(5, 6); } {}        -1 " + "wal_file_size 2 1024" + "\n  \n    8  { PRAGMA journal_mode = TRUNCATE } truncate          0 -1\n    9  { INSERT INTO t1 VALUES(7, 8) }    {}                0 -1\n    10 { SELECT * FROM t1 }               {1 2 3 4 5 6 7 8} 0 -1")
-					_items1 := tclSplitList(tclListElem("1  {\n      CREATE TABLE t1(a, b);\n      PRAGMA auto_vacuum=OFF;\n      PRAGMA synchronous=NORMAL;\n      PRAGMA page_size=1024;\n      PRAGMA locking_mode=EXCLUSIVE;\n      PRAGMA journal_mode=TRUNCATE;\n      INSERT INTO t1 VALUES(1, 2);\n    } {exclusive truncate} 0 -1\n  \n    2  {\n      BEGIN IMMEDIATE;\n        SELECT * FROM t1;\n      COMMIT;\n    } {1 2} 0 -1\n  \n    3  {\n      BEGIN;\n        SELECT * FROM t1;\n      COMMIT;\n    } {1 2} 0 -1\n  \n    4  { PRAGMA journal_mode = WAL }    wal       -1 -1\n    5  { INSERT INTO t1 VALUES(3, 4) }  {}        -1 " + "wal_file_size 1 1024" + "\n    6  { PRAGMA locking_mode = NORMAL } exclusive -1 " + "wal_file_size 1 1024" + "\n    7  { INSERT INTO t1 VALUES(5, 6); } {}        -1 " + "wal_file_size 2 1024" + "\n  \n    8  { PRAGMA journal_mode = TRUNCATE } truncate          0 -1\n    9  { INSERT INTO t1 VALUES(7, 8) }    {}                0 -1\n    10 { SELECT * FROM t1 }               {1 2 3 4 5 6 7 8} 0 -1"))
-					for _idx1 := 0; _idx1+5 <= len(_items1); _idx1 += 5 {
-						tn := _items1[_idx1+0]
+					_items4 := tclSplitList(tclListElem("1  {\n      CREATE TABLE t1(a, b);\n      PRAGMA auto_vacuum=OFF;\n      PRAGMA synchronous=NORMAL;\n      PRAGMA page_size=1024;\n      PRAGMA locking_mode=EXCLUSIVE;\n      PRAGMA journal_mode=TRUNCATE;\n      INSERT INTO t1 VALUES(1, 2);\n    } {exclusive truncate} 0 -1\n  \n    2  {\n      BEGIN IMMEDIATE;\n        SELECT * FROM t1;\n      COMMIT;\n    } {1 2} 0 -1\n  \n    3  {\n      BEGIN;\n        SELECT * FROM t1;\n      COMMIT;\n    } {1 2} 0 -1\n  \n    4  { PRAGMA journal_mode = WAL }    wal       -1 -1\n    5  { INSERT INTO t1 VALUES(3, 4) }  {}        -1 " + "wal_file_size 1 1024" + "\n    6  { PRAGMA locking_mode = NORMAL } exclusive -1 " + "wal_file_size 1 1024" + "\n    7  { INSERT INTO t1 VALUES(5, 6); } {}        -1 " + "wal_file_size 2 1024" + "\n  \n    8  { PRAGMA journal_mode = TRUNCATE } truncate          0 -1\n    9  { INSERT INTO t1 VALUES(7, 8) }    {}                0 -1\n    10 { SELECT * FROM t1 }               {1 2 3 4 5 6 7 8} 0 -1"))
+					for _idx4 := 0; _idx4+5 <= len(_items4); _idx4 += 5 {
+						tn := _items4[_idx4+0]
 						_ = tn // suppress unused warning
-						sql := _items1[_idx1+1]
+						sql := _items4[_idx4+1]
 						_ = sql // suppress unused warning
-						res := _items1[_idx1+2]
+						res := _items4[_idx4+2]
 						_ = res // suppress unused warning
-						js := _items1[_idx1+3]
+						js := _items4[_idx4+3]
 						_ = js // suppress unused warning
-						ws := _items1[_idx1+4]
+						ws := _items4[_idx4+4]
 						_ = ws // suppress unused warning
-						_ = _idx1
+						_ = _idx4
 							{ // "pager1-7.1." + tn + ".1"
 								_res = db.Exec(sql)
 								if _res.Error != nil {
@@ -1629,9 +1629,9 @@ func Test_pager1(t *testing.T) {
 								_ = W // suppress unused warning
 							}
 							{ // do_test "pager1-7.1." + tn + ".2"
-								_list2 := tclList([]string{J, W})
-								_ = _list2
-								_r = _list2
+								_list5 := tclList([]string{J, W})
+								_ = _list5
+								_r = _list5
 							}
 						}
 						{ // do_test "pager1-7.2.1"
@@ -1667,13 +1667,13 @@ func Test_pager1(t *testing.T) {
 							}
 						}
 						// foreach {tn filename} "1 :memory:\n  2 \"\""
-						_items3 := tclSplitList("1 :memory:\n  2 \"\"")
-						for _idx3 := 0; _idx3+2 <= len(_items3); _idx3 += 2 {
-							tn := _items3[_idx3+0]
+						_items6 := tclSplitList("1 :memory:\n  2 \"\"")
+						for _idx6 := 0; _idx6+2 <= len(_items6); _idx6 += 2 {
+							tn := _items6[_idx6+0]
 							_ = tn // suppress unused warning
-							filename := _items3[_idx3+1]
+							filename := _items6[_idx6+1]
 							_ = filename // suppress unused warning
-							_ = _idx3
+							_ = _idx6
 								{ // do_test "pager1-8." + tn + ".1"
 									// db_delete_and_reopen: delete test.db* and reopen
 									db.Close()
@@ -1736,9 +1736,9 @@ func Test_pager1(t *testing.T) {
 								} else {
 									_r = "B"
 								}
-								_list4 := tclList([]string{tclBackupStep(B, "10000"), tclBackupFinish(B)})
-								_ = _list4
-								_r = _list4
+								_list7 := tclList([]string{tclBackupStep(B, "10000"), tclBackupFinish(B)})
+								_ = _list7
+								_r = _list7
 							}
 							{ // do_test "pager1-9.0.3"
 							}
@@ -1765,9 +1765,9 @@ func Test_pager1(t *testing.T) {
 								if _res.Error != nil {
 									t.Errorf("exec error: %v\n  sql: %s", _res.Error, " UPDATE ab SET b = a_string(301) ")
 								}
-								_list5 := tclList([]string{tclBackupStep(B, "10000"), tclBackupFinish(B)})
-								_ = _list5
-								_r = _list5
+								_list8 := tclList([]string{tclBackupStep(B, "10000"), tclBackupFinish(B)})
+								_ = _list8
+								_r = _list8
 							}
 							{ // do_test "pager1-9.1.3"
 							}
@@ -1806,9 +1806,9 @@ func Test_pager1(t *testing.T) {
 								if _res.Error != nil {
 									t.Errorf("exec error: %v\n  sql: %s", _res.Error, " \n    BEGIN;\n      UPDATE ab SET b = a_string(301);\n    ROLLBACK;\n  ")
 								}
-								_list6 := tclList([]string{tclBackupStep(B, "10000"), tclBackupFinish(B)})
-								_ = _list6
-								_r = _list6
+								_list9 := tclList([]string{tclBackupStep(B, "10000"), tclBackupFinish(B)})
+								_ = _list9
+								_r = _list9
 							}
 							{ // do_test "pager1-9.2.3"
 							}
@@ -1873,9 +1873,9 @@ func Test_pager1(t *testing.T) {
 										_r = "B"
 									}
 									_r = tclBackupStep(B, "30")
-									_list0 := tclList([]string{tclBackupStep(B, "10000"), tclBackupFinish(B)})
-									_ = _list0
-									_r = _list0
+									_list10 := tclList([]string{tclBackupStep(B, "10000"), tclBackupFinish(B)})
+									_ = _list10
+									_r = _list10
 								}
 								{ // do_test "pager1-9.3.3codec"
 									if db2 != nil { db2.Close() }
@@ -1904,9 +1904,9 @@ func Test_pager1(t *testing.T) {
 										_r = "B"
 									}
 									_r = tclBackupStep(B, "30")
-									_list0 := tclList([]string{tclBackupStep(B, "10000"), tclBackupFinish(B)})
-									_ = _list0
-									_r = _list0
+									_list10 := tclList([]string{tclBackupStep(B, "10000"), tclBackupFinish(B)})
+									_ = _list10
+									_r = _list10
 								}
 								{ // do_test "pager1-9.3.3"
 									if db2 != nil { db2.Close() }
@@ -1940,14 +1940,14 @@ func Test_pager1(t *testing.T) {
 								} else {
 									_r = "B"
 								}
-								_list7 := tclList([]string{tclBackupStep(B, "10000"), tclBackupFinish(B)})
-								_ = _list7
-								_r = _list7
+								_list10 := tclList([]string{tclBackupStep(B, "10000"), tclBackupFinish(B)})
+								_ = _list10
+								_r = _list10
 							}
 							{ // do_test "pager1-9.4.2"
-								_list8 := tclList([]string{strconv.Itoa(tclFileSize("test.db2")), strconv.Itoa(tclFileSize("test.db"))})
-								_ = _list8
-								_r = _list8
+								_list11 := tclList([]string{strconv.Itoa(tclFileSize("test.db2")), strconv.Itoa(tclFileSize("test.db"))})
+								_ = _list11
+								_r = _list11
 							}
 							if db2 != nil { db2.Close() }
 							// testvfs tv -default 1 (unsupported command, not transpiled)
@@ -2437,8 +2437,8 @@ func Test_pager1(t *testing.T) {
 							_ = i // suppress unused warning
 							for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 513 }() {
 								// testvfs tv -default 1 -szosfile $i (unsupported command, not transpiled)
-								_dbtmp9, err := frigolite.Open("test.db")
-								_ = _dbtmp9 // sqlite3 db connection
+								_dbtmp12, err := frigolite.Open("test.db")
+								_ = _dbtmp12 // sqlite3 db connection
 								if err != nil { t.Logf("open connection side effect failed: %v (not fatal)", err) }
 								_ = err
 								db.ResetChangesCounters()
@@ -2489,17 +2489,17 @@ func Test_pager1(t *testing.T) {
 									_rc := "0"
 									{
 										var _catchErr error
-										_dbtmp10, err := frigolite.Open("test.db")
-										_ = _dbtmp10 // sqlite3 db connection
+										_dbtmp13, err := frigolite.Open("test.db")
+										_ = _dbtmp13 // sqlite3 db connection
 										if err != nil { t.Logf("open connection side effect failed: %v (not fatal)", err) }
 										_ = err
 										db.ResetChangesCounters()
 										if _catchErr != nil { msg = _catchErr.Error() } else { msg = "" }
 										if _catchErr != nil { _rc = "1" }
 									}
-									_list10 := tclList([]string{_rc, msg})
-									_ = _list10
-									_r = _list10
+									_list13 := tclList([]string{_rc, msg})
+									_ = _list13
+									_r = _list13
 									if _r != res {
 										t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", _r, res, "pager1-16.1." + ii)
 									}
@@ -2701,24 +2701,24 @@ func Test_pager1(t *testing.T) {
 								if r.Error != nil {
 									t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA journal_mode = PERSIST;\n    INSERT INTO t1 VALUES('Canberra', 'ACT');\n  ")
 								}
-								_dbevalRows11 := db.Query(" SELECT * FROM t1 ")
-								var _dbevalRb12 bool
-								var _dbevalErr13 error
-								var _dbevalInt14 bool
-								if _dbevalRows11.Error != nil { _dbevalErr13 = _dbevalRows11.Error }
+								_dbevalRows14 := db.Query(" SELECT * FROM t1 ")
+								var _dbevalRb15 bool
+								var _dbevalErr16 error
+								var _dbevalInt17 bool
+								if _dbevalRows14.Error != nil { _dbevalErr16 = _dbevalRows14.Error }
 								db.BeginActiveStatement()
-								for _ri := 0; _ri < len(_dbevalRows11.Rows) && _dbevalErr13 == nil; _ri++ {
-									for _ci := 0; _ci < len(_dbevalRows11.Columns); _ci++ {
-										switch _dbevalRows11.Columns[_ci] {
+								for _ri := 0; _ri < len(_dbevalRows14.Rows) && _dbevalErr16 == nil; _ri++ {
+									for _ci := 0; _ci < len(_dbevalRows14.Columns); _ci++ {
+										switch _dbevalRows14.Columns[_ci] {
 										}
 									}
 									_res = db.Exec(" PRAGMA journal_mode = DELETE ")
-									if _dbevalRb12 { _dbevalErr13 = errors.New("abort due to ROLLBACK") }
-									if _dbevalInt14 { _dbevalErr13 = errors.New("interrupted"); db.ClearInterrupt() }
+									if _dbevalRb15 { _dbevalErr16 = errors.New("abort due to ROLLBACK") }
+									if _dbevalInt17 { _dbevalErr16 = errors.New("interrupted"); db.ClearInterrupt() }
 								}
 								db.EndActiveStatement()
-								if _dbevalErr13 != nil {
-									t.Errorf("db eval callback error: %v", _dbevalErr13)
+								if _dbevalErr16 != nil {
+									t.Errorf("db eval callback error: %v", _dbevalErr16)
 								}
 								r = db.Query(" PRAGMA journal_mode ")
 								if r.Error != nil {
@@ -2780,15 +2780,15 @@ func Test_pager1(t *testing.T) {
 								if err != nil { t.Fatal(err) }
 							}
 							// foreach {tn mode possible} "2  off      1\n  3  memory   1\n  4  persist  0\n  5  delete   0\n  6  wal      0\n  7  truncate 0"
-							_items15 := tclSplitList("2  off      1\n  3  memory   1\n  4  persist  0\n  5  delete   0\n  6  wal      0\n  7  truncate 0")
-							for _idx15 := 0; _idx15+3 <= len(_items15); _idx15 += 3 {
-								tn := _items15[_idx15+0]
+							_items18 := tclSplitList("2  off      1\n  3  memory   1\n  4  persist  0\n  5  delete   0\n  6  wal      0\n  7  truncate 0")
+							for _idx18 := 0; _idx18+3 <= len(_items18); _idx18 += 3 {
+								tn := _items18[_idx18+0]
 								_ = tn // suppress unused warning
-								mode := _items15[_idx15+1]
+								mode := _items18[_idx18+1]
 								_ = mode // suppress unused warning
-								possible := _items15[_idx15+2]
+								possible := _items18[_idx18+2]
 								_ = possible // suppress unused warning
-								_ = _idx15
+								_ = _idx18
 									{ // do_test "pager1-23.5." + tn + ".1"
 										r = db.Query("PRAGMA journal_mode = off")
 										if r.Error != nil {
@@ -3134,15 +3134,15 @@ func Test_pager1(t *testing.T) {
 									}
 								}
 								// foreach {tn pragma strsize} "1 { PRAGMA mmap_size = 0 } 2400\n  2 { }                       2400\n  3 { PRAGMA mmap_size = 0 } 4400\n  4 { }                       4400"
-								_items16 := tclSplitList("1 { PRAGMA mmap_size = 0 } 2400\n  2 { }                       2400\n  3 { PRAGMA mmap_size = 0 } 4400\n  4 { }                       4400")
-								for _idx16 := 0; _idx16+3 <= len(_items16); _idx16 += 3 {
-									tn := _items16[_idx16+0]
+								_items19 := tclSplitList("1 { PRAGMA mmap_size = 0 } 2400\n  2 { }                       2400\n  3 { PRAGMA mmap_size = 0 } 4400\n  4 { }                       4400")
+								for _idx19 := 0; _idx19+3 <= len(_items19); _idx19 += 3 {
+									tn := _items19[_idx19+0]
 									_ = tn // suppress unused warning
-									pragma := _items16[_idx16+1]
+									pragma := _items19[_idx19+1]
 									_ = pragma // suppress unused warning
-									strsize := _items16[_idx16+2]
+									strsize := _items19[_idx19+2]
 									_ = strsize // suppress unused warning
-									_ = _idx16
+									_ = _idx19
 										db.Close()
 										os.Remove("test.db")
 										os.Remove("test.db-journal")
@@ -3184,8 +3184,8 @@ func Test_pager1(t *testing.T) {
 									if err != nil { t.Fatal(err) }
 									tcl_nullvalue = "{}" // fresh connection resets nullvalue
 									{ // do_test "35"
-										_dbtmp17, err := frigolite.Open("test.db")
-										_ = _dbtmp17 // sqlite3 db connection
+										_dbtmp20, err := frigolite.Open("test.db")
+										_ = _dbtmp20 // sqlite3 db connection
 										if err != nil { t.Logf("open connection side effect failed: %v (not fatal)", err) }
 										_ = err
 										db.ResetChangesCounters()
@@ -3205,13 +3205,13 @@ func Test_pager1(t *testing.T) {
 									os.Remove("test1")
 									os.Remove("test2")
 									// foreach {tn uri} "1   {file:?mode=memory&cache=shared}\n  2   {file:one?mode=memory&cache=shared}\n  3   {file:test1?cache=shared}\n  4   {file:test2?another=parameter&yet=anotherone}"
-									_items18 := tclSplitList("1   {file:?mode=memory&cache=shared}\n  2   {file:one?mode=memory&cache=shared}\n  3   {file:test1?cache=shared}\n  4   {file:test2?another=parameter&yet=anotherone}")
-									for _idx18 := 0; _idx18+2 <= len(_items18); _idx18 += 2 {
-										tn := _items18[_idx18+0]
+									_items21 := tclSplitList("1   {file:?mode=memory&cache=shared}\n  2   {file:one?mode=memory&cache=shared}\n  3   {file:test1?cache=shared}\n  4   {file:test2?another=parameter&yet=anotherone}")
+									for _idx21 := 0; _idx21+2 <= len(_items21); _idx21 += 2 {
+										tn := _items21[_idx21+0]
 										_ = tn // suppress unused warning
-										uri := _items18[_idx18+1]
+										uri := _items21[_idx21+1]
 										_ = uri // suppress unused warning
-										_ = _idx18
+										_ = _idx21
 											{ // do_test "37." + tn
 												{
 													var _catchErr error

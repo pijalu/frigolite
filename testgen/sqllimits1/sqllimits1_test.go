@@ -685,9 +685,54 @@ func Test_sqllimits1(t *testing.T) {
 	{ // do_test "sqllimits1-5.14.3"
 		_r = tclResetStmtCode("STMT")
 	}
-	{ // "sqllimits1-5.14.4" — skipped: catch-of-C-API wrapper drops the code string (engine returns SQLITE_TOOBIG via tclBindStmt; res assigned from synthesized empty error) (no-side-effects)
+	{ // do_test "sqllimits1-5.14.4"
+		np1 = tclExprWith("$SQLITE_LIMIT_LENGTH + 1", map[string]string{"SQLITE_LIMIT_LENGTH": SQLITE_LIMIT_LENGTH})
+		_ = np1 // suppress unused warning
+		vtab.TclVarSet("str1", "", tclStringRepeat("A", np1))
+		str1 = tclStringRepeat("A", np1) // TCL namespace variable
+		_ = str1 // suppress unused warning
+		{
+			var _catchErrMsg string // catch error message
+			_ = res // suppress unused warning
+			_ = _catchErrMsg // suppress unused warning
+			var _catchErr error
+			_r = ""
+			if _r = tclBindStmt(db, "STMT", 1, "text", str1, -1); _r != "SQLITE_OK" && _r != "" { _catchErr = fmt.Errorf("") }
+			if _catchErr != nil {
+				res = _catchErr.Error()
+				_catchErrMsg = _catchErr.Error()
+			} else {
+				res = tclCatchStmtResult(_r)
+				_catchErrMsg = ""
+			}
+		}
+		got := tclListFlatten(res)
+		want := tclListFlatten("SQLITE_TOOBIG")
+		if got != want && !tclFpnumCompare(got, want) {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "sqllimits1-5.14.4")
+		}
 	}
-	{ // "sqllimits1-5.14.6" — skipped: catch-of-C-API wrapper drops the code string (engine returns SQLITE_TOOBIG via tclBindStmt; res assigned from synthesized empty error) (no-side-effects)
+	{ // do_test "sqllimits1-5.14.6"
+		{
+			var _catchErrMsg string // catch error message
+			_ = res // suppress unused warning
+			_ = _catchErrMsg // suppress unused warning
+			var _catchErr error
+			_r = ""
+			if _r = tclBindStmt(db, "STMT", 1, "text", str1, toInt(np1)); _r != "SQLITE_OK" && _r != "" { _catchErr = fmt.Errorf("") }
+			if _catchErr != nil {
+				res = _catchErr.Error()
+				_catchErrMsg = _catchErr.Error()
+			} else {
+				res = tclCatchStmtResult(_r)
+				_catchErrMsg = ""
+			}
+		}
+		got := tclListFlatten(res)
+		want := tclListFlatten("SQLITE_TOOBIG")
+		if got != want && !tclFpnumCompare(got, want) {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "sqllimits1-5.14.6")
+		}
 	}
 	{ // do_test "sqllimits1-5.14.8"
 		n = tclExprWith("$np1-1", map[string]string{"np1": np1})

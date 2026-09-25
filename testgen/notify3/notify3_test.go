@@ -209,23 +209,23 @@ func Test_notify3(t *testing.T) {
 	_ = noerr // suppress unused warning
 	if tclBool("presql" + " == \"\"") {
 		// foreach {tn db1_loaded db2_loaded enable_extended_errors result error1 error2} "0   0 0 0   " + tclListElem(_err) + "     SQLITE_LOCKED               SQLITE_LOCKED_SHAREDCACHE\n    1   0 0 1   " + tclListElem(_err) + "     SQLITE_LOCKED_SHAREDCACHE   SQLITE_LOCKED_SHAREDCACHE\n    2   0 1 0   " + tclListElem(noerr) + "   SQLITE_OK                   SQLITE_OK\n    3   0 1 1   " + tclListElem(noerr) + "   SQLITE_OK                   SQLITE_OK\n    4   1 0 0   " + tclListElem(_err) + "     SQLITE_LOCKED               SQLITE_LOCKED_SHAREDCACHE\n    5   1 0 1   " + tclListElem(_err) + "     SQLITE_LOCKED_SHAREDCACHE   SQLITE_LOCKED_SHAREDCACHE\n    6   1 1 0   " + tclListElem(noerr) + "   SQLITE_OK                   SQLITE_OK\n    7   1 1 1   " + tclListElem(noerr) + "   SQLITE_OK                   SQLITE_OK"
-		_items0 := tclSplitList("0   0 0 0   " + tclListElem(_err) + "     SQLITE_LOCKED               SQLITE_LOCKED_SHAREDCACHE\n    1   0 0 1   " + tclListElem(_err) + "     SQLITE_LOCKED_SHAREDCACHE   SQLITE_LOCKED_SHAREDCACHE\n    2   0 1 0   " + tclListElem(noerr) + "   SQLITE_OK                   SQLITE_OK\n    3   0 1 1   " + tclListElem(noerr) + "   SQLITE_OK                   SQLITE_OK\n    4   1 0 0   " + tclListElem(_err) + "     SQLITE_LOCKED               SQLITE_LOCKED_SHAREDCACHE\n    5   1 0 1   " + tclListElem(_err) + "     SQLITE_LOCKED_SHAREDCACHE   SQLITE_LOCKED_SHAREDCACHE\n    6   1 1 0   " + tclListElem(noerr) + "   SQLITE_OK                   SQLITE_OK\n    7   1 1 1   " + tclListElem(noerr) + "   SQLITE_OK                   SQLITE_OK")
-		for _idx0 := 0; _idx0+7 <= len(_items0); _idx0 += 7 {
-			tn := _items0[_idx0+0]
+		_items2 := tclSplitList("0   0 0 0   " + tclListElem(_err) + "     SQLITE_LOCKED               SQLITE_LOCKED_SHAREDCACHE\n    1   0 0 1   " + tclListElem(_err) + "     SQLITE_LOCKED_SHAREDCACHE   SQLITE_LOCKED_SHAREDCACHE\n    2   0 1 0   " + tclListElem(noerr) + "   SQLITE_OK                   SQLITE_OK\n    3   0 1 1   " + tclListElem(noerr) + "   SQLITE_OK                   SQLITE_OK\n    4   1 0 0   " + tclListElem(_err) + "     SQLITE_LOCKED               SQLITE_LOCKED_SHAREDCACHE\n    5   1 0 1   " + tclListElem(_err) + "     SQLITE_LOCKED_SHAREDCACHE   SQLITE_LOCKED_SHAREDCACHE\n    6   1 1 0   " + tclListElem(noerr) + "   SQLITE_OK                   SQLITE_OK\n    7   1 1 1   " + tclListElem(noerr) + "   SQLITE_OK                   SQLITE_OK")
+		for _idx2 := 0; _idx2+7 <= len(_items2); _idx2 += 7 {
+			tn := _items2[_idx2+0]
 			_ = tn // suppress unused warning
-			db1_loaded := _items0[_idx0+1]
+			db1_loaded := _items2[_idx2+1]
 			_ = db1_loaded // suppress unused warning
-			db2_loaded := _items0[_idx0+2]
+			db2_loaded := _items2[_idx2+2]
 			_ = db2_loaded // suppress unused warning
-			enable_extended_errors := _items0[_idx0+3]
+			enable_extended_errors := _items2[_idx2+3]
 			_ = enable_extended_errors // suppress unused warning
-			result := _items0[_idx0+4]
+			result := _items2[_idx2+4]
 			_ = result // suppress unused warning
-			error1 := _items0[_idx0+5]
+			error1 := _items2[_idx2+5]
 			_ = error1 // suppress unused warning
-			error2 := _items0[_idx0+6]
+			error2 := _items2[_idx2+6]
 			_ = error2 // suppress unused warning
-			_ = _idx0
+			_ = _idx2
 				{ // do_test "notify3-2." + tn + ".1"
 					{
 						var _catchErr error
@@ -264,9 +264,9 @@ func Test_notify3(t *testing.T) {
 					}
 				}
 				{ // do_test "notify3-2." + tn + ".2"
-					_list1 := tclList([]string{db1.LastErrCode(), "sqlite3_extended_errcode db1"})
-					_ = _list1
-					_r = _list1
+					_list3 := tclList([]string{db1.LastErrCode(), "sqlite3_extended_errcode db1"})
+					_ = _list3
+					_r = _list3
 				}
 				{ // do_test "notify3-2." + tn + ".3"
 					// db1.unlock_notify (db command)

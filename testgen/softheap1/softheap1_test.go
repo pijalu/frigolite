@@ -75,7 +75,17 @@ func Test_softheap1(t *testing.T) {
 	_ = cmdlinearg_soft_heap_limit // pre-declared from TCL source
 
 	// set testdir: test directory (not used in Go test context)
-	{ // "softheap1-1.0" — skipped: want literal is the untranspiled C command text 'sqlite3_soft_heap_limit -1' baked into the expected list (transpiler artifact; oracle default 0 pinned natively) (no-side-effects)
+	{ // do_test "softheap1-1.0"
+		r = db.Query("PRAGMA soft_heap_limit")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "PRAGMA soft_heap_limit")
+			return
+		}
+		got := flatten(r)
+		want := "sqlite3_soft_heap_limit -1"
+		if got != want && !tclFpnumCompare(got, want) {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
 	}
 	{ // do_test "softheap1-1.1"
 		r = db.Query("PRAGMA soft_heap_limit=123456; PRAGMA soft_heap_limit;")
@@ -117,7 +127,17 @@ func Test_softheap1(t *testing.T) {
 		}
 	}
 	// sqlite3_soft_heap_limit 5000 (unsupported command, not transpiled)
-	{ // "softheap1-2.0" — skipped: want 5000 set only by the untranspiled sqlite3_soft_heap_limit C-API call (pragma round-trip covered by 1.x + native pin) (no-side-effects)
+	{ // do_test "softheap1-2.0"
+		r = db.Query("PRAGMA soft_heap_limit")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "PRAGMA soft_heap_limit")
+			return
+		}
+		got := flatten(r)
+		want := "5000"
+		if got != want && !tclFpnumCompare(got, want) {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
 	}
 	{ // do_test "softheap1-2.1"
 		r = db.Query("\n    PRAGMA auto_vacuum=1;\n    CREATE TABLE t1(x);\n    INSERT INTO t1 VALUES(hex(randomblob(1000)));\n    BEGIN;\n  ")

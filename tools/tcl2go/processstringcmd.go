@@ -390,8 +390,9 @@ func (tp *transpiler) processScriptEval(args []tcl.RawWord) {
 	// Parse the script and execute its commands
 	if args[0].Braced {
 		bodyCmds := parseCommands(args[0].Text)
-		bodyTP := &transpiler{sb: tp.sb, indent: tp.indent, dbVar: tp.dbVar, t: tp.t, vars: tp.vars, forIncrs: tp.forIncrs, testPrefix: tp.testPrefix, preparedState: tp.preparedState}
+		bodyTP := &transpiler{sb: tp.sb, indent: tp.indent, dbVar: tp.dbVar, t: tp.t, vars: tp.vars, forIncrs: tp.forIncrs, testPrefix: tp.testPrefix, preparedState: tp.preparedState, varCount: tp.varCount}
 		bodyTP.processCommands(bodyCmds)
+		tp.varCount = bodyTP.varCount
 		tp.indent = bodyTP.indent
 	} else if strings.HasPrefix(args[0].Text, "$") && len(args) == 1 {
 		vn := tclVarToGo(strings.TrimPrefix(args[0].Text, "$"))
@@ -470,7 +471,7 @@ func (tp *transpiler) evalForeachLitScripts(vn string) bool {
 		tp.emitLine("%s %s == %s {", kw, vn, v.cmpExpr)
 		tp.indent++
 		bodyCmds := parseCommands(v.raw)
-		bodyTP := &transpiler{sb: tp.sb, indent: tp.indent, dbVar: tp.dbVar, t: tp.t, vars: tp.vars, forIncrs: tp.forIncrs, testPrefix: tp.testPrefix, preparedState: tp.preparedState, varConstValues: tp.varConstValues, foreachLitValues: tp.foreachLitValues, varsetLoopVars: tp.varsetLoopVars, dbConnVars: tp.dbConnVars, runtimeConnVars: tp.runtimeConnVars, varRenames: tp.varRenames, inEvalScript: true, catchMode: tp.catchMode, dbClosed: tp.dbClosed, connClosed: tp.connClosed, pendingFileReset: tp.pendingFileReset, dqsDDL: tp.dqsDDL, dqsDML: tp.dqsDML, dbAliases: tp.dbAliases}
+		bodyTP := &transpiler{sb: tp.sb, indent: tp.indent, dbVar: tp.dbVar, t: tp.t, vars: tp.vars, forIncrs: tp.forIncrs, testPrefix: tp.testPrefix, preparedState: tp.preparedState, varConstValues: tp.varConstValues, foreachLitValues: tp.foreachLitValues, varsetLoopVars: tp.varsetLoopVars, dbConnVars: tp.dbConnVars, runtimeConnVars: tp.runtimeConnVars, varRenames: tp.varRenames, inEvalScript: true, catchMode: tp.catchMode, dbClosed: tp.dbClosed, connClosed: tp.connClosed, pendingFileReset: tp.pendingFileReset, dqsDDL: tp.dqsDDL, dqsDML: tp.dqsDML, dbAliases: tp.dbAliases, varCount: tp.varCount}
 		bodyTP.processCommands(bodyCmds)
 		tp.indent = bodyTP.indent
 		tp.vars = bodyTP.vars

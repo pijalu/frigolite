@@ -6424,7 +6424,17 @@ func tclWrongNumArgsMask(what string) error {
 // the digits before the decimal point, on up to 15 digits after it (taking
 // rounding into account), and on the exponent (e+NN matches e+N). Returns
 // true when the two strings describe the same value.
-func tclFpnumCompare(aStr, bStr string) bool {
+func tclFpnumCompare(a, b interface{}) bool {
+	aStr, aok := a.(string)
+	bStr, bok := b.(string)
+	if !aok || !bok {
+		return false
+	}
+	return tclFpnumCompareStr(aStr, bStr)
+}
+
+// tclFpnumCompareStr is the string-form fpnum comparison (see tclFpnumCompare).
+func tclFpnumCompareStr(aStr, bStr string) bool {
 	zA := []byte(aStr)
 	zB := []byte(bStr)
 	i, j := 0, 0

@@ -49,12 +49,12 @@ var skipTestsMoreTail = map[string]string{
 	// is dropped by the transpiler's quoted-word escape processing, leaving
 	// "-?d+" which can never match. The engine's got values (STMT id +
 	// exact SQL text, PROFILE id + elapsed ns, CLOSE id) are correct.
-	"trace3-3.2": "quoted-word \\d escape fidelity in [string repeat] expected patterns (no-side-effects)",
-	"trace3-3.3": "quoted-word \\d escape fidelity in [string repeat] expected patterns (no-side-effects)",
-	"trace3-3.4": "quoted-word \\d escape fidelity in [string repeat] expected patterns (no-side-effects)",
-	"trace3-3.5": "quoted-word \\d escape fidelity in [string repeat] expected patterns (no-side-effects)",
-	"trace3-4.1": "quoted-word \\d escape fidelity in [string repeat] expected patterns (no-side-effects)",
-	"trace3-4.2": "quoted-word \\d escape fidelity in [string repeat] expected patterns (no-side-effects)",
+	"trace3-3.2":  "quoted-word \\d escape fidelity in [string repeat] expected patterns (no-side-effects)",
+	"trace3-3.3":  "quoted-word \\d escape fidelity in [string repeat] expected patterns (no-side-effects)",
+	"trace3-3.4":  "quoted-word \\d escape fidelity in [string repeat] expected patterns (no-side-effects)",
+	"trace3-3.5":  "quoted-word \\d escape fidelity in [string repeat] expected patterns (no-side-effects)",
+	"trace3-4.1":  "quoted-word \\d escape fidelity in [string repeat] expected patterns (no-side-effects)",
+	"trace3-4.2":  "quoted-word \\d escape fidelity in [string repeat] expected patterns (no-side-effects)",
 	"trace3-11.1": "quoted-word \\d escape fidelity in [string repeat] expected patterns (no-side-effects)",
 	"trace3-11.2": "quoted-word \\d escape fidelity in [string repeat] expected patterns (no-side-effects)",
 
@@ -431,8 +431,8 @@ var skipTestsMoreTail = map[string]string{
 	// The engine's hooks fire correctly for the core cases (hook2.test is
 	// fully green); these specific exact-output assertions are skipped with
 	// evidence.
-	"hook-3.5":     "commit-hook proc redefined after registration (dynamic TCL proc body dispatch) N-A",
-	"hook-3.7":     "commit-hook proc redefined after registration (dynamic TCL proc body dispatch) N-A",
+	"hook-3.5": "commit-hook proc redefined after registration (dynamic TCL proc body dispatch) N-A",
+	"hook-3.7": "commit-hook proc redefined after registration (dynamic TCL proc body dispatch) N-A",
 	// hook-3.8 depends on 3.5/3.7's non-transpiled hook re-registrations: in
 	// TCL the hook returns nonzero through 3.5 (aborting the (5,6) insert)
 	// and is restored in 3.6. The generated test never registers the
@@ -441,7 +441,7 @@ var skipTestsMoreTail = map[string]string{
 	// (nonzero -> SQLITE_CONSTRAINT_COMMITHOOK + full transaction rollback,
 	// autocommit and explicit COMMIT) is implemented and pinned in
 	// frigolite_hookveto_pin_test.go.
-	"hook-3.8":     "commit-hook proc redefined after registration (dynamic TCL proc body dispatch) N-A (no-side-effects)",
+	"hook-3.8": "commit-hook proc redefined after registration (dynamic TCL proc body dispatch) N-A (no-side-effects)",
 	// interrupt-1.3 / interrupt-2.1 cascade from interrupt-1.2's non-transpiled
 	// `interrupt_test` proc driver (it re-executes the SQL with progressively
 	// later ::sqlite_interrupt_count values until the statement succeeds; the
@@ -450,7 +450,7 @@ var skipTestsMoreTail = map[string]string{
 	// interrupted writes undone, an interrupted COMMIT never commits and
 	// closes the transaction (special-error rollback, vdbeaux.c:3358-3383) —
 	// is pinned natively in frigolite_interrupt_pin_test.go.
-	"interrupt-1.3": "cascade of untranspiled interrupt_test proc driver (interrupt-1.2 DROP never runs) (no-side-effects)",
+	"interrupt-1.3":  "cascade of untranspiled interrupt_test proc driver (interrupt-1.2 DROP never runs) (no-side-effects)",
 	"interrrupt-2.1": "cascade of untranspiled interrupt_test proc driver (interrupt-1.2 DROP never runs) (no-side-effects)",
 	// interrupt-3.x additionally depends on 2.1's t1 population: with the
 	// proc driver untranspiled, t1 is EMPTY, so the loop's INSERT copies no
@@ -483,10 +483,10 @@ var skipTestsMoreTail = map[string]string{
 	// the C result (a bare journal_mode SET applies to every materialized
 	// btree incl. temp and returns main's mode; the temp query reports
 	// temp's own mode): got [persist persist persist] == the evaluated want.
-	"jrnlmode-1.0":  "unrendered TCL proc call [temp_journal_mode] in expected list (no-side-effects)",
-	"jrnlmode-1.2":  "unrendered TCL proc call [temp_journal_mode] in expected list (no-side-effects)",
-	"jrnlmode-1.5":  "unrendered TCL proc call [temp_journal_mode] in expected list (no-side-effects)",
-	"jrnlmode-1.7":  "unrendered TCL proc call [temp_journal_mode] in expected list (no-side-effects)",
+	"jrnlmode-1.0":   "unrendered TCL proc call [temp_journal_mode] in expected list (no-side-effects)",
+	"jrnlmode-1.2":   "unrendered TCL proc call [temp_journal_mode] in expected list (no-side-effects)",
+	"jrnlmode-1.5":   "unrendered TCL proc call [temp_journal_mode] in expected list (no-side-effects)",
+	"jrnlmode-1.7":   "unrendered TCL proc call [temp_journal_mode] in expected list (no-side-effects)",
 	"jrnlmode-1.7.2": "unrendered TCL proc call [temp_journal_mode] in expected list (no-side-effects)",
 	// journal2-1.7/1.9/1.15: C's expected outcomes derive from the testvfs
 	// fault-injection procs (journal_op makes xDelete of test.db-journal
@@ -500,42 +500,42 @@ var skipTestsMoreTail = map[string]string{
 	"journal2-1.7":  "testvfs fault-injection procs (journal_op xDelete / tvfs_error_on_write) not transpiled (no-side-effects)",
 	"journal2-1.9":  "testvfs fault-injection procs (journal_op xDelete / tvfs_error_on_write) not transpiled (no-side-effects)",
 	"journal2-1.15": "testvfs fault-injection procs (journal_op xDelete / tvfs_error_on_write) not transpiled (no-side-effects)",
-	"hook-5.2.1":   "rollback-hook log across commit/rollback of an attached db N-A (multi-connection)",
-	"hook-6.2":     "commit+rollback hook combined log N-A",
-	"hook-7.1.4":   "preupdate old/new rendering for NULL/absent columns N-A (exact SQLite rendering)",
-	"hook-7.1.5":   "preupdate old/new rendering for NULL/absent columns N-A (exact SQLite rendering)",
-	"hook-7.3.2":   "preupdate rowid rendering N-A",
-	"hook-7.3.3":   "preupdate rowid rendering N-A",
-	"hook-7.3.5":   "preupdate rowid rendering N-A",
-	"hook-7.4.1.3": "preupdate duplicate DELETE events for REPLACE N-A",
-	"hook-7.4.2.3": "preupdate duplicate DELETE events for REPLACE N-A",
-	"hook-7.5.1.1": "preupdate NULL column rendering N-A",
-	"hook-7.5.1.2": "preupdate NULL column rendering N-A",
-	"hook-7.5.2.2": "preupdate NULL column rendering N-A",
-	"hook-7.6.2":   "preupdate trigger-interleaved callback order N-A",
-	"hook-7.6.3":   "preupdate trigger-interleaved callback order N-A",
-	"hook-7.6.4":   "preupdate trigger-interleaved callback order N-A",
-	"hook-7.6.6":   "preupdate trigger-interleaved callback order N-A",
-	"hook-8.1":     "preupdate on sqlite_sequence/system table N-A",
-	"hook-8.2":     "preupdate on sqlite_sequence/system table N-A",
-	"hook-8.3":     "preupdate on sqlite_sequence/system table N-A",
-	"hook-8.4":     "preupdate on sqlite_sequence/system table N-A",
-	"hook-8.5":     "preupdate on sqlite_sequence/system table N-A",
-	"hook-8.6":     "preupdate on sqlite_sequence/system table N-A",
-	"hook-9.1":     "preupdate rowid alias old/new rendering N-A",
-	"hook-9.3":     "preupdate rowid alias old/new rendering N-A",
-	"hook-9.4":     "preupdate rowid alias old/new rendering N-A",
-	"hook-9.5":     "preupdate rowid alias old/new rendering N-A",
-	"hook-9.6":     "preupdate rowid alias old/new rendering N-A",
-	"hook-10.1":    "preupdate on WITHOUT ROWID key column N-A",
-	"hook-10.3":    "preupdate on WITHOUT ROWID key column N-A",
-	"hook-11.2":    "preupdate on sqlite_stat1 N-A",
-	"hook-11.4":    "preupdate on sqlite_stat1 N-A",
-	"hook-12.3":    "preupdate on WITHOUT ROWID t3 N-A",
-	"hook-12.4":    "preupdate on WITHOUT ROWID t3 N-A",
-	"hook-13.2":    "preupdate ALTER TABLE ADD COLUMN old/new rendering N-A",
-	"hook-13.3":    "preupdate ALTER TABLE ADD COLUMN old/new rendering N-A",
-	"hook-13.4":    "preupdate ALTER TABLE ADD COLUMN old/new rendering N-A",
+	"hook-5.2.1":    "rollback-hook log across commit/rollback of an attached db N-A (multi-connection)",
+	"hook-6.2":      "commit+rollback hook combined log N-A",
+	"hook-7.1.4":    "preupdate old/new rendering for NULL/absent columns N-A (exact SQLite rendering)",
+	"hook-7.1.5":    "preupdate old/new rendering for NULL/absent columns N-A (exact SQLite rendering)",
+	"hook-7.3.2":    "preupdate rowid rendering N-A",
+	"hook-7.3.3":    "preupdate rowid rendering N-A",
+	"hook-7.3.5":    "preupdate rowid rendering N-A",
+	"hook-7.4.1.3":  "preupdate duplicate DELETE events for REPLACE N-A",
+	"hook-7.4.2.3":  "preupdate duplicate DELETE events for REPLACE N-A",
+	"hook-7.5.1.1":  "preupdate NULL column rendering N-A",
+	"hook-7.5.1.2":  "preupdate NULL column rendering N-A",
+	"hook-7.5.2.2":  "preupdate NULL column rendering N-A",
+	"hook-7.6.2":    "preupdate trigger-interleaved callback order N-A",
+	"hook-7.6.3":    "preupdate trigger-interleaved callback order N-A",
+	"hook-7.6.4":    "preupdate trigger-interleaved callback order N-A",
+	"hook-7.6.6":    "preupdate trigger-interleaved callback order N-A",
+	"hook-8.1":      "preupdate on sqlite_sequence/system table N-A",
+	"hook-8.2":      "preupdate on sqlite_sequence/system table N-A",
+	"hook-8.3":      "preupdate on sqlite_sequence/system table N-A",
+	"hook-8.4":      "preupdate on sqlite_sequence/system table N-A",
+	"hook-8.5":      "preupdate on sqlite_sequence/system table N-A",
+	"hook-8.6":      "preupdate on sqlite_sequence/system table N-A",
+	"hook-9.1":      "preupdate rowid alias old/new rendering N-A",
+	"hook-9.3":      "preupdate rowid alias old/new rendering N-A",
+	"hook-9.4":      "preupdate rowid alias old/new rendering N-A",
+	"hook-9.5":      "preupdate rowid alias old/new rendering N-A",
+	"hook-9.6":      "preupdate rowid alias old/new rendering N-A",
+	"hook-10.1":     "preupdate on WITHOUT ROWID key column N-A",
+	"hook-10.3":     "preupdate on WITHOUT ROWID key column N-A",
+	"hook-11.2":     "preupdate on sqlite_stat1 N-A",
+	"hook-11.4":     "preupdate on sqlite_stat1 N-A",
+	"hook-12.3":     "preupdate on WITHOUT ROWID t3 N-A",
+	"hook-12.4":     "preupdate on WITHOUT ROWID t3 N-A",
+	"hook-13.2":     "preupdate ALTER TABLE ADD COLUMN old/new rendering N-A",
+	"hook-13.3":     "preupdate ALTER TABLE ADD COLUMN old/new rendering N-A",
+	"hook-13.4":     "preupdate ALTER TABLE ADD COLUMN old/new rendering N-A",
 
 	// ---- P5.STMT (capi2/capi3/capi3b/capi3c/capi3d/capi3e) ----
 	// capi2-6.5: prepared SELECT VM1 retains a SHARED read lock while db2

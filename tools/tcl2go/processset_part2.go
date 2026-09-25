@@ -782,7 +782,7 @@ func (tp *transpiler) processSetTimeValue(goName, bracketText string) {
 	cmdText = strings.TrimSpace(strings.TrimPrefix(cmdText, "time"))
 	if bodyStr, _, ok := findBracedBody(cmdText); ok {
 		bodyCmds := parseCommands(bodyStr)
-		bodyTP := &transpiler{sb: tp.sb, indent: tp.indent, dbVar: tp.dbVar, t: tp.t, vars: tp.vars, forIncrs: tp.forIncrs, testPrefix: tp.testPrefix, preparedState: tp.preparedState}
+		bodyTP := &transpiler{sb: tp.sb, indent: tp.indent, dbVar: tp.dbVar, t: tp.t, vars: tp.vars, forIncrs: tp.forIncrs, testPrefix: tp.testPrefix, preparedState: tp.preparedState, varCount: tp.varCount}
 		bodyTP.processCommands(bodyCmds)
 		tp.indent = bodyTP.indent
 	}
@@ -800,7 +800,7 @@ func (tp *transpiler) processSetLindexTimeValue(goName, bracketText string) {
 		afterTime := cmdText[timeIdx+len("[time "):]
 		if bodyStr, _, ok := findBracedBody(afterTime); ok {
 			bodyCmds := parseCommands(bodyStr)
-			bodyTP := &transpiler{sb: tp.sb, indent: tp.indent, dbVar: tp.dbVar, t: tp.t, vars: tp.vars, forIncrs: tp.forIncrs, testPrefix: tp.testPrefix, preparedState: tp.preparedState}
+			bodyTP := &transpiler{sb: tp.sb, indent: tp.indent, dbVar: tp.dbVar, t: tp.t, vars: tp.vars, forIncrs: tp.forIncrs, testPrefix: tp.testPrefix, preparedState: tp.preparedState, varCount: tp.varCount}
 			bodyTP.processCommands(bodyCmds)
 			tp.indent = bodyTP.indent
 		}

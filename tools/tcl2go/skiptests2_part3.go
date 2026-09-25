@@ -3,7 +3,7 @@ package main
 // This file is a size split of skipTestsMoreTail (skiptests2_part2.go):
 // both maps merge into skipTestsMore at init, so lookups are unchanged.
 var skipTestsMoreTail2 = map[string]string{
-	"fts3corrupt4-31.1":    "matchinfo over crafted segdir N-A: oracle 3.51 hangs on the input; expected malformed is version-specific (no-side-effects)",
+	"fts3corrupt4-31.1": "matchinfo over crafted segdir N-A: oracle 3.51 hangs on the input; expected malformed is version-specific (no-side-effects)",
 	// fts3corrupt4-42.3/43.2: special-command INSERTs (merge=107,2 /
 	// optimize) on a crash DB are expected to SUCCEED, but real SQLite 3.51
 	// rejects the DB at prepare ("malformed database schema (t2) - invalid

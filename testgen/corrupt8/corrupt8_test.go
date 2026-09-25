@@ -171,8 +171,8 @@ func Test_corrupt8(t *testing.T) {
 				db, err = frigolite.Open("test.db")
 				tclConnRegister("db", db)
 				if err != nil { t.Fatal(err) }
-				_dbeval0 := tclExecSQL(db, "PRAGMA integrity_check")
-				x = _dbeval0
+				_dbeval3 := tclExecSQL(db, "PRAGMA integrity_check")
+				x = _dbeval3
 				_ = x // suppress unused warning
 				// expr $x!="ok" (not evaluated)
 			}

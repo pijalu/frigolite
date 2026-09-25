@@ -80,13 +80,14 @@ func quotedJoin(vals []string) string {
 // output buffer and state, with the given test prefix (foreach_detail_mode
 // renames ::testprefix per mode, which also feeds skip-map lookups).
 func (tp *transpiler) forkBodyTranspiler(testPrefix string) *transpiler {
-	return &transpiler{sb: tp.sb, indent: tp.indent, dbVar: tp.dbVar, t: tp.t, catchMode: tp.catchMode, inDBEvalCb: tp.inDBEvalCb, vars: tp.vars, forIncrs: tp.forIncrs, testPrefix: testPrefix, preparedState: tp.preparedState, varConstValues: tp.varConstValues, sqlVarValues: tp.sqlVarValues, foreachLitValues: tp.foreachLitValues, varsetLoopVars: tp.varsetLoopVars, dbConnVars: tp.dbConnVars, runtimeConnVars: tp.runtimeConnVars, varRenames: tp.varRenames, connFailedOpen: tp.connFailedOpen, connClosed: tp.connClosed, dbClosed: tp.dbClosed, blobChans: tp.blobChans, blobChannelVars: tp.blobChannelVars, blobVarNames: tp.blobVarNames, usedChannels: tp.usedChannels, blobSeq: tp.blobSeq, specialFuncs: tp.specialFuncs, procStringMaps: tp.procStringMaps, currentTestFile: tp.currentTestFile, dqsDDL: tp.dqsDDL, dqsDML: tp.dqsDML, fdmSeq: tp.fdmSeq, dbAliases: tp.dbAliases, unsetVars: tp.unsetVars, queryVars: tp.queryVars}
+	return &transpiler{sb: tp.sb, indent: tp.indent, dbVar: tp.dbVar, t: tp.t, catchMode: tp.catchMode, inDBEvalCb: tp.inDBEvalCb, vars: tp.vars, forIncrs: tp.forIncrs, testPrefix: testPrefix, preparedState: tp.preparedState, varConstValues: tp.varConstValues, sqlVarValues: tp.sqlVarValues, foreachLitValues: tp.foreachLitValues, varsetLoopVars: tp.varsetLoopVars, dbConnVars: tp.dbConnVars, runtimeConnVars: tp.runtimeConnVars, varRenames: tp.varRenames, connFailedOpen: tp.connFailedOpen, connClosed: tp.connClosed, dbClosed: tp.dbClosed, blobChans: tp.blobChans, blobChannelVars: tp.blobChannelVars, blobVarNames: tp.blobVarNames, usedChannels: tp.usedChannels, blobSeq: tp.blobSeq, specialFuncs: tp.specialFuncs, procStringMaps: tp.procStringMaps, currentTestFile: tp.currentTestFile, dqsDDL: tp.dqsDDL, dqsDML: tp.dqsDML, fdmSeq: tp.fdmSeq, dbAliases: tp.dbAliases, unsetVars: tp.unsetVars, queryVars: tp.queryVars, varCount: tp.varCount}
 }
 
 // syncBodyTranspiler copies mutable state back from a forked body
 // sub-transpiler (same fields runIfBody syncs).
 func (tp *transpiler) syncBodyTranspiler(bodyTP *transpiler) {
 	tp.indent = bodyTP.indent
+	tp.varCount = bodyTP.varCount
 	tp.connFailedOpen = bodyTP.connFailedOpen
 	tp.connClosed = bodyTP.connClosed
 	tp.dbClosed = bodyTP.dbClosed
