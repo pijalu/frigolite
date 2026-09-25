@@ -276,21 +276,35 @@ func (e *Engine) noteStmtReadLock(stmt sql.Stmt) {
 	if key == "" {
 		return
 	}
+	e.markStmtReadDb(key)
+}
+
+// markStmtReadDb records the database whose file-lock key matches key in the
+// transaction's read-database set (PRAGMA lock_status "shared" parity).
+// Temp databases are skipped: the in-memory temp pager holds no file lock.
+func (e *Engine) markStmtReadDb(key string) {
 	for _, ctx := range e.dbList {
 		if ctx == nil || ctx.Pager == nil {
 			continue
 		}
-		if strings.EqualFold(ctx.Name, "TEMP") || strings.EqualFold(ctx.Name, "TEMPORARY") {
+		if isTempDbName(ctx.Name) {
 			continue
 		}
-		if lockKey(ctx, e.connID) == key {
-			if e.tx.readDbs == nil {
-				e.tx.readDbs = make(map[string]bool)
-			}
-			e.tx.readDbs[strings.ToUpper(ctx.Name)] = true
-			return
+		if lockKey(ctx, e.connID) != key {
+			continue
 		}
+		if e.tx.readDbs == nil {
+			e.tx.readDbs = make(map[string]bool)
+		}
+		e.tx.readDbs[strings.ToUpper(ctx.Name)] = true
+		return
 	}
+}
+
+// isTempDbName reports whether a database context name is the temp database
+// (registered as TEMP or TEMPORARY).
+func isTempDbName(name string) bool {
+	return strings.EqualFold(name, "TEMP") || strings.EqualFold(name, "TEMPORARY")
 }
 
 // stmtWritePager resolves the statement's target database pager (and its
