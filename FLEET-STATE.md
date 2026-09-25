@@ -83,6 +83,22 @@ preserved; fleet/w5-tkt WIP 380a22c5d remains on its branch).
   skiptests2_part2) AFTER t33-fts5 lands (skip-entry conflict
   avoidance).
 
+§5d REFACTOR FLEET DISPATCHED (2026-09-24, 6 agents — full worklist was
+much larger than old notes: ~110 tcl2go + ~30 engine complexity
+findings):
+
+| Branch | Worktree | Slice | Validation gate |
+|---|---|---|---|
+| fleet/t33d-set | frigolite-wt-33d-set | tcl2go processset+part2 (processSetBracketValue 186/126!, processNamespaceSet 142/76, file splits) | regen BYTE-DIFF (testgen/ unchanged) |
+| fleet/t33d-db | frigolite-wt-33d-db | tcl2go processdb+part2+blob+sqlite3 | regen BYTE-DIFF |
+| fleet/t33d-cmd | frigolite-wt-33d-cmd | tcl2go processcmdextra+cmdexpr+gen | regen BYTE-DIFF |
+| fleet/t33d-flow | frigolite-wt-33d-flow | tcl2go dotest×2+processloop+foreach+command+collect+flow+expected+strings+stringexpr+vars+misc long tail | regen BYTE-DIFF |
+| fleet/t33d-exec | frigolite-wt-33d-exec | internal/exec (pragma_table/pragma_analyze splits + schemaPrefixOf U1000) + execdml hot funcs | testgen validation set green |
+| fleet/t33d-q | frigolite-wt-33d-q | execquery (select_columns/agg/agg_validate/subq_unused/order_emit splits + hot funcs) + storage.go split + btree (3 U1000 removals + hot funcs) | testgen validation set green |
+
+HELD BACK for post-fts5: tools/tcl2go/skiptests.go + skiptests2_part2.go
+function findings (fts5 agent may add skip entries there).
+
 Mid-session progress (2026-09-24, ~30 min in):
 - t33-idx: 2 commits — permutations GREEN (stale-regen artifact: package
   predated emitter fix 3bf26dc7d; nil tclListBuilder Append panic) +
