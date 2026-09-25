@@ -777,7 +777,6 @@ func (c *Cursor) ReadCellData() (payload []byte, rowID int64, err error) {
 	if err := c.skipEmptyLeaves(); err != nil {
 		return nil, 0, err
 	}
-	pg := c.currentPg
 	page := c.currentPage
 
 	if c.cellIdx < 0 || c.cellIdx >= int(page.CellCount) {
@@ -788,7 +787,14 @@ func (c *Cursor) ReadCellData() (payload []byte, rowID int64, err error) {
 		// Fall back to full cell decode for other page types
 		return c.readCellFallback()
 	}
+	return c.readTableLeafCellData()
+}
 
+// readTableLeafCellData decodes the current TABLE-LEAF cell straight from the
+// cached page (ReadCellData's fast path), following the overflow chain when
+// the payload spills.
+func (c *Cursor) readTableLeafCellData() (payload []byte, rowID int64, err error) {
+	pg := c.currentPg
 	cellOff := int(storage.CellPointer(pg.Data, contentOffset(pg.PageNum), c.cellIdx, int(c.tx.pageSize)))
 
 	// A corrupt cell pointer (outside the page buffer) must error, not panic
