@@ -63,12 +63,9 @@ func isQueryStmt(stmt string) bool {
 	return strings.Contains(strings.ToUpper(stmt), "RETURNING")
 }
 
-// skipCTEDefinition consumes one `NAME [(cols)] AS (body)` CTE definition
-// from the front of rest and returns the remainder (starting with either a
-// `,` for the next CTE or the main statement). Returns ok=false when the
-// shape does not match.
-func skipCTEDefinition(rest string) (string, bool) {
-	// Skip the CTE name (up to whitespace or '(').
+// skipCTEName consumes the CTE name (up to whitespace or '(') and returns
+// the trimmed remainder. Returns ok=false for an empty name.
+func skipCTEName(rest string) (string, bool) {
 	nameEnd := len(rest)
 	for i := 0; i < len(rest); i++ {
 		if rest[i] == ' ' || rest[i] == '\t' || rest[i] == '\n' || rest[i] == '\r' || rest[i] == '(' {
@@ -79,7 +76,19 @@ func skipCTEDefinition(rest string) (string, bool) {
 	if nameEnd == 0 {
 		return "", false
 	}
-	rest = strings.TrimSpace(rest[nameEnd:])
+	return strings.TrimSpace(rest[nameEnd:]), true
+}
+
+// skipCTEDefinition consumes one `NAME [(cols)] AS (body)` CTE definition
+// from the front of rest and returns the remainder (starting with either a
+// `,` for the next CTE or the main statement). Returns ok=false when the
+// shape does not match.
+func skipCTEDefinition(rest string) (string, bool) {
+	// Skip the CTE name (up to whitespace or '(').
+	rest, ok := skipCTEName(rest)
+	if !ok {
+		return "", false
+	}
 	// Skip an optional balanced column list.
 	if strings.HasPrefix(rest, "(") {
 		after, ok := skipBalancedParen(rest)
