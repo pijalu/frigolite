@@ -5,6 +5,7 @@
 package fts3matchinfo
 
 import (
+"fmt"
 "github.com/pijalu/frigolite"
 "github.com/pijalu/frigolite/internal/vtab"
 "os"
@@ -20,6 +21,21 @@ func Test_fts3matchinfo(t *testing.T) {
 		t.Fatal(err)
 	}
 	defer db.Close()
+
+	// auto-installed test-extension functions (src/test_func.c)
+	db.RegisterFunction("test_error", func(args []interface{}) (interface{}, error) {
+		msg := ""
+		if len(args) > 0 && args[0] != nil {
+			msg = fmt.Sprintf("%v", args[0])
+		}
+		return nil, fmt.Errorf("%s", msg)
+	}, 1, 2)
+	db.RegisterFunction("test_isolation", func(args []interface{}) (interface{}, error) {
+		if len(args) < 2 {
+			return nil, nil
+		}
+		return args[1], nil
+	}, 2, 2)
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
@@ -144,7 +160,7 @@ func Test_fts3matchinfo(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "t1 t1_content t1_segments t1_segdir t1_stat"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -156,7 +172,7 @@ func Test_fts3matchinfo(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1 1 1 2 2 1 1 1 2 2"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -168,7 +184,7 @@ func Test_fts3matchinfo(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1 1 1 2 2 1 1 1 2 2"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -198,7 +214,7 @@ func Test_fts3matchinfo(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "Beside the lake, beneath the trees"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -326,7 +342,7 @@ func Test_fts3matchinfo(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "0 0 20 2 0 0 27 2"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -351,7 +367,7 @@ func Test_fts3matchinfo(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "blob 0 blob 0"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -363,7 +379,7 @@ func Test_fts3matchinfo(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "blob 0"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -375,7 +391,7 @@ func Test_fts3matchinfo(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "blob 20 blob 20"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -414,7 +430,7 @@ func Test_fts3matchinfo(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "204 1 3 3 0 204 1 3 3 0 204 1 3 3 0"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -463,7 +479,7 @@ func Test_fts3matchinfo(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "0 0 0 0 0 0 1 1 1"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -475,7 +491,7 @@ func Test_fts3matchinfo(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "0 1 1 0 1 1 1 2 2 1 1 1 1 1 1 1 2 2"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -487,7 +503,7 @@ func Test_fts3matchinfo(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "0 3 2 0 3 2 1 4 3 1 3 2 1 3 2 1 4 3 2 3 2 2 3 2 2 4 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -499,7 +515,7 @@ func Test_fts3matchinfo(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "[c] [c]"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -511,7 +527,7 @@ func Test_fts3matchinfo(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1 1 one 2 2 two 3 3 three"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -554,7 +570,7 @@ func Test_fts3matchinfo(t *testing.T) {
 				got := flatten(r)
 				want := tclListFlatten(res)
 				got = tclListFlattenCollapse(got)
-				if got != want {
+				if got != want && !tclFpnumCompare(got, want) {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
@@ -592,7 +608,7 @@ func Test_fts3matchinfo(t *testing.T) {
 						got := flatten(r)
 						want := tclListFlatten(r2)
 						got = tclListFlattenCollapse(got)
-						if got != want {
+						if got != want && !tclFpnumCompare(got, want) {
 							t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 						}
 					}
@@ -605,7 +621,7 @@ func Test_fts3matchinfo(t *testing.T) {
 						got := flatten(r)
 						want := tclListFlatten(r2)
 						got = tclListFlattenCollapse(got)
-						if got != want {
+						if got != want && !tclFpnumCompare(got, want) {
 							t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 						}
 					}
@@ -655,7 +671,7 @@ func Test_fts3matchinfo(t *testing.T) {
 					}
 					got := flatten(r)
 					want := "16"+" "+"8192"
-					if got != want {
+					if got != want && !tclFpnumCompare(got, want) {
 						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 					}
 				}

@@ -5,6 +5,7 @@
 package alterlegacy
 
 import (
+"fmt"
 "github.com/pijalu/frigolite"
 "github.com/pijalu/frigolite/internal/vtab"
 "os"
@@ -19,6 +20,21 @@ func Test_alterlegacy(t *testing.T) {
 		t.Fatal(err)
 	}
 	defer db.Close()
+
+	// auto-installed test-extension functions (src/test_func.c)
+	db.RegisterFunction("test_error", func(args []interface{}) (interface{}, error) {
+		msg := ""
+		if len(args) > 0 && args[0] != nil {
+			msg = fmt.Sprintf("%v", args[0])
+		}
+		return nil, fmt.Errorf("%s", msg)
+	}, 1, 2)
+	db.RegisterFunction("test_isolation", func(args []interface{}) (interface{}, error) {
+		if len(args) < 2 {
+			return nil, nil
+		}
+		return args[1], nil
+	}, 2, 2)
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
@@ -84,7 +100,7 @@ func Test_alterlegacy(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "CREATE TABLE t1(a, b, CHECK(t1.a != t1.b)) CREATE TABLE t2(a, b) CREATE INDEX t2expr ON t2(a) WHERE t2.b>0"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -108,7 +124,7 @@ func Test_alterlegacy(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "CREATE TABLE t1(a, b, CHECK(t1.a != t1.b)) CREATE TABLE t2(a, b) CREATE INDEX t2expr ON t2(a) WHERE t2.b>0"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -126,7 +142,7 @@ func Test_alterlegacy(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "CREATE TABLE t1(a, b, CHECK(t1.a != t1.b)) CREATE TABLE t2(a, b) CREATE INDEX t2expr ON t2(a) WHERE t2.b>0"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -173,7 +189,7 @@ func Test_alterlegacy(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1 2 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -197,7 +213,7 @@ func Test_alterlegacy(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "CREATE VIEW vvv AS SELECT main.txx.a, txx.b, c FROM txx"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -215,7 +231,7 @@ func Test_alterlegacy(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "CREATE VIEW uuu AS SELECT main.one.a, one.b, c FROM txx AS one"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -233,7 +249,7 @@ func Test_alterlegacy(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "CREATE VIEW ttt AS SELECT main.txx.a, txx.b, one.b, main.one.a FROM txx AS one, txx"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -276,7 +292,7 @@ func Test_alterlegacy(t *testing.T) {
 	}
 	// proc definition (not transpiled)
 	db.RegisterFunction("squish", func(args []interface{}) (interface{}, error) { return nil, nil }, 0, -1)
-	{ // "alterlegacy-4.2" — skipped: transpiler squish() stub: the TCL whitespace-collapse proc is registered to return NULL, so the generated want (a squish-wrapped literal) can never match; engine contract (legacy ALTER TABLE RENAME rewrites the trigger ON-table token quoted, body untouched) pinned by frigolite_w6_misc_pin_test.go (no-side-effects)
+	{ // "alterlegacy-4.2" — skipped: transpiler squish() stub: the TCL whitespace-collapse proc is registered to return NULL, so the generated want (a squish-wrapped literal) can never match; legacy ALTER TABLE RENAME trigger ON-target rewrite pinned natively (no-side-effects)
 	}
 	db.Close()
 	os.Remove("test.db")
@@ -293,7 +309,7 @@ func Test_alterlegacy(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1 2 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -311,7 +327,7 @@ func Test_alterlegacy(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1 2 3 4"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -377,7 +393,7 @@ func Test_alterlegacy(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "CREATE TABLE c1(x INTEGER PRIMARY KEY, y REFERENCES \"ppp\"(a))"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -462,7 +478,7 @@ func Test_alterlegacy(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "a b c"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -499,7 +515,7 @@ func Test_alterlegacy(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "tr t1"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -515,7 +531,7 @@ func Test_alterlegacy(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "tr t2"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -552,7 +568,7 @@ func Test_alterlegacy(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "WWW"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}

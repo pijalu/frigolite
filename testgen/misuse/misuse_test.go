@@ -6,6 +6,7 @@ package misuse
 
 import (
 "errors"
+"fmt"
 "github.com/pijalu/frigolite"
 "github.com/pijalu/frigolite/internal/vtab"
 "os"
@@ -20,6 +21,21 @@ func Test_misuse(t *testing.T) {
 		t.Fatal(err)
 	}
 	defer db.Close()
+
+	// auto-installed test-extension functions (src/test_func.c)
+	db.RegisterFunction("test_error", func(args []interface{}) (interface{}, error) {
+		msg := ""
+		if len(args) > 0 && args[0] != nil {
+			msg = fmt.Sprintf("%v", args[0])
+		}
+		return nil, fmt.Errorf("%s", msg)
+	}, 1, 2)
+	db.RegisterFunction("test_isolation", func(args []interface{}) (interface{}, error) {
+		if len(args) < 2 {
+			return nil, nil
+		}
+		return args[1], nil
+	}, 2, 2)
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
@@ -151,6 +167,7 @@ func Test_misuse(t *testing.T) {
 					switch _dbevalRows0.Columns[_ci] {
 					}
 				}
+				// sqlite3_create_function $DB (unsupported command, not transpiled)
 				if _dbevalRb1 { _dbevalErr2 = errors.New("abort due to ROLLBACK") }
 				if _dbevalInt3 { _dbevalErr2 = errors.New("interrupted"); db.ClearInterrupt() }
 			}
@@ -169,7 +186,7 @@ func Test_misuse(t *testing.T) {
 		v = tclListAppend(v, msg)
 		got := tclListFlatten(v)
 		want := tclListFlatten("0 {}")
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "misuse-2.3")
 		}
 	}
@@ -214,6 +231,41 @@ func Test_misuse(t *testing.T) {
 					switch _dbevalRows4.Columns[_ci] {
 					}
 				}
+				// sqlite3_create_aggregate $::DB — register the x_count test aggregate
+					db.RegisterAggregate("x_count", func() frigolite.AggregateFunction {
+						state := struct{ n int }{}
+						return &frigolite.AggregateFuncs{
+							StepFn: func(args []interface{}) error {
+								if len(args) == 0 || args[0] != nil {
+									state.n++
+								}
+								if len(args) > 0 {
+									if v, ok := args[0].(int64); ok && (v == 40 || v == 41) {
+										return fmt.Errorf("value of %d handed to x_count", v)
+									}
+								}
+								return nil
+							},
+							FinalFn: func() (interface{}, error) {
+								if state.n == 42 {
+									return nil, fmt.Errorf("x_count totals to 42")
+								}
+								return state.n, nil
+							},
+						}
+					}, 0, 1)
+					db.RegisterAggregate("legacy_count", func() frigolite.AggregateFunction {
+						state := struct{ n int }{}
+						return &frigolite.AggregateFuncs{
+							StepFn: func(args []interface{}) error {
+								state.n++
+								return nil
+							},
+							FinalFn: func() (interface{}, error) {
+								return state.n, nil
+							},
+						}
+					}, 0, 0)
 				if _dbevalRb5 { _dbevalErr6 = errors.New("abort due to ROLLBACK") }
 				if _dbevalInt7 { _dbevalErr6 = errors.New("interrupted"); db.ClearInterrupt() }
 			}
@@ -232,7 +284,7 @@ func Test_misuse(t *testing.T) {
 		v = tclListAppend(v, msg)
 		got := tclListFlatten(v)
 		want := tclListFlatten("0 {}")
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "misuse-3.3")
 		}
 	}
@@ -277,6 +329,8 @@ func Test_misuse(t *testing.T) {
 					switch _dbevalRows8.Columns[_ci] {
 					}
 				}
+				_r = "sqlite3_close $::DB"
+				_ = _r // suppress unused warning
 				if _dbevalRb9 { _dbevalErr10 = errors.New("abort due to ROLLBACK") }
 				if _dbevalInt11 { _dbevalErr10 = errors.New("interrupted"); db.ClearInterrupt() }
 			}
@@ -342,7 +396,7 @@ func Test_misuse(t *testing.T) {
 			_r = tclListAppend(_r, msg)
 			got := tclListFlatten(_r)
 			want := tclListFlatten("1 (21) bad parameter or other API misuse")
-			if got != want {
+			if got != want && !tclFpnumCompare(got, want) {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "misuse-5.3")
 			}
 		}

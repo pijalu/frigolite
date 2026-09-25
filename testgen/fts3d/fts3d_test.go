@@ -5,6 +5,7 @@
 package fts3d
 
 import (
+"fmt"
 "github.com/pijalu/frigolite"
 "os"
 "testing"
@@ -17,6 +18,21 @@ func Test_fts3d(t *testing.T) {
 		t.Fatal(err)
 	}
 	defer db.Close()
+
+	// auto-installed test-extension functions (src/test_func.c)
+	db.RegisterFunction("test_error", func(args []interface{}) (interface{}, error) {
+		msg := ""
+		if len(args) > 0 && args[0] != nil {
+			msg = fmt.Sprintf("%v", args[0])
+		}
+		return nil, fmt.Errorf("%s", msg)
+	}, 1, 2)
+	db.RegisterFunction("test_isolation", func(args []interface{}) (interface{}, error) {
+		if len(args) < 2 {
+			return nil, nil
+		}
+		return args[1], nil
+	}, 2, 2)
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
@@ -82,7 +98,7 @@ func Test_fts3d(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "0 0"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -94,7 +110,7 @@ func Test_fts3d(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "0 0 0 4 0 4 5 2 0 3 8 1 0 5 10 4"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -117,7 +133,7 @@ func Test_fts3d(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "0 0"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -129,7 +145,7 @@ func Test_fts3d(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "0 1 0 4 0 2 5 3 0 3 9 1 0 5 11 4"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -152,7 +168,7 @@ func Test_fts3d(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "0 0"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -164,7 +180,7 @@ func Test_fts3d(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "0 1 0 4 0 2 5 3 0 3 9 1 0 5 11 4"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -187,7 +203,7 @@ func Test_fts3d(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "0 0 0 1 1 0"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -200,7 +216,7 @@ func Test_fts3d(t *testing.T) {
 		got := flatten(r)
 		want := tclListFlatten("{0 0 0 4 0 4 5 2 0 3 8 1 0 5 10 4} {0 1 0 4 0 2 5 3 0 3 9 1 0 5 11 4} {0 0 0 4 0 4 5 2 0 3 8 1 0 5 10 4}")
 		got = tclListFlattenCollapse(got)
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -241,7 +257,7 @@ func Test_fts3d(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "Index optimized 1 0"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -254,7 +270,7 @@ func Test_fts3d(t *testing.T) {
 		got := flatten(r)
 		want := tclListFlatten("{0 0 0 4 0 4 5 2 0 3 8 1 0 5 10 4} {0 1 0 4 0 2 5 3 0 3 9 1 0 5 11 4} {0 0 0 4 0 4 5 2 0 3 8 1 0 5 10 4}")
 		got = tclListFlattenCollapse(got)
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -280,7 +296,7 @@ func Test_fts3d(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "Index already optimal 1 0"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -293,7 +309,7 @@ func Test_fts3d(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "Index already optimal 2 0"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -313,7 +329,7 @@ func Test_fts3d(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "xyz_content xyz_segdir xyz_segments"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -333,7 +349,7 @@ func Test_fts3d(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "xyz_content xyz_segdir xyz_segments"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -353,7 +369,7 @@ func Test_fts3d(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "xyz_content xyz_segdir xyz_segments"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}

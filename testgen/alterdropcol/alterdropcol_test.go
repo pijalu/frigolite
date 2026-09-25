@@ -5,6 +5,7 @@
 package alterdropcol
 
 import (
+"fmt"
 "github.com/pijalu/frigolite"
 "github.com/pijalu/frigolite/internal/vtab"
 "os"
@@ -19,6 +20,21 @@ func Test_alterdropcol(t *testing.T) {
 		t.Fatal(err)
 	}
 	defer db.Close()
+
+	// auto-installed test-extension functions (src/test_func.c)
+	db.RegisterFunction("test_error", func(args []interface{}) (interface{}, error) {
+		msg := ""
+		if len(args) > 0 && args[0] != nil {
+			msg = fmt.Sprintf("%v", args[0])
+		}
+		return nil, fmt.Errorf("%s", msg)
+	}, 1, 2)
+	db.RegisterFunction("test_isolation", func(args []interface{}) (interface{}, error) {
+		if len(args) < 2 {
+			return nil, nil
+		}
+		return args[1], nil
+	}, 2, 2)
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
@@ -124,7 +140,7 @@ func Test_alterdropcol(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "CREATE TABLE t1(a, c)"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -142,7 +158,7 @@ func Test_alterdropcol(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "CREATE TABLE t1(a)"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -242,7 +258,7 @@ func Test_alterdropcol(t *testing.T) {
 					}
 					got := flatten(r)
 					want := "1 2 3 hello 3 4 7 world"
-					if got != want {
+					if got != want && !tclFpnumCompare(got, want) {
 						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 					}
 				}
@@ -260,7 +276,7 @@ func Test_alterdropcol(t *testing.T) {
 					}
 					got := flatten(r)
 					want := "1 2 hello 3 4 world"
-					if got != want {
+					if got != want && !tclFpnumCompare(got, want) {
 						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 					}
 				}
@@ -278,7 +294,7 @@ func Test_alterdropcol(t *testing.T) {
 					}
 					got := flatten(r)
 					want := "1 2 3 5 4 5 6 7 13 8 9 10 11 21 12"
-					if got != want {
+					if got != want && !tclFpnumCompare(got, want) {
 						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 					}
 				}
@@ -296,7 +312,7 @@ func Test_alterdropcol(t *testing.T) {
 					}
 					got := flatten(r)
 					want := "2 3 5 4 6 7 13 8 10 11 21 12"
-					if got != want {
+					if got != want && !tclFpnumCompare(got, want) {
 						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 					}
 				}
@@ -314,7 +330,7 @@ func Test_alterdropcol(t *testing.T) {
 					}
 					got := flatten(r)
 					want := "2 3 5 6 7 13 10 11 21"
-					if got != want {
+					if got != want && !tclFpnumCompare(got, want) {
 						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 					}
 				}
@@ -340,7 +356,7 @@ func Test_alterdropcol(t *testing.T) {
 				}
 				got := flatten(r)
 				want := "CREATE TABLE c1(x, y) CREATE TABLE c2(x, y, w REFERENCES p1(b))"
-				if got != want {
+				if got != want && !tclFpnumCompare(got, want) {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
@@ -445,7 +461,7 @@ func Test_alterdropcol(t *testing.T) {
 				}
 				got := flatten(r)
 				want := "CREATE TABLE t1(a, b, PRIMARY KEY(a COLLATE nocase, a)) WITHOUT ROWID"
-				if got != want {
+				if got != want && !tclFpnumCompare(got, want) {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
@@ -457,7 +473,7 @@ func Test_alterdropcol(t *testing.T) {
 				}
 				got := flatten(r)
 				want := "1 2 4 5"
-				if got != want {
+				if got != want && !tclFpnumCompare(got, want) {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
@@ -492,7 +508,7 @@ func Test_alterdropcol(t *testing.T) {
 				}
 				got := flatten(r)
 				want := "CREATE TABLE t1(a INTEGER PRIMARY KEY AUTOINCREMENT)"
-				if got != want {
+				if got != want && !tclFpnumCompare(got, want) {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
@@ -537,7 +553,7 @@ func Test_alterdropcol(t *testing.T) {
 						}
 						got := flatten(r)
 						want := "50000 456"
-						if got != want {
+						if got != want && !tclFpnumCompare(got, want) {
 							t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 						}
 					}

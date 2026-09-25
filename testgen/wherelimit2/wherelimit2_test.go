@@ -5,6 +5,7 @@
 package wherelimit2
 
 import (
+"fmt"
 "github.com/pijalu/frigolite"
 "github.com/pijalu/frigolite/internal/function"
 "github.com/pijalu/frigolite/internal/vtab"
@@ -20,6 +21,21 @@ func Test_wherelimit2(t *testing.T) {
 		t.Fatal(err)
 	}
 	defer db.Close()
+
+	// auto-installed test-extension functions (src/test_func.c)
+	db.RegisterFunction("test_error", func(args []interface{}) (interface{}, error) {
+		msg := ""
+		if len(args) > 0 && args[0] != nil {
+			msg = fmt.Sprintf("%v", args[0])
+		}
+		return nil, fmt.Errorf("%s", msg)
+	}, 1, 2)
+	db.RegisterFunction("test_isolation", func(args []interface{}) (interface{}, error) {
+		if len(args) < 2 {
+			return nil, nil
+		}
+		return args[1], nil
+	}, 2, 2)
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
@@ -81,7 +97,7 @@ func Test_wherelimit2(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "delete 1 delete 2 delete 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -93,7 +109,7 @@ func Test_wherelimit2(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "delete 6 delete 5 delete 4"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -105,7 +121,7 @@ func Test_wherelimit2(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "update 1 update 2 update 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -117,7 +133,7 @@ func Test_wherelimit2(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "update 6 update 5 update 4"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -135,7 +151,7 @@ func Test_wherelimit2(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "a c e f g h"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -147,7 +163,7 @@ func Test_wherelimit2(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1 1 {} 1 2 g 2 1 {} 2 2 {} 3 1 d 3 2 c 4 1 b 4 2 a"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -165,7 +181,7 @@ func Test_wherelimit2(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "a c e f g h"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -177,7 +193,7 @@ func Test_wherelimit2(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1 1 h 2 2 g 3 1 f 4 2 e 5 1 {} 6 2 {} 7 1 {} 8 2 a"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -211,7 +227,7 @@ func Test_wherelimit2(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "3 4 5 6"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -223,7 +239,7 @@ func Test_wherelimit2(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1 2 3 4 6"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -235,7 +251,7 @@ func Test_wherelimit2(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1 1 2 2 3 5 4 3 6 1"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -253,7 +269,7 @@ func Test_wherelimit2(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "a a c c d d e a g c h d"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -265,7 +281,7 @@ func Test_wherelimit2(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "a a b e c c d d e a f e g c h d"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -296,7 +312,7 @@ func Test_wherelimit2(t *testing.T) {
 		_ = log // TCL namespace variable (query)
 		got := tclListFlatten(log)
 		want := tclListFlatten("a a b b c c")
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "5.4")
 		}
 	}
@@ -311,7 +327,7 @@ func Test_wherelimit2(t *testing.T) {
 		_ = log // TCL namespace variable (query)
 		got := tclListFlatten(log)
 		want := tclListFlatten("ax a bx b cx c dx d ex a")
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "5.5")
 		}
 	}
@@ -356,7 +372,7 @@ func Test_wherelimit2(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}

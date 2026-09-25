@@ -5,6 +5,7 @@
 package percentile
 
 import (
+"fmt"
 "github.com/pijalu/frigolite"
 "github.com/pijalu/frigolite/internal/vtab"
 "os"
@@ -20,6 +21,21 @@ func Test_percentile(t *testing.T) {
 		t.Fatal(err)
 	}
 	defer db.Close()
+
+	// auto-installed test-extension functions (src/test_func.c)
+	db.RegisterFunction("test_error", func(args []interface{}) (interface{}, error) {
+		msg := ""
+		if len(args) > 0 && args[0] != nil {
+			msg = fmt.Sprintf("%v", args[0])
+		}
+		return nil, fmt.Errorf("%s", msg)
+	}, 1, 2)
+	db.RegisterFunction("test_isolation", func(args []interface{}) (interface{}, error) {
+		if len(args) < 2 {
+			return nil, nil
+		}
+		return args[1], nil
+	}, 2, 2)
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
@@ -101,7 +117,7 @@ func Test_percentile(t *testing.T) {
 				got := flatten(r)
 				want := tclListFlatten(out)
 				got = tclListFlattenCollapse(got)
-				if got != want {
+				if got != want && !tclFpnumCompare(got, want) {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
@@ -114,7 +130,7 @@ func Test_percentile(t *testing.T) {
 				got := flatten(r)
 				want := tclListFlatten(out)
 				got = tclListFlattenCollapse(got)
-				if got != want {
+				if got != want && !tclFpnumCompare(got, want) {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
@@ -127,7 +143,7 @@ func Test_percentile(t *testing.T) {
 				got := flatten(r)
 				want := tclListFlatten(disc)
 				got = tclListFlattenCollapse(got)
-				if got != want {
+				if got != want && !tclFpnumCompare(got, want) {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
@@ -141,7 +157,7 @@ func Test_percentile(t *testing.T) {
 					got := flatten(r)
 					want := tclListFlatten(out)
 					got = tclListFlattenCollapse(got)
-					if got != want {
+					if got != want && !tclFpnumCompare(got, want) {
 						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 					}
 				}
@@ -155,7 +171,7 @@ func Test_percentile(t *testing.T) {
 			}
 			got := flatten(r)
 			want := "8.0"
-			if got != want {
+			if got != want && !tclFpnumCompare(got, want) {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
@@ -184,7 +200,7 @@ func Test_percentile(t *testing.T) {
 					got := flatten(r)
 					want := tclListFlatten(out)
 					got = tclListFlattenCollapse(got)
-					if got != want {
+					if got != want && !tclFpnumCompare(got, want) {
 						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 					}
 				}
@@ -197,7 +213,7 @@ func Test_percentile(t *testing.T) {
 					got := flatten(r)
 					want := tclListFlatten(out)
 					got = tclListFlattenCollapse(got)
-					if got != want {
+					if got != want && !tclFpnumCompare(got, want) {
 						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 					}
 				}
@@ -210,7 +226,7 @@ func Test_percentile(t *testing.T) {
 					got := flatten(r)
 					want := tclListFlatten(disc)
 					got = tclListFlattenCollapse(got)
-					if got != want {
+					if got != want && !tclFpnumCompare(got, want) {
 						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 					}
 				}
@@ -224,7 +240,7 @@ func Test_percentile(t *testing.T) {
 						got := flatten(r)
 						want := tclListFlatten(out)
 						got = tclListFlattenCollapse(got)
-						if got != want {
+						if got != want && !tclFpnumCompare(got, want) {
 							t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 						}
 					}
@@ -291,7 +307,7 @@ func Test_percentile(t *testing.T) {
 						got := flatten(r)
 						want := tclListFlatten(out)
 						got = tclListFlattenCollapse(got)
-						if got != want {
+						if got != want && !tclFpnumCompare(got, want) {
 							t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 						}
 					}
@@ -304,7 +320,7 @@ func Test_percentile(t *testing.T) {
 						got := flatten(r)
 						want := tclListFlatten(out)
 						got = tclListFlattenCollapse(got)
-						if got != want {
+						if got != want && !tclFpnumCompare(got, want) {
 							t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 						}
 					}
@@ -317,7 +333,7 @@ func Test_percentile(t *testing.T) {
 						got := flatten(r)
 						want := tclListFlatten(disc)
 						got = tclListFlattenCollapse(got)
-						if got != want {
+						if got != want && !tclFpnumCompare(got, want) {
 							t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 						}
 					}
@@ -331,7 +347,7 @@ func Test_percentile(t *testing.T) {
 							got := flatten(r)
 							want := tclListFlatten(out)
 							got = tclListFlattenCollapse(got)
-							if got != want {
+							if got != want && !tclFpnumCompare(got, want) {
 								t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 							}
 						}
@@ -471,7 +487,7 @@ func Test_percentile(t *testing.T) {
 					}
 					got := flatten(r)
 					want := "NULL"
-					if got != want {
+					if got != want && !tclFpnumCompare(got, want) {
 						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 					}
 				}
@@ -483,7 +499,7 @@ func Test_percentile(t *testing.T) {
 					}
 					got := flatten(r)
 					want := "12345.0 12345.0 12345.0"
-					if got != want {
+					if got != want && !tclFpnumCompare(got, want) {
 						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 					}
 				}
@@ -541,7 +557,7 @@ func Test_percentile(t *testing.T) {
 							got := flatten(r)
 							want := tclListFlatten(out)
 							got = tclListFlattenCollapse(got)
-							if got != want {
+							if got != want && !tclFpnumCompare(got, want) {
 								t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 							}
 						}
@@ -600,7 +616,7 @@ func Test_percentile(t *testing.T) {
 							}
 							got := flatten(r)
 							want := "1001 17 25.99 19.68 20.37 1001 31 11.99 19.68 20.37 1001 49 25.99 19.68 20.37 1001 216 14.75 19.68 20.37 1002 37 33.49 33.49 33.49 1003 7 245.0 104.0 55.99 1003 8 55.99 104.0 55.99 1003 12 11.01 104.0 55.99 1004 113 12.45 11.22 11.22 1004 117 9.99 11.22 11.22"
-							if got != want {
+							if got != want && !tclFpnumCompare(got, want) {
 								t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 							}
 						}
@@ -612,7 +628,7 @@ func Test_percentile(t *testing.T) {
 							}
 							got := flatten(r)
 							want := "1001 20.37 1002 33.49 1003 55.99 1004 11.22"
-							if got != want {
+							if got != want && !tclFpnumCompare(got, want) {
 								t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 							}
 						}
@@ -630,7 +646,7 @@ func Test_percentile(t *testing.T) {
 							}
 							got := flatten(r)
 							want := "Nate W 23.5 23.5 24.6175 24.99 33.625 59.53 Hank W 24.99 23.5 24.6175 24.99 33.625 59.53 Irma W 24.99 23.5 24.6175 24.99 33.625 59.53 Mia W 59.53 23.5 24.6175 24.99 33.625 59.53 Jake X 2234.99 2234.99 2299.115 2860.24 3792.14 4968.59 Gina X 2320.49 2234.99 2299.115 2860.24 3792.14 4968.59 Bob X 3399.99 2234.99 2299.115 2860.24 3792.14 4968.59 Liam X 4968.59 2234.99 2299.115 2860.24 3792.14 4968.59 Fred Y 539.99 539.99 2443.7 3328.27 3763.7 4319.99 Dave Y 3078.27 539.99 2443.7 3328.27 3763.7 4319.99 Alice Y 3578.27 539.99 2443.7 3328.27 3763.7 4319.99 Kim Y 4319.99 539.99 2443.7 3328.27 3763.7 4319.99 Cindy Z 699.1 699.1 1104.3225 1509.545 1914.7675 2319.99 Emma Z 2319.99 699.1 1104.3225 1509.545 1914.7675 2319.99"
-							if got != want {
+							if got != want && !tclFpnumCompare(got, want) {
 								t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 							}
 						}
@@ -642,7 +658,7 @@ func Test_percentile(t *testing.T) {
 							}
 							got := flatten(r)
 							want := "0.55"
-							if got != want {
+							if got != want && !tclFpnumCompare(got, want) {
 								t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 							}
 						}
@@ -654,7 +670,7 @@ func Test_percentile(t *testing.T) {
 							}
 							got := flatten(r)
 							want := "499998.0"
-							if got != want {
+							if got != want && !tclFpnumCompare(got, want) {
 								t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 							}
 						}

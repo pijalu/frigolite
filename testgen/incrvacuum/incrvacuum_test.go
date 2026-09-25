@@ -6,6 +6,7 @@ package incrvacuum
 
 import (
 "errors"
+"fmt"
 "github.com/pijalu/frigolite"
 "github.com/pijalu/frigolite/internal/vtab"
 "os"
@@ -21,6 +22,21 @@ func Test_incrvacuum(t *testing.T) {
 		t.Fatal(err)
 	}
 	defer db.Close()
+
+	// auto-installed test-extension functions (src/test_func.c)
+	db.RegisterFunction("test_error", func(args []interface{}) (interface{}, error) {
+		msg := ""
+		if len(args) > 0 && args[0] != nil {
+			msg = fmt.Sprintf("%v", args[0])
+		}
+		return nil, fmt.Errorf("%s", msg)
+	}, 1, 2)
+	db.RegisterFunction("test_isolation", func(args []interface{}) (interface{}, error) {
+		if len(args) < 2 {
+			return nil, nil
+		}
+		return args[1], nil
+	}, 2, 2)
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
@@ -121,7 +137,7 @@ func Test_incrvacuum(t *testing.T) {
 		got := flatten(r)
 		want := tclListFlatten(sqlite_options_default_autovacuum)
 		got = tclListFlattenCollapse(got)
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -137,7 +153,7 @@ func Test_incrvacuum(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -153,7 +169,7 @@ func Test_incrvacuum(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "2"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -165,7 +181,7 @@ func Test_incrvacuum(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "2"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -177,7 +193,7 @@ func Test_incrvacuum(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -189,7 +205,7 @@ func Test_incrvacuum(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "2"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -201,7 +217,7 @@ func Test_incrvacuum(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "2"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -214,7 +230,7 @@ func Test_incrvacuum(t *testing.T) {
 		got := flatten(r)
 		want := tclListFlatten("{}")
 		got = tclListFlattenCollapse(got)
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -226,7 +242,7 @@ func Test_incrvacuum(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -248,7 +264,7 @@ func Test_incrvacuum(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "2"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -260,7 +276,7 @@ func Test_incrvacuum(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -272,7 +288,7 @@ func Test_incrvacuum(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -394,7 +410,7 @@ func Test_incrvacuum(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "a nice string"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -457,7 +473,7 @@ func Test_incrvacuum(t *testing.T) {
 			}
 			got := flatten(r)
 			want := "ok"
-			if got != want {
+			if got != want && !tclFpnumCompare(got, want) {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
@@ -469,7 +485,7 @@ func Test_incrvacuum(t *testing.T) {
 			}
 			got := flatten(r)
 			want := "ok"
-			if got != want {
+			if got != want && !tclFpnumCompare(got, want) {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
@@ -522,7 +538,20 @@ func Test_incrvacuum(t *testing.T) {
 			for _ri := 0; _ri < len(_dbevalRows6.Rows) && _dbevalErr8 == nil; _ri++ {
 				for _ci := 0; _ci < len(_dbevalRows6.Columns); _ci++ {
 					switch _dbevalRows6.Columns[_ci] {
+						case "a":
+							a = tclStr(_dbevalRows6.Rows[_ri][_ci])
+						case "jj":
+							jj = tclStr(_dbevalRows6.Rows[_ri][_ci])
 					}
+				}
+				if func() bool { l_n, l_e := strconv.Atoi(a); if l_e != nil { return false }; r_n, r_e := strconv.Atoi(tclExprWith("$jj*100", map[string]string{"jj": jj})); if r_e != nil { return false }; return l_n == r_n }() {
+					_res = db.Exec("PRAGMA incremental_vacuum")
+				}
+				// incr nRow 1
+				{
+					_n, _err := strconv.Atoi(nRow)
+					if _err != nil { _n = 0 }
+					nRow = strconv.Itoa(_n + 1)
 				}
 				if _dbevalRb7 { _dbevalErr8 = errors.New("abort due to ROLLBACK") }
 				if _dbevalInt9 { _dbevalErr8 = errors.New("interrupted"); db.ClearInterrupt() }
@@ -612,7 +641,7 @@ func Test_incrvacuum(t *testing.T) {
 			}
 			got := flatten(r)
 			want := "hello world"
-			if got != want {
+			if got != want && !tclFpnumCompare(got, want) {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
@@ -657,7 +686,7 @@ func Test_incrvacuum(t *testing.T) {
 		got := flatten(r)
 		want := tclListFlatten("{}")
 		got = tclListFlattenCollapse(got)
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -670,7 +699,7 @@ func Test_incrvacuum(t *testing.T) {
 		got := flatten(r)
 		want := tclListFlatten("{}")
 		got = tclListFlattenCollapse(got)
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -749,7 +778,7 @@ func Test_incrvacuum(t *testing.T) {
 		got := flatten(r)
 		want := tclListFlatten(AUTOVACUUM)
 		got = tclListFlattenCollapse(got)
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -762,7 +791,7 @@ func Test_incrvacuum(t *testing.T) {
 		got := flatten(r)
 		want := tclListFlatten("{}")
 		got = tclListFlattenCollapse(got)
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -774,7 +803,7 @@ func Test_incrvacuum(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "2"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -800,7 +829,7 @@ func Test_incrvacuum(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -908,18 +937,7 @@ func Test_incrvacuum(t *testing.T) {
 		_ = _list16
 		_r = _list16
 	}
-	{ // do_test "incrvacuum-13.5"
-		r = db.Query("\n    PRAGMA auto_vacuum;\n  ")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA auto_vacuum;\n  ")
-			return
-		}
-		// "incrvacuum-13.5" assertion skipped: prepare/step timing. The
-		// oracle prepares "PRAGMA auto_vacuum = 2" at 13.2 but steps it at
-		// 13.4 AFTER db2 grew the file, so sqlite3BtreeSetAutoVacuum fails
-		// (READONLY: pagesize fixed, db non-empty) and the mode stays 0. The
-		// transpiled harness steps at prepare time (13.2, empty file) where
-		// the set legitimately succeeds — not engine-visible (no-side-effects).
+	{ // "incrvacuum-13.5" — skipped: prepare/step timing: the oracle steps auto_vacuum=2 at 13.4 after db2 grew the file so SetAutoVacuum fails (READONLY); the transpiled harness steps at prepare time on the empty file where the set succeeds (no-side-effects)
 	}
 	if "" == "" {
 		{ // do_test "incrvacuum-14.1"
@@ -973,7 +991,7 @@ func Test_incrvacuum(t *testing.T) {
 		got := flatten(r)
 		want := tclListFlatten("{}")
 		got = tclListFlattenCollapse(got)
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -989,7 +1007,7 @@ func Test_incrvacuum(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1000000"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -1022,7 +1040,7 @@ func Test_incrvacuum(t *testing.T) {
 		}
 		got := tclListFlatten(res)
 		want := tclListFlatten("1 2 3 4")
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "incrvacuum-16.2")
 		}
 	}

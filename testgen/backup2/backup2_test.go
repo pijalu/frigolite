@@ -20,6 +20,21 @@ func Test_backup2(t *testing.T) {
 	}
 	defer db.Close()
 
+	// auto-installed test-extension functions (src/test_func.c)
+	db.RegisterFunction("test_error", func(args []interface{}) (interface{}, error) {
+		msg := ""
+		if len(args) > 0 && args[0] != nil {
+			msg = fmt.Sprintf("%v", args[0])
+		}
+		return nil, fmt.Errorf("%s", msg)
+	}, 1, 2)
+	db.RegisterFunction("test_isolation", func(args []interface{}) (interface{}, error) {
+		if len(args) < 2 {
+			return nil, nil
+		}
+		return args[1], nil
+	}, 2, 2)
+
 	var _res *frigolite.Result
 	var r *frigolite.Result
 	var msg string
@@ -76,7 +91,7 @@ func Test_backup2(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "ok"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -123,7 +138,7 @@ func Test_backup2(t *testing.T) {
 		if _res.Error != nil { t.Errorf("exec error: %v", _res.Error) }
 		got := tclListFlatten(rc)
 		want := tclListFlatten("1 restore failed: source database busy")
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "backup2-3.1")
 		}
 	}
@@ -197,7 +212,7 @@ func Test_backup2(t *testing.T) {
 		rc = tclListAppend(rc, res)
 		got := tclListFlatten(rc)
 		want := tclListFlatten("1 backup failed: attempt to write a readonly database")
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "backup2-6")
 		}
 	}
@@ -237,7 +252,7 @@ func Test_backup2(t *testing.T) {
 		rc = tclListAppend(rc, res)
 		got := tclListFlatten(rc)
 		want := tclListFlatten("1 backup failed: file is not a database")
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "backup2-7")
 		}
 	}
@@ -260,7 +275,7 @@ func Test_backup2(t *testing.T) {
 		rc = tclListAppend(rc, res)
 		got := tclListFlatten(rc)
 		want := tclListFlatten("1 backup failed: unknown database aux1")
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "backup2-8")
 		}
 	}
@@ -282,7 +297,7 @@ func Test_backup2(t *testing.T) {
 		rc = tclListAppend(rc, res)
 		got := tclListFlatten(rc)
 		want := tclListFlatten("1 wrong # args: should be \"db backup ?DATABASE? FILENAME\"")
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "backup2-9")
 		}
 	}
@@ -343,7 +358,7 @@ func Test_backup2(t *testing.T) {
 		rc = tclListAppend(rc, res)
 		got := tclListFlatten(rc)
 		want := tclListFlatten("1 restore failed: file is not a database")
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "backup2-11")
 		}
 	}
@@ -365,7 +380,7 @@ func Test_backup2(t *testing.T) {
 		rc = tclListAppend(rc, res)
 		got := tclListFlatten(rc)
 		want := tclListFlatten("1 restore failed: unknown database aux1")
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "backup2-12")
 		}
 	}
@@ -388,7 +403,7 @@ func Test_backup2(t *testing.T) {
 		rc = tclListAppend(rc, res)
 		got := tclListFlatten(rc)
 		want := tclListFlatten("1 cannot open source database: unable to open database file")
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "backup2-13")
 		}
 	}
@@ -410,7 +425,7 @@ func Test_backup2(t *testing.T) {
 		rc = tclListAppend(rc, res)
 		got := tclListFlatten(rc)
 		want := tclListFlatten("1 wrong # args: should be \"db restore ?DATABASE? FILENAME\"")
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "backup2-14")
 		}
 	}

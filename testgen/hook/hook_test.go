@@ -5,6 +5,7 @@
 package hook
 
 import (
+"fmt"
 "github.com/pijalu/frigolite"
 "github.com/pijalu/frigolite/internal/vtab"
 "os"
@@ -20,6 +21,21 @@ func Test_hook(t *testing.T) {
 		t.Fatal(err)
 	}
 	defer db.Close()
+
+	// auto-installed test-extension functions (src/test_func.c)
+	db.RegisterFunction("test_error", func(args []interface{}) (interface{}, error) {
+		msg := ""
+		if len(args) > 0 && args[0] != nil {
+			msg = fmt.Sprintf("%v", args[0])
+		}
+		return nil, fmt.Errorf("%s", msg)
+	}, 1, 2)
+	db.RegisterFunction("test_isolation", func(args []interface{}) (interface{}, error) {
+		if len(args) < 2 {
+			return nil, nil
+		}
+		return args[1], nil
+	}, 2, 2)
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
@@ -122,7 +138,7 @@ func Test_hook(t *testing.T) {
 	{ // do_test "hook-3.2"
 		got := tclListFlatten(commit_cnt)
 		want := tclListFlatten("0")
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "hook-3.2")
 		}
 	}
@@ -133,7 +149,7 @@ func Test_hook(t *testing.T) {
 		}
 		got := tclListFlatten(commit_cnt)
 		want := tclListFlatten("1")
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "hook-3.3")
 		}
 	}
@@ -144,11 +160,11 @@ func Test_hook(t *testing.T) {
 		}
 		got := tclListFlatten(commit_cnt)
 		want := tclListFlatten("4")
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "hook-3.4")
 		}
 	}
-	{ // "hook-3.5" — skipped: commit-hook proc redefined after registration (dynamic TCL proc body dispatch) N-A (SQL side effects only)
+	{ // "hook-3.5" — skipped: commit-hook proc redefined after registration (dynamic TCL proc body dispatch) N-A (SQL + file side effects only)
 		_res = db.Exec("\n    INSERT INTO t2 VALUES(5,6);\n  ")
 		_ = _res.Error // tolerate unsupported-feature errors in skipped tests
 	}
@@ -176,7 +192,7 @@ func Test_hook(t *testing.T) {
 		_ = commit_cnt // TCL namespace variable (query)
 		got := tclListFlatten(commit_cnt)
 		want := tclListFlatten("{}")
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "hook-3.9")
 		}
 	}
@@ -215,7 +231,7 @@ func Test_hook(t *testing.T) {
 		_ = update_hook // TCL namespace variable (query)
 		got := tclListFlatten(update_hook)
 		want := tclListFlatten("{}")
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "hook-4.1.1a")
 		}
 	}
@@ -236,7 +252,7 @@ func Test_hook(t *testing.T) {
 		_ = update_hook // TCL namespace variable (query)
 		got := tclListFlatten(update_hook)
 		want := tclListFlatten("INSERT"+" "+"main"+" "+"t1"+" "+"4"+" "+"DELETE"+" "+"main"+" "+"t1"+" "+"2"+" "+"UPDATE"+" "+"main"+" "+"t1"+" "+"1"+" "+"UPDATE"+" "+"main"+" "+"t1"+" "+"3"+" "+"DELETE"+" "+"main"+" "+"t1"+" "+"1"+" "+"DELETE"+" "+"main"+" "+"t1"+" "+"3"+" "+"DELETE"+" "+"main"+" "+"t1"+" "+"4")
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "hook-4.1.2")
 		}
 	}
@@ -251,7 +267,7 @@ func Test_hook(t *testing.T) {
 		_ = update_hook // TCL namespace variable (query)
 		got := tclListFlatten(update_hook)
 		want := tclListFlatten("{}")
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "hook-4.1.2w")
 		}
 	}
@@ -266,7 +282,7 @@ func Test_hook(t *testing.T) {
 		_ = update_hook // TCL namespace variable (query)
 		got := tclListFlatten(update_hook)
 		want := tclListFlatten("{}")
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "hook-4.1.3")
 		}
 	}
@@ -281,7 +297,7 @@ func Test_hook(t *testing.T) {
 		_ = update_hook // TCL namespace variable (query)
 		got := tclListFlatten(update_hook)
 		want := tclListFlatten("{}")
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "hook-4.1.4")
 		}
 	}
@@ -304,7 +320,7 @@ func Test_hook(t *testing.T) {
 		_ = update_hook // TCL namespace variable (query)
 		got := tclListFlatten(update_hook)
 		want := tclListFlatten("INSERT"+" "+"main"+" "+"t1"+" "+"1"+" "+"INSERT"+" "+"main"+" "+"t2"+" "+"1"+" "+"UPDATE"+" "+"main"+" "+"t2"+" "+"1"+" "+"DELETE"+" "+"main"+" "+"t2"+" "+"1"+" "+"INSERT"+" "+"main"+" "+"t1"+" "+"2"+" "+"INSERT"+" "+"main"+" "+"t2"+" "+"2"+" "+"UPDATE"+" "+"main"+" "+"t2"+" "+"2"+" "+"DELETE"+" "+"main"+" "+"t2"+" "+"2")
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "hook-4.2.2")
 		}
 	}
@@ -320,7 +336,7 @@ func Test_hook(t *testing.T) {
 		_ = update_hook // TCL namespace variable (query)
 		got := tclListFlatten(update_hook)
 		want := tclListFlatten("INSERT"+" "+"aux"+" "+"t3"+" "+"1"+" "+"INSERT"+" "+"aux"+" "+"t3"+" "+"2"+" "+"UPDATE"+" "+"aux"+" "+"t3"+" "+"2"+" "+"DELETE"+" "+"aux"+" "+"t3"+" "+"1"+" "+"DELETE"+" "+"aux"+" "+"t3"+" "+"2")
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "hook-4.2.3")
 		}
 	}
@@ -339,7 +355,7 @@ func Test_hook(t *testing.T) {
 		_ = update_hook // TCL namespace variable (query)
 		got := tclListFlatten(update_hook)
 		want := tclListFlatten("INSERT"+" "+"main"+" "+"t1"+" "+"3"+" "+"UPDATE"+" "+"main"+" "+"t1"+" "+"1"+" "+"UPDATE"+" "+"main"+" "+"t1"+" "+"2"+" "+"UPDATE"+" "+"main"+" "+"t1"+" "+"3"+" "+"DELETE"+" "+"main"+" "+"t1"+" "+"2"+" "+"DELETE"+" "+"main"+" "+"t1"+" "+"3")
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "hook-4.3.1")
 		}
 	}
@@ -354,7 +370,7 @@ func Test_hook(t *testing.T) {
 		_ = update_hook // TCL namespace variable (query)
 		got := tclListFlatten(update_hook)
 		want := tclListFlatten("")
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "hook-4.3.2")
 		}
 	}
@@ -373,7 +389,7 @@ func Test_hook(t *testing.T) {
 		_ = update_hook // TCL namespace variable (query)
 		got := tclListFlatten(update_hook)
 		want := tclListFlatten("INSERT"+" "+"main"+" "+"t4"+" "+"3")
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "hook-4.4")
 		}
 	}
@@ -385,7 +401,7 @@ func Test_hook(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1 c 2 b"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -400,7 +416,7 @@ func Test_hook(t *testing.T) {
 		_ = update_hook // TCL namespace variable (query)
 		got := tclListFlatten(update_hook)
 		want := tclListFlatten("INSERT"+" "+"main"+" "+"t4"+" "+"4")
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "hook-4.4.2")
 		}
 	}
@@ -412,7 +428,7 @@ func Test_hook(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1 d 2 b"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -437,7 +453,7 @@ func Test_hook(t *testing.T) {
 		_ = rollback_hook // TCL namespace variable (query)
 		got := tclListFlatten(rollback_hook)
 		want := tclListFlatten("1")
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "hook-5.1.1")
 		}
 	}
@@ -451,7 +467,7 @@ func Test_hook(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -552,7 +568,7 @@ func Test_hook(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1 2 3 4 5"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -618,7 +634,7 @@ func Test_hook(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1 4 16 3 5 36 4 10 100"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -874,7 +890,7 @@ func Test_hook(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "{} 1"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -913,7 +929,7 @@ func Test_hook(t *testing.T) {
 	vtab.TclVarSet("res", "", "")
 	res = "" // TCL namespace variable
 	_ = res // suppress unused warning
-	{ // "hook-11.2" — skipped: preupdate on sqlite_stat1 N-A (SQL side effects only)
+	{ // "hook-11.2" — skipped: preupdate on sqlite_stat1 N-A (SQL + file side effects only)
 		_res = db.Exec("ANALYZE")
 		_ = _res.Error // tolerate unsupported-feature errors in skipped tests
 	}
@@ -926,7 +942,7 @@ func Test_hook(t *testing.T) {
 	vtab.TclVarSet("res", "", "")
 	res = "" // TCL namespace variable
 	_ = res // suppress unused warning
-	{ // "hook-11.4" — skipped: preupdate on sqlite_stat1 N-A (SQL side effects only)
+	{ // "hook-11.4" — skipped: preupdate on sqlite_stat1 N-A (SQL + file side effects only)
 		_res = db.Exec("ANALYZE")
 		_ = _res.Error // tolerate unsupported-feature errors in skipped tests
 	}
@@ -969,15 +985,15 @@ func Test_hook(t *testing.T) {
 		_ = res // TCL namespace variable (query)
 		got := tclListFlatten(res)
 		want := tclListFlatten("{}")
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "12.2")
 		}
 	}
-	{ // "hook-12.3" — skipped: preupdate on WITHOUT ROWID t3 N-A (SQL side effects only)
+	{ // "hook-12.3" — skipped: preupdate on WITHOUT ROWID t3 N-A (SQL + file side effects only)
 		_res = db.Exec(" INSERT INTO t3 SELECT a, b FROM t2 ")
 		_ = _res.Error // tolerate unsupported-feature errors in skipped tests
 	}
-	{ // "hook-12.4" — skipped: preupdate on WITHOUT ROWID t3 N-A (SQL side effects only)
+	{ // "hook-12.4" — skipped: preupdate on WITHOUT ROWID t3 N-A (SQL + file side effects only)
 		_res = db.Exec(" DELETE FROM t3 ")
 		_ = _res.Error // tolerate unsupported-feature errors in skipped tests
 		_res = db.Exec(" INSERT INTO t3 SELECT * FROM t2 ")
@@ -1000,7 +1016,7 @@ func Test_hook(t *testing.T) {
 		_ = res // TCL namespace variable (query)
 		got := tclListFlatten(res)
 		want := tclListFlatten("{}")
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "12.6")
 		}
 	}

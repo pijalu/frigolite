@@ -22,6 +22,21 @@ func Test_sqllimits1(t *testing.T) {
 	}
 	defer db.Close()
 
+	// auto-installed test-extension functions (src/test_func.c)
+	db.RegisterFunction("test_error", func(args []interface{}) (interface{}, error) {
+		msg := ""
+		if len(args) > 0 && args[0] != nil {
+			msg = fmt.Sprintf("%v", args[0])
+		}
+		return nil, fmt.Errorf("%s", msg)
+	}, 1, 2)
+	db.RegisterFunction("test_isolation", func(args []interface{}) (interface{}, error) {
+		if len(args) < 2 {
+			return nil, nil
+		}
+		return args[1], nil
+	}, 2, 2)
+
 	var _res *frigolite.Result
 	var r *frigolite.Result
 	var msg string
@@ -694,7 +709,7 @@ func Test_sqllimits1(t *testing.T) {
 		}
 		got := tclListFlatten(res)
 		want := tclListFlatten("{}")
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "sqllimits1-5.14.8")
 		}
 	}
@@ -716,7 +731,7 @@ func Test_sqllimits1(t *testing.T) {
 		}
 		got := tclListFlatten(res)
 		want := tclListFlatten("{}")
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "sqllimits1-5.14.9")
 		}
 	}
@@ -831,7 +846,7 @@ func Test_sqllimits1(t *testing.T) {
 		rc = tclListAppend(rc, STMT)
 		got := tclListFlatten(rc)
 		want := tclListFlatten("1 (18) statement too long")
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "sqllimits1-6.3")
 		}
 	}
@@ -849,7 +864,7 @@ func Test_sqllimits1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1000"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -877,7 +892,7 @@ func Test_sqllimits1(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "7"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -923,7 +938,7 @@ func Test_sqllimits1(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT count(*) FROM sqlite_master;\n  ")
 		}
 	}
-	{ // "sqllimits1-7.7.3" — skipped: stale corpus constant: reference 3.51.0 build measures 1690 pages (census-identical to frigolite: leaf=699 interior=7 overflow=984); hardcoded 1691 does not match the reference tree (NA_EVIDENCE sqllimits1-7.7.3) (SQL side effects only)
+	{ // "sqllimits1-7.7.3" — skipped: stale corpus constant: reference 3.51.0 build measures 1690 pages (census-identical to frigolite: leaf=699 interior=7 overflow=984); hardcoded 1691 does not match the reference tree (NA_EVIDENCE sqllimits1-7.7.3) (SQL + file side effects only)
 		_res = db.Exec("\n    PRAGMA max_page_count;\n  ")
 		_ = _res.Error // tolerate unsupported-feature errors in skipped tests
 	}

@@ -5,6 +5,7 @@
 package distinctagg
 
 import (
+"fmt"
 "github.com/pijalu/frigolite"
 "github.com/pijalu/frigolite/internal/vtab"
 "os"
@@ -19,6 +20,21 @@ func Test_distinctagg(t *testing.T) {
 		t.Fatal(err)
 	}
 	defer db.Close()
+
+	// auto-installed test-extension functions (src/test_func.c)
+	db.RegisterFunction("test_error", func(args []interface{}) (interface{}, error) {
+		msg := ""
+		if len(args) > 0 && args[0] != nil {
+			msg = fmt.Sprintf("%v", args[0])
+		}
+		return nil, fmt.Errorf("%s", msg)
+	}, 1, 2)
+	db.RegisterFunction("test_isolation", func(args []interface{}) (interface{}, error) {
+		if len(args) < 2 {
+			return nil, nil
+		}
+		return args[1], nil
+	}, 2, 2)
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
@@ -94,7 +110,7 @@ func Test_distinctagg(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1 2 3 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -106,7 +122,7 @@ func Test_distinctagg(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "2 1 3 2"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -118,7 +134,7 @@ func Test_distinctagg(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "24 8 16"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -130,7 +146,7 @@ func Test_distinctagg(t *testing.T) {
 		}
 		got := flatten(r)
 		want := "1 3 2 3 3 3 4 3 5 3 6 3 7 3 8 3"
-		if got != want {
+		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
@@ -188,7 +204,7 @@ func Test_distinctagg(t *testing.T) {
 			}
 			got := flatten(r)
 			want := "1 1 2 2 3 2 4 1 5 2"
-			if got != want {
+			if got != want && !tclFpnumCompare(got, want) {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
@@ -241,7 +257,7 @@ func Test_distinctagg(t *testing.T) {
 				res := _items3[_idx3+3]
 				_ = res // suppress unused warning
 				_ = _idx3
-					{ // "distinctagg-5." + tn + ".1" — skipped: EXPLAIN VDBE opcode output not implemented (G5.EXPLAIN) (SQL side effects only)
+					{ // "distinctagg-5." + tn + ".1" — skipped: EXPLAIN VDBE opcode output not implemented (G5.EXPLAIN) (SQL + file side effects only)
 						_res = db.Exec("EXPLAIN " + sql)
 						_ = _res.Error // tolerate unsupported-feature errors in skipped tests
 					}
@@ -273,7 +289,7 @@ func Test_distinctagg(t *testing.T) {
 					}
 					got := flatten(r)
 					want := "1"
-					if got != want {
+					if got != want && !tclFpnumCompare(got, want) {
 						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 					}
 				}

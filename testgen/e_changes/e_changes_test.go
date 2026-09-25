@@ -5,6 +5,7 @@
 package e_changes
 
 import (
+"fmt"
 "github.com/pijalu/frigolite"
 "github.com/pijalu/frigolite/internal/vtab"
 "os"
@@ -20,6 +21,21 @@ func Test_e_changes(t *testing.T) {
 		t.Fatal(err)
 	}
 	defer db.Close()
+
+	// auto-installed test-extension functions (src/test_func.c)
+	db.RegisterFunction("test_error", func(args []interface{}) (interface{}, error) {
+		msg := ""
+		if len(args) > 0 && args[0] != nil {
+			msg = fmt.Sprintf("%v", args[0])
+		}
+		return nil, fmt.Errorf("%s", msg)
+	}, 1, 2)
+	db.RegisterFunction("test_isolation", func(args []interface{}) (interface{}, error) {
+		if len(args) < 2 {
+			return nil, nil
+		}
+		return args[1], nil
+	}, 2, 2)
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
@@ -109,7 +125,7 @@ func Test_e_changes(t *testing.T) {
 				got := ""
 				got = strings.TrimSpace(got + " " + strconv.FormatInt(db.Changes(), 10))
 				want := "1"
-				if got != want {
+				if got != want && !tclFpnumCompare(got, want) {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
@@ -121,7 +137,7 @@ func Test_e_changes(t *testing.T) {
 				got := ""
 				got = strings.TrimSpace(got + " " + strconv.FormatInt(db.Changes(), 10))
 				want := "10"
-				if got != want {
+				if got != want && !tclFpnumCompare(got, want) {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
@@ -133,7 +149,7 @@ func Test_e_changes(t *testing.T) {
 				got := ""
 				got = strings.TrimSpace(got + " " + strconv.FormatInt(db.Changes(), 10))
 				want := "5"
-				if got != want {
+				if got != want && !tclFpnumCompare(got, want) {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
@@ -145,7 +161,7 @@ func Test_e_changes(t *testing.T) {
 				got := ""
 				got = strings.TrimSpace(got + " " + strconv.FormatInt(db.Changes(), 10))
 				want := "4"
-				if got != want {
+				if got != want && !tclFpnumCompare(got, want) {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
@@ -171,7 +187,7 @@ func Test_e_changes(t *testing.T) {
 				got := ""
 				got = strings.TrimSpace(got + " " + strconv.FormatInt(db.Changes(), 10))
 				want := "4"
-				if got != want {
+				if got != want && !tclFpnumCompare(got, want) {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
@@ -201,7 +217,7 @@ func Test_e_changes(t *testing.T) {
 				got := ""
 				got = strings.TrimSpace(got + " " + strconv.FormatInt(db.Changes(), 10))
 				want := "0"
-				if got != want {
+				if got != want && !tclFpnumCompare(got, want) {
 					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 				}
 			}
@@ -221,7 +237,7 @@ func Test_e_changes(t *testing.T) {
 			got := ""
 			got = strings.TrimSpace(got + " " + strconv.FormatInt(db.Changes(), 10))
 			want := "0"
-			if got != want {
+			if got != want && !tclFpnumCompare(got, want) {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
@@ -233,7 +249,7 @@ func Test_e_changes(t *testing.T) {
 			got := ""
 			got = strings.TrimSpace(got + " " + strconv.FormatInt(db.Changes(), 10))
 			want := "47"
-			if got != want {
+			if got != want && !tclFpnumCompare(got, want) {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
@@ -247,7 +263,7 @@ func Test_e_changes(t *testing.T) {
 			if got == "{}" { got = "" } // empty result rows
 			got = strings.TrimSpace(got + " " + strconv.FormatInt(db.Changes(), 10))
 			want := "47 47"
-			if got != want {
+			if got != want && !tclFpnumCompare(got, want) {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
@@ -259,7 +275,7 @@ func Test_e_changes(t *testing.T) {
 			got := ""
 			got = strings.TrimSpace(got + " " + strconv.FormatInt(db.Changes(), 10))
 			want := "47"
-			if got != want {
+			if got != want && !tclFpnumCompare(got, want) {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
@@ -271,7 +287,7 @@ func Test_e_changes(t *testing.T) {
 			got := ""
 			got = strings.TrimSpace(got + " " + strconv.FormatInt(db.Changes(), 10))
 			want := "47"
-			if got != want {
+			if got != want && !tclFpnumCompare(got, want) {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
@@ -283,7 +299,7 @@ func Test_e_changes(t *testing.T) {
 			got := ""
 			got = strings.TrimSpace(got + " " + strconv.FormatInt(db.Changes(), 10))
 			want := "47"
-			if got != want {
+			if got != want && !tclFpnumCompare(got, want) {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
@@ -308,7 +324,7 @@ func Test_e_changes(t *testing.T) {
 			got := ""
 			got = strings.TrimSpace(got + " " + strconv.FormatInt(db.Changes(), 10))
 			want := "3"
-			if got != want {
+			if got != want && !tclFpnumCompare(got, want) {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
@@ -320,7 +336,7 @@ func Test_e_changes(t *testing.T) {
 			got := ""
 			got = strings.TrimSpace(got + " " + strconv.FormatInt(db.Changes(), 10))
 			want := "3"
-			if got != want {
+			if got != want && !tclFpnumCompare(got, want) {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
@@ -332,7 +348,7 @@ func Test_e_changes(t *testing.T) {
 			got := ""
 			got = strings.TrimSpace(got + " " + strconv.FormatInt(db.Changes(), 10))
 			want := "2"
-			if got != want {
+			if got != want && !tclFpnumCompare(got, want) {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
@@ -344,7 +360,7 @@ func Test_e_changes(t *testing.T) {
 			}
 			got := flatten(r)
 			want := "8"
-			if got != want {
+			if got != want && !tclFpnumCompare(got, want) {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
@@ -362,7 +378,7 @@ func Test_e_changes(t *testing.T) {
 			got := ""
 			got = strings.TrimSpace(got + " " + strconv.FormatInt(db.Changes(), 10))
 			want := "1"
-			if got != want {
+			if got != want && !tclFpnumCompare(got, want) {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
@@ -374,7 +390,7 @@ func Test_e_changes(t *testing.T) {
 			got := ""
 			got = strings.TrimSpace(got + " " + strconv.FormatInt(db.Changes(), 10))
 			want := "1"
-			if got != want {
+			if got != want && !tclFpnumCompare(got, want) {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
@@ -386,7 +402,7 @@ func Test_e_changes(t *testing.T) {
 			got := ""
 			got = strings.TrimSpace(got + " " + strconv.FormatInt(db.Changes(), 10))
 			want := "1"
-			if got != want {
+			if got != want && !tclFpnumCompare(got, want) {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
@@ -398,7 +414,7 @@ func Test_e_changes(t *testing.T) {
 			}
 			got := flatten(r)
 			want := "{} aaa {} bbb"
-			if got != want {
+			if got != want && !tclFpnumCompare(got, want) {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
@@ -410,7 +426,7 @@ func Test_e_changes(t *testing.T) {
 			got := ""
 			got = strings.TrimSpace(got + " " + strconv.FormatInt(db.Changes(), 10))
 			want := "1"
-			if got != want {
+			if got != want && !tclFpnumCompare(got, want) {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
@@ -422,7 +438,7 @@ func Test_e_changes(t *testing.T) {
 			got := ""
 			got = strings.TrimSpace(got + " " + strconv.FormatInt(db.Changes(), 10))
 			want := "1"
-			if got != want {
+			if got != want && !tclFpnumCompare(got, want) {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
@@ -434,7 +450,7 @@ func Test_e_changes(t *testing.T) {
 			got := ""
 			got = strings.TrimSpace(got + " " + strconv.FormatInt(db.Changes(), 10))
 			want := "1"
-			if got != want {
+			if got != want && !tclFpnumCompare(got, want) {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
@@ -446,7 +462,7 @@ func Test_e_changes(t *testing.T) {
 			}
 			got := flatten(r)
 			want := "{} aaa {} bbb i ccc"
-			if got != want {
+			if got != want && !tclFpnumCompare(got, want) {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
@@ -464,7 +480,7 @@ func Test_e_changes(t *testing.T) {
 			got := ""
 			got = strings.TrimSpace(got + " " + strconv.FormatInt(db.Changes(), 10))
 			want := "1"
-			if got != want {
+			if got != want && !tclFpnumCompare(got, want) {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
@@ -476,7 +492,7 @@ func Test_e_changes(t *testing.T) {
 			got := ""
 			got = strings.TrimSpace(got + " " + strconv.FormatInt(db.Changes(), 10))
 			want := "1"
-			if got != want {
+			if got != want && !tclFpnumCompare(got, want) {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
@@ -488,7 +504,7 @@ func Test_e_changes(t *testing.T) {
 			got := ""
 			got = strings.TrimSpace(got + " " + strconv.FormatInt(db.Changes(), 10))
 			want := "1"
-			if got != want {
+			if got != want && !tclFpnumCompare(got, want) {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
@@ -500,7 +516,7 @@ func Test_e_changes(t *testing.T) {
 			got := ""
 			got = strings.TrimSpace(got + " " + strconv.FormatInt(db.Changes(), 10))
 			want := "1"
-			if got != want {
+			if got != want && !tclFpnumCompare(got, want) {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
@@ -512,7 +528,7 @@ func Test_e_changes(t *testing.T) {
 			}
 			got := flatten(r)
 			want := "i 1 iii v vii vi"
-			if got != want {
+			if got != want && !tclFpnumCompare(got, want) {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
@@ -537,7 +553,7 @@ func Test_e_changes(t *testing.T) {
 			got := ""
 			got = strings.TrimSpace(got + " " + strconv.FormatInt(db.Changes(), 10))
 			want := "3"
-			if got != want {
+			if got != want && !tclFpnumCompare(got, want) {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
@@ -549,7 +565,7 @@ func Test_e_changes(t *testing.T) {
 			got := ""
 			got = strings.TrimSpace(got + " " + strconv.FormatInt(db.Changes(), 10))
 			want := "0"
-			if got != want {
+			if got != want && !tclFpnumCompare(got, want) {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
@@ -561,7 +577,7 @@ func Test_e_changes(t *testing.T) {
 			got := ""
 			got = strings.TrimSpace(got + " " + strconv.FormatInt(db.Changes(), 10))
 			want := "6"
-			if got != want {
+			if got != want && !tclFpnumCompare(got, want) {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
@@ -573,7 +589,7 @@ func Test_e_changes(t *testing.T) {
 			got := ""
 			got = strings.TrimSpace(got + " " + strconv.FormatInt(db.Changes(), 10))
 			want := "0"
-			if got != want {
+			if got != want && !tclFpnumCompare(got, want) {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
@@ -585,7 +601,7 @@ func Test_e_changes(t *testing.T) {
 			got := ""
 			got = strings.TrimSpace(got + " " + strconv.FormatInt(db.Changes(), 10))
 			want := "12"
-			if got != want {
+			if got != want && !tclFpnumCompare(got, want) {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
@@ -597,7 +613,7 @@ func Test_e_changes(t *testing.T) {
 			got := ""
 			got = strings.TrimSpace(got + " " + strconv.FormatInt(db.Changes(), 10))
 			want := "0"
-			if got != want {
+			if got != want && !tclFpnumCompare(got, want) {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
@@ -634,7 +650,7 @@ func Test_e_changes(t *testing.T) {
 			}
 			got := flatten(r)
 			want := "1 2 2 2 3 2"
-			if got != want {
+			if got != want && !tclFpnumCompare(got, want) {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
@@ -642,7 +658,7 @@ func Test_e_changes(t *testing.T) {
 			_ = changes // TCL namespace variable (query)
 			got := tclListFlatten(changes)
 			want := tclListFlatten("update 2 trigger 3 update 2 trigger 3 update 2 trigger 3")
-			if got != want {
+			if got != want && !tclFpnumCompare(got, want) {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "5.1.2")
 			}
 		}
@@ -667,7 +683,7 @@ func Test_e_changes(t *testing.T) {
 			}
 			got := flatten(r)
 			want := "1 3 2 3 3 3"
-			if got != want {
+			if got != want && !tclFpnumCompare(got, want) {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
@@ -679,7 +695,7 @@ func Test_e_changes(t *testing.T) {
 			}
 			got := flatten(r)
 			want := "0 -> 3 c = 3 0 -> 3 c = 3 0 -> 3 c = 3"
-			if got != want {
+			if got != want && !tclFpnumCompare(got, want) {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
@@ -706,7 +722,7 @@ func Test_e_changes(t *testing.T) {
 			if got == "{}" { got = "" } // empty result rows
 			got = strings.TrimSpace(got + " " + strconv.FormatInt(db.Changes(), 10))
 			want := "t3->3 t3->3 t2->2 1"
-			if got != want {
+			if got != want && !tclFpnumCompare(got, want) {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
@@ -720,7 +736,7 @@ func Test_e_changes(t *testing.T) {
 			if got == "{}" { got = "" } // empty result rows
 			got = strings.TrimSpace(got + " " + strconv.FormatInt(db.Changes(), 10))
 			want := "t3->6 t3->6 t2->2 1"
-			if got != want {
+			if got != want && !tclFpnumCompare(got, want) {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
@@ -734,7 +750,7 @@ func Test_e_changes(t *testing.T) {
 			if got == "{}" { got = "" } // empty result rows
 			got = strings.TrimSpace(got + " " + strconv.FormatInt(db.Changes(), 10))
 			want := "t3->6 t3->0 t2->2 1"
-			if got != want {
+			if got != want && !tclFpnumCompare(got, want) {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
@@ -759,7 +775,7 @@ func Test_e_changes(t *testing.T) {
 			}
 			got := flatten(r)
 			want := "1:0 2:3 3:2 4:3 5:5"
-			if got != want {
+			if got != want && !tclFpnumCompare(got, want) {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
@@ -771,7 +787,7 @@ func Test_e_changes(t *testing.T) {
 			}
 			got := flatten(r)
 			want := "1:5 2:3 3:2 4:3 5:5"
-			if got != want {
+			if got != want && !tclFpnumCompare(got, want) {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}
 		}
