@@ -564,6 +564,46 @@ func resolveEscapeNewlineFold(s string, i int, b *strings.Builder) int {
 	return i
 }
 
+// appendResolvedEscape appends the resolved form of the escape whose escape
+// char is at s[i] (the backslash already consumed) to b, returning the next
+// scan index.
+func appendResolvedEscape(s string, i int, b *strings.Builder) int {
+	switch s[i] {
+	case '\n':
+		// TCL backslash-newline folds to a single space, consuming
+		// following spaces/tabs (Tcl(n) backslash substitution) — the
+		// list/command argument continues on the next line
+		// (types-2.1.8's [list ... \<newline> 9000000000000000000 ...]).
+		return resolveEscapeNewlineFold(s, i, b)
+	case '\r':
+		return resolveEscapeNewlineFold(s, i, b)
+	case 'n':
+		b.WriteByte('\n')
+	case 't':
+		b.WriteByte('\t')
+	case 'r':
+		b.WriteByte('\r')
+	case 'u':
+		var out string
+		i, out = resolveEscapeU(s, i)
+		b.WriteString(out)
+		return i
+	case 'U':
+		var out string
+		i, out = resolveEscapeBigU(s, i)
+		b.WriteString(out)
+		return i
+	case 'x':
+		var out string
+		i, out = resolveEscapeX(s, i)
+		b.WriteString(out)
+		return i
+	default:
+		b.WriteByte(s[i])
+	}
+	return i
+}
+
 // resolveTCLListEscapes resolves the TCL backslash substitutions a bare-word
 // parser applies: backslash-newline (and \r\n) folds to a single space, \n
 // \t \r resolve, \uXXXX / \UXXXXXXXX / \xXX decode to their characters, and
@@ -581,37 +621,7 @@ func resolveTCLListEscapes(s string) string {
 			sb.WriteByte(c)
 			continue
 		}
-		i++
-		switch s[i] {
-		case '\n':
-			// TCL backslash-newline folds to a single space, consuming
-			// following spaces/tabs (Tcl(n) backslash substitution) — the
-			// list/command argument continues on the next line
-			// (types-2.1.8's [list ... \<newline> 9000000000000000000 ...]).
-			i = resolveEscapeNewlineFold(s, i, &sb)
-		case '\r':
-			i = resolveEscapeNewlineFold(s, i, &sb)
-		case 'n':
-			sb.WriteByte('\n')
-		case 't':
-			sb.WriteByte('\t')
-		case 'r':
-			sb.WriteByte('\r')
-		case 'u':
-			var out string
-			i, out = resolveEscapeU(s, i)
-			sb.WriteString(out)
-		case 'U':
-			var out string
-			i, out = resolveEscapeBigU(s, i)
-			sb.WriteString(out)
-		case 'x':
-			var out string
-			i, out = resolveEscapeX(s, i)
-			sb.WriteString(out)
-		default:
-			sb.WriteByte(s[i])
-		}
+		i = appendResolvedEscape(s, i+1, &sb)
 	}
 	return sb.String()
 }
