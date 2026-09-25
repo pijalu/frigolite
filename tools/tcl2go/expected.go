@@ -68,20 +68,31 @@ func normalizeExpectedWord(w tcl.RawWord) (tcl.RawWord, bool) {
 	// its final flat form (brace-list flattening); callers must then NOT
 	// apply the runtime tclListFlatten strip again.
 	if !w.Braced {
-		// An unbraced double-quoted expected word (json101 9.4's "null") is
-		// a TCL quoted list element: its value is the unquoted, unescaped
-		// content. Words carrying substitution ($, [, ;) keep their runtime
-		// handling.
-		if w.Quoted {
-			text := strings.TrimSpace(w.Text)
-			if !strings.ContainsAny(text, "$[;") {
-				if v, ok := tclElementValue(text); ok && v != text {
-					return tcl.RawWord{Text: v, Braced: true}, true
-				}
-			}
-		}
+		return normalizeUnbracedExpectedWord(w)
+	}
+	return normalizeBracedExpectedWord(w)
+}
+
+// normalizeUnbracedExpectedWord handles an unbraced expected word: a
+// double-quoted word (json101 9.4's "null") is a TCL quoted list element —
+// its value is the unquoted, unescaped content. Words carrying substitution
+// ($, [, ;) keep their runtime handling.
+func normalizeUnbracedExpectedWord(w tcl.RawWord) (tcl.RawWord, bool) {
+	if !w.Quoted {
 		return w, false
 	}
+	text := strings.TrimSpace(w.Text)
+	if strings.ContainsAny(text, "$[;") {
+		return w, false
+	}
+	if v, ok := tclElementValue(text); ok && v != text {
+		return tcl.RawWord{Text: v, Braced: true}, true
+	}
+	return w, false
+}
+
+// normalizeBracedExpectedWord normalizes a braced expected word.
+func normalizeBracedExpectedWord(w tcl.RawWord) (tcl.RawWord, bool) {
 	text := strings.TrimSpace(w.Text)
 	// The TCL test framework processes the expected value with substitution
 	// (TCL `subst`-like unescaping): `\"` becomes `"`. Mirror that so a
@@ -150,15 +161,20 @@ func normalizeExpectedWord(w tcl.RawWord) (tcl.RawWord, bool) {
 	if unwrapped {
 		return tcl.RawWord{Text: text, Braced: true}, false
 	}
+	return collapseBracedExpected(text, w, changed)
+}
+
+// collapseBracedExpected collapses internal whitespace to single spaces.
+// A single-field braced expected value: the TCL test framework treats
+// the braced block as a one-element list, and the surrounding
+// whitespace (e.g. "{\n  0\n}") is list formatting, not part of the
+// cell value. flatten() renders the single value with no newlines, so
+// emit the trimmed text. When the single field contains internal
+// whitespace (e.g. printf2-5.100's "(       ⭢)"), the spaces ARE part
+// of the cell value and must be preserved verbatim.
+func collapseBracedExpected(text string, w tcl.RawWord, changed bool) (tcl.RawWord, bool) {
 	fields := strings.Fields(text)
 	if len(fields) < 2 {
-		// A single-field braced expected value: the TCL test framework treats
-		// the braced block as a one-element list, and the surrounding
-		// whitespace (e.g. "{\n  0\n}") is list formatting, not part of the
-		// cell value. flatten() renders the single value with no newlines, so
-		// emit the trimmed text. When the single field contains internal
-		// whitespace (e.g. printf2-5.100's "(       ⭢)"), the spaces ARE part
-		// of the cell value and must be preserved verbatim.
 		if len(fields) == 1 && fields[0] == text {
 			// A bare or quoted single element is parsed by TCL with its
 			// escapes processed / quotes stripped (json101 1.1.01's
@@ -435,6 +451,24 @@ func substNovarBody(text string) (string, bool) {
 	return body, true
 }
 
+// balancedSingleBraceGroup reports whether s is exactly one balanced braced
+// group spanning the whole string (no text or second group after it closes).
+func balancedSingleBraceGroup(s string) bool {
+	depth := 0
+	for i := 0; i < len(s); i++ {
+		switch s[i] {
+		case '{':
+			depth++
+		case '}':
+			depth--
+			if depth == 0 && i != len(s)-1 {
+				return false
+			}
+		}
+	}
+	return depth == 0
+}
+
 // isSingleBracedStructuredLiteral reports whether the Go string literal expr
 // holds exactly one fully-braced element whose inner content is structured
 // data (JSON/braced punctuation). flatten() emits the raw cell text for such
@@ -452,19 +486,7 @@ func isSingleBracedStructuredLiteral(expr string) bool {
 	if len(s) < 2 || s[0] != '{' || s[len(s)-1] != '}' {
 		return false
 	}
-	depth := 0
-	for i := 0; i < len(s); i++ {
-		switch s[i] {
-		case '{':
-			depth++
-		case '}':
-			depth--
-			if depth == 0 && i != len(s)-1 {
-				return false
-			}
-		}
-	}
-	if depth != 0 {
+	if !balancedSingleBraceGroup(s) {
 		return false
 	}
 	inner := s[1 : len(s)-1]
@@ -493,6 +515,55 @@ func (tp *transpiler) expectLiteral(w tcl.RawWord) string {
 	return tp.goStringLiteral(nw)
 }
 
+// skipFoldedBlank consumes following spaces/tabs after a backslash-newline
+// fold (Tcl(n) backslash substitution).
+func skipFoldedBlank(s string, i int) int {
+	for i+1 < len(s) && (s[i+1] == ' ' || s[i+1] == '\t') {
+		i++
+	}
+	return i
+}
+
+// resolveEscapeU decodes \uXXXX — exactly four hexadecimal digits (Tcl 8.6).
+// Returns the (possibly unchanged) scan index and the emitted text.
+func resolveEscapeU(s string, i int) (int, string) {
+	if n := tclHexDigits(s, i+1, 4); n > 0 {
+		return i + n, string(rune(tclHexValue(s[i+1 : i+1+n])))
+	}
+	return i, "u"
+}
+
+// resolveEscapeBigU decodes \UXXXXXXXX — exactly eight hexadecimal digits,
+// ≤ 0x10FFFF.
+func resolveEscapeBigU(s string, i int) (int, string) {
+	if n := tclHexDigits(s, i+1, 8); n == 8 {
+		if v := tclHexValue(s[i+1 : i+1+n]); v <= 0x10FFFF {
+			return i + n, string(rune(v))
+		}
+	}
+	return i, "U"
+}
+
+// resolveEscapeX decodes \xHH — one or two hexadecimal digits (Tcl 8.6).
+func resolveEscapeX(s string, i int) (int, string) {
+	if n := tclHexDigits(s, i+1, 2); n > 0 {
+		return i + n, string(rune(tclHexValue(s[i+1 : i+1+n])))
+	}
+	return i, "x"
+}
+
+// resolveEscapeNewlineFold handles a backslash-newline (or backslash-\r\n)
+// fold at s[i]: consume the line terminator plus following spaces/tabs and
+// emit the single folding space. Returns the next scan index.
+func resolveEscapeNewlineFold(s string, i int, b *strings.Builder) int {
+	if s[i] == '\r' && i+1 < len(s) && s[i+1] == '\n' {
+		i++
+	}
+	i = skipFoldedBlank(s, i)
+	b.WriteByte(' ')
+	return i
+}
+
 // resolveTCLListEscapes resolves the TCL backslash substitutions a bare-word
 // parser applies: backslash-newline (and \r\n) folds to a single space, \n
 // \t \r resolve, \uXXXX / \UXXXXXXXX / \xXX decode to their characters, and
@@ -517,18 +588,9 @@ func resolveTCLListEscapes(s string) string {
 			// following spaces/tabs (Tcl(n) backslash substitution) — the
 			// list/command argument continues on the next line
 			// (types-2.1.8's [list ... \<newline> 9000000000000000000 ...]).
-			for i+1 < len(s) && (s[i+1] == ' ' || s[i+1] == '\t') {
-				i++
-			}
-			sb.WriteByte(' ')
+			i = resolveEscapeNewlineFold(s, i, &sb)
 		case '\r':
-			if i+1 < len(s) && s[i+1] == '\n' {
-				i++
-			}
-			for i+1 < len(s) && (s[i+1] == ' ' || s[i+1] == '\t') {
-				i++
-			}
-			sb.WriteByte(' ')
+			i = resolveEscapeNewlineFold(s, i, &sb)
 		case 'n':
 			sb.WriteByte('\n')
 		case 't':
@@ -536,33 +598,17 @@ func resolveTCLListEscapes(s string) string {
 		case 'r':
 			sb.WriteByte('\r')
 		case 'u':
-			// \uXXXX — exactly four hexadecimal digits (Tcl 8.6).
-			if n := tclHexDigits(s, i+1, 4); n > 0 {
-				sb.WriteRune(rune(tclHexValue(s[i+1 : i+1+n])))
-				i += n
-			} else {
-				sb.WriteByte('u')
-			}
+			var out string
+			i, out = resolveEscapeU(s, i)
+			sb.WriteString(out)
 		case 'U':
-			// \UXXXXXXXX — exactly eight hexadecimal digits, ≤ 0x10FFFF.
-			if n := tclHexDigits(s, i+1, 8); n == 8 {
-				if v := tclHexValue(s[i+1 : i+1+n]); v <= 0x10FFFF {
-					sb.WriteRune(rune(v))
-					i += n
-				} else {
-					sb.WriteByte('U')
-				}
-			} else {
-				sb.WriteByte('U')
-			}
+			var out string
+			i, out = resolveEscapeBigU(s, i)
+			sb.WriteString(out)
 		case 'x':
-			// \xHH — one or two hexadecimal digits (Tcl 8.6).
-			if n := tclHexDigits(s, i+1, 2); n > 0 {
-				sb.WriteRune(rune(tclHexValue(s[i+1 : i+1+n])))
-				i += n
-			} else {
-				sb.WriteByte('x')
-			}
+			var out string
+			i, out = resolveEscapeX(s, i)
+			sb.WriteString(out)
 		default:
 			sb.WriteByte(s[i])
 		}
@@ -586,6 +632,29 @@ func tclHexValue(s string) int64 {
 		v = v*16 + int64(hexVal(s[i]))
 	}
 	return v
+}
+
+// nextExpectedElem scans the next list element starting at pos and returns
+// its rendered cell text plus the next scan position.
+func nextExpectedElem(text string, pos int) (string, int) {
+	var elem string
+	switch text[pos] {
+	case '{':
+		el, next := splitListBraced(text, pos)
+		elem = el // braced element: verbatim value (quoting stripped)
+		pos = next
+	case '"':
+		el, next := splitListQuoted(text, pos)
+		elem = el // quoted element: escapes already resolved by the parse
+		pos = next
+	default:
+		start := pos
+		for pos < len(text) && !isListSpace(text[pos]) {
+			pos++
+		}
+		elem = resolveTCLListEscapes(text[start:pos])
+	}
+	return elem, pos
 }
 
 // renderExpectedList parses a TCL list string into its elements and renders
@@ -621,22 +690,7 @@ func renderExpectedList(text string) (string, bool) {
 			break
 		}
 		var elem string
-		switch text[pos] {
-		case '{':
-			el, next := splitListBraced(text, pos)
-			elem = el // braced element: verbatim value (quoting stripped)
-			pos = next
-		case '"':
-			el, next := splitListQuoted(text, pos)
-			elem = el // quoted element: escapes already resolved by the parse
-			pos = next
-		default:
-			start := pos
-			for pos < len(text) && !isListSpace(text[pos]) {
-				pos++
-			}
-			elem = resolveTCLListEscapes(text[start:pos])
-		}
+		elem, pos = nextExpectedElem(text, pos)
 		parts = append(parts, renderTCLCells(elem))
 	}
 	if len(parts) == 0 {
