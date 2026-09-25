@@ -5,6 +5,7 @@
 package permutations
 
 import (
+"fmt"
 "github.com/pijalu/frigolite"
 "github.com/pijalu/frigolite/internal/vtab"
 "os"
@@ -20,6 +21,21 @@ func Test_permutations(t *testing.T) {
 		t.Fatal(err)
 	}
 	defer db.Close()
+
+	// auto-installed test-extension functions (src/test_func.c)
+	db.RegisterFunction("test_error", func(args []interface{}) (interface{}, error) {
+		msg := ""
+		if len(args) > 0 && args[0] != nil {
+			msg = fmt.Sprintf("%v", args[0])
+		}
+		return nil, fmt.Errorf("%s", msg)
+	}, 1, 2)
+	db.RegisterFunction("test_isolation", func(args []interface{}) (interface{}, error) {
+		if len(args) < 2 {
+			return nil, nil
+		}
+		return args[1], nil
+	}, 2, 2)
 
 	var _res *frigolite.Result
 	var r *frigolite.Result
@@ -206,7 +222,7 @@ func Test_permutations(t *testing.T) {
 	_ = options__lindex_o_0_ // pre-declared from TCL source
 	var testspec_name string
 	_ = testspec_name // pre-declared from TCL source
-	var testsuitelist *tclListBuilder
+	var testsuitelist = &tclListBuilder{}
 	_ = testsuitelist // pre-declared from TCL source
 	var isExclude string
 	_ = isExclude // pre-declared from TCL source
@@ -216,7 +232,7 @@ func Test_permutations(t *testing.T) {
 	_ = f // pre-declared from TCL source
 	var t_f string
 	_ = t_f // pre-declared from TCL source
-	var alltests *tclListBuilder
+	var alltests = &tclListBuilder{}
 	_ = alltests // pre-declared from TCL source
 	var allquicktests string
 	_ = allquicktests // pre-declared from TCL source

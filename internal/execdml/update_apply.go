@@ -42,7 +42,7 @@ func (e *DMLExecutor) applyUpdateWithTriggers(tableEntry *schema.Entry, colDefs 
 		}
 		appliedChange, res := e.applyTriggeredUpdateRow(tree, tableName, rootPage, tableEntry, colDefs, colIndex, uniqueCols, idxColsList, *ch)
 		if res != nil {
-			return res
+			return e.updateOrconfFailure(s, res)
 		}
 		if !appliedChange {
 			continue
@@ -54,10 +54,25 @@ func (e *DMLExecutor) applyUpdateWithTriggers(tableEntry *schema.Entry, colDefs 
 		// changes() counter (and user functions like my_changes) observe
 		// the row-by-row interleaving (e_changes 5.1.2).
 		if res := e.fireTriggeredUpdateAfter(tableName, colDefs, *ch); res != nil {
-			return res
+			return e.updateOrconfFailure(s, res)
 		}
 	}
 	return &Result{Changes: changesMade}
+}
+
+// updateOrconfFailure tags an UPDATE trigger-path failure with the
+// statement's ON CONFLICT undo scope. Under an explicit OR FAIL, the rows
+// written before the failing one survive: vdbe.c OP_Halt with P2=OE_Fail
+// COMMITS the statement sub-transaction, and the trigger program shares the
+// outer statement's (without_rowid4-6.2e). RAISE(FAIL) results already carry
+// the flag from execTriggerBody; other modes keep the default statement-undo
+// semantics (ABORT undoes the statement, ROLLBACK rolls back the whole
+// transaction).
+func (e *DMLExecutor) updateOrconfFailure(s *sql.UpdateStmt, res *Result) *Result {
+	if res != nil && res.Error != nil && strings.EqualFold(s.OnConflict, "FAIL") && isIgnoreableConstraintError(res.Error) {
+		res.SetKeepPriorRowsOnError()
+	}
+	return res
 }
 
 // fireTriggeredUpdateAfter fires AFTER UPDATE triggers for one written change
@@ -110,18 +125,30 @@ func (e *DMLExecutor) applyTriggeredUpdateRow(tree *btree.BTree, tableName strin
 	// The error names the violated column from the CONFLICTING live row's
 	// values (trigger2-6.2b: "tbl.a"): the change's own old values differ
 	// on the SET column and would miss (dbgI probe).
+	// WITHOUT ROWID rows share the synthetic RowID 0, so the rowid-based
+	// self-exclusion inside updateRowConflictValues would treat every live
+	// cell as the row itself and skip it — the WR-aware checker is required
+	// on every per-row path, not just OR IGNORE (without_rowid4-6.2 turned
+	// this omission into duplicate PKs once the outer OR clause propagated
+	// into the trigger body).
 	var conflictVals []interface{}
-	conflict, err := e.updateRowConflictValues(tree, ch, colDefs, colIndex, uniqueCols, idxColsList, &conflictVals)
-	if err != nil {
-		return false, &Result{Error: err}
-	}
-	if conflict {
-		aVals := conflictVals
-		aRowID := ch.rowID
-		if aVals == nil {
-			aVals = ch.oldValues
+	if wrOrder := e.ctx.WRStorageOrder(tableEntry.SQL, colDefs); len(wrOrder) > 0 {
+		if res := e.checkLiveTableConflictsWR(tree, nil, ch, colDefs, colIndex, uniqueCols, idxColsList, tableEntry, wrOrder); res.Error != nil {
+			return false, res
 		}
-		return false, &Result{Error: e.uniqueConflictError(tableName, colDefs, colIndex, aVals, ch.values, aRowID, ch.rowID, uniqueCols, idxColsList)}
+	} else {
+		conflict, err := e.updateRowConflictValues(tree, ch, colDefs, colIndex, uniqueCols, idxColsList, &conflictVals)
+		if err != nil {
+			return false, &Result{Error: err}
+		}
+		if conflict {
+			aVals := conflictVals
+			aRowID := ch.rowID
+			if aVals == nil {
+				aVals = ch.oldValues
+			}
+			return false, &Result{Error: e.uniqueConflictError(tableName, colDefs, colIndex, aVals, ch.values, aRowID, ch.rowID, uniqueCols, idxColsList)}
+		}
 	}
 	if res := e.enforceUpdateFKActions(tableEntry, colDefs, ch); res != nil {
 		return false, res
@@ -196,7 +223,12 @@ func (e *DMLExecutor) fireUpdateBeforeTriggers(tableName string, rootPage uint32
 		return false, trigResult
 	}
 	// If a BEFORE trigger deleted the row being updated, skip the write.
-	stillExists, err := e.rowExists(tableName, rootPage, ch.rowID)
+	// update.c re-seeks the row before writing it. WITHOUT ROWID rows share
+	// the synthetic rowid 0, so rowid equality cannot identify the row —
+	// existence is checked by the change's OLD primary-key values
+	// (without_rowid1-10.6: the BEFORE UPDATE trigger deletes every row
+	// with the updated key; the outer writes must be skipped, not re-run).
+	stillExists, err := e.rowExistsForChange(tableName, rootPage, ch, colDefs)
 	if err != nil {
 		return false, &Result{Error: err}
 	}
@@ -204,6 +236,29 @@ func (e *DMLExecutor) fireUpdateBeforeTriggers(tableName string, rootPage uint32
 		return true, nil
 	}
 	return false, nil
+}
+
+// rowExistsForChange reports whether the change's row still exists in the
+// table: by rowid for a rowid table, by the OLD primary-key values for a
+// WITHOUT ROWID table.
+func (e *DMLExecutor) rowExistsForChange(tableName string, rootPage uint32, ch updateChange, colDefs []sql.ColumnDef) (bool, error) {
+	tableEntry, _, ferr := e.ctx.FindTable(tableName)
+	if ferr != nil {
+		return false, ferr
+	}
+	if tableEntry == nil {
+		return false, nil
+	}
+	if len(e.ctx.WRStorageOrder(tableEntry.SQL, colDefs)) > 0 {
+		tree := e.updateRowTree(tableName, rootPage)
+		cursor, err := tree.OpenCursor()
+		if err != nil {
+			return false, err
+		}
+		_, found := e.readCurrentRowValuesWR(cursor, tableEntry, colDefs, ch.oldValues)
+		return found, nil
+	}
+	return e.rowExists(tableName, rootPage, ch.rowID)
 }
 
 // updateRowConflictsWithTable scans the live table for rows whose values

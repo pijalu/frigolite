@@ -9,7 +9,6 @@ package execquery
 import (
 	"fmt"
 	"math"
-	"sort"
 	"strconv"
 	"strings"
 
@@ -464,123 +463,6 @@ func (e *SelectEngine) nextJoinTable(remaining []int, joinRefs [][]joinRef, plan
 		}
 	}
 	return 0 // no indexed join connection — keep original order
-}
-
-// bestIndexForQuery examines the WHERE clause and returns the best index name,
-// estimated row count, and formatted column conditions for the plan output.
-func (e *SelectEngine) bestIndexForQuery(tableName string, where sql.Expr, estimate *float64) (string, string) {
-	// Collect all column references with their operators
-	refs := collectIndexedRefs(where, tableName, e)
-	if len(refs) == 0 {
-		return "", ""
-	}
-	// Pick the one with the lowest estimate
-	bestName := ""
-	bestEst := *estimate
-	var bestRefs []indexedRef // all refs matching the best index
-	for _, ref := range refs {
-		est := refEstimate(ref, e.tableRowCount(tableName))
-		if est < bestEst {
-			bestEst = est
-			bestName = ref.indexName
-		} else if est == bestEst && ref.indexName != bestName {
-			bestName = e.tiebreakIndex(refs, bestName, ref.indexName)
-		}
-	}
-	// Collect all refs for the best index to build conditions. Only
-	// column-to-constant predicates ON THE CHOSEN INDEX'S COLUMNS are listed:
-	// SQLite's explainIndexRange renders one constraint per leading index
-	// column satisfied by the query, so a constraint on a column outside the
-	// index never appears (analyze7-2.3 "SEARCH t1 USING INDEX t1a (a=?)" for
-	// "WHERE a=123 AND b=123" — b is not in t1a and is not listed).
-	if bestName != "" {
-		bestRefs = e.refsForBestIndex(refs, where, tableName, bestName)
-	}
-	*estimate = bestEst
-	return bestName, formatConditions(bestRefs)
-}
-
-// refEstimate computes the estimated row count for an indexed ref: its
-// pre-computed selectivity when present, else the operator heuristic, times
-// the table's row count.
-func refEstimate(ref indexedRef, rowCount int64) float64 {
-	sel := ref.selectivity
-	if sel <= 0 {
-		sel = estimateSelectivity(ref.constant, ref.op)
-	}
-	return sel * float64(rowCount)
-}
-
-// tiebreakIndex picks between two equally-estimated indexes: the one covering
-// more WHERE conditions, then the simpler one (fewer columns). Returns the
-// winning index name.
-func (e *SelectEngine) tiebreakIndex(refs []indexedRef, bestName, candidateName string) string {
-	covCur := e.countRefsForIndex(refs, bestName)
-	covNew := e.countRefsForIndex(refs, candidateName)
-	if covNew > covCur {
-		return candidateName
-	}
-	if covNew == covCur && e.ctx.IndexColumnCount(indexSchemaName(candidateName)) < e.ctx.IndexColumnCount(indexSchemaName(bestName)) {
-		return candidateName
-	}
-	return bestName
-}
-
-// refsForBestIndex returns every indexed ref matching the best index, plus
-// column-to-constant predicates on the index's own columns so the plan lists
-// the full set of search constraints for that index. For a WITHOUT ROWID
-// PRIMARY KEY search, only PRIMARY KEY columns are listed: SQLite's plan for
-// a PK lookup shows exactly the PK constraints, not unrelated WHERE
-// predicates (see without_rowid1 14.2).
-func (e *SelectEngine) refsForBestIndex(refs []indexedRef, where sql.Expr, tableName, bestName string) []indexedRef {
-	var bestRefs []indexedRef
-	for _, ref := range refs {
-		if ref.indexName == bestName {
-			bestRefs = append(bestRefs, ref)
-		}
-	}
-	if bestName == "PRIMARY KEY" {
-		return bestRefs
-	}
-	indexCols := e.indexColumns(bestName)
-	for _, ar := range collectAllColumnRefs(where, tableName) {
-		if !containsFold(indexCols, ar.colName) {
-			continue
-		}
-		if !bestRefsContain(bestRefs, ar) {
-			bestRefs = append(bestRefs, ar)
-		}
-	}
-	// explainIndexRange (wherecode.c) walks the index's columns in INDEX
-	// order — a WHERE "a=? AND b=?" on index (b,a) renders "(b=? AND a=?)"
-	// (e_fkey-26.4). Sort the refs into index column order, keeping the
-	// relative order of same-column refs (multi-operator terms).
-	sort.SliceStable(bestRefs, func(i, j int) bool {
-		return indexColPos(indexCols, bestRefs[i].colName) < indexColPos(indexCols, bestRefs[j].colName)
-	})
-	return bestRefs
-}
-
-// indexColPos returns the position of colName in indexCols, or len(indexCols)
-// when absent (unknown columns sort last; callers pre-filter to index cols).
-func indexColPos(indexCols []string, colName string) int {
-	for i, c := range indexCols {
-		if strings.EqualFold(c, colName) {
-			return i
-		}
-	}
-	return len(indexCols)
-}
-
-// bestRefsContain reports whether bestRefs already has a ref with the same
-// column and operator as ar.
-func bestRefsContain(bestRefs []indexedRef, ar indexedRef) bool {
-	for _, br := range bestRefs {
-		if br.colName == ar.colName && br.op == ar.op {
-			return true
-		}
-	}
-	return false
 }
 
 // planSubqueryNodes returns one plan node per subquery expression in a
