@@ -73,11 +73,12 @@ func (v *structVTab) BindSchema(dbName, tableName string) error { return nil }
 // BestIndex implements vtab.VirtualTable.
 func (v *structVTab) BestIndex(input []byte) ([]byte, error) { return nil, nil }
 
-// Columns reports the declared schema (fts5structConnectMethod's declare).
-func (v *structVTab) Columns() []string {
-	return []string{"level", "segment", "merge", "segid", "leaf1", "leaf2",
-		"loc1", "loc2", "npgtombstone", "nentrytombstone", "nentry", "struct"}
-}
+// structColumns is the declared schema (fts5structConnectMethod's declare).
+var structColumns = []string{"level", "segment", "merge", "segid", "leaf1",
+	"leaf2", "loc1", "loc2", "npgtombstone", "nentrytombstone", "nentry", "struct"}
+
+// Columns reports the declared schema.
+func (v *structVTab) Columns() []string { return structColumns }
 
 // HiddenColumns reports the HIDDEN struct column.
 func (v *structVTab) HiddenColumns() map[int]bool { return map[int]bool{11: true} }
@@ -150,10 +151,15 @@ func (c *structCursor) Close() error {
 	return nil
 }
 
-// Column serves one output column.
+// Column serves one output column. Out-of-range indexes must return an
+// error: the TVF materializer drains columns until the first error
+// (readCursorRowsWithRowids), so an always-NULL column would loop forever.
 func (c *structCursor) Column(idx int) (interface{}, error) {
 	if c.idx <= 0 || c.idx > len(c.rows) {
-		return nil, nil
+		return nil, fmt.Errorf("fts5_structure: no current row")
+	}
+	if idx < 0 || idx >= len(structColumns) {
+		return nil, fmt.Errorf("fts5_structure: no such column")
 	}
 	r := c.rows[c.idx-1]
 	switch idx {
@@ -180,7 +186,7 @@ func (c *structCursor) Column(idx int) (interface{}, error) {
 	case 10:
 		return r.nentry, nil
 	}
-	return nil, nil // struct HIDDEN
+	return nil, nil // struct HIDDEN renders NULL
 }
 
 var _ vtab.HiddenConstraintSetter = (*structVTab)(nil)
