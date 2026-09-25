@@ -160,24 +160,37 @@ func (e *SelectEngine) compoundMemberExprPosition(s *sql.SelectStmt, expr sql.Ex
 	if isQualifiedRef && tref.Table == "" {
 		isQualifiedRef = false
 	}
-	cur := s
-	for cur != nil {
-		for i, col := range cur.Columns {
-			if col.Expr != nil && sql.ExprString(expr) == sql.ExprString(col.Expr) {
-				return i + 1
-			}
-			if isQualifiedRef && col.Expr != nil {
-				if cref, ok := col.Expr.(*sql.ColumnRef); ok &&
-					cref.Table == "" && cref.Name != "*" &&
-					strings.EqualFold(cref.Name, tref.Name) &&
-					compoundMemberBindsTable(cur, tref.Table) {
-					return i + 1
-				}
-			}
+	for cur := s; cur != nil; cur = cur.Union {
+		if pos := memberExprPositionIn(cur, expr, tref, isQualifiedRef); pos > 0 {
+			return pos
 		}
-		cur = cur.Union
 	}
 	return 0
+}
+
+// memberExprPositionIn returns the 1-based position of expr within one
+// member's result list, or 0.
+func memberExprPositionIn(member *sql.SelectStmt, expr sql.Expr, tref *sql.ColumnRef, isQualifiedRef bool) int {
+	for i, col := range member.Columns {
+		if col.Expr != nil && sql.ExprString(expr) == sql.ExprString(col.Expr) {
+			return i + 1
+		}
+		if isQualifiedRef && col.Expr != nil && qualifiedRefMatchesColumn(col, tref, member) {
+			return i + 1
+		}
+	}
+	return 0
+}
+
+// qualifiedRefMatchesColumn reports whether a table-qualified ORDER BY
+// reference matches a member column written unqualified: same column name
+// and the member's FROM binds the qualifier (tkt2822-6.5/6.6).
+func qualifiedRefMatchesColumn(col sql.SelectColumn, tref *sql.ColumnRef, member *sql.SelectStmt) bool {
+	cref, ok := col.Expr.(*sql.ColumnRef)
+	return ok &&
+		cref.Table == "" && cref.Name != "*" &&
+		strings.EqualFold(cref.Name, tref.Name) &&
+		compoundMemberBindsTable(member, tref.Table)
 }
 
 // compoundMemberBindsTable reports whether member's FROM clause declares the

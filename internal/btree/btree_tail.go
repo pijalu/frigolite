@@ -173,9 +173,9 @@ func (t *BTree) clearEmptyRootRightmost() error {
 // an interior page (i.e. not the root of the btree); the root
 // being a leaf is handled by the caller (Clear/Clear-like paths).
 // Index leaves are never routed through balanceNonroot (which only
-// handles table leaves): an emptied index leaf is removed from its
-// parent directly (removeEmptyIndexLeaf), mirroring SQLite's
-// btree.c::clearDatabasePage + balance propagation for index trees.
+// handles table leaves): an emptied index leaf stays in place —
+// walkable and format-valid — rather than being unlinked from its
+// parent (see the leaf-index branch below).
 func (t *BTree) maybeRebalanceAfterDelete(leafNum uint32) error {
 	// Only rebalance if the leaf became empty.
 	leafPg, err := t.pager.ReadPage(leafNum)
@@ -225,76 +225,6 @@ func (t *BTree) maybeRebalanceAfterDelete(leafNum uint32) error {
 	}
 	_, err = t.balanceNonroot(ctx)
 	return err
-}
-
-func (t *BTree) removeEmptyIndexLeaf(leafNum uint32) error {
-	parentPgno, _, err := t.findParentByWalk(leafNum)
-	if err != nil {
-		// No parent (the empty leaf is the btree root): nothing to
-		// unlink; the empty leaf root is a valid empty index tree.
-		return nil
-	}
-	parentPg, err := t.pager.ReadPage(parentPgno)
-	if err != nil {
-		return err
-	}
-	parentCo := contentOffset(parentPg.PageNum)
-	parentPage, err := storage.ParsePage(parentPg.Data, int(t.pageSize), parentCo)
-	if err != nil {
-		return err
-	}
-	if err := t.dropIndexLeafRefFromParent(parentPg, parentPage, parentCo, leafNum); err != nil {
-		return err
-	}
-	if err := t.pager.WritePage(parentPg); err != nil {
-		return err
-	}
-	if err := t.freePageWithPtrmap(leafNum); err != nil {
-		return err
-	}
-	// The parent may have lost its last child; collapse upward.
-	return t.cascadeChildless(parentPgno)
-}
-
-// dropIndexLeafRefFromParent removes an emptied index leaf's reference from
-// its parent. A cell-child reference loses its divider cell; a
-// rightmost-child reference promotes the last divider's left child into the
-// rightmost pointer and drops that divider. Zeroing the pointer alone would
-// leave ncells dividers with only ncells children (interior pages need
-// ncells+1). SQLite's balance keeps the page valid by dropping the boundary
-// divider and repointing the rightmost-child at the divider's left child
-// (dropCell + put4byte(pRight, apNew[nNew-1]), src/btree.c:8699):
-//
-//	[c0] d0 [c1] ... d(n-1) [c(n)=rmp]  ->  [c0] d0 ... [c(n-1)=rmp]
-//
-// The dropped divider's key belonged to the removed subtree, so the
-// surviving dividers need no key edits.
-func (t *BTree) dropIndexLeafRefFromParent(parentPg *pager.Page, parentPage *storage.BTreePage, parentCo int, leafNum uint32) error {
-	idx, err := t.findLeafIndexInParent(parentPg, leafNum)
-	if err != nil {
-		return err
-	}
-	if idx >= 0 {
-		return t.removeInteriorCellRange(parentPg, parentPage, idx, 1)
-	}
-	// The empty leaf is the parent's rightmost child.
-	if parentPage.CellCount > 0 {
-		last := int(parentPage.CellCount) - 1
-		ptrBase := parentCo + cellPtrOffset(parentPage.PageType)
-		cp := int(binary.BigEndian.Uint16(parentPg.Data[ptrBase+last*2 : ptrBase+last*2+2]))
-		if cp+4 > len(parentPg.Data) {
-			return fmt.Errorf("removeEmptyIndexLeaf: bad cell pointer %d in parent %d", cp, parentPg.PageNum)
-		}
-		leftChild := binary.BigEndian.Uint32(parentPg.Data[cp : cp+4])
-		if err := t.removeInteriorCellRange(parentPg, parentPage, last, 1); err != nil {
-			return err
-		}
-		binary.BigEndian.PutUint32(parentPg.Data[parentCo+8:parentCo+12], leftChild)
-		return nil
-	}
-	// No dividers: the removed leaf was the only child.
-	binary.BigEndian.PutUint32(parentPg.Data[parentCo+8:parentCo+12], 0)
-	return nil
 }
 
 // DeleteCellByRowID deletes the single table-leaf cell with the given rowid

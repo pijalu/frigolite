@@ -9148,3 +9148,37 @@ regenerated; suite net −2274 fails vs pre-tranche baseline (7230 → ~4950).
   the current transpiler output (2181 files) — earlier sibling merges did not
   re-commit regen. First commit of a §5d slice should be a no-source-change
   "baseline testgen regen" so subsequent byte-diff gates are enforceable.
+## T33d-q (2026-09-25) — §5d golang-check closure: execquery + btree + storage
+
+- **Slice result**: all 15 assigned functions under gocognit 15 / gocyclo 12; 4
+  oversized files split (select_columns 1024→537+select_orderby 523;
+  select_agg_validate 1037→665+select_validate_exprs 383; select_agg 1017→894+
+  select_agg_funcs 154; storage 1005→245+cell 334+record 444). All my files ≤1000.
+  3 assigned U1000s removed (mustEncodeDividerCell, removeEmptyIndexLeaf,
+  dropIndexLeafRefFromParent — verified unused by repo-wide grep INCLUDING
+  comments before deletion); the pre-existing vet "unreachable" in
+  btree_interior_page.go:64 (dead tail after an unconditional return in
+  encodeDividerCell) removed in the same commit.
+- **disableUnusedSubqueryColumns (gocognit 102→2)**: the closure spider
+  (markName/markAll/qualMatch/outerWalk/outerRef capturing outNames/used/
+  qualifiers) decomposes cleanly into a `subqueryColumnUse` struct with
+  methods + pure helpers (eligibility, compound expansion, rewrite). Keeping
+  the early-exit `if found { return }` inside the WalkExprFull closure
+  preserves the performance profile, not just semantics.
+- **Semantics-preservation tricks that passed the full validation set**:
+  (a) pure predicates may be REORDERED across a boolean OR (e.g. clause
+  external-table checks) — side-effect-free checks are order-independent;
+  (b) always-true sub-conditions (`isLit || !ok` when already inside `!ok`)
+  collapse to the dominating condition only after proving the other
+  disjunct is unreachable-in-false; (c) hoisting a repeated pure call
+  (stripCollate) is safe — verify purity by reading it first.
+- **sed-based file splits**: split boundaries MUST be re-gofmt-checked — the
+  mechanical cut left a double blank line in select_agg.go (caught by
+  `gofmt -l`); several files in the tree have PRE-EXISTING gofmt drift
+  (context.go, btree.go struct alignment) — do not "fix" those, it is noise
+  outside the slice and the repo does not enforce gofmt in hooks.
+- **Baseline discipline paid off**: testgen/window1 fails with 5 mismatches
+  (1551/1563/2242/2254/3309) at the BASE HEAD (window-exec gaps owned by the
+  window slice). Recording the exact signature up front turned every later
+  "FAIL" into a 5-line diff against baseline instead of a false alarm; the
+  full 18-package validation set ran in ~40s so per-tranche re-runs were cheap.

@@ -44,33 +44,36 @@ func (e *SelectEngine) partitionByGroupKey(groupBy []sql.Expr, rowMaps []RowMap)
 // collation must match textually (their serialized keys are exact).
 func (e *SelectEngine) equivalentGroupKey(keyOrder []string, keyVals map[string][]interface{}, vals []interface{}, colls []string) string {
 	for _, k := range keyOrder {
-		existing := keyVals[k]
-		if len(existing) != len(vals) {
-			continue
-		}
-		equal := true
-		for i := range vals {
-			coll := ""
-			if i < len(colls) {
-				coll = colls[i]
-			}
-			uv := util.UnwrapColumnValue(vals[i])
-			ev := util.UnwrapColumnValue(existing[i])
-			if coll == "" {
-				if fmt.Sprintf("%v", uv) != fmt.Sprintf("%v", ev) {
-					equal = false
-					break
-				}
-				continue
-			}
-			if c := e.ctx.CompareValuesCollate(uv, ev, coll); c != 0 {
-				equal = false
-				break
-			}
-		}
-		if equal {
+		if e.groupKeyValuesEqual(keyVals[k], vals, colls) {
 			return k
 		}
 	}
 	return ""
+}
+
+// groupKeyValuesEqual reports whether vals compare equal to existing under
+// the per-term collations. A collated term compares via the collation; an
+// uncollated term must match textually (its serialized key is exact).
+func (e *SelectEngine) groupKeyValuesEqual(existing, vals []interface{}, colls []string) bool {
+	if len(existing) != len(vals) {
+		return false
+	}
+	for i := range vals {
+		coll := ""
+		if i < len(colls) {
+			coll = colls[i]
+		}
+		uv := util.UnwrapColumnValue(vals[i])
+		ev := util.UnwrapColumnValue(existing[i])
+		if coll == "" {
+			if fmt.Sprintf("%v", uv) != fmt.Sprintf("%v", ev) {
+				return false
+			}
+			continue
+		}
+		if c := e.ctx.CompareValuesCollate(uv, ev, coll); c != 0 {
+			return false
+		}
+	}
+	return true
 }

@@ -387,6 +387,67 @@ func (t *BTree) updateBtreeParentPtr(parentPgno, oldChild, newChild uint32) erro
 	return fmt.Errorf("btree: updateParentChildPtr: parent %d does not reference child %d (cells=%d, rmp=%d)", parentPgno, oldChild, page.CellCount, rmp)
 }
 
+// ovfl1CellTypeForPage maps a page type to the cell layout used when
+// locating a cell's overflow-chain head pointer. Index interior dividers
+// carry the separator key with their own overflow chain, so a relocated
+// chain head may be owned by an interior page's divider cell.
+func ovfl1CellTypeForPage(pgno uint32, pageType byte) (storage.CellType, error) {
+	switch pageType {
+	case storage.PageTypeLeafTable:
+		return storage.CellTableLeaf, nil
+	case storage.PageTypeLeafIndex:
+		return storage.CellIndexLeaf, nil
+	case storage.PageTypeInteriorIndex:
+		return storage.CellIndexInterior, nil
+	default:
+		return 0, fmt.Errorf("btree: updateOvfl1ParentPtr: parent %d is not a leaf (type 0x%02x)", pgno, pageType)
+	}
+}
+
+// ovfl1CellSize returns the on-page size of the cell at cellOff: the
+// payload-length varint (+ rowid varint for table leaves) + local payload +
+// 4-byte overflow pointer. Index interior divider cells additionally lead
+// with the 4-byte left-child pointer.
+func ovfl1CellSize(data []byte, cellOff int, cellType storage.CellType, cell storage.Cell) int {
+	_, n1 := util.GetVarint(data[cellOff:])
+	sz := n1 + cell.LocalLen + 4
+	if cellType == storage.CellTableLeaf {
+		_, n2 := util.GetVarint(data[cellOff+n1:])
+		sz += n2
+	}
+	if cellType == storage.CellIndexInterior {
+		// The payload-length varint starts AFTER the 4-byte child
+		// pointer in an interior cell.
+		_, nChild := util.GetVarint(data[cellOff+4:])
+		sz = 4 + nChild + cell.LocalLen + 4
+	}
+	return sz
+}
+
+// rewriteOvfl1PtrAt rewrites the overflow-chain head pointer of the cell at
+// pointer index idx when it equals oldChild. Reports whether the chain head
+// was found (and rewritten).
+func (t *BTree) rewriteOvfl1PtrAt(pg *pager.Page, ptrBase, idx int, cellType storage.CellType, pgno, oldChild, newChild uint32) bool {
+	cellOff := int(storage.CellPointer(pg.Data, ptrBase, idx, int(t.pageSize)))
+	if cellOff+4 > len(pg.Data) {
+		return false
+	}
+	c, cerr := storage.DecodeCell(pg.Data, cellOff, cellType, int(t.usableSize))
+	if cerr != nil || c.Overflow == 0 {
+		return false
+	}
+	ovflOff := cellOff + ovfl1CellSize(pg.Data, cellOff, cellType, *c) - 4
+	if ovflOff < 0 || ovflOff+4 > len(pg.Data) {
+		return false
+	}
+	if binary.BigEndian.Uint32(pg.Data[ovflOff:ovflOff+4]) != oldChild {
+		return false
+	}
+	binary.BigEndian.PutUint32(pg.Data[ovflOff:ovflOff+4], newChild)
+	pager.MarkPageDirtyForVacuum(t.pager, pgno)
+	return true
+}
+
 // updateOvfl1ParentPtr rewrites the overflow-chain head pointer stored in
 // a leaf page's cell (btree.c modifyPagePointer, PTRMAP_OVERFLOW1 branch:
 // the cell's last 4 on-page bytes hold the chain head when the payload
@@ -398,53 +459,13 @@ func (t *BTree) updateOvfl1ParentPtr(parentPg *pager.Page, parentPgno, oldChild,
 	if err != nil {
 		return err
 	}
-	var cellType storage.CellType
-	switch page.PageType {
-	case storage.PageTypeLeafTable:
-		cellType = storage.CellTableLeaf
-	case storage.PageTypeLeafIndex:
-		cellType = storage.CellIndexLeaf
-	case storage.PageTypeInteriorIndex:
-		// Index interior dividers carry the separator key with their own
-		// overflow chain, so a relocated chain head may be owned by an
-		// interior page's divider cell.
-		cellType = storage.CellIndexInterior
-	default:
-		return fmt.Errorf("btree: updateOvfl1ParentPtr: parent %d is not a leaf (type 0x%02x)", parentPgno, page.PageType)
+	cellType, err := ovfl1CellTypeForPage(parentPgno, page.PageType)
+	if err != nil {
+		return err
 	}
 	ptrBase := coff + cellPtrOffset(page.PageType) - 8
 	for i := 0; i < int(page.CellCount); i++ {
-		cellOff := int(storage.CellPointer(parentPg.Data, ptrBase, i, int(t.pageSize)))
-		if cellOff+4 > len(parentPg.Data) {
-			continue
-		}
-		c, cerr := storage.DecodeCell(parentPg.Data, cellOff, cellType, int(t.usableSize))
-		if cerr != nil || c.Overflow == 0 {
-			continue
-		}
-		// Cell size on the page: payload-length varint (+ rowid varint
-		// for table leaves) + local payload + 4-byte overflow pointer.
-		// Index interior divider cells additionally lead with the 4-byte
-		// left-child pointer.
-		_, n1 := util.GetVarint(parentPg.Data[cellOff:])
-		sz := n1 + c.LocalLen + 4
-		if cellType == storage.CellTableLeaf {
-			_, n2 := util.GetVarint(parentPg.Data[cellOff+n1:])
-			sz += n2
-		}
-		if cellType == storage.CellIndexInterior {
-			// The payload-length varint starts AFTER the 4-byte child
-			// pointer in an interior cell.
-			_, nChild := util.GetVarint(parentPg.Data[cellOff+4:])
-			sz = 4 + nChild + c.LocalLen + 4
-		}
-		ovflOff := cellOff + sz - 4
-		if ovflOff < 0 || ovflOff+4 > len(parentPg.Data) {
-			continue
-		}
-		if binary.BigEndian.Uint32(parentPg.Data[ovflOff:ovflOff+4]) == oldChild {
-			binary.BigEndian.PutUint32(parentPg.Data[ovflOff:ovflOff+4], newChild)
-			pager.MarkPageDirtyForVacuum(t.pager, parentPgno)
+		if t.rewriteOvfl1PtrAt(parentPg, ptrBase, i, cellType, parentPgno, oldChild, newChild) {
 			return nil
 		}
 	}
