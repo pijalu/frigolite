@@ -23,7 +23,7 @@ func parseIndexColumns(sqlStr string) []string {
 		return nil
 	}
 	var cols []string
-	for _, c := range strings.Split(sqlStr[start+1 : end], ",") {
+	for _, c := range strings.Split(sqlStr[start+1:end], ",") {
 		col := strings.TrimSpace(c)
 		if col == "" {
 			continue

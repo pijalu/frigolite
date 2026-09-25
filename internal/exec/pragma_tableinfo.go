@@ -360,30 +360,49 @@ type exprQuoteState struct {
 // span only its terminator closes it; outside, an opening quote or bracket
 // enters one.
 func (q *exprQuoteState) advance(c byte) {
+	if !q.tryClose(c) {
+		q.tryOpen(c)
+	}
+}
+
+// tryClose closes the quoted span c terminates (single/double/backtick
+// string or bracket identifier); reports whether any span was open.
+func (q *exprQuoteState) tryClose(c byte) bool {
 	switch {
 	case q.inSingle:
 		if c == '\'' {
 			q.inSingle = false
 		}
+		return true
 	case q.inDouble:
 		if c == '"' {
 			q.inDouble = false
 		}
+		return true
 	case q.inBacktick:
 		if c == '`' {
 			q.inBacktick = false
 		}
+		return true
 	case q.inBracket:
 		if c == ']' {
 			q.inBracket = false
 		}
-	case c == '\'':
+		return true
+	}
+	return false
+}
+
+// tryOpen opens a quoted span when c starts one.
+func (q *exprQuoteState) tryOpen(c byte) {
+	switch c {
+	case '\'':
 		q.inSingle = true
-	case c == '"':
+	case '"':
 		q.inDouble = true
-	case c == '`':
+	case '`':
 		q.inBacktick = true
-	case c == '[':
+	case '[':
 		q.inBracket = true
 	}
 }
