@@ -125,6 +125,11 @@ LATE-BREAKING (2026-09-25 late evening):
   comparators. Suspect: interior descent/split decisions using byte
   comparators instead of keyCompare. misc5 fell between the idx and
   exec agents' validation sets.
+- SECOND REGRESSION (same merge window): TestP2ViewColumnList (root
+  native) — `SELECT x,y FROM v1c(declared list)` returns NULLs; the
+  t33-query omit-unused-subquery-column use-walk misses outer
+  references through view-declared column aliases. fleet/t33-win agent
+  RESUMED for this (T33-win2) — same subqueryColumnUse file it owns.
 - fleet/t33-fts5 STILL ACTIVE in frigolite-wt-t33-fts5 (fts5hash +
   fts5unindexed + contentless3-2.x green at ef605a1ad; segment/structure
   persistence model landed; 4 dirty files mid-work).
