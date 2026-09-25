@@ -371,39 +371,58 @@ func (t *Table) Insert(rowid int64, values []interface{}) error {
 	defer t.bumpVersion()
 	t.noteRowid(rowid)
 	t.ix.AddDoc(rowid, nil, cols)
-	if t.cfg.EContent == ContentNormal || t.cfg.EContent == ContentUnindexed {
-		// ContentNormal stores every column; UNINDEXED content stores only
-		// the UNINDEXED ones — mirror the stored subset for scans and
-		// DocValues (fts5StorageInsert's content-table writes).
-		stored := make([]interface{}, len(values))
-		copy(stored, values)
-		if t.cfg.EContent == ContentUnindexed {
-			for i := range stored {
-				if i < len(t.cfg.Unindexed) && !t.cfg.Unindexed[i] {
-					stored[i] = nil
-				}
-			}
-		}
-		t.contentValues[rowid] = stored
-	}
+	t.storeContentCopy(rowid, values)
 	if err := t.insertContentRow(rowid, values); err != nil {
 		return err
 	}
-	// A contentless_delete docsize row carries the origin value the document
-	// tombstones against (sqlite3Fts5IndexGetOrigin: the origin the NEXT
-	// flush will assign its segment).
-	if t.cfg.ContentlessDelete {
-		if t.docOrigins == nil {
-			t.docOrigins = make(map[int64]uint64)
-		}
-		t.docOrigins[rowid] = t.structRec.NOriginCntr
-	}
+	t.noteContentlessOrigin(rowid)
 	if err := t.insertDocsizeRow(rowid); err != nil {
 		return err
 	}
 	// The document joins the pending hash; the flush happens at the sync
 	// point or when 'hashsize' overflows (sqlite3Fts5IndexBeginWrite).
 	return t.AddPendingRow(rowid, cols)
+}
+
+// storeContentCopy mirrors the stored content subset for scans and
+// DocValues: ContentNormal stores every column; UNINDEXED content stores
+// only the UNINDEXED ones (fts5StorageInsert's content-table writes).
+func (t *Table) storeContentCopy(rowid int64, values []interface{}) {
+	if t.cfg.EContent != ContentNormal && t.cfg.EContent != ContentUnindexed {
+		return
+	}
+	stored := make([]interface{}, len(values))
+	copy(stored, values)
+	if t.cfg.EContent == ContentUnindexed {
+		for i := range stored {
+			if i < len(t.cfg.Unindexed) && !t.cfg.Unindexed[i] {
+				stored[i] = nil
+			}
+		}
+	}
+	t.contentValues[rowid] = stored
+}
+
+// noteContentlessOrigin records the origin value a contentless_delete
+// docsize row carries for the document (sqlite3Fts5IndexGetOrigin: the
+// origin the NEXT flush will assign its segment).
+func (t *Table) noteContentlessOrigin(rowid int64) {
+	if !t.cfg.ContentlessDelete {
+		return
+	}
+	if t.docOrigins == nil {
+		t.docOrigins = make(map[int64]uint64)
+	}
+	t.docOrigins[rowid] = t.structRec.NOriginCntr
+}
+
+// commandRebuild handles the 'rebuild' directive: contentless tables cannot
+// re-read their documents (fts5UpdateMethod's rebuild branch).
+func (t *Table) commandRebuild() (bool, error) {
+	if t.cfg.Contentless() {
+		return true, fmt.Errorf("'rebuild' may not be used with a contentless fts5 table")
+	}
+	return true, t.rebuild()
 }
 
 // Delete removes a document (fts5StorageDelete). It reports whether the
@@ -426,42 +445,12 @@ func (t *Table) Delete(rowid int64) (bool, error) {
 		t.pendingSecureUpgrade = true
 	}
 	if t.cfg.ContentlessDelete {
-		// contentless_delete tombstones the rowid in every segment whose
-		// origin range covers the document's origin; the FIRST such segment
-		// (highest level first) also bumps nEntryTombstone
-		// (sqlite3Fts5IndexContentlessDelete).
-		origin := t.docOrigins[rowid]
-		found := false
-		for lvl := len(t.structRec.Levels) - 1; lvl >= 0 && !found; lvl-- {
-			for i := len(t.structRec.Levels[lvl]) - 1; i >= 0; i-- {
-				seg := t.structRec.Levels[lvl][i]
-				if seg.Origin1 > origin || seg.Origin2 < origin {
-					continue
-				}
-				if !found {
-					seg.NEntryTombstone++
-					found = true
-				}
-				seg.Tombs[rowid] = true
-				if err := t.tombstoneAdd(seg, rowid); err != nil {
-					return true, err
-				}
-			}
+		if err := t.contentlessDeleteTombstone(rowid); err != nil {
+			return true, err
 		}
 	}
-	delete(t.contentValues, rowid)
-	if err := t.deleteContentRow(rowid); err != nil {
+	if err := t.deleteShadowRows(rowid); err != nil {
 		return true, err
-	}
-	if err := t.deleteDocsizeRow(rowid); err != nil {
-		return true, err
-	}
-	delete(t.docOrigins, rowid)
-	if len(t.ix.SortedRowids()) == 0 {
-		// An emptied table restarts auto rowid allocation at 1: the shadow
-		// %_content rowid table is empty, and OP_NewRowid (no AUTOINCREMENT)
-		// picks 1 for an empty b-tree.
-		t.maxRowid = 0
 	}
 	if !t.cfg.ContentlessDelete {
 		// A plain (or secure) delete rewrites the containing segments'
@@ -470,6 +459,51 @@ func (t *Table) Delete(rowid int64) (bool, error) {
 		t.markSegmentsDirty(rowid)
 	}
 	return true, nil
+}
+
+// contentlessDeleteTombstone tombstones the rowid in every segment whose
+// origin range covers the document's origin; the FIRST such segment (highest
+// level first) also bumps nEntryTombstone
+// (sqlite3Fts5IndexContentlessDelete).
+func (t *Table) contentlessDeleteTombstone(rowid int64) error {
+	origin := t.docOrigins[rowid]
+	found := false
+	for lvl := len(t.structRec.Levels) - 1; lvl >= 0 && !found; lvl-- {
+		for i := len(t.structRec.Levels[lvl]) - 1; i >= 0; i-- {
+			seg := t.structRec.Levels[lvl][i]
+			if seg.Origin1 > origin || seg.Origin2 < origin {
+				continue
+			}
+			if !found {
+				seg.NEntryTombstone++
+				found = true
+			}
+			seg.Tombs[rowid] = true
+			if err := t.tombstoneAdd(seg, rowid); err != nil {
+				return err
+			}
+		}
+	}
+	return nil
+}
+
+// deleteShadowRows drops the document's mirrors: the in-memory content copy,
+// the %_content/%_docsize rows and the origin bookkeeping. An emptied table
+// restarts auto rowid allocation at 1: the shadow %_content rowid table is
+// empty, and OP_NewRowid (no AUTOINCREMENT) picks 1 for an empty b-tree.
+func (t *Table) deleteShadowRows(rowid int64) error {
+	delete(t.contentValues, rowid)
+	if err := t.deleteContentRow(rowid); err != nil {
+		return err
+	}
+	if err := t.deleteDocsizeRow(rowid); err != nil {
+		return err
+	}
+	delete(t.docOrigins, rowid)
+	if len(t.ix.SortedRowids()) == 0 {
+		t.maxRowid = 0
+	}
+	return nil
 }
 
 // markSegmentsDirty flags every segment holding rowid whose payload needs a
@@ -548,10 +582,7 @@ func (t *Table) SpecialCommand(cmd string, args []interface{}) (bool, error) {
 	case "delete":
 		return true, t.specialDelete(args)
 	case "rebuild":
-		if t.cfg.Contentless() {
-			return true, fmt.Errorf("'rebuild' may not be used with a contentless fts5 table")
-		}
-		return true, t.rebuild()
+		return t.commandRebuild()
 	case "rank":
 		return t.specialRank(args)
 	case "pgsz", "hashsize", "automerge", "usermerge", "crisismerge",
@@ -730,25 +761,9 @@ func badConfigValue(cmd string, v int64) bool {
 // rebuild re-indexes every external content row (fts5StorageRebuild).
 func (t *Table) rebuild() error {
 	defer t.bumpVersion()
-	type doc struct {
-		rowid  int64
-		values []interface{}
-	}
-	var docs []doc
-	if t.cfg.EContent == ContentExternal {
-		rowids, values, err := t.scanExternal()
-		if err != nil {
-			return err
-		}
-		for i, rowid := range rowids {
-			docs = append(docs, doc{rowid: rowid, values: values[i]})
-		}
-	} else {
-		// Normal content re-reads the stored %_content mirror
-		// (fts5StorageRebuild scans %_content for content= tables).
-		for _, rowid := range t.ix.SortedRowids() {
-			docs = append(docs, doc{rowid: rowid, values: t.contentValues[rowid]})
-		}
+	docs, err := t.rebuildDocs()
+	if err != nil {
+		return err
 	}
 	t.ix = NewInvertedIndex(len(t.cfg.Columns))
 	t.maxRowid = 0
@@ -771,17 +786,51 @@ func (t *Table) rebuild() error {
 		return err
 	}
 	for _, d := range docs {
-		cols, err := t.tokenizeValues(d.values)
-		if err != nil {
-			return err
-		}
-		t.ix.AddDoc(d.rowid, nil, cols)
-		t.noteRowid(d.rowid)
-		if err := t.AddPendingRow(d.rowid, cols); err != nil {
+		if err := t.rebuildAddDoc(d.rowid, d.values); err != nil {
 			return err
 		}
 	}
 	return t.FlushShadowIfDirty()
+}
+
+// rebuildDoc is one document collected for a rebuild.
+type rebuildDoc struct {
+	rowid  int64
+	values []interface{}
+}
+
+// rebuildDocs collects the documents a 'rebuild' re-indexes: an external
+// content scan, or the stored %_content mirror
+// (fts5StorageRebuild scans %_content for content= tables).
+func (t *Table) rebuildDocs() ([]rebuildDoc, error) {
+	if t.cfg.EContent != ContentExternal {
+		var docs []rebuildDoc
+		for _, rowid := range t.ix.SortedRowids() {
+			docs = append(docs, rebuildDoc{rowid: rowid, values: t.contentValues[rowid]})
+		}
+		return docs, nil
+	}
+	rowids, values, err := t.scanExternal()
+	if err != nil {
+		return nil, err
+	}
+	docs := make([]rebuildDoc, 0, len(rowids))
+	for i, rowid := range rowids {
+		docs = append(docs, rebuildDoc{rowid: rowid, values: values[i]})
+	}
+	return docs, nil
+}
+
+// rebuildAddDoc re-enters one document through the pending hash
+// (fts5StorageRebuild's per-row sqlite3Fts5IndexWrite).
+func (t *Table) rebuildAddDoc(rowid int64, values []interface{}) error {
+	cols, err := t.tokenizeValues(values)
+	if err != nil {
+		return err
+	}
+	t.ix.AddDoc(rowid, nil, cols)
+	t.noteRowid(rowid)
+	return t.AddPendingRow(rowid, cols)
 }
 
 // ScanDocs returns the documents a full scan visits in ascending rowid order
