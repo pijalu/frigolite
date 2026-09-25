@@ -794,7 +794,6 @@ func (e *SelectEngine) buildGroupWindowRow(s *sql.SelectStmt, src RowMap, outRow
 	return m
 }
 
-
 // evalGroupByNoAggs handles GROUP BY without aggregate functions: groups rows
 // by key and builds output rows using buildOutputRow, emitting groups in key
 // order and applying HAVING.
