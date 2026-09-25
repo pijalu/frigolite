@@ -99,6 +99,32 @@ fleet/t33-fts5 AGENT DIED ~2026-09-24 23:12 (session interruption;
 uncommitted WIP: structvtab.go new + structure/vocab/engine_register
 edits). RESUMED per protocol: new agent (fleet/t33-fts5, same worktree,
 merge main first, adjudicate WIP file-by-file).
+
+LATE-BREAKING (2026-09-25 late evening):
+- fleet/t33-win MERGED (fae5dec16): window1 regression fixed
+  (omit-unused-subquery-column use-walk must mirror name resolution).
+- fleet/t33d-flow MERGED (b73b9283a): the whole tcl2go long tail.
+- Coordinator remainder §5d fixes pushed (ba9247849): skiptests2_part2
+  1342→798+556 split + skipTestReason/resolveOrdinalOrderByTerm/
+  indexOrderedScanForOrderBy gocyclo — gocognit/gocyclo/file-size/
+  staticcheck/vet ALL ZERO repo-wide now.
+- CORPUS COMPILE BREAKS from the regen sync FOUND AND FIXED
+  (964efc700): varCount missing in 6 sub-transpiler literals (counter
+  reset → 'no new variables' in window6/pager1/skipscan5);
+  tclFpnumCompare(bool) type errors (interface{} wrapper); UDF $args
+  list-rendering (emitPrefixFunction). Full corpus regen #2 landed;
+  corpus vet = zero type errors. window6 GREEN through pure
+  engine-side correctness (tclQuoteListElem double-bracing symmetric
+  with flatten).
+- NEW ENGINE REGRESSION under investigation → fleet/t33-idxfix
+  (frigolite-wt-t33-idxfix): autoindex b-trees misordered at
+  multi-page scale (misc5 t2 repro: insert-batch-grouped walk instead
+  of value order; REINDEX does NOT fix; small trees correct).
+  Bisected to the idx agent's autoindex-DML-maintenance feature
+  (748fdb03a) — first code to exercise multi-page splits under KeyInfo
+  comparators. Suspect: interior descent/split decisions using byte
+  comparators instead of keyCompare. misc5 fell between the idx and
+  exec agents' validation sets.
 - fleet/t33-fts5 STILL ACTIVE in frigolite-wt-t33-fts5 (fts5hash +
   fts5unindexed + contentless3-2.x green at ef605a1ad; segment/structure
   persistence model landed; 4 dirty files mid-work).
