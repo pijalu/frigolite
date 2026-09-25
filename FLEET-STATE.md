@@ -62,6 +62,41 @@ Merge log:
   GlobRangePin + tkt2822 pins green).
 - (next) ← fleet/t33-query (having/where6/window8/selectH; verified on
   main: 4 pkgs + SOLID green — merged with the push above).
+
+§5d REFACTOR MERGES (all verified on main: build+SOLID+slice targets):
+- `7cb9008d5` ← fleet/t33d-exec (10 findings cleared, pragma splits,
+  schemaPrefixOf U1000 gone).
+- `ab7008ddf` ← fleet/t33d-cmd (processcmdextra 1915→876, cmdexpr
+  1537→743, gen 1075→470; 7 new family files; regen byte-identical).
+- `482f787e0` ← fleet/t33d-set (processSetBracketValue 186/126→4/4,
+  processNamespaceSet 142/76→8/7; 5 new family files).
+- `5e0692f26` ← fleet/t33d-db (processdb 1826→split, processblob,
+  processsqlite3).
+- `c00f1f86d` ← fleet/t33d-q (select_columns/agg/agg_validate/subq_unused
+  splits, disableUnusedSubqueryColumns 102→2, storage.go split, 3 btree
+  U1000s + vet unreachable removed).
+- staticcheck repo-wide now ZERO findings (was 4 U1000). §5d staticcheck
+  + vet = CLOSED.
+
+REGRESSION FOUND (post-merge sweep): testgen/window1 fails with 5
+mismatches (1567/1579/2258/2270/3325) — attribution: fleet/t33-query's
+positional-ORDER-BY change (window1 was green pre-merge; the q agent
+documented the same 5 at ITS base, pre-regen lines 1551–3309; my
+t33-query verification ran window8 but not window1 — gap in the merge
+gate). REPAIR: fleet/t33-win (frigolite-wt-t33-win) dispatched with a
+30-package sweep requirement.
+
+Corpus regen note: the 4 tcl2go agents each carried an identical
+full-corpus regen sync commit (2,181 files) — merged cleanly; the
+committed corpus now matches the merged emitter. Known pre-existing
+regen flicker: indexfault 2-line alias-order swap from a map-range in
+emitTclProcAliasRegistrations (documented in lessons; fix must be its
+own corpus-wide regen commit).
+
+Still active: fleet/t33-fts5 (fts5hash/fts5unindexed/contentless3 green
+at ef605a1ad; now implementing structvtab — alive), fleet/t33d-flow
+(dotest/foreach/loop/collect/expected/strings tranches landing),
+fleet/t33-win (window1 repair).
 - fleet/t33-fts5 STILL ACTIVE in frigolite-wt-t33-fts5 (fts5hash +
   fts5unindexed + contentless3-2.x green at ef605a1ad; segment/structure
   persistence model landed; 4 dirty files mid-work).
