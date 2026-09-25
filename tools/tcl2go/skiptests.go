@@ -770,26 +770,22 @@ var skipTests = map[string]string{
 // It also handles $var wildcards: a key containing "$" matches any suffix
 // in that position (e.g. "createtab-$av.2" matches "createtab-1.2").
 func skipTestReason(name string) (string, bool) {
-	if reason, ok := skipTests[name]; ok {
-		return reason, true
+	for _, m := range []map[string]string{skipTests, skipTestsMore, skipTestsT26Select} {
+		if reason, ok := m[name]; ok {
+			return reason, true
+		}
 	}
-	if reason, ok := skipTestsMore[name]; ok {
-		return reason, true
-	}
-	if reason, ok := skipTestsT26Select[name]; ok {
-		return reason, true
-	}
-	for k, v := range skipTests {
-		if strings.Contains(k, "$") && wildcardMatch(k, name) {
+	for _, m := range []map[string]string{skipTests, skipTestsMore, skipTestsT26Select} {
+		if v, ok := wildcardReason(m, name); ok {
 			return v, true
 		}
 	}
-	for k, v := range skipTestsMore {
-		if strings.Contains(k, "$") && wildcardMatch(k, name) {
-			return v, true
-		}
-	}
-	for k, v := range skipTestsT26Select {
+	return "", false
+}
+
+// wildcardReason returns the reason of the first $var pattern in m matching name.
+func wildcardReason(m map[string]string, name string) (string, bool) {
+	for k, v := range m {
 		if strings.Contains(k, "$") && wildcardMatch(k, name) {
 			return v, true
 		}

@@ -27,15 +27,15 @@ import (
 // sqlite3OrderByIsIndexed / pIndex->aSortOrder checks). ok is false when the
 // ordering needs the temp b-tree sort (the comparator path).
 func (e *SelectEngine) indexOrderedScanForOrderBy(s *sql.SelectStmt, orderBy []sql.OrderByTerm) (idxName string, backward, ok bool) {
-	if s == nil || s.Union != nil || len(s.Joins) != 0 || s.From.Name == "" {
+	if !simpleOrderedScanShape(s) {
 		return "", false, false
 	}
 	cols, descs, plain := orderByTermColumnsWithDirs(orderBy)
 	if !plain || len(e.withoutRowidPKCols(s.From.Name)) > 0 {
 		return "", false, false
 	}
-	idxName = e.findIndexOnColsForQuery(s.From.Name, cols, s.Where)
-	if idxName == "" || (s.Where != nil && e.whereHasNonIndexConstraint(s.Where, s.From.Name, idxName)) {
+	idxName, ok = e.orderScanIndexForCols(s, cols)
+	if !ok {
 		return "", false, false
 	}
 	idxDescs, known := e.indexColumnDescFlags(s.From.Name, idxName)
@@ -47,6 +47,25 @@ func (e *SelectEngine) indexOrderedScanForOrderBy(s *sql.SelectStmt, orderBy []s
 		return "", false, false
 	}
 	return idxName, backward, true
+}
+
+// simpleOrderedScanShape reports whether the select is a plain single-table
+// scan eligible for index-order emission (no compound, no joins, FROM present).
+func simpleOrderedScanShape(s *sql.SelectStmt) bool {
+	return s != nil && s.Union == nil && len(s.Joins) == 0 && s.From.Name != ""
+}
+
+// orderScanIndexForCols finds an index over cols for the select's FROM table
+// that the WHERE clause does not defeat with non-indexable constraints.
+func (e *SelectEngine) orderScanIndexForCols(s *sql.SelectStmt, cols []string) (string, bool) {
+	idxName := e.findIndexOnColsForQuery(s.From.Name, cols, s.Where)
+	if idxName == "" {
+		return "", false
+	}
+	if s.Where != nil && e.whereHasNonIndexConstraint(s.Where, s.From.Name, idxName) {
+		return "", false
+	}
+	return idxName, true
 }
 
 // orderByScanDirection matches each ORDER BY term's direction against the

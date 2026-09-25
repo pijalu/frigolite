@@ -137,37 +137,62 @@ func wrapCollate(expr sql.Expr, name string) sql.Expr {
 // replacement expression and whether the term is rewritten.
 func resolveOrdinalOrderByTerm(s *sql.SelectStmt, termExpr sql.Expr) (sql.Expr, bool) {
 	expr, collateName := splitCollateOperand(termExpr)
-	nl, ok := expr.(*sql.NumericLit)
+	pos, ok := ordinalPosition(expr, len(s.Columns))
 	if !ok {
-		return nil, false
-	}
-	pos, err := strconv.Atoi(nl.Value)
-	if err != nil || pos < 1 || pos > len(s.Columns) {
 		return nil, false
 	}
 	// A result column that ITSELF carries COLLATE (`SELECT c2 COLLATE hex
 	// ... ORDER BY 1`) donates its collation to the sort key; the term's
 	// own COLLATE (if any) takes precedence.
 	resultExpr, resultCollate := splitCollateOperand(s.Columns[pos-1].Expr)
-	if collateName == "" && resultCollate != "" {
-		if _, isRef := resultExpr.(*sql.ColumnRef); !isRef {
-			// The result expression is not a bare column (e.g.
-			// `(c1||'') COLLATE numeric`): keep the term positional and
-			// donate the result column's collation to the sort key.
-			return wrapCollate(resultExpr, resultCollate), true
-		}
+	if repl, ok := donatedCollationSortKey(resultExpr, collateName, resultCollate); ok {
+		return repl, true
 	}
 	ref, isRef := resultExpr.(*sql.ColumnRef)
 	if !isRef || ref.Table != "" || ref.Name == "*" {
 		return nil, false
 	}
+	return resolvedOrdinalRef(ref, collateName, resultCollate), true
+}
+
+// ordinalPosition parses a numeric ORDER BY term literal into a 1-based
+// result-column position, reporting whether it is in range.
+func ordinalPosition(expr sql.Expr, nCols int) (int, bool) {
+	nl, ok := expr.(*sql.NumericLit)
+	if !ok {
+		return 0, false
+	}
+	pos, err := strconv.Atoi(nl.Value)
+	if err != nil || pos < 1 || pos > nCols {
+		return 0, false
+	}
+	return pos, true
+}
+
+// donatedCollationSortKey reports whether a non-bare-column result
+// expression (e.g. `(c1||'') COLLATE numeric`) with an unadorned ORDER BY
+// ordinal keeps the term positional and donates the result column's
+// collation to the sort key.
+func donatedCollationSortKey(resultExpr sql.Expr, collateName, resultCollate string) (sql.Expr, bool) {
+	if collateName != "" || resultCollate == "" {
+		return nil, false
+	}
+	if _, isRef := resultExpr.(*sql.ColumnRef); isRef {
+		return nil, false
+	}
+	return wrapCollate(resultExpr, resultCollate), true
+}
+
+// resolvedOrdinalRef builds the rewritten sort key for an ordinal term that
+// resolved to a bare column reference.
+func resolvedOrdinalRef(ref *sql.ColumnRef, collateName, resultCollate string) sql.Expr {
 	if collateName != "" {
-		return wrapCollate(ref, collateName), true
+		return wrapCollate(ref, collateName)
 	}
 	if resultCollate != "" {
-		return wrapCollate(ref, resultCollate), true
+		return wrapCollate(ref, resultCollate)
 	}
-	return ref, true
+	return ref
 }
 
 // compareOrderByTerm compares rows i and j for a single ORDER BY term,
