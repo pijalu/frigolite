@@ -134,40 +134,59 @@ func (e *DMLExecutor) indexDefsIn(ctx *DatabaseContext, tableName string) []inde
 			continue
 		}
 		if strings.TrimSpace(ent.SQL) == "" {
-			// sqlite_autoindex_* entry: SQLite maintains this b-tree on
-			// every DML — its stored key order feeds index-driven reads.
-			// The engine's constraint checks scan the table instead, which
-			// left these trees empty; derive the def from the table's
-			// constraints exactly as REINDEX does (indexDefForEntry →
-			// autoindexKeyColumns) so DML and REINDEX agree on the content.
-			// A WITHOUT ROWID table's PRIMARY KEY is its own table b-tree
-			// (no separate autoindex b-tree to maintain).
-			if isWR || tableEntry == nil {
-				continue
-			}
-			if colDefs == nil {
-				colDefs = e.ctx.ParseColumnDefs(tableEntry.Name, tableEntry.SQL)
-			}
-			if def := e.indexDefForEntry(ctx, tableEntry, ent, colDefs); def != nil {
-				result = append(result, *def)
+			if !isWR {
+				// sqlite_autoindex_* entry: SQLite maintains this b-tree on
+				// every DML — its stored key order feeds index-driven reads.
+				// The engine's constraint checks scan the table instead, which
+				// left these trees empty; derive the def from the table's
+				// constraints exactly as REINDEX does (indexDefForEntry →
+				// autoindexKeyColumns) so DML and REINDEX agree on the content.
+				result = e.appendAutoindexDef(result, ctx, tableEntry, ent, &colDefs)
 			}
 			continue
 		}
-		colText := indexColumnListText(ent.SQL)
-		if colText == "" {
-			continue
+		if def, ok := plainIndexDef(ctx, ent); ok {
+			result = append(result, def)
 		}
-		cols := parseIndexKeyCols(colText)
-		if len(cols) == 0 {
-			continue
-		}
-		def := indexDef{Name: ent.Name, Cols: cols, RootPage: ent.RootPage, Ctx: ctx, SQL: ent.SQL}
-		if wm := indexWhereRe.FindStringSubmatch(ent.SQL); wm != nil {
-			def.Where = strings.TrimSpace(wm[1])
-		}
-		result = append(result, def)
 	}
 	return result
+}
+
+// appendAutoindexDef derives a sqlite_autoindex_* entry's maintenance def
+// from its table's PRIMARY KEY/UNIQUE constraints. colDefs is the lazily
+// parsed column-definition cache (parsed on the first autoindex entry;
+// indexDefsIn runs per DML statement, so plain-index tables pay no parse).
+// A nil table entry has no constraints to derive from.
+func (e *DMLExecutor) appendAutoindexDef(result []indexDef, ctx *DatabaseContext, tableEntry *schema.Entry, ent *schema.Entry, colDefs *[]sql.ColumnDef) []indexDef {
+	if tableEntry == nil {
+		return result
+	}
+	if *colDefs == nil {
+		*colDefs = e.ctx.ParseColumnDefs(tableEntry.Name, tableEntry.SQL)
+	}
+	if def := e.indexDefForEntry(ctx, tableEntry, ent, *colDefs); def != nil {
+		return append(result, *def)
+	}
+	return result
+}
+
+// plainIndexDef builds the maintenance def for a plain (SQL-bearing) index
+// entry from its CREATE INDEX key list. ok is false when the key column list
+// is empty or unparseable.
+func plainIndexDef(ctx *DatabaseContext, ent *schema.Entry) (def indexDef, ok bool) {
+	colText := indexColumnListText(ent.SQL)
+	if colText == "" {
+		return def, false
+	}
+	cols := parseIndexKeyCols(colText)
+	if len(cols) == 0 {
+		return def, false
+	}
+	def = indexDef{Name: ent.Name, Cols: cols, RootPage: ent.RootPage, Ctx: ctx, SQL: ent.SQL}
+	if wm := indexWhereRe.FindStringSubmatch(ent.SQL); wm != nil {
+		def.Where = strings.TrimSpace(wm[1])
+	}
+	return def, true
 }
 
 // indexDef describes any (unique or non-unique) index for index maintenance.

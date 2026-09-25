@@ -8994,3 +8994,38 @@ regenerated; suite net −2274 fails vs pre-tranche baseline (7230 → ~4950).
   reference fixtures, e.g. incrvacuum2-4-1-btree-divider) is untracked; copy
   from the main checkout or TestNativeBtreeDividerFixtureReference fails with
   "stat .../tools/orafixture: directory not found".
+
+## T33d-exec — §5d golang-check closure, internal/exec + internal/execdml (2026-09-25, branch fleet/t33d-exec)
+
+- **gocognit (uudashr) applies NESTING BONUSES**: an `if` at depth 2 inside a
+  loop costs +3, not +1 — extracting only the leaf helpers barely moves the
+  count (indexDefsIn went 23→21 from one branch extraction). To actually hit
+  ≤15, flatten the STRUCTURE: hoist the whole nested branch into a method
+  (appendAutoindexDef took it 21→10). Count nesting first, then choose the
+  extraction seam at the deepest level.
+- **gocyclo counts every switch case (+1) and every nested if (+1)**: an
+  8-case quote-state switch with 4 nested ifs is gocyclo 13 even though
+  gocognit says 9 (exprQuoteState.advance). Split state machines into
+  tryClose/tryOpen halves; both gates then pass (2 and 9).
+- **Split-name collision**: `vtab_materialize.go` already existed in
+  internal/exec (constraint-pushdown machinery) — a same-named new file
+  silently clobbers it (git shows M, not ??). Before creating a split file,
+  `git ls-files <pkg>/` or check `git status --short` for M vs ??.
+- **pragma_table.go had an ORPHANED doc comment** (materializeForeignKeyListWithRow's,
+  stranded when pragma_table_views.go was split off earlier). Function/doc
+  cohesion across file splits: move the comment with its function.
+- **Package tests ≠ validation set**: `go test ./internal/exec/` FAILS at the
+  base commit ba0094585 too (TestVacuumDoesNotCorruptBTree "cannot commit -
+  no transaction is active") — pre-existing, identical failure set base vs
+  branch. Diff `--- FAIL` blocks (not timings) when adjudicating; never
+  assume a package failure is yours.
+- **schemaPrefixOf (exec) was dead because execddl has its own package-local
+  copy** — same-named helpers in different packages are not the same symbol;
+  grep per-package before believing U1000.
+- All findings closed: compactExprText 34/29→9/3, primaryKeyOrdinalsFromSQL
+  33/20→3/5, reindexTargets 29/15→4/6, execReindex 13→8 gocyclo,
+  execCommit 14→11 gocyclo, noteStmtReadLock 16→4, autoindexKeyColumns 28/18→3/5,
+  indexDefsIn 23/13→10/5, collectTableTriggerRefs 16→6, parseIndexColumns
+  13→5 gocyclo. Files: pragma_table.go 1098→332 (+pragma_tableinfo.go 470,
+  +vtab_tvf.go 395); pragma_analyze.go 1026→850 (REINDEX → pragma_reindex.go 561).
+  7 commits on fleet/t33d-exec, validation set green after every commit.
