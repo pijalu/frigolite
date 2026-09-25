@@ -6,6 +6,7 @@ package frigolite
 // counterparts flipped by the same fixes.
 
 import (
+	"fmt"
 	"os"
 	"strings"
 	"testing"
@@ -355,4 +356,60 @@ func TestFTS5ResumePinDeferredTokenizerError(t *testing.T) {
 	if q.Error == nil || !strings.Contains(q.Error.Error(), "no such tokenizer: nosuch") {
 		t.Errorf("TVF read must report the deferred tokenizer error, got %v", q.Error)
 	}
+}
+
+// TestFTS5ResumePinLeftJoinUnusableMatch pins the LEFT JOIN unusable-MATCH
+// rule: a MATCH constraint inside a LEFT JOIN's ON clause that references the
+// outer fts5 table is unusable at every scan position (an outer-join ON term
+// must not filter the outer table, and it binds no inner constraint), so
+// fts5's xBestIndex returns SQLITE_CONSTRAINT and the join solver fails with
+// "no query solution" (fts5_main.c fts5BestIndexMethod, where.c
+// whereLoopAddVtab; fts5leftjoin 2.2/3.1). The unary-plus form and WHERE-side
+// MATCH stay plain predicates / usable constraints.
+func TestFTS5ResumePinLeftJoinUnusableMatch(t *testing.T) {
+	db := fts5ResumeOpen(t)
+	if res := db.Exec("CREATE VIRTUAL TABLE t0 USING fts5(a, b)"); res.Error != nil {
+		t.Fatal(res.Error)
+	}
+	if res := db.Exec("INSERT INTO t0(a, b) VALUES(1, 0)"); res.Error != nil {
+		t.Fatal(res.Error)
+	}
+	if res := db.Exec("CREATE TABLE t1(x)"); res.Error != nil {
+		t.Fatal(res.Error)
+	}
+	for _, q := range []string{
+		"SELECT * FROM t0 LEFT JOIN t1 ON t0.b MATCH '1'",
+		"SELECT * FROM t0 LEFT JOIN (SELECT 0 AS col_0) ON ((t0.a MATCH '1' AND CASE WHEN t0.b THEN CAST(t0.a AS INTEGER) ELSE 1 END))",
+	} {
+		if res := db.Exec(q); res.Error == nil || !strings.Contains(res.Error.Error(), "no query solution") {
+			t.Errorf("expected 'no query solution', got: %v\n  sql: %s", res.Error, q)
+		}
+	}
+	// +b MATCH is not a vtab constraint: plain predicate, LEFT JOIN runs.
+	if r := db.Query("SELECT * FROM t0 LEFT JOIN t1 ON +b MATCH '1'"); r.Error != nil {
+		t.Errorf("+b MATCH must not error: %v", r.Error)
+	} else if got := fts5PinFlattenNull(r.Rows); got != "1 0 {}" {
+		t.Errorf("+b MATCH rows: got [%s] want [1 0 {}]", got)
+	}
+	// WHERE-side MATCH on the fts5 table keeps working across a LEFT JOIN.
+	if r := db.Query("SELECT t0.a FROM t0 LEFT JOIN t1 ON t1.x = t0.a WHERE t0.b MATCH '0'"); r.Error != nil {
+		t.Errorf("WHERE MATCH must not error: %v", r.Error)
+	} else if got := fts5PinFlattenNull(r.Rows); got != "1" {
+		t.Errorf("WHERE MATCH rows: got [%s] want [1]", got)
+	}
+}
+
+// fts5PinFlattenNull renders rows TCL-style: NULL becomes "{}".
+func fts5PinFlattenNull(rows [][]interface{}) string {
+	parts := make([]string, 0, len(rows)*2)
+	for _, row := range rows {
+		for _, v := range row {
+			if v == nil {
+				parts = append(parts, "{}")
+				continue
+			}
+			parts = append(parts, fmt.Sprintf("%v", v))
+		}
+	}
+	return strings.Join(parts, " ")
 }

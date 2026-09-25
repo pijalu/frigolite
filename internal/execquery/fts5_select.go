@@ -546,3 +546,31 @@ func matchRefMatchesTable(left sql.Expr, t5 *fts5.Table) bool {
 	}
 	return strings.EqualFold(ref.Name, t5.Name()) || strings.EqualFold(ref.Table, t5.Name()) || t5.ColumnIndex(ref.Name) >= 0
 }
+
+// fts5LeftJoinUnusableMatch reports the planner failure for a MATCH
+// constraint stranded in a LEFT JOIN's ON clause while referencing the outer
+// (fts5) table: the term is unusable at every scan position — an ON-clause
+// term of an outer join must not filter the outer table, and it binds no
+// constraint for the inner one — so fts5's xBestIndex sees an unusable MATCH
+// and returns SQLITE_CONSTRAINT (fts5_main.c fts5BestIndexMethod's "If an
+// unusable MATCH operator is present" rule); whereLoopAddVtab drops the plan
+// and the join solver finds no path, reported as "no query solution"
+// (where.c). The unary-plus form (+b MATCH) is not a vtab constraint at all
+// and stays a plain predicate.
+func fts5LeftJoinUnusableMatch(s *sql.SelectStmt, t5 *fts5.Table) error {
+	for _, jc := range s.Joins {
+		if jc.JoinType != "LEFT" || jc.On == nil {
+			continue
+		}
+		found := false
+		WalkExprFull(jc.On, func(n sql.Expr) {
+			if bop, ok := n.(*sql.BinaryOp); ok && bop.Operator == "MATCH" && matchRefMatchesTable(bop.Left, t5) {
+				found = true
+			}
+		})
+		if found {
+			return fmt.Errorf("no query solution")
+		}
+	}
+	return nil
+}
