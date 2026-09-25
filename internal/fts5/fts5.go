@@ -870,7 +870,14 @@ func (t *Table) DocValues(rowid int64) ([]interface{}, error) {
 			return nil, err
 		}
 		if v == nil {
-			v = make([]interface{}, len(t.cfg.Columns))
+			// C's content fetch fails when the row is absent from the
+			// content table (fts5_main.c fts5CursorFetchContent's
+			// fts5SetVtabError "fts5: missing row %lld from content table
+			// %s"; zContent renders as 'db'.'table' — fts5content 9.5).
+			return nil, &MissingContentRowError{
+				Rowid:   rowid,
+				Content: fmt.Sprintf("'%s'.'%s'", t.dbName, t.cfg.ContentTable),
+			}
 		}
 		return v, nil
 	default:

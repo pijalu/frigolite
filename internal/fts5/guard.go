@@ -1,6 +1,9 @@
 package fts5
 
-import "fmt"
+import (
+	"errors"
+	"fmt"
+)
 
 // Re-entrancy guards mirroring C's fts5 cursor/config locking:
 //
@@ -46,4 +49,26 @@ func (t *Table) BeginQuery() error {
 		return fmt.Errorf("database disk image is malformed")
 	}
 	return nil
+}
+
+// MissingContentRowError reports a content-table fetch for a rowid the index
+// holds but the content table lacks (fts5CursorFetchContent's
+// SQLITE_CORRUPT_VTAB class). The vtab layer surfaces the formatted message;
+// the TCL API layer (fts5_tcl.c's rc-name convention) reports the code name
+// SQLITE_CORRUPT_VTAB instead.
+type MissingContentRowError struct {
+	Rowid   int64
+	Content string
+}
+
+// Error renders C's fts5SetVtabError text.
+func (e *MissingContentRowError) Error() string {
+	return fmt.Sprintf("fts5: missing row %d from content table %s", e.Rowid, e.Content)
+}
+
+// ReportCorrupt reports whether err is the missing-content-row class: the
+// API layer maps it to the bare rc name.
+func ReportCorrupt(err error) bool {
+	var m *MissingContentRowError
+	return errors.As(err, &m)
 }

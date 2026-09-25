@@ -453,3 +453,89 @@ func TestFTS5ResumePinShadowTriggerReentrancy(t *testing.T) {
 		}
 	}
 }
+
+// TestFTS5ResumePinContentOptionsAndLazyContent pins the fts5content engine
+// fixes: (1) CREATE-option prefix binding in C's check order (fts5content
+// 6.1/7.1 — "c=" binds content, sqlite3_strnicmp name-prefix rule); (2) the
+// recursive-content-table guard — self- or mutually-referencing content
+// tables fail every read with "recursively defined fts5 content table"
+// (C's pConfig->bLock held across content-statement prepare/step); (3) lazy
+// content reads — a rowid-only MATCH query never touches the content table
+// (fts5content 9.4), a column read of a missing row fails with "fts5:
+// missing row <n> from content table 'db'.'table'" (9.5), and the API layer
+// reports the rc name SQLITE_CORRUPT_VTAB (9.6, fts5_tcl.c rc-name
+// convention).
+func TestFTS5ResumePinContentOptionsAndLazyContent(t *testing.T) {
+	// Prefix option binding.
+	db := fts5ResumeOpen(t)
+	if res := db.Exec("CREATE VIRTUAL TABLE p1 USING fts5(x, contentless_delete=1, content='')"); res.Error != nil {
+		t.Fatalf("contentless_delete + content prefix options: %v", res.Error)
+	}
+	// The content table is not validated at CREATE (C defers to read time);
+	// querying it fails with the missing table.
+	if res := db.Exec("CREATE VIRTUAL TABLE p2 USING fts5(x, c=src)"); res.Error != nil {
+		t.Fatalf("c= create must defer existence checks: %v", res.Error)
+	}
+	if r := db.Query("SELECT * FROM p2"); r.Error == nil || !strings.Contains(r.Error.Error(), "no such table: src") {
+		t.Errorf("missing content table: expected no such table, got: %v", r.Error)
+	}
+	db.Exec("DROP TABLE p1")
+	db.Exec("DROP TABLE p2")
+
+	// Recursive content tables.
+	db2 := fts5ResumeOpen(t)
+	for _, s := range []string{
+		"CREATE VIRTUAL TABLE t1 USING fts5(a, content=t1)",
+		"CREATE VIRTUAL TABLE u1 USING fts5(a, content=u2)",
+		"CREATE VIRTUAL TABLE u2 USING fts5(a, content=u1)",
+		"INSERT INTO t1(a) VALUES('abc')",
+		"INSERT INTO u1(a) VALUES('abc')",
+	} {
+		if res := db2.Exec(s); res.Error != nil {
+			t.Fatalf("%s: %v", s, res.Error)
+		}
+	}
+	for _, q := range []string{
+		"SELECT * FROM t1",
+		"SELECT count(*) FROM t1",
+		"SELECT * FROM t1('abc')",
+		"SELECT * FROM u1",
+		"SELECT count(*) FROM u1",
+		"SELECT * FROM u1('abc')",
+		"SELECT * FROM u1('abc') ORDER BY rank",
+	} {
+		if r := db2.Query(q); r.Error == nil || !strings.Contains(r.Error.Error(), "recursively defined fts5 content table") {
+			t.Errorf("%s: expected recursion error, got: %v", q, r.Error)
+		}
+	}
+
+	// Lazy content + missing-row error + rc-name reporting.
+	db3 := fts5ResumeOpen(t)
+	for _, s := range []string{
+		"CREATE TABLE t1(a INTEGER PRIMARY KEY, b)",
+		"INSERT INTO t1 VALUES(1, 'one two three')",
+		"INSERT INTO t1 VALUES(2, 'one two three')",
+		"CREATE VIRTUAL TABLE ft USING fts5(b, content=t1, content_rowid=a)",
+		"INSERT INTO ft(ft) VALUES('rebuild')",
+	} {
+		if res := db3.Exec(s); res.Error != nil {
+			t.Fatalf("%s: %v", s, res.Error)
+		}
+	}
+	if r := db3.Query("SELECT rowid, b FROM ft('two')"); r.Error != nil {
+		t.Fatalf("content read: %v", r.Error)
+	}
+	db3.Exec("DELETE FROM t1 WHERE a=2")
+	// rowid-only read: index still answers, content untouched.
+	if r := db3.Query("SELECT rowid FROM ft('two')"); r.Error != nil {
+		t.Errorf("rowid-only read must not error: %v", r.Error)
+	}
+	if r := db3.Query("SELECT * FROM ft('two')"); r.Error == nil ||
+		!strings.Contains(r.Error.Error(), "fts5: missing row 2 from content table 'main'.'t1'") {
+		t.Errorf("expected missing-row error, got: %v", r.Error)
+	}
+	if r := db3.Query("SELECT rowid, fts5_columntext(ft, 0) FROM ft('two')"); r.Error == nil ||
+		!strings.Contains(r.Error.Error(), "SQLITE_CORRUPT_VTAB") {
+		t.Errorf("expected SQLITE_CORRUPT_VTAB rc name, got: %v", r.Error)
+	}
+}
