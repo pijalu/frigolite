@@ -148,3 +148,47 @@ func TestT33rOmitUnusedPins(t *testing.T) {
 		t33rQuery(t, db, "SELECT * FROM t1, (SELECT group_concat(a) OVER (ORDER BY a) AS g FROM t1)", "123 t1_a 123")
 	})
 }
+
+// TestT33rReserveBytesUsablePin pins the second-connection reserved-bytes
+// fix (T33r-order, reservebytes-1.3.4): after another connection's VACUUM
+// materializes header byte 20 = 8, this connection adopts the new usable
+// size (pageSize - reserved) and its integrity_check must parse the new
+// image cleanly — cell payloads decode under the adopted usable size, not
+// the raw page size (exec pragma_quickcheck walkBTreePages).
+func TestT33rReserveBytesUsablePin(t *testing.T) {
+	db, err := Open(":memory:")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer db.Close()
+	db2, err := Open(":memory:")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer db2.Close()
+	t33rExec(t, db, "CREATE TABLE t1(a INTEGER PRIMARY KEY, b, c)", "CREATE INDEX i1 ON t1(b, c)",
+		"WITH s(i) AS (VALUES(1) UNION ALL SELECT i+1 FROM s WHERE i<300) INSERT INTO t1 SELECT NULL, i, hex(zeroblob(100)) FROM s")
+	t33rExec(t, db2, "PRAGMA integrity_check")
+	db.SetReservedBytes(8)
+	t33rExec(t, db, "VACUUM")
+	t33rQuery(t, db2, "PRAGMA integrity_check", "ok")
+}
+
+// TestT33rAutoindexOrdinalPin pins the autoindex chain leak fix (T33r-order,
+// the reservebytes/backup "Page N: never used" wave): a divider cell whose
+// payload spills encodes an overflow chain; when the parent interior page is
+// full, the speculative encode must not leak that chain — the room precheck
+// precedes encoding (applyChildSplitsRightmost / addInteriorCell), so a
+// page that cannot hold the divider reports errInteriorFull before any
+// allocation.
+func TestT33rAutoindexOrdinalPin(t *testing.T) {
+	db, err := Open(":memory:")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer db.Close()
+	t33rExec(t, db, "CREATE TABLE t1(a INTEGER PRIMARY KEY, b UNIQUE, c)",
+		"WITH s(i) AS (VALUES(1) UNION ALL SELECT i+1 FROM s WHERE i<120) INSERT INTO t1 SELECT NULL, i, hex(zeroblob(120)) FROM s")
+	t33rQuery(t, db, "PRAGMA integrity_check", "ok")
+	t33rQuery(t, db, "SELECT b FROM t1 WHERE b > 100 ORDER BY b", "101 102 103 104 105 106 107 108 109 110 111 112 113 114 115 116 117 118 119 120")
+}

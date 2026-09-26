@@ -1,6 +1,7 @@
 package exec
 
 import (
+	"os"
 	"encoding/binary"
 	"fmt"
 	"github.com/pijalu/frigolite/internal/btree"
@@ -173,6 +174,9 @@ func (e *Engine) execQuickCheck(tableName string) *Result {
 	// SQLITE_CORRUPT when any reachable b-tree page is malformed.
 	ok := e.btreeStructureOK()
 	if !ok {
+		if os.Getenv("T33R_DEBUG") != "" {
+			fmt.Fprintf(os.Stderr, "T33R: quickcheck malformed at btreeStructureOK\n")
+		}
 		return &Result{Error: fmt.Errorf("database disk image is malformed")}
 	}
 	// Multi-line per-page diagnostics (Tree N page M cell K: 2nd reference
@@ -333,7 +337,13 @@ func walkBTreePages(pg *pager.Pager, root uint32, seen map[uint32]bool) bool {
 		// assumes the leaf layout's 8-byte header).
 		ptrOff := coff + 12 + i*2
 		off := int(binary.BigEndian.Uint16(p.Data[ptrOff : ptrOff+2]))
-		cell, derr := storage.DecodeCell(p.Data, off, cellType, int(pg.PageSize()))
+		// Cell payload bounds use the USABLE size (pageSize minus header
+		// byte 20's reserved bytes), not the raw page size: a database
+		// whose reserved-byte count another connection's VACUUM
+		// materialized (reservebytes 1.3.4) must decode its dividers with
+		// the adopted usable size or every spilled divider mis-splits and
+		// the walk mis-reports corruption.
+		cell, derr := storage.DecodeCell(p.Data, off, cellType, int(pg.UsableSize()))
 		if derr != nil {
 			return false
 		}
