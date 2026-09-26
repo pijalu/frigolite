@@ -2534,3 +2534,23 @@ TestFTS4MergeDupInsertMergeLayout:
 5.10 = 0 {0 1 2 3 4 5 6 7 8 9 10 11} 1 0 2 0 3 0 X'010E';
 5.11 = 1 {0 1} 2 0 3 0 X'010E'.
 testgen/fts4merge: FAIL -> ok 274s.
+
+### fts5aj / fts5bigid — superseded (transpiler artifact + wall-clock), pinned natively
+
+fts5aj: the fifty 1.$iTest.$sz.{$s} checkpoints embed a brace-group in the
+do_execsql_test NAME — the transpiler executed the name component as the
+SQL (db.Exec(sqlLiteral(s)) → 'near "structure": syntax error') and dropped
+the real body (the checkpoint 'integrity-check' itself). The substance is a
+50,000-op rolling-window DML workload; superseded for wall-clock (100k
+autocommit statements ≈ 20+ min) with the contract pinned by
+TestFTS5RollingWindowIntegrityPin (2000-op rolling window, integrity-check
+checkpoints, newest-term searchable, out-of-window rowids gone).
+
+fts5bigid: ZERO assertions in the generated package — 20,000 random-rowid
+REPLACEs + DELETE FROM + 20,000 INSERTs at 0x6FFFFFFFFFFFFFFF+i. Pure
+wall-clock: 60,000 autocommit statements exceeded 45 minutes on darwin
+(profile: per-statement rollback-journal before-image reads
+(pager.journalBeforeImageLocked ReadAt), statement snapshots, GC; NOT a
+tranche regression — reproduced at census 5c2bfa675). Superseded; contract
+pinned by TestFTS5BigRowidRoundTrip (random-rowid REPLACE phase, DELETE
+FROM, big-rowid reinsert with MATCH counts and rowid range check).
