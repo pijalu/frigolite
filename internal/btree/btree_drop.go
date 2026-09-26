@@ -87,8 +87,13 @@ func (t *BTree) walkAllPages(pn uint32, visited map[uint32]bool, out *[]uint32) 
 }
 
 // walkInteriorPages walks an interior page's cell children and rightmost
-// pointer, recursing into each.
+// pointer, recursing into each. Index dividers whose payload spills own an
+// overflow chain — those pages join the to-free list too (btree.c
+// sqlite3BtreeDestroy walks every cell's overflow via clearCell).
 func (t *BTree) walkInteriorPages(pg *pager.Page, coff int, page *storage.BTreePage, visited map[uint32]bool, out *[]uint32) error {
+	if err := t.walkDividerChains(pg, coff, page, visited, out); err != nil {
+		return err
+	}
 	ptrBase := coff + cellPtrOffset(page.PageType) - 8
 	for i := 0; i < int(page.CellCount); i++ {
 		p := storage.CellPointer(pg.Data, ptrBase, i, int(t.pageSize))
@@ -107,6 +112,29 @@ func (t *BTree) walkInteriorPages(pg *pager.Page, coff int, page *storage.BTreeP
 		return nil
 	}
 	return t.walkAllPages(page.RightmostPtr, visited, out)
+}
+
+// walkDividerChains appends the overflow chains of an interior index page's
+// divider cells to the to-free list (each spilled separator owns a chain).
+func (t *BTree) walkDividerChains(pg *pager.Page, coff int, page *storage.BTreePage, visited map[uint32]bool, out *[]uint32) error {
+	if page.PageType != storage.PageTypeInteriorIndex {
+		return nil
+	}
+	ptrBase := coff + cellPtrOffset(page.PageType) - 8
+	for i := 0; i < int(page.CellCount); i++ {
+		p := storage.CellPointer(pg.Data, ptrBase, i, int(t.pageSize))
+		if int(p)+4 > len(pg.Data) {
+			continue
+		}
+		c, err := storage.DecodeCell(pg.Data, int(p), storage.CellIndexInterior, int(t.usableSize))
+		if err != nil || c.Overflow == 0 {
+			continue
+		}
+		if err := t.walkOverflowChain(c.Overflow, visited, out); err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 // walkLeafOverflow follows the overflow chain of every cell on a leaf page.

@@ -183,7 +183,10 @@ func (t *BTree) splitFullLeaf(pg *pager.Page, page *storage.BTreePage, parentPgn
 // page is then full, splits it too.
 func (t *BTree) insertInteriorPage(pg *pager.Page, page *storage.BTreePage, parentPgno uint32, newCell *storage.Cell) ([]leafSplitResult, error) {
 	// Find the child page that should receive the new cell
-	childPageNum := t.findChildPageForInsert(pg, page, newCell)
+	childPageNum, ferr := t.findChildPageForInsert(pg, page, newCell)
+	if ferr != nil {
+		return nil, ferr
+	}
 
 	// Recursively insert into the child; the child's parent is this page.
 	childSplits, err := t.insertPage(childPageNum, pg.PageNum, newCell)

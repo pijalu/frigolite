@@ -331,34 +331,72 @@ func (e *Engine) leafOverflows(pg *pager.Pager, pgno uint32, pageSize, usableSiz
 		return nil, false
 	}
 	ptype := page.Data[coff]
-	var cellType storage.CellType
-	switch ptype {
-	case storage.PageTypeLeafTable, storage.PageTypeInteriorTable:
-		cellType = storage.CellTableLeaf
-	case storage.PageTypeLeafIndex, storage.PageTypeInteriorIndex:
-		cellType = storage.CellIndexLeaf
-	default:
-		return nil, false
+	// Each page kind decodes with its TRUE cell type (chainCellTypeOf): an
+	// interior index cell starts with a 4-byte child pointer, so reading it
+	// as an index-leaf cell (payload-length varint first) yields plen 0 and
+	// swallows the divider's overflow chain — the chain pages then count as
+	// "Page N: never used". Interior TABLE cells carry no payload at all, so
+	// a table-interior page owns no chains (checkTreePage counts overflow
+	// only for cells that can carry one).
+	cellType, ok := chainCellTypeOf(ptype)
+	if !ok {
+		// Not a b-tree page kind (or an interior table page, whose cells
+		// carry no payload and therefore own no chains): nothing to mark.
+		return []uint32{}, true
 	}
 	bp, err := storage.ParsePage(page.Data, pageSize, coff)
 	if err != nil {
 		return nil, false
 	}
+	// The cell-pointer array sits at coff+8 on leaf pages and coff+12 on
+	// interior pages (the rightmost-child pointer occupies bytes 8-11);
+	// reading an interior page's array at the leaf base interprets the
+	// rightmost pointer and divider payloads as cell pointers and reports
+	// garbage overflow heads.
+	arrayBase := coff + 8
+	if cellType == storage.CellIndexInterior {
+		arrayBase = coff + 12
+	}
+	return overflowHeads(page.Data, bp, arrayBase, cellType, usableSize), true
+}
+
+// chainCellTypeOf maps a page type to the cell type its cells decode as for
+// overflow-chain accounting: a leaf cell type when the page's cells can own
+// chains, the index-interior cell type (cell-pointer array at coff+12) when
+// its dividers can. ok=false covers interior TABLE pages (their cells carry
+// no payload, so they own no chains) and non-b-tree page kinds alike — the
+// caller just marks nothing.
+func chainCellTypeOf(ptype byte) (storage.CellType, bool) {
+	switch ptype {
+	case storage.PageTypeLeafTable:
+		return storage.CellTableLeaf, true
+	case storage.PageTypeLeafIndex:
+		return storage.CellIndexLeaf, true
+	case storage.PageTypeInteriorIndex:
+		return storage.CellIndexInterior, true
+	default:
+		return 0, false
+	}
+}
+
+// overflowHeads decodes each cell at the given array base and returns its
+// overflow-chain head (0 when the cell has none or cannot be decoded).
+func overflowHeads(data []byte, bp *storage.BTreePage, arrayBase int, cellType storage.CellType, usableSize int) []uint32 {
 	out := make([]uint32, 0, int(bp.CellCount))
 	for i := 0; i < int(bp.CellCount); i++ {
-		ptrOff := coff + 8 + i*2
-		if ptrOff+2 > len(page.Data) {
+		ptrOff := arrayBase + i*2
+		if ptrOff+2 > len(data) {
 			break
 		}
-		off := int(binary.BigEndian.Uint16(page.Data[ptrOff : ptrOff+2]))
-		cell, derr := storage.DecodeCell(page.Data, off, cellType, usableSize)
-		if derr != nil || cell == nil {
+		off := int(binary.BigEndian.Uint16(data[ptrOff : ptrOff+2]))
+		cell, err := storage.DecodeCell(data, off, cellType, usableSize)
+		if err != nil || cell == nil {
 			out = append(out, 0)
 			continue
 		}
 		out = append(out, cell.Overflow)
 	}
-	return out, true
+	return out
 }
 
 // markOverflowChain follows an overflow chain starting at `head`,
