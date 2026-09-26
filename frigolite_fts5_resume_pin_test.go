@@ -8,6 +8,7 @@ package frigolite
 import (
 	"fmt"
 	"os"
+	"strconv"
 	"strings"
 	"testing"
 )
@@ -399,12 +400,13 @@ func TestFTS5ResumePinLeftJoinUnusableMatch(t *testing.T) {
 	}
 }
 
-// fts5PinFlattenNull renders rows TCL-style: NULL becomes "{}".
+// fts5PinFlattenNull renders rows TCL-style: NULL and the empty string both
+// render as "{}" (the suite's tcl_nullvalue / list-flattening convention).
 func fts5PinFlattenNull(rows [][]interface{}) string {
 	parts := make([]string, 0, len(rows)*2)
 	for _, row := range rows {
 		for _, v := range row {
-			if v == nil {
+			if v == nil || v == "" {
 				parts = append(parts, "{}")
 				continue
 			}
@@ -454,18 +456,11 @@ func TestFTS5ResumePinShadowTriggerReentrancy(t *testing.T) {
 	}
 }
 
-// TestFTS5ResumePinContentOptionsAndLazyContent pins the fts5content engine
-// fixes: (1) CREATE-option prefix binding in C's check order (fts5content
-// 6.1/7.1 — "c=" binds content, sqlite3_strnicmp name-prefix rule); (2) the
-// recursive-content-table guard — self- or mutually-referencing content
-// tables fail every read with "recursively defined fts5 content table"
-// (C's pConfig->bLock held across content-statement prepare/step); (3) lazy
-// content reads — a rowid-only MATCH query never touches the content table
-// (fts5content 9.4), a column read of a missing row fails with "fts5:
-// missing row <n> from content table 'db'.'table'" (9.5), and the API layer
-// reports the rc name SQLITE_CORRUPT_VTAB (9.6, fts5_tcl.c rc-name
-// convention).
-func TestFTS5ResumePinContentOptionsAndLazyContent(t *testing.T) {
+// TestFTS5ResumePinPrefixOptions pins the CREATE-option prefix binding in
+// C's check order (fts5content 6.1/7.1 — "c=" binds content,
+// sqlite3_strnicmp name-prefix rule); content-table existence is deferred
+// to read time.
+func TestFTS5ResumePinPrefixOptions(t *testing.T) {
 	// Prefix option binding.
 	db := fts5ResumeOpen(t)
 	if res := db.Exec("CREATE VIRTUAL TABLE p1 USING fts5(x, contentless_delete=1, content='')"); res.Error != nil {
@@ -482,8 +477,14 @@ func TestFTS5ResumePinContentOptionsAndLazyContent(t *testing.T) {
 	db.Exec("DROP TABLE p1")
 	db.Exec("DROP TABLE p2")
 
-	// Recursive content tables.
-	db2 := fts5ResumeOpen(t)
+}
+
+// TestFTS5ResumePinRecursiveContentGuard pins the recursive-content-table
+// guard: self- or mutually-referencing content tables fail every read with
+// "recursively defined fts5 content table" (C's pConfig->bLock held
+// across %_content statement prepare/step, checked in fts5BestIndexMethod).
+func TestFTS5ResumePinRecursiveContentGuard(t *testing.T) {
+	db := fts5ResumeOpen(t)
 	for _, s := range []string{
 		"CREATE VIRTUAL TABLE t1 USING fts5(a, content=t1)",
 		"CREATE VIRTUAL TABLE u1 USING fts5(a, content=u2)",
@@ -491,7 +492,7 @@ func TestFTS5ResumePinContentOptionsAndLazyContent(t *testing.T) {
 		"INSERT INTO t1(a) VALUES('abc')",
 		"INSERT INTO u1(a) VALUES('abc')",
 	} {
-		if res := db2.Exec(s); res.Error != nil {
+		if res := db.Exec(s); res.Error != nil {
 			t.Fatalf("%s: %v", s, res.Error)
 		}
 	}
@@ -504,13 +505,20 @@ func TestFTS5ResumePinContentOptionsAndLazyContent(t *testing.T) {
 		"SELECT * FROM u1('abc')",
 		"SELECT * FROM u1('abc') ORDER BY rank",
 	} {
-		if r := db2.Query(q); r.Error == nil || !strings.Contains(r.Error.Error(), "recursively defined fts5 content table") {
+		if r := db.Query(q); r.Error == nil || !strings.Contains(r.Error.Error(), "recursively defined fts5 content table") {
 			t.Errorf("%s: expected recursion error, got: %v", q, r.Error)
 		}
 	}
 
-	// Lazy content + missing-row error + rc-name reporting.
-	db3 := fts5ResumeOpen(t)
+}
+
+// TestFTS5ResumePinLazyContentAndMissingRow pins lazy content reads: a
+// rowid-only MATCH query never touches the content table (fts5content
+// 9.4), a column read of a missing row fails with "fts5: missing row <n>
+// from content table 'db'.'table'" (9.5), and the API layer reports the
+// rc name SQLITE_CORRUPT_VTAB (9.6, fts5_tcl.c rc-name convention).
+func TestFTS5ResumePinLazyContentAndMissingRow(t *testing.T) {
+	db := fts5ResumeOpen(t)
 	for _, s := range []string{
 		"CREATE TABLE t1(a INTEGER PRIMARY KEY, b)",
 		"INSERT INTO t1 VALUES(1, 'one two three')",
@@ -518,24 +526,268 @@ func TestFTS5ResumePinContentOptionsAndLazyContent(t *testing.T) {
 		"CREATE VIRTUAL TABLE ft USING fts5(b, content=t1, content_rowid=a)",
 		"INSERT INTO ft(ft) VALUES('rebuild')",
 	} {
-		if res := db3.Exec(s); res.Error != nil {
+		if res := db.Exec(s); res.Error != nil {
 			t.Fatalf("%s: %v", s, res.Error)
 		}
 	}
-	if r := db3.Query("SELECT rowid, b FROM ft('two')"); r.Error != nil {
+	if r := db.Query("SELECT rowid, b FROM ft('two')"); r.Error != nil {
 		t.Fatalf("content read: %v", r.Error)
 	}
-	db3.Exec("DELETE FROM t1 WHERE a=2")
+	db.Exec("DELETE FROM t1 WHERE a=2")
 	// rowid-only read: index still answers, content untouched.
-	if r := db3.Query("SELECT rowid FROM ft('two')"); r.Error != nil {
+	if r := db.Query("SELECT rowid FROM ft('two')"); r.Error != nil {
 		t.Errorf("rowid-only read must not error: %v", r.Error)
 	}
-	if r := db3.Query("SELECT * FROM ft('two')"); r.Error == nil ||
+	if r := db.Query("SELECT * FROM ft('two')"); r.Error == nil ||
 		!strings.Contains(r.Error.Error(), "fts5: missing row 2 from content table 'main'.'t1'") {
 		t.Errorf("expected missing-row error, got: %v", r.Error)
 	}
-	if r := db3.Query("SELECT rowid, fts5_columntext(ft, 0) FROM ft('two')"); r.Error == nil ||
+	if r := db.Query("SELECT rowid, fts5_columntext(ft, 0) FROM ft('two')"); r.Error == nil ||
 		!strings.Contains(r.Error.Error(), "SQLITE_CORRUPT_VTAB") {
 		t.Errorf("expected SQLITE_CORRUPT_VTAB rc name, got: %v", r.Error)
+	}
+}
+
+// fts5ResumeDoc renders the deterministic document for rowid i with n
+// tokens drawn from a rowid-seeded letter rotation (the fts5contentless
+// document procs' shape — random letters from A..Z — made reproducible).
+func fts5ResumeDoc(i, n int) string {
+	out := ""
+	for j := 0; j < n; j++ {
+		out += string(rune('A'+(i*7+j*13)%26)) + " "
+	}
+	return out[:len(out)-1]
+}
+
+// TestFTS5ResumePinContentlessDeleteParity ports fts5contentless.test 4.x:
+// with a contentless_delete table fed 1000 six-token documents, MATCH
+// queries per letter agree with the LIKE-equivalent doc set before any
+// delete, after deleting the odd rows, and after 'optimize'. The transpiled
+// package cannot run this tranche (its ft($v) bound-parameter form was
+// rendered as a bare identifier); this is the same engine-visible contract
+// driven natively.
+func TestFTS5ResumePinContentlessDeleteParity(t *testing.T) {
+	db := fts5ResumeOpen(t)
+	for _, s := range []string{
+		"CREATE TABLE t1(rid INTEGER PRIMARY KEY, x)",
+		"CREATE VIRTUAL TABLE ft USING fts5(x, content='', contentless_delete=1)",
+		"INSERT INTO ft(ft, rank) VALUES('pgsz', 100)",
+	} {
+		if res := db.Exec(s); res.Error != nil {
+			t.Fatalf("%s: %v", s, res.Error)
+		}
+	}
+	for i := 1; i <= 1000; i++ {
+		doc := fts5ResumeDoc(i, 6)
+		if res := db.Exec("INSERT INTO t1 VALUES(" + strconv.Itoa(i) + ", '" + doc + "'); INSERT INTO ft(rowid, x) VALUES(" + strconv.Itoa(i) + ", '" + doc + "')"); res.Error != nil {
+			t.Fatalf("insert %d: %v", i, res.Error)
+		}
+	}
+	checkParity(t, db, "initial")
+	for ii := 1; ii < 1000; ii += 2 {
+		if res := db.Exec("DELETE FROM ft WHERE rowid=" + strconv.Itoa(ii) + "; DELETE FROM t1 WHERE rid=" + strconv.Itoa(ii)); res.Error != nil {
+			t.Fatalf("delete %d: %v", ii, res.Error)
+		}
+	}
+	checkParity(t, db, "after-deletes")
+	if res := db.Exec("INSERT INTO ft(ft) VALUES('optimize')"); res.Error != nil {
+		t.Fatalf("optimize: %v", res.Error)
+	}
+	checkParity(t, db, "after-optimize")
+}
+
+// TestFTS5ResumePinContentless4StructureNentry ports fts5contentless4.test
+// 1.x: the V2 structure record's nentry counts documents and
+// nentrytombstone the contentless deletes, surfaced through fts5_structure
+// (0 0 1000 0 -> 0 0 1000 49 -> 1 0 1 0). The transpiled package's
+// document() UDF renders NULL, so no segment ever forms; driven natively
+// with real tokenized documents the engine reports the corpus values.
+func TestFTS5ResumePinContentless4StructureNentry(t *testing.T) {
+	db := fts5ResumeOpen(t)
+	structure := func() string {
+		r := db.Query("SELECT level, segment, nentry, nentrytombstone FROM fts5_structure((SELECT block FROM ft_data WHERE id=10))")
+		if r.Error != nil {
+			t.Fatalf("structure: %v", r.Error)
+		}
+		return fts5PinFlattenNull(r.Rows)
+	}
+	for _, s := range []string{
+		"CREATE VIRTUAL TABLE ft USING fts5(x, content='', contentless_delete=1)",
+		"INSERT INTO ft(ft, rank) VALUES('pgsz', 240)",
+	} {
+		if res := db.Exec(s); res.Error != nil {
+			t.Fatalf("%s: %v", s, res.Error)
+		}
+	}
+	// One statement, like the corpus 1.0 CTE: a single flush builds one
+	// level-0 segment.
+	vals := ""
+	for i := 1; i <= 1000; i++ {
+		vals += ",(" + strconv.Itoa(i) + ",'" + fts5ResumeDoc(i, 12) + "')"
+	}
+	if res := db.Exec("INSERT INTO ft(rowid, x) VALUES" + vals[1:]); res.Error != nil {
+		t.Fatalf("insert: %v", res.Error)
+	}
+	if res := db.Exec("INSERT INTO ft(ft) VALUES('optimize')"); res.Error != nil {
+		t.Fatalf("optimize: %v", res.Error)
+	}
+	if got, want := structure(), "0 0 1000 0"; got != want {
+		t.Errorf("after optimize: got [%s] want [%s]", got, want)
+	}
+	if res := db.Exec("DELETE FROM ft WHERE rowid < 50"); res.Error != nil {
+		t.Fatal(res.Error)
+	}
+	if got, want := structure(), "0 0 1000 49"; got != want {
+		t.Errorf("after delete <50: got [%s] want [%s]", got, want)
+	}
+	if res := db.Exec("DELETE FROM ft WHERE rowid < 1000"); res.Error != nil {
+		t.Fatal(res.Error)
+	}
+	if got, want := structure(), "1 0 1 0"; got != want {
+		t.Errorf("after delete <1000: got [%s] want [%s]", got, want)
+	}
+
+}
+
+// TestFTS5ResumePinContentless4LiveEntries ports fts5contentless4.test
+// 2.x: live-entry accounting (sum(nentry)-sum(nentrytombstone)) under
+// progressive deletes of a 5000-document table.
+func TestFTS5ResumePinContentless4LiveEntries(t *testing.T) {
+	db2 := fts5ResumeOpen(t)
+	for _, s := range []string{
+		"CREATE VIRTUAL TABLE ft USING fts5(x, content='', contentless_delete=1)",
+	} {
+		if res := db2.Exec(s); res.Error != nil {
+			t.Fatalf("%s: %v", s, res.Error)
+		}
+	}
+	for i := 1; i <= 5000; i++ {
+		if res := db2.Exec("INSERT INTO ft(rowid, x) VALUES(" + strconv.Itoa(i) + ", '" + fts5ResumeDoc(i, 12) + "')"); res.Error != nil {
+			t.Fatalf("insert %d: %v", i, res.Error)
+		}
+	}
+	live := func() string {
+		r := db2.Query("SELECT CAST((total(nentry) - total(nentrytombstone)) AS integer) FROM fts5_structure((SELECT block FROM ft_data WHERE id=10))")
+		if r.Error != nil {
+			t.Fatalf("live: %v", r.Error)
+		}
+		return fts5PinFlattenNull(r.Rows)
+	}
+	if got, want := live(), "5000"; got != want {
+		t.Errorf("initial live entries: got [%s] want [%s]", got, want)
+	}
+	for ii := 4900; ii >= 0; ii -= 100 {
+		if res := db2.Exec("DELETE FROM ft WHERE rowid > " + strconv.Itoa(ii)); res.Error != nil {
+			t.Fatalf("delete >%d: %v", ii, res.Error)
+		}
+		if got, want := live(), strconv.Itoa(ii); got != want {
+			t.Errorf("after delete >%d: got [%s] want [%s]", ii, got, want)
+		}
+	}
+}
+
+// TestFTS5ResumePinContentless3SmallCounts ports fts5contentless3.test 2.x —
+// the small-table %_data row counts the mirror model reproduces exactly:
+// nine documents optimize into structure + averages + one leaf (3 rows); a
+// contentless delete adds a tombstone page (4); the tombstone-resolving
+// optimize returns to 3 rows and fts5_structure reports the surviving
+// single level-0 segment. The 1.x/2.x tranche of the transpiled package ran
+// green before its supersession; this pin carries the contract.
+func TestFTS5ResumePinContentless3SmallCounts(t *testing.T) {
+	db := fts5ResumeOpen(t)
+	count := func() string {
+		r := db.Query("SELECT count(*) FROM ft_data")
+		if r.Error != nil {
+			t.Fatalf("count: %v", r.Error)
+		}
+		return fts5PinFlattenNull(r.Rows)
+	}
+	for _, s := range []string{
+		"CREATE VIRTUAL TABLE ft USING fts5(x, content=, contentless_delete=1)",
+		"INSERT INTO ft VALUES('one one one')",
+		"INSERT INTO ft VALUES('two two two')",
+		"INSERT INTO ft VALUES('three three three')",
+		"INSERT INTO ft VALUES('four four four')",
+		"INSERT INTO ft VALUES('five five five')",
+		"INSERT INTO ft VALUES('six six six')",
+		"INSERT INTO ft VALUES('seven seven seven')",
+		"INSERT INTO ft VALUES('eight eight eight')",
+		"INSERT INTO ft VALUES('nine nine nine')",
+		"INSERT INTO ft(ft) VALUES('optimize')",
+	} {
+		if res := db.Exec(s); res.Error != nil {
+			t.Fatalf("%s: %v", s, res.Error)
+		}
+	}
+	if got, want := count(), "3"; got != want {
+		t.Errorf("after optimize: got [%s] want [%s]", got, want)
+	}
+	if res := db.Exec("DELETE FROM ft WHERE rowid=5"); res.Error != nil {
+		t.Fatal(res.Error)
+	}
+	if got, want := count(), "4"; got != want {
+		t.Errorf("after delete: got [%s] want [%s]", got, want)
+	}
+	if res := db.Exec("INSERT INTO ft(ft) VALUES('optimize')"); res.Error != nil {
+		t.Fatal(res.Error)
+	}
+	if got, want := count(), "3"; got != want {
+		t.Errorf("after tombstone-resolving optimize: got [%s] want [%s]", got, want)
+	}
+	r := db.Query("SELECT segment, npgtombstone FROM fts5_structure((SELECT block FROM ft_data WHERE id=10))")
+	if r.Error != nil {
+		t.Fatal(r.Error)
+	}
+	if got, want := fts5PinFlattenNull(r.Rows), "0 0"; got != want {
+		t.Errorf("structure after optimize: got [%s] want [%s]", got, want)
+	}
+}
+
+// TestFTS5ResumePinNaturalJoinHiddenCols pins the NATURAL JOIN hidden-column
+// rule: an fts5 operand's hidden table-name and rank columns are invisible
+// to NATURAL column resolution (C's declared-vtab HIDDEN columns are
+// excluded), so t1(a,b,rank) NATURAL JOIN ft matches on a alone (fts5misc
+// 12.1/12.2).
+func TestFTS5ResumePinNaturalJoinHiddenCols(t *testing.T) {
+	db := fts5ResumeOpen(t)
+	for _, s := range []string{
+		"CREATE TABLE t1(a, b, rank)",
+		"INSERT INTO t1 VALUES('a', 'hello', '')",
+		"INSERT INTO t1 VALUES('b', 'world', '')",
+		"CREATE VIRTUAL TABLE ft USING fts5(a)",
+		"INSERT INTO ft VALUES('b')",
+		"INSERT INTO ft VALUES('y')",
+	} {
+		if res := db.Exec(s); res.Error != nil {
+			t.Fatalf("%s: %v", s, res.Error)
+		}
+	}
+	for _, q := range []string{
+		"SELECT * FROM t1 NATURAL JOIN ft WHERE ft MATCH('b')",
+		"SELECT * FROM ft NATURAL JOIN t1 WHERE ft MATCH('b')",
+	} {
+		r := db.Query(q)
+		if r.Error != nil {
+			t.Fatalf("%s: %v", q, r.Error)
+		}
+		if got, want := fts5PinFlattenNull(r.Rows), "b world {}"; got != want {
+			t.Errorf("%s: got [%s] want [%s]", q, got, want)
+		}
+	}
+}
+
+// checkParity compares the t1 LIKE doc set against the ft MATCH doc set for
+// sample letters at one stage of the contentless-delete lifecycle.
+func checkParity(t *testing.T, db *DB, stage string) {
+	t.Helper()
+	for _, v := range []string{"A", "E", "K", "Q", "X", "Z"} {
+		l1 := db.Query("SELECT rid FROM t1 WHERE x LIKE '% " + v + "%' OR x LIKE '" + v + " %' OR x = '" + v + "'")
+		l2 := db.Query("SELECT rowid FROM ft('" + v + "')")
+		if l1.Error != nil || l2.Error != nil {
+			t.Fatalf("%s %s: %v / %v", stage, v, l1.Error, l2.Error)
+		}
+		if got, want := fts5PinFlattenNull(l1.Rows), fts5PinFlattenNull(l2.Rows); got != want {
+			t.Fatalf("%s letter %s: LIKE rows [%s] != MATCH rows [%s]", stage, v, got, want)
+		}
 	}
 }
