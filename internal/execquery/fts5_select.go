@@ -187,28 +187,49 @@ func (e *SelectEngine) fts5UniverseRows(s *sql.SelectStmt, where sql.Expr, t5 *f
 	// document list, so content faults fire for every projection.
 	readCols := statementReadsFTS5Columns(s, t5)
 	if set != nil {
-		ids := t5.SortedMatchRowids(set)
-		rowids := make([]int64, 0, len(ids))
-		rows := make([][]interface{}, 0, len(ids))
-		for _, rowid := range ids {
-			var vals []interface{}
-			if readCols {
-				var verr error
-				vals, verr = t5.DocValues(rowid)
-				if verr != nil {
-					return nil, nil, verr
-				}
-			}
-			flat, rerr := fts5FlatRow(t5, rowid, vals, rankFn)
-			if rerr != nil {
-				return nil, nil, rerr
-			}
-			rowids = append(rowids, rowid)
-			rows = append(rows, flat)
-		}
-		return rowids, rows, nil
+		return fts5MaterializeIDs(t5, t5.SortedMatchRowids(set), rankFn, readCols)
+	}
+	// where.c's MULTI-INDEX OR (whereLoopAddOr): an OR chain whose every
+	// branch is a usable MATCH conjunction on this table runs one sub-plan
+	// per branch — rows emerge branch by branch (each in rowid order, deduped
+	// at first emission), not as a globally rowid-sorted union (fts5misc
+	// 20.3/20.4/20.5).
+	orids, err := t5.MatchOrBranchRowids(where, func(expr sql.Expr) (interface{}, error) {
+		return e.ctx.EvalExpr(expr, nil)
+	})
+	if err != nil {
+		return nil, nil, err
+	}
+	if orids != nil {
+		return fts5MaterializeIDs(t5, orids, rankFn, readCols)
 	}
 	return fts5ScanRows(t5, colDefs, rankFn)
+}
+
+// fts5MaterializeIDs materializes MATCH-driven cursor rows for an ordered
+// rowid list: content values are fetched lazily (only when the statement
+// reads a user column), each row flattened in colDefs order (user columns,
+// hidden table-name column = rowid, rank).
+func fts5MaterializeIDs(t5 *fts5.Table, ids []int64, rankFn func(int64) (interface{}, error), readCols bool) ([]int64, [][]interface{}, error) {
+	rowids := make([]int64, 0, len(ids))
+	rows := make([][]interface{}, 0, len(ids))
+	for _, rowid := range ids {
+		var vals []interface{}
+		if readCols {
+			var verr error
+			vals, verr = t5.DocValues(rowid)
+			if verr != nil {
+				return nil, nil, verr
+			}
+		}
+		flat, rerr := fts5FlatRow(t5, rowid, vals, rankFn)
+		if rerr != nil {
+			return nil, nil, rerr
+		}
+		rowids = append(rowids, rowid)
+		rows = append(rows, flat)
+	}
+	return rowids, rows, nil
 }
 
 // statementReadsFTS5Columns reports whether the statement references any user

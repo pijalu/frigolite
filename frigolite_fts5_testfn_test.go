@@ -199,8 +199,9 @@ func TestFTS5TestFnDetailNone(t *testing.T) {
 	defer db.Close()
 	for _, stmt := range []string{
 		"CREATE VIRTUAL TABLE t4 USING fts5(a, b, c, detail=none)",
-		"INSERT INTO t4 VALUES('a b c', 'b c d', 'e f g')",
-		"INSERT INTO t4 VALUES('1 2 3', '4 5 6', '7 8 9')",
+		// One statement: both tables then hold a single flushed segment, so
+		// the physical comparison below is statement-granularity fair.
+		"INSERT INTO t4 VALUES('a b c', 'b c d', 'e f g'), ('1 2 3', '4 5 6', '7 8 9')",
 	} {
 		checkExecOK(t, db.Exec(stmt))
 	}

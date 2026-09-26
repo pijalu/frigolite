@@ -224,6 +224,13 @@ func (e *Engine) registerFTSModules() {
 	// for locale=1 tables; writing one to a locale-less table is an error
 	// enforced by the fts5 insert/update path (fts5_main.c:2005).
 	e.funcs.Register("fts5_locale", fts5.LocaleFunc, 2, 2)
+	// fts5/fts5_source_id: fts5Init's two module scalars (fts5_main.c
+	// fts5Fts5Func:3795, fts5SourceIdFunc:3800). fts5(X) fetches the extension
+	// API pointer for host embeddings — no SQL argument can carry the
+	// fts5_api_ptr tag, so the observable result is NULL; fts5_source_id()
+	// reports C's fixed tag.
+	e.funcs.Register("fts5", fts5.APIFunc, 1, 1)
+	e.funcs.Register("fts5_source_id", fts5.SourceIDFunc, 0, 0)
 }
 
 // resolveFTS5VocabTarget resolves an fts5vocab module's target table: the

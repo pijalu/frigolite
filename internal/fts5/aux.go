@@ -140,8 +140,15 @@ func (aq *AuxQuery) PhraseSize(i int) int {
 }
 
 // RowInstances returns the document's phrase instances in xInst order
-// (column, offset, phrase) with the NEAR/pruning semantics applied.
+// (column, offset, phrase) with the NEAR/pruning semantics applied. A
+// contentless table under a non-full detail mode yields no instances:
+// fts5CsrPoslist returns an empty poslist when there is no content to
+// re-derive per-instance positions from (fts5_main.c fts5CsrPoslist's
+// contentless early return; fts5misc 25.0).
 func (aq *AuxQuery) RowInstances(rowid int64) []Inst {
+	if aq.t.cfg.Contentless() && !aq.t.cfg.DetailFull() {
+		return nil
+	}
 	matched, insts := aq.evalNode(aq.root, rowid)
 	if !matched {
 		return nil

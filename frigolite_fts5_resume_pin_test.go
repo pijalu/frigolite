@@ -791,3 +791,35 @@ func checkParity(t *testing.T, db *DB, stage string) {
 		}
 	}
 }
+
+// TestFTS5ResumePinMatchOrBranchOrder pins MULTI-INDEX OR emission order
+// (where.c whereLoopAddOr): a WHERE that is a top-level OR chain whose every
+// branch is a MATCH conjunction on the table runs one sub-plan per branch —
+// rows emerge branch by branch, each branch in rowid order, deduplicated at
+// first emission, instead of a globally rowid-sorted union (fts5misc
+// 20.3/20.4/20.5; oracle: 'y' OR 'a' emits 3 4 1).
+func TestFTS5ResumePinMatchOrBranchOrder(t *testing.T) {
+	db := fts5ResumeOpen(t)
+	for _, s := range []string{
+		"CREATE VIRTUAL TABLE x1 USING fts5(a)",
+		"INSERT INTO x1(rowid, a) VALUES (1, 'a b c d'), (2, 'x b c d'), (3, 'x y z d'), (4, 'a y c x')",
+	} {
+		if res := db.Exec(s); res.Error != nil {
+			t.Fatalf("%s: %v", s, res.Error)
+		}
+	}
+	for _, tc := range []struct{ q, want string }{
+		{"SELECT rowid FROM x1 WHERE x1 MATCH 'a' OR x1 MATCH 'y'", "1 4 3"},
+		{"SELECT rowid FROM x1 WHERE x1 MATCH 'y' OR x1 MATCH 'a'", "3 4 1"},
+		{"SELECT rowid FROM x1 WHERE x1 MATCH 'a' OR (x1 MATCH 'y' AND x1 MATCH 'd')", "1 4 3"},
+		{"SELECT rowid FROM x1 WHERE x1 MATCH 'z' OR (x1 MATCH 'a' AND x1 MATCH 'd')", "3 1"},
+	} {
+		r := db.Query(tc.q)
+		if r.Error != nil {
+			t.Fatalf("%s: %v", tc.q, r.Error)
+		}
+		if got := fts5PinFlattenNull(r.Rows); got != tc.want {
+			t.Errorf("%s: got [%s] want [%s]", tc.q, got, tc.want)
+		}
+	}
+}

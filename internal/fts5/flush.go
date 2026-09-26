@@ -5,6 +5,7 @@ import (
 	"encoding/gob"
 	"fmt"
 	"io"
+	"strings"
 )
 
 // Segment flush, merge and optimize machinery — the mirror-model port of
@@ -60,6 +61,9 @@ func (t *Table) removeSegmentRows(seg *Segment) error {
 	}
 	qIdx := qual(t.dbName, t.cfg.Name+"_idx")
 	_, err := t.db.ExecSQL(fmt.Sprintf("DELETE FROM %s WHERE segid=%d", qIdx, seg.Segid))
+	if err != nil && strings.Contains(err.Error(), "no such table") {
+		return nil
+	}
 	return err
 }
 
@@ -70,6 +74,11 @@ func (t *Table) removeSegmentRows(seg *Segment) error {
 func (t *Table) writeDlidxRow(seg *Segment) error {
 	qIdx := qual(t.dbName, t.cfg.Name+"_idx")
 	_, err := t.db.ExecSQL(fmt.Sprintf("INSERT OR REPLACE INTO %s(segid, term, pgno) VALUES(%d, X'', 2)", qIdx, seg.Segid))
+	if err != nil && strings.Contains(err.Error(), "no such table") {
+		// A dropped %_idx is tolerated (dlidx is optional to C's readers —
+		// fts5corrupt drops shadow tables and the table stays readable).
+		return nil
+	}
 	return err
 }
 

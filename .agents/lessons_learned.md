@@ -9438,3 +9438,44 @@ stack alone.
 (`collectBalanceCells` rejects non-table siblings; emptied INDEX leaves stay
 in place), so index dividers never enter the DELETE rebalance paths — the
 lifecycle sites above are the complete set.
+
+## T33-fts5-resume2 (2026-09-26)
+
+- **Merge of main's idxfix tranche was orthogonal to fts5.** The value-ordered
+  index storage (divider payload descent) did not disturb %_idx/%_data mirror
+  reads; the only "interaction" was the predecessor's WIP statement-
+  granularity fix for fts5detail 5.2/5.3 (compare one flushed segment per
+  table, not 2-vs-1). Verify oracle claims in resurrected WIP before
+  trusting them — the corrupt-structure expectation re-verified on 3.54.0.
+- **An early `return` in a linear generated test MASKS every later section.**
+  fts5misc 14.0's `return` hid sections 20-27 for the whole T33 lifetime.
+  When you make previously-unreachable assertions run for the first time,
+  expect a fresh failure list and probe each (three were engine gaps, two
+  were already-adjudicated N-As needing mechanical annotation).
+- **MULTI-INDEX OR emission order is branch-major, not rowid-sorted.**
+  where.c whereLoopAddOr runs one sub-plan per OR branch (each branch in
+  rowid order, RowSet dedup at first emission): 'a' OR 'y' emits 1 4 3, 'y'
+  OR 'a' emits 3 4 1. Frigolite's materialized universe sorted globally —
+  fixed with Table.MatchOrBranchRowids (branch = pure MATCH conjunction;
+  mixed shapes keep the scan fallback rather than guess C's plan).
+- **fts5Init registers TWO module scalars beyond the aux family**: fts5(X)
+  (API-pointer fetch; NULL for every SQL argument since no SQL value carries
+  the fts5_api_ptr tag) and fts5_source_id() ("--FTS5-SOURCE-ID--", C's
+  literal). Register arity-exact; the scalar namespace does not collide with
+  the module name.
+- **Instance APIs have a contentless cutoff**: fts5CsrPoslist returns an
+  EMPTY poslist when contentless (content='' / contentless_unindexed) AND
+  detail!=full — no content to re-derive positions from. detail=none with
+  readable content still has instances (re-derived from content). Guarded at
+  the AuxQuery.RowInstances chokepoint so every xInst-family consumer sees
+  C's semantics at once.
+- **A transpiled UDF stub can be PORTED FAITHFULLY instead of N-A'd**: the
+  fts5content text_value proc is three lines (i==1 "one", i==2 "two", else
+  "many"); a faithful port flipped 8.3.1/8.3.3/8.3.4 from adjudicated-N-A to
+  genuinely green. Before adjudicating an N-A, read the TCL proc — if it is
+  portable, port it; N-A is for the untranspilable (VFS fixtures, physical
+  page counts), not for lazily-stubbed procs.
+- **Debugging win**: when a fix "doesn't fire", print the AST node types at
+  the boundary first — the bug was topOrBranches returning nil for leaves
+  (append(nil, nil...)); split functions must return []Expr{leaf}, like the
+  existing topAndConjuncts.

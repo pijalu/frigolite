@@ -2380,8 +2380,50 @@ superseded per-assertion as follows.
 | fts5misc 12.3 | N-A per-assertion — `t2 JOIN ft USING (ft)`: C's fts5BestIndexMethod treats EQ on the hidden table-name column as a MATCH constraint and consumes it (argvIndex), parameterizing the inner scan per outer row (t2.ft='b' drives xFilter('b')); the materialized-join model evaluates the vtab operand once per query and re-checks the residual equality against the hidden column's rowid value — C's constraint-consumption planner path does not exist to graft onto | — |
 | fts5misc 14.x | N-A harness — ATTACH 'file:/one?vfs=memdb' names the test_memdb VFS (src/test_memdb.c, TCL fixture machinery; two attaches share one named memdb). Same class as wal5's aux-VFS wiring | — |
 
-fts5content 8.3.1/8.3.3/8.3.4 (in-package, package otherwise green): the
-text_value UDF is transpiled to a NULL-returning stub (the TCL proc returns
-"one"/"two"/"many" by argument), so the external-content-over-view rows read
-as NULL; the view-content mechanism itself (CREATE VIEW a1 + content='a1')
-is exercised by the surrounding 8.1/8.2 sections, which run green.
+fts5content 8.3.1/8.3.3/8.3.4 — SUPERSEDED GREEN (T33-fts5-resume2,
+2026-09-26): the text_value UDF stub is now a faithful port of the TCL proc
+(i==1 "one", i==2 "two", otherwise "many" — fts5content.test:319), so the
+external-content-over-view rows resolve for real and 8.3.x passes; the
+view-content mechanism itself is exercised end-to-end. No residual N-A in
+fts5content.
+
+## FULL-SUITE-DRIFT.T33-fts5 — resume2 tranche (2026-09-26)
+
+Second resume of the dead T33-fts5 agent. Merge of main's T33-idxfix
+value-ordered index storage grafted cleanly (no fts5 interaction beyond the
+predecessor's WIP statement-granularity fix for the fts5detail 5.2/5.3
+physical blob comparison, landed as-is). Adjudication outcomes:
+
+- fts5misc 20.3/20.4/20.5 — ENGINE-FIXED, not N-A: MULTI-INDEX OR row order
+  (where.c whereLoopAddOr). A WHERE that is a top-level OR chain whose every
+  branch is a usable MATCH conjunction on the table emits rows branch by
+  branch (each branch in rowid order, deduplicated at first emission —
+  RowSet semantics), not as a globally rowid-sorted union. Oracle: 'y' OR 'a'
+  emits 3 4 1. Implemented as Table.MatchOrBranchRowids (internal/fts5/
+  match_or.go) + the fts5UniverseRows hook; only pure MATCH-conjunction OR
+  chains reorder (mixed shapes keep the scan fallback — their C plans need
+  non-vtab branch indexes that do not exist to graft).
+- fts5misc 22.0/22.1 — ENGINE-FIXED: fts5Init's two module scalars were
+  unregistered. fts5(X) (fts5Fts5Func) fetches the extension API pointer for
+  host embeddings; no SQL value can carry the fts5_api_ptr tag, so the
+  observable result is NULL for every SQL argument. fts5_source_id() returns
+  C's literal "--FTS5-SOURCE-ID--". Registered arity-exact (1,1)/(0,0) in
+  internal/fts5/apifunc.go.
+- fts5misc 25.0 — ENGINE-FIXED: fts5CsrPoslist's contentless early return —
+  on a contentless table (content='', or contentless_unindexed) under a
+  non-full detail mode the instance APIs see an EMPTY poslist (no content to
+  re-derive positions from); the engine's AuxQuery.RowInstances now guards
+  the same predicate, so fts5_test_poslist renders the empty list ({{}}).
+- fts5misc 12.3 and 14.0-14.4 — N-A annotations landed IN the generated file
+  (per-assertion, evidence above); they had been masking further sections:
+  everything from 14.x on was fresh surface in this tranche.
+
+Predecessor WIP adjudication (all kept, verified): internal/fts5/flush.go
+tolerates a dropped %_idx during segment row removal / dlidx write —
+load-bearing for the committed TestFTS5CorruptReopenResilience Scenario B
+(fts5savepoint 2.0 mirror divergence: C fails the write "database disk image
+is malformed", the mirror model keeps serving; verified red without the
+tolerance). frigolite_fts5corrupt_test.go's corrupt-structure expectation
+(MATCH yields no rows, count(*) intact) re-verified against the local oracle
+3.54.0. frigolite_fts5_testfn_test.go's single-statement insert makes the
+fts5detail 5.2/5.3 physical blob comparison statement-granularity fair.

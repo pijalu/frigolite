@@ -158,7 +158,11 @@ func TestFTS5CorruptReopenResilience(t *testing.T) {
 	if err != nil {
 		t.Fatalf("reopen with corrupt structure blob: %v", err)
 	}
-	checkQueryResult(t, db.Query("SELECT rowid FROM t1 WHERE t1 MATCH 'abc'"), "1")
+	// Oracle (sqlite3 3.51.0): with the structure record undecodable the
+	// index-driven MATCH silently yields no rows while content reads stay
+	// intact (the segment map is lost; %_content survives).
+	checkQueryResult(t, db.Query("SELECT rowid FROM t1 WHERE t1 MATCH 'abc'"), "")
+	checkQueryResult(t, db.Query("SELECT count(*) FROM t1"), "2")
 	db.Close()
 
 	// Scenario B: drop a shadow table entirely, then reopen and write
