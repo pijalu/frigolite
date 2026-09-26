@@ -126,10 +126,26 @@ LATE-BREAKING (2026-09-25 late evening):
   comparators instead of keyCompare. misc5 fell between the idx and
   exec agents' validation sets.
 - SECOND REGRESSION (same merge window): TestP2ViewColumnList (root
-  native) — `SELECT x,y FROM v1c(declared list)` returns NULLs; the
-  t33-query omit-unused-subquery-column use-walk misses outer
-  references through view-declared column aliases. fleet/t33-win agent
-  RESUMED for this (T33-win2) — same subqueryColumnUse file it owns.
+  native) — FIXED AND MERGED: fleet/t33-win T33-win2 (ddc4012c9, merged
+  e5e8a8a5c): view declared column lists resolve positionally in the
+  omit-unused-subquery-column use-walk; 31-pkg sweep green.
+- MISC5 REGRESSION FIXED AND MERGED: fleet/t33-idxfix (afcbc3397,
+  merged aa23922dd) — REAL ROOT CAUSE: index btree inserts were
+  hard-routed to the rightmost child (T31-era) and index interior
+  dividers carried no payload, so key-guided descent was impossible.
+  FIX = SQLite's model (btree.c:8820 parity): full separator payloads
+  with parent-owned overflow chains, findChildIndexForInsert binary
+  descent through keyCompare (equal keys go RIGHT), chain lifecycle
+  (rekey/abandon/reparent), integrity_check interior-array coverage.
+  Pins TestNativeIdxfix* green on main. All 21 validation packages
+  green.
+- fleet/t33-fts5 agent DIED A SECOND TIME during the coordinator pause
+  (16h-stale WIP: flush.go + 2 native test files + zz scratch).
+  RESUMED AGAIN per protocol (same worktree, merge main, adjudicate
+  WIP). Remaining unknowns: fts5content/fts5circref/fts5misc residue —
+  the resume agent re-baselines all 9.
+- Race gate (§5e-2) running in background on main aa23922dd; will
+  re-run after the fts5 merge lands.
 - fleet/t33-fts5 STILL ACTIVE in frigolite-wt-t33-fts5 (fts5hash +
   fts5unindexed + contentless3-2.x green at ef605a1ad; segment/structure
   persistence model landed; 4 dirty files mid-work).
