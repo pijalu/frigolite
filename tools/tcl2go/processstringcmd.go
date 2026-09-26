@@ -222,6 +222,40 @@ func (tp *transpiler) processConcat(args []tcl.RawWord) {
 }
 
 // processListOp handles: lindex list idx, llength list, lrange list start end, lsort list, lreplace list first count args...
+// listOpBracketedExpr renders a bracketed list argument ([catchsql db {SQL}],
+// zipfile2 2.0) as a command expression rather than a raw literal.
+func (tp *transpiler) listOpBracketedExpr(arg tcl.RawWord, fallback string) string {
+	txt := strings.TrimSpace(arg.Text)
+	if strings.HasPrefix(txt, "[") && strings.HasSuffix(txt, "]") && len(txt) > 2 {
+		return tp.cmdExpr(txt[1 : len(txt)-1])
+	}
+	return fallback
+}
+
+// emitListLindex handles `lindex LIST IDX`.
+func (tp *transpiler) emitListLindex(args []tcl.RawWord, listExpr string) {
+	if len(args) < 2 {
+		return
+	}
+	listExpr = tp.listOpBracketedExpr(args[0], listExpr)
+	idxExpr := tp.goStringLiteral(args[1])
+	tp.emitLine("_r = tclLIndex(%s, %s) // lindex result", listExpr, idxExpr)
+}
+
+// emitListLreplace handles `lreplace LIST FIRST COUNT REPL...`.
+func (tp *transpiler) emitListLreplace(args []tcl.RawWord, listExpr string) {
+	if len(args) < 3 {
+		return
+	}
+	firstExpr := tp.goStringLiteral(args[1])
+	countExpr := tp.goStringLiteral(args[2])
+	var repl []string
+	for _, a := range args[3:] {
+		repl = append(repl, tp.goStringLiteral(a))
+	}
+	tp.emitLine("_ = tclLReplace(%s, %s, %s, %s) // lreplace result", listExpr, firstExpr, countExpr, strings.Join(repl, ", "))
+}
+
 func (tp *transpiler) processListOp(cmd string, args []tcl.RawWord) {
 	if len(args) < 1 {
 		return
@@ -230,15 +264,7 @@ func (tp *transpiler) processListOp(cmd string, args []tcl.RawWord) {
 
 	switch cmd {
 	case "lindex":
-		if len(args) >= 2 {
-			// A bracketed list argument ([catchsql db {SQL}], zipfile2 2.0)
-			// must evaluate as a command expression, not stay a raw literal.
-			if txt := strings.TrimSpace(args[0].Text); strings.HasPrefix(txt, "[") && strings.HasSuffix(txt, "]") && len(txt) > 2 {
-				listExpr = tp.cmdExpr(txt[1 : len(txt)-1])
-			}
-			idxExpr := tp.goStringLiteral(args[1])
-			tp.emitLine("_r = tclLIndex(%s, %s) // lindex result", listExpr, idxExpr)
-		}
+		tp.emitListLindex(args, listExpr)
 	case "llength":
 		tp.emitLine("_ = strconv.Itoa(tclLLength(%s)) // llength result", listExpr)
 	case "lrange":
@@ -250,15 +276,7 @@ func (tp *transpiler) processListOp(cmd string, args []tcl.RawWord) {
 	case "lsort":
 		tp.emitLine("_ = tclSort(%s) // lsort result", listExpr)
 	case "lreplace":
-		if len(args) >= 3 {
-			firstExpr := tp.goStringLiteral(args[1])
-			countExpr := tp.goStringLiteral(args[2])
-			var repl []string
-			for _, a := range args[3:] {
-				repl = append(repl, tp.goStringLiteral(a))
-			}
-			tp.emitLine("_ = tclLReplace(%s, %s, %s, %s) // lreplace result", listExpr, firstExpr, countExpr, strings.Join(repl, ", "))
-		}
+		tp.emitListLreplace(args, listExpr)
 	case "lsearch":
 		// Simplified: just return "0" (not found) - complex
 		tp.emitLine("// lsearch %s (simplified)", listExpr)
@@ -372,68 +390,21 @@ func (tp *transpiler) processScriptEval(args []tcl.RawWord) {
 	// Parse the script and execute its commands
 	if args[0].Braced {
 		bodyCmds := parseCommands(args[0].Text)
-		bodyTP := &transpiler{sb: tp.sb, indent: tp.indent, dbVar: tp.dbVar, t: tp.t, vars: tp.vars, forIncrs: tp.forIncrs, testPrefix: tp.testPrefix, preparedState: tp.preparedState}
+		bodyTP := &transpiler{sb: tp.sb, indent: tp.indent, dbVar: tp.dbVar, t: tp.t, vars: tp.vars, forIncrs: tp.forIncrs, testPrefix: tp.testPrefix, preparedState: tp.preparedState, varCount: tp.varCount}
 		bodyTP.processCommands(bodyCmds)
+		tp.varCount = bodyTP.varCount
 		tp.indent = bodyTP.indent
 	} else if strings.HasPrefix(args[0].Text, "$") && len(args) == 1 {
+		vn := tclVarToGo(strings.TrimPrefix(args[0].Text, "$"))
 		// eval $varsetVar — rewrite into struct field assignments when the
 		// variable iterates over a transpiled varset list.
-		vn := tclVarToGo(strings.TrimPrefix(args[0].Text, "$"))
-		if info, ok := tp.varsetLoopVars[vn]; ok {
-			for _, f := range info.fields {
-				// Only assign fields the varset script actually set; fields
-				// that stay unset keep the loop's reset default (e.g. "''").
-				tp.emitLine("if %s.%sSet {", vn, f)
-				tp.indent++
-				tp.emitLine("%s = %s.%s", f, vn, f)
-				tp.indent--
-				tp.emitLine("}")
-			}
-			tp.emitLine("_ = %s // suppress unused warning", vn)
+		if tp.evalVarsetAssignments(vn) {
 			return
 		}
 		// eval $var where var iterates over a literal braced-script list
 		// (backup.test's `foreach zOpenScript {...} { eval $zOpenScript }`):
-		// inline each script's commands, dispatching on the runtime value. The
-		// case expressions use the same $var substitution the foreach list
-		// builds (tclListElem), so they match the runtime zOpenScript value.
-		if vals, ok := tp.foreachLitValues[vn]; ok && len(vals) > 0 {
-			for i, v := range vals {
-				kw := "if"
-				if i > 0 {
-					kw = "} else if"
-				}
-				// The comparison reproduces the loop variable's RUNTIME value:
-				// raw text for verbatim braced-list elements, the expanded
-				// buildListStringExpr rendering for substituted lists. Using
-				// the wrong form never matches (fts4onepass-4.0: the
-				// [sqlite3_get_autocommit db] script's case never matched,
-				// silently skipping the COMMIT and leaving the transaction
-				// open for the next section; backup.test needs the expanded
-				// form because its [list {...$zSrcFile...}] is emitted as a
-				// runtime tclListElem concatenation).
-				tp.emitLine("%s %s == %s {", kw, vn, v.cmpExpr)
-				tp.indent++
-				bodyCmds := parseCommands(v.raw)
-				bodyTP := &transpiler{sb: tp.sb, indent: tp.indent, dbVar: tp.dbVar, t: tp.t, vars: tp.vars, forIncrs: tp.forIncrs, testPrefix: tp.testPrefix, preparedState: tp.preparedState, varConstValues: tp.varConstValues, foreachLitValues: tp.foreachLitValues, varsetLoopVars: tp.varsetLoopVars, dbConnVars: tp.dbConnVars, runtimeConnVars: tp.runtimeConnVars, varRenames: tp.varRenames, inEvalScript: true, catchMode: tp.catchMode, dbClosed: tp.dbClosed, connClosed: tp.connClosed, pendingFileReset: tp.pendingFileReset, dqsDDL: tp.dqsDDL, dqsDML: tp.dqsDML, dbAliases: tp.dbAliases}
-				bodyTP.processCommands(bodyCmds)
-				tp.indent = bodyTP.indent
-				tp.vars = bodyTP.vars
-				tp.varCount = bodyTP.varCount
-				tp.varConstValues = bodyTP.varConstValues
-				tp.foreachLitValues = bodyTP.foreachLitValues
-				tp.varsetLoopVars = bodyTP.varsetLoopVars
-				tp.dbConnVars = bodyTP.dbConnVars
-				tp.runtimeConnVars = bodyTP.runtimeConnVars
-				tp.varRenames = bodyTP.varRenames
-				tp.dbClosed = bodyTP.dbClosed
-				tp.connClosed = bodyTP.connClosed
-				tp.pendingFileReset = bodyTP.pendingFileReset
-				tp.dqsDDL = bodyTP.dqsDDL
-				tp.dqsDML = bodyTP.dqsDML
-				tp.indent--
-			}
-			tp.emitLine("}")
+		// inline each script's commands, dispatching on the runtime value.
+		if tp.evalForeachLitScripts(vn) {
 			return
 		}
 		// eval $var where var holds a dynamically-built `sqlite3_intarray_bind`
@@ -449,6 +420,77 @@ func (tp *transpiler) processScriptEval(args []tcl.RawWord) {
 		// emit as a sanitized comment to avoid breaking Go syntax.
 		tp.emitLine("// eval (dynamic, not transpiled)")
 	}
+}
+
+// evalVarsetAssignments rewrites `eval $varsetVar` into struct field
+// assignments when the variable iterates over a transpiled varset list.
+// Returns handled.
+func (tp *transpiler) evalVarsetAssignments(vn string) bool {
+	info, ok := tp.varsetLoopVars[vn]
+	if !ok {
+		return false
+	}
+	for _, f := range info.fields {
+		// Only assign fields the varset script actually set; fields
+		// that stay unset keep the loop's reset default (e.g. "''").
+		tp.emitLine("if %s.%sSet {", vn, f)
+		tp.indent++
+		tp.emitLine("%s = %s.%s", f, vn, f)
+		tp.indent--
+		tp.emitLine("}")
+	}
+	tp.emitLine("_ = %s // suppress unused warning", vn)
+	return true
+}
+
+// evalForeachLitScripts inlines each script of a var iterating over a
+// literal braced-script list (backup.test's `foreach zOpenScript {...} {
+// eval $zOpenScript }`), dispatching on the runtime value. The case
+// expressions use the same $var substitution the foreach list builds
+// (tclListElem), so they match the runtime zOpenScript value. Returns
+// handled.
+func (tp *transpiler) evalForeachLitScripts(vn string) bool {
+	vals, ok := tp.foreachLitValues[vn]
+	if !ok || len(vals) == 0 {
+		return false
+	}
+	for i, v := range vals {
+		kw := "if"
+		if i > 0 {
+			kw = "} else if"
+		}
+		// The comparison reproduces the loop variable's RUNTIME value:
+		// raw text for verbatim braced-list elements, the expanded
+		// buildListStringExpr rendering for substituted lists. Using
+		// the wrong form never matches (fts4onepass-4.0: the
+		// [sqlite3_get_autocommit db] script's case never matched,
+		// silently skipping the COMMIT and leaving the transaction
+		// open for the next section; backup.test needs the expanded
+		// form because its [list {...$zSrcFile...}] is emitted as a
+		// runtime tclListElem concatenation).
+		tp.emitLine("%s %s == %s {", kw, vn, v.cmpExpr)
+		tp.indent++
+		bodyCmds := parseCommands(v.raw)
+		bodyTP := &transpiler{sb: tp.sb, indent: tp.indent, dbVar: tp.dbVar, t: tp.t, vars: tp.vars, forIncrs: tp.forIncrs, testPrefix: tp.testPrefix, preparedState: tp.preparedState, varConstValues: tp.varConstValues, foreachLitValues: tp.foreachLitValues, varsetLoopVars: tp.varsetLoopVars, dbConnVars: tp.dbConnVars, runtimeConnVars: tp.runtimeConnVars, varRenames: tp.varRenames, inEvalScript: true, catchMode: tp.catchMode, dbClosed: tp.dbClosed, connClosed: tp.connClosed, pendingFileReset: tp.pendingFileReset, dqsDDL: tp.dqsDDL, dqsDML: tp.dqsDML, dbAliases: tp.dbAliases, varCount: tp.varCount}
+		bodyTP.processCommands(bodyCmds)
+		tp.indent = bodyTP.indent
+		tp.vars = bodyTP.vars
+		tp.varCount = bodyTP.varCount
+		tp.varConstValues = bodyTP.varConstValues
+		tp.foreachLitValues = bodyTP.foreachLitValues
+		tp.varsetLoopVars = bodyTP.varsetLoopVars
+		tp.dbConnVars = bodyTP.dbConnVars
+		tp.runtimeConnVars = bodyTP.runtimeConnVars
+		tp.varRenames = bodyTP.varRenames
+		tp.dbClosed = bodyTP.dbClosed
+		tp.connClosed = bodyTP.connClosed
+		tp.pendingFileReset = bodyTP.pendingFileReset
+		tp.dqsDDL = bodyTP.dqsDDL
+		tp.dqsDML = bodyTP.dqsDML
+		tp.indent--
+	}
+	tp.emitLine("}")
+	return true
 }
 
 // processSubst handles: subst {string}

@@ -64,11 +64,18 @@ func (tp *transpiler) doSelectTests(prefix string, args []tcl.RawWord) {
 	tp.emitLine("{ // %s (do_select_tests)", name)
 	tp.indent++
 
-	// TCL do_select_tests runs `eval $repair` before the loop AND after each
-	// case. The after-case repair is what keeps the schema clean between
-	// cases (e.g. e_createtable-2.2's repair drops x1 after its last case so
-	// 2.3.1 can recreate it). Emit the repair before each case, then again
-	// after the last case to match that behavior.
+	tp.emitSelectCases(name, cases, opts)
+
+	tp.indent--
+	tp.emitLine("}")
+}
+
+// emitSelectCases runs the per-case loop. TCL do_select_tests runs `eval
+// $repair` before the loop AND after each case. The after-case repair is
+// what keeps the schema clean between cases (e.g. e_createtable-2.2's repair
+// drops x1 after its last case so 2.3.1 can recreate it). Emit the repair
+// before each case, then again after the last case to match that behavior.
+func (tp *transpiler) emitSelectCases(name string, cases []selectTestCase, opts selectTestOptions) {
 	for _, tc := range cases {
 		tp.emitLine("{ // %s.%s", name, tc.label)
 		tp.indent++
@@ -93,9 +100,6 @@ func (tp *transpiler) doSelectTests(prefix string, args []tcl.RawWord) {
 			tp.transpileSelectRepair(opts.repair)
 		}
 	}
-
-	tp.indent--
-	tp.emitLine("}")
 }
 
 // selectTestOptions holds the parsed -repair/-error/-query/-tclquery/-count

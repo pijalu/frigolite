@@ -152,25 +152,30 @@ func (tp *transpiler) emitErrorResultCheck(nameExpr, expectedExpr string) {
 	tp.emitLine("}")
 }
 
+// unwrapSubstBody resolves a [subst {...}] (or subst {...}) body wrapper to
+// its inner text so execsql/catchsql bodies inside it are recognized as TCL
+// commands rather than raw SQL text.
+func unwrapSubstBody(bodyText string) string {
+	if substBody, ok := substNovarBody(bodyText); ok {
+		return strings.TrimSpace(substBody)
+	}
+	if strings.HasPrefix(bodyText, "[") && strings.HasSuffix(bodyText, "]") {
+		inner := strings.TrimSpace(bodyText[1 : len(bodyText)-1])
+		if strings.HasPrefix(inner, "subst") {
+			if r, ok := substNovarBody(inner); ok {
+				return strings.TrimSpace(r)
+			}
+		}
+	}
+	return bodyText
+}
+
 // emitDoTestStringBody handles a string-bodied do_test: the body is a TCL
 // script string, most commonly `execsql {SQL}`. Execute the SQL (with $var
 // substitution) and compare its joined result values with the expected
 // argument. The caller closes the wrapping brace.
 func (tp *transpiler) emitDoTestStringBody(nameExpr, expectedExpr string, bodyCmds [][]tcl.RawWord, args []tcl.RawWord) {
-	bodyText := strings.TrimSpace(args[1].Text)
-	// Resolve a [subst {...}] (or subst {...}) body wrapper to its inner
-	// text so execsql/catchsql bodies inside it are recognized as TCL
-	// commands rather than raw SQL text.
-	if substBody, ok := substNovarBody(bodyText); ok {
-		bodyText = strings.TrimSpace(substBody)
-	} else if strings.HasPrefix(bodyText, "[") && strings.HasSuffix(bodyText, "]") {
-		inner := strings.TrimSpace(bodyText[1 : len(bodyText)-1])
-		if strings.HasPrefix(inner, "subst") {
-			if r, ok := substNovarBody(inner); ok {
-				bodyText = strings.TrimSpace(r)
-			}
-		}
-	}
+	bodyText := unwrapSubstBody(strings.TrimSpace(args[1].Text))
 	if strings.HasPrefix(bodyText, "execsql ") || strings.HasPrefix(bodyText, "execsql2 ") {
 		tp.emitDoTestExecsqlBody(nameExpr, expectedExpr, bodyText)
 		return
@@ -283,6 +288,37 @@ func (tp *transpiler) listCatchsqlWantExpr(expectedExpr string) string {
 	return expectedExpr
 }
 
+// listBodyJoinParts validates the argument words of a `[list ...]` body:
+// every argument must be a TCL variable reference ($name) so the Go
+// expression is a straightforward join of the Go variables.
+func listBodyJoinParts(parts []string) ([]string, bool) {
+	var goParts []string
+	for _, p := range parts {
+		if !strings.HasPrefix(p, "$") {
+			return nil, false
+		}
+		goName := tclVarToGo(p)
+		if !isValidGoIdent(goName) {
+			return nil, false
+		}
+		goParts = append(goParts, goName)
+	}
+	return goParts, true
+}
+
+// joinGoIdents renders a space-joined Go string expression
+// ("a + \" \" + b") over the given identifiers.
+func joinGoIdents(goParts []string) string {
+	var b strings.Builder
+	for i, g := range goParts {
+		if i > 0 {
+			b.WriteString(" + \" \" + ")
+		}
+		b.WriteString(g)
+	}
+	return b.String()
+}
+
 // listBodyJoinExpr recognizes a do_test body that is a TCL list-building
 // expression `[list list $VAR1 $VAR2]` (or `[list $VAR1 $VAR2]`) and returns
 // the Go expression computing the space-joined variable values. The TCL idiom
@@ -307,30 +343,14 @@ func listBodyJoinExpr(bodyText string) (string, bool) {
 	if len(parts) == 0 {
 		return "", false
 	}
-	// Every argument must be a TCL variable reference ($name) so the Go
-	// expression is a straightforward join of the Go variables.
-	var goParts []string
-	for _, p := range parts {
-		if !strings.HasPrefix(p, "$") {
-			return "", false
-		}
-		goName := tclVarToGo(p)
-		if !isValidGoIdent(goName) {
-			return "", false
-		}
-		goParts = append(goParts, goName)
+	goParts, ok := listBodyJoinParts(parts)
+	if !ok {
+		return "", false
 	}
 	if len(goParts) == 1 {
 		return goParts[0], true
 	}
-	var b strings.Builder
-	for i, g := range goParts {
-		if i > 0 {
-			b.WriteString(" + \" \" + ")
-		}
-		b.WriteString(g)
-	}
-	return b.String(), true
+	return joinGoIdents(goParts), true
 }
 
 // emitDoTestExecsqlBody handles a string-bodied do_test whose body is
@@ -374,6 +394,135 @@ func (tp *transpiler) processDoEQPTest(args []tcl.RawWord) {
 	tp.emitLine("}")
 }
 
+// joinRawWords joins a command's raw word texts with single spaces (the
+// substring probes over do_test bodies match against this joined form).
+func joinRawWords(cmd []tcl.RawWord) string {
+	joined := ""
+	for _, w := range cmd {
+		if joined != "" {
+			joined += " "
+		}
+		joined += w.Text
+	}
+	return joined
+}
+
+// capiNormalizationCmds lists the C-API command names whose results the
+// pure-Go engine can never reproduce: SQL-normalization functions
+// (sqlite3_normalize / sqlite3_normalized_sql / sqlite3_prepare_v3) and
+// SQLite's test-only expression-tree dump functions (fts3expr.test's
+// test_fts3expr / test_fts3expr2 wrap fts3_exprtest; the engine has no C
+// test-module equivalent).
+var capiNormalizationCmds = []string{"sqlite3_normalize", "sqlite3_normalized_sql", "sqlite3_prepare_v3",
+	// SQLite's test-only expression-tree dump functions (fts3expr.test
+	// test_fts3expr / test_fts3expr2 wrap fts3_exprtest); the engine
+	// has no C test-module equivalent.
+	"test_fts3expr"}
+
+// joinedHasNormalizationRef reports whether a joined command word references
+// one of the capiNormalizationCmds names.
+func joinedHasNormalizationRef(joined string) bool {
+	for _, capi := range capiNormalizationCmds {
+		if strings.Contains(joined, capi) {
+			return true
+		}
+	}
+	return false
+}
+
+// bodyHasCAPINormalizationRef reports whether any command of a do_test body
+// references a pure C-API SQL-normalization function anywhere
+// (sqlite3_normalize / sqlite3_normalized_sql / sqlite3_prepare_v3) — no SQL
+// equivalent in the pure-Go engine, even when the body's final command is a
+// `list` result wrapper (normalize.test's `list $code $res`).
+func bodyHasCAPINormalizationRef(bodyCmds [][]tcl.RawWord) bool {
+	for _, cmd := range bodyCmds {
+		if len(cmd) == 0 {
+			continue
+		}
+		if joinedHasNormalizationRef(joinRawWords(cmd)) {
+			return true
+		}
+		if cmd[0].Text == "test_fts3expr2" {
+			return true
+		}
+	}
+	return false
+}
+
+// unsupportedCAPICmdName reports whether a do_test body command's bare name is
+// a C-API-only command that is never emulated (prepared-statement machinery,
+// URI/VFS probes, connection state, statement-journal introspection).
+func unsupportedCAPICmdName(name string) bool {
+	switch name {
+	case "uses_stmt_journal", "sql_uses_stmt", "sqlite3_prepare_v2", "sqlite3_prepare_v3", "sqlite3_normalized_sql", "sqlite3_normalize", "sqlite3_db_status", "sqlite3_open_v2", "sqlite3_errmsg", "open_uri_error":
+		return true
+	}
+	return false
+}
+
+// stmtVMEmulatedCmdName reports whether a do_test body command's bare name
+// belongs to the prepared-statement lifecycle/metadata family that is fully
+// emulated only for Stmt-VM files.
+func stmtVMEmulatedCmdName(name string) bool {
+	switch name {
+	case "sqlite3_step", "sqlite3_finalize", "sqlite3_column_count",
+		"sqlite3_bind_parameter_count", "sqlite3_bind_parameter_name",
+		"sqlite3_bind_parameter_index":
+		return true
+	}
+	return false
+}
+
+// cmdIsUnsupported reports whether one do_test body command exercises state
+// the pure-Go engine cannot reproduce.
+func cmdIsUnsupported(cmd []tcl.RawWord) bool {
+	joined := joinRawWords(cmd)
+	// A body that reads the database FILE size (VACUUM-dependent) cannot
+	// be reproduced: e_vacuum's `expr {[file size test.db] / 1024}`
+	// asserts the post-VACUUM file shrunk. A BARE `file size PATH` body
+	// (extension01 1.5) IS reproducible via tclFileSize and is handled
+	// below (emitBareFileSizeBody).
+	if strings.Contains(joined, "file size") && len(cmd) > 2 {
+		return true
+	}
+	// C-API command names anywhere in the body (including inside a
+	// `[catch { ... }]` or `[if ...]` substitution, which parse as a
+	// single word): sqlite3_normalize / sqlite3_normalized_sql / the
+	// sqlite3_prepare_v3 family are pure C-API (no SQL equivalent in
+	// the pure-Go engine), and bodies that probe their results cannot
+	// be reproduced.
+	if joinedHasNormalizationRef(joined) {
+		return true
+	}
+	if cmd[0].Text == "test_fts3expr2" {
+		return true
+	}
+	// C-API URI/VFS commands anywhere in the body (e.g. a `set e
+	// [sqlite3_errmsg $DB]` after `set DB [sqlite3_open_v2 ...]` in
+	// e_uri) cannot be emulated: the prepared-statement and URI-mode
+	// machinery they probe is pure C-API. sqlite3_get_autocommit probes
+	// the C connection state (autocommit flag) and is likewise
+	// C-API-only (e_update-1.8's ac sub-checks).
+	if bodyHasCAPICommand(cmd) {
+		return true
+	}
+	// A `catch { sqlite3 db file:test.db?mode=... }` URI-mode open that the
+	// engine cannot perform (URI parameters like ?mode=ro).
+	if strings.Contains(joined, "file:") && strings.Contains(joined, "?mode=") {
+		return true
+	}
+	// `catch { sqlite3 db $uri }` — a URI-mode open-error test (the URI
+	// lives in a variable, so the mode= text is not visible here).
+	if strings.Contains(joined, "catch") && strings.Contains(joined, "sqlite3 db") {
+		return true
+	}
+	if unsupportedCAPICmdName(cmd[0].Text) {
+		return true
+	}
+	return false
+}
+
 // doTestBodyUnsupported reports whether a do_test body exercises VDBE-internal
 // state that has no SQL equivalent (uses_stmt_journal, prepared-statement
 // stepping, sqlite3_db_status). Such bodies are emitted as no-ops so the
@@ -397,29 +546,8 @@ func doTestBodyUnsupported(bodyCmds [][]tcl.RawWord) bool {
 	// these BEFORE the list-result shortcut so the body is skipped rather than
 	// emitting a meaningless comparison against a C-API result that can never
 	// be reproduced.
-	for _, cmd := range bodyCmds {
-		if len(cmd) == 0 {
-			continue
-		}
-		joined := ""
-		for _, w := range cmd {
-			if joined != "" {
-				joined += " "
-			}
-			joined += w.Text
-		}
-		for _, capi := range []string{"sqlite3_normalize", "sqlite3_normalized_sql", "sqlite3_prepare_v3",
-			// SQLite's test-only expression-tree dump functions (fts3expr.test
-			// test_fts3expr / test_fts3expr2 wrap fts3_exprtest); the engine
-			// has no C test-module equivalent.
-			"test_fts3expr"} {
-			if strings.Contains(joined, capi) {
-				return true
-			}
-		}
-		if len(cmd) > 0 && cmd[0].Text == "test_fts3expr2" {
-			return true
-		}
+	if bodyHasCAPINormalizationRef(bodyCmds) {
+		return true
 	}
 	// A body whose final command is a `list` command is fully transpiled.
 	if bodyEndsWithListResult(bodyCmds) {
@@ -429,70 +557,43 @@ func doTestBodyUnsupported(bodyCmds [][]tcl.RawWord) bool {
 		if len(cmd) == 0 {
 			continue
 		}
-		// A body that reads the database FILE size (VACUUM-dependent) cannot
-		// be reproduced: e_vacuum's `expr {[file size test.db] / 1024}`
-		// asserts the post-VACUUM file shrunk.
-		joined := ""
-		for _, w := range cmd {
-			if joined != "" {
-				joined += " "
-			}
-			joined += w.Text
-		}
-		// A body that reads the database FILE size (VACUUM-dependent) cannot
-		// be reproduced: e_vacuum's `expr {[file size test.db] / 1024}`
-		// asserts the post-VACUUM file shrunk. A BARE `file size PATH` body
-		// (extension01 1.5) IS reproducible via tclFileSize and is handled
-		// below (emitBareFileSizeBody).
-		if strings.Contains(joined, "file size") && len(cmd) > 2 {
+		if cmdIsUnsupported(cmd) {
 			return true
 		}
-		// C-API command names anywhere in the body (including inside a
-		// `[catch { ... }]` or `[if ...]` substitution, which parse as a
-		// single word): sqlite3_normalize / sqlite3_normalized_sql / the
-		// sqlite3_prepare_v3 family are pure C-API (no SQL equivalent in
-		// the pure-Go engine), and bodies that probe their results cannot
-		// be reproduced.
-		for _, capi := range []string{"sqlite3_normalize", "sqlite3_normalized_sql", "sqlite3_prepare_v3",
-			// SQLite's test-only expression-tree dump functions (fts3expr.test
-			// test_fts3expr / test_fts3expr2 wrap fts3_exprtest); the engine
-			// has no C test-module equivalent.
-			"test_fts3expr"} {
-			if strings.Contains(joined, capi) {
-				return true
-			}
-		}
-		if len(cmd) > 0 && cmd[0].Text == "test_fts3expr2" {
-			return true
-		}
-		// C-API URI/VFS commands anywhere in the body (e.g. a `set e
-		// [sqlite3_errmsg $DB]` after `set DB [sqlite3_open_v2 ...]` in
-		// e_uri) cannot be emulated: the prepared-statement and URI-mode
-		// machinery they probe is pure C-API. sqlite3_get_autocommit probes
-		// the C connection state (autocommit flag) and is likewise
-		// C-API-only (e_update-1.8's ac sub-checks).
-		if bodyHasCAPICommand(cmd) {
-			return true
-		}
-		// A `catch { sqlite3 db file:test.db?mode=... }` URI-mode open that the
-		// engine cannot perform (URI parameters like ?mode=ro).
-		if strings.Contains(joined, "file:") && strings.Contains(joined, "?mode=") {
-			return true
-		}
-		// `catch { sqlite3 db $uri }` — a URI-mode open-error test (the URI
-		// lives in a variable, so the mode= text is not visible here).
-		if strings.Contains(joined, "catch") && strings.Contains(joined, "sqlite3 db") {
-			return true
-		}
-		switch cmd[0].Text {
-		case "uses_stmt_journal", "sql_uses_stmt", "sqlite3_prepare_v2", "sqlite3_prepare_v3", "sqlite3_normalized_sql", "sqlite3_normalize", "sqlite3_db_status", "sqlite3_open_v2", "sqlite3_errmsg", "open_uri_error":
-			return true
-		case "sqlite3_step", "sqlite3_finalize", "sqlite3_column_count",
-			"sqlite3_bind_parameter_count", "sqlite3_bind_parameter_name",
-			"sqlite3_bind_parameter_index":
-			// Fully emulated for Stmt-VM files; C-API-only elsewhere.
+		// Fully emulated for Stmt-VM files; C-API-only elsewhere. The first
+		// stmt-VM-family command decides the whole body: it short-circuits
+		// the scan (returning false when emulated) before any later command
+		// (e.g. sqlite3_prepare_v2) can flag the body unsupported.
+		if stmtVMEmulatedCmdName(cmd[0].Text) {
 			return !stmtVMEnabled()
 		}
+	}
+	return false
+}
+
+// capiCmdNameUnsupported classifies a C-API command NAME found as a do_test
+// body word: unsupported reports a name that is never emulated; stmtVM
+// reports the prepared-statement family that is emulated only for Stmt-VM
+// files.
+func capiCmdNameUnsupported(name string) (unsupported, stmtVM bool) {
+	switch name {
+	case "sqlite3_open_v2", "sqlite3_errmsg", "open_uri_error", "sqlite3_prepare_v2", "sqlite3_prepare_v3", "sqlite3_normalized_sql", "sqlite3_normalize", "sqlite3_db_status", "uses_stmt_journal", "sqlite3_close", "sqlite3_get_autocommit":
+		return true, false
+	case "sqlite3_step", "sqlite3_finalize", "sqlite3_column_count",
+		"sqlite3_bind_parameter_count", "sqlite3_bind_parameter_name",
+		"sqlite3_bind_parameter_index":
+		return false, true
+	}
+	return false, false
+}
+
+// capiWordUnsupported reports whether one raw word of a do_test body command
+// names an unemulatable C-API command (bare or bracketed form).
+func capiWordUnsupported(text string) bool {
+	if uns, stmtVM := capiCmdNameUnsupported(text); uns {
+		return true
+	} else if stmtVM {
+		return !stmtVMEnabled()
 	}
 	return false
 }
@@ -506,13 +607,8 @@ func bodyHasCAPICommand(cmd []tcl.RawWord) bool {
 	for _, c := range cmd {
 		text := c.Text
 		// Bare command name: "sqlite3_close", "sqlite3_open_v2", etc.
-		switch text {
-		case "sqlite3_open_v2", "sqlite3_errmsg", "open_uri_error", "sqlite3_prepare_v2", "sqlite3_prepare_v3", "sqlite3_normalized_sql", "sqlite3_normalize", "sqlite3_db_status", "uses_stmt_journal", "sqlite3_close", "sqlite3_get_autocommit":
+		if capiWordUnsupported(text) {
 			return true
-		case "sqlite3_step", "sqlite3_finalize", "sqlite3_column_count",
-			"sqlite3_bind_parameter_count", "sqlite3_bind_parameter_name",
-			"sqlite3_bind_parameter_index":
-			return !stmtVMEnabled()
 		}
 		// Bracketed word: "[sqlite3_open_v2 $uri ...]" -> check inner command name.
 		if len(text) >= 2 && text[0] == '[' && text[len(text)-1] == ']' {
@@ -520,13 +616,8 @@ func bodyHasCAPICommand(cmd []tcl.RawWord) bool {
 			if idx := strings.IndexAny(inner, " \t\n\r"); idx >= 0 {
 				inner = inner[:idx]
 			}
-			switch inner {
-			case "sqlite3_open_v2", "sqlite3_errmsg", "open_uri_error", "sqlite3_prepare_v2", "sqlite3_prepare_v3", "sqlite3_normalized_sql", "sqlite3_normalize", "sqlite3_db_status", "uses_stmt_journal", "sqlite3_close", "sqlite3_get_autocommit":
+			if capiWordUnsupported(inner) {
 				return true
-			case "sqlite3_step", "sqlite3_finalize", "sqlite3_column_count",
-				"sqlite3_bind_parameter_count", "sqlite3_bind_parameter_name",
-				"sqlite3_bind_parameter_index":
-				return !stmtVMEnabled()
 			}
 		}
 		// Assignment RHS: "DB [sqlite3_open_v2 ...]" or nested bracket string.

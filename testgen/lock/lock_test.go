@@ -398,16 +398,16 @@ func Test_lock(t *testing.T) {
 		{ // do_test "lock-1.22"
 			var _qv_arr string
 			_ = _qv_arr // suppress unused warning
-			_dbevalRows0 := db.Query("SELECT * FROM t1")
-			if _dbevalRows0.Error == nil {
+			_dbevalRows10 := db.Query("SELECT * FROM t1")
+			if _dbevalRows10.Error == nil {
 				db.BeginActiveStatement()
-				_qv_arr = strings.Join(_dbevalRows0.Columns, " ")
+				_qv_arr = strings.Join(_dbevalRows10.Columns, " ")
 				vtab.TclVarSet("qv", "*", _qv_arr)
-				for _ri := 0; _ri < len(_dbevalRows0.Rows); _ri++ {
-					_qvFlat1 := tclRowFlatPairs(_dbevalRows0.Columns, _dbevalRows0.Rows[_ri])
-					_ = _qvFlat1
-					for _ci := 0; _ci < len(_dbevalRows0.Columns); _ci++ {
-						switch _dbevalRows0.Columns[_ci] {
+				for _ri := 0; _ri < len(_dbevalRows10.Rows); _ri++ {
+					_qvFlat11 := tclRowFlatPairs(_dbevalRows10.Columns, _dbevalRows10.Rows[_ri])
+					_ = _qvFlat11
+					for _ci := 0; _ci < len(_dbevalRows10.Columns); _ci++ {
+						switch _dbevalRows10.Columns[_ci] {
 						}
 					}
 	_ = _r // suppress unused warning

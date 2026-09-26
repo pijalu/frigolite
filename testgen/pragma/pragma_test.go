@@ -556,8 +556,8 @@ func Test_pragma(t *testing.T) {
 	if tclBool("!" + "" + " && " + sqlite_options_integrityck) {
 		{ // do_test "pragma-3.2"
 			_res = db.Exec("SELECT rootpage FROM sqlite_master WHERE name='i2'")
-			_dbeval0 := tclExecSQL(db, "PRAGMA page_size")
-			pgsz = _dbeval0
+			_dbeval2 := tclExecSQL(db, "PRAGMA page_size")
+			pgsz = _dbeval2
 			_ = pgsz // suppress unused warning
 			offset = tclExprWith("$pgsz*($rootpage-1)", map[string]string{"pgsz": pgsz, "rootpage": rootpage})
 			_ = offset // suppress unused warning

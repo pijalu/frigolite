@@ -471,19 +471,19 @@ var skipTests = map[string]string{
 	// (G5.EXPLAIN).
 	"misc3-6.11-utf8":  "EXPLAIN VDBE P4 operand renderings not implemented (G5.EXPLAIN)",
 	"misc3-6.11-utf16": "EXPLAIN VDBE P4 operand renderings not implemented (G5.EXPLAIN)",
-	"where2-2.5":    "EXPLAIN VDBE opcode output not implemented (G5.EXPLAIN)",
-	"where2-2.5b":   "EXPLAIN VDBE opcode output not implemented (G5.EXPLAIN)",
-	"where2-2.6":    "EXPLAIN VDBE opcode output not implemented (G5.EXPLAIN)",
-	"where2-2.6b":   "EXPLAIN VDBE opcode output not implemented (G5.EXPLAIN)",
-	"where2-12.1":   "EXPLAIN QUERY PLAN join OR not planned (G3.INDEX)",
-	"view-25.1":     "authorizer framework test (db authorizer) not supported by transpiler; DROP VIEW fires no sqlite_stat authorizer events",
-	"view-25.2":     "authorizer framework test (db authorizer) not supported by transpiler; DROP TABLE ANALYZE-stats cleanup authorizer events",
-	"where2-16.2":   "EXPLAIN QUERY PLAN join order not matched (G3.INDEX)",
-	"where-15.1":    "TEMP schema not supported",
-	"where-19.0":    "EXPLAIN QUERY PLAN autoindex not planned (G3.INDEX)",
-	"where-25.1":    "corruption detection not implemented",
-	"where-25.2":    "corruption detection not implemented",
-	"where-25.5":    "corruption detection not implemented",
+	"where2-2.5":       "EXPLAIN VDBE opcode output not implemented (G5.EXPLAIN)",
+	"where2-2.5b":      "EXPLAIN VDBE opcode output not implemented (G5.EXPLAIN)",
+	"where2-2.6":       "EXPLAIN VDBE opcode output not implemented (G5.EXPLAIN)",
+	"where2-2.6b":      "EXPLAIN VDBE opcode output not implemented (G5.EXPLAIN)",
+	"where2-12.1":      "EXPLAIN QUERY PLAN join OR not planned (G3.INDEX)",
+	"view-25.1":        "authorizer framework test (db authorizer) not supported by transpiler; DROP VIEW fires no sqlite_stat authorizer events",
+	"view-25.2":        "authorizer framework test (db authorizer) not supported by transpiler; DROP TABLE ANALYZE-stats cleanup authorizer events",
+	"where2-16.2":      "EXPLAIN QUERY PLAN join order not matched (G3.INDEX)",
+	"where-15.1":       "TEMP schema not supported",
+	"where-19.0":       "EXPLAIN QUERY PLAN autoindex not planned (G3.INDEX)",
+	"where-25.1":       "corruption detection not implemented",
+	"where-25.2":       "corruption detection not implemented",
+	"where-25.5":       "corruption detection not implemented",
 
 	// whereA-3.1/3.2: WHERE b>0 on the UNIQUE b autoindex should scan in
 	// index (b) order; the engine returns table-scan order (G3.INDEX
@@ -770,26 +770,22 @@ var skipTests = map[string]string{
 // It also handles $var wildcards: a key containing "$" matches any suffix
 // in that position (e.g. "createtab-$av.2" matches "createtab-1.2").
 func skipTestReason(name string) (string, bool) {
-	if reason, ok := skipTests[name]; ok {
-		return reason, true
+	for _, m := range []map[string]string{skipTests, skipTestsMore, skipTestsT26Select} {
+		if reason, ok := m[name]; ok {
+			return reason, true
+		}
 	}
-	if reason, ok := skipTestsMore[name]; ok {
-		return reason, true
-	}
-	if reason, ok := skipTestsT26Select[name]; ok {
-		return reason, true
-	}
-	for k, v := range skipTests {
-		if strings.Contains(k, "$") && wildcardMatch(k, name) {
+	for _, m := range []map[string]string{skipTests, skipTestsMore, skipTestsT26Select} {
+		if v, ok := wildcardReason(m, name); ok {
 			return v, true
 		}
 	}
-	for k, v := range skipTestsMore {
-		if strings.Contains(k, "$") && wildcardMatch(k, name) {
-			return v, true
-		}
-	}
-	for k, v := range skipTestsT26Select {
+	return "", false
+}
+
+// wildcardReason returns the reason of the first $var pattern in m matching name.
+func wildcardReason(m map[string]string, name string) (string, bool) {
+	for k, v := range m {
 		if strings.Contains(k, "$") && wildcardMatch(k, name) {
 			return v, true
 		}

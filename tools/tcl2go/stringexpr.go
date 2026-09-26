@@ -28,7 +28,6 @@ func (tp *transpiler) buildListStringExpr(s string) string {
 	return tp.renderListStringExpr(parts)
 }
 
-
 // buildStringExprNoCmd is like buildStringExpr but treats [...] as literal
 // text instead of TCL command substitution. It implements the semantics of
 // TCL `subst -nocommands`, where bracket-quoted SQL identifiers such as
@@ -188,6 +187,43 @@ func (tp *transpiler) resolveColonParamRefs(parts []stringPart) []stringPart {
 	return out
 }
 
+// splitColonLiteralChunk scans ahead from a non-binding position to the next
+// ':' or quote-state change. Returns the literal chunk, the next index, and
+// ok=false at end of input.
+func splitColonLiteralChunk(lit string, i int) (string, int, bool) {
+	next := strings.IndexAny(lit[i+1:], ":'")
+	if next < 0 {
+		return lit[i:], len(lit), false
+	}
+	return lit[i : i+1+next], i + 1 + next, true
+}
+
+// splitColonBindingAt handles the ':' at lit[i]: a declared-var binding emits
+// a variable part; otherwise the :name stays literal (coalesced with the
+// previous literal when possible). Returns the next index, the extended part
+// list, and whether a binding was replaced.
+func (tp *transpiler) splitColonBindingAt(lit string, i int, parts []stringPart) (int, []stringPart, bool) {
+	j := i + 1
+	for j < len(lit) && isVarChar(lit[j]) {
+		j++
+	}
+	name := lit[i+1 : j]
+	goName := tclVarToGo(name)
+	if isValidGoIdent(goName) && tp.isVarDeclared(goName) {
+		parts = append(parts, stringPart{variable: name})
+		return j, parts, true
+	}
+	// Not a bound var — keep the whole :name as literal.
+	end := j
+	// Coalesce with previous literal if possible.
+	if len(parts) > 0 && parts[len(parts)-1].variable == "" && parts[len(parts)-1].command == "" {
+		parts[len(parts)-1].literal += lit[i:end]
+	} else {
+		parts = append(parts, stringPart{literal: lit[i:end]})
+	}
+	return end, parts, false
+}
+
 // splitColonBindings splits a literal on :varname bindings that resolve to
 // declared vars, emitting alternating literal/variable parts. Returns the
 // rebuilt part list and whether a colon binding was replaced.
@@ -195,7 +231,7 @@ func (tp *transpiler) resolveColonParamRefs(parts []stringPart) []stringPart {
 // SQL single-quote state is tracked while scanning: a :varname INSIDE a
 // quoted literal ('y:a*') is column syntax, not a TCL binding
 // (fts5simple2.test 17.x — substituting it rewrote the fts5 query to
-// 'y''*'). SQLite's db eval only binds :name parameters outside string
+// 'y”*'). SQLite's db eval only binds :name parameters outside string
 // literals.
 func splitColonBindings(lit string, tp *transpiler) ([]stringPart, bool) {
 	var parts []stringPart
@@ -211,53 +247,18 @@ func splitColonBindings(lit string, tp *transpiler) ([]stringPart, bool) {
 		if inSQL || lit[i] != ':' || i+1 >= len(lit) || !isVarStartChar(lit[i+1]) {
 			// Not a :varname at this position — advance to next ':' or
 			// '\'' (to update the quote state) or end.
-			next := strings.IndexAny(lit[i+1:], ":'")
-			if next < 0 {
-				parts = append(parts, stringPart{literal: lit[i:]})
+			chunk, next, ok := splitColonLiteralChunk(lit, i)
+			parts = append(parts, stringPart{literal: chunk})
+			if !ok {
 				break
 			}
-			parts = append(parts, stringPart{literal: lit[i : i+1+next]})
-			i += 1 + next
+			i = next
 			continue
 		}
-		j := i + 1
-		for j < len(lit) && isVarChar(lit[j]) {
-			j++
-		}
-		name := lit[i+1 : j]
-		goName := tclVarToGo(name)
-		if isValidGoIdent(goName) && tp.isVarDeclared(goName) {
-			// Flush preceding literal up to ':'.
-			if i > 0 && len(parts) == 0 {
-				// handled by earlier branch
-			}
-			// The literal segment before ':' is already emitted; split here.
-			// Trim the already-emitted prefix: re-emit correctly.
-			// Instead, emit the segment before ':' plus the ':' as literal,
-			// then a variable part — but we've already emitted literals piecewise
-			// above, so here just drop the ':' prefix and emit variable.
-			// If parts ends with a literal that includes the prefix before ':',
-			// it's already correct (we advanced chunk-wise). So just emit var.
-			parts = append(parts, stringPart{variable: name})
-			replaced = true
-		} else {
-			// Not a bound var — keep the whole :name as literal.
-			end := j
-			// Coalesce with previous literal if possible.
-			if len(parts) > 0 && parts[len(parts)-1].variable == "" && parts[len(parts)-1].command == "" {
-				parts[len(parts)-1].literal += lit[i:end]
-			} else {
-				parts = append(parts, stringPart{literal: lit[i:end]})
-			}
-		}
-		i = j
+		var rep bool
+		i, parts, rep = tp.splitColonBindingAt(lit, i, parts)
+		replaced = replaced || rep
 	}
-	// `i>0` above tried to flush prefix literally — but the loop now handles
-	// it chunk-wise, so the `parts` already carries the right literals. Fix up:
-	// the first element should contain the prefix before the first :varn.
-	// The above loop's `next`-branch already emits the prefix correctly; no
-	// further fixup needed.
-	_ = i
 	return parts, replaced
 }
 
@@ -670,6 +671,34 @@ func (p *stringPartsParser) handleQuote() {
 	p.pos++
 }
 
+// lastPartNotLiteral reports whether the parser needs a fresh part before
+// appending literal text: either no parts exist yet or the last part is a
+// variable/command substitution.
+func (p *stringPartsParser) lastPartNotLiteral() bool {
+	return len(p.parts) == 0 || p.parts[len(p.parts)-1].variable != "" || p.parts[len(p.parts)-1].command != ""
+}
+
+// handleEscapeNewlineFold handles the TCL backslash-newline fold: it becomes
+// a single space (Tcl(n) backslash substitution), consuming following
+// spaces/tabs — even mid-string. Returns true when the fold applied.
+func (p *stringPartsParser) handleEscapeNewlineFold(next byte) bool {
+	if next != '\n' && !(next == '\r' && p.pos+2 < len(p.s) && p.s[p.pos+2] == '\n') {
+		return false
+	}
+	p.pos += 2
+	if next == '\r' {
+		p.pos++
+	}
+	for p.pos < len(p.s) && (p.s[p.pos] == ' ' || p.s[p.pos] == '\t') {
+		p.pos++
+	}
+	if p.lastPartNotLiteral() {
+		p.parts = append(p.parts, stringPart{})
+	}
+	p.parts[len(p.parts)-1].literal += " "
+	return true
+}
+
 // handleEscape processes a backslash escape: for the interpolation-sensitive
 // chars ($ [ ] { }), TCL's backslash escape makes them literal, so drop the
 // backslash (the escaped char must not become a $var or [cmd] substitution).
@@ -679,24 +708,11 @@ func (p *stringPartsParser) handleQuote() {
 // escapes, so preserve them verbatim.
 func (p *stringPartsParser) handleEscape() {
 	next := p.s[p.pos+1]
-	// TCL backslash-newline folds to a single space (Tcl(n) backslash
-	// substitution), consuming following spaces/tabs — even mid-string.
-	if next == '\n' || (next == '\r' && p.pos+2 < len(p.s) && p.s[p.pos+2] == '\n') {
-		p.pos += 2
-		if next == '\r' {
-			p.pos++
-		}
-		for p.pos < len(p.s) && (p.s[p.pos] == ' ' || p.s[p.pos] == '\t') {
-			p.pos++
-		}
-		if len(p.parts) == 0 || p.parts[len(p.parts)-1].variable != "" || p.parts[len(p.parts)-1].command != "" {
-			p.parts = append(p.parts, stringPart{})
-		}
-		p.parts[len(p.parts)-1].literal += " "
+	if p.handleEscapeNewlineFold(next) {
 		return
 	}
 	p.pos += 2
-	if len(p.parts) == 0 || p.parts[len(p.parts)-1].variable != "" || p.parts[len(p.parts)-1].command != "" {
+	if p.lastPartNotLiteral() {
 		p.parts = append(p.parts, stringPart{})
 	}
 	last := &p.parts[len(p.parts)-1]

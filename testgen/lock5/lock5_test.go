@@ -402,9 +402,9 @@ func Test_lock5(t *testing.T) {
 			}
 		}
 		{ // do_test "2.dotfile.3"
-			_list0 := tclList([]string{"file exists test.db", "file exists test.db-journal", "file exists test.db.lock"})
-			_ = _list0
-			_r = _list0
+			_list1 := tclList([]string{"file exists test.db", "file exists test.db-journal", "file exists test.db.lock"})
+			_ = _list1
+			_r = _list1
 		}
 		{ // do_test "2.dotfile.4"
 			tclFileCopy("test.db", "test.db2")

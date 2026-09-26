@@ -107,7 +107,7 @@ func hexdbFillLine(out []byte, rest string, curPage, pageSize int) {
 	off, _ := strconv.Atoi(strings.TrimSpace(rest[:colon]))
 	pairs := hexBytePairs(rest[colon+1:])
 	for i, b := range pairs {
-		pos := (curPage - 1)*pageSize + off + i
+		pos := (curPage-1)*pageSize + off + i
 		if pos < len(out) {
 			out[pos] = b
 		}

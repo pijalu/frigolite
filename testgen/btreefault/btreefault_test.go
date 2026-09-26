@@ -5,6 +5,7 @@
 package btreefault
 
 import (
+"errors"
 "fmt"
 "github.com/pijalu/frigolite"
 "github.com/pijalu/frigolite/internal/vtab"
@@ -127,7 +128,40 @@ func Test_btreefault(t *testing.T) {
 		}
 	}
 	// faultsim_save (unsupported command, not transpiled)
-	{ // "btreefault-2.2" — skipped: N-A mid-scan DELETE visibility (outer-cursor nullification) — sqlite3_step cursor-model artifact unobservable through the materializing Go API (no-side-effects)
+	{ // do_test "2.2"
+		res = ""
+		_ = res // suppress unused warning
+		_dbevalRows0 := db.Query("\n    SELECT x, y FROM t1 CROSS JOIN t2 WHERE t2.x=t1.i AND +t1.i=25 ORDER BY b\n  ")
+		var _dbevalRb1 bool
+		var _dbevalErr2 error
+		var _dbevalInt3 bool
+		if _dbevalRows0.Error != nil { _dbevalErr2 = _dbevalRows0.Error }
+		db.BeginActiveStatement()
+		for _ri := 0; _ri < len(_dbevalRows0.Rows) && _dbevalErr2 == nil; _ri++ {
+			for _ci := 0; _ci < len(_dbevalRows0.Columns); _ci++ {
+				switch _dbevalRows0.Columns[_ci] {
+					case "x":
+						x = tclStr(_dbevalRows0.Rows[_ri][_ci])
+					case "y":
+						y = tclStr(_dbevalRows0.Rows[_ri][_ci])
+				}
+			}
+			res = tclListAppend(res, x, y)
+			if y == "b" {
+				_res = db.Exec(" DELETE FROM t1 WHERE i=25 ")
+			}
+			if _dbevalRb1 { _dbevalErr2 = errors.New("abort due to ROLLBACK") }
+			if _dbevalInt3 { _dbevalErr2 = errors.New("interrupted"); db.ClearInterrupt() }
+		}
+		db.EndActiveStatement()
+		if _dbevalErr2 != nil {
+			t.Errorf("db eval callback error: %v", _dbevalErr2)
+		}
+		got := tclListFlatten(res)
+		want := tclListFlatten("25 a 25 b")
+		if got != want && !tclFpnumCompare(got, want) {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "2.2")
+		}
 	}
 	// do_faultsim_test 2 -faults oom-t* -prep {\n  faultsim_restore_and_reopen\n  db eval {SELECT...} -... (unsupported command, not transpiled)
 }

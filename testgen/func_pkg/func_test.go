@@ -1879,13 +1879,13 @@ func Test_func(t *testing.T) {
 		i = "0"
 		_ = i // suppress unused warning
 		// foreach {name sdx} "euler        E460\n    EULER        E460\n    Euler        E460\n    ellery       E460\n    gauss        G200\n    ghosh        G200\n    hilbert      H416\n    Heilbronn    H416\n    knuth        K530\n    kant         K530\n    Lloyd        L300\n    LADD         L300\n    Lukasiewicz  L222\n    Lissajous    L222\n    A            A000\n    12345        ?000"
-		_items0 := tclSplitList("euler        E460\n    EULER        E460\n    Euler        E460\n    ellery       E460\n    gauss        G200\n    ghosh        G200\n    hilbert      H416\n    Heilbronn    H416\n    knuth        K530\n    kant         K530\n    Lloyd        L300\n    LADD         L300\n    Lukasiewicz  L222\n    Lissajous    L222\n    A            A000\n    12345        ?000")
-		for _idx0 := 0; _idx0+2 <= len(_items0); _idx0 += 2 {
-			name := _items0[_idx0+0]
+		_items1 := tclSplitList("euler        E460\n    EULER        E460\n    Euler        E460\n    ellery       E460\n    gauss        G200\n    ghosh        G200\n    hilbert      H416\n    Heilbronn    H416\n    knuth        K530\n    kant         K530\n    Lloyd        L300\n    LADD         L300\n    Lukasiewicz  L222\n    Lissajous    L222\n    A            A000\n    12345        ?000")
+		for _idx1 := 0; _idx1+2 <= len(_items1); _idx1 += 2 {
+			name := _items1[_idx1+0]
 			_ = name // suppress unused warning
-			sdx := _items0[_idx0+1]
+			sdx := _items1[_idx1+1]
 			_ = sdx // suppress unused warning
-			_ = _idx0
+			_ = _idx1
 				// incr i 1
 				{
 					_n, _err := strconv.Atoi(i)

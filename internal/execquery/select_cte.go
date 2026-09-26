@@ -106,8 +106,10 @@ func (e *SelectEngine) execSelectView(entry *schema.Entry) *Result {
 		// handed us the outer statement, NULL out the body's result
 		// columns it never references. The body AST is freshly parsed per
 		// expansion, so the rewrite cannot leak into later statements.
+		// The view's declared column list (CREATE VIEW v(x,y)) maps outer
+		// references POSITIONALLY onto the body's outputs.
 		if e.viewOuterStmt != nil {
-			e.disableUnusedSubqueryColumns(e.viewOuterStmt, e.viewOuterQuals, sel)
+			e.disableUnusedSubqueryColumns(e.viewOuterStmt, e.viewOuterQuals, ViewDeclaredColumns(entry.SQL), sel)
 			e.viewOuterStmt = nil
 			e.viewOuterQuals = nil
 		}
@@ -179,7 +181,7 @@ func (e *SelectEngine) execSelectFromSubquery(s *sql.SelectStmt) *Result {
 		if s.From.As != "" {
 			quals = append(quals, s.From.As)
 		}
-		e.disableUnusedSubqueryColumns(s, quals, s.From.Subquery)
+		e.disableUnusedSubqueryColumns(s, quals, nil, s.From.Subquery)
 	}
 	// Execute the subquery. A FROM-clause derived table is non-lateral
 	// (SQLite SF_NestedFrom): see SelectEngine.derivedScope.

@@ -116,17 +116,43 @@ func (tp *transpiler) processTestfixture(args []tcl.RawWord) {
 // of the SCRIPT's last command, which the standard emitDoTestBodyComparison
 // machinery computes once SCRIPT has run on the fixture connection. Returns
 // true when the body was handled.
+// testfixtureCmdIdx returns the index of the `testfixture` command within a
+// do_test body, or -1.
+func testfixtureCmdIdx(bodyCmds [][]tcl.RawWord) int {
+	for i, cmd := range bodyCmds {
+		if len(cmd) > 0 && cmd[0].Text == "testfixture" {
+			return i
+		}
+	}
+	return -1
+}
+
+// emitFixturePreamble emits the preamble commands ahead of the testfixture
+// call (e.g. `set ::tf1 [launch_testfixture]`); unrecognized commands are
+// commented out.
+func (tp *transpiler) emitFixturePreamble(preamble [][]tcl.RawWord) {
+	for _, cmd := range preamble {
+		if len(cmd) >= 2 && cmd[0].Text == "set" {
+			rhs := strings.TrimSpace(cmd[1].Text)
+			if strings.Contains(rhs, "launch_testfixture") {
+				gv := tclVarToGo(cmd[1].Text)
+				if !tp.isVarDeclared(gv) {
+					tp.emitLine("var %s string", gv)
+					tp.vars = append(tp.vars, gv)
+				}
+				tp.emitLine("%s = launchTestfixture()", gv)
+				continue
+			}
+		}
+		tp.emitLine("// %s (testfixture preamble, not transpiled)", sanitizeTCLComment(commandsToText(cmd)))
+	}
+}
+
 func (tp *transpiler) emitDoTestTestfixtureBody(nameExpr, expectedExpr string, bodyCmds [][]tcl.RawWord, args []tcl.RawWord) bool {
 	if bodyCmds == nil {
 		return false
 	}
-	fxIdx := -1
-	for i, cmd := range bodyCmds {
-		if len(cmd) > 0 && cmd[0].Text == "testfixture" {
-			fxIdx = i
-			break
-		}
-	}
+	fxIdx := testfixtureCmdIdx(bodyCmds)
 	if fxIdx < 0 {
 		return false
 	}
@@ -147,21 +173,7 @@ func (tp *transpiler) emitDoTestTestfixtureBody(nameExpr, expectedExpr string, b
 	tp.emitLine("{ // do_test %s (testfixture)", nameExpr)
 	tp.indent++
 	// Emit any preamble commands (e.g. `set ::tf1 [launch_testfixture]`).
-	for _, cmd := range bodyCmds[:fxIdx] {
-		if len(cmd) >= 2 && cmd[0].Text == "set" {
-			rhs := strings.TrimSpace(cmd[1].Text)
-			if strings.Contains(rhs, "launch_testfixture") {
-				gv := tclVarToGo(cmd[1].Text)
-				if !tp.isVarDeclared(gv) {
-					tp.emitLine("var %s string", gv)
-					tp.vars = append(tp.vars, gv)
-				}
-				tp.emitLine("%s = launchTestfixture()", gv)
-				continue
-			}
-		}
-		tp.emitLine("// %s (testfixture preamble, not transpiled)", sanitizeTCLComment(commandsToText(cmd)))
-	}
+	tp.emitFixturePreamble(bodyCmds[:fxIdx])
 	// Build the fixture block with the do_test comparison as the trailing step.
 	tp.emitTestfixtureBlockInline(varName, filename, scriptCmds, nameExpr, expectedExpr, args)
 	tp.indent--

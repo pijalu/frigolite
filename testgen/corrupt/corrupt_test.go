@@ -10,6 +10,7 @@ import (
 "github.com/pijalu/frigolite/internal/vtab"
 "os"
 "strconv"
+"strings"
 "testing"
 )
 
@@ -473,7 +474,11 @@ func Test_corrupt(t *testing.T) {
 			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " \n      UPDATE t1 SET x = X'870400020003000400050006000700080009000A' \n      WHERE rowid = 10;\n    ")
 		}
 	}
-	{ // "corrupt-7.3" — skipped: crafted corruption offset (cellPtr[0]:=788) bakes the reference build's cell layout; engine contract (oversize cell check at balance_deeper child init) implemented + pinned (no-side-effects)
+	{ // do_test "corrupt-7.3"
+		_res = db.Exec("\n      INSERT INTO t1 VALUES(X'000100020003000400050006000700080009000A');\n    ")
+		if _res.Error == nil || !strings.Contains(_res.Error.Error(), "database disk image is malformed") {
+			t.Errorf("expected error containing %q, got: %v\n  sql: %s", "database disk image is malformed", resErrString(_res), "\n      INSERT INTO t1 VALUES(X'000100020003000400050006000700080009000A');\n    ")
+		}
 	}
 	db.Close()
 	os.Remove("test.db")

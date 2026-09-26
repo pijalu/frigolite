@@ -141,9 +141,9 @@ func Test_thread001(t *testing.T) {
 			dbconfig = ""
 			_ = dbconfig // suppress unused warning
 			if tclBool(same_db) {
-				_list0 := tclList([]string{"set", "::DB", "sqlite3_connection_pointer db"})
-				_ = _list0
-				_r = _list0
+				_list1 := tclList([]string{"set", "::DB", "sqlite3_connection_pointer db"})
+				_ = _list1
+				_r = _list1
 				dbconfig = _r
 				_ = dbconfig // suppress unused warning
 			}

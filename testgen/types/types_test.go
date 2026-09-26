@@ -375,15 +375,15 @@ func Test_types(t *testing.T) {
 	}
 	if tclBool(sqlite_options_utf16 + "==0 || " + tclExecSQL(db, "pragma encoding") + " == \"UTF-8\"") {
 		{ // do_test "types-2.4.3"
-			_dbeval0 := tclExecSQL(db, "select rootpage from sqlite_master where name = 't4'")
-			root = _dbeval0
+			_dbeval3 := tclExecSQL(db, "select rootpage from sqlite_master where name = 't4'")
+			root = _dbeval3
 			_ = root // suppress unused warning
 			// record_sizes $root (unsupported command, not transpiled)
 		}
 	} else {
 		{ // do_test "types-2.4.3"
-			_dbeval0 := tclExecSQL(db, "select rootpage from sqlite_master where name = 't4'")
-			root = _dbeval0
+			_dbeval3 := tclExecSQL(db, "select rootpage from sqlite_master where name = 't4'")
+			root = _dbeval3
 			_ = root // suppress unused warning
 			// record_sizes $root (unsupported command, not transpiled)
 		}

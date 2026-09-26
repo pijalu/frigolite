@@ -501,13 +501,13 @@ func Test_exclusive(t *testing.T) {
 		using_proxy = "0"
 		_ = using_proxy // suppress unused warning
 		// foreach {name value} "array get env SQLITE_FORCE_PROXY_LOCKING"
-		_items0 := tclSplitList("array get env SQLITE_FORCE_PROXY_LOCKING")
-		for _idx0 := 0; _idx0+2 <= len(_items0); _idx0 += 2 {
-			name := _items0[_idx0+0]
+		_items1 := tclSplitList("array get env SQLITE_FORCE_PROXY_LOCKING")
+		for _idx1 := 0; _idx1+2 <= len(_items1); _idx1 += 2 {
+			name := _items1[_idx1+0]
 			_ = name // suppress unused warning
-			value := _items0[_idx0+1]
+			value := _items1[_idx1+1]
 			_ = value // suppress unused warning
-			_ = _idx0
+			_ = _idx1
 				vtab.TclVarSet("using_proxy", "", value)
 				using_proxy = value
 				_ = using_proxy // suppress unused warning

@@ -66,24 +66,7 @@ func (tp *transpiler) processForeach(args []tcl.RawWord) {
 	// grid). For a K-variable foreach over N literal values, variable i takes
 	// the elements at indexes i, i+K, i+2K, ... (TCL's round-robin
 	// assignment).
-	if vals := literalForeachList(rawList); len(vals) > 0 && len(varNames) >= 1 && len(varNames) <= len(vals) {
-		dynamic := listExpr != strconv.Quote(rawList)
-		if tp.foreachLitValues == nil {
-			tp.foreachLitValues = make(map[string][]foreachLitValue)
-		}
-		for i, vn := range varNames {
-			var mine []foreachLitValue
-			for j := i; j < len(vals); j += len(varNames) {
-				raw := stripOuterBraces(vals[j])
-				cmp := strconv.Quote(raw)
-				if dynamic {
-					cmp = tp.buildListStringExpr(raw)
-				}
-				mine = append(mine, foreachLitValue{raw: raw, cmpExpr: cmp})
-			}
-			tp.foreachLitValues[vn] = mine
-		}
-	}
+	tp.recordForeachLitValues(varNames, rawList, listExpr)
 	// splitExpr, when non-empty, replaces the tclSplitList(listExpr) iteration
 	// source: foreach x [split $var ""] iterates the CHARACTERS of a string
 	// variable (TCL split with empty separator), which tclSplitList cannot
@@ -103,13 +86,8 @@ func (tp *transpiler) processForeach(args []tcl.RawWord) {
 	//   foreach v [list {set a 1 set b 2} {set a 3}] { eval $v ... }
 	// Each element is a braced script of `set name {value}` commands. Emit a Go
 	// struct slice so the later `eval $v` can be rewritten as field assignments.
-	if len(varNames) == 1 {
-		if _, ok, err := tp.emitVarsetForeach(args, rawList, varNames[0]); ok {
-			if err != nil {
-				tp.emitLine("// foreach %s (varset: %v)", varNames[0], err)
-			}
-			return
-		}
+	if tp.emitVarsetForeachOrComment(args, rawList, varNames) {
+		return
 	}
 
 	// A non-braced [db eval ...] source (dynamic SQL) cannot be bound at
@@ -127,6 +105,49 @@ func (tp *transpiler) processForeach(args []tcl.RawWord) {
 	}
 
 	tp.emitForeachLoop(args, varNames, listExpr, splitExpr, bodyCmds)
+}
+
+// emitVarsetForeachOrComment emits the varset loop when the list is a literal
+// varset list; a successful match carrying a parse error emits the skip
+// comment. Returns true when handled.
+func (tp *transpiler) emitVarsetForeachOrComment(args []tcl.RawWord, rawList string, varNames []string) bool {
+	if len(varNames) != 1 {
+		return false
+	}
+	if _, ok, err := tp.emitVarsetForeach(args, rawList, varNames[0]); ok {
+		if err != nil {
+			tp.emitLine("// foreach %s (varset: %v)", varNames[0], err)
+		}
+		return true
+	}
+	return false
+}
+
+// recordForeachLitValues records literal list values for the foreach loop
+// variables so a later `eval $var` can inline each script's commands. For a
+// K-variable foreach over N literal values, variable i takes the elements at
+// indexes i, i+K, i+2K, ... (TCL's round-robin assignment).
+func (tp *transpiler) recordForeachLitValues(varNames []string, rawList, listExpr string) {
+	vals := literalForeachList(rawList)
+	if len(vals) == 0 || len(varNames) < 1 || len(varNames) > len(vals) {
+		return
+	}
+	dynamic := listExpr != strconv.Quote(rawList)
+	if tp.foreachLitValues == nil {
+		tp.foreachLitValues = make(map[string][]foreachLitValue)
+	}
+	for i, vn := range varNames {
+		var mine []foreachLitValue
+		for j := i; j < len(vals); j += len(varNames) {
+			raw := stripOuterBraces(vals[j])
+			cmp := strconv.Quote(raw)
+			if dynamic {
+				cmp = tp.buildListStringExpr(raw)
+			}
+			mine = append(mine, foreachLitValue{raw: raw, cmpExpr: cmp})
+		}
+		tp.foreachLitValues[vn] = mine
+	}
 }
 
 // indexMatchingBrace returns the index of the '}' closing the '{' at index 0
@@ -200,38 +221,57 @@ func literalForeachList(rawList string) []string {
 		if i >= len(trimmed) {
 			break
 		}
-		if trimmed[i] == '{' {
-			depth := 0
-			start := i
-			for ; i < len(trimmed); i++ {
-				if trimmed[i] == '{' {
-					depth++
-				}
-				if trimmed[i] == '}' {
-					depth--
-					if depth == 0 {
-						i++
-						break
-					}
-				}
-			}
-			if depth != 0 {
-				return nil
-			}
-			vals = append(vals, trimmed[start:i])
-		} else {
-			// Bare word: only literal tokens (no $var or [cmd]) can be inlined.
-			start := i
-			for i < len(trimmed) && trimmed[i] != ' ' && trimmed[i] != '\t' && trimmed[i] != '\n' {
-				if trimmed[i] == '$' || trimmed[i] == '[' {
-					return nil
-				}
-				i++
-			}
-			vals = append(vals, trimmed[start:i])
+		word, next, ok := scanLiteralListWord(trimmed, i)
+		if !ok {
+			return nil
 		}
+		vals = append(vals, word)
+		i = next
 	}
 	return vals
+}
+
+// scanLiteralListWord scans one element of a literal foreach list at position
+// i (already past whitespace): a balanced braced word or a bare literal token
+// (no $var or [cmd] substitution). next is the position after the element;
+// ok=false when the element cannot be inlined statically.
+func scanLiteralListWord(trimmed string, i int) (word string, next int, ok bool) {
+	if trimmed[i] == '{' {
+		return scanBracedListWord(trimmed, i)
+	}
+	// Bare word: only literal tokens (no $var or [cmd]) can be inlined.
+	start := i
+	for i < len(trimmed) && trimmed[i] != ' ' && trimmed[i] != '\t' && trimmed[i] != '\n' {
+		if trimmed[i] == '$' || trimmed[i] == '[' {
+			return "", i, false
+		}
+		i++
+	}
+	return trimmed[start:i], i, true
+}
+
+// scanBracedListWord scans a balanced braced list element starting at i
+// (pointing at the opening brace). next is the position past the closing
+// brace; ok=false when the braces are unbalanced.
+func scanBracedListWord(trimmed string, i int) (word string, next int, ok bool) {
+	depth := 0
+	start := i
+	for ; i < len(trimmed); i++ {
+		if trimmed[i] == '{' {
+			depth++
+		}
+		if trimmed[i] == '}' {
+			depth--
+			if depth == 0 {
+				i++
+				break
+			}
+		}
+	}
+	if depth != 0 {
+		return "", i, false
+	}
+	return trimmed[start:i], i, true
 }
 
 // resolveForeachListExpr computes the Go expression for a foreach list. When
@@ -258,10 +298,26 @@ func (tp *transpiler) resolveForeachListExpr(rawList string, isBraced bool) stri
 	if strings.HasPrefix(trimmed, "$") && !strings.ContainsAny(trimmed, " \t\n") {
 		return tclVarToGo(strings.TrimPrefix(trimmed, "$"))
 	}
+	if expr := tp.cmdListSourceExpr(trimmed); expr != "" {
+		return expr
+	}
+	listExpr := tp.buildListStringExpr(rawList)
+	return listExpr
+}
+
+// cmdListSourceExpr renders a bracketed `[cmd ...]` foreach list source whose
+// result is already a flat space-separated list, so the raw command
+// expression is used directly (wrapping it in tclListElem — as
+// buildListStringExpr does — would brace the entire string and corrupt
+// tclSplitList). Returns "" when the command is not a recognized list
+// source.
+func (tp *transpiler) cmdListSourceExpr(trimmed string) string {
 	// Single bracketed command substitution (no nested [..]): use the raw
 	// command expression so it is not braced by tclListElem.
-	if strings.HasPrefix(trimmed, "[") && strings.HasSuffix(trimmed, "]") &&
-		!strings.ContainsAny(trimmed[1:len(trimmed)-1], "[]") {
+	if !strings.HasPrefix(trimmed, "[") || !strings.HasSuffix(trimmed, "]") {
+		return ""
+	}
+	if !strings.ContainsAny(trimmed[1:len(trimmed)-1], "[]") {
 		inner := trimmed[1 : len(trimmed)-1]
 		if !strings.Contains(inner, "[") {
 			return tp.cmdExpr(inner)
@@ -274,24 +330,21 @@ func (tp *transpiler) resolveForeachListExpr(rawList string, isBraced bool) stri
 	// The current cmdExprLSort / cmdExprEval / cmdExprConcat paths
 	// produce a flat list string; wrapping in tclListElem would
 	// produce {"a b c"} which tclSplitList yields as ONE element.
-	if strings.HasPrefix(trimmed, "[") && strings.HasSuffix(trimmed, "]") {
-		inner := trimmed[1 : len(trimmed)-1]
-		// Peel the leading command word and any flags; for the
-		// list-producing procs (lsort/list/concat), the result is a
-		// flat list. We also accept eval (which forwards to a
-		// list-producing proc) and the proc's $var substitution.
-		firstWord := inner
-		sp := strings.IndexAny(firstWord, " \t")
-		if sp > 0 {
-			firstWord = firstWord[:sp]
-		}
-		switch firstWord {
-		case "lsort", "list", "concat", "eval":
-			return tp.cmdExpr(inner)
-		}
+	inner := trimmed[1 : len(trimmed)-1]
+	// Peel the leading command word and any flags; for the
+	// list-producing procs (lsort/list/concat), the result is a
+	// flat list. We also accept eval (which forwards to a
+	// list-producing proc) and the proc's $var substitution.
+	firstWord := inner
+	sp := strings.IndexAny(firstWord, " \t")
+	if sp > 0 {
+		firstWord = firstWord[:sp]
 	}
-	listExpr := tp.buildListStringExpr(rawList)
-	return listExpr
+	switch firstWord {
+	case "lsort", "list", "concat", "eval":
+		return tp.cmdExpr(inner)
+	}
+	return ""
 }
 
 // stripListCommand strips a literal "[list ...]" / "[ list ...]" / "list
@@ -341,182 +394,6 @@ func splitListExpr(rawList string) string {
 type foreachLitValue struct {
 	raw     string
 	cmpExpr string
-}
-
-// emitBreakUnpack handles `foreach {v1 v2 ...} $list break` — unpack the first
-// list element into the variables and exit immediately.
-func (tp *transpiler) emitBreakUnpack(args []tcl.RawWord, varNames []string, listExpr string) bool {
-	if len(args) < 3 || args[2].Braced || strings.TrimSpace(args[2].Text) != "break" || len(varNames) <= 1 {
-		return false
-	}
-	itemsVar := fmt.Sprintf("_items%d", tp.varCount)
-	tp.varCount++
-	tp.emitLine("%s := tclSplitList(%s)", itemsVar, listExpr)
-	tp.emitLine("if len(%s) >= %d {", itemsVar, len(varNames))
-	tp.indent++
-	for i, vn := range varNames {
-		goVN := tclVarToGo(vn)
-		if !tp.isVarDeclared(goVN) && !isPreDeclaredDB(goVN) && goVN != tp.dbVar {
-			tp.emitLine("var %s string", goVN)
-			tp.vars = append(tp.vars, goVN)
-		}
-		tp.emitLine("%s = %s[%d]", goVN, itemsVar, i)
-		tp.emitLine("_ = %s // suppress unused warning", goVN)
-	}
-	tp.indent--
-	tp.emitLine("}")
-	return true
-}
-
-// emitForeachLoop emits the generic foreach loop (single-var range or
-// multi-var index unpack) with the body transpiled in a fresh sub-transpiler.
-func (tp *transpiler) emitForeachLoop(args []tcl.RawWord, varNames []string, listExpr, splitExpr string, bodyCmds [][]tcl.RawWord) {
-	if len(varNames) == 1 {
-		tp.emitSingleVarForeach(varNames[0], listExpr, splitExpr)
-	} else {
-		tp.emitMultiVarForeach(varNames, listExpr)
-	}
-	_ = listExpr // suppress unused warning if body is empty
-
-	tp.indent++
-	bodyTP := &transpiler{
-		sb:           tp.sb,
-		indent:       tp.indent,
-		dbVar:        tp.dbVar,
-		t:            tp.t,
-		varCount:     tp.varCount,
-		vars:         tp.vars,
-		arrayKeys:    tp.arrayKeys,
-		arrayMapVars: tp.arrayMapVars,
-		// A foreach loop has no increment clause: continue targets this loop,
-		// so the innermost entry is empty (plain Go continue).
-		forIncrs:   append(tp.forIncrs, nil),
-		testPrefix: tp.testPrefix, preparedState: tp.preparedState,
-		queryFuncs:   tp.queryFuncs,
-		specialFuncs: tp.specialFuncs, procStringMaps: tp.procStringMaps,
-		collateGoFuncs:      tp.collateGoFuncs,
-		collateEmittedProcs: tp.collateEmittedProcs,
-		procBodies:          tp.procBodies,
-		collateDtorVars:     tp.collateDtorVars,
-		varConstValues:      tp.varConstValues,
-		foreachLitValues:    tp.foreachLitValues,
-		varsetLoopVars:      tp.varsetLoopVars,
-		dbConnVars:          tp.dbConnVars,
-		runtimeConnVars:     tp.runtimeConnVars,
-		varRenames:          tp.varRenames,
-		blobChans:           tp.blobChans,
-		blobChannelVars:     tp.blobChannelVars,
-		blobVarNames:        tp.blobVarNames,
-		usedChannels:        tp.usedChannels,
-		blobSeq:             tp.blobSeq,
-		testDir:             tp.testDir,
-		genesisPreamble:     tp.genesisPreamble,
-		ftsBuildPreamble:    tp.ftsBuildPreamble,
-	}
-	bodyTP.processCommands(bodyCmds)
-	tp.varCount = bodyTP.varCount
-	tp.indent = bodyTP.indent
-	tp.varConstValues = bodyTP.varConstValues
-	tp.foreachLitValues = bodyTP.foreachLitValues
-	tp.varsetLoopVars = bodyTP.varsetLoopVars
-	tp.dbConnVars = bodyTP.dbConnVars
-	tp.runtimeConnVars = bodyTP.runtimeConnVars
-	tp.varRenames = bodyTP.varRenames
-	if len(bodyTP.blobChans) > 0 {
-		tp.blobChans = bodyTP.blobChans
-	}
-	if len(bodyTP.blobChannelVars) > 0 {
-		tp.blobChannelVars = bodyTP.blobChannelVars
-	}
-	if bodyTP.blobVarNames != nil {
-		tp.blobVarNames = bodyTP.blobVarNames
-	}
-	if bodyTP.usedChannels != nil {
-		tp.usedChannels = bodyTP.usedChannels
-	}
-	tp.blobSeq = bodyTP.blobSeq
-	tp.indent--
-	tp.emitLine("}")
-}
-
-// emitArrayGetForeach transpiles `foreach {k v} "array get ARR" {BODY}` — the
-// TCL idiom that iterates a dynamic-key array's key/value pairs. The
-// transpiler represents such arrays as Go maps (arrayMapVars), so the loop
-// becomes a Go map range with k and v bound to the key and value. Returns true
-// when the pattern matched and the loop was emitted.
-func (tp *transpiler) emitArrayGetForeach(args []tcl.RawWord, varNames []string, rawList string) bool {
-	trimmed := strings.TrimSpace(rawList)
-	trimmed = strings.TrimPrefix(trimmed, "[")
-	trimmed = strings.TrimSuffix(trimmed, "]")
-	trimmed = strings.TrimPrefix(trimmed, `"`)
-	trimmed = strings.TrimSuffix(trimmed, `"`)
-	fields := strings.Fields(trimmed)
-	if len(fields) != 3 || fields[0] != "array" || fields[1] != "get" {
-		return false
-	}
-	base := strings.TrimPrefix(fields[2], "::")
-	if !isArrayMapBacked(tp, base) {
-		return false
-	}
-	mapVar := tclVarToGo(base) + "Map"
-	keyVar := tclVarToGo(varNames[0])
-	valVar := tclVarToGo(varNames[1])
-	if !isValidGoIdent(keyVar) || !isValidGoIdent(valVar) {
-		return false
-	}
-	tp.emitLine("// foreach {%s} %s", strings.Join(varNames, " "), trimmed)
-	tp.emitLine("for %s, %s := range %s {", keyVar, valVar, mapVar)
-	tp.indent++
-	bodyCmds := tp.parseBracedBody(args, 2)
-	if bodyCmds != nil {
-		bodyTP := &transpiler{
-			sb:            tp.sb,
-			indent:        tp.indent,
-			dbVar:         tp.dbVar,
-			t:             tp.t,
-			varCount:      tp.varCount,
-			vars:          append(append([]string{}, tp.vars...), keyVar, valVar),
-			arrayKeys:     tp.arrayKeys,
-			arrayMapVars:  tp.arrayMapVars,
-			forIncrs:      append(tp.forIncrs, nil),
-			testPrefix:    tp.testPrefix,
-			preparedState: tp.preparedState,
-			queryFuncs:    tp.queryFuncs,
-			specialFuncs:  tp.specialFuncs, procStringMaps: tp.procStringMaps,
-			collateGoFuncs:      tp.collateGoFuncs,
-			collateEmittedProcs: tp.collateEmittedProcs,
-			procBodies:          tp.procBodies,
-			collateDtorVars:     tp.collateDtorVars,
-			varConstValues:      tp.varConstValues,
-			foreachLitValues:    tp.foreachLitValues,
-			varsetLoopVars:      tp.varsetLoopVars,
-			dbConnVars:          tp.dbConnVars,
-			runtimeConnVars:     tp.runtimeConnVars,
-			varRenames:          tp.varRenames,
-			blobChans:           tp.blobChans,
-			blobChannelVars:     tp.blobChannelVars,
-			blobVarNames:        tp.blobVarNames,
-			usedChannels:        tp.usedChannels,
-			blobSeq:             tp.blobSeq,
-			testDir:             tp.testDir,
-			genesisPreamble:     tp.genesisPreamble,
-			ftsBuildPreamble:    tp.ftsBuildPreamble,
-		}
-		bodyTP.processCommands(bodyCmds)
-		tp.varCount = bodyTP.varCount
-		tp.indent = bodyTP.indent
-		tp.varConstValues = bodyTP.varConstValues
-		tp.foreachLitValues = bodyTP.foreachLitValues
-		tp.varsetLoopVars = bodyTP.varsetLoopVars
-		tp.dbConnVars = bodyTP.dbConnVars
-		tp.runtimeConnVars = bodyTP.runtimeConnVars
-		tp.varRenames = bodyTP.varRenames
-		tp.genesisPreamble = bodyTP.genesisPreamble
-		tp.ftsBuildPreamble = bodyTP.ftsBuildPreamble
-	}
-	tp.indent--
-	tp.emitLine("}")
-	return true
 }
 
 // emitSingleVarForeach emits a `for _, v := range ...` loop header for a
@@ -596,53 +473,8 @@ func (tp *transpiler) emitDBEvalForeach(args []tcl.RawWord, varNames []string) b
 	if len(args) < 3 || len(varNames) == 0 {
 		return false
 	}
-	text := strings.TrimSpace(args[1].Text)
-	if !strings.HasPrefix(text, "[") || !strings.HasSuffix(text, "]") {
-		return false
-	}
-	inner := strings.TrimSpace(text[1 : len(text)-1])
-	connExpr := tp.dbVar
-	var sql string
-	switch {
-	case strings.HasPrefix(inner, "db eval "):
-		rest := strings.TrimSpace(inner[len("db eval "):])
-		if !strings.HasPrefix(rest, "{") || !strings.HasSuffix(rest, "}") {
-			return false
-		}
-		sql = strings.TrimSpace(rest[1 : len(rest)-1])
-	case strings.HasPrefix(inner, "execsql "):
-		// [execsql {SQL}] — the harness-level execsql on the main
-		// connection (pragma.test 6.1: foreach {idx name file}
-		// [execsql {pragma database_list}] {...}) — or
-		// [execsql {SQL} conn] with an explicit connection name.
-		rest := strings.TrimSpace(inner[len("execsql "):])
-		if !strings.HasPrefix(rest, "{") {
-			return false
-		}
-		end := indexMatchingBrace(rest)
-		if end < 0 {
-			return false
-		}
-		sql = strings.TrimSpace(rest[1:end])
-		if tail := strings.TrimSpace(rest[end+1:]); tail != "" {
-			// The connection word: a declared db variable (db/db2/...)
-			// resolved through the alias map, else reject (a dynamic
-			// expression cannot be bound at generation time).
-			goConn := tclVarToGo(tail)
-			if renamed, ok := tp.varRenames[goConn]; ok {
-				goConn = renamed
-			}
-			if goConn == "db" || isPreDeclaredDB(goConn) || tp.dbConnVars[goConn] {
-				if target, ok := tp.dbAliases[goConn]; ok {
-					connExpr = target
-				} else {
-					connExpr = goConn
-				}
-			} else {
-				return false
-			}
-		}
-	default:
+	connExpr, sql, ok := tp.dbEvalForeachSource(args[1].Text)
+	if !ok {
 		return false
 	}
 	bodyCmds := tp.parseBracedBody(args, 2)
@@ -654,19 +486,8 @@ func (tp *transpiler) emitDBEvalForeach(args []tcl.RawWord, varNames []string) b
 	// no `open` command, so the file is never written and downstream
 	// size/readback checks fail (shell7 1.$tn.1: writes a blob to a file
 	// then asserts its size). Keep those loops skipped.
-	for _, cmd := range bodyCmds {
-		if len(cmd) == 0 {
-			continue
-		}
-		name := strings.ToLower(cmd[0].Text)
-		if name == "open" || name == "fconfigure" || name == "close" || name == "flush" {
-			return false
-		}
-		for _, w := range cmd {
-			if strings.Contains(strings.ToLower(w.Text), "puts -nonewline") {
-				return false
-			}
-		}
+	if !dbEvalForeachBodyTranspiled(bodyCmds) {
+		return false
 	}
 	rowsVar := fmt.Sprintf("_rows%d", tp.varCount)
 	rowVar := fmt.Sprintf("_row%d", tp.varCount)
@@ -683,19 +504,116 @@ func (tp *transpiler) emitDBEvalForeach(args []tcl.RawWord, varNames []string) b
 	// lappends int($v) for all seven rlog columns; binding only column 0
 	// dropped every other column). Multiple variables destructure the row
 	// columns in order (fts4opt 1.1: foreach {docid words} [db eval {...]}).
-	cellLoop := len(varNames) == 1
+	cellLoop := tp.emitDBEvalRowBinding(varNames, rowVar)
+	tp.indent++
+	tp.runDBEvalForeachBody(bodyCmds)
 	if cellLoop {
-		cellVar := fmt.Sprintf("_cell%d", tp.varCount)
-		tp.varCount++
-		tp.emitLine("for _, %s := range %s {", cellVar, rowVar)
-		goVN := tclVarToGo(varNames[0])
-		if goVN == tp.dbVar {
-			goVN = goVN + "_iter"
+		tp.indent--
+		tp.emitLine("}")
+	}
+	tp.indent--
+	tp.emitLine("}")
+	return true
+}
+
+// dbEvalForeachSource parses a foreach list source of `[db eval {SQL}]` or
+// `[execsql {SQL} [conn]]` into the Go connection expression and SQL text.
+// Returns ok=false for any other form.
+func (tp *transpiler) dbEvalForeachSource(listText string) (connExpr, sql string, ok bool) {
+	text := strings.TrimSpace(listText)
+	if !strings.HasPrefix(text, "[") || !strings.HasSuffix(text, "]") {
+		return "", "", false
+	}
+	inner := strings.TrimSpace(text[1 : len(text)-1])
+	switch {
+	case strings.HasPrefix(inner, "db eval "):
+		rest := strings.TrimSpace(inner[len("db eval "):])
+		if !strings.HasPrefix(rest, "{") || !strings.HasSuffix(rest, "}") {
+			return "", "", false
 		}
-		tp.emitLine("%s := fmt.Sprint(%s)", goVN, cellVar)
-		tp.emitLine("_ = %s // suppress unused warning", goVN)
-		tp.indent++
-	} else {
+		return tp.dbVar, strings.TrimSpace(rest[1 : len(rest)-1]), true
+	case strings.HasPrefix(inner, "execsql "):
+		// [execsql {SQL}] — the harness-level execsql on the main
+		// connection (pragma.test 6.1: foreach {idx name file}
+		// [execsql {pragma database_list}] {...}) — or
+		// [execsql {SQL} conn] with an explicit connection name.
+		return tp.dbEvalExecsqlSource(inner)
+	default:
+		return "", "", false
+	}
+}
+
+// dbEvalExecsqlSource parses the inner text of an `[execsql {SQL} [conn]]`
+// foreach source (without the outer brackets).
+func (tp *transpiler) dbEvalExecsqlSource(inner string) (connExpr, sql string, ok bool) {
+	rest := strings.TrimSpace(inner[len("execsql "):])
+	if !strings.HasPrefix(rest, "{") {
+		return "", "", false
+	}
+	end := indexMatchingBrace(rest)
+	if end < 0 {
+		return "", "", false
+	}
+	sql = strings.TrimSpace(rest[1:end])
+	connExpr = tp.dbVar
+	if tail := strings.TrimSpace(rest[end+1:]); tail != "" {
+		// The connection word: a declared db variable (db/db2/...)
+		// resolved through the alias map, else reject (a dynamic
+		// expression cannot be bound at generation time).
+		goConn, connOK := tp.execsqlConnVar(tail)
+		if !connOK {
+			return "", "", false
+		}
+		connExpr = goConn
+	}
+	return connExpr, sql, true
+}
+
+// execsqlConnVar resolves an `execsql {SQL} CONN` connection word to its Go
+// variable. Returns ok=false for a dynamic expression.
+func (tp *transpiler) execsqlConnVar(tail string) (string, bool) {
+	goConn := tclVarToGo(tail)
+	if renamed, ok := tp.varRenames[goConn]; ok {
+		goConn = renamed
+	}
+	if goConn == "db" || isPreDeclaredDB(goConn) || tp.dbConnVars[goConn] {
+		if target, ok := tp.dbAliases[goConn]; ok {
+			return target, true
+		}
+		return goConn, true
+	}
+	return "", false
+}
+
+// dbEvalForeachBodyTranspiled reports whether a db-eval foreach loop body
+// avoids the TCL file-channel harness (open/fconfigure/puts/close on a file
+// descriptor) — the engine has no `open` command, so the file is never
+// written and downstream size/readback checks fail (shell7 1.$tn.1: writes a
+// blob to a file then asserts its size).
+func dbEvalForeachBodyTranspiled(bodyCmds [][]tcl.RawWord) bool {
+	for _, cmd := range bodyCmds {
+		if len(cmd) == 0 {
+			continue
+		}
+		name := strings.ToLower(cmd[0].Text)
+		if name == "open" || name == "fconfigure" || name == "close" || name == "flush" {
+			return false
+		}
+		for _, w := range cmd {
+			if strings.Contains(strings.ToLower(w.Text), "puts -nonewline") {
+				return false
+			}
+		}
+	}
+	return true
+}
+
+// emitDBEvalRowBinding emits the loop-variable binding for a db-eval foreach:
+// a single variable iterates the CELLS of each row (nested cell loop); a
+// variable list destructures the row columns in order. Returns cellLoop=true
+// when the nested cell loop was emitted (the caller closes it).
+func (tp *transpiler) emitDBEvalRowBinding(varNames []string, rowVar string) bool {
+	if len(varNames) != 1 {
 		// Bind each loop variable to the corresponding row column.
 		for i, vn := range varNames {
 			goVN := tclVarToGo(vn)
@@ -705,8 +623,24 @@ func (tp *transpiler) emitDBEvalForeach(args []tcl.RawWord, varNames []string) b
 			tp.emitLine("%s := fmt.Sprint(%s[%d])", goVN, rowVar, i)
 			tp.emitLine("_ = %s // suppress unused warning", goVN)
 		}
+		return false
 	}
+	cellVar := fmt.Sprintf("_cell%d", tp.varCount)
+	tp.varCount++
+	tp.emitLine("for _, %s := range %s {", cellVar, rowVar)
+	goVN := tclVarToGo(varNames[0])
+	if goVN == tp.dbVar {
+		goVN = goVN + "_iter"
+	}
+	tp.emitLine("%s := fmt.Sprint(%s)", goVN, cellVar)
+	tp.emitLine("_ = %s // suppress unused warning", goVN)
 	tp.indent++
+	return true
+}
+
+// runDBEvalForeachBody transpiles a db-eval foreach body in a fresh
+// sub-transpiler sharing the output buffer and state.
+func (tp *transpiler) runDBEvalForeachBody(bodyCmds [][]tcl.RawWord) {
 	bodyTP := &transpiler{
 		sb:         tp.sb,
 		indent:     tp.indent,
@@ -734,13 +668,6 @@ func (tp *transpiler) emitDBEvalForeach(args []tcl.RawWord, varNames []string) b
 		tp.usedChannels = bodyTP.usedChannels
 	}
 	tp.blobSeq = bodyTP.blobSeq
-	if cellLoop {
-		tp.indent--
-		tp.emitLine("}")
-	}
-	tp.indent--
-	tp.emitLine("}")
-	return true
 }
 
 // emitVarsetForeach transpiles a foreach whose list elements are TCL "varset"
@@ -777,51 +704,59 @@ func (tp *transpiler) emitVarsetForeach(args []tcl.RawWord, rawList, varName str
 	tp.emitLine("_ = %s // suppress unused warning", goVN)
 	tp.indent++
 	bodyCmds := tp.parseBracedBody(args, 2)
-	if bodyCmds != nil {
-		vsetMap := map[string]varsetInfo{}
-		for k, v := range tp.varsetLoopVars {
-			vsetMap[k] = v
-		}
-		vsetMap[goVN] = varsetInfo{fields: allFields, structName: structName}
-		bodyTP := &transpiler{
-			sb:             tp.sb,
-			indent:         tp.indent,
-			dbVar:          tp.dbVar,
-			t:              tp.t,
-			varCount:       tp.varCount,
-			vars:           tp.vars,
-			forIncrs:       append(tp.forIncrs, nil),
-			varsetLoopVars: vsetMap,
-			testPrefix:     tp.testPrefix,
-			preparedState:  tp.preparedState,
-			blobChans:      tp.blobChans, blobChannelVars: tp.blobChannelVars, blobVarNames: tp.blobVarNames, usedChannels: tp.usedChannels, blobSeq: tp.blobSeq,
-		}
-		bodyTP.processCommands(bodyCmds)
-		tp.varCount = bodyTP.varCount
-		tp.indent = bodyTP.indent
-		if len(bodyTP.blobChans) > 0 {
-			tp.blobChans = bodyTP.blobChans
-		}
-		if len(bodyTP.blobChannelVars) > 0 {
-			tp.blobChannelVars = bodyTP.blobChannelVars
-		}
-		if bodyTP.blobVarNames != nil {
-			tp.blobVarNames = bodyTP.blobVarNames
-		}
-		if bodyTP.usedChannels != nil {
-			tp.usedChannels = bodyTP.usedChannels
-		}
-		if bodyTP.blobVarNames != nil {
-			tp.blobVarNames = bodyTP.blobVarNames
-		}
-		if bodyTP.usedChannels != nil {
-			tp.usedChannels = bodyTP.usedChannels
-		}
-		tp.blobSeq = bodyTP.blobSeq
-	}
+	tp.runVarsetForeachBody(bodyCmds, goVN, varsetInfo{fields: allFields, structName: structName})
 	tp.indent--
 	tp.emitLine("}")
 	return varsetInfo{fields: allFields, structName: structName}, true, nil
+}
+
+// runVarsetForeachBody transpiles a varset foreach body in a fresh
+// sub-transpiler whose varsetLoopVars maps the loop variable to the emitted
+// struct info (so a later `eval $v` becomes field assignments).
+func (tp *transpiler) runVarsetForeachBody(bodyCmds [][]tcl.RawWord, goVN string, info varsetInfo) {
+	if bodyCmds == nil {
+		return
+	}
+	vsetMap := map[string]varsetInfo{}
+	for k, v := range tp.varsetLoopVars {
+		vsetMap[k] = v
+	}
+	vsetMap[goVN] = info
+	bodyTP := &transpiler{
+		sb:             tp.sb,
+		indent:         tp.indent,
+		dbVar:          tp.dbVar,
+		t:              tp.t,
+		varCount:       tp.varCount,
+		vars:           tp.vars,
+		forIncrs:       append(tp.forIncrs, nil),
+		varsetLoopVars: vsetMap,
+		testPrefix:     tp.testPrefix,
+		preparedState:  tp.preparedState,
+		blobChans:      tp.blobChans, blobChannelVars: tp.blobChannelVars, blobVarNames: tp.blobVarNames, usedChannels: tp.usedChannels, blobSeq: tp.blobSeq,
+	}
+	bodyTP.processCommands(bodyCmds)
+	tp.varCount = bodyTP.varCount
+	tp.indent = bodyTP.indent
+	if len(bodyTP.blobChans) > 0 {
+		tp.blobChans = bodyTP.blobChans
+	}
+	if len(bodyTP.blobChannelVars) > 0 {
+		tp.blobChannelVars = bodyTP.blobChannelVars
+	}
+	if bodyTP.blobVarNames != nil {
+		tp.blobVarNames = bodyTP.blobVarNames
+	}
+	if bodyTP.usedChannels != nil {
+		tp.usedChannels = bodyTP.usedChannels
+	}
+	if bodyTP.blobVarNames != nil {
+		tp.blobVarNames = bodyTP.blobVarNames
+	}
+	if bodyTP.usedChannels != nil {
+		tp.usedChannels = bodyTP.usedChannels
+	}
+	tp.blobSeq = bodyTP.blobSeq
 }
 
 // parseVarsetElements parses a literal varset list into its field names (in

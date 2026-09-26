@@ -381,9 +381,9 @@ func Test_misuse(t *testing.T) {
 	_ = msg // suppress unused warning
 			{ // catch block
 				var _catchErr error
-				_catchPrepRc1 := tclPrepareStmt(db, "catchprep0", "SELECT * FROM t1", -1)
-				if _catchPrepRc1 != "SQLITE_OK" {
-					_catchErr = tclPrepareCatchErr(db, _catchPrepRc1)
+				_catchPrepRc13 := tclPrepareStmt(db, "catchprep12", "SELECT * FROM t1", -1)
+				if _catchPrepRc13 != "SQLITE_OK" {
+					_catchErr = tclPrepareCatchErr(db, _catchPrepRc13)
 				}
 				if _catchErr != nil {
 					_r = "1"

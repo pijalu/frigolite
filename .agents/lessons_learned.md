@@ -9182,3 +9182,112 @@ regenerated; suite net −2274 fails vs pre-tranche baseline (7230 → ~4950).
   window slice). Recording the exact signature up front turned every later
   "FAIL" into a 5-line diff against baseline instead of a false alarm; the
   full 18-package validation set ran in ~40s so per-tranche re-runs were cheap.
+## T33d-flow (2026-09-25) — tcl2go flow/test-body/collect/expected §5d golang-check closure
+
+- **Stale corpus baseline at branch start**: main's committed testgen/ postdated
+  no full regen — emitter fixes merged by sibling fleets (fpnum_compare,
+  3-word db-eval, proc-brace strip) changed output corpus-wide. First regen
+  showed ~2,181 modified files. Protocol: commit that regen as ONE dedicated
+  baseline commit (testgen/ paths only) BEFORE any refactor commit, then gate
+  every tranche on `git status -- testgen/` being empty against it.
+- **Emitter nondeterminism is real but rare**: Go map iteration randomizes one
+  block of `vtab.TclVarSet(...)` emissions (indexfault's install_custom_faultsim
+  group) roughly once per several full regens. A single regen diff there is
+  NOISE: re-run the regen once — it settles back to byte-identical. Don't hunt
+  a refactor bug for a TclVarSet-order-only diff.
+- **gocognit/gocyclo count func literals INTO the enclosing function** (verified
+  empirically: closures with `if`s inflated the parent's score). Dispatch-chain
+  refactors must therefore use NAMED top-level check/emit functions in
+  table-driven dispatch, never inline closures.
+- **BSD sed trap that truncated a file**: `sed 'N,Mp'` WITHOUT `-n` prints the
+  whole file plus the range (junk extraction file); and replacing a file via
+  `awk NR==K` + append rebuilds it from line K (loses 1..K-1). After two such
+  slips on processvars.go, recovery was: `git checkout -- file` + re-apply the
+  known-good Edit pairs. Prefer the Edit tool with exact strings; verify line
+  counts after every mechanical splice.
+- **`return` inside a switch case is a WHOLE-FUNCTION return**: when splitting
+  `doTestBodyUnsupported`'s per-command switch into a helper, the stmt-VM
+  case (`return !stmtVMEnabled()`) must still short-circuit the entire scan —
+  a helper returning false only exits the per-command predicate, letting later
+  commands (sqlite3_prepare_v2) flag the body unsupported. Caught by regen diff
+  on capi3c-17.10 (generic body → skip emitter).
+- **`strings.FieldsFunc` takes the SEPARATOR predicate, not the keep
+  predicate** — inverting it silently empties the token list (sqllimits1
+  tclExprWith regressed to tclExpr). Caught by regen diff.
+- **Gate hygiene**: run gocognit and gocyclo with echo markers between them —
+  their outputs are otherwise indistinguishable lines, and a cyclo 13/14
+  slipped into a commit masked as a cognit result. gocognit `-over N` flags
+  complexity > N (15 = clean at ≤15), same convention as gocyclo `-over 12`.
+- **Behavior-preserving refactor recipe that survived every tranche**: split
+  guard-chain functions into ordered named predicates that check AND emit,
+  preserve exact branch ORDER (dispatch tables must keep the original
+  sequence; mutually-exclusive cmdName checks may be reordered into a switch),
+  keep emission byte-for-byte (copy emitLine format strings verbatim), and
+  re-run the full-corpus regen after every tranche.
+=======
+
+## T33-win (2026-09-25) — window1 regression repair: omit-unused-subquery-column use-walk holes (branch fleet/t33-win)
+
+1. **Bisect inside the suspect merge, not across it.** The brief blamed
+   t33-query's positional-ORDER-BY change (2421001cb~1 = 10d2f85d1) for the
+   window1 breakage. Attribution runs proved window1 GREEN at 10d2f85d1 and
+   RED at 2421001cb itself — the culprit was the SECOND commit of that branch
+   (`disableUnusedSubqueryColumns` + view-outer scope), not the positional
+   fix. When a merge contains multiple commits, diff each commit separately
+   before believing a summary line.
+2. **Name-based colUsed approximation must walk everything resolution walks.**
+   SQLite sets a source's `colUsed` bit during name resolution (resolve.c),
+   which descends into window definitions (OVER PARTITION BY / ORDER BY /
+   frame bounds), aggregate ORDER BY terms, FILTER conditions, and
+   expression-subquery bodies (correlated IN/EXISTS/scalar). The Go
+   analyzer's `exprChildren` treats `Subquery` as a leaf and only descends
+   FuncCall.Args — so a subquery column referenced ONLY through any of those
+   constructs was wrongly NULLed out by the omit-unused optimization
+   (window1-31.2/31.3/48.0/48.1/78.2, all wanting oracle-verified values,
+   all rendering NULL/wrong).
+3. **A nulled output column can rename itself.** For a compound FROM-subquery,
+   rewriting member columns to `&sql.NullLit{}` also changes the derived
+   output NAME (ExprString of a NULL literal), so an outer WINDOW clause over
+   that column then fails with "no such column" — a downstream symptom that
+   looks like a name-resolution bug but is the optimizer's omission. Fix the
+   use-walk, not the resolver.
+4. **Observable-pin design over single-row probes.** A column lost from a
+   window ORDER BY is invisible on a 1-row input (any order sums the same);
+   make the subquery multi-row (or use PARTITION BY) so the wrongness shows.
+   Conversely, order-key loss on RANGE frames flips the frame content —
+   single-row probes do catch that ('abc' vs NULL).
+5. **NULL RANGE order-key frame semantics are NOT a bug here:** SQLite keeps
+   NULL-keyed rows in RANGE `1 FOLLOWING AND 2 FOLLOWING` frames (verified:
+   `... OVER (ORDER BY y RANGE BETWEEN 1 FOLLOWING AND 2 FOLLOWING)` over
+   y=NULL returns the row) — frigolite's include-behavior matches the oracle;
+   do not "fix" it.
+6. **Pre-existing red is out of scope but must be pinned to main:** window6's
+   generated test file fails to compile at main (`window6_test.go:499:11: no
+   new variables on left side of :=` — tcl2go emitter bug, owned by the
+   transpiler agent). Same verification command on main reproduces it before
+   spending any time on it in a worktree.
+7. **Full-JSON-harness baseline diffing:** a plain full `go test -run
+   ^TestSQLiteSuite$` run is chronically red at main (~3.9k subtest failures
+   over 387 files — the slowTestFiles/unsupportedTestFiles maps and the
+   FRIGOLITE_TEST pattern exist for this; the gate is the testgen corpus).
+   To prove an engine change adds no harness regression, diff the FAILING
+   FILE SETS (worktree vs main): identical sets = no new impact, regardless
+   of per-run subtest counts. Also: a fresh worktree CANNOT pass fixtures
+   depending on gitignored artifacts (*.db under testdata/, tools/orafixture
+   — oracle-generated runtime files that only exist in the long-lived main
+   checkout); triage such failures as environmental before suspecting the
+   engine.
+8. **T33-win2 — view-declared column lists are POSITIONAL, name-matching is
+   not enough:** `CREATE VIEW v(x,y) AS SELECT a,b FROM t1` + `SELECT x,y
+   FROM v` NULLs every column under the omit-unused optimization when the
+   use-analyzer matches only the body's output names (a,b): the outer query
+   addresses the view's DECLARED names, which resolve to source iColumn
+   positionally (resolve.c). Fix: pass `ViewDeclaredColumns(entry.SQL)` into
+   disableUnusedSubqueryColumns and mark used[i] when an outer reference
+   matches declaredNames[i] (length-guarded against the body's output arity).
+   The same triage rule as T33-win applies: any NULL/empty result where a
+   value is expected, on a query with a FROM-subquery or view, is a
+   use-walk hole until proven otherwise — write the pure-Go probe first,
+   oracle-verify the want, and enumerate EVERY construct the outer query
+   can address a subquery/view column through (this class needed three
+   passes: window defs + subquery bodies, then declared view names).

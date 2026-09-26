@@ -383,9 +383,9 @@ func Test_e_blobopen(t *testing.T) {
 						if _catchErr != nil { msg = _catchErr.Error() } else { msg = "" }
 						if _catchErr != nil { _rc = "1" }
 					}
-					_list0 := tclList([]string{_rc, msg})
-					_ = _list0
-					_r = _list0
+					_list3 := tclList([]string{_rc, msg})
+					_ = _list3
+					_r = _list3
 				}
 				{ // "3." + tn + ".3"
 					r = db.Query("\n      SELECT c FROM x1 WHERE a=" + sqlLiteral(iRow) + ";\n    ")
@@ -414,9 +414,9 @@ func Test_e_blobopen(t *testing.T) {
 						if _catchErr != nil { msg = _catchErr.Error() } else { msg = "" }
 						if _catchErr != nil { _rc = "1" }
 					}
-					_list0 := tclList([]string{_rc, msg})
-					_ = _list0
-					_r = _list0
+					_list3 := tclList([]string{_rc, msg})
+					_ = _list3
+					_r = _list3
 				}
 				{ // "3." + tn + ".5"
 					r = db.Query("\n      SELECT c FROM x1 WHERE a=" + sqlLiteral(iRow) + ";\n    ")

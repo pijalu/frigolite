@@ -222,20 +222,7 @@ func stringMapProcValue(body string) string {
 		return ""
 	}
 	// Find the matching close brace for the map list.
-	depth := 0
-	end := -1
-	for i, c := range rest {
-		if c == '{' {
-			depth++
-		}
-		if c == '}' {
-			depth--
-		}
-		if depth == 0 {
-			end = i
-			break
-		}
-	}
+	end := indexMatchingBrace(rest)
 	if end < 0 {
 		return ""
 	}
@@ -453,6 +440,27 @@ func collectSpecialFuncs(cmds [][]tcl.RawWord) map[string]string {
 //	hex_collate:                     hex-aware compare               → HEX
 //	numeric_collate:                 numeric compare                 → NUMERIC
 //
+// collationStringMatchOrCompare dispatches the prefix forms of a collation
+// body: [list string match ...]/string match (glob collations — orderby5.test's
+// `db collate hello [list string match]`) and the string compare forms
+// (`string compare $a $b` / `string compare -nocase $a $b`, with or without
+// the [list ...] / [...] wrapper). Returns (result, handled).
+func collationStringMatchOrCompare(lower, scLower string) (string, bool) {
+	if sm := strings.TrimSpace(strings.TrimPrefix(lower, "[list ")); sm != lower && strings.HasPrefix(sm, "string match") {
+		return collationStringMatch, true
+	}
+	if strings.HasPrefix(lower, "string match ") {
+		return collationStringMatch, true
+	}
+	if strings.HasPrefix(lower, "[list string compare") {
+		return collationCompare(lower[len("[list string compare"):]), true
+	}
+	if strings.HasPrefix(scLower, "string compare") {
+		return collationStringCompare(lower, scLower[len("string compare"):]), true
+	}
+	return "", false
+}
+
 // Returns "" when the body is not a recognized collation proc.
 func collationProcGo(body string) string {
 	body = strings.TrimSpace(body)
@@ -468,20 +476,8 @@ func collationProcGo(body string) string {
 	// Strip a leading command-substitution bracket so `[string compare $a $b]`
 	// is detected like the bare form.
 	scLower := strings.TrimPrefix(lower, "[")
-	// [list string match ...] / `string match $a $b` — TCL glob-match
-	// collations (orderby5.test's `db collate hello [list string match]`).
-	if sm := strings.TrimSpace(strings.TrimPrefix(lower, "[list ")); sm != lower && strings.HasPrefix(sm, "string match") {
-		return collationStringMatch
-	}
-	if strings.HasPrefix(lower, "string match ") {
-		return collationStringMatch
-	}
-	// string compare $a $b  /  string compare -nocase $a $b
-	if strings.HasPrefix(lower, "[list string compare") {
-		return collationCompare(lower[len("[list string compare"):])
-	}
-	if strings.HasPrefix(scLower, "string compare") {
-		return collationStringCompare(lower, scLower[len("string compare"):])
+	if expr, ok := collationStringMatchOrCompare(lower, scLower); ok {
+		return expr
 	}
 	// [expr {-[string compare $a $b]}] and the case-folded variant
 	// [expr {-[string compare [string tolower $a] [string tolower $b]]}]
@@ -642,22 +638,33 @@ func collationStringCompare(lower, rest string) string {
 	return ""
 }
 
+// collationFieldForms maps the recognized two-operand orders of a
+// `string compare` collation body to their compare direction.
+var collationFieldForms = []struct {
+	first, second string
+	negated       bool
+}{
+	{"$a", "$b", false},
+	{"$b", "$a", true},
+	{"$lhs", "$rhs", false},
+	{"$rhs", "$lhs", true},
+}
+
 // collationFieldCompare matches the two-operand forms of a `string compare`
 // collation body ($a $b / $lhs $rhs / $rhs $lhs), returning the Go closure
 // expression or "" when the operands do not match a recognized form.
 func collationFieldCompare(rest string) string {
 	fields := strings.Fields(rest)
-	if len(fields) == 2 && fields[0] == "$a" && fields[1] == "$b" {
-		return "func(a, b string) int { return strings.Compare(a, b) }"
+	if len(fields) != 2 {
+		return ""
 	}
-	if len(fields) == 2 && fields[0] == "$b" && fields[1] == "$a" {
-		return "func(a, b string) int { return -strings.Compare(a, b) }"
-	}
-	if len(fields) == 2 && fields[0] == "$lhs" && fields[1] == "$rhs" {
-		return "func(a, b string) int { return strings.Compare(a, b) }"
-	}
-	if len(fields) == 2 && fields[0] == "$rhs" && fields[1] == "$lhs" {
-		return "func(a, b string) int { return -strings.Compare(a, b) }"
+	for _, f := range collationFieldForms {
+		if fields[0] == f.first && fields[1] == f.second {
+			if f.negated {
+				return "func(a, b string) int { return -strings.Compare(a, b) }"
+			}
+			return "func(a, b string) int { return strings.Compare(a, b) }"
+		}
 	}
 	return ""
 }

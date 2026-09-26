@@ -251,15 +251,15 @@ func Test_skipscan5(t *testing.T) {
 					}
 				}
 				// foreach {tn2 q res} "1 { c BETWEEN 'd' AND 'e' }       {/*ANY(a) AND ANY(b) AND c>? AND c<?*/}\n    2 { c BETWEEN 'b' AND 'r' }       {/*SCAN t2*/}\n    3 { c > 'q' }                     {/*ANY(a) AND ANY(b) AND c>?*/}\n    4 { c > 'e' }                     {/*SCAN t2*/}\n    5 { c < 'q' }                     {/*SCAN t2*/}\n    6 { c < 'b' }                     {/*ANY(a) AND ANY(b) AND c<?*/}"
-				_items0 := tclSplitList("1 { c BETWEEN 'd' AND 'e' }       {/*ANY(a) AND ANY(b) AND c>? AND c<?*/}\n    2 { c BETWEEN 'b' AND 'r' }       {/*SCAN t2*/}\n    3 { c > 'q' }                     {/*ANY(a) AND ANY(b) AND c>?*/}\n    4 { c > 'e' }                     {/*SCAN t2*/}\n    5 { c < 'q' }                     {/*SCAN t2*/}\n    6 { c < 'b' }                     {/*ANY(a) AND ANY(b) AND c<?*/}")
-				for _idx0 := 0; _idx0+3 <= len(_items0); _idx0 += 3 {
-					tn2 := _items0[_idx0+0]
+				_items2 := tclSplitList("1 { c BETWEEN 'd' AND 'e' }       {/*ANY(a) AND ANY(b) AND c>? AND c<?*/}\n    2 { c BETWEEN 'b' AND 'r' }       {/*SCAN t2*/}\n    3 { c > 'q' }                     {/*ANY(a) AND ANY(b) AND c>?*/}\n    4 { c > 'e' }                     {/*SCAN t2*/}\n    5 { c < 'q' }                     {/*SCAN t2*/}\n    6 { c < 'b' }                     {/*ANY(a) AND ANY(b) AND c<?*/}")
+				for _idx2 := 0; _idx2+3 <= len(_items2); _idx2 += 3 {
+					tn2 := _items2[_idx2+0]
 					_ = tn2 // suppress unused warning
-					q := _items0[_idx0+1]
+					q := _items2[_idx2+1]
 					_ = q // suppress unused warning
-					res := _items0[_idx0+2]
+					res := _items2[_idx2+2]
 					_ = res // suppress unused warning
-					_ = _idx0
+					_ = _idx2
 						vtab.TclVarSet("sql", "", "EXPLAIN QUERY PLAN SELECT * FROM t2 WHERE " + q)
 						sql = "EXPLAIN QUERY PLAN SELECT * FROM t2 WHERE " + q
 						_ = sql // suppress unused warning
@@ -310,15 +310,15 @@ func Test_skipscan5(t *testing.T) {
 					}
 				}
 				// foreach {tn q res} "1 \"b BETWEEN -10000 AND -8000\"       {/*ANY(a) AND b>? AND b<?*/}\n  2 \"b BETWEEN -10000 AND 'qqq'\"       {/*SCAN t3*/}\n  3 \"b < X'5555'\"                      {/*SCAN t3*/}\n  4 \"b > X'5555'\"                      {/*ANY(a) AND b>?*/}\n  5 \"b > 'zzz'\"                        {/*ANY(a) AND b>?*/}\n  6 \"b < 'zzz'\"                        {/*SCAN t3*/}"
-				_items1 := tclSplitList("1 \"b BETWEEN -10000 AND -8000\"       {/*ANY(a) AND b>? AND b<?*/}\n  2 \"b BETWEEN -10000 AND 'qqq'\"       {/*SCAN t3*/}\n  3 \"b < X'5555'\"                      {/*SCAN t3*/}\n  4 \"b > X'5555'\"                      {/*ANY(a) AND b>?*/}\n  5 \"b > 'zzz'\"                        {/*ANY(a) AND b>?*/}\n  6 \"b < 'zzz'\"                        {/*SCAN t3*/}")
-				for _idx1 := 0; _idx1+3 <= len(_items1); _idx1 += 3 {
-					tn := _items1[_idx1+0]
+				_items3 := tclSplitList("1 \"b BETWEEN -10000 AND -8000\"       {/*ANY(a) AND b>? AND b<?*/}\n  2 \"b BETWEEN -10000 AND 'qqq'\"       {/*SCAN t3*/}\n  3 \"b < X'5555'\"                      {/*SCAN t3*/}\n  4 \"b > X'5555'\"                      {/*ANY(a) AND b>?*/}\n  5 \"b > 'zzz'\"                        {/*ANY(a) AND b>?*/}\n  6 \"b < 'zzz'\"                        {/*SCAN t3*/}")
+				for _idx3 := 0; _idx3+3 <= len(_items3); _idx3 += 3 {
+					tn := _items3[_idx3+0]
 					_ = tn // suppress unused warning
-					q := _items1[_idx1+1]
+					q := _items3[_idx3+1]
 					_ = q // suppress unused warning
-					res := _items1[_idx1+2]
+					res := _items3[_idx3+2]
 					_ = res // suppress unused warning
-					_ = _idx1
+					_ = _idx3
 						vtab.TclVarSet("sql", "", "EXPLAIN QUERY PLAN SELECT * FROM t3 WHERE " + q)
 						sql = "EXPLAIN QUERY PLAN SELECT * FROM t3 WHERE " + q
 						_ = sql // suppress unused warning

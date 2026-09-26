@@ -1,12 +1,12 @@
 // Package main implements the tcl2go tool.
 //
-// This file dispatches top-level TCL commands to their Go emitters.
+// This file dispatches top-level TCL commands to their Go emitters; the
+// command-name -> emitter table lives in tclcommandtable.go.
 package main
 
 import (
 	"fmt"
 	"strings"
-	"sync"
 
 	"github.com/pijalu/frigolite/tools/tclconvert/tcl"
 )
@@ -18,432 +18,6 @@ func (tp *transpiler) processCommands(cmds [][]tcl.RawWord) {
 		tp.processCommand(cmd)
 	}
 }
-
-// tclCmdHandler emits Go code for one TCL command. args excludes the command
-// name word.
-type tclCmdHandler func(tp *transpiler, args []tcl.RawWord)
-
-// tclCommandHandlers maps TCL command names to their Go emitters. Keeping the
-// dispatch in data (rather than a giant switch) keeps processCommand's
-// complexity low; each handler has a single responsibility. It is built lazily
-// via tclHandlers() because the handler bodies reference processCommand (via
-// processCommands), which would create a package-level initialization cycle.
-var (
-	tclCommandHandlersOnce sync.Once
-	tclCommandHandlers     map[string]tclCmdHandler
-)
-
-// tclHandlers returns the command dispatch table, building it on first use.
-func tclHandlers() map[string]tclCmdHandler {
-	tclCommandHandlersOnce.Do(func() {
-		tclCommandHandlers = buildTclCommandHandlers()
-	})
-	return tclCommandHandlers
-}
-
-func buildTclCommandHandlers() map[string]tclCmdHandler {
-	return map[string]tclCmdHandler{
-		// SQL test commands
-		"do_execsql_test":       (*transpiler).processDoExecSQLTest,
-		"do_timed_execsql_test": (*transpiler).processDoExecSQLTest,
-		"do_execsql2_test":      (*transpiler).processDoExecSQLTest,
-		"do_catchsql_test":      (*transpiler).processDoCatchSQLTest,
-		"do_test":               (*transpiler).processDoTest,
-		"do_eqp_test":           (*transpiler).processDoEQPTest,
-		"do_changes_test":       (*transpiler).processDoChangesTest,
-		"do_tc_test":            (*transpiler).processDoTCtest,
-		"do_preupdate_test":     (*transpiler).processDoPreupdateTest,
-
-		// do_select_tests and its wrapper procs (do_createtable_tests,
-		// do_delete_tests, do_insert_tests, do_update_tests, do_reindex_tests).
-		// Each wrapper prefixes the test name with its file name, matching the
-		// TCL `uplevel do_select_tests [list PREFIX-$name] $args` call.
-		"do_select_tests":      func(tp *transpiler, args []tcl.RawWord) { tp.processDoSelectTests("", args) },
-		"do_createtable_tests": func(tp *transpiler, args []tcl.RawWord) { tp.processDoSelectTests("e_createtable-", args) },
-		"do_delete_tests":      func(tp *transpiler, args []tcl.RawWord) { tp.processDoSelectTests("e_delete-", args) },
-		"do_insert_tests":      func(tp *transpiler, args []tcl.RawWord) { tp.processDoSelectTests("e_insert-", args) },
-		"do_update_tests":      func(tp *transpiler, args []tcl.RawWord) { tp.processDoSelectTests("e_update-", args) },
-		"do_reindex_tests":     func(tp *transpiler, args []tcl.RawWord) { tp.processDoSelectTests("e_reindex-", args) },
-
-		// SQL execution
-		"execsql":        func(tp *transpiler, args []tcl.RawWord) { tp.processExecSQL(args, "exec") },
-		"execsql_intout": func(tp *transpiler, args []tcl.RawWord) { tp.processExecSQL(args, "exec") },
-		"execsql2":       func(tp *transpiler, args []tcl.RawWord) { tp.processExecSQL(args, "exec") },
-		// execsqlS (fkey2.test / without_rowid3.test): plain execsql whose
-		// result is the search/found count CONCATENATED with the rows — the
-		// count half is a C-internal VDBE statistic the engine does not
-		// expose, so the SQL runs for its side effects and the comparison is
-		// dropped (the count expectation is unassertable).
-		"execsqlS": func(tp *transpiler, args []tcl.RawWord) { tp.processExecSQL(args, "exec") },
-		"stepsql":        (*transpiler).processStepsql,
-		"sql":            (*transpiler).processSQLVar,
-		"catchsql":       func(tp *transpiler, args []tcl.RawWord) { tp.processExecSQL(args, "catch") },
-		"db":             (*transpiler).processDB,
-		"count":          (*transpiler).processCount,
-		"cksort":         (*transpiler).processCksort,
-		"integrity_check": func(tp *transpiler, args []tcl.RawWord) {
-			tp.emitLine("_res = db.Exec(\"PRAGMA integrity_check\")")
-			tp.emitLine("if _res.Error != nil { t.Errorf(\"integrity check: %%v\", _res.Error) }")
-		},
-		"capture_pragma": (*transpiler).processCapturePragma,
-		// sqlite3_create_aggregate $DB — the TCL harness fixture registering
-		// the x_count test aggregate (src/test1.c t1CountStep/
-		// t1CountFinalize: counts non-null first args; a step input of 40 or
-		// 41 errors; a final count of 42 errors). aggerror.test / func.test
-		// / misuse.test use it.
-		"sqlite3_create_aggregate": (*transpiler).processSqlite3CreateAggregate,
-
-		// recover.test: .recover harness procs (in-process RecoverSQL port;
-		// ext/misc/recover.c sqlite3recover semantics, no CLI subprocess).
-		"recover_with_opts": (*transpiler).processRecoverWithOpts,
-		"do_recover_test":   (*transpiler).processDoRecoverTest,
-		"compare_result":    (*transpiler).processCompareResult,
-		"compare_dbs":       (*transpiler).processCompareDBs,
-		"test_find_cli":     (*transpiler).processTestFindCli,
-
-		// Control flow
-		"foreach": (*transpiler).processForeach,
-		// fts5_common.tcl meta-loop: run the body once per detail mode after
-		// reset_db (fts5simple3 2.x/4.x; untranspiled, its per-mode reset_db
-		// is lost and later CREATEs collide with pre-loop tables).
-		"foreach_detail_mode": (*transpiler).processForEachDetailMode,
-		"for":      (*transpiler).processForCommand,
-		"while":    (*transpiler).processWhile,
-		"if":       (*transpiler).processIf,
-		"set":      (*transpiler).processSet,
-		"incr":     (*transpiler).processIncr,
-		"expr":     (*transpiler).processExpr,
-		"catch":    (*transpiler).processCatch,
-		"return":   func(tp *transpiler, args []tcl.RawWord) { tp.processReturn(args) },
-		"break":    func(tp *transpiler, args []tcl.RawWord) { tp.emitLine("break") },
-		"continue": func(tp *transpiler, args []tcl.RawWord) { tp.emitContinue() },
-		"time":     (*transpiler).processTime,
-		"eval":     (*transpiler).processScriptEval,
-		"subst":    (*transpiler).processSubst,
-		"proc":     (*transpiler).processProc,
-		"unset":    (*transpiler).processUnset,
-
-		// autovacuum.test / incrvacuum*.test file_pages proc — returns
-		// the page count of test.db (1024-byte page size; the engine's
-		// pager reports NumPages in pages, so divide file size by the
-		// page size). The generated code assigns the result to _r so
-		// do_test compares the value to the expected page count.
-		"file_pages": func(tp *transpiler, args []tcl.RawWord) {
-			_rExpr := `strconv.Itoa(tclFilePages("test.db"))`
-			tp.emitLine("_r = %s // file_pages result", _rExpr)
-		},
-
-		// drop_all_indexes (tester.tcl proc, {{db db}} default): drop every
-		// explicitly created index so a loop body's CREATE INDEX re-runs from
-		// the same schema (rowvalue3/rowvalue4 index-permutation loops).
-		"drop_all_indexes": func(tp *transpiler, args []tcl.RawWord) {
-			dbName := "db"
-			if len(args) >= 1 {
-				dbName = args[0].Text
-			}
-			tp.emitLine("tclDropAllIndexes(%s)", tp.dbArgGo(dbName))
-		},
-
-		// String / list operations
-		"append":   (*transpiler).processStringAppend,
-		"lappend":  (*transpiler).processListAppend,
-		"list":     (*transpiler).processList,
-		"close":    (*transpiler).processClose,
-		"string":   (*transpiler).processStringCmd,
-		"concat":   (*transpiler).processConcat,
-		"lindex":   func(tp *transpiler, args []tcl.RawWord) { tp.processListOp("lindex", args) },
-		"lrange":   func(tp *transpiler, args []tcl.RawWord) { tp.processListOp("lrange", args) },
-		"llength":  func(tp *transpiler, args []tcl.RawWord) { tp.processListOp("llength", args) },
-		"lsort":    func(tp *transpiler, args []tcl.RawWord) { tp.processListOp("lsort", args) },
-		"lreplace": func(tp *transpiler, args []tcl.RawWord) { tp.processListOp("lreplace", args) },
-		"lsearch":  func(tp *transpiler, args []tcl.RawWord) { tp.processListOp("lsearch", args) },
-		"regexp":   (*transpiler).processRegexp,
-		"regsub":   (*transpiler).processRegsub,
-		"error":    (*transpiler).processError,
-		"glob":     (*transpiler).processGlob,
-		"split":    (*transpiler).processSplit,
-		"join":     (*transpiler).processJoin,
-
-		// sqlite3 C API
-		"sqlite3":              (*transpiler).processSqlite3,
-		"sqlite3_exec":         (*transpiler).processSqlite3Exec,
-		"sqlite3_test_control": (*transpiler).processSqlite3TestControl,
-		// `sqlite3_test_control_pending_byte 0x0010000` — the C-defined
-		// TCL command in src/test2.c::testPendingByte. Updates the global
-		// pending byte (tester.tcl:102 calls it on harness init). The
-		// transpiler emits an assignment to the Go shadow variable.
-		"sqlite3_test_control_pending_byte": (*transpiler).processSqlite3TestControlPendingByte,
-		"sqlite3_limit":                     (*transpiler).processSqlite3Limit,
-		"sqlite3_db_config":                 (*transpiler).processDBConfig,
-		"optimization_control":              (*transpiler).processOptimizationControl,
-		"dbconfig_maindbname_icecube":       (*transpiler).processDBConfigMainDBNameIcecube,
-		"sqlite3_create_collation_v2":       (*transpiler).processCreateCollation,
-		"sqlite_delete_collation":           (*transpiler).processDeleteCollation,
-		"sqlite3_backup":                    (*transpiler).processSqlite3Backup,
-		"sqlite3_errmsg":                    (*transpiler).processSqlite3Errmsg,
-		"sqlite3_errcode":                   (*transpiler).processSqlite3Errcode,
-		"sqlite3_close":                     (*transpiler).processSqlite3Close,
-		"sqlite3_interrupt":                 (*transpiler).processSqlite3Interrupt,
-		"sqlite3_is_interrupted":            (*transpiler).processSqlite3IsInterrupted,
-		"sqlite3_stmt_status":               (*transpiler).processSqlite3StmtStatus,
-		"sqlite3_autovacuum_pages":          (*transpiler).processSqlite3AutovacuumPages,
-		"dbcksum":                           (*transpiler).processDBCksum,
-		"file_control_data_version":         (*transpiler).processFileControlDataVersion,
-		"sqlite3_prepare": func(tp *transpiler, args []tcl.RawWord) {
-			if tp.catchMode && len(args) >= 4 {
-				tp.emitPrepareInCatch(args)
-				return
-			}
-			tp.emitLine("// sqlite3_prepare (standalone prepare; not emulated)")
-		},
-		"sqlite3_prepare_v2": func(tp *transpiler, args []tcl.RawWord) {
-			if tp.catchMode && len(args) >= 4 {
-				tp.emitPrepareInCatch(args)
-				return
-			}
-			tp.emitLine("// sqlite3_prepare_v2 (standalone prepare; not emulated)")
-		},
-		"sqlite3_bind_double":       func(tp *transpiler, args []tcl.RawWord) { tp.processBind("sqlite3_bind_double", args) },
-		"sqlite3_bind_int":          func(tp *transpiler, args []tcl.RawWord) { tp.processBind("sqlite3_bind_int", args) },
-		"sqlite3_bind_int64":        func(tp *transpiler, args []tcl.RawWord) { tp.processBind("sqlite3_bind_int64", args) },
-		"sqlite3_bind_text":         func(tp *transpiler, args []tcl.RawWord) { tp.processBind("sqlite3_bind_text", args) },
-		"sqlite3_bind_text16":       func(tp *transpiler, args []tcl.RawWord) { tp.processBind("sqlite3_bind_text16", args) },
-		"sqlite3_bind_null":         func(tp *transpiler, args []tcl.RawWord) { tp.processBind("sqlite3_bind_null", args) },
-		"sqlite3_bind_blob":         func(tp *transpiler, args []tcl.RawWord) { tp.processBind("sqlite3_bind_blob", args) },
-		"sqlite_bind":               (*transpiler).processLegacyBind,
-		"sqlite3_transfer_bindings": (*transpiler).processTransferBindings,
-		"sqlite3_step":              (*transpiler).processStep,
-		// sqlite_step is bind.test's TCL wrapper proc over sqlite3_step
-		// (stmt N VALS COLS): the rc result matters; the upvar'd lists are
-		// not asserted by the suite.
-		"sqlite_step": (*transpiler).processSqliteStepTCL,
-
-		// intarray test-only C-API (src/test_intarray.c), emulated so the
-		// intarray virtual table can be created and populated by the harness.
-		"sqlite3_intarray_create": (*transpiler).processIntarrayCreate,
-		"sqlite3_intarray_bind":   (*transpiler).processIntarrayBind,
-		"sqlite3_reset":           (*transpiler).processReset,
-		"sqlite3_finalize":        (*transpiler).processFinalize,
-		"sqlite3_clear_bindings":  (*transpiler).processClearBindings,
-		"sqlite3_create_function": (*transpiler).processCreateFunction,
-
-		// quota VFS (src/test_quota.c). Each command returns its result via
-		// the runtime helper of the same name (defined in helpersTemplatePart2).
-		"sqlite3_quota_initialize":     (*transpiler).processSqlite3QuotaInitialize,
-		"sqlite3_quota_shutdown":       (*transpiler).processSqlite3QuotaShutdown,
-		"sqlite3_quota_set":            (*transpiler).processSqlite3QuotaSet,
-		"sqlite3_quota_remove":         (*transpiler).processSqlite3QuotaRemove,
-		"sqlite3_quota_file":           (*transpiler).processSqlite3QuotaFile,
-		"sqlite3_quota_dump":           (*transpiler).processSqlite3QuotaDump,
-		"sqlite3_quota_glob":           (*transpiler).processSqlite3QuotaGlob,
-		"sqlite3_quota_dir":            (*transpiler).processSqlite3QuotaDir,
-		"sqlite3_quota_fopen":          (*transpiler).processSqlite3QuotaFopen,
-		"sqlite3_quota_fclose":         (*transpiler).processSqlite3QuotaFclose,
-		"sqlite3_quota_fread":          (*transpiler).processSqlite3QuotaFread,
-		"sqlite3_quota_fwrite":         (*transpiler).processSqlite3QuotaFwrite,
-		"sqlite3_quota_fflush":         (*transpiler).processSqlite3QuotaFflush,
-		"sqlite3_quota_fseek":          (*transpiler).processSqlite3QuotaFseek,
-		"sqlite3_quota_rewind":         (*transpiler).processSqlite3QuotaRewind,
-		"sqlite3_quota_ftell":          (*transpiler).processSqlite3QuotaFTell,
-		"sqlite3_quota_ftruncate":      (*transpiler).processSqlite3QuotaFtruncate,
-		"sqlite3_quota_file_available": (*transpiler).processSqlite3QuotaFileAvailable,
-		"sqlite3_quota_file_size":      (*transpiler).processSqlite3QuotaFileSize,
-		"sqlite3_quota_file_truesize":  (*transpiler).processSqlite3QuotaFileTrueSize,
-		"sqlite3_quota_ferror":         (*transpiler).processSqlite3QuotaFerror,
-		"file_control_vfsname":         (*transpiler).processFileControlVfsName,
-		"file_control_reservebytes":    (*transpiler).processFileControlReserveBytes,
-
-		// Prepared-statement metadata queries (value-producing statements).
-		// Only active for files using the runtime Stmt VM emulation; other
-		// files keep their historical unsupported-command comments.
-		"sqlite3_bind_parameter_count": func(tp *transpiler, args []tcl.RawWord) {
-			if !stmtVMEnabled() {
-				tp.emitUnsupportedStmtCmd("sqlite3_bind_parameter_count", args)
-				return
-			}
-			tp.emitLine("_r = strconv.Itoa(tclParamCountOf(%q))", stmtVarArg(args))
-		},
-		"sqlite3_bind_parameter_name": func(tp *transpiler, args []tcl.RawWord) {
-			if !stmtVMEnabled() {
-				tp.emitUnsupportedStmtCmd("sqlite3_bind_parameter_name", args)
-				return
-			}
-			tp.emitLine("_r = tclParamNameOf(%q, %s)", stmtVarArg(args), tp.intArgExpr(argAt(args, 1).Text))
-		},
-		"sqlite3_bind_parameter_index": func(tp *transpiler, args []tcl.RawWord) {
-			if !stmtVMEnabled() {
-				tp.emitUnsupportedStmtCmd("sqlite3_bind_parameter_index", args)
-				return
-			}
-			tp.emitLine("_r = strconv.Itoa(tclParamIndexOf(%q, %s))", stmtVarArg(args), tp.buildStringExpr(argAt(args, 1).Text))
-		},
-		"sqlite3_column_count": func(tp *transpiler, args []tcl.RawWord) {
-			if !stmtVMEnabled() {
-				tp.emitUnsupportedStmtCmd("sqlite3_column_count", args)
-				return
-			}
-			tp.emitLine("_r = strconv.Itoa(tclColumnCount(%q))", stmtVarArg(args))
-		},
-		"sqlite3_data_count": func(tp *transpiler, args []tcl.RawWord) {
-			if !stmtVMEnabled() {
-				tp.emitUnsupportedStmtCmd("sqlite3_data_count", args)
-				return
-			}
-			tp.emitLine("_r = strconv.Itoa(tclDataCount(%q))", stmtVarArg(args))
-		},
-		"sqlite3_column_name": func(tp *transpiler, args []tcl.RawWord) {
-			if !stmtVMEnabled() {
-				tp.emitUnsupportedStmtCmd("sqlite3_column_name", args)
-				return
-			}
-			tp.emitLine("_r = tclColumnNameOf(%q, %s)", stmtVarArg(args), tp.intArgExpr(argAt(args, 1).Text))
-		},
-		"sqlite3_column_text": func(tp *transpiler, args []tcl.RawWord) {
-			if !stmtVMEnabled() {
-				tp.emitUnsupportedStmtCmd("sqlite3_column_text", args)
-				return
-			}
-			tp.emitLine("_r = tclColumnTextOf(%q, %s)", stmtVarArg(args), tp.intArgExpr(argAt(args, 1).Text))
-		},
-		"sqlite3_column_int": func(tp *transpiler, args []tcl.RawWord) {
-			if !stmtVMEnabled() {
-				tp.emitUnsupportedStmtCmd("sqlite3_column_int", args)
-				return
-			}
-			tp.emitLine("_r = tclColumnTextOf(%q, %s)", stmtVarArg(args), tp.intArgExpr(argAt(args, 1).Text))
-		},
-		"sqlite3_column_double": func(tp *transpiler, args []tcl.RawWord) {
-			if !stmtVMEnabled() {
-				tp.emitUnsupportedStmtCmd("sqlite3_column_double", args)
-				return
-			}
-			tp.emitLine("_r = tclColumnDoubleOf(%q, %s)", stmtVarArg(args), tp.intArgExpr(argAt(args, 1).Text))
-		},
-		// fts3sort.test's build_database proc: FTS4 table + deterministic docs.
-		"build_database": func(tp *transpiler, args []tcl.RawWord) {
-			nRowExpr := "1000"
-			paramExpr := `""`
-			if len(args) > 0 {
-				nRowExpr = tp.intArgExpr(argAt(args, 0).Text)
-			}
-			if len(args) > 1 {
-				paramExpr = tp.buildStringExpr(argAt(args, 1).Text)
-			}
-			tp.emitLine("fts3SortBuildDatabase(db, %s, %s)", nRowExpr, paramExpr)
-		},
-
-		// Multi-process locking emulation (lock2/lock4/...): a testfixture is
-		// a persistent second connection on the same file. The transpiler
-		// emulates it as a persistent in-process connection keyed in
-		// tclFixtureDBs (see processfixture.go).
-		"testfixture":        (*transpiler).processTestfixture,
-		"launch_testfixture": (*transpiler).processLaunchTestfixture,
-
-		// Incremental blob I/O (sqlite3_blob_*)
-		"sqlite3_blob_open":     (*transpiler).processSqlite3BlobOpen,
-		"sqlite3_blob_bytes":    (*transpiler).processSqlite3BlobBytes,
-		"sqlite3_blob_read":     (*transpiler).processSqlite3BlobRead,
-		"sqlite3_blob_write":    (*transpiler).processSqlite3BlobWrite,
-		"sqlite3_blob_close":    (*transpiler).processSqlite3BlobClose,
-		"sqlite3_blob_reopen":   (*transpiler).processSqlite3BlobReopen,
-		"blob_write_test":       (*transpiler).processBlobWriteTest,
-		"blob_write_error_test": (*transpiler).processBlobWriteErrorTest,
-		"create_t1":             (*transpiler).processCreateT1,
-		"populate_t1":           (*transpiler).processPopulateT1,
-
-		// e_fts3.test wrapper procs (ddl_test/write_test/read_test/error_test)
-		// thin aliases over do_write_test/do_read_test/do_error_test. The
-		// procs are defined locally in the TCL source with bodies
-		// `uplevel [list do_write_test e_fts3-$tn sqlite_master $ddl]` etc.,
-		// so inline the wrapped operation here (no OOM mode).
-		"ddl_test":   (*transpiler).processFTSDDLTest,
-		"write_test": (*transpiler).processFTSWriteTest,
-		"read_test":  (*transpiler).processFTSReadTest,
-		"error_test": (*transpiler).processFTSErrorTest,
-
-		// Files and db lifecycle
-		"forcedelete":           (*transpiler).processFileDelete,
-		"delete_file":           (*transpiler).processDeleteFile,
-		"forcecopy":             (*transpiler).processFileCopy,
-		"copy_file":             (*transpiler).processFileCopy,
-		"file":                  (*transpiler).processFileCmd,
-		"reset_db":              func(tp *transpiler, args []tcl.RawWord) { tp.processResetDB() },
-		"db_save":               func(tp *transpiler, args []tcl.RawWord) { tp.processDBSave() },
-		"db_save_and_close":     func(tp *transpiler, args []tcl.RawWord) { tp.processDBSaveAndClose() },
-		"db_restore_and_reopen": func(tp *transpiler, args []tcl.RawWord) { tp.processDBRestoreAndReopen() },
-		"db_restore":            func(tp *transpiler, args []tcl.RawWord) { tp.processDBRestore() },
-		"db_delete_and_reopen":  func(tp *transpiler, args []tcl.RawWord) { tp.processDBDeleteAndReopen() },
-		// faultsim harness aliases (ext/*.test fault-injection framework):
-		// reset/save/restore operate on the same test.db* files.
-		"faultsim_save_and_close":     func(tp *transpiler, args []tcl.RawWord) { tp.processDBSaveAndClose() },
-		"faultsim_restore_and_reopen": func(tp *transpiler, args []tcl.RawWord) { tp.processDBRestoreAndReopen() },
-		"faultsim_delete_and_reopen":  func(tp *transpiler, args []tcl.RawWord) { tp.processDBDeleteAndReopen() },
-		"puts":                        (*transpiler).processPuts,
-
-		// FTS test data loader: fills table t1(docid, words) with the text of
-		// the Book of Genesis (source $testdir/genesis.tcl defines the
-		// fts_kjv_genesis proc; the transpiler inlines its INSERTs).
-		"fts_kjv_genesis": (*transpiler).processFTSKJVGenesis,
-
-		// FTS test data loaders (source $testdir/fts3_common.tcl): build the
-		// sample FTS tables t1/t2 with synthetic text. The transpiler emits
-		// package-level helpers (fts3BuildDB1/fts3BuildDB2).
-		"fts3_build_db_1":         (*transpiler).processFTS3BuildDB1,
-		"fts3_build_db_2":         (*transpiler).processFTS3BuildDB2,
-		"build_multilingual_db_1": (*transpiler).processBuildMultilingualDB1,
-		"build_multilingual_db_2": (*transpiler).processBuildMultilingualDB2,
-		"build_multilingual_db_3": (*transpiler).processBuildMultilingualDB3,
-
-		// Capability guards
-		"ifcapable":    (*transpiler).processIfcapable,
-		"ifnotcapable": (*transpiler).processIfnotcapable,
-
-		// Test infrastructure (no-op or comment emitters)
-		"source": noopTclCommand, "finish_test": noopTclCommand, "test_finish": noopTclCommand,
-		"exit": noopTclCommand, "flush": noopTclCommand, "fix_testname": noopTclCommand,
-		"incr_ntest": noopTclCommand, "sqlite3_memdebug_settitle": noopTclCommand,
-		"namespace": (*transpiler).processNamespace, "rename": noopTclCommand, "array": (*transpiler).processArray,
-		"foreach_kv": noopTclCommand, "foreach_u": noopTclCommand, "global": noopTclCommand,
-		"uplevel": noopTclCommand, "upvar": noopTclCommand, "info": (*transpiler).processInfoCommand,
-		"vwait": noopTclCommand, "after": noopTclCommand, "update": noopTclCommand,
-		"breakpoint":        noopTclCommand,
-		"queryplan":         (*transpiler).processQueryPlan,
-		"sqlite3_exec_hex":  (*transpiler).processExecHex,
-		"optimization":      func(tp *transpiler, args []tcl.RawWord) { tp.processInfraComment("optimization", args) },
-		"uses":              func(tp *transpiler, args []tcl.RawWord) { tp.processInfraComment("uses", args) },
-		"xferopt":           func(tp *transpiler, args []tcl.RawWord) { tp.processInfraComment("xferopt", args) },
-		"xfer":              func(tp *transpiler, args []tcl.RawWord) { tp.processInfraComment("xfer", args) },
-		"switch":            func(tp *transpiler, args []tcl.RawWord) { tp.processInfraComment("switch", args) },
-		"do_sp_test":        func(tp *transpiler, args []tcl.RawWord) { tp.processInfraComment("do_sp_test", args) },
-		"do_select_test":    func(tp *transpiler, args []tcl.RawWord) { tp.processInfraComment("do_select_test", args) },
-		"record":            func(tp *transpiler, args []tcl.RawWord) { tp.processInfraComment("record", args) },
-		"tcl_platform":      func(tp *transpiler, args []tcl.RawWord) { tp.processInfraComment("tcl_platform", args) },
-		"binary":            (*transpiler).processBinaryCommand,
-		"read":              (*transpiler).processRead,
-		"seek":              (*transpiler).processSeek,
-		"open":              (*transpiler).processOpen,
-		"fconfigure":        (*transpiler).processFConfigure,
-		"hexio_write":       (*transpiler).processHexioWrite,
-		"hexio_read":        (*transpiler).processHexioRead,
-		"hexio_get_int":     (*transpiler).processHexioGetInt,
-		"chan":              (*transpiler).processChanSubcommand,
-		"sqlite3_normalize": func(tp *transpiler, args []tcl.RawWord) { tp.processInfraComment("sqlite3_normalize", args) },
-		"verify_db":         func(tp *transpiler, args []tcl.RawWord) { tp.processInfraComment("verify_db", args) },
-		"do_aggregate_test": func(tp *transpiler, args []tcl.RawWord) { tp.processInfraComment("do_aggregate_test", args) },
-		"test_expr":         func(tp *transpiler, args []tcl.RawWord) { tp.processExprTest("test_expr", args) },
-		"test_expr2":        func(tp *transpiler, args []tcl.RawWord) { tp.processExprTest("test_expr2", args) },
-		"test_realnum_expr": func(tp *transpiler, args []tcl.RawWord) { tp.processExprTest("test_realnum_expr", args) },
-		"test_boolean_expr": func(tp *transpiler, args []tcl.RawWord) { tp.processExprTest("test_boolean_expr", args) },
-		"do_realnum_test":   func(tp *transpiler, args []tcl.RawWord) { tp.processExprTest("do_realnum_test", args) },
-		"do_like_test":      func(tp *transpiler, args []tcl.RawWord) { tp.processExprTest("do_like_test", args) },
-		"do_test_withfunc":  func(tp *transpiler, args []tcl.RawWord) { tp.processExprTest("do_test_withfunc", args) },
-		"drop_all_tables":   func(tp *transpiler, args []tcl.RawWord) { tp.processDropAllTables() },
-	}
-}
-
-// noopTclCommand emits nothing for TCL infrastructure commands that have no Go
-// equivalent (source, finish_test, namespace, etc.).
-func noopTclCommand(tp *transpiler, args []tcl.RawWord) {}
 
 // processCommand dispatches a single TCL command to its Go emitter.
 func (tp *transpiler) processCommand(words []tcl.RawWord) {
@@ -467,15 +41,8 @@ func (tp *transpiler) processCommand(words []tcl.RawWord) {
 	// rtree8.test and rtreeA.test define their own create_t1/populate_t1/
 	// truncate_node (unrelated to incrblob4's), which previously hijacked
 	// the incrblob4 fillers and corrupted the fixture.
-	if _, isRecover := recoverProcNames[cmdName]; !isRecover {
-		if _, isSideEffect := sideEffectOnlyProcs[cmdName]; !isSideEffect {
-			if body, ok := globalProcBodies[cmdName]; ok {
-				if em := userProcEmitterFor(cmdName, body); em != "" {
-					tp.emitUserProc(em, goArgWords(args))
-					return
-				}
-			}
-		}
+	if tp.emitUserProcOverride(cmdName, args) {
+		return
 	}
 	if handler, ok := tclHandlers()[cmdName]; ok {
 		handler(tp, args)
@@ -485,37 +52,78 @@ func (tp *transpiler) processCommand(words []tcl.RawWord) {
 	// variable (quota.test 3.2.X: foreach db {db1a db2a db2b db1b}
 	// { catch { $db close } }). Close through the runtime connection
 	// registry so the underlying pager actually closes.
-	if strings.HasPrefix(cmdName, "$") && len(args) >= 1 && args[0].Text == "close" {
-		goVar := tclVarToGo(strings.TrimPrefix(cmdName, "$"))
-		// A loop var shadowing a connection name (foreach db {db1a db2a}
-		// { $db close }) resolves through the rename map (db → db_iter),
-		// and the loop var holds a connection NAME string at runtime.
-		if renamed, ok := tp.varRenames[goVar]; ok {
-			goVar = renamed
-		}
-		if isValidGoIdent(goVar) {
-			tp.emitLine("tclConnByName(%s, db, db1, db2, db3, db4, db5, db6, db7, db8, db9).Close()", goVar)
-			return
-		}
+	if tp.emitConnVarClose(cmdName, args) {
+		return
 	}
 	// Inline user procs recorded by processProc (zero-arg or single
 	// defaulted-param calls): bind the default, then transpile the body.
-	if len(args) == 0 && tp.inlineProcs != nil {
-		if body, ok := tp.inlineProcs[cmdName]; ok {
-			raw := ""
-			if tp.inlineProcParams != nil {
-				raw = tp.inlineProcParams[cmdName]
-			}
-			defs := strings.TrimSpace(strings.TrimSuffix(strings.TrimPrefix(
-				strings.TrimSpace(raw), "{"), "}"))
-			if a := inlineProcDefaultAssign(defs); a != "" {
-				tp.emitLine("%s", a)
-			}
-			tp.processCommands(tcl.ParseCommands(body))
-			return
-		}
+	if tp.emitInlineZeroArgProc(cmdName, args) {
+		return
 	}
 	tp.processDefaultCommand(cmdName, args)
+}
+
+// emitUserProcOverride emits the file-local proc body override for cmdName
+// when one is registered (recover/side-effect-only procs never override).
+// Returns true when emitted.
+func (tp *transpiler) emitUserProcOverride(cmdName string, args []tcl.RawWord) bool {
+	if _, isRecover := recoverProcNames[cmdName]; isRecover {
+		return false
+	}
+	if _, isSideEffect := sideEffectOnlyProcs[cmdName]; isSideEffect {
+		return false
+	}
+	if body, ok := globalProcBodies[cmdName]; ok {
+		if em := userProcEmitterFor(cmdName, body); em != "" {
+			tp.emitUserProc(em, goArgWords(args))
+			return true
+		}
+	}
+	return false
+}
+
+// emitConnVarClose handles `$dbVar close` — a close on a runtime
+// connection-name variable. Returns true when handled.
+func (tp *transpiler) emitConnVarClose(cmdName string, args []tcl.RawWord) bool {
+	if !strings.HasPrefix(cmdName, "$") || len(args) < 1 || args[0].Text != "close" {
+		return false
+	}
+	goVar := tclVarToGo(strings.TrimPrefix(cmdName, "$"))
+	// A loop var shadowing a connection name (foreach db {db1a db2a}
+	// { $db close }) resolves through the rename map (db → db_iter),
+	// and the loop var holds a connection NAME string at runtime.
+	if renamed, ok := tp.varRenames[goVar]; ok {
+		goVar = renamed
+	}
+	if !isValidGoIdent(goVar) {
+		return false
+	}
+	tp.emitLine("tclConnByName(%s, db, db1, db2, db3, db4, db5, db6, db7, db8, db9).Close()", goVar)
+	return true
+}
+
+// emitInlineZeroArgProc handles the inline user procs recorded by processProc
+// (zero-arg calls): bind the default parameter, then transpile the body.
+// Returns true when handled.
+func (tp *transpiler) emitInlineZeroArgProc(cmdName string, args []tcl.RawWord) bool {
+	if len(args) != 0 || tp.inlineProcs == nil {
+		return false
+	}
+	body, ok := tp.inlineProcs[cmdName]
+	if !ok {
+		return false
+	}
+	raw := ""
+	if tp.inlineProcParams != nil {
+		raw = tp.inlineProcParams[cmdName]
+	}
+	defs := strings.TrimSpace(strings.TrimSuffix(strings.TrimPrefix(
+		strings.TrimSpace(raw), "{"), "}"))
+	if a := inlineProcDefaultAssign(defs); a != "" {
+		tp.emitLine("%s", a)
+	}
+	tp.processCommands(tcl.ParseCommands(body))
+	return true
 }
 
 // skipUnsupportedTest reports whether a test command is listed in skipTests
@@ -564,185 +172,9 @@ func (tp *transpiler) processDefaultCommand(cmdName string, args []tcl.RawWord) 
 	if tp.inlineDefaultQueryProc(cmdName, args) {
 		return
 	}
-	// sql36231 (tester.tcl): runs SQL on a second connection then restores
-	// the db-size header words (offsets 28 + 92), hiding the page-count
-	// growth from the filefmt-2.x assertions. Mirror it: snapshot the two
-	// header words, exec the SQL on a second connection, restore them.
-	if cmdName == "sql36231" && len(args) >= 1 {
-		sqlExpr := tp.collectSQLExpression(args)
-		tp.emitLine("_r36231A := tclHexioRead(\"test.db\", 28, 4)")
-		tp.emitLine("_r36231B := tclHexioRead(\"test.db\", 92, 8)")
-		tp.emitLine("db36231, _err36231 := frigolite.Open(\"test.db\")")
-		tp.emitLine("if _err36231 == nil {")
-		tp.emitLine("\tdb36231.RegisterFunction(\"a_string\", func(args []interface{}) (interface{}, error) {")
-		tp.emitLine("\t\tif len(args) < 1 || args[0] == nil { return \"\", nil }")
-		tp.emitLine("\t\treturn tclAString(&a_string_counter, tclToInt(tclStr(args[0]))), nil")
-		tp.emitLine("\t}, 1, 1)")
-		tp.emitLine("\t_res36231 := db36231.Exec(%s)", sqlExpr)
-		tp.emitLine("\t_ = _res36231")
-		tp.emitLine("\tdb36231.Close()")
-		tp.emitLine("}")
-		tp.emitLine("tclHexioWrite(\"test.db\", 28, _r36231A)")
-		tp.emitLine("tclHexioWrite(\"test.db\", 92, _r36231B)")
-		tp.emitLine("_r = \"\"")
+	if tp.emitDefaultSpecialProc(cmdName, args) {
 		return
 	}
-
-	// sql_uses_stmt db $SQL — the TCL test-framework probe for whether a
-	// statement is executed via sqlite3_prepare_v2 (statement-journal
-	// usage). The probe RUNS the SQL first (so the side effects matter for
-	// later tests: fts4onepass 2.x INSERT/DELETE/UPDATE fire triggers on
-	// the FTS table), then reports whether the VM used a statement journal.
-	// The pure-Go engine always prepares and its statements are atomic, so
-	// the journal probe is not meaningful; execute the SQL and skip the
-	// probe result.
-	if cmdName == "sql_uses_stmt" && len(args) >= 2 {
-		tp.emitLine("// sql_uses_stmt db $%s (statement-journal probe skipped; SQL executes)", sanitizeTCLComment(args[1].Text))
-		arg := strings.TrimSpace(args[1].Text)
-		if strings.HasPrefix(arg, "$") {
-			goVar := tclVarToGo(strings.TrimPrefix(arg, "$"))
-			if isValidGoIdent(goVar) {
-				tp.emitLine("_res = db.Exec(%s)", goVar)
-				tp.emitLine("_ = _res")
-				return
-			}
-		}
-		sqlExpr := tp.goStringLiteral(args[1])
-		tp.emitLine("_res = db.Exec(%s)", sqlExpr)
-		tp.emitLine("_ = _res")
-		return
-	}
-
-	// create_test_data N (wherelimit.test): a local proc building a
-	// size×size t1 grid. Inline its body (DROP/CREATE/BEGIN + nested
-	// INSERT loop + COMMIT).
-	if cmdName == "create_test_data" && len(args) >= 1 {
-		size := strings.TrimSpace(args[0].Text)
-		tp.emitLine("// create_test_data %s (inlined)", size)
-		tp.emitLine("_res = db.Exec(\"DROP TABLE IF EXISTS t1; CREATE TABLE t1(x int, y int); BEGIN;\")")
-		tp.emitLine("if _res.Error != nil { t.Errorf(\"create_test_data drop/create: %%v\", _res.Error) }")
-		tp.emitLine("for _ci := 1; _ci <= %s; _ci++ {", size)
-		tp.emitLine("for _cj := 1; _cj <= %s; _cj++ {", size)
-		tp.emitLine("if rerr := db.Exec(fmt.Sprintf(\"INSERT INTO t1 VALUES(%%d,%%d)\", _ci, _cj)).Error; rerr != nil { t.Errorf(\"create_test_data insert: %%v\", rerr) }")
-		tp.emitLine("}")
-		tp.emitLine("}")
-		tp.emitLine("if rerr := db.Exec(\"COMMIT;\").Error; rerr != nil { t.Errorf(\"create_test_data commit: %%v\", rerr) }")
-		return
-	}
-
-	// prepare_for_optimize DB TBL (fts4opt.test): a local proc that rewrites
-	// the FTS %_segdir table, collapsing all segments in each level-group
-	// (level/1024) into a single level 1024*(level/1024)+32 with recomputed
-	// idx values. Inline its SQL body verbatim (sqlite3_db_config DEFENSIVE
-	// is irrelevant for the Go engine).
-	if cmdName == "prepare_for_optimize" && len(args) >= 2 {
-		tbl := strings.TrimSpace(args[1].Text)
-		if tbl != "" && !strings.ContainsAny(tbl, "$[") {
-			tp.emitLine("// prepare_for_optimize %s (inlined)", sanitizeTCLComment(tbl))
-			tp.emitLine("_res = db.Exec(tclPrepareForOptimizeSQL(%q))", tbl)
-			tp.emitLine("if _res.Error != nil { t.Errorf(\"prepare_for_optimize: %%v\", _res.Error) }")
-			return
-		}
-	}
-
-	// rebuild_t1 (e_delete.test): a local proc that drops and recreates the
-	// t1 test table with five fixed rows, then used as a do_select_tests
-	// -repair. Inline its body (catchsql DROP + CREATE + INSERTs).
-	if cmdName == "rebuild_t1" {
-		tp.emitLine("// rebuild_t1 (inlined)")
-		tp.emitLine("_res = db.Exec(\"DROP TABLE IF EXISTS t1\")")
-		tp.emitLine("_ = _res // catchsql")
-		tp.emitLine("_res = db.Exec(\"CREATE TABLE t1(a, b); INSERT INTO t1 VALUES(1, 'one'); INSERT INTO t1 VALUES(2, 'two'); INSERT INTO t1 VALUES(3, 'three'); INSERT INTO t1 VALUES(4, 'four'); INSERT INTO t1 VALUES(5, 'five');\")")
-		tp.emitLine("if _res.Error != nil { t.Errorf(\"rebuild_t1: %%v\", _res.Error) }")
-		return
-	}
-
-	// delete_all_data (SQLite test framework): deletes all rows from every
-	// table in every schema (main/temp/attached). Emit a per-table DELETE so
-	// later tests start from empty tables (e_insert's count(*) subqueries
-	// depend on it).
-	if cmdName == "delete_all_data" {
-		tp.emitLine("// delete_all_data (inlined)")
-		tp.emitLine("for _, _t := range db.Query(\"SELECT name FROM sqlite_master WHERE type IN('table') AND name NOT LIKE 'sqlite_%%'\").Rows {")
-		tp.emitLine("\t_res = db.Exec(\"DELETE FROM \" + tclQuoteIdent(fmt.Sprint(_t[0])))")
-		tp.emitLine("\t_ = _res")
-		tp.emitLine("}")
-		return
-	}
-
-	// sqlite3_drop_modules DB ?NAME...? — keep the named virtual table
-	// modules and drop all others (fts3dropmod.test).
-	if cmdName == "sqlite3_drop_modules" {
-		quoted := make([]string, 0, len(args)-1)
-		for _, a := range args[1:] {
-			quoted = append(quoted, fmt.Sprintf("%q", strings.TrimSpace(a.Text)))
-		}
-		tp.emitLine("%s.UnregisterVTabModulesExcept([]string{%s})", tp.dbVar, strings.Join(quoted, ", "))
-		return
-	}
-
-	// read_fts3varint BLOB VARNAME — decode an FTS3 varint from the front of
-	// BLOB, assign its value to VARNAME, return bytes consumed (fts3cov 2.x).
-	if cmdName == "read_fts3varint" && len(args) >= 2 {
-		blobExpr := tp.buildStringExpr(args[0].Text)
-		varName := tclVarToGo(strings.TrimSpace(strings.TrimPrefix(strings.TrimSpace(args[1].Text), "$")))
-		tp.emitLine("_nRead, _ftsVar := tclReadFTS3Varint(%s)", blobExpr)
-		tp.emitLine("%s = _ftsVar", varName)
-		tp.emitLine("_ = _nRead")
-		return
-	}
-
-	// register_cube_geom DB / register_circle_geom DB — install the harness
-	// r-tree geometry callbacks from src/test_rtree.c (rtree9.test).
-	if cmdName == "register_cube_geom" || cmdName == "register_circle_geom" {
-		conn := tp.dbVar
-		if len(args) >= 2 && strings.TrimSpace(args[1].Text) != "" {
-			conn = tclVarToGo(strings.TrimPrefix(strings.TrimSpace(args[1].Text), "$"))
-		}
-		geom := "cube"
-		if cmdName == "register_circle_geom" {
-			geom = "circle"
-		}
-		tp.emitLine("if err := %s.RegisterRtreeGeometry(%q); err != nil { t.Fatal(err) }", conn, geom)
-		return
-	}
-
-	// register_echo_module [sqlite3_connection_pointer db] / register_echo_module
-	// db — register the echo test module (src/test8.c) on the named connection
-	// (sqlite3_create_module parity). The module is per-connection, so the
-	// vtab lifecycle tests observe both the unregistered state ("no such
-	// module: echo") and the registered state (vtab1-1.x, vtab3, vtab6).
-	if cmdName == "register_echo_module" {
-		conn := tp.dbVar
-		if len(args) >= 1 {
-			if name := connNameFromPointerArg(args[0].Text); name != "" {
-				conn = tclVarToGo(name)
-			}
-		}
-		tp.emitLine("%s.RegisterEchoModule()", conn)
-		return
-	}
-
-	// corrupt_freelist FILE N — corrupt9.test's proc that overwrites the
-	// freelist trunk's leaf entries with duplicates of the first leaf page
-	// number (creating duplicate free-list entries). Emit a call to the
-	// harness helper implementing the same file surgery.
-	if cmdName == "corrupt_freelist" && len(args) >= 2 {
-		fileExpr := tp.goStringLiteral(args[0])
-		nExpr := tp.valueExpr(args[1])
-		tp.emitLine("tclCorruptFreelist(%s, %s)", fileExpr, nExpr)
-		return
-	}
-
-	// make_corrupt_file FNAME — the zipfile2.test proc that writes a crafted
-	// archive (60000-byte entry name, huge extra) to FNAME. Emit a call to
-	// the harness helper implementing the same construction.
-	if cmdName == "make_corrupt_file" && len(args) >= 1 {
-		fname := strings.TrimSpace(args[0].Text)
-		tp.emitLine("tclMakeCorruptFile(%s)", tp.goStringLiteral(tcl.RawWord{Text: fname}))
-		return
-	}
-
 	if emitFTS5RegisterStrStmt(tp, cmdName, args) {
 		return
 	}
@@ -755,6 +187,276 @@ func (tp *transpiler) processDefaultCommand(cmdName string, args []tcl.RawWord) 
 	} else {
 		tp.emitLine("// %s (unsupported command, not transpiled)", cmdName)
 	}
+}
+
+// emitDefaultSpecialProc handles the default-command local procs that the
+// transpiler inlines verbatim (sql36231, sql_uses_stmt, create_test_data,
+// prepare_for_optimize, rebuild_t1, delete_all_data). Returns true when
+// handled.
+func (tp *transpiler) emitDefaultSpecialProc(cmdName string, args []tcl.RawWord) bool {
+	switch cmdName {
+	case "sql36231":
+		return tp.emitSQL36231(args)
+	case "sql_uses_stmt":
+		return tp.emitSQLUsesStmt(args)
+	case "create_test_data":
+		return tp.emitCreateTestData(args)
+	case "prepare_for_optimize":
+		return tp.emitPrepareForOptimize(args)
+	case "rebuild_t1":
+		tp.emitRebuildT1()
+		return true
+	case "delete_all_data":
+		tp.emitDeleteAllData()
+		return true
+	}
+	return tp.emitDefaultFixtureProc(cmdName, args)
+}
+
+// emitDefaultFixtureProc handles the default-command fixture procs
+// (sqlite3_drop_modules, read_fts3varint, rtree geometry/echo registration,
+// corrupt-file helpers). Returns true when handled.
+func (tp *transpiler) emitDefaultFixtureProc(cmdName string, args []tcl.RawWord) bool {
+	switch cmdName {
+	case "sqlite3_drop_modules":
+		tp.emitSqlite3DropModules(args)
+		return true
+	case "read_fts3varint":
+		return tp.emitReadFTS3Varint(args)
+	case "register_cube_geom", "register_circle_geom":
+		tp.emitRegisterRtreeGeom(cmdName, args)
+		return true
+	case "register_echo_module":
+		tp.emitRegisterEchoModule(args)
+		return true
+	case "corrupt_freelist":
+		return tp.emitCorruptFreelist(args)
+	case "make_corrupt_file":
+		return tp.emitMakeCorruptFile(args)
+	}
+	return false
+}
+
+// emitSQL36231 inlines sql36231 (tester.tcl): runs SQL on a second connection
+// then restores the db-size header words (offsets 28 + 92), hiding the
+// page-count growth from the filefmt-2.x assertions.
+func (tp *transpiler) emitSQL36231(args []tcl.RawWord) bool {
+	if len(args) < 1 {
+		return false
+	}
+	sqlExpr := tp.collectSQLExpression(args)
+	tp.emitLine("_r36231A := tclHexioRead(\"test.db\", 28, 4)")
+	tp.emitLine("_r36231B := tclHexioRead(\"test.db\", 92, 8)")
+	tp.emitLine("db36231, _err36231 := frigolite.Open(\"test.db\")")
+	tp.emitLine("if _err36231 == nil {")
+	tp.emitLine("\tdb36231.RegisterFunction(\"a_string\", func(args []interface{}) (interface{}, error) {")
+	tp.emitLine("\t\tif len(args) < 1 || args[0] == nil { return \"\", nil }")
+	tp.emitLine("\t\treturn tclAString(&a_string_counter, tclToInt(tclStr(args[0]))), nil")
+	tp.emitLine("\t}, 1, 1)")
+	tp.emitLine("\t_res36231 := db36231.Exec(%s)", sqlExpr)
+	tp.emitLine("\t_ = _res36231")
+	tp.emitLine("\tdb36231.Close()")
+	tp.emitLine("}")
+	tp.emitLine("tclHexioWrite(\"test.db\", 28, _r36231A)")
+	tp.emitLine("tclHexioWrite(\"test.db\", 92, _r36231B)")
+	tp.emitLine("_r = \"\"")
+	return true
+}
+
+// emitSQLUsesStmt inlines sql_uses_stmt db $SQL — the TCL test-framework
+// probe for whether a statement is executed via sqlite3_prepare_v2
+// (statement-journal usage). The probe RUNS the SQL first (so the side
+// effects matter for later tests: fts4onepass 2.x INSERT/DELETE/UPDATE fire
+// triggers on the FTS table), then reports whether the VM used a statement
+// journal. The pure-Go engine always prepares and its statements are atomic,
+// so the journal probe is not meaningful; execute the SQL and skip the probe
+// result.
+func (tp *transpiler) emitSQLUsesStmt(args []tcl.RawWord) bool {
+	if len(args) < 2 {
+		return false
+	}
+	tp.emitLine("// sql_uses_stmt db $%s (statement-journal probe skipped; SQL executes)", sanitizeTCLComment(args[1].Text))
+	arg := strings.TrimSpace(args[1].Text)
+	if strings.HasPrefix(arg, "$") {
+		goVar := tclVarToGo(strings.TrimPrefix(arg, "$"))
+		if isValidGoIdent(goVar) {
+			tp.emitLine("_res = db.Exec(%s)", goVar)
+			tp.emitLine("_ = _res")
+			return true
+		}
+	}
+	sqlExpr := tp.goStringLiteral(args[1])
+	tp.emitLine("_res = db.Exec(%s)", sqlExpr)
+	tp.emitLine("_ = _res")
+	return true
+}
+
+// emitCreateTestData inlines create_test_data N (wherelimit.test): a local
+// proc building a size×size t1 grid (DROP/CREATE/BEGIN + nested INSERT loop
+// + COMMIT).
+func (tp *transpiler) emitCreateTestData(args []tcl.RawWord) bool {
+	if len(args) < 1 {
+		return false
+	}
+	size := strings.TrimSpace(args[0].Text)
+	tp.emitLine("// create_test_data %s (inlined)", size)
+	tp.emitLine("_res = db.Exec(\"DROP TABLE IF EXISTS t1; CREATE TABLE t1(x int, y int); BEGIN;\")")
+	tp.emitLine("if _res.Error != nil { t.Errorf(\"create_test_data drop/create: %%v\", _res.Error) }")
+	tp.emitLine("for _ci := 1; _ci <= %s; _ci++ {", size)
+	tp.emitLine("for _cj := 1; _cj <= %s; _cj++ {", size)
+	tp.emitLine("if rerr := db.Exec(fmt.Sprintf(\"INSERT INTO t1 VALUES(%%d,%%d)\", _ci, _cj)).Error; rerr != nil { t.Errorf(\"create_test_data insert: %%v\", rerr) }")
+	tp.emitLine("}")
+	tp.emitLine("}")
+	tp.emitLine("if rerr := db.Exec(\"COMMIT;\").Error; rerr != nil { t.Errorf(\"create_test_data commit: %%v\", rerr) }")
+	return true
+}
+
+// emitPrepareForOptimize inlines prepare_for_optimize DB TBL (fts4opt.test):
+// a local proc that rewrites the FTS %_segdir table, collapsing all segments
+// in each level-group (level/1024) into a single level 1024*(level/1024)+32
+// with recomputed idx values (sqlite3_db_config DEFENSIVE is irrelevant for
+// the Go engine).
+func (tp *transpiler) emitPrepareForOptimize(args []tcl.RawWord) bool {
+	if len(args) < 2 {
+		return false
+	}
+	tbl := strings.TrimSpace(args[1].Text)
+	if tbl == "" || strings.ContainsAny(tbl, "$[") {
+		return false
+	}
+	tp.emitLine("// prepare_for_optimize %s (inlined)", sanitizeTCLComment(tbl))
+	tp.emitLine("_res = db.Exec(tclPrepareForOptimizeSQL(%q))", tbl)
+	tp.emitLine("if _res.Error != nil { t.Errorf(\"prepare_for_optimize: %%v\", _res.Error) }")
+	return true
+}
+
+// emitRebuildT1 inlines rebuild_t1 (e_delete.test): a local proc that drops
+// and recreates the t1 test table with five fixed rows, then used as a
+// do_select_tests -repair.
+func (tp *transpiler) emitRebuildT1() {
+	tp.emitLine("// rebuild_t1 (inlined)")
+	tp.emitLine("_res = db.Exec(\"DROP TABLE IF EXISTS t1\")")
+	tp.emitLine("_ = _res // catchsql")
+	tp.emitLine("_res = db.Exec(\"CREATE TABLE t1(a, b); INSERT INTO t1 VALUES(1, 'one'); INSERT INTO t1 VALUES(2, 'two'); INSERT INTO t1 VALUES(3, 'three'); INSERT INTO t1 VALUES(4, 'four'); INSERT INTO t1 VALUES(5, 'five');\")")
+	tp.emitLine("if _res.Error != nil { t.Errorf(\"rebuild_t1: %%v\", _res.Error) }")
+}
+
+// emitDeleteAllData inlines delete_all_data (SQLite test framework): deletes
+// all rows from every table in every schema (main/temp/attached) so later
+// tests start from empty tables (e_insert's count(*) subqueries depend on it).
+func (tp *transpiler) emitDeleteAllData() {
+	tp.emitLine("// delete_all_data (inlined)")
+	tp.emitLine("for _, _t := range db.Query(\"SELECT name FROM sqlite_master WHERE type IN('table') AND name NOT LIKE 'sqlite_%%'\").Rows {")
+	tp.emitLine("\t_res = db.Exec(\"DELETE FROM \" + tclQuoteIdent(fmt.Sprint(_t[0])))")
+	tp.emitLine("\t_ = _res")
+	tp.emitLine("}")
+}
+
+// emitSqlite3DropModules inlines sqlite3_drop_modules DB ?NAME...? — keep the
+// named virtual table modules and drop all others (fts3dropmod.test).
+func (tp *transpiler) emitSqlite3DropModules(args []tcl.RawWord) {
+	quoted := make([]string, 0, len(args)-1)
+	for _, a := range args[1:] {
+		quoted = append(quoted, fmt.Sprintf("%q", strings.TrimSpace(a.Text)))
+	}
+	tp.emitLine("%s.UnregisterVTabModulesExcept([]string{%s})", tp.dbVar, strings.Join(quoted, ", "))
+}
+
+// emitReadFTS3Varint inlines read_fts3varint BLOB VARNAME — decode an FTS3
+// varint from the front of BLOB, assign its value to VARNAME, return bytes
+// consumed (fts3cov 2.x).
+func (tp *transpiler) emitReadFTS3Varint(args []tcl.RawWord) bool {
+	if len(args) < 2 {
+		return false
+	}
+	blobExpr := tp.buildStringExpr(args[0].Text)
+	varName := tclVarToGo(strings.TrimSpace(strings.TrimPrefix(strings.TrimSpace(args[1].Text), "$")))
+	tp.emitLine("_nRead, _ftsVar := tclReadFTS3Varint(%s)", blobExpr)
+	tp.emitLine("%s = _ftsVar", varName)
+	tp.emitLine("_ = _nRead")
+	return true
+}
+
+// emitRegisterRtreeGeom inlines register_cube_geom DB /
+// register_circle_geom DB — install the harness r-tree geometry callbacks
+// from src/test_rtree.c (rtree9.test).
+func (tp *transpiler) emitRegisterRtreeGeom(cmdName string, args []tcl.RawWord) {
+	conn := tp.dbVar
+	if len(args) >= 2 && strings.TrimSpace(args[1].Text) != "" {
+		conn = tclVarToGo(strings.TrimPrefix(strings.TrimSpace(args[1].Text), "$"))
+	}
+	geom := "cube"
+	if cmdName == "register_circle_geom" {
+		geom = "circle"
+	}
+	tp.emitLine("if err := %s.RegisterRtreeGeometry(%q); err != nil { t.Fatal(err) }", conn, geom)
+}
+
+// emitRegisterEchoModule inlines register_echo_module
+// [sqlite3_connection_pointer db] / register_echo_module db — register the
+// echo test module (src/test8.c) on the named connection
+// (sqlite3_create_module parity). The module is per-connection, so the vtab
+// lifecycle tests observe both the unregistered state ("no such module:
+// echo") and the registered state (vtab1-1.x, vtab3, vtab6).
+func (tp *transpiler) emitRegisterEchoModule(args []tcl.RawWord) {
+	conn := tp.dbVar
+	if len(args) >= 1 {
+		if name := connNameFromPointerArg(args[0].Text); name != "" {
+			conn = tclVarToGo(name)
+		}
+	}
+	tp.emitLine("%s.RegisterEchoModule()", conn)
+}
+
+// emitCorruptFreelist inlines corrupt_freelist FILE N — corrupt9.test's proc
+// that overwrites the freelist trunk's leaf entries with duplicates of the
+// first leaf page number (creating duplicate free-list entries).
+func (tp *transpiler) emitCorruptFreelist(args []tcl.RawWord) bool {
+	if len(args) < 2 {
+		return false
+	}
+	fileExpr := tp.goStringLiteral(args[0])
+	nExpr := tp.valueExpr(args[1])
+	tp.emitLine("tclCorruptFreelist(%s, %s)", fileExpr, nExpr)
+	return true
+}
+
+// emitMakeCorruptFile inlines make_corrupt_file FNAME — the zipfile2.test
+// proc that writes a crafted archive (60000-byte entry name, huge extra) to
+// FNAME.
+func (tp *transpiler) emitMakeCorruptFile(args []tcl.RawWord) bool {
+	if len(args) < 1 {
+		return false
+	}
+	fname := strings.TrimSpace(args[0].Text)
+	tp.emitLine("tclMakeCorruptFile(%s)", tp.goStringLiteral(tcl.RawWord{Text: fname}))
+	return true
+}
+
+// optionalConnVar resolves an optional leading connection-name argument,
+// defaulting to the main db variable.
+func (tp *transpiler) optionalConnVar(args []tcl.RawWord) string {
+	connVar := tp.dbVar
+	if len(args) >= 1 {
+		if v := strings.TrimSpace(args[0].Text); isValidGoIdent(tclVarToGo(v)) {
+			connVar = tclVarToGo(v)
+		}
+	}
+	return connVar
+}
+
+// digitsOrZero renders n as a numeric literal, or "0" when it is empty or
+// not all digits.
+func digitsOrZero(n string) string {
+	if n == "" {
+		return "0"
+	}
+	for _, ch := range n {
+		if ch < '0' || ch > '9' {
+			return "0"
+		}
+	}
+	return n
 }
 
 // inlineDefaultQueryProc handles the default-command procs that inline a
@@ -779,28 +481,26 @@ func (tp *transpiler) inlineDefaultQueryProc(cmdName string, args []tcl.RawWord)
 			return true
 		}
 	}
+	if tp.emitValueProcCall(cmdName, args) {
+		return true
+	}
+	return tp.emitQuotaEQPProcCall(cmdName, args)
+}
+
+// emitValueProcCall handles the fixed-name value procs: t1sig (table
+// fingerprint), cksum (database fingerprint), and the pager change-counter
+// readers/writer (exclusive2.test). Returns true when handled.
+func (tp *transpiler) emitValueProcCall(cmdName string, args []tcl.RawWord) bool {
 	// t1sig [CONN] (exclusive2.test): table fingerprint (count + md5sum).
 	// The optional argument names the connection variable (default "db").
 	if body, ok := globalProcBodies[cmdName]; ok && userProcEmitterFor(cmdName, body) == "table_sig" {
 		table, col, _ := tableSigProcInfo(body)
-		connVar := tp.dbVar
-		if len(args) >= 1 {
-			if v := strings.TrimSpace(args[0].Text); isValidGoIdent(tclVarToGo(v)) {
-				connVar = tclVarToGo(v)
-			}
-		}
-		tp.emitLine("_r = tclTableSig(%s, %q, %q)", connVar, table, col)
+		tp.emitLine("_r = tclTableSig(%s, %q, %q)", tp.optionalConnVar(args), table, col)
 		return true
 	}
 	// cksum [CONN] (tester.tcl framework proc): the database fingerprint.
 	if cmdName == "cksum" {
-		connVar := tp.dbVar
-		if len(args) >= 1 {
-			if v := strings.TrimSpace(args[0].Text); isValidGoIdent(tclVarToGo(v)) {
-				connVar = tclVarToGo(v)
-			}
-		}
-		tp.emitLine("_r = tclCksum(%s)", connVar)
+		tp.emitLine("_r = tclCksum(%s)", tp.optionalConnVar(args))
 		return true
 	}
 	// readPagerChangeCounter FILE (exclusive2.test): the database header
@@ -814,20 +514,15 @@ func (tp *transpiler) inlineDefaultQueryProc(cmdName string, args []tcl.RawWord)
 	// only changes which TCL channel performs the write.
 	if cmdName == "pagerChangeCounter" && len(args) >= 2 {
 		pathExpr := tp.goStringLiteral(args[0])
-		nExpr := strings.TrimSpace(args[1].Text)
-		allDigits := nExpr != ""
-		for _, ch := range nExpr {
-			if ch < '0' || ch > '9' {
-				allDigits = false
-				break
-			}
-		}
-		if !allDigits {
-			nExpr = "0"
-		}
-		tp.emitLine("_r = tclSetPagerChangeCounter(%s, %s)", pathExpr, nExpr)
+		tp.emitLine("_r = tclSetPagerChangeCounter(%s, %s)", pathExpr, digitsOrZero(strings.TrimSpace(args[1].Text)))
 		return true
 	}
+	return false
+}
+
+// emitQuotaEQPProcCall handles the quota_list / quota_size / eqp value procs.
+// Returns true when handled.
+func (tp *transpiler) emitQuotaEQPProcCall(cmdName string, args []tcl.RawWord) bool {
 	// quota_list (quota.test): the sorted list of quota-group patterns from
 	// sqlite3_quota_dump. A do_test body ending in `quota_list` compares
 	// against the pattern list.
@@ -939,54 +634,39 @@ func (tp *transpiler) processBinaryCommand(args []tcl.RawWord) {
 	sub := args[0].Text
 	// binary scan $b FORMAT name — convert bytes to int-string.
 	if sub == "scan" {
-		if len(args) != 4 {
-			// multi-result or other exotic form: fall through
-			tp.processInfraComment("binary", args)
-			return
-		}
-		bsrc := args[1].Text
-		format := args[2].Text
-		varName := args[3].Text
-		goSrc := tclVarToGo(bsrc)
-		if !isValidGoIdent(goSrc) {
-			tp.processInfraComment("binary", args)
-			return
-		}
-		goName := tclVarToGo(varName)
-		if !isValidGoIdent(goName) {
-			tp.processInfraComment("binary", args)
-			return
-		}
-		switch format {
-		case "S":
-			tp.assignSetValue(goName, "tclBinaryScanBigUint16("+goSrc+")")
-		case "I":
-			tp.assignSetValue(goName, "tclBinaryScanBigUint32("+goSrc+")")
-		default:
-			tp.processInfraComment("binary", args)
-		}
+		tp.processBinaryScan(args)
 		return
 	}
 	// Fall through for any other binary form.
 	tp.processInfraComment("binary", args)
 }
 
-
-// connNameFromPointerArg extracts the connection name from a
-// register_echo_module argument: either a bare connection name ("db") or a
-// sqlite3_connection_pointer command substitution ("[sqlite3_connection_pointer
-// db2]"). Returns "" when no name can be extracted.
-func connNameFromPointerArg(arg string) string {
-	arg = strings.TrimSpace(arg)
-	arg = strings.TrimPrefix(arg, "[")
-	arg = strings.TrimSuffix(arg, "]")
-	fields := strings.Fields(arg)
-	if len(fields) == 0 {
-		return ""
+// processBinaryScan handles the `binary scan $b FORMAT name` form.
+func (tp *transpiler) processBinaryScan(args []tcl.RawWord) {
+	if len(args) != 4 {
+		// multi-result or other exotic form: fall through
+		tp.processInfraComment("binary", args)
+		return
 	}
-	last := fields[len(fields)-1]
-	if last == "" || strings.ContainsAny(last, "$[]") {
-		return ""
+	bsrc := args[1].Text
+	format := args[2].Text
+	varName := args[3].Text
+	goSrc := tclVarToGo(bsrc)
+	if !isValidGoIdent(goSrc) {
+		tp.processInfraComment("binary", args)
+		return
 	}
-	return last
+	goName := tclVarToGo(varName)
+	if !isValidGoIdent(goName) {
+		tp.processInfraComment("binary", args)
+		return
+	}
+	switch format {
+	case "S":
+		tp.assignSetValue(goName, "tclBinaryScanBigUint16("+goSrc+")")
+	case "I":
+		tp.assignSetValue(goName, "tclBinaryScanBigUint32("+goSrc+")")
+	default:
+		tp.processInfraComment("binary", args)
+	}
 }

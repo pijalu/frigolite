@@ -84,14 +84,10 @@ func authorizerProcSignature(params string) bool {
 	return len(items) >= 4
 }
 
-// authorizerProcBodyTranspilable reports whether a TCL authorizer body uses
-// only the transpilable subset: if/elseif/else chains returning SQLITE_*
-// constants, with conditions comparing $code/$arg1..$arg4 against string
-// literals via == / && / || / !. Bodies that use lappend/set/expr/regexp/
-// switch/foreach (other than the ::authargs recording, which is no-oped) are
-// rejected (the transpiler falls back to the no-op path; those tests are
-// per-test skipped).
-func authorizerProcBodyTranspilable(body string) bool {
+// normalizeAuthorizerBody strips the no-op recording constructs (the
+// ::authargs log set lines, lappend/incr on namespace vars, lsearch
+// conditions, numeric if guards) that authorizerProcBodyTranspilable admits.
+func normalizeAuthorizerBody(body string) string {
 	// `set ::authargs [list ...]` records the callback args in a TCL
 	// namespace variable (the tests read it later as the callback log). The
 	// transpiler no-ops that variable; the set lines are skipped during
@@ -109,6 +105,34 @@ func authorizerProcBodyTranspilable(body string) bool {
 	normalized = authorizerLsearchCond.ReplaceAllString(normalized, "")
 	normalized = regexp.MustCompile(`(?m)^\s*if \{\$(::)?[A-Za-z0-9_]+\s*==\s*-?[0-9]+\}\s*\{`).
 		ReplaceAllString(normalized, "if {")
+	return normalized
+}
+
+// authorizerReturnsAllowed reports whether every `return X` in the body
+// returns one of the SQLITE_* result constants.
+func authorizerReturnsAllowed(normalized string) bool {
+	if regexp.MustCompile(`(?m)return\s+([A-Za-z_]+)`).FindAllString(normalized, -1) == nil {
+		return true
+	}
+	for _, m := range regexp.MustCompile(`(?m)return\s+([A-Za-z_]+)`).FindAllStringSubmatch(normalized, -1) {
+		switch strings.ToUpper(m[1]) {
+		case "SQLITE_OK", "SQLITE_DENY", "SQLITE_IGNORE":
+		default:
+			return false
+		}
+	}
+	return true
+}
+
+// authorizerProcBodyTranspilable reports whether a TCL authorizer body uses
+// only the transpilable subset: if/elseif/else chains returning SQLITE_*
+// constants, with conditions comparing $code/$arg1..$arg4 against string
+// literals via == / && / || / !. Bodies that use lappend/set/expr/regexp/
+// switch/foreach (other than the ::authargs recording, which is no-oped) are
+// rejected (the transpiler falls back to the no-op path; those tests are
+// per-test skipped).
+func authorizerProcBodyTranspilable(body string) bool {
+	normalized := normalizeAuthorizerBody(body)
 	if strings.Contains(normalized, "lappend") ||
 		strings.Contains(normalized, "regexp") || strings.Contains(normalized, "switch") ||
 		strings.Contains(normalized, "expr") || strings.Contains(normalized, "foreach") ||
@@ -122,17 +146,7 @@ func authorizerProcBodyTranspilable(body string) bool {
 		return false
 	}
 	// Every return must be one of the SQLITE_* result constants.
-	if regexp.MustCompile(`(?m)return\s+([A-Za-z_]+)`).FindAllString(normalized, -1) != nil {
-		for _, m := range regexp.MustCompile(`(?m)return\s+([A-Za-z_]+)`).FindAllStringSubmatch(normalized, -1) {
-			v := strings.ToUpper(m[1])
-			switch v {
-			case "SQLITE_OK", "SQLITE_DENY", "SQLITE_IGNORE":
-			default:
-				return false
-			}
-		}
-	}
-	return true
+	return authorizerReturnsAllowed(normalized)
 }
 
 // ensureAuthCurrentDecl emits the package-level authCurrent variable and the
@@ -165,6 +179,48 @@ func (tp *transpiler) ensureAuthCurrentDecl() {
 var authorizerLsearchCond = regexp.MustCompile(
 	`\{?\[lsearch \$(::)?([A-Za-z0-9_]+) \$(::)?([A-Za-z0-9_]+)\]\s*(>=|<=|==|!=|<|>)\s*(-?[0-9]+)\}?`)
 
+// emitAuthorizerLappend emits one `lappend ::log $code $arg1 ...` recording
+// statement (appending the callback arguments to the recording variable; the
+// generated test reads the same name as a Go local; the TCL-mirror global
+// stays in sync for helpers reading through the registry).
+func (tp *transpiler) emitAuthorizerLappend(m []string) {
+	varName := tclVarToGo(m[1])
+	var elems []string
+	for _, raw := range regexp.MustCompile(`\$(::)?([A-Za-z0-9_]+)`).FindAllStringSubmatch(m[2], -1) {
+		elems = append(elems, authorizerVarToGo(raw[2]))
+	}
+	if len(elems) > 0 && !containsEmpty(elems) {
+		tp.emitLine("%s = tclListAppend(%s, %s)", varName, varName, strings.Join(elems, ", "))
+		tp.emitLine("vtab.TclVarSet(%q, \"\", %s)", m[1], varName)
+	}
+}
+
+// emitAuthorizerIncr emits one `incr ::counter [N]` deny-counter adjustment
+// (authorizerProcBodyTranspilable only admits the matching shapes).
+func (tp *transpiler) emitAuthorizerIncr(name, amount string) {
+	tp.emitLine("tclIncrMod(&%s, %s)", tclVarToGo(name), amount)
+	tp.emitLine("vtab.TclVarSet(%q, \"\", %s)", name, tclVarToGo(name))
+}
+
+// authorizerLineHandled emits one recording-statement line (lappend/incr on
+// namespace vars) of an authorizer body. Returns handled=true when the line
+// was consumed.
+func (tp *transpiler) authorizerLineHandled(line string) bool {
+	if m := regexp.MustCompile(`^lappend\s+::?([A-Za-z0-9_]+)((?:\s+\$(::)?[A-Za-z0-9_]+)+)$`).FindStringSubmatch(line); m != nil {
+		tp.emitAuthorizerLappend(m)
+		return true
+	}
+	if m := regexp.MustCompile(`^incr\s+::?([A-Za-z0-9_]+)\s+(-?[0-9]+)$`).FindStringSubmatch(line); m != nil {
+		tp.emitAuthorizerIncr(m[1], m[2])
+		return true
+	}
+	if m := regexp.MustCompile(`^incr\s+::?([A-Za-z0-9_]+)$`).FindStringSubmatch(line); m != nil {
+		tp.emitAuthorizerIncr(m[1], "1")
+		return true
+	}
+	return false
+}
+
 // emitAuthorizerBody transpiles the if/elseif/return chain of an authorizer
 // proc body. The body consists of `if {COND} { return SQLITE_X }` blocks
 // (optionally elseif/else) — plus, in recording procs (vtab3.test), lappend
@@ -180,34 +236,7 @@ func (tp *transpiler) emitAuthorizerBody(body string) {
 			i++
 			continue
 		}
-		// lappend ::auth_log $code $arg1 $arg2 $arg3 $arg4 — append the
-		// callback arguments to the recording variable (the generated test
-		// reads the same name as a Go local; the TCL-mirror global stays in
-		// sync for helpers reading through the registry).
-		if m := regexp.MustCompile(`^lappend\s+::?([A-Za-z0-9_]+)((?:\s+\$(::)?[A-Za-z0-9_]+)+)$`).FindStringSubmatch(line); m != nil {
-			varName := tclVarToGo(m[1])
-			var elems []string
-			for _, raw := range regexp.MustCompile(`\$(::)?([A-Za-z0-9_]+)`).FindAllStringSubmatch(m[2], -1) {
-				elems = append(elems, authorizerVarToGo(raw[2]))
-			}
-			if len(elems) > 0 && !containsEmpty(elems) {
-				tp.emitLine("%s = tclListAppend(%s, %s)", varName, varName, strings.Join(elems, ", "))
-				tp.emitLine("vtab.TclVarSet(%q, \"\", %s)", m[1], varName)
-				i++
-				continue
-			}
-		}
-		// incr ::auth_fail -1 — adjust the deny counter (string local).
-		if m := regexp.MustCompile(`^incr\s+::?([A-Za-z0-9_]+)\s+(-?[0-9]+)$`).FindStringSubmatch(line); m != nil {
-			// (authorizerProcBodyTranspilable only admits the matching shapes)
-			tp.emitLine("tclIncrMod(&%s, %s)", tclVarToGo(m[1]), m[2])
-			tp.emitLine("vtab.TclVarSet(%q, \"\", %s)", m[1], tclVarToGo(m[1]))
-			i++
-			continue
-		}
-		if m := regexp.MustCompile(`^incr\s+::?([A-Za-z0-9_]+)$`).FindStringSubmatch(line); m != nil {
-			tp.emitLine("tclIncrMod(&%s, 1)", tclVarToGo(m[1]))
-			tp.emitLine("vtab.TclVarSet(%q, \"\", %s)", m[1], tclVarToGo(m[1]))
+		if tp.authorizerLineHandled(line) {
 			i++
 			continue
 		}
@@ -465,7 +494,6 @@ func authorizerBodyEndsWithBareReturn(body string) bool {
 	}
 	return false
 }
-
 
 // containsEmpty reports whether any element is the empty string (an
 // authorizer parameter the emitter could not map).

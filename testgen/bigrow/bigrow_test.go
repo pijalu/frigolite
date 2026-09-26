@@ -286,7 +286,18 @@ func Test_bigrow(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT b FROM t1 WHERE a=='" + big1 + "'")
 		}
 	}
-	{ // "bigrow-2.2" — skipped: want rendered via tclListFlatten drops the trailing space of the last list element (::big1 ends '9360 '); TCL [list $::big1] keeps it (no-side-effects)
+	{ // do_test "bigrow-2.2"
+		_res = db.Exec("\n    UPDATE t1 SET a=b, b=a\n  ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    UPDATE t1 SET a=b, b=a\n  ")
+		}
+		r = db.Query("SELECT b FROM t1 WHERE a=='abc'")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "SELECT b FROM t1 WHERE a=='abc'")
+		}
+		if flatten(r) != tclListFlatten(big1) {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", flatten(r), tclListFlatten(big1), "bigrow-2.2")
+		}
 	}
 	{ // do_test "bigrow-2.3"
 		_res = db.Exec("\n    UPDATE t1 SET a=b, b=a\n  ")

@@ -536,26 +536,40 @@ func callbackColumnName(tok string) string {
 func namedDBSubCmdHandler(sub string) func(*transpiler, string, string, []tcl.RawWord) {
 	if namedDBSubCmds == nil {
 		namedDBSubCmds = map[string]func(*transpiler, string, string, []tcl.RawWord){
-			"close":            func(tp *transpiler, goName, dbName string, _ []tcl.RawWord) { tp.processNamedDBClose(goName, dbName) },
-			"backup":           func(tp *transpiler, goName, _ string, rest []tcl.RawWord) { tp.processNamedDBBackupRestore(goName, "backup", rest) },
-			"restore":          func(tp *transpiler, goName, _ string, rest []tcl.RawWord) { tp.processNamedDBBackupRestore(goName, "restore", rest) },
-			"eval":             func(tp *transpiler, goName, _ string, rest []tcl.RawWord) { tp.processNamedDBEval(goName, rest) },
-			"onecolumn":        func(tp *transpiler, goName, _ string, rest []tcl.RawWord) { tp.processNamedDBOnecolumn(goName, rest) },
-			"function":         func(tp *transpiler, goName, _ string, rest []tcl.RawWord) { tp.processNamedDBFunction(goName, rest) },
-			"func":             func(tp *transpiler, goName, _ string, rest []tcl.RawWord) { tp.processNamedDBFunction(goName, rest) },
-			"changes":          func(tp *transpiler, goName, _ string, _ []tcl.RawWord) { tp.emitLine("_r = strconv.FormatInt(%s.Changes(), 10)", goName) },
-			"total_changes":    func(tp *transpiler, goName, _ string, _ []tcl.RawWord) { tp.emitLine("_r = strconv.FormatInt(%s.TotalChanges(), 10)", goName) },
-			"transaction":      func(tp *transpiler, goName, _ string, rest []tcl.RawWord) { tp.processNamedDBTransaction(goName, rest) },
-			"cache":            namedDBNoop,
-			"create_function":  namedDBNoop,
-			"trace":            func(tp *transpiler, goName, _ string, rest []tcl.RawWord) { tp.processNamedDBTraceProfile(goName, rest, "trace") },
-			"profile":          func(tp *transpiler, goName, _ string, rest []tcl.RawWord) { tp.processNamedDBTraceProfile(goName, rest, "profile") },
-			"trace_v2":         func(tp *transpiler, goName, _ string, rest []tcl.RawWord) { tp.processNamedDBTraceV2(goName, rest) },
-			"busy":             func(tp *transpiler, goName, _ string, rest []tcl.RawWord) { tp.processNamedDBBusy(goName, rest) },
-			"collate":          func(tp *transpiler, goName, _ string, rest []tcl.RawWord) { tp.processNamedDBCollate(goName, rest) },
-			"collation_needed": func(tp *transpiler, goName, _ string, rest []tcl.RawWord) { tp.processNamedDBCollationNeeded(goName, rest) },
-			"progress":         func(tp *transpiler, _ string, _ string, rest []tcl.RawWord) { tp.processNamedDBProgress(rest) },
-			"authorizer":       func(tp *transpiler, goName, _ string, rest []tcl.RawWord) { tp.processNamedDBAuthorizer(goName, rest) },
+			"close": func(tp *transpiler, goName, dbName string, _ []tcl.RawWord) { tp.processNamedDBClose(goName, dbName) },
+			"backup": func(tp *transpiler, goName, _ string, rest []tcl.RawWord) {
+				tp.processNamedDBBackupRestore(goName, "backup", rest)
+			},
+			"restore": func(tp *transpiler, goName, _ string, rest []tcl.RawWord) {
+				tp.processNamedDBBackupRestore(goName, "restore", rest)
+			},
+			"eval":      func(tp *transpiler, goName, _ string, rest []tcl.RawWord) { tp.processNamedDBEval(goName, rest) },
+			"onecolumn": func(tp *transpiler, goName, _ string, rest []tcl.RawWord) { tp.processNamedDBOnecolumn(goName, rest) },
+			"function":  func(tp *transpiler, goName, _ string, rest []tcl.RawWord) { tp.processNamedDBFunction(goName, rest) },
+			"func":      func(tp *transpiler, goName, _ string, rest []tcl.RawWord) { tp.processNamedDBFunction(goName, rest) },
+			"changes": func(tp *transpiler, goName, _ string, _ []tcl.RawWord) {
+				tp.emitLine("_r = strconv.FormatInt(%s.Changes(), 10)", goName)
+			},
+			"total_changes": func(tp *transpiler, goName, _ string, _ []tcl.RawWord) {
+				tp.emitLine("_r = strconv.FormatInt(%s.TotalChanges(), 10)", goName)
+			},
+			"transaction":     func(tp *transpiler, goName, _ string, rest []tcl.RawWord) { tp.processNamedDBTransaction(goName, rest) },
+			"cache":           namedDBNoop,
+			"create_function": namedDBNoop,
+			"trace": func(tp *transpiler, goName, _ string, rest []tcl.RawWord) {
+				tp.processNamedDBTraceProfile(goName, rest, "trace")
+			},
+			"profile": func(tp *transpiler, goName, _ string, rest []tcl.RawWord) {
+				tp.processNamedDBTraceProfile(goName, rest, "profile")
+			},
+			"trace_v2": func(tp *transpiler, goName, _ string, rest []tcl.RawWord) { tp.processNamedDBTraceV2(goName, rest) },
+			"busy":     func(tp *transpiler, goName, _ string, rest []tcl.RawWord) { tp.processNamedDBBusy(goName, rest) },
+			"collate":  func(tp *transpiler, goName, _ string, rest []tcl.RawWord) { tp.processNamedDBCollate(goName, rest) },
+			"collation_needed": func(tp *transpiler, goName, _ string, rest []tcl.RawWord) {
+				tp.processNamedDBCollationNeeded(goName, rest)
+			},
+			"progress":   func(tp *transpiler, _ string, _ string, rest []tcl.RawWord) { tp.processNamedDBProgress(rest) },
+			"authorizer": func(tp *transpiler, goName, _ string, rest []tcl.RawWord) { tp.processNamedDBAuthorizer(goName, rest) },
 		}
 	}
 	return namedDBSubCmds[sub]
