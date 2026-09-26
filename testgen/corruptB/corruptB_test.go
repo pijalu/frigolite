@@ -226,11 +226,13 @@ func Test_corruptB(t *testing.T) {
 		_ = _res // catchsql
 	}
 	{ // "corruptB-3.1.1" — skipped: write-path: balance/split leaves stale ptrmap entries, AllocateRootPage relocation fails on pristine auto_vacuum DB (reported FULL-SUITE-DRIFT.T26-corrupt) (SQL + file side effects only)
-		db.Close()
 		tclFileCopy("bak.db", "test.db")
+		db.Close()
+		db, err = frigolite.Open("test.db")
+		if err != nil { t.Fatal(err) }
+		tclConnRegister("db", db)
 		_res = db.Exec("\n    CREATE TABLE t2(a);\n    INSERT INTO t2 VALUES(" + sqlLiteral(v) + ");\n  ")
 		_ = _res.Error // tolerate unsupported-feature errors in skipped tests
-		db.Close()
 	}
 	{ // do_test "corruptB-3.1.2"
 		_dbtmp1, err := frigolite.Open("test.db")

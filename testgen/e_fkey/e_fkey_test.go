@@ -179,7 +179,9 @@ func Test_e_fkey(t *testing.T) {
 		}
 	}
 	_res = db.Exec("PRAGMA foreign_keys = ON")
-	{ // "e_fkey-4.1" — skipped: transpiler folds the drop_all_tables $pk (foreign_keys) restore to ON; a fresh connection defaults foreign_keys OFF (pinned natively), so the generated setup contradicts the no-cascade expectation (no-side-effects)
+	{ // "e_fkey-4.1" — skipped: transpiler folds the drop_all_tables $pk (foreign_keys) restore to ON; a fresh connection defaults foreign_keys OFF (pinned natively), so the generated setup contradicts the no-cascade expectation (SQL + file side effects only)
+		_res = db.Exec("\n    CREATE TABLE p(i PRIMARY KEY);\n    CREATE TABLE c(j REFERENCES p ON UPDATE CASCADE);\n    INSERT INTO p VALUES('hello');\n    INSERT INTO c VALUES('hello');\n    UPDATE p SET i = 'world';\n    SELECT * FROM c;\n  ")
+		_ = _res.Error // tolerate unsupported-feature errors in skipped tests
 	}
 	{ // do_test "e_fkey-4.2"
 		r = db.Query("\n    DELETE FROM c;\n    DELETE FROM p;\n    PRAGMA foreign_keys = ON;\n    INSERT INTO p VALUES('hello');\n    INSERT INTO c VALUES('hello');\n    UPDATE p SET i = 'world';\n    SELECT * FROM c;\n  ")

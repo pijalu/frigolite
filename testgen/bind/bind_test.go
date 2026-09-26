@@ -687,7 +687,7 @@ func Test_bind(t *testing.T) {
 			var _catchErr error
 			_ = _catchErr // suppress unused warning
 			_r = ""
-			if _r = tclBindStmt(db, "VM", 0, "text", "abc", 3); _r != "SQLITE_OK" && _r != "" { _catchErr = fmt.Errorf("") }
+			if _r = tclBindStmt(db, "VM", 0, "text", "abc", 3); _r != "SQLITE_OK" && _r != "" { _catchErr = fmt.Errorf("%s", _r) }
 		}
 	}
 	{ // do_test "bind-8.12"

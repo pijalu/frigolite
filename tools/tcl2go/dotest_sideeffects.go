@@ -14,7 +14,7 @@ import (
 // skipSideEffect is one ordered side effect of a skipped do_test body: a
 // SQL execution on a connection, or a pure file operation later tests rely on.
 type skipSideEffect struct {
-	kind    string // "sql", "close", "remove", "mkdir", "copy"
+	kind    string // "sql", "close", "remove", "mkdir", "copy", "reopen"
 	connVar string
 	sqlExpr string
 	goArgs  []string
@@ -39,11 +39,30 @@ func (tp *transpiler) emitSkippedDoTestSideEffects(name, reason string, args []t
 		}
 		if eff, ok := tp.fileSideEffectCmd(cmd); ok {
 			effects = append(effects, eff)
+			continue
+		}
+		// `sqlite3 db FILE` inside a skipped body re-binds the main
+		// connection to FILE (pragma-3.19: `forcedelete test.db; sqlite3 db
+		// test.db` — replaying the forcedelete without the reopen leaves db
+		// writing to an unlinked inode and the following do_test fails with
+		// "attempt to write a readonly database"). Skipped tests whose N-A
+		// subject IS the reopen lifecycle (vtab1-1.1x's echo
+		// reopen-unregister family: C unregisters a test module on reopen,
+		// which the engine cannot model) opt out — replaying the reopen
+		// there re-activates the very seam the skip adjudicated. Only the
+		// pre-declared main connection is handled; secondary handles keep
+		// their old conservative no-op.
+		if eff, ok := tp.reopenSideEffectCmd(cmd, reason); ok {
+			effects = append(effects, eff)
 		}
 	}
 	if len(effects) == 0 {
 		return false
 	}
+	// A reopen closes the connection itself; a preceding `db close` effect
+	// for the same connection would emit a redundant (and confusing) second
+	// Close.
+	effects = dropCloseBeforeReopen(effects)
 	hasSQL := false
 	for _, eff := range effects {
 		if eff.kind == "sql" {
@@ -66,6 +85,28 @@ func (tp *transpiler) emitSkippedDoTestSideEffects(name, reason string, args []t
 	return true
 }
 
+// dropCloseBeforeReopen removes `close` effects immediately superseded by a
+// later `reopen` of the same connection (the reopen emits its own Close).
+func dropCloseBeforeReopen(effects []skipSideEffect) []skipSideEffect {
+	reopened := make(map[string]bool)
+	for _, eff := range effects {
+		if eff.kind == "reopen" {
+			reopened[eff.connVar] = true
+		}
+	}
+	if len(reopened) == 0 {
+		return effects
+	}
+	out := make([]skipSideEffect, 0, len(effects))
+	for _, eff := range effects {
+		if eff.kind == "close" && reopened[eff.connVar] {
+			continue
+		}
+		out = append(out, eff)
+	}
+	return out
+}
+
 // emitSkipEffect emits one side-effect statement of a skipped do_test body.
 func (tp *transpiler) emitSkipEffect(eff skipSideEffect) {
 	switch eff.kind {
@@ -74,6 +115,11 @@ func (tp *transpiler) emitSkipEffect(eff skipSideEffect) {
 		tp.emitLine("_ = _res.Error // tolerate unsupported-feature errors in skipped tests")
 	case "close":
 		tp.emitLine("%s.Close()", eff.connVar)
+	case "reopen":
+		tp.emitLine("%s.Close()", eff.connVar)
+		tp.emitLine("%s, err = frigolite.Open(%s)", eff.connVar, eff.goArgs[0])
+		tp.emitLine("if err != nil { t.Fatal(err) }")
+		tp.emitLine("tclConnRegister(%q, %s)", eff.connVar, eff.connVar)
 	case "remove":
 		tp.emitLine("os.RemoveAll(%s)", eff.goArgs[0])
 	case "mkdir":
@@ -119,6 +165,25 @@ func (tp *transpiler) fileSideEffectCmd(cmd []tcl.RawWord) (skipSideEffect, bool
 		return skipSideEffect{kind: "copy", goArgs: args[:2]}, true
 	}
 	return skipSideEffect{}, false
+}
+
+// reopenSideEffectCmd classifies a `sqlite3 db FILE` body command as a
+// main-connection re-bind the later tests depend on. Only the main "db"
+// connection is handled (db1..db9 reopen shapes differ in declaration
+// status); the filename must be a string literal. Skips whose reason names
+// the reopen-unregister lifecycle as the N-A subject do not replay it.
+func (tp *transpiler) reopenSideEffectCmd(cmd []tcl.RawWord, reason string) (skipSideEffect, bool) {
+	if strings.Contains(reason, "reopen-unregister") {
+		return skipSideEffect{}, false
+	}
+	if len(cmd) < 3 || cmd[0].Text != "sqlite3" || cmd[1].Text != "db" {
+		return skipSideEffect{}, false
+	}
+	filename := strings.TrimSpace(cmd[2].Text)
+	if strings.HasPrefix(filename, "$") || strings.HasPrefix(filename, "[") {
+		return skipSideEffect{}, false
+	}
+	return skipSideEffect{kind: "reopen", connVar: "db", goArgs: []string{tp.goStringLiteral(cmd[2])}}, true
 }
 
 // classifyFileCmd maps a body command to its side-effect kind and the

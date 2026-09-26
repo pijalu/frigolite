@@ -9,6 +9,7 @@ package lockreg
 
 import (
 	"sync"
+	"sync/atomic"
 )
 
 // Global is the process-wide lock registry shared by all connections. Tests
@@ -21,10 +22,10 @@ var Global = New()
 // on the same file.
 var nextConnID int64
 
-// NewConnID returns a fresh unique connection ID.
+// NewConnID returns a fresh unique connection ID. Atomic: connections open
+// concurrently (parallel harness subtests), and the counter is package-level.
 func NewConnID() int64 {
-	nextConnID++
-	return nextConnID
+	return atomic.AddInt64(&nextConnID, 1)
 }
 
 // Registry holds the cross-connection lock state. All methods are safe for

@@ -843,6 +843,10 @@ func Test_pragma(t *testing.T) {
 	}
 	{ // "pragma-3.19" — skipped: hexio_write header patching not transpiled (SQL + file side effects only)
 		os.RemoveAll("test.db")
+		db.Close()
+		db, err = frigolite.Open("test.db")
+		if err != nil { t.Fatal(err) }
+		tclConnRegister("db", db)
 		_res = db.Exec("PRAGMA integrity_check")
 		_ = _res.Error // tolerate unsupported-feature errors in skipped tests
 	}
@@ -2300,6 +2304,10 @@ func Test_pragma(t *testing.T) {
 		_ = val // suppress unused warning
 		_ = _idx18
 			{ // "pragma-17.1." + autovac_setting — skipped: auto_vacuum do_test value comparison not transpiled (SQL + file side effects only)
+				db.Close()
+				db, err = frigolite.Open(":memory:")
+				if err != nil { t.Fatal(err) }
+				tclConnRegister("db", db)
 				_res = db.Exec("\n      PRAGMA auto_vacuum=" + autovac_setting + ";\n      PRAGMA auto_vacuum;\n    ")
 				_ = _res.Error // tolerate unsupported-feature errors in skipped tests
 			}
@@ -2313,6 +2321,10 @@ func Test_pragma(t *testing.T) {
 			_ = val // suppress unused warning
 			_ = _idx19
 				{ // "pragma-18.1." + temp_setting — skipped: temp_store do_test value comparison not transpiled (SQL + file side effects only)
+					db.Close()
+					db, err = frigolite.Open(":memory:")
+					if err != nil { t.Fatal(err) }
+					tclConnRegister("db", db)
 					_res = db.Exec("\n      PRAGMA temp_store=" + temp_setting + ";\n      PRAGMA temp_store=" + temp_setting + ";\n      PRAGMA temp_store;\n    ")
 					_ = _res.Error // tolerate unsupported-feature errors in skipped tests
 				}
@@ -2463,10 +2475,18 @@ func Test_pragma(t *testing.T) {
 				auxerr = "/{\\*\\*\\* in database aux \\*\\*\\*\nMultiple uses for byte 672 of page 15}.*/"
 				_ = auxerr // suppress unused warning
 				{ // "pragma-22.2" — skipped: hexio page-corruption integrity check not supported (SQL + file side effects only)
+					db.Close()
+					db, err = frigolite.Open("testerr.db")
+					if err != nil { t.Fatal(err) }
+					tclConnRegister("db", db)
 					_res = db.Exec(" PRAGMA integrity_check ")
 					_ = _res.Error // tolerate unsupported-feature errors in skipped tests
 				}
 				{ // "pragma-22.3.1" — skipped: hexio page-corruption integrity check not supported (SQL + file side effects only)
+					db.Close()
+					db, err = frigolite.Open("test.db")
+					if err != nil { t.Fatal(err) }
+					tclConnRegister("db", db)
 					_res = db.Exec(" \n      ATTACH 'testerr.db' AS 'aux';\n      PRAGMA integrity_check;\n    ")
 					_ = _res.Error // tolerate unsupported-feature errors in skipped tests
 				}
@@ -2479,6 +2499,10 @@ func Test_pragma(t *testing.T) {
 					_ = _res.Error // tolerate unsupported-feature errors in skipped tests
 				}
 				{ // "pragma-22.4.1" — skipped: hexio page-corruption integrity check not supported (SQL + file side effects only)
+					db.Close()
+					db, err = frigolite.Open("testerr.db")
+					if err != nil { t.Fatal(err) }
+					tclConnRegister("db", db)
 					_res = db.Exec(" \n      ATTACH 'test.db' AS 'aux';\n      PRAGMA integrity_check;\n    ")
 					_ = _res.Error // tolerate unsupported-feature errors in skipped tests
 				}

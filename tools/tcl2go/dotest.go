@@ -91,6 +91,44 @@ var doTestBodyKindHandlers = []doTestBodyKindHandler{
 	// implementation (vtabH 3.1: `sort_files [execsql {...}] true`): the
 	// proc's result is the do_test value; run it and compare.
 	(*transpiler).doTestHandleUserProcBody,
+	// A single `sqlite3_soft_heap_limit N` body (softheap1-1.2): the
+	// test1.c fixture command returns the effective soft heap limit, which
+	// is the PRAGMA soft_heap_limit state (test1.c:6451-6452, pragma.c
+	// PragTyp_SOFT_HEAP_LIMIT); lower to the pragma query and compare the
+	// flattened result.
+	(*transpiler).doTestHandleSoftHeapLimitBody,
+}
+
+// doTestHandleSoftHeapLimitBody emits a full result comparison for a single
+// `sqlite3_soft_heap_limit N` do_test body by lowering the fixture command
+// to the equivalent PRAGMA soft_heap_limit(N) query (softheap1.test only).
+func (tp *transpiler) doTestHandleSoftHeapLimitBody(nameExpr, expectedExpr string, bodyCmds [][]tcl.RawWord, _ []tcl.RawWord) bool {
+	if overrideFile(tp) != "softheap1" || expectedExpr == `""` || len(bodyCmds) != 1 {
+		return false
+	}
+	cmd := bodyCmds[0]
+	if len(cmd) != 2 || (cmd[0].Text != "sqlite3_soft_heap_limit" && cmd[0].Text != "sqlite3_soft_heap_limit64") {
+		return false
+	}
+	sqlExpr := softHeapLimitSQLExpr(cmd[1:])
+	if sqlExpr == "" {
+		return false
+	}
+	tp.emitLine("{ // do_test %s", nameExpr)
+	tp.indent++
+	tp.emitLine("r = db.Query(%s)", sqlExpr)
+	tp.emitLine("if r.Error != nil {")
+	tp.emitLine("\tt.Errorf(\"query error: %%v\\n  sql: %%s\", r.Error, %s)", sqlExpr)
+	tp.emitLine("\treturn")
+	tp.emitLine("}")
+	tp.emitLine("got := flatten(r)")
+	tp.emitLine("want := %s", expectedExpr)
+	tp.emitLine("if got != want && !tclFpnumCompare(got, want) {")
+	tp.emitLine("\tt.Errorf(\"result mismatch\\n  got:  [%%s]\\n  want: [%%s]\\n  body: do_test %%s\", got, want, %s)", nameExpr)
+	tp.emitLine("}")
+	tp.indent--
+	tp.emitLine("}")
+	return true
 }
 
 // doTestHandleLimitComparison adapts emitLimitComparison (which takes no

@@ -378,9 +378,12 @@ func Test_misc7(t *testing.T) {
 				tclFileCopy("test.db-journal", "bak.db-journal")
 				_res = db.Exec("\n        COMMIT;\n      ")
 				_ = _res.Error // tolerate unsupported-feature errors in skipped tests
-				db.Close()
 				tclFileCopy("bak.db", "test.db")
 				tclFileCopy("bak.db-journal", "test.db-journal")
+				db.Close()
+				db, err = frigolite.Open("test.db")
+				if err != nil { t.Fatal(err) }
+				tclConnRegister("db", db)
 			}
 			{ // "misc7-17.2" — skipped: file-permission manipulation to force readonly DB open N-A
 			}
@@ -396,6 +399,9 @@ func Test_misc7(t *testing.T) {
 			}
 			{ // "misc7-17.4" — skipped: malformed-database-schema detection after rootpage corruption N-A (file side effects only)
 				db.Close()
+				db, err = frigolite.Open("test.db")
+				if err != nil { t.Fatal(err) }
+				tclConnRegister("db", db)
 			}
 		}
 	}
@@ -428,11 +434,17 @@ func Test_misc7(t *testing.T) {
 	{ // "misc7-21.1" — skipped: 520-char filename open via get_pwd+file join harness N-A
 	}
 	{ // "misc7-22.1" — skipped: readonly hot-journal rollback + extended errcode C API N-A (SQL + file side effects only)
-		db.Close()
 		os.RemoveAll("test.db")
+		db.Close()
+		db, err = frigolite.Open("test.db")
+		if err != nil { t.Fatal(err) }
+		tclConnRegister("db", db)
 		_res = db.Exec("\n    CREATE TABLE t1(a, b);\n    INSERT INTO t1 VALUES(1, 2);\n    INSERT INTO t1 VALUES(3, 4);\n  ")
 		_ = _res.Error // tolerate unsupported-feature errors in skipped tests
 		db.Close()
+		db, err = frigolite.Open("test.db")
+		if err != nil { t.Fatal(err) }
+		tclConnRegister("db", db)
 	}
 	{ // "misc7-22.2" — skipped: readonly hot-journal rollback + extended errcode C API N-A (SQL + file side effects only)
 		_res = db.Exec(" SELECT * FROM t1 ")

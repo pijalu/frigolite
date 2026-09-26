@@ -697,7 +697,7 @@ func Test_sqllimits1(t *testing.T) {
 			_ = _catchErrMsg // suppress unused warning
 			var _catchErr error
 			_r = ""
-			if _r = tclBindStmt(db, "STMT", 1, "text", str1, -1); _r != "SQLITE_OK" && _r != "" { _catchErr = fmt.Errorf("") }
+			if _r = tclBindStmt(db, "STMT", 1, "text", str1, -1); _r != "SQLITE_OK" && _r != "" { _catchErr = fmt.Errorf("%s", _r) }
 			if _catchErr != nil {
 				res = _catchErr.Error()
 				_catchErrMsg = _catchErr.Error()
@@ -719,7 +719,7 @@ func Test_sqllimits1(t *testing.T) {
 			_ = _catchErrMsg // suppress unused warning
 			var _catchErr error
 			_r = ""
-			if _r = tclBindStmt(db, "STMT", 1, "text", str1, toInt(np1)); _r != "SQLITE_OK" && _r != "" { _catchErr = fmt.Errorf("") }
+			if _r = tclBindStmt(db, "STMT", 1, "text", str1, toInt(np1)); _r != "SQLITE_OK" && _r != "" { _catchErr = fmt.Errorf("%s", _r) }
 			if _catchErr != nil {
 				res = _catchErr.Error()
 				_catchErrMsg = _catchErr.Error()
@@ -743,7 +743,7 @@ func Test_sqllimits1(t *testing.T) {
 			_ = _catchErrMsg // suppress unused warning
 			var _catchErr error
 			_r = ""
-			if _r = tclBindStmt(db, "STMT", 1, "text", str1, toInt(n)); _r != "SQLITE_OK" && _r != "" { _catchErr = fmt.Errorf("") }
+			if _r = tclBindStmt(db, "STMT", 1, "text", str1, toInt(n)); _r != "SQLITE_OK" && _r != "" { _catchErr = fmt.Errorf("%s", _r) }
 			if _catchErr != nil {
 				res = _catchErr.Error()
 				_catchErrMsg = _catchErr.Error()
@@ -765,7 +765,7 @@ func Test_sqllimits1(t *testing.T) {
 			_ = _catchErrMsg // suppress unused warning
 			var _catchErr error
 			_r = ""
-			if _r = tclBindStmt(db, "STMT", 1, "text", str1, toInt(n)); _r != "SQLITE_OK" && _r != "" { _catchErr = fmt.Errorf("") }
+			if _r = tclBindStmt(db, "STMT", 1, "text", str1, toInt(n)); _r != "SQLITE_OK" && _r != "" { _catchErr = fmt.Errorf("%s", _r) }
 			if _catchErr != nil {
 				res = _catchErr.Error()
 				_catchErrMsg = _catchErr.Error()

@@ -6,6 +6,7 @@ package main
 
 import (
 	"fmt"
+	"strconv"
 	"strings"
 
 	"github.com/pijalu/frigolite/tools/tclconvert/tcl"
@@ -164,8 +165,7 @@ func (tp *transpiler) processDefaultCommand(cmdName string, args []tcl.RawWord) 
 		}
 	}
 	// Check for dbN pattern (secondary db connections like db2, db3)
-	if len(cmdName) > 2 && cmdName[:2] == "db" && cmdName[2] >= '0' && cmdName[2] <= '9' {
-		tp.processDBForName(cmdName, args)
+	if tp.dispatchSecondaryDB(cmdName, args) {
 		return
 	}
 	// Bare query-proc / eqp / reopen-db procs (all inline a value or setup).
@@ -181,12 +181,83 @@ func (tp *transpiler) processDefaultCommand(cmdName string, args []tcl.RawWord) 
 	if emitSetErrmsgStmt(tp, cmdName, args) {
 		return
 	}
+	// C-fixture commands that map onto engine SQL surfaces
+	// (sqlite3_soft_heap_limit → PRAGMA soft_heap_limit on softheap1.test).
+	if tp.lowerFixtureCommand(cmdName, args) {
+		return
+	}
 	// Unsupported command — emit as comment to avoid test failures
 	if len(args) > 0 {
 		tp.emitLine("// %s %s (unsupported command, not transpiled)", cmdName, sanitizeTCLComment(describeArgsShort(args)))
 	} else {
 		tp.emitLine("// %s (unsupported command, not transpiled)", cmdName)
 	}
+}
+
+// dispatchSecondaryDB routes a `dbN`-named command (secondary db
+// connections like db2, db3) to processDBForName. Reports whether cmdName
+// matched the pattern.
+func (tp *transpiler) dispatchSecondaryDB(cmdName string, args []tcl.RawWord) bool {
+	if len(cmdName) > 2 && cmdName[:2] == "db" && cmdName[2] >= '0' && cmdName[2] <= '9' {
+		tp.processDBForName(cmdName, args)
+		return true
+	}
+	return false
+}
+
+// lowerFixtureCommand lowers C-fixture commands whose state the engine
+// exposes through an equivalent SQL surface. The only lowering today is
+// sqlite3_soft_heap_limit N → PRAGMA soft_heap_limit(N), gated to
+// softheap1.test (test1.c test_soft_heap_limit:6436 —
+// sqlite3_soft_heap_limit64(N), which the pragma shares per pragma.c
+// PragTyp_SOFT_HEAP_LIMIT; softheap1.test's EVIDENCE-OF notes state the
+// pragma "invokes the sqlite3_soft_heap_limit64() interface"). Other corpus
+// users treat the command as a fire-and-forget setup line whose comment form
+// is byte-stable. Returns true when the command was handled.
+func (tp *transpiler) lowerFixtureCommand(cmdName string, args []tcl.RawWord) bool {
+	if overrideFile(tp) != "softheap1" || tp.catchMode {
+		return false
+	}
+	if cmdName != "sqlite3_soft_heap_limit" && cmdName != "sqlite3_soft_heap_limit64" {
+		return false
+	}
+	return tp.lowerSoftHeapLimitStmt(args)
+}
+
+// lowerSoftHeapLimitStmt emits the sqlite3_soft_heap_limit N fixture command
+// as the equivalent PRAGMA soft_heap_limit(N) query. Reports whether the
+// statement was lowered.
+func (tp *transpiler) lowerSoftHeapLimitStmt(args []tcl.RawWord) bool {
+	sqlExpr := softHeapLimitSQLExpr(args)
+	if sqlExpr == "" {
+		return false
+	}
+	tp.emitQueryExec("db", sqlExpr)
+	return true
+}
+
+// softHeapLimitSQLExpr renders the argument words of an
+// sqlite3_soft_heap_limit command as a Go SQL expression for the equivalent
+// PRAGMA soft_heap_limit(N) query ("" when the argument shape is not
+// supported). The integer-literal and bare-$var forms are handled
+// (tester.tcl:378 defaults cmdlinearg(soft-heap-limit) to 0; tclToInt maps
+// the pre-declared empty string to that default).
+func softHeapLimitSQLExpr(args []tcl.RawWord) string {
+	if len(args) != 1 {
+		return ""
+	}
+	arg := strings.TrimSpace(args[0].Text)
+	if n, err := strconv.Atoi(arg); err == nil {
+		return fmt.Sprintf(`"PRAGMA soft_heap_limit(%d)"`, n)
+	}
+	if strings.HasPrefix(arg, "$") {
+		gv := tclVarToGo(strings.TrimPrefix(arg, "$"))
+		if gv == "" || !isValidGoIdent(gv) {
+			return ""
+		}
+		return `"PRAGMA soft_heap_limit(" + strconv.Itoa(tclToInt(` + gv + `)) + ")"`
+	}
+	return ""
 }
 
 // emitDefaultSpecialProc handles the default-command local procs that the

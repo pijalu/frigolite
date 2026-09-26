@@ -29,7 +29,18 @@ func (tp *transpiler) processExecSQL(args []tcl.RawWord, sqlType string) {
 		sqlText = args[0].Text
 	}
 	if reason := unsupportedSQL(sanitizeSQL(sqlText)); reason != "" {
-		tp.emitLine("// execsql skipped: %s", reason)
+		// Run the statement for its side effects but do not assert results —
+		// the same rule as the do_execsql_test skip path (emitSkippedExec):
+		// shortread1-1.3's INSERT shares the batch with the freelist_count
+		// pragma, and shortread1-1.4's count(*)=2 depends on it. Dropping
+		// the whole statement here silently starved later subtests
+		// (T33r-kernel absorbs the T30-kernel hand-patch of
+		// testgen/shortread1/shortread1_test.go). Errors are tolerated so
+		// the unsupported SQL never fails the skipped test.
+		dbConn := tp.resolveSQLConnection(args)
+		tp.emitLine("// execsql skipped, side effects preserved: %s", reason)
+		tp.emitLine("_res = %s.Exec(%s)", dbConn, sqlExpr)
+		tp.emitLine("_ = _res.Error // tolerate unsupported-feature errors in skipped tests")
 		return
 	}
 
