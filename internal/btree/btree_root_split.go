@@ -103,21 +103,13 @@ func (t *BTree) repointRelocatedSplitChildren(children []uint32) error {
 	return nil
 }
 
-// freeDisplacedInteriorChains releases the overflow chains owned by the
-// page's existing divider cells before the rewrite — but only when the
-// displaced content is an INTERIOR index page (its divider cells own fresh
-// overflow chains). On the FIRST root split the old root is an index LEAF:
-// balance_deeper moves leaf content verbatim into the new child
-// (src/btree.c:8978-9040) and every leaf cell keeps its own chain, so there
-// is nothing to free — decoding leaf cells as interior cells reads past the
-// page end.
-func (t *BTree) freeDisplacedInteriorChains(pg *pager.Page, coff int) error {
-	old, perr := storage.ParsePage(pg.Data, int(t.pageSize), coff)
-	if perr != nil || old.CellCount == 0 || old.PageType != storage.PageTypeInteriorIndex {
-		return nil
-	}
-	return t.freeInteriorDividerChains(pg, old)
-}
+// freeDisplacedInteriorChains is intentionally ABSENT: writeInteriorRootAt's
+// caller (relocateRootSplit) first rotates the displaced content VERBATIM
+// into the new child slots (rotateRootSplitSegments), so the old page's
+// divider cells — and the overflow chains they own — stay LIVE in their new
+// home. Freeing them here would hand live chains to the freelist
+// (setChildPtrmaps re-parents them instead, btree.c balance_deeper's
+// ptrmapPut over every moved cell).
 
 // writeInteriorRootHeader writes the interior page header fields and the
 // FIRST divider cell (children[0]/seps[0]); the remaining separators are
@@ -151,9 +143,6 @@ func (t *BTree) writeInteriorRootAt(dst uint32, children []uint32, seps []leafSp
 		return err
 	}
 	coff := contentOffset(dst)
-	if err := t.freeDisplacedInteriorChains(pg, coff); err != nil {
-		return err
-	}
 	for i := range pg.Data {
 		pg.Data[i] = 0
 	}
@@ -264,6 +253,16 @@ func (t *BTree) createInteriorRootAtPage1(divider leafSplitResult, rightChild ui
 	newLeft.Data[0] = oldType
 	if err := t.pager.WritePage(newLeft); err != nil {
 		return nil, err
+	}
+	// The relocated content's children and overflow chains (leaf cells AND
+	// divider cells) still carry page 1 as their ptrmap parent, but the
+	// content now lives in newLeft — re-point every reference
+	// (btree.c balance_deeper's ptrmapPut / ptrmapPutOvflPtr over the moved
+	// page's cells).
+	if t.ptrmapEnabled() {
+		if err := t.setChildPtrmaps(newLeft, newLeft.PageNum); err != nil {
+			return nil, err
+		}
 	}
 
 	// Convert page 1 into an interior page: one cell {newLeft, divider}

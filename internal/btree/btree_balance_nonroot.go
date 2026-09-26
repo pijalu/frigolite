@@ -554,9 +554,10 @@ func (t *BTree) rebalancePartialWindow(ctx *balanceNonrootContext, parent *stora
 // reported as M", the coverage walk at src/btree.c:11004-11064) — so the
 // page is defragmented after the pointer shift (defragmentPage parity,
 // the same end state dropCell→freeSpace + a later allocateSpace
-// defragment reaches). Interior cells in this engine are 4-byte
-// left-child + varint key with no overflow chain, so nothing is leaked
-// to the freelist.
+// defragment reaches). Index dividers whose payload spilled first return
+// their overflow chain to the freelist (dropCell → clearCell →
+// freePageChain); table-interior cells are 4-byte left-child + varint key
+// with no chain, so nothing is leaked there.
 func (t *BTree) removeInteriorCellRange(pg *pager.Page, page *storage.BTreePage, start, count int) error {
 	if count <= 0 {
 		return nil
@@ -566,6 +567,18 @@ func (t *BTree) removeInteriorCellRange(pg *pager.Page, page *storage.BTreePage,
 	}
 	coff := contentOffset(pg.PageNum)
 	ptrBase := coff + cellPtrOffset(page.PageType)
+	if !t.isTable {
+		for k := start; k < start+count; k++ {
+			off := int(binary.BigEndian.Uint16(pg.Data[ptrBase+k*2 : ptrBase+k*2+2]))
+			cell, err := storage.DecodeCell(pg.Data, off, storage.CellIndexInterior, int(t.usableSize))
+			if err != nil || cell.Overflow == 0 {
+				continue
+			}
+			if err := t.freeOverflowChain(cell.Overflow); err != nil {
+				return err
+			}
+		}
+	}
 	cnt := int(page.CellCount)
 	for k := start + count; k < cnt; k++ {
 		src := ptrBase + k*2
@@ -675,8 +688,14 @@ func (t *BTree) defragmentInterior(pg *pager.Page, page *storage.BTreePage) erro
 			if err != nil {
 				return fmt.Errorf("btree: defragmentInterior: cell %d on page %d: %w", i, pg.PageNum, err)
 			}
+			// On-page extent: child pointer + payload-length varint + LOCAL
+			// payload + 4-byte overflow head when the divider spills. The
+			// chain itself lives on its own pages and does not move.
 			_, n := util.GetVarint(pg.Data[off+4:])
-			sz = 4 + n + len(cell.Payload)
+			sz = 4 + n + cell.LocalLen
+			if cell.Overflow != 0 {
+				sz += 4
+			}
 		}
 		if off+sz > len(pg.Data) {
 			return fmt.Errorf("btree: defragmentInterior: cell %d out of bounds on page %d", i, pg.PageNum)

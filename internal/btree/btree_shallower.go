@@ -287,6 +287,20 @@ func (t *BTree) absorbSingleChildRoot(rootPg *pager.Page, rootCoff int, childPgn
 // autovacuum-1) and writes garbled cells into the root.
 func (t *BTree) absorbChildCellSize(childPg *pager.Page, src int, isInterior bool, pageType byte) (int, error) {
 	switch {
+	case isInterior && !t.isTable:
+		// Index divider: child pointer + payload-length varint + LOCAL
+		// payload + 4-byte overflow head when the separator spills. The
+		// chain itself is position-independent and moves with the cell.
+		c, err := storage.DecodeCell(childPg.Data, src, storage.CellIndexInterior, int(t.usableSize))
+		if err != nil {
+			return 0, err
+		}
+		_, n := util.GetVarint(childPg.Data[src+4:])
+		sz := 4 + n + c.LocalLen
+		if c.Overflow != 0 {
+			sz += 4
+		}
+		return sz, nil
 	case isInterior:
 		_, n := util.GetVarint(childPg.Data[src+4:])
 		return 4 + n, nil

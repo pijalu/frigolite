@@ -39,10 +39,10 @@ type Cursor struct {
 	// Cross-statement invalidation state (btree.c saveAllCursors): a nested
 	// statement's write saves this cursor's position as a key and the next
 	// use re-seeks to it (btree_cursor_save.go).
-	state       cursorState
-	savedRowID  int64
-	savedKey    []byte
-	skipNext    int8
+	state      cursorState
+	savedRowID int64
+	savedKey   []byte
+	skipNext   int8
 }
 
 // cursorPathEntry records one level of the traversal path.
@@ -602,13 +602,19 @@ func (c *Cursor) seekInLeafIndex(pg *pager.Page, page *storage.BTreePage, key []
 	return false, nil
 }
 
+// seekInInteriorIndex routes a key probe through an interior index page.
+// Divider convention (splitMedianKey): the left subtree of divider D holds
+// keys < D and D's right subtree holds keys >= D — the divider is a COPY of
+// the right sibling's first key, so a key EQUAL to a divider lives in the
+// right subtree and the probe must go right on equality too (first divider
+// with key < D takes its left child; past every divider, the rightmost).
 func (c *Cursor) seekInInteriorIndex(pg *pager.Page, page *storage.BTreePage, key []byte) (bool, error) {
 	lo, hi := 0, int(page.CellCount)-1
 	childPage := page.RightmostPtr
 
 	for lo <= hi {
 		mid := (lo + hi) / 2
-		cellOff := int(storage.CellPointer(pg.Data, contentOffset(pg.PageNum), mid, int(c.tx.pageSize)))
+		cellOff := int(storage.CellPointer(pg.Data, contentOffset(pg.PageNum)+cellPtrOffset(page.PageType)-8, mid, int(c.tx.pageSize)))
 		cell, err := storage.DecodeCell(pg.Data, cellOff, storage.CellIndexInterior, int(c.tx.usableSize))
 		if err != nil {
 			return false, err
@@ -618,20 +624,12 @@ func (c *Cursor) seekInInteriorIndex(pg *pager.Page, page *storage.BTreePage, ke
 		if oerr != nil {
 			return false, oerr
 		}
-		cmp := c.tx.compareKey(full.Payload, key)
-		if cmp < 0 {
+		if c.tx.compareKey(full.Payload, key) <= 0 {
 			lo = mid + 1
 		} else {
 			childPage = cell.LeftPtr
 			hi = mid - 1
 		}
-	}
-	if lo < int(page.CellCount) {
-		cell, err := storage.DecodeCell(pg.Data, int(storage.CellPointer(pg.Data, contentOffset(pg.PageNum), lo, int(c.tx.pageSize))), storage.CellIndexInterior, int(c.tx.usableSize))
-		if err != nil {
-			return false, err
-		}
-		childPage = cell.LeftPtr
 	}
 	return c.seekKeyInPage(childPage, key)
 }

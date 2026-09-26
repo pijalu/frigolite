@@ -4,10 +4,10 @@
 package btree
 
 import (
-	"os"
 	"bytes"
 	"encoding/binary"
 	"fmt"
+	"os"
 
 	"github.com/pijalu/frigolite/internal/pager"
 	"github.com/pijalu/frigolite/internal/storage"

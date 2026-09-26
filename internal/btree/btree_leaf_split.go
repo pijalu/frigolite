@@ -266,11 +266,13 @@ func (t *BTree) splitMedianKey(partitions [][]splitEntry, pi int) (uint64, []byt
 	// the RIGHT sibling (btree.c:8820, pCell -= 4 branch) — the left
 	// subtree holds keys < medianKey and the right subtree holds
 	// keys >= medianKey (sqlite3BtreeIndexMoveto: equal keys go
-	// right). The engine encodes only the payload LENGTH here (the
-	// legacy divider shape): full payload dividers destabilized the
-	// balance paths at 100k-entry scale and stay deferred with the
-	// value-ordered storage tranche.
-	return uint64(len(partitions[pi][0].cellData)), nil
+	// right). The divider cell carries that cell's full record
+	// payload (balance_nonroot copies the cell into the interior
+	// page), so interior descent and sqlite3 integrity_check see
+	// value-ordered separators. (The payload is the split entry's
+	// key — already a full-payload clone that survives this page's
+	// cell-area rewrite, see readCellsForSplit.)
+	return 0, partitions[pi][0].key
 }
 
 // leafSplitResult is one new page produced by a split: the page number and

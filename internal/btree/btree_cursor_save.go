@@ -297,7 +297,10 @@ func (c *Cursor) readTreePage(pageNum uint32) (*pager.Page, *storage.BTreePage, 
 
 // routeInteriorIndex computes the descent for an interior index page: the
 // (child index, child page) pair for key, matching seekInInteriorIndex's
-// routing on full (overflow-reassembled) divider comparisons.
+// routing on full (overflow-reassembled) divider comparisons. Divider
+// convention (splitMedianKey): keys < D live left of D, keys >= D right —
+// equal keys go right, because the divider is a COPY of the right sibling's
+// first key and the equal entry lives in that sibling.
 func (c *Cursor) routeInteriorIndex(pg *pager.Page, page *storage.BTreePage, key []byte) (int, uint32, error) {
 	lo, hi := 0, int(page.CellCount)-1
 	childPage := page.RightmostPtr
@@ -307,19 +310,12 @@ func (c *Cursor) routeInteriorIndex(pg *pager.Page, page *storage.BTreePage, key
 		if err != nil {
 			return 0, 0, err
 		}
-		if c.tx.compareKey(cell.key, key) < 0 {
+		if c.tx.compareKey(cell.key, key) <= 0 {
 			lo = mid + 1
 		} else {
 			childPage = cell.leftPtr
 			hi = mid - 1
 		}
-	}
-	if lo < int(page.CellCount) {
-		cell, err := c.interiorIndexCell(pg, lo)
-		if err != nil {
-			return 0, 0, err
-		}
-		childPage = cell.leftPtr
 	}
 	return lo, childPage, nil
 }
@@ -334,7 +330,10 @@ func (c *Cursor) interiorIndexCell(pg *pager.Page, idx int) (struct {
 		leftPtr uint32
 		key     []byte
 	}
-	cellOff := int(storage.CellPointer(pg.Data, contentOffset(pg.PageNum), idx, int(c.tx.pageSize)))
+	// Interior pages keep their cell-pointer array at coff+12 (CellPointer's
+	// base is arrayStart-8); the page type is read from the header byte.
+	pageType := pg.Data[contentOffset(pg.PageNum)]
+	cellOff := int(storage.CellPointer(pg.Data, contentOffset(pg.PageNum)+cellPtrOffset(pageType)-8, idx, int(c.tx.pageSize)))
 	cell, err := storage.DecodeCell(pg.Data, cellOff, storage.CellIndexInterior, int(c.tx.usableSize))
 	if err != nil {
 		c.endOfBTree = true
