@@ -22,8 +22,8 @@ import (
 // left-child page number; the rightmost-child is the 4-byte value
 // at pc+8. For leaf pages: each cell's overflow page (if any) is a
 // chain — write ptrmap for the first overflow page in the chain.
-// Interior pages don't have overflow chains (the divider key is
-// inlined).
+// Interior INDEX dividers carry the separator payload with their
+// own overflow chain, so their chains re-point at pgNo too.
 //
 // Reference: src/btree.c::setChildPtrmaps (~line 6490).
 func (t *BTree) setChildPtrmaps(pg *pager.Page, pgNo uint32) error {
@@ -43,8 +43,9 @@ func (t *BTree) setChildPtrmaps(pg *pager.Page, pgNo uint32) error {
 	return t.setChildPtrmapsLeaf(pg, pgNo, coff, page, cellType)
 }
 
-// setChildPtrmapsInterior re-points the ptrmap entry of every interior cell's
-// left child (and the rightmost child) at pgNo.
+// setChildPtrmapsInterior re-points the ptrmap entry of every interior
+// cell's left child (and the rightmost child) at pgNo. Index interior cells
+// also own their divider's overflow chain — its head re-points at pgNo too.
 func (t *BTree) setChildPtrmapsInterior(pg *pager.Page, pgNo uint32, coff int, page *storage.BTreePage) error {
 	ptrBase := coff + cellPtrOffset(page.PageType) - 8
 	for i := 0; i < int(page.CellCount); i++ {
@@ -61,10 +62,37 @@ func (t *BTree) setChildPtrmapsInterior(pg *pager.Page, pgNo uint32, coff int, p
 		}
 	}
 	rmp := binary.BigEndian.Uint32(pg.Data[coff+8 : coff+12])
-	if rmp == 0 {
+	if rmp != 0 {
+		if err := t.pager.WritePtrmap(rmp, storage.PtrmapBtree, pgNo); err != nil {
+			return err
+		}
+	}
+	return t.reparentDividerChains(pg, pgNo, coff, page)
+}
+
+// reparentDividerChains re-points the overflow-chain head of every INDEX
+// divider cell on an interior page at pgno (btree.c ptrmapPutOvflPtr: a
+// divider cell that moved to another page takes its chain with it). A no-op
+// for table trees and interior table pages (their dividers carry no chain).
+func (t *BTree) reparentDividerChains(pg *pager.Page, pgno uint32, coff int, page *storage.BTreePage) error {
+	if page.PageType != storage.PageTypeInteriorIndex {
 		return nil
 	}
-	return t.pager.WritePtrmap(rmp, storage.PtrmapBtree, pgNo)
+	ptrBase := coff + cellPtrOffset(page.PageType) - 8
+	for i := 0; i < int(page.CellCount); i++ {
+		cellOff := int(storage.CellPointer(pg.Data, ptrBase, i, int(t.pageSize)))
+		if cellOff < 0 || cellOff+4 > len(pg.Data) {
+			continue
+		}
+		c, err := storage.DecodeCell(pg.Data, cellOff, storage.CellIndexInterior, int(t.usableSize))
+		if err != nil || c.Overflow == 0 {
+			continue
+		}
+		if err := t.pager.WritePtrmap(c.Overflow, storage.PtrmapOverflow1, pgno); err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 // leafChainCellType maps a leaf page type to its cell encoding; ok=false for

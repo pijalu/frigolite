@@ -119,7 +119,7 @@ func DecodeCell(pageData []byte, offset int, cellType CellType, pageSize int) (*
 	case CellIndexLeaf:
 		return decodeIndexLeafCell(pageData, offset, pageSize)
 	case CellIndexInterior:
-		return decodeIndexInteriorCell(pageData, offset)
+		return decodeIndexInteriorCell(pageData, offset, pageSize)
 	default:
 		return nil, fmt.Errorf("storage: unknown cell type: %d", cellType)
 	}
@@ -226,7 +226,12 @@ func decodeIndexLeafCell(data []byte, off int, pageSize int) (*Cell, error) {
 	return c, nil
 }
 
-func decodeIndexInteriorCell(data []byte, off int) (*Cell, error) {
+// decodeIndexInteriorCell decodes an index-interior (divider) cell: a
+// 4-byte left-child pointer, the payload-length varint, the LOCAL payload
+// following the index-page payload formula, and — when the payload spills —
+// a trailing 4-byte overflow-chain head (btree.c btreeParseCellPtr cell type
+// 2: interior index cells spill exactly like index leaf cells).
+func decodeIndexInteriorCell(data []byte, off, pageSize int) (*Cell, error) {
 	c := &Cell{Type: CellIndexInterior}
 	if off+4 > len(data) {
 		return nil, fmt.Errorf("database disk image is malformed")
@@ -235,11 +240,23 @@ func decodeIndexInteriorCell(data []byte, off int) (*Cell, error) {
 	pos := off + 4
 	plen, n := util.GetVarint(data[pos:])
 	pos += n
-	payloadLen := int(plen)
-	if pos+payloadLen > len(data) {
-		payloadLen = len(data) - pos
+	c.PayloadLen = int(plen)
+	if c.PayloadLen < 0 {
+		return nil, fmt.Errorf("database disk image is malformed")
 	}
-	c.Payload = data[pos : pos+payloadLen]
+	local := LocalPayloadSize(c.PayloadLen, pageSize, CellIndexInterior)
+	if pos+local > len(data) {
+		return nil, fmt.Errorf("database disk image is malformed")
+	}
+	c.LocalLen = local
+	c.Payload = data[pos : pos+local]
+	pos += local
+	if local < c.PayloadLen {
+		if pos+4 > len(data) {
+			return nil, fmt.Errorf("storage: truncated index interior cell (overflow pointer missing)")
+		}
+		c.Overflow = binary.BigEndian.Uint32(data[pos : pos+4])
+	}
 	return c, nil
 }
 
@@ -322,13 +339,32 @@ func encodeIndexLeafCell(c *Cell) []byte {
 	return buf
 }
 
+// encodeIndexInteriorCell encodes an index-interior (divider) cell: when the
+// cell carries LocalLen/Overflow (a prepared spilled divider), the local
+// payload portion and the 4-byte overflow-chain head are written; otherwise
+// the whole payload is inlined (it fits the index-page local maximum).
 func encodeIndexInteriorCell(c *Cell) []byte {
-	plen := len(c.Payload)
+	plen := c.PayloadLen
+	if plen == 0 {
+		plen = len(c.Payload)
+	}
+	local := c.LocalLen
+	if local == 0 || local > plen {
+		local = plen
+	}
 	plenLen := util.VarintLen(uint64(plen))
-	buf := make([]byte, 4+plenLen+plen)
+	totalLen := 4 + plenLen + local
+	if local < plen {
+		totalLen += 4
+	}
+	buf := make([]byte, totalLen)
 	binary.BigEndian.PutUint32(buf[0:4], c.LeftPtr)
 	pos := 4
 	pos += util.PutVarint(buf[pos:], uint64(plen))
-	copy(buf[pos:], c.Payload)
+	copy(buf[pos:], c.Payload[:local])
+	pos += local
+	if local < plen {
+		binary.BigEndian.PutUint32(buf[pos:], c.Overflow)
+	}
 	return buf
 }

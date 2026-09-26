@@ -168,10 +168,12 @@ func (t *BTree) freeOverflowChain(first uint32) error {
 }
 
 // reparentPageOverflowChains rewrites the PtrmapOverflow1 entry of every
-// cell's overflow chain on the leaf page pgno to point at pgno (btree.c
+// cell's overflow chain on the page pgno to point at pgno (btree.c
 // ptrmapPutOvflPtr semantics: a cell that moved to a different page takes
 // its chain with it, src/btree.c:1582-1596). Used by relocateRootSplit,
-// whose segment rotation moves cell content between pages wholesale.
+// whose segment rotation moves cell content between pages wholesale. Index
+// interior pages participate too: their divider cells own the separators'
+// overflow chains.
 func (t *BTree) reparentPageOverflowChains(pgno uint32) error {
 	if !t.ptrmapEnabled() {
 		return nil
@@ -185,17 +187,18 @@ func (t *BTree) reparentPageOverflowChains(pgno uint32) error {
 	if err != nil {
 		return err
 	}
-	// Interior pages have no overflow chains (the page-level Overflow field is
-	// only meaningful on leaf cells). Skip them: decoding interior cells as
-	// leaf cells would read garbage into c.Overflow and corrupt the ptrmap.
-	var cellType storage.CellType = storage.CellTableLeaf
-	switch page.PageType {
-	case storage.PageTypeLeafTable:
-		// cellType already CellTableLeaf
-	case storage.PageTypeLeafIndex:
-		cellType = storage.CellIndexLeaf
-	default:
+	if page.PageType == storage.PageTypeInteriorIndex {
+		return t.reparentDividerChains(pg, pgno, coff, page)
+	}
+	if page.PageType != storage.PageTypeLeafTable && page.PageType != storage.PageTypeLeafIndex {
+		// Interior TABLE pages carry no chains; other page kinds are not
+		// b-tree nodes. (Decoding e.g. an interior cell as a leaf cell would
+		// read garbage into c.Overflow and corrupt the ptrmap.)
 		return nil
+	}
+	cellType := storage.CellTableLeaf
+	if page.PageType == storage.PageTypeLeafIndex {
+		cellType = storage.CellIndexLeaf
 	}
 	for i := 0; i < int(page.CellCount); i++ {
 		p := storage.CellPointer(pg.Data, coff, i, int(t.pageSize))

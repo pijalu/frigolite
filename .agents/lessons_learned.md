@@ -9357,3 +9357,84 @@ regenerated; suite net −2274 fails vs pre-tranche baseline (7230 → ~4950).
   column-list fix) landed mid-tranche; join2's failure was main-fixed, not
   mine — check `git log HEAD..main | wc -l` before diagnosing cross-branch
   failures.
+=======
+
+## T33-idxfix (2026-09-25) — autoindex b-trees mis-ordered at multi-page scale
+
+**Symptom**: `select x from t2 order by x` over a 371-row unique-integer table
+(misc5) returned batch-grouped runs, not value order. Small trees ordered
+fine; REINDEX "re-fixed" nothing.
+
+**Root cause (two layers)**:
+1. `findChildPageForInsert` routed EVERY index-btree insert to the interior
+   page's rightmost child (a T31 compromise: compact dividers carry no key,
+   so descent was impossible). Each insert batch therefore landed in the
+   rightmost leaf, sorted within the leaf by the KeyInfo comparator but not
+   globally — batch-grouped order. Leaf-local sorts and single-leaf trees
+   masked it; REINDEX re-inserted through the same walk.
+2. Index interior dividers were the LEGACY COMPACT shape — (child,
+   payload-length varint), no payload bytes — so no key-guided descent was
+   even possible, and the interior-index seek paths (`seekInInteriorIndex`,
+   `routeInteriorIndex`) read their cell-pointer array at the LEAF base
+   (`CellPointer(pg.Data, coff, ...)` — interior arrays live at coff+12,
+   pass `coff+cellPtrOffset(type)-8`), decoding garbage.
+
+**The fix is the value-ordered storage tranche (SQLite's actual model)**:
+- Dividers carry the FULL separator payload (btree.c:8820 parity): the right
+  sibling's first key, duplicated (leaf keeps the entry). Spills to a FRESH
+  overflow chain owned by the parent page exactly like a leaf cell
+  (`storage.decodeIndexInteriorCell`/`encodeIndexInteriorCell` now honor
+  LocalLen/Overflow; `MaxLocalPayload` is the same for index leaf/interior).
+- Convention: left subtree < D, right subtree >= D — equal keys go RIGHT
+  (the divider is a COPY; the equal entry lives in the right sibling). The
+  SAME rule now drives insert descent (`findChildIndexForInsert`, binary
+  search over divider payloads via `t.compareKey`), `seekInInteriorIndex`,
+  and cursor-restore `routeInteriorIndex`. The pre-fix seeks went LEFT on
+  equal — correct for SQLite's promote-don't-duplicate model, wrong here.
+- `splitMedianKey` returns the real payload (`partitions[pi][0].key` —
+  already a full-payload clone in readCellsForSplit; survives the page
+  zeroing during the split rewrite).
+
+**Chain lifecycle (every divider rewrite allocates or frees chains)**:
+- `rekeyCarrierChainIndex`: each relocated divider frees its old chain
+  (`abandonDividerCell`) and writes a fresh one; deadBytes counts
+  on-page bytes incl. the 4-byte ovfl head. Safe because
+  `childSplitsHaveRoom` is an EXACT precheck (dividerCellLen includes
+  payload bytes) — the loop can never abort midway.
+- `splitInteriorPage` frees ALL divider chains after cloning payloads into
+  `entries`, before the halves rewrite (each half re-encodes fresh chains).
+- `writeInteriorRootAt` must NOT free displaced chains: relocateRootSplit
+  ROTATES the old root content VERBATIM into a child slot first — freeing
+  there kills live chains (the T31 attempt's temptable2 1.3 corruption).
+  Rotation instead re-parents via setChildPtrmaps.
+- `setChildPtrmapsInterior` / `reparentPageOverflowChains` re-point divider
+  chains (PtrmapOverflow1) when an interior index page moves;
+  `createInteriorRootAtPage1` re-points the content moved off page 1.
+- `removeInteriorCellRange` frees chains of dropped dividers (shallower
+  unlink path); `FreeTable.walkInteriorPages` walks divider chains;
+  `absorbChildCellSize` sizes index-interior cells correctly.
+- Vacuum was ALREADY ready: `updateOvfl1ParentPtr` +
+  `ovfl1CellTypeForPage/ovfl1CellSize` handle interior-owner chains
+  (left in place by the T31 revert, unused until now).
+
+**Integrity_check coverage**: `leafOverflows` decoded interior index cells
+as index-LEAF cells (child pointer read as a payload-length varint → plen 0
+→ Overflow always 0) and read interior pointer arrays at the leaf base
+(coff+8) — spilled divider chains counted as "Page N: never used" in
+autovacuum tests. Fixed with `chainCellTypeOf` (true cell type per page
+kind; interior table owns no chains) + array base coff+12 for interior.
+
+**Debugging wins**: tagging every `fmt.Errorf("database disk image is
+malformed")` producer repo-wide with unique sentinels found the failing site
+in ONE run (the message flows through verbatim). Counting chain
+ALLOC/FREE/DIVALLOC events vs integrity results separated "chain leaked"
+from "chain uncounted". The earlier panic-in-ReadPage trick identified a
+pre-existing red herring: `freeSpaceWalk`/`appendInteriorChildren`
+(schema_tail.go) misread interior pages (leaf array base) and swallow the
+error — bogus but harmless; do not chase it from a corrupted-statement
+stack alone.
+
+**Balance-path scope**: `balanceNonroot` is table-leaf-only
+(`collectBalanceCells` rejects non-table siblings; emptied INDEX leaves stay
+in place), so index dividers never enter the DELETE rebalance paths — the
+lifecycle sites above are the complete set.
