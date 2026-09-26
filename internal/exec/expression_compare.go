@@ -62,26 +62,21 @@ func (e *Engine) compareValuesWithCollate(left, right interface{}) int {
 }
 
 // rowIDExistsInTree reports whether a row with the given rowid exists in the
-// btree (used by randomFreeRowID to avoid collisions).
+// btree (used by randomFreeRowID to avoid collisions). The check is a single
+// O(log n) b-tree seek — SQLite's OP_NotExists on the intkey btree — not a
+// scan: the overflow fallback fires on tables whose largest rowid is near
+// MaxInt64 (fts5contentless2 1.x/2.x hold rowids at ±2^63), and each
+// allocation probe must stay cheap regardless of tree depth.
 func (e *Engine) rowIDExistsInTree(tree *btree.BTree, rowID int64) bool {
 	cursor, err := tree.OpenCursor()
 	if err != nil {
 		return false
 	}
-	for {
-		cell, err := cursor.ReadCell()
-		if err != nil {
-			break
-		}
-		if cell.RowID == rowID {
-			return true
-		}
-		ok, err := cursor.Next()
-		if err != nil || !ok {
-			break
-		}
+	found, err := cursor.SeekToRowID(rowID)
+	if err != nil {
+		return false
 	}
-	return false
+	return found
 }
 
 // randomFreeRowID picks a random positive rowid that is not already in the

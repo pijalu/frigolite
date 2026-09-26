@@ -2479,3 +2479,21 @@ Re-inserting a document consumes its markers (C's fresh entries merge
 against the pending markers). Documented superset: the mirror flags ALL
 index reads, C only those that traverse the violating doclist. Pinned by
 TestFTS5SpecialDeleteCorruptPin (12 oracle-derived assertions).
+
+### fts5contentless2 1.1 — transpiled incr wraps at MaxInt64 (generated-file fidelity fix)
+
+TCL 9 integers are bignums: `for {set ii $r1} {$ii<=$r2} {incr ii}` over
+r1=9223372036854775757, r2=9223372036854775807 inserts ii=...807, then incr
+yields the bignum 9223372036854775808, the condition goes false and the loop
+exits (51 inserts). The transpiled `ii = strconv.Itoa(_n + 1)` wraps int64 to
+MinInt64, Atoi succeeds, and the loop restarts from -2^63 — 1.8e19
+iterations of real INSERT statements (observed 90k+ inserts after 5 minutes;
+600s+ timeout at census commit 5c2bfa675 AND on main, both reproduced).
+Fix in the generated file: overflow guard at the incr (break at
+ii==9223372036854775807), a faithful translation of the TCL 9 bignum exit,
+preserving every assertion of sections 1.x-3.x. All sections then ran for
+the first time and passed. Companion engine hardening: random-free-rowid
+allocation probes via O(log n) b-tree seek
+(internal/exec/expression_compare.go rowIDExistsInTree now SeekToRowID —
+SQLite's OP_NotExists on the intkey btree) instead of a full-tree scan per
+candidate.
