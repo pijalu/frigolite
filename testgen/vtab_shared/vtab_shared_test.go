@@ -199,6 +199,10 @@ func Test_vtab_shared(t *testing.T) {
 			_ = _res.Error // tolerate unsupported-feature errors in skipped tests
 		}
 		{ // "vtab_shared-1.12.2" — skipped: shared-cache cross-connection vtab visibility not supported (SQL + file side effects only)
+			db.Close()
+			db, err = frigolite.Open("test.db")
+			if err != nil { t.Fatal(err) }
+			tclConnRegister("db", db)
 			_res = db.Exec(" \n      SELECT * FROM t1 UNION ALL\n      SELECT * FROM t2 UNION ALL\n      SELECT * FROM t3 \n    ")
 			_ = _res.Error // tolerate unsupported-feature errors in skipped tests
 		}
@@ -270,11 +274,14 @@ func Test_vtab_shared(t *testing.T) {
 		if err != nil { t.Fatal(err) }
 		tcl_nullvalue = "{}" // fresh connection resets nullvalue
 		{ // "vtab_shared-2.1.1" — skipped: rtree vtab + cross-connection disconnect (C-ABI/shared-cache) not applicable (SQL + file side effects only)
+			db.Close()
+			db, err = frigolite.Open("test.db")
+			if err != nil { t.Fatal(err) }
+			tclConnRegister("db", db)
 			_res = db.Exec("\n      CREATE VIRTUAL TABLE rt USING rtree(id, x1, x2);\n      INSERT INTO rt VALUES(1, 2 ,3);\n      SELECT * FROM rt;\n    ")
 			_ = _res.Error // tolerate unsupported-feature errors in skipped tests
 			_res = db2.Exec(" DROP TABLE rt ")
 			_ = _res.Error // tolerate unsupported-feature errors in skipped tests
-			db.Close()
 		}
 		if db2 != nil { db2.Close() }
 		db.Close()
@@ -285,11 +292,14 @@ func Test_vtab_shared(t *testing.T) {
 		if err != nil { t.Fatal(err) }
 		tcl_nullvalue = "{}" // fresh connection resets nullvalue
 		{ // "vtab_shared-2.2.1" — skipped: fts3 vtab + cross-connection disconnect (C-ABI/shared-cache) not applicable (SQL + file side effects only)
+			db.Close()
+			db, err = frigolite.Open("test.db")
+			if err != nil { t.Fatal(err) }
+			tclConnRegister("db", db)
 			_res = db.Exec("\n      CREATE VIRTUAL TABLE ft USING fts3;\n      INSERT INTO ft VALUES('hello world');\n      SELECT * FROM ft;\n    ")
 			_ = _res.Error // tolerate unsupported-feature errors in skipped tests
 			_res = db2.Exec(" DROP TABLE ft ")
 			_ = _res.Error // tolerate unsupported-feature errors in skipped tests
-			db.Close()
 		}
 		if db2 != nil { db2.Close() }
 		// sqlite3_enable_shared_cache 0 (unsupported command, not transpiled)

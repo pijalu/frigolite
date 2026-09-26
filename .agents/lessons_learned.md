@@ -531,6 +531,12 @@ lifecycle sites above are the complete set.
   emitter gap. e_fkey-4.1's marker suppressed the CREATE TABLE p/c that
   e_fkey-4.2 reuses → "no such table: c". When a skip breaks a LATER
   assertion, walk the skipped body line by line for un-replayed effects.
+  BUT scope the replay: where the skip's N-A subject IS the reopen
+  lifecycle (vtab1-1.1x "echo reopen-unregister (C test module)"), replaying
+  the reopen re-activates the very seam the skip adjudicated (vtab1 4→8
+  failures) — the reopenSideEffectCmd consults the reason and opts out.
+  A full-regen diff sweep is how the extra touched packages (misc7/
+  corruptB/vtab_shared, all neutral-or-green) were found before push.
 - **Scope fixture lowerings with overrideFile(tp)** (the existing per-file
   override seam): sqlite3_soft_heap_limit appears in ~20 corpus files;
   gating to softheap1 kept the regen diff at exactly the targeted package
