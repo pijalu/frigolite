@@ -328,36 +328,6 @@ func (e *SelectEngine) materializeSubqueryJoin(join sql.JoinClause) ([]RowMap, [
 	return rightMaps, rightDefs, tableName, nil, nil
 }
 
-// buildSubqueryRowMaps builds right-side RowMaps from a subquery result. When
-// the subquery already produced row maps (it joined internally), reuses them;
-// otherwise wraps each projected value with its column affinity.
-func (e *SelectEngine) buildSubqueryRowMaps(subqResult *Result, rightDefs []sql.ColumnDef, subquery *sql.SelectStmt, tableName string, synthetic bool) []RowMap {
-	if len(subqResult.rowMaps) > 0 && len(subqResult.rowMaps) == len(subqResult.Rows) {
-		return subqResult.rowMaps
-	}
-	subqAff := subqueryColumnAffinities(subquery)
-	var rightMaps []RowMap
-	for _, row := range subqResult.Rows {
-		rightRowMap := make(RowMap)
-		for i, val := range row {
-			if i >= len(rightDefs) {
-				continue
-			}
-			aff := e.subqueryColumnAffinity(subqAff, i, rightDefs[i], subquery)
-			cv := &util.ColumnValue{Value: util.UnwrapColumnValue(val), Affinity: aff}
-			rightRowMap[rightDefs[i].Name] = cv
-			if synthetic {
-				// Also store under the synthetic qualified key so the USING ON
-				// clause (id = _subq.id) can match the right side independently.
-				rightRowMap[tableName+"."+rightDefs[i].Name] = val
-			}
-		}
-		rightMaps = append(rightMaps, rightRowMap)
-	}
-	return rightMaps
-}
-
-
 // materializeViewJoin
 
 // materializeViewJoin builds the right-side row maps and column defs for a

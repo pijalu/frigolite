@@ -494,3 +494,79 @@ lifecycle sites above are the complete set.
   the boundary first — the bug was topOrBranches returning nil for leaves
   (append(nil, nil...)); split functions must return []Expr{leaf}, like the
   existing topAndConjuncts.
+
+## T33r-order (2026-09-26) — ORDER/SCAN regression wave
+
+- **A regression wave can hide THREE different root causes behind one
+  symptom.** The "final census RED" set (values/distinct/nulls1/with3/
+  selectC/unionall all showing NULLs where values belong) split into: (a)
+  the omit-unused use-walk naming VALUES-chain outputs by rendered literal
+  instead of column1..columnN (values-9.2); (b) the same walk not descending
+  into CTE bodies, whose references resolve against enclosing scopes
+  (with3-4.0); (c) a window pass leaking unprojected source columns through
+  buildSubqueryRowMaps' rowMaps reuse into the enclosing join, shadowing a
+  same-named output column of another FROM source (unionall-4.3). Fix (c) at
+  the materialization boundary (projectSubqueryRowMaps: expose only output
+  columns + dotted internal keys), not by trimming the window pass, whose
+  merged source columns serve a legit intra-select ORDER BY.
+- **ORDER-BY-via-index satisfaction needs three agreements, not two.**
+  Direction matching (forward/backward) is not enough: each term's EFFECTIVE
+  collation (term COLLATE > declared column collation > BINARY) must equal
+  the index column's (a nocase index cannot provide a BINARY ordering —
+  distinct-9.x), and explicit NULLS FIRST/LAST must agree with the scan's
+  null placement (ASC index forward = NULLs first; backward flips; nulls1-
+  4.3/5.2). Wire every consumer of the gate through ONE predicate —
+  orderByIndexRowidTie kept its own stale copy and happily applied a rowid
+  tie-break for an ordering the new gate refused.
+- **sqlite_autoindex ordinal mapping must mirror the DDL's slot rules.**
+  The DDL (createAutoIndexes) gives a rowid table's INTEGER PRIMARY KEY
+  alias NO index and NO slot; the DML side prepended the PK to the candidate
+  list, shifting every ordinal — sqlite_autoindex_t_1 got keyed on the
+  rowid-alias column (payload (rowid,rowid), stored in insertion order,
+  useless for seeks) instead of the first UNIQUE constraint's column
+  (whereA-3.3, and REINDEX rebuilt the same wrong keys). When two modules
+  independently derive the same numbering, diff their rules before
+  debugging deeper.
+- **Encode-then-check leaks chains.** encodeDividerCell writes a fresh
+  overflow chain for a spilled payload; applyChildSplitsRightmost and
+  addInteriorCell encoded FIRST and returned errInteriorFull AFTER — the
+  caller's split-and-retry then orphaned the speculative chain (backup-3.x
+  "Page N: never used", one page per full-parent split). Compute the exact
+  encoded size (dividerCellLen) and precheck BEFORE allocating. Debugging
+  win: instrument overflow alloc/free for the exact leaked page number and
+  the alloc-site owner pinpoints the abandoned encode in one run.
+- **usable size, not page size, for every cell decode.** The integrity
+  structural walk decoded interior cells with pg.PageSize(); after another
+  connection's VACUUM materialized reserved=8 the walk mis-split spilled
+  dividers and mis-reported "malformed" even though the pager had adopted
+  the new header (reservebytes-1.3.4). Any hardcoded PageSize() next to
+  DecodeCell is a latent reserve-bytes bug.
+- **state-dependent testgen failures: replay the exact statement sequence.**
+  distinct 9.1.1 (no index) passed in isolation but failed under the corpus
+  because the failing iteration was tn=4 (nocase index); whereA-3.3 needed
+  the corpus's exact fixture (a INTEGER PRIMARY KEY, b UNIQUE) — plain t1
+  probes passed. Bisect prefixes with a loop that replays Exec/Query exactly
+  (mind Query-vs-Exec and the fixture schema), and never trust a "want"
+  string copied from a different schema — two of my probe failures were my
+  own wrong wants.
+- **Emitter-owned failures to hand to the tcl2go agent** (all verified
+  engine-correct or oracle-matching): selectC 1.12.2/1.13.2/1.14.2 (proc
+  longname_toupper = string toupper, stubbed to nil — portable, port it);
+  whereF 1.x (TCL regexp \y word boundary transpiled as literal y, making
+  "SCAN t2\y" require a table named t2y); windowC 1.x (db eval SQL {body}
+  per-row validation body dropped, want={} unreachable); e_fkey 4.2 (the
+  skipped 4.1 dropped the CREATE TABLE p/c setup 4.2 depends on); pragma
+  3.20 (the skipped 3.19 wrongly emitted os.RemoveAll(test.db) — the real
+  block only hexio-patches the header); e_blobclose 2.3.3/2.3.5 (proc val
+  executes SQL mid-scan; genuinely untranspilable without re-entrant UDF
+  support — N-A candidate with evidence).
+- **Pre-existing at base, triaged not fixed:** bigrow-2.2 (UPDATE swapping a
+  ~65KB value returns it minus the first 2 bytes — oversized-record rewrite
+  boundary; identical at 01e0371e4) and corrupt-7.3 (the INSERT that must
+  trip balance-deeper's oversize-cell check doesn't: the engine's leaner
+  leaf accounting keeps the root under-full where SQLite overflows — the
+  ValidateCellSizeCheck site exists and is correct, it just never fires).
+- **Bisect attribution pays in one hop:** the "Page N: never used" leak was
+  absent at all four coordinator candidates but reproduced verbatim (same
+  page number) at aa23922dd — the T33-idxfix merge — because divider chains
+  did not exist before value-ordered index storage.

@@ -24,8 +24,12 @@ import (
 // keeps the legacy path), and whether the scan walks it backward. Forward
 // requires every term direction to match the index column's sort order;
 // backward requires every direction to be the opposite (where.c
-// sqlite3OrderByIsIndexed / pIndex->aSortOrder checks). ok is false when the
-// ordering needs the temp b-tree sort (the comparator path).
+// sqlite3OrderByIsIndexed / pIndex->aSortOrder checks). Each term must also
+// agree with the index column's collation (where.c satisfies a sort term
+// only under its own collation sequence) and its NULLS FIRST/LAST placement
+// with the scan's null order (an ASC b-tree stores NULLs first, a DESC one
+// last). ok is false when the ordering needs the temp b-tree sort (the
+// comparator path).
 func (e *SelectEngine) indexOrderedScanForOrderBy(s *sql.SelectStmt, orderBy []sql.OrderByTerm) (idxName string, backward, ok bool) {
 	if !simpleOrderedScanShape(s) {
 		return "", false, false
@@ -46,7 +50,84 @@ func (e *SelectEngine) indexOrderedScanForOrderBy(s *sql.SelectStmt, orderBy []s
 	if !ok {
 		return "", false, false
 	}
+	if !e.orderByTermsMatchIndexCollations(s.From.Name, idxName, cols, orderBy) {
+		return "", false, false
+	}
+	if !orderByTermsMatchScanNullOrder(orderBy, idxDescs, backward) {
+		return "", false, false
+	}
 	return idxName, backward, true
+}
+
+// declaredColumnCollation returns the collation declared on a table column
+// in its CREATE TABLE DDL, or "" for BINARY (the default).
+func (e *SelectEngine) declaredColumnCollation(tableName, colName string) string {
+	entry, _, err := e.ctx.FindTable(tableName)
+	if err != nil || entry == nil {
+		return ""
+	}
+	for _, cd := range e.ctx.ParseColumnDefs(entry.Name, entry.SQL) {
+		if strings.EqualFold(cd.Name, colName) {
+			if cd.Collate == "" {
+				return ""
+			}
+			return strings.ToUpper(cd.Collate)
+		}
+	}
+	return ""
+}
+
+// orderByTermsMatchIndexCollations reports whether every ORDER BY term's
+// effective collation — the term's explicit COLLATE, else the column's
+// declared collation, else BINARY — equals the index column's effective
+// collation (where.c sorts a term under its own collation only: an index on
+// a COLLATE nocase column cannot satisfy a BINARY ORDER BY term, distinct-9.x).
+func (e *SelectEngine) orderByTermsMatchIndexCollations(tableName, idxName string, cols []string, orderBy []sql.OrderByTerm) bool {
+	for i, ob := range orderBy {
+		want := orderByTermExplicitCollation(ob.Expr)
+		if want == "" {
+			want = e.declaredColumnCollation(tableName, cols[i])
+		}
+		got := e.indexColumnCollation(tableName, idxName, cols[i])
+		if !strings.EqualFold(want, got) {
+			return false
+		}
+	}
+	return true
+}
+
+// orderByTermExplicitCollation returns the collation name of a term's
+// top-level COLLATE operator, or "" when the term carries none.
+func orderByTermExplicitCollation(obExpr sql.Expr) string {
+	if b, ok := obExpr.(*sql.BinaryOp); ok && strings.EqualFold(b.Operator, "COLLATE") {
+		if lit, isLit := b.Right.(*sql.StringLit); isLit {
+			return lit.Value
+		}
+	}
+	return ""
+}
+
+// orderByTermsMatchScanNullOrder reports whether each term's NULLS FIRST /
+// NULLS LAST requirement (default: ASC puts NULLs first, DESC last) agrees
+// with the scan's null placement: a forward scan over an ASC index column
+// emits NULLs first, a forward scan over a DESC column last; a backward scan
+// reverses both (where.c only consumes an ORDER BY term whose null ordering
+// the index provides — otherwise a sorter runs, nulls1-4.3).
+func orderByTermsMatchScanNullOrder(orderBy []sql.OrderByTerm, idxDescs []bool, backward bool) bool {
+	for i := range orderBy {
+		ob := orderBy[i]
+		nullsFirst := idxDescs[i] == backward
+		requested := !ob.Desc
+		if ob.NullsFirst {
+			requested = true
+		} else if ob.NullsLast {
+			requested = false
+		}
+		if requested != nullsFirst {
+			return false
+		}
+	}
+	return true
 }
 
 // simpleOrderedScanShape reports whether the select is a plain single-table

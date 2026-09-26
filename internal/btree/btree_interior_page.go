@@ -346,15 +346,22 @@ func (t *BTree) applyChildSplitsRightmost(pg *pager.Page, page *storage.BTreePag
 		if si > 0 {
 			leftOfCell = splits[si-1].pageNum
 		}
-		newData, eerr := t.encodeDividerCell(leftOfCell, splits[si], pg.PageNum)
-		if eerr != nil {
-			return eerr
-		}
-		ncStart := int(page.CellContent) - len(newData)
+		// Room precheck BEFORE encoding: encodeDividerCell writes a fresh
+		// overflow chain for a spilled payload, and the caller responds to
+		// errInteriorFull by splitting this page and re-encoding — a chain
+		// allocated for an abandoned cell would leak (the freelist never
+		// sees it; integrity_check reports "Page N: never used"). The exact
+		// encoded size is known without encoding: dividerCellLen.
+		cellLen := t.dividerCellLen(splits[si])
+		ncStart := int(page.CellContent) - cellLen
 		nCount := int(page.CellCount) + 1
 		ncPtrEnd := coff + ptroff + nCount*2 + 2
 		if ncStart < ncPtrEnd || page.CellContent == 0 {
 			return errInteriorFull
+		}
+		newData, eerr := t.encodeDividerCell(leftOfCell, splits[si], pg.PageNum)
+		if eerr != nil {
+			return eerr
 		}
 		copy(pg.Data[ncStart:], newData)
 		binary.BigEndian.PutUint16(pg.Data[ptrBase+int(page.CellCount)*2:], uint16(ncStart))
@@ -474,25 +481,29 @@ func (t *BTree) addInteriorCellToPage(pageNum, childPageNum uint32, childSplit l
 // addInteriorCell adds a new cell to an interior page.
 func (t *BTree) addInteriorCell(pg *pager.Page, page *storage.BTreePage, leftChild uint32, childSplit leafSplitResult, rightChild uint32) error {
 	coff := contentOffset(pg.PageNum)
-	cellData, err := t.encodeDividerCell(leftChild, childSplit, pg.PageNum)
-	if err != nil {
-		return err
-	}
 	ptroff := cellPtrOffset(page.PageType)
 
-	// Compute space
+	// Compute space. The exact encoded size comes from dividerCellLen: the
+	// room check must precede encodeDividerCell, which writes a fresh
+	// overflow chain for a spilled payload — bailing after the encode would
+	// orphan that chain (integrity_check "Page N: never used").
 	cellPtrEnd := coff + ptroff + int(page.CellCount)*2 + 2
 	cellContentEnd := int(page.CellContent)
 	var cellStart int
 	if cellContentEnd == 0 {
 		// Fresh (zero-initialized) page: cells pack from the usable end
 		// (zeroPage convention), not the raw page end.
-		cellStart = int(t.usableSize) - len(cellData) - int(page.FragFree)
+		cellStart = int(t.usableSize) - t.dividerCellLen(childSplit) - int(page.FragFree)
 	} else {
-		cellStart = cellContentEnd - len(cellData)
+		cellStart = cellContentEnd - t.dividerCellLen(childSplit)
 	}
 	if cellStart < cellPtrEnd {
 		return fmt.Errorf("btree: interior page full, cannot add child pointer")
+	}
+
+	cellData, err := t.encodeDividerCell(leftChild, childSplit, pg.PageNum)
+	if err != nil {
+		return err
 	}
 
 	// Find the insert position by key so interior cells stay sorted.
