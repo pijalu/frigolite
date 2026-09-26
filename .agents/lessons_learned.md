@@ -494,3 +494,72 @@ lifecycle sites above are the complete set.
   the boundary first — the bug was topOrBranches returning nil for leaves
   (append(nil, nil...)); split functions must return []Expr{leaf}, like the
   existing topAndConjuncts.
+
+## T33r-fts (2026-09-26) — FTS5 "regression wave" triage: mostly pre-existing transpiler artifacts, two genuine engine fixes
+
+- **Census-compare BEFORE bisecting.** Every package in the mission's
+  regression wave reproduced its failure at the census commit (5c2bfa675)
+  too — fts5prefix, fts4merge, fts5optimize, fts5contentless2 all fail
+  identically there. The "wave" was census-masking, not drift: fixing or
+  re-running reaches sections that were previously behind early returns.
+  Attribution protocol: run the failing package at the census SHA first;
+  only identical-at-census ⇒ pre-existing, different ⇒ bisect.
+
+- **Transpiler artifact classes found this session (all adjudicated in
+  portplan/NA_EVIDENCE.md §FULL-SUITE-DRIFT.T33r-fts):**
+  (a) do_execsql_test NAMES embedding brace groups (`3.3.$x.$tn.{$colset}`,
+  `1.$iTest.$sz.{$s}`) — the name component is executed as the SQL
+  statement and the real body is DROPPED (fts5prefix, fts5aj);
+  (b) `foreach {a b} $list` two-variable destructuring skipped (variables
+  stay empty → "near \",\"" downstream) — fts5prefix;
+  (c) TCL double-quoted continuation strings keep their leading quote
+  inside the SQL ("unrecognized token") — fts5prefix;
+  (d) brace-quoted `t2('c1:x*')` — the `:` hallucinates a `$var`
+  substitution (`c1<x>*`) — fts5prefix;
+  (e) `while {[proc arg]}` proc conditions → tclBool bare-word fallback
+  returns TRUE forever → infinite loop — fts5merge;
+  (f) `[db total_changes]` inside a while-1 break expression survives as a
+  literal in tclExprWith → break never fires — fts5optimize 2.tn.4,
+  fts5merge 5.2;
+  (g) `incr` past MaxInt64: TCL 9 bignums make the loop condition false
+  (clean exit); the transpiled int64 add wraps to MinInt64 → 1.8e19
+  iterations — fts5contentless2;
+  (h) `set L 1852` never registered in the TCL var registry → `$L` binds
+  NULL → LIMIT NULL = "datatype mismatch" (oracle-verified; LIMIT NULL is
+  NOT a no-limit in SQLite 3.54.0) — fts4merge.
+  Repairs land IN the generated file when the intended semantics are
+  recoverable (literal substitution, overflow guard, dropped-quote removal,
+  destructuring); whole-package supersession when the package's substance
+  is wall-clock-bound (fts5aj 100k statements, fts5bigid 60k zero-assertion
+  statements) — every supersession carries a native pin.
+
+- **Oracle wins:** LIMIT NULL → "datatype mismatch" (3.54.0); a plain fts5
+  INSERT moves total_changes by +7 (its shadow SQL counts!), 'merge=1' by
+  exactly +1 (structure/blob writes are uncounted); redundant special-
+  'delete' leaves MATCH 'one' working while MATCH 'two'/rank/full-scan
+  error and integrity-check PASSES — C's doclist-duplicate violation is
+  reader-path-dependent; the mirror flags all index reads (documented
+  superset). A special-'delete' whose tokens underflow a column total
+  errors immediately (2.1); fts5secure4 1.1's never-seen (term,rowid)
+  delete stays a silent no-op — both live in the same specialDelete.
+
+- **Engine fixes (this branch):** duplicate special-'delete' markers ⇒
+  sticky index-read corruption (internal/fts5 specDelMarkers/idxCorrupt,
+  re-insert consumes markers); vtab blob-tier shadow I/O (%_data/%_idx)
+  must not move sqlite3_total_changes (vtab.UntrackedExecutor +
+  engineVtabDB.ExecSQLUntracked — C counts only its shadow SQL);
+  random-free-rowid probing via O(log n) b-tree seek instead of full-tree
+  scans (rowIDExistsInTree → SeekToRowID).
+
+- **PERF debt (documented, not fixed — pre-existing at census):** per-
+  statement autocommit commits cost ~1-6ms each on darwin (journal
+  before-image ReadAt, statement snapshots, GC). fts4merge4 = 700s serial;
+  fts5bigid's 60k statements >45 min; profile showed 50%+ in
+  Pager.WritePage/journaling, no app-level hotspot. Bulk-statement corpus
+  tests should be budgeted as PERF-class, not correctness.
+
+- **SIGQUIT-the-test process** (`kill -QUIT $(pgrep -f 'pkg.test')` after a
+  20-40s hang) pinpoints the stuck goroutine instantly — faster than
+  profiling for infinite-loop triage; CPU profiles are the complement for
+  allocation-heavy slowness (fts5optimize: 110s of WritePage under
+  structureWrite per INSERT).
