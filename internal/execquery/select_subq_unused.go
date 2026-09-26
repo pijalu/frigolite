@@ -2,6 +2,7 @@
 package execquery
 
 import (
+	"fmt"
 	"strconv"
 	"strings"
 
@@ -55,6 +56,15 @@ func (e *SelectEngine) disableUnusedSubqueryColumns(outer *sql.SelectStmt, quali
 	outNames := make([]string, len(expanded[0]))
 	for i, col := range expanded[0] {
 		outNames[i] = resultColumnNameOf(col)
+	}
+	// A VALUES chain's output columns are named column1..columnN
+	// (select.c computeColumnNames SF_Values), not by their rendered
+	// expressions: an outer reference to column2 must mark the second
+	// output (values-9.2).
+	if sub.ValuesChain {
+		for i := range outNames {
+			outNames[i] = fmt.Sprintf("column%d", i+1)
+		}
 	}
 	use := newSubqueryColumnUse(outNames, qualifiers)
 	if len(declared) == len(outNames) {
@@ -362,11 +372,17 @@ func (u *subqueryColumnUse) markClauseReferences(s *sql.SelectStmt) {
 // markSelectReferences walks the clauses of an expression subquery body
 // (and its compound members). Its FROM/join derived tables resolve in their
 // own scope and are not walked: SQLite sets colUsed only for references that
-// resolve to the subquery source itself. Over-marking through name collisions
-// is acceptable — it only shrinks the optimization.
+// resolve to the subquery source itself. CTE bodies DO resolve against the
+// enclosing scopes (a WITH body is materialized at its use site and its
+// references may bind to outer sources — resolve.c sets the outer source's
+// colUsed bit), so they are walked recursively; over-marking through name
+// collisions only shrinks the optimization (with3-4.0).
 func (u *subqueryColumnUse) markSelectReferences(sel *sql.SelectStmt) {
 	for m := sel; m != nil; m = m.Union {
 		u.markClauseReferences(m)
+		for _, cte := range m.CTEs {
+			u.markSelectReferences(cte.Select)
+		}
 	}
 }
 

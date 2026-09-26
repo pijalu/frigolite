@@ -333,7 +333,7 @@ func (e *SelectEngine) materializeSubqueryJoin(join sql.JoinClause) ([]RowMap, [
 // otherwise wraps each projected value with its column affinity.
 func (e *SelectEngine) buildSubqueryRowMaps(subqResult *Result, rightDefs []sql.ColumnDef, subquery *sql.SelectStmt, tableName string, synthetic bool) []RowMap {
 	if len(subqResult.rowMaps) > 0 && len(subqResult.rowMaps) == len(subqResult.Rows) {
-		return subqResult.rowMaps
+		return projectSubqueryRowMaps(subqResult.rowMaps, rightDefs)
 	}
 	subqAff := subqueryColumnAffinities(subquery)
 	var rightMaps []RowMap
@@ -355,6 +355,34 @@ func (e *SelectEngine) buildSubqueryRowMaps(subqResult *Result, rightDefs []sql.
 		rightMaps = append(rightMaps, rightRowMap)
 	}
 	return rightMaps
+}
+
+// projectSubqueryRowMaps restricts reused subquery row maps to the surface a
+// materialized subquery exposes to its enclosing statement (select.c keeps a
+// co-routine's visible columns to exactly its result list): the output column
+// names, plus internal qualified keys ("t4.a") that a parenthesized join
+// group's outer references resolve through. Anything else is statement-
+// internal state — e.g. a window pass merges unprojected source columns into
+// its row maps so a trailing ORDER BY can cite them — and must not leak: a
+// non-output key like "b" would shadow a same-named output column of another
+// FROM source in the enclosing statement (unionall-4.3).
+func projectSubqueryRowMaps(maps []RowMap, rightDefs []sql.ColumnDef) []RowMap {
+	keep := make(map[string]bool, len(rightDefs)*2)
+	for _, cd := range rightDefs {
+		keep[cd.Name] = true
+		keep[strings.ToLower(cd.Name)] = true
+	}
+	out := make([]RowMap, len(maps))
+	for i, m := range maps {
+		nm := make(RowMap, len(m))
+		for k, v := range m {
+			if keep[k] || strings.Contains(k, ".") {
+				nm[k] = v
+			}
+		}
+		out[i] = nm
+	}
+	return out
 }
 
 
