@@ -64,7 +64,34 @@ func (tp *transpiler) emitDBFuncPrologue(name, procName string, rest []tcl.RawWo
 		tp.emitStringMatchUDF(name, procName)
 		return true
 	}
+	// `db function NAME proc` whose proc body is a single
+	// `string toupper $x` / `string tolower $x` command (selectC.test's
+	// longname_toupper): emit a real case-mapping closure instead of a nil
+	// stub so the DISTINCT/GROUP BY/ORDER BY assertions exercise the UDF.
+	if body, ok := globalProcBodies[procName]; ok && isStringCaseBody(body) {
+		tp.emitStringCaseUDF(name, procName, body)
+		return true
+	}
 	return false
+}
+
+// emitStringCaseUDF emits the case-mapping UDF closure for a proc whose
+// body is a single `string toupper $x` / `string tolower $x` command.
+func (tp *transpiler) emitStringCaseUDF(name, procName, body string) {
+	upper := strings.Contains(strings.ToLower(body), "toupper")
+	fn := "ToLower"
+	if upper {
+		fn = "ToUpper"
+	}
+	kind := "tolower"
+	if upper {
+		kind = "toupper"
+	}
+	tp.emitLine("// db function %s %s (TCL %s UDF: case-map of args[0])", name, procName, kind)
+	tp.emitLine("%s.RegisterFunction(%q, func(args []interface{}) (interface{}, error) {", tp.dbVar, name)
+	tp.emitLine("\tif len(args) < 1 || args[0] == nil { return nil, nil }")
+	tp.emitLine("\treturn strings.%s(function.ValueText(args[0])), nil", fn)
+	tp.emitLine("}, 0, -1)")
 }
 
 // emitStringMatchUDF emits the anchored-glob MATCH overload closure for
@@ -431,4 +458,31 @@ func isStringMatchBody(body string) bool {
 		}
 	}
 	return true
+}
+
+// isStringCaseBody reports whether a proc body is a single
+// `string toupper $x` / `string tolower $x` command (selectC.test's
+// `proc longname_toupper x {return [string toupper $x]}`), the case-mapping
+// UDF shape. Shares the return/bracket unwrapping of isStringMatchBody.
+func isStringCaseBody(body string) bool {
+	b := strings.TrimSpace(body)
+	if strings.HasPrefix(b, "{") && strings.HasSuffix(b, "}") {
+		b = strings.TrimSpace(b[1 : len(b)-1])
+	}
+	if strings.HasPrefix(strings.ToLower(b), "return ") {
+		b = strings.TrimSpace(b[len("return "):])
+	}
+	if strings.HasPrefix(b, "[") && strings.HasSuffix(b, "]") {
+		b = strings.TrimSpace(b[1 : len(b)-1])
+	}
+	cmds := tcl.ParseCommands(b)
+	if len(cmds) != 1 {
+		return false
+	}
+	w := cmds[0]
+	if len(w) != 3 || w[0].Text != "string" ||
+		(w[1].Text != "toupper" && w[1].Text != "tolower") {
+		return false
+	}
+	return strings.HasPrefix(w[2].Text, "$")
 }
