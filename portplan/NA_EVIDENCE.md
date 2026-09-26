@@ -2554,3 +2554,19 @@ wall-clock: 60,000 autocommit statements exceeded 45 minutes on darwin
 tranche regression — reproduced at census 5c2bfa675). Superseded; contract
 pinned by TestFTS5BigRowidRoundTrip (random-rowid REPLACE phase, DELETE
 FROM, big-rowid reinsert with MATCH counts and rowid range check).
+
+### fts5merge — superseded (unbounded transpiled proc-condition loops), pinned natively
+
+Three unbounded loops: (a) 1.1/3.4's `while {[not_merged x8]}` — not_merged
+is a non-transpiled TCL proc and tclBool's bare-word fallback returns true
+forever, so the merge-until-converged loop never exits (3922s CPU timeout
+reproduced on main); (b) 5.2's `while 1 {[db total_changes]-$nChange}` —
+inescapable tclExprWith literal (fts5optimize 2.tn.4 class); (c) rnddoc/
+mydoc nil stubs leave the transpiled corpus with no real documents.
+Superseded; contract pinned by TestFTS5UsermergeIncrementalConvergence:
+usermerge=2 incremental merge work units converge the structure to every
+level ≤1 segment (fts5_structure TVF verified), integrity-check passes,
+MATCH results survive, and 'merge' on an empty table (6.1/6.2) is a no-op.
+Note C's fts5IndexMerge only starts a level merge when the biggest level
+holds >= nMin (usermerge) segments — usermerge=2 is the corpus's own
+convergence setting.
