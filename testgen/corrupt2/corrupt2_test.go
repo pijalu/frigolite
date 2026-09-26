@@ -403,7 +403,9 @@ func Test_corrupt2(t *testing.T) {
 		db, err = frigolite.Open("test.db")
 		tclConnRegister("db", db)
 		if err != nil { t.Fatal(err) }
-		// execsql skipped: PRAGMA freelist_count is VACUUM-dependent (P8.VACUUM)
+		// execsql skipped, side effects preserved: PRAGMA freelist_count is VACUUM-dependent (P8.VACUUM)
+		_res = db.Exec(" PRAGMA freelist_count ")
+		_ = _res.Error // tolerate unsupported-feature errors in skipped tests
 	}
 	{ // "14.3"
 		r = db.Query("\n  PRAGMA integrity_check;\n")

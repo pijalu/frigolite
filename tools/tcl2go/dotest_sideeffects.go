@@ -14,7 +14,7 @@ import (
 // skipSideEffect is one ordered side effect of a skipped do_test body: a
 // SQL execution on a connection, or a pure file operation later tests rely on.
 type skipSideEffect struct {
-	kind    string // "sql", "close", "remove", "mkdir", "copy"
+	kind    string // "sql", "close", "remove", "mkdir", "copy", "reopen"
 	connVar string
 	sqlExpr string
 	goArgs  []string
@@ -38,6 +38,17 @@ func (tp *transpiler) emitSkippedDoTestSideEffects(name, reason string, args []t
 			continue
 		}
 		if eff, ok := tp.fileSideEffectCmd(cmd); ok {
+			effects = append(effects, eff)
+			continue
+		}
+		// `sqlite3 db FILE` inside a skipped body re-binds the main
+		// connection to FILE (pragma-3.19: `forcedelete test.db; sqlite3 db
+		// test.db` — replaying the forcedelete without the reopen leaves db
+		// writing to an unlinked inode and the following do_test fails with
+		// "attempt to write a readonly database"). Only the pre-declared
+		// main connection is handled; secondary handles keep their old
+		// conservative no-op.
+		if eff, ok := tp.reopenSideEffectCmd(cmd); ok {
 			effects = append(effects, eff)
 		}
 	}
@@ -74,6 +85,11 @@ func (tp *transpiler) emitSkipEffect(eff skipSideEffect) {
 		tp.emitLine("_ = _res.Error // tolerate unsupported-feature errors in skipped tests")
 	case "close":
 		tp.emitLine("%s.Close()", eff.connVar)
+	case "reopen":
+		tp.emitLine("%s.Close()", eff.connVar)
+		tp.emitLine("%s, err = frigolite.Open(%s)", eff.connVar, eff.goArgs[0])
+		tp.emitLine("if err != nil { t.Fatal(err) }")
+		tp.emitLine("tclConnRegister(%q, %s)", eff.connVar, eff.connVar)
 	case "remove":
 		tp.emitLine("os.RemoveAll(%s)", eff.goArgs[0])
 	case "mkdir":
@@ -119,6 +135,21 @@ func (tp *transpiler) fileSideEffectCmd(cmd []tcl.RawWord) (skipSideEffect, bool
 		return skipSideEffect{kind: "copy", goArgs: args[:2]}, true
 	}
 	return skipSideEffect{}, false
+}
+
+// reopenSideEffectCmd classifies a `sqlite3 db FILE` body command as a
+// main-connection re-bind the later tests depend on. Only the main "db"
+// connection is handled (db1..db9 reopen shapes differ in declaration
+// status); the filename must be a string literal.
+func (tp *transpiler) reopenSideEffectCmd(cmd []tcl.RawWord) (skipSideEffect, bool) {
+	if len(cmd) < 3 || cmd[0].Text != "sqlite3" || cmd[1].Text != "db" {
+		return skipSideEffect{}, false
+	}
+	filename := strings.TrimSpace(cmd[2].Text)
+	if strings.HasPrefix(filename, "$") || strings.HasPrefix(filename, "[") {
+		return skipSideEffect{}, false
+	}
+	return skipSideEffect{kind: "reopen", connVar: "db", goArgs: []string{tp.goStringLiteral(cmd[2])}}, true
 }
 
 // classifyFileCmd maps a body command to its side-effect kind and the

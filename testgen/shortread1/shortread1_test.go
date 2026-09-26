@@ -99,7 +99,9 @@ func Test_shortread1(t *testing.T) {
 	}
 	{ // do_test "shortread1-1.3"
 		// sqlite3_release_memory [expr {1024*9}] (unsupported command, not transpiled)
-		// execsql skipped: PRAGMA freelist_count is VACUUM-dependent (P8.VACUUM)
+		// execsql skipped, side effects preserved: PRAGMA freelist_count is VACUUM-dependent (P8.VACUUM)
+		_res = db.Exec("\n    INSERT INTO t1 VALUES(hex(randomblob(5000)));\n    PRAGMA freelist_count;\n  ")
+		_ = _res.Error // tolerate unsupported-feature errors in skipped tests
 	}
 	{ // do_test "shortread1-1.4"
 		r = db.Query("\n    COMMIT;\n    SELECT count(*) FROM t1;\n  ")
