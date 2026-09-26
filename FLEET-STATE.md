@@ -187,6 +187,30 @@ TRIAGE FLEET DISPATCHED (worktrees frigolite-wt-t33r-*):
   fts5merge fts5optimize fts5contentless2 fts5delete.
 Coordinator re-censuses AFTER all three land (alone, nothing else
 running).
+
+## Wave-4 merge status (2026-09-26 late)
+
+- fleet/t33r-order MERGED (a90f0597a → main): use-walk three-ways
+  (VALUES columnN naming, CTE-body descent, subquery rowMap projection),
+  ORDER-BY-index gate (per-term collation + NULLS FIRST/LAST vs scan
+  placement), sqlite_autoindex DDL-slot parity (whereA), divider-chain
+  leak precheck + integrity_check UsableSize decode (backup/
+  reservebytes — idxfix residue CONFIRMED: absent before aa23922dd).
+  Handoff to kernel agent: selectC (string toupper proc stub), whereF
+  (TCL regexp \y word boundary → literal y), windowC (db-eval per-row
+  body dropped). Pre-existing at base, NOT wave: bigrow-2.2
+  (oversized-record rewrite boundary), corrupt-7.3 (layout-bound).
+- fleet/t33r-kernel MERGED (8d4486b05 → main 7efda8cdf): WAVE ROOT
+  CAUSE = the coordinator's §5d skiptests2_part2→part3 split
+  (ba9247849) silently dropped the skipTestsMoreT30Kernel map (11
+  oracle-adjudicated skips) — restored. Real emitter fixes: softheap1
+  PRAGMA soft_heap_limit lowering, catch-of-bind rc NAME (text binds),
+  skip side-effect preservation (shortread1), e_fkey setup replay,
+  pragma reopen. 16 packages green on main.
+- Kernel agent RESUMED (T33r-kernel2) for the selectC/whereF/windowC
+  emitter handoffs.
+- fleet/t33r-fts still working (fts5prefix + slow family; f5cfbdd69/
+  aa23922dd attribution in progress).
 - fleet/t33-fts5 STILL ACTIVE in frigolite-wt-t33-fts5 (fts5hash +
   fts5unindexed + contentless3-2.x green at ef605a1ad; segment/structure
   persistence model landed; 4 dirty files mid-work).
