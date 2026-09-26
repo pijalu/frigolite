@@ -2497,3 +2497,26 @@ allocation probes via O(log n) b-tree seek
 (internal/exec/expression_compare.go rowIDExistsInTree now SeekToRowID —
 SQLite's OP_NotExists on the intkey btree) instead of a full-tree scan per
 candidate.
+
+### fts5prefix 3.3/4.1/4.2 — transpiler artifact cluster repaired in place
+
+All PRE-EXISTING (fail identically at census commit 5c2bfa675). (a) The two
+3.3 do_execsql_tests whose NAMES embed a brace group
+(`3.3.$x.$tn.{$colset}.rowid`) lost their SQL bodies: the transpiler
+executed the name component as SQL (db.Exec(sqlLiteral(colset)) — "near
+\"a c\": syntax error") and dropped `SELECT rowid FROM t3($query)` /
+the highlight query entirely. (b) TCL 9's
+`foreach {col1 col2} $colset` two-variable destructuring was skipped
+(col1/col2 stayed empty → "near \",\": syntax error" in the resq). (c) The
+per-col highlight res kept the TCL double-quoted continuation string's
+leading quote inside the SQL ("unrecognized token"). (d) §4.1/4.2's
+brace-quoted `t2('c1:x*')` column filter was rewritten to
+`t2('c1<value-of-x>*')` — a $var hallucination from the `:` character.
+Repairs landed IN the generated file, preserving the corpus as contract:
+real gmatch/ghl UDF ports (TCL lsearch -glob / token-wrapping semantics;
+the nil stubs had made every 3.3 expectation vacuously empty), the
+{col1 col2} destructuring, the two full query bodies with their
+comparisons, and the literal column-filter strings. Native pin:
+TestFTS5ColumnListAndFilterPrefixPin (column-list filter {a b} : c* rowids,
+highlight parity, and the 4096-row UPDATE + c1:x*/c2:x* counts).
+testgen/fts5prefix: FAIL -> ok 194s.
