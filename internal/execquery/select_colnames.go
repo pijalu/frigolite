@@ -630,44 +630,16 @@ func (tie *rowidTie) ordersRowsBefore(rowMaps []RowMap, i, j int) bool {
 
 // orderByIndexRowidTie reports the rowid tie-break for an ORDER BY that an
 // index satisfies, or nil when the ordering needs a temp b-tree sort (no
-// defined tie order — stable scan order applies). The predicate mirrors
-// orderByIndexPlan (explain_plan.go): single-table scan, all terms bare
-// columns matching an index prefix, no WHERE constraint on non-index
-// columns, and a rowid table (WITHOUT ROWID storage has no rowid keying).
+// defined tie order — stable scan order applies). The gate is the same
+// index-satisfaction predicate as indexOrderedScanForOrderBy (directions,
+// collations, NULLS FIRST/LAST): the tie exists only when the index really
+// provides the ordering, and its direction is the scan's.
 func (e *SelectEngine) orderByIndexRowidTie(s *sql.SelectStmt, orderBy []sql.OrderByTerm) *rowidTie {
-	if s == nil || s.Union != nil || len(s.Joins) != 0 || s.From.Name == "" {
+	idxName, backward, ok := e.indexOrderedScanForOrderBy(s, orderBy)
+	if !ok || idxName == "" {
 		return nil
 	}
-	cols, allDesc, plain := orderByTermColumns(orderBy)
-	if !plain {
-		return nil
-	}
-	if len(e.withoutRowidPKCols(s.From.Name)) > 0 {
-		return nil
-	}
-	idxName := e.findIndexOnColsForQuery(s.From.Name, cols, s.Where)
-	if idxName == "" || (s.Where != nil && e.whereHasNonIndexConstraint(s.Where, s.From.Name, idxName)) {
-		return nil
-	}
-	return &rowidTie{desc: allDesc}
-}
-
-// orderByTermColumns extracts the bare column names of an ORDER BY list.
-// plain is false when any term is not an unqualified column reference.
-// allDesc reports whether every term is DESC.
-func orderByTermColumns(orderBy []sql.OrderByTerm) (cols []string, allDesc, plain bool) {
-	allDesc = len(orderBy) > 0
-	for _, ob := range orderBy {
-		ref, ok := normalizeOrderByExpr(ob.Expr).(*sql.ColumnRef)
-		if !ok || ref.Table != "" || ref.Name == "*" {
-			return nil, false, false
-		}
-		cols = append(cols, ref.Name)
-		if !ob.Desc {
-			allDesc = false
-		}
-	}
-	return cols, allDesc, len(cols) > 0
+	return &rowidTie{desc: backward}
 }
 
 // resultColumnIndex returns the index of a column name in resultCols

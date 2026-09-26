@@ -42,6 +42,54 @@ func t33rQuery(t *testing.T, db *DB, query, want string) {
 	}
 }
 
+// TestT33rIndexOrderPins pins the ORDER-BY-via-index satisfaction fixes
+// (T33r-order): an index satisfies an ORDER BY only when each term's
+// collation matches the index column's (a COLLATE nocase index cannot
+// provide a BINARY ordering — distinct-9.x) and each term's NULLS FIRST /
+// NULLS LAST placement matches the scan's null order (an ASC index scans
+// NULLs first, a DESC one last — nulls1-4.3/5.2). Otherwise a sorter runs
+// under the term's own collation and null ordering.
+func TestT33rIndexOrderPins(t *testing.T) {
+	setup := []string{
+		"CREATE TABLE t1(a, b);",
+		"INSERT INTO t1 VALUES('a','a'),('a','b'),('a','c'),('b','a'),('b','b'),('b','c'),('a','a'),('b','b'),('A','A'),('B','B');",
+	}
+	t.Run("distinct nocase index vs binary ORDER BY", func(t *testing.T) {
+		db, err := Open(":memory:")
+		if err != nil {
+			t.Fatal(err)
+		}
+		defer db.Close()
+		t33rExec(t, db, append(setup, "CREATE INDEX i1 ON t1(a COLLATE nocase, b COLLATE nocase);")...)
+		t33rQuery(t, db, "SELECT DISTINCT a, b FROM t1 ORDER BY a, b", "A A B B a a a b a c b a b b b c")
+		t33rQuery(t, db, "SELECT a, b FROM t1 ORDER BY a, b", "A A B B a a a a a b a c b a b b b b b c")
+	})
+	t.Run("NULLS LAST ignores ASC index order", func(t *testing.T) {
+		db, err := Open(":memory:")
+		if err != nil {
+			t.Fatal(err)
+		}
+		defer db.Close()
+		t33rExec(t, db, "CREATE TABLE tx(a INTEGER PRIMARY KEY, b, c);",
+			"INSERT INTO tx VALUES(1,1,1),(2,NULL,2),(3,3,3),(4,NULL,4),(5,5,5);",
+			"CREATE INDEX i1 ON tx(b);")
+		t33rQuery(t, db, "SELECT * FROM tx ORDER BY b NULLS FIRST", "2 {} 2 4 {} 4 1 1 1 3 3 3 5 5 5")
+		t33rQuery(t, db, "SELECT * FROM tx ORDER BY b NULLS LAST", "1 1 1 3 3 3 5 5 5 2 {} 2 4 {} 4")
+	})
+	t.Run("NULLS LAST with IN-driven index scan", func(t *testing.T) {
+		db, err := Open(":memory:")
+		if err != nil {
+			t.Fatal(err)
+		}
+		defer db.Close()
+		t33rExec(t, db, "CREATE TABLE t4(a, b, c);",
+			"INSERT INTO t4 VALUES(1,1,11),(1,2,12),(1,NULL,1),(2,NULL,1),(2,2,12),(2,1,11),(3,NULL,1),(3,2,12),(3,NULL,3);",
+			"CREATE INDEX t4ab ON t4(a, b);")
+		t33rQuery(t, db, "SELECT * FROM t4 WHERE a IN (1,2,3) ORDER BY a, b NULLS LAST",
+			"1 1 11 1 2 12 1 {} 1 2 1 11 2 2 12 2 {} 1 3 2 12 3 {} 1 3 {} 3")
+	})
+}
+
 // TestT33rOmitUnusedPins pins the omit-unused-subquery-column fixes
 // (T33r-order): a VALUES-derived table's output columns are named
 // column1..columnN so an outer column2 reference marks the column used
