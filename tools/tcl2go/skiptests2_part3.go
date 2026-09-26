@@ -199,7 +199,15 @@ var skipTestsMoreTail2 = map[string]string{
 	// against /usr/bin/sqlite3.
 	"alterlegacy-4.2": "transpiler squish() stub: the TCL whitespace-collapse proc is registered to return NULL, so the generated want (a squish-wrapped literal) can never match; legacy ALTER TABLE RENAME trigger ON-target rewrite pinned natively (no-side-effects)",
 	"altertab-4.2":    "transpiler squish() stub (see alterlegacy-4.2); modern rename trigger text pinned natively (no-side-effects)",
-	"e_fkey-4.1":      "transpiler folds the drop_all_tables $pk (foreign_keys) restore to ON; a fresh connection defaults foreign_keys OFF (pinned natively), so the generated setup contradicts the no-cascade expectation (no-side-effects)",
+	// e_fkey-4.1: the assertion is N-A (the transpiler folds the
+	// drop_all_tables $pk (foreign_keys) restore to ON; a fresh connection
+	// defaults foreign_keys OFF, pinned natively, so the generated setup
+	// contradicts the no-cascade expectation) — but the body's SQL batch
+	// creates tables p/c that e_fkey-4.2+ depend on, so its side effects
+	// MUST be replayed (no "(no-side-effects)" marker). T33r-kernel: the
+	// marker suppressed the CREATE TABLEs and broke e_fkey-4.2 with
+	// "no such table: c".
+	"e_fkey-4.1":      "transpiler folds the drop_all_tables $pk (foreign_keys) restore to ON; a fresh connection defaults foreign_keys OFF (pinned natively), so the generated setup contradicts the no-cascade expectation",
 	"e_fkey-51.2":     "TCL proc maxparent (nested db-one SELECT max(x) FROM parent) stubbed to return NULL; SET DEFAULT contract pinned natively with a static default (no-side-effects)",
 	"e_fkey-51.3":     "maxparent stub, see e_fkey-51.2 (no-side-effects)",
 	"incrvacuum-13.5": "prepare/step timing: the oracle steps auto_vacuum=2 at 13.4 after db2 grew the file so SetAutoVacuum fails (READONLY); the transpiled harness steps at prepare time on the empty file where the set succeeds (no-side-effects)",
@@ -549,8 +557,74 @@ var skipTestsMoreTail2 = map[string]string{
 	"scanstatus2-5.2": "trace_v2 proc introspects sqlite3_stmt_scanstatus -flags complex per stmt handle (C-API seam) to build 'SCAN t1' explains",
 }
 
+// skipTestsMoreT30Kernel holds the T30-kernel evidence-skip classes
+// (FULL-SUITE-DRIFT.T30-kernel, 2026-09-22; oracle-adjudicated, see
+// portplan/NA_EVIDENCE.md §T30-kernel). RESTORED in T33r-kernel: the
+// skiptests2_part2/part3 file split (5d.close, ba9247849) dropped this
+// whole map, re-activating assertions whose emitted form cannot express
+// the TCL/C harness semantics. The softheap1-1.0/2.0 and
+// sqllimits1-5.14.4/5.14.6 entries are deliberately NOT restored: the
+// T33r-kernel emitter fixes make those assertions run for real (the
+// sqlite3_soft_heap_limit fixture lowering and the catch-of-bind rc-name
+// message).
+var skipTestsMoreT30Kernel = map[string]string{
+	// mutex1-1.5: mutex_counters is test1.c mutex instrumentation (C
+	// mutex-alloc counters); the transpiled form reads a TCL array that is
+	// never populated, so the got is {} while want is 0. The pure-Go engine
+	// has no C mutex layer to count (same class as mutex2).
+	"mutex1-1.5": "C mutex_counters instrumentation (test1.c mutex alloc counters) N-A (no-side-effects)",
+
+	// bigrow-2.2: the b value verbatim ENDS with a space (::big1 is built as
+	// "sep NNNN " pairs). In TCL the comparison `[list $::big1]` renders to
+	// big1 verbatim (trailing space kept) and passes; the harness computes
+	// the want with tclListFlatten(big1), which joins the parsed list
+	// elements with single spaces and drops the trailing space of the last
+	// element. Harness rendering artifact; the engine result (cell == big1
+	// byte-for-byte) is pinned in TestW6_Bigrow22.
+	"bigrow-2.2": "want rendered via tclListFlatten drops the trailing space of the last list element (::big1 ends '9360 '); TCL [list $::big1] keeps it (no-side-effects)",
+
+	// btreefault-2.2: dbsqlfuzz crash regression — a nested DELETE of the
+	// outer scan's row must suppress subsequent join rows (outer-cursor
+	// nullification; oracle: a C program against the 3.51 amalgamation
+	// emits exactly [25 a 25 b]). Same class as delete-9.2: the semantics
+	// live in sqlite3_step-per-row cursor interleaving, which the
+	// materializing Go API cannot express. Reported to the coordinator as
+	// the streaming-executor follow-up.
+	"btreefault-2.2": "N-A mid-scan DELETE visibility (outer-cursor nullification) — sqlite3_step cursor-model artifact unobservable through the materializing Go API (no-side-effects)",
+
+	// corrupt-7.3: the corruption writes cellPtr[0]:=788 at page offset
+	// 1024+8, where 788 is the byte offset of rowid 10's record BODY under
+	// the reference build's exact cell layout; frigolite's
+	// (file-format-conforming) cell placement puts different bytes at 788,
+	// so the crafted pointer targets arbitrary in-bounds bytes and no
+	// engine reading the same file can reproduce the assertion
+	// deterministically. The engine contract behind it is now implemented:
+	// balance_deeper validates the copied child with
+	// storage.ValidateCellSizeCheck (btreeCellSizeCheck port).
+	// corrupt-7.1/7.2 keep running.
+	"corrupt-7.3": "crafted corruption offset (cellPtr[0]:=788) bakes the reference build's cell layout; engine contract (oversize cell check at balance_deeper child init) implemented + pinned (no-side-effects)",
+
+	// e_blobclose-2.3.3 / 2.3.5: proc val (registered as a UDF via
+	// `db func val`) closes the blob handle mid-statement and captures
+	// PRAGMA lock_status output; the transpiled UDF is a nil stub, so the
+	// expected 'main reserved temp closed' / 'main shared temp closed'
+	// strings cannot be produced. The blob open/close lock transitions
+	// themselves are engine-visible and covered by 2.1.x/2.2.x, which run.
+	"e_blobclose-2.3.3": "val() UDF is a transpiled stub of a TCL proc that closes the blob handle and captures lock_status (C-harness handle choreography) (no-side-effects)",
+	"e_blobclose-2.3.5": "val() UDF is a transpiled stub of a TCL proc that closes the blob handle and captures lock_status (C-harness handle choreography) (no-side-effects)",
+
+	// avfs-1.4: appendvfs (ext/misc/appendvfs.c) tests drive the custom VFS
+	// through the shell's .avfs path; the transpiled assertion compares the
+	// unexpanded TCL variable literal 'fosAvfs $fa' against 4096. Custom
+	// VFS not implemented N-A (see skipTestFiles multiplex/cksumvfs).
+	"avfs-1.4": "appendvfs custom-VFS alignment check: got is the unexpanded TCL variable literal 'fosAvfs $fa' (transpiler artifact over a custom-VFS seam) (no-side-effects)",
+}
+
 func init() {
 	for k, v := range skipTestsMoreTail2 {
+		skipTestsMore[k] = v
+	}
+	for k, v := range skipTestsMoreT30Kernel {
 		skipTestsMore[k] = v
 	}
 }
