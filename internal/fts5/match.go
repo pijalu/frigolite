@@ -21,6 +21,12 @@ type matchCacheKey struct {
 // MatchRowids evaluates a MATCH query and returns the matching rowids. col
 // restricts the match to one user column (-1 for the whole table).
 func (t *Table) MatchRowids(query string, col int) (map[int64]bool, error) {
+	if err := t.checkIndexRead(); err != nil {
+		// A duplicate special-'delete' marker violated the index: C's
+		// readers reject the violating doclist when they reach it
+		// (fts5delete 2.4, oracle 3.54.0).
+		return nil, err
+	}
 	if t.tokErr != nil {
 		// Phrase evaluation tokenizes the query with the table's tokenizer:
 		// a deferred constructor failure surfaces here first

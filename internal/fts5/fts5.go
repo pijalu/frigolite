@@ -267,6 +267,22 @@ type Table struct {
 	// recursion and fails with C's "recursively defined fts5 content table"
 	// (fts5_main.c fts5BestIndexMethod's bLock check).
 	scanGuard int
+	// specDelMarkers records the (term, rowid) pairs this table's special
+	// 'delete' command has already processed. C persists each as a
+	// delete-marker entry in the flushed level-0 doclist; a second marker
+	// for the same pair duplicates one rowid inside a single doclist — a
+	// structural violation (doclist rowids are strictly increasing) that
+	// C's index readers reject with SQLITE_CORRUPT_VTAB when they next read
+	// the index (fts5delete 2.2-2.4, oracle 3.54.0: the redundant deletes
+	// themselves succeed and 'integrity-check' still passes, while MATCH
+	// reads report "database disk image is malformed").
+	specDelMarkers map[string]bool
+	// idxCorrupt is the sticky read-side flag set when a duplicate
+	// special-delete marker is written (see specDelMarkers). While set,
+	// every in-memory index READ (MATCH queries and index-served scans)
+	// fails with C's corrupt error; index writes and the 'integrity-check'
+	// special command do not consult it (they do not read the doclists).
+	idxCorrupt bool
 }
 
 // pendingTerm is one term's state in the pending-hash byte accounting
@@ -279,11 +295,12 @@ type pendingTerm struct {
 func newTable(db vtab.Database, dbName, tableName string, cfg *Config, tok Tokenizer) *Table {
 	cfg.Name = tableName
 	return &Table{
-		db:            db,
-		dbName:        dbName,
-		cfg:           cfg,
-		tok:           tok,
-		contentValues: make(map[int64][]interface{}),
+		db:             db,
+		dbName:         dbName,
+		cfg:            cfg,
+		tok:            tok,
+		contentValues:  make(map[int64][]interface{}),
+		specDelMarkers: make(map[string]bool),
 	}
 }
 
@@ -371,6 +388,11 @@ func (t *Table) Insert(rowid int64, values []interface{}) error {
 	defer t.bumpVersion()
 	t.noteRowid(rowid)
 	t.ix.AddDoc(rowid, nil, cols)
+	// A fresh index entry consumes the special-'delete' markers for this
+	// rowid: C's insert merges against the pending delete markers, so a
+	// later special delete of the same (term, rowid) writes a fresh marker
+	// instead of duplicating one (fts5StorageInsertCallback).
+	t.clearSpecDelMarkers(rowid, cols)
 	t.storeContentCopy(rowid, values)
 	if err := t.insertContentRow(rowid, values); err != nil {
 		return err
@@ -706,11 +728,60 @@ func (t *Table) specialDelete(args []interface{}) error {
 			return fmt.Errorf("database disk image is malformed")
 		}
 	}
+	// Record the delete markers (see specDelMarkers): a pair already
+	// marked is a duplicate delete of the same (term, rowid) — C's flushed
+	// doclist would hold the rowid twice, so the table's index reads turn
+	// corrupt from now on while the statement itself stays silent
+	// (fts5delete 2.3/2.4).
+	t.recordSpecDelMarkers(rowid, supplied)
 	if !t.ix.HasDoc(rowid) {
 		return nil
 	}
 	_, err = t.Delete(rowid)
 	return err
+}
+
+// recordSpecDelMarkers marks every (column, rowid, term) triple of a
+// special-'delete' command; a triple seen twice sets the sticky corrupt
+// read flag (C: a doclist holding the same rowid twice — see
+// specDelMarkers).
+func (t *Table) recordSpecDelMarkers(rowid int64, cols [][]string) {
+	if t.specDelMarkers == nil {
+		t.specDelMarkers = make(map[string]bool)
+	}
+	for i, toks := range cols {
+		for _, tok := range toks {
+			key := fmt.Sprintf("%d\x00%d\x00%s", i, rowid, tok)
+			if t.specDelMarkers[key] {
+				t.idxCorrupt = true
+			} else {
+				t.specDelMarkers[key] = true
+			}
+		}
+	}
+}
+
+// clearSpecDelMarkers drops the special-'delete' markers of one rowid (the
+// document was re-inserted: C's fresh index entries consume the pending
+// delete markers at the merge, so a later special delete writes a fresh
+// marker instead of duplicating one).
+func (t *Table) clearSpecDelMarkers(rowid int64, cols [][]string) {
+	for i, toks := range cols {
+		for _, tok := range toks {
+			delete(t.specDelMarkers, fmt.Sprintf("%d\x00%d\x00%s", i, rowid, tok))
+		}
+	}
+}
+
+// checkIndexRead reports C's corrupt error once a duplicate special-delete
+// marker has violated the index (see specDelMarkers); nil otherwise. Every
+// in-memory index reader calls this on entry — C's readers reject the
+// violating doclist when they reach it (fts5delete 2.4).
+func (t *Table) checkIndexRead() error {
+	if t.idxCorrupt {
+		return fmt.Errorf("database disk image is malformed")
+	}
+	return nil
 }
 
 // argValue returns the first special-insert argument.
