@@ -42,6 +42,25 @@ func t33rQuery(t *testing.T, db *DB, query, want string) {
 	}
 }
 
+// TestT33rAutoindexPin pins the sqlite_autoindex ordinal-mapping fix
+// (T33r-order, whereA-3.3): an INTEGER PRIMARY KEY rowid alias owns no
+// implicit index and consumes no autoindex slot (DDL createAutoIndexes), so
+// sqlite_autoindex_<t>_1 on `CREATE TABLE t(a INTEGER PRIMARY KEY, b UNIQUE)`
+// is the UNIQUE(b) index — value-ordered, collation-ordered storage — not a
+// rowid-keyed tree. The stored key order feeds index-satisfied ORDER BY
+// emission: ORDER BY b over a b>0 seek emits the stored b order.
+func TestT33rAutoindexPin(t *testing.T) {
+	db, err := Open(":memory:")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer db.Close()
+	t33rExec(t, db,
+		"CREATE TABLE t1(a INTEGER PRIMARY KEY, b UNIQUE, c);",
+		"INSERT INTO t1 VALUES(1,2,3),(2,'hello','world'),(3,4.53,NULL);")
+	t33rQuery(t, db, "SELECT * FROM t1 WHERE b>0 ORDER BY b", "1 2 3 3 4.53 {} 2 hello world")
+}
+
 // TestT33rIndexOrderPins pins the ORDER-BY-via-index satisfaction fixes
 // (T33r-order): an index satisfies an ORDER BY only when each term's
 // collation matches the index column's (a COLLATE nocase index cannot

@@ -50,77 +50,121 @@ func autoindexOrdinal(indexName string) int {
 }
 
 // autoindexCandidateLists builds the candidate constraint column lists in
-// the engine's autoindex creation order (the schema materializes an autoindex
-// entry for every PK/UNIQUE constraint, including an INTEGER rowid-alias PK's
-// entry, so the candidate list mirrors the entries the schema created).
+// creation order under the DDL's slot rules (see autoindexSlotLists).
 func autoindexCandidateLists(tableEntry *schema.Entry, e *DMLExecutor, colDefs []sql.ColumnDef) [][]string {
-	var list [][]string
-	// 1. PRIMARY KEY: column-level flags (covers the promoted table-level
-	// PK spelling) or the table-level PRIMARY KEY constraint columns.
-	if pkCols := autoindexPrimaryKeyCols(tableEntry, e, colDefs); len(pkCols) > 0 {
-		list = append(list, pkCols)
-	}
-	// 2. column-level UNIQUE declarations in column order.
-	// 3. table-level UNIQUE constraints in declaration order.
-	list = append(list, columnLevelUniqueLists(colDefs)...)
-	list = append(list, tableLevelUniqueColsLists(tableEntry, e)...)
-	return list
+	cands := collectAutoindexConstraintCandidates(tableEntry, e, colDefs)
+	return autoindexSlotLists(cands, hasWithoutRowidKeyword(strings.ToUpper(tableEntry.SQL)), colDefs)
 }
 
-// autoindexPrimaryKeyCols resolves an autoindex PRIMARY KEY's columns: the
-// column-level PRIMARY KEY flags, else the first table-level PRIMARY KEY
-// constraint's columns.
-func autoindexPrimaryKeyCols(tableEntry *schema.Entry, e *DMLExecutor, colDefs []sql.ColumnDef) []string {
-	var pkCols []string
-	for i := range colDefs {
-		if colDefs[i].PrimaryKey {
-			pkCols = append(pkCols, colDefs[i].Name)
-		}
-	}
-	if len(pkCols) > 0 {
-		return pkCols
-	}
-	for _, tc := range e.ctx.TableConstraints(tableEntry.Name, tableEntry.SQL) {
-		if tc.Type != sql.ConstraintPrimaryKey {
-			continue
-		}
-		for _, ic := range tc.Columns {
-			pkCols = append(pkCols, ic.Name)
-		}
-		break
-	}
-	return pkCols
+// autoindexConstraint is one PK/UNIQUE constraint in table-creation order.
+type autoindexConstraint struct {
+	cols []string
+	isPK bool
+	pkDe bool
 }
 
-// columnLevelUniqueLists collects one list per column-level UNIQUE
-// declaration, in column order.
-func columnLevelUniqueLists(colDefs []sql.ColumnDef) [][]string {
-	var lists [][]string
+// collectAutoindexConstraintCandidates gathers a table's UNIQUE and PRIMARY
+// KEY constraints in creation order: column-level first (in column order,
+// UNIQUE before PRIMARY KEY within a column — collectUniqueDefs's order),
+// then table-level constraints in declaration order.
+func collectAutoindexConstraintCandidates(tableEntry *schema.Entry, e *DMLExecutor, colDefs []sql.ColumnDef) []autoindexConstraint {
+	var cands []autoindexConstraint
 	for i := range colDefs {
 		if colDefs[i].Unique {
-			lists = append(lists, []string{colDefs[i].Name})
+			cands = append(cands, autoindexConstraint{cols: []string{colDefs[i].Name}})
+		}
+		if colDefs[i].PrimaryKey {
+			cands = append(cands, autoindexConstraint{cols: []string{colDefs[i].Name}, isPK: true, pkDe: colDefs[i].PKDesc})
 		}
 	}
-	return lists
-}
-
-// tableLevelUniqueColsLists collects every table-level UNIQUE constraint's
-// column list, in declaration order (empty lists skipped).
-func tableLevelUniqueColsLists(tableEntry *schema.Entry, e *DMLExecutor) [][]string {
-	var lists [][]string
 	for _, tc := range e.ctx.TableConstraints(tableEntry.Name, tableEntry.SQL) {
-		if tc.Type != sql.ConstraintUnique {
+		if tc.Type != sql.ConstraintUnique && tc.Type != sql.ConstraintPrimaryKey {
 			continue
 		}
 		var cols []string
+		de := false
 		for _, ic := range tc.Columns {
 			cols = append(cols, ic.Name)
+			de = de || ic.Desc
 		}
 		if len(cols) > 0 {
-			lists = append(lists, cols)
+			cands = append(cands, autoindexConstraint{cols: cols, isPK: tc.Type == sql.ConstraintPrimaryKey, pkDe: de})
 		}
 	}
-	return lists
+	return cands
+}
+
+// autoindexSlotLists applies the DDL's slot assignment to the ordered
+// constraint candidates:
+//   - a rowid table's INTEGER PRIMARY KEY rowid alias gets NO index and
+//     consumes NO slot — skipping it here keeps the sqlite_autoindex_<table>_<N>
+//     ordinals aligned with the entries the schema materialized (prepending
+//     the PK shifted every ordinal and keyed the _1 tree on the rowid-alias
+//     column instead of the first UNIQUE constraint's column);
+//   - on WITHOUT ROWID the PRIMARY KEY is the clustered key: no entry of its
+//     own, and an equivalent UNIQUE slot created earlier is absorbed (the
+//     slot stays consumed, later ordinals unchanged);
+//   - a duplicate of an already-indexed column set creates no entry and no
+//     slot.
+func autoindexSlotLists(cands []autoindexConstraint, isWR bool, colDefs []sql.ColumnDef) [][]string {
+	seen := map[string]bool{}
+	absorbed := map[string]bool{}
+	var order []string
+	keyCols := map[string][]string{}
+	for _, u := range cands {
+		if autoindexIsRowidAliasPK(u, isWR, colDefs) {
+			continue
+		}
+		key := autoindexConstraintKey(u.cols)
+		if u.isPK && isWR {
+			// The clustered PRIMARY KEY: no entry of its own; absorb an
+			// equivalent index created earlier in the constraint list.
+			seen[key] = true
+			absorbed[key] = true
+			continue
+		}
+		if seen[key] {
+			continue
+		}
+		seen[key] = true
+		order = append(order, key)
+		keyCols[key] = u.cols
+	}
+	list := make([][]string, 0, len(order))
+	for _, k := range order {
+		if absorbed[k] {
+			continue
+		}
+		list = append(list, keyCols[k])
+	}
+	return list
+}
+
+// autoindexIsRowidAliasPK reports whether one constraint is a single-column
+// PRIMARY KEY that aliases the rowid on a rowid table (such a PK owns no
+// implicit index and consumes no autoindex slot).
+func autoindexIsRowidAliasPK(u autoindexConstraint, isWR bool, colDefs []sql.ColumnDef) bool {
+	if isWR || !u.isPK || len(u.cols) != 1 {
+		return false
+	}
+	cd := colDefAt(colDefs, u.cols[0])
+	if cd == nil {
+		return false
+	}
+	alias := *cd
+	alias.PrimaryKey = true
+	alias.PKDesc = u.pkDe
+	return IsIPKRowidAliasCol(alias)
+}
+
+// autoindexConstraintKey builds the duplicate-detection key for a
+// constraint's column list: a comma join of the lowercased column names.
+func autoindexConstraintKey(cols []string) string {
+	lowered := make([]string, len(cols))
+	for i, c := range cols {
+		lowered[i] = strings.ToLower(c)
+	}
+	return strings.Join(lowered, ",")
 }
 
 // RebuildIndex clears one index's b-tree and re-inserts every table row's

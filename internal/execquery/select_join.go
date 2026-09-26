@@ -385,7 +385,6 @@ func projectSubqueryRowMaps(maps []RowMap, rightDefs []sql.ColumnDef) []RowMap {
 	return out
 }
 
-
 // materializeViewJoin
 
 // materializeViewJoin builds the right-side row maps and column defs for a
