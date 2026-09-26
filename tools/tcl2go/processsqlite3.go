@@ -347,12 +347,21 @@ func (tp *transpiler) emitBindStmt(ps *preparedState, cmdName, stmtVar, kind, id
 		rawExpr = tp.buildStringExpr(args[2].Text)
 	}
 	if tp.catchMode {
-		// sqlite3_bind_* raises a TCL error (empty message) when the C API
-		// call does not return SQLITE_OK — including SQLITE_RANGE and the
-		// post-step SQLITE_MISUSE (bind-10.8.1: binding after the program
-		// started fails; test1.c test_bind returns TCL_ERROR on rc!=OK).
-		tp.emitLine("if _r = tclBindStmt(%s, %q, %s, %q, %s, %s); _r != %q && _r != \"\" { _catchErr = fmt.Errorf(\"\") }",
-			conn, stmtVar, idxExpr, kind, rawExpr, nlenExpr, "SQLITE_OK")
+		// sqlite3_bind_* raises a TCL error when the C API call does not
+		// return SQLITE_OK (test1.c). The caught message differs by wrapper
+		// exactly as in test1.c: the text/text16 wrappers first
+		// Tcl_AppendResult(sqlite3ErrName(rc)) (test_bind_text /
+		// test_bind_text16), so the caught message is the rc NAME
+		// (sqllimits1-5.14.4: `catch {sqlite3_bind_text ...} res` →
+		// "SQLITE_TOOBIG"); the int/int64/double/null/blob wrappers return
+		// bare TCL_ERROR with NO message (test_bind_int et al.;
+		// bind-10.8.1 wants {1 {}}).
+		errExpr := `fmt.Errorf("")`
+		if kind == "text" || kind == "text16" {
+			errExpr = `fmt.Errorf("%s", _r)`
+		}
+		tp.emitLine("if _r = tclBindStmt(%s, %q, %s, %q, %s, %s); _r != %q && _r != \"\" { _catchErr = %s }",
+			conn, stmtVar, idxExpr, kind, rawExpr, nlenExpr, "SQLITE_OK", errExpr)
 		return
 	}
 	tp.emitLine("_r = tclBindStmt(%s, %q, %s, %q, %s, %s)", conn, stmtVar, idxExpr, kind, rawExpr, nlenExpr)
