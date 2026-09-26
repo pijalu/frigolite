@@ -583,11 +583,14 @@ func Test_fts4merge(t *testing.T) {
 					// fts3_integrity_check t1 (unsupported command, not transpiled)
 				}
 				{ // do_test "5.9"
-					L = "1852"
-					_ = L // suppress unused warning
-					_rows4 := db.Query("SELECT docid FROM t1 UNION ALL SELECT docid FROM t1 LIMIT $L")
+					// T33r-fts 2026-09-26: the transpiler never registered `L`
+					// (set L [expr 16*16*7 + 16*3 + 12] = 1852) in the TCL var
+					// registry, so the bound $L evaluated to NULL and LIMIT NULL
+					// failed with "datatype mismatch" (oracle-verified). The
+					// literal value is the faithful translation.
+					_rows4 := db.Query("SELECT docid FROM t1 UNION ALL SELECT docid FROM t1 LIMIT 1852")
 					if _rows4.Error != nil {
-						t.Errorf("query error: %v\n  sql: %s", _rows4.Error, "SELECT docid FROM t1 UNION ALL SELECT docid FROM t1 LIMIT $L")
+						t.Errorf("query error: %v\n  sql: %s", _rows4.Error, "SELECT docid FROM t1 UNION ALL SELECT docid FROM t1 LIMIT 1852")
 					}
 					for _, _row4 := range _rows4.Rows {
 					_ = _row4 // suppress unused warning

@@ -2520,3 +2520,17 @@ comparisons, and the literal column-filter strings. Native pin:
 TestFTS5ColumnListAndFilterPrefixPin (column-list filter {a b} : c* rowids,
 highlight parity, and the 4096-row UPDATE + c1:x*/c2:x* counts).
 testgen/fts5prefix: FAIL -> ok 194s.
+
+### fts4merge 5.9 — unregistered TCL var L (faithful literal repair)
+
+`set L [expr 16*16*7 + 16*3 + 12]` = 1852 was never registered by the
+transpiler, so `LIMIT $L` bound NULL and failed with "datatype mismatch"
+(oracle 3.54.0 rejects LIMIT NULL with exactly that error — the failure was
+census-verified pre-existing, 5c2bfa675). Repaired to the literal
+`LIMIT 1852` in the generated file. The downstream 5.10/5.11 segment
+layouts (which presuppose 5.9's 1852 duplicate inserts) were verified
+natively against the C constants for both fts3 and fts4 and are pinned by
+TestFTS4MergeDupInsertMergeLayout:
+5.10 = 0 {0 1 2 3 4 5 6 7 8 9 10 11} 1 0 2 0 3 0 X'010E';
+5.11 = 1 {0 1} 2 0 3 0 X'010E'.
+testgen/fts4merge: FAIL -> ok 274s.
