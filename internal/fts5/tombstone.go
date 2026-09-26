@@ -333,7 +333,7 @@ func (t *Table) removeTombstoneRows(seg *Segment) error {
 	qData := qual(t.dbName, t.cfg.Name+"_data")
 	lo := tombstoneRowid(seg.Segid, 0)
 	hi := tombstoneRowid(seg.Segid, seg.NPgTombstone-1)
-	_, err := t.db.ExecSQL(fmt.Sprintf("DELETE FROM %s WHERE id>=%d AND id<=%d", qData, lo, hi))
+	_, err := t.execUntracked(fmt.Sprintf("DELETE FROM %s WHERE id>=%d AND id<=%d", qData, lo, hi))
 	return err
 }
 

@@ -2427,3 +2427,55 @@ tolerance). frigolite_fts5corrupt_test.go's corrupt-structure expectation
 (MATCH yields no rows, count(*) intact) re-verified against the local oracle
 3.54.0. frigolite_fts5_testfn_test.go's single-statement insert makes the
 fts5detail 5.2/5.3 physical blob comparison statement-granularity fair.
+
+## FULL-SUITE-DRIFT.T33r-fts — fts5 regression-wave triage (2026-09-26)
+
+Branch fleet/t33r-fts. The "regression wave" from the final census proved to
+be predominantly PRE-EXISTING (each package reproduced at the census commit
+5c2bfa675), with two genuine engine findings on top.
+
+### fts5optimize 2.tn.4 — inescapable transpiled merge loop (N-A, per-assertion)
+
+The TCL `while 1 { set c [db total_changes]; execsql {INSERT INTO t1(t1,
+rank) VALUES('merge', 1)}; if {$c<2} break }` becomes an infinite loop in
+generated code: `[db total_changes]` is passed through tclExprWith as a
+literal string, strconv.Atoi fails every iteration, and the break condition
+can never fire (same adjudicated class as fts5contentless3 3.6). The
+package therefore burned 900s+ of CPU (first hang observed in the 2026-09-26
+census rerun; reproduced at census commit 5c2bfa675). Per-assertion N-A
+annotation landed in testgen/fts5optimize/fts5optimize_test.go; the loop's
+engine-visible contract is pinned by TestFTS5OptimizeMergeLoopTermination:
+a 'merge=1' special insert must move sqlite3_total_changes by less than 2
+(oracle 3.54.0 delta = 1) so the loop exits after the first iteration.
+
+Engine fix surfaced by the adjudication: module shadow writes C performs as
+direct blob/btree I/O (fts5 %_data segment/structure payloads, %_idx dlidx
+rows) were counted into sqlite3_total_changes because the mirror issues
+them as SQL (internal/exec engineVtabDB.ExecSQL). New
+vtab.UntrackedExecutor capability + engineVtabDB.ExecSQLUntracked
+(internal-writes window); fts5 blob-tier sites (writeSegmentBlob,
+removeSegmentRows, writeDlidxRow, structureWrite, removeTombstoneRows,
+resetIndexStructure page delete) route through it. Oracle deltas: plain
+fts5 INSERT = +7 (C's %_content/%_docsize/%_stat SQL counts; mirror +3 —
+documented blob-per-segment divergence), 'merge=1' = +1 (mirror 0: the
+special insert reports no row change; the loop contract only needs < 2).
+
+### fts5delete 2.4 — duplicate special-'delete' markers (ENGINE FIX)
+
+Oracles 3.54.0, fts5delete.test 2.1-2.4 (re-verified): a special 'delete'
+whose tokens underflow a column total errors immediately (2.1, already
+implemented); a second delete of a removed (term,rowid) errors (2.2, via
+the empty-index check); a redundant delete while OTHER documents remain is
+silent at statement time (2.3) but C's flushed level-0 doclist would hold
+that rowid TWICE — a structural violation its index readers reject with
+"database disk image is malformed" on later reads (2.4: MATCH 'two'
+and MATCH 'two ORDER BY rank' both fail; full scans fail; MATCH 'one'
+still passes because its iterator never reaches the violating entry;
+'integrity-check' passes). The mirror keeps the processed (column, rowid,
+term) pairs and sets a sticky read-side corrupt flag on a duplicate
+(internal/fts5 fts5.go specDelMarkers/idxCorrupt); MatchRowids and the
+index-served ScanDocs branch report C's corrupt error while it is set.
+Re-inserting a document consumes its markers (C's fresh entries merge
+against the pending markers). Documented superset: the mirror flags ALL
+index reads, C only those that traverse the violating doclist. Pinned by
+TestFTS5SpecialDeleteCorruptPin (12 oracle-derived assertions).
