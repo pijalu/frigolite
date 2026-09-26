@@ -19,6 +19,9 @@ import (
 // constraint drives the scan universe from the index (xFilter parity), so
 // index-only documents of external-content tables are visible.
 func (e *SelectEngine) execFTS5Select(s *sql.SelectStmt, t5 *fts5.Table, colDefs []sql.ColumnDef) *Result {
+	if err := t5.BeginQuery(); err != nil {
+		return &Result{Error: err}
+	}
 	csrID := t5.NextCursorID() // cursor open (fts5Filter's iCsrId; '*id' reports it)
 	hasMatch := statementHasFTS5Match(s, t5)
 	override, hasOverride, err := e.fts5RankOverride(s.Where)
@@ -35,7 +38,7 @@ func (e *SelectEngine) execFTS5Select(s *sql.SelectStmt, t5 *fts5.Table, colDefs
 	}
 	e.ctx.SetFTS5Aux(t5.Name(), aq)
 	defer e.ctx.ClearFTS5Aux()
-	rowids, rows, err := e.fts5UniverseRows(s.Where, t5, colDefs, rankFn)
+	rowids, rows, err := e.fts5UniverseRows(s, s.Where, t5, colDefs, rankFn)
 	if err != nil {
 		return &Result{Error: err}
 	}
@@ -169,32 +172,112 @@ func statementReadsFTS5Rank(s *sql.SelectStmt, tableName string) bool {
 // fts5UniverseRows materializes the documents the statement's WHERE can
 // visit: the intersection of the top-level MATCH conjuncts' rowid sets when
 // one exists (index-driven scan), otherwise the full document scan.
-func (e *SelectEngine) fts5UniverseRows(where sql.Expr, t5 *fts5.Table, colDefs []sql.ColumnDef, rankFn func(int64) (interface{}, error)) ([]int64, [][]interface{}, error) {
+func (e *SelectEngine) fts5UniverseRows(s *sql.SelectStmt, where sql.Expr, t5 *fts5.Table, colDefs []sql.ColumnDef, rankFn func(int64) (interface{}, error)) ([]int64, [][]interface{}, error) {
 	set, err := t5.MatchUniverse(where, func(expr sql.Expr) (interface{}, error) {
 		return e.ctx.EvalExpr(expr, nil)
 	})
 	if err != nil {
 		return nil, nil, err
 	}
+	// Content values are fetched lazily in C for MATCH-driven cursors
+	// (xColumn, per projected column): a statement that reads no user column
+	// — "SELECT rowid FROM ft('two')" — never touches the content table, so
+	// a missing content row cannot fail it (fts5content 9.4 vs 9.5). Full
+	// scans stay eager: fts5StorageScan walks the content table to build the
+	// document list, so content faults fire for every projection.
+	readCols := statementReadsFTS5Columns(s, t5)
 	if set != nil {
-		ids := t5.SortedMatchRowids(set)
-		rowids := make([]int64, 0, len(ids))
-		rows := make([][]interface{}, 0, len(ids))
-		for _, rowid := range ids {
-			vals, verr := t5.DocValues(rowid)
+		return fts5MaterializeIDs(t5, t5.SortedMatchRowids(set), rankFn, readCols)
+	}
+	// where.c's MULTI-INDEX OR (whereLoopAddOr): an OR chain whose every
+	// branch is a usable MATCH conjunction on this table runs one sub-plan
+	// per branch — rows emerge branch by branch (each in rowid order, deduped
+	// at first emission), not as a globally rowid-sorted union (fts5misc
+	// 20.3/20.4/20.5).
+	orids, err := t5.MatchOrBranchRowids(where, func(expr sql.Expr) (interface{}, error) {
+		return e.ctx.EvalExpr(expr, nil)
+	})
+	if err != nil {
+		return nil, nil, err
+	}
+	if orids != nil {
+		return fts5MaterializeIDs(t5, orids, rankFn, readCols)
+	}
+	return fts5ScanRows(t5, colDefs, rankFn)
+}
+
+// fts5MaterializeIDs materializes MATCH-driven cursor rows for an ordered
+// rowid list: content values are fetched lazily (only when the statement
+// reads a user column), each row flattened in colDefs order (user columns,
+// hidden table-name column = rowid, rank).
+func fts5MaterializeIDs(t5 *fts5.Table, ids []int64, rankFn func(int64) (interface{}, error), readCols bool) ([]int64, [][]interface{}, error) {
+	rowids := make([]int64, 0, len(ids))
+	rows := make([][]interface{}, 0, len(ids))
+	for _, rowid := range ids {
+		var vals []interface{}
+		if readCols {
+			var verr error
+			vals, verr = t5.DocValues(rowid)
 			if verr != nil {
 				return nil, nil, verr
 			}
-			flat, rerr := fts5FlatRow(t5, rowid, vals, rankFn)
-			if rerr != nil {
-				return nil, nil, rerr
-			}
-			rowids = append(rowids, rowid)
-			rows = append(rows, flat)
 		}
-		return rowids, rows, nil
+		flat, rerr := fts5FlatRow(t5, rowid, vals, rankFn)
+		if rerr != nil {
+			return nil, nil, rerr
+		}
+		rowids = append(rowids, rowid)
+		rows = append(rows, flat)
 	}
-	return fts5ScanRows(t5, colDefs, rankFn)
+	return rowids, rows, nil
+}
+
+// statementReadsFTS5Columns reports whether the statement references any user
+// column of the table (projection, WHERE, ORDER BY, GROUP BY, HAVING): the
+// paths that force C's xColumn content fetches.
+func statementReadsFTS5Columns(s *sql.SelectStmt, t5 *fts5.Table) bool {
+	found := false
+	check := func(expr sql.Expr) {
+		if found || expr == nil {
+			return
+		}
+		WalkExprFull(expr, func(n sql.Expr) {
+			if ref, ok := n.(*sql.ColumnRef); ok && fts5RefIsUserColumn(ref, t5) {
+				found = true
+			}
+		})
+	}
+	for _, c := range s.Columns {
+		if c.Expr == nil {
+			// A * projection reads every column (and thus the content
+			// values behind them).
+			found = true
+			break
+		}
+		check(c.Expr)
+	}
+	check(s.Where)
+	check(s.Having)
+	for _, c := range s.OrderBy {
+		check(c.Expr)
+	}
+	for _, g := range s.GroupBy {
+		check(g)
+	}
+	return found
+}
+
+// fts5RefIsUserColumn reports whether a column reference names one of the
+// table's user columns (bare or table-qualified). The * projection reads
+// every column.
+func fts5RefIsUserColumn(ref *sql.ColumnRef, t5 *fts5.Table) bool {
+	if ref.Name == "*" {
+		return true
+	}
+	if ref.Table != "" && !strings.EqualFold(ref.Table, t5.Name()) {
+		return false
+	}
+	return t5.ColumnIndex(ref.Name) >= 0
 }
 
 // fts5FlatRow renders one document's flat row in colDefs order.
@@ -232,6 +315,9 @@ func (e *SelectEngine) execFTS5TableFunc(ref sql.TableRef, s *sql.SelectStmt) (*
 	if !ok {
 		return nil, false
 	}
+	if err := t5.BeginQuery(); err != nil {
+		return &Result{Error: err}, true
+	}
 	csrID := t5.NextCursorID() // cursor open (fts5Filter's iCsrId; '*id' reports it)
 	// whereexpr.c sqlite3ErrorMsg "too many arguments on %s() - max %d":
 	// more arguments than HIDDEN columns is a parse-time error.
@@ -265,7 +351,7 @@ func (e *SelectEngine) execFTS5TableFunc(ref sql.TableRef, s *sql.SelectStmt) (*
 	if hasArgs {
 		// Index-driven universe: the TVF's MATCH arguments select the
 		// documents (external-content index-only rows included).
-		outIDs, rows, rerr := fts5TVFMatchedRows(t5, matched, rankFn)
+		outIDs, rows, rerr := fts5TVFMatchedRows(t5, matched, rankFn, statementReadsFTS5Columns(s, t5))
 		if rerr != nil {
 			return &Result{Error: rerr}, true
 		}
@@ -368,15 +454,22 @@ func (e *SelectEngine) fts5TVFRankFn(t5 *fts5.Table, aq *fts5.AuxQuery, firstQue
 	}
 }
 
-// fts5TVFMatchedRows materializes the MATCH-selected documents in rowid order.
-func fts5TVFMatchedRows(t5 *fts5.Table, matched map[int64]bool, rankFn func(int64) (interface{}, error)) ([]int64, [][]interface{}, error) {
+// fts5TVFMatchedRows materializes the MATCH-selected documents in rowid
+// order. Content values load eagerly only when the statement reads user
+// columns (C's lazy xColumn: a rowid-only projection never fetches content,
+// fts5content 9.4).
+func fts5TVFMatchedRows(t5 *fts5.Table, matched map[int64]bool, rankFn func(int64) (interface{}, error), readCols bool) ([]int64, [][]interface{}, error) {
 	rowids := t5.SortedMatchRowids(matched)
 	var outIDs []int64
 	var rows [][]interface{}
 	for _, rowid := range rowids {
-		vals, verr := t5.DocValues(rowid)
-		if verr != nil {
-			return nil, nil, verr
+		var vals []interface{}
+		if readCols {
+			var verr error
+			vals, verr = t5.DocValues(rowid)
+			if verr != nil {
+				return nil, nil, verr
+			}
 		}
 		flat, rerr := fts5FlatRow(t5, rowid, vals, rankFn)
 		if rerr != nil {
@@ -545,4 +638,32 @@ func matchRefMatchesTable(left sql.Expr, t5 *fts5.Table) bool {
 		return false
 	}
 	return strings.EqualFold(ref.Name, t5.Name()) || strings.EqualFold(ref.Table, t5.Name()) || t5.ColumnIndex(ref.Name) >= 0
+}
+
+// fts5LeftJoinUnusableMatch reports the planner failure for a MATCH
+// constraint stranded in a LEFT JOIN's ON clause while referencing the outer
+// (fts5) table: the term is unusable at every scan position — an ON-clause
+// term of an outer join must not filter the outer table, and it binds no
+// constraint for the inner one — so fts5's xBestIndex sees an unusable MATCH
+// and returns SQLITE_CONSTRAINT (fts5_main.c fts5BestIndexMethod's "If an
+// unusable MATCH operator is present" rule); whereLoopAddVtab drops the plan
+// and the join solver finds no path, reported as "no query solution"
+// (where.c). The unary-plus form (+b MATCH) is not a vtab constraint at all
+// and stays a plain predicate.
+func fts5LeftJoinUnusableMatch(s *sql.SelectStmt, t5 *fts5.Table) error {
+	for _, jc := range s.Joins {
+		if jc.JoinType != "LEFT" || jc.On == nil {
+			continue
+		}
+		found := false
+		WalkExprFull(jc.On, func(n sql.Expr) {
+			if bop, ok := n.(*sql.BinaryOp); ok && bop.Operator == "MATCH" && matchRefMatchesTable(bop.Left, t5) {
+				found = true
+			}
+		})
+		if found {
+			return fmt.Errorf("no query solution")
+		}
+	}
+	return nil
 }

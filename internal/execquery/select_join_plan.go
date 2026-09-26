@@ -601,13 +601,23 @@ func joinONReferencesOnlyRight(on sql.Expr, rightName string) bool {
 
 // naturalJoinCommonCols returns the set of column names common to the left
 // and right table definitions (used to merge columns in NATURAL JOIN output).
+// HIDDEN columns are invisible: an fts5 operand's hidden table-name and rank
+// columns must not become NATURAL join keys (fts5misc 12.1: t1(a,b,rank)
+// NATURAL JOIN ft must match on a alone — C's declared-vtab HIDDEN columns
+// are excluded from NATURAL/USING resolution).
 func naturalJoinCommonCols(leftDefs, rightDefs []sql.ColumnDef) map[string]bool {
 	rightNames := make(map[string]bool)
 	for _, cd := range rightDefs {
+		if cd.Hidden {
+			continue
+		}
 		rightNames[cd.Name] = true
 	}
 	common := make(map[string]bool)
 	for _, cd := range leftDefs {
+		if cd.Hidden {
+			continue
+		}
 		if rightNames[cd.Name] {
 			common[cd.Name] = true
 		}
@@ -622,10 +632,16 @@ func naturalJoinCommonCols(leftDefs, rightDefs []sql.ColumnDef) map[string]bool 
 func (e *SelectEngine) generateNaturalJoinOn(leftDefs, rightDefs []sql.ColumnDef, leftName, rightName string) sql.Expr {
 	rightNames := make(map[string]bool)
 	for _, cd := range rightDefs {
+		if cd.Hidden {
+			continue
+		}
 		rightNames[cd.Name] = true
 	}
 	var onExpr sql.Expr
 	for _, cd := range leftDefs {
+		if cd.Hidden {
+			continue
+		}
 		if rightNames[cd.Name] {
 			// Generate an equality whose LEFT side is UNQUALIFIED: in a chained
 			// natural join the merged column (stored unqualified in the combined

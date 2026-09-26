@@ -655,6 +655,9 @@ func (e *SelectEngine) execFTS5VtabSelect(s *sql.SelectStmt, t5 *fts5.Table, col
 	if len(s.Joins) == 0 {
 		return e.execFTS5Select(s, t5, colDefs)
 	}
+	if err := fts5LeftJoinUnusableMatch(s, t5); err != nil {
+		return &Result{Error: err}
+	}
 	rowids, allRows, err := fts5ScanRows(t5, colDefs, nil)
 	if err != nil {
 		return &Result{Error: err}

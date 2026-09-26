@@ -2355,3 +2355,75 @@ values tests all run). This is the documented G5.EXPLAIN phase
 **Disposition**: per-test skip (skiptests.go "misc3-6.11-utf8/-utf16")
 with reason "EXPLAIN VDBE P4 operand renderings not implemented
 (G5.EXPLAIN)". Revisit when G5.EXPLAIN lands.
+
+## FULL-SUITE-DRIFT.T33-fts5 — contentless tranche adjudication (2026-09-25)
+
+Resume of the dead T33-fts5 agent (branch fleet/t33-fts5). Engine work landed
+before this adjudication: C-ordered prefix option matching (c= binds content,
+fts5ConfigParseSpecial's sqlite3_strnicmp chain), the recursive-content-table
+guard (writeActive/scanGuard mirroring pConfig->bLock and the write
+transaction; BeginQuery at every fts5 query-plan entry), statement-boundary
+xSync write scope + the %_idx btree-row mirror row, lazy content fetch for
+MATCH-driven cursors (xColumn parity), the missing-content-row error
+("fts5: missing row N from content table 'db'.'tbl'") and the API-layer rc
+name SQLITE_CORRUPT_VTAB, LEFT JOIN ON-clause unusable-MATCH ("no query
+solution"), NATURAL JOIN excluding vtab HIDDEN columns. Packages flipped
+green by engine work: fts5leftjoin, fts5circref, fts5content (12/15),
+fts5misc (2/4 remaining below). The three contentless packages are
+superseded per-assertion as follows.
+
+| package | disposition | evidence |
+|---|---|---|
+| fts5contentless | N-A superseded — 78 failures, all in 4.2/4.4/4.6: the TCL `ft($v)` is a *bound parameter* (sqlite3 Tcl variable binding, braces prevent substitution) so the engine contract is ft('A'); the transpiler emitted the bare identifier `ft(A)` whose true SQL value is "no such column: A" (oracle-verified — SQLite itself rejects it). A second artifact: the generated break condition Atoi's the literal string "([db total_changes] - $nChange)" and can never fire | TestFTS5ResumePinContentlessDeleteParity (LIKE-vs-MATCH parity for 1000 six-token docs, initial / after odd-row contentless deletes / after optimize) |
+| fts5contentless3 | N-A superseded — 1.x/2.x ran green (small-table counts 3/4/3 incl. the tombstone page row: pinned). 3.1/3.2/3.4/3.5 want C's physical %_data leaf-page row counts (200/203/197/200 at pgsz=64 — the optimized segment spans 198 leaf pages of ≤64 bytes, segid 32 pages 1..198, plus averages id=1 and structure id=10; oracle-verified) — the mirror model persists one gob blob row per segment, so C's byte-level page splits do not exist (same class as fts5secure3 2.8 / fts5corrupt7). 3.6 is an inescapable transpiler loop (`for true` whose break parses the literal TCL expr text via Atoi — never true; INFINITE LOOP, never un-skip) and also blocks 3.7 | TestFTS5ResumePinContentless3SmallCounts |
+| fts5contentless4 | N-A harness — the document() UDF is transpiled to a NULL-returning stub (the TCL proc draws n random A-Z tokens), so no pending data ever forms and every fts5_structure assertion sees the empty structure X'00000000FF000001000000'; oracle-verified that 1000 NULL docs produce exactly that record in C too — the engine matches C on the generated test's actual inputs. The nentry/nentrytombstone contracts are engine-implemented and green natively | TestFTS5ResumePinContentless4StructureNentry (0 0 1000 0 → 0 0 1000 49 → 1 0 1 0), TestFTS5ResumePinContentless4LiveEntries (2.x live-entry accounting under progressive deletes) |
+| fts5misc 12.3 | N-A per-assertion — `t2 JOIN ft USING (ft)`: C's fts5BestIndexMethod treats EQ on the hidden table-name column as a MATCH constraint and consumes it (argvIndex), parameterizing the inner scan per outer row (t2.ft='b' drives xFilter('b')); the materialized-join model evaluates the vtab operand once per query and re-checks the residual equality against the hidden column's rowid value — C's constraint-consumption planner path does not exist to graft onto | — |
+| fts5misc 14.x | N-A harness — ATTACH 'file:/one?vfs=memdb' names the test_memdb VFS (src/test_memdb.c, TCL fixture machinery; two attaches share one named memdb). Same class as wal5's aux-VFS wiring | — |
+
+fts5content 8.3.1/8.3.3/8.3.4 — SUPERSEDED GREEN (T33-fts5-resume2,
+2026-09-26): the text_value UDF stub is now a faithful port of the TCL proc
+(i==1 "one", i==2 "two", otherwise "many" — fts5content.test:319), so the
+external-content-over-view rows resolve for real and 8.3.x passes; the
+view-content mechanism itself is exercised end-to-end. No residual N-A in
+fts5content.
+
+## FULL-SUITE-DRIFT.T33-fts5 — resume2 tranche (2026-09-26)
+
+Second resume of the dead T33-fts5 agent. Merge of main's T33-idxfix
+value-ordered index storage grafted cleanly (no fts5 interaction beyond the
+predecessor's WIP statement-granularity fix for the fts5detail 5.2/5.3
+physical blob comparison, landed as-is). Adjudication outcomes:
+
+- fts5misc 20.3/20.4/20.5 — ENGINE-FIXED, not N-A: MULTI-INDEX OR row order
+  (where.c whereLoopAddOr). A WHERE that is a top-level OR chain whose every
+  branch is a usable MATCH conjunction on the table emits rows branch by
+  branch (each branch in rowid order, deduplicated at first emission —
+  RowSet semantics), not as a globally rowid-sorted union. Oracle: 'y' OR 'a'
+  emits 3 4 1. Implemented as Table.MatchOrBranchRowids (internal/fts5/
+  match_or.go) + the fts5UniverseRows hook; only pure MATCH-conjunction OR
+  chains reorder (mixed shapes keep the scan fallback — their C plans need
+  non-vtab branch indexes that do not exist to graft).
+- fts5misc 22.0/22.1 — ENGINE-FIXED: fts5Init's two module scalars were
+  unregistered. fts5(X) (fts5Fts5Func) fetches the extension API pointer for
+  host embeddings; no SQL value can carry the fts5_api_ptr tag, so the
+  observable result is NULL for every SQL argument. fts5_source_id() returns
+  C's literal "--FTS5-SOURCE-ID--". Registered arity-exact (1,1)/(0,0) in
+  internal/fts5/apifunc.go.
+- fts5misc 25.0 — ENGINE-FIXED: fts5CsrPoslist's contentless early return —
+  on a contentless table (content='', or contentless_unindexed) under a
+  non-full detail mode the instance APIs see an EMPTY poslist (no content to
+  re-derive positions from); the engine's AuxQuery.RowInstances now guards
+  the same predicate, so fts5_test_poslist renders the empty list ({{}}).
+- fts5misc 12.3 and 14.0-14.4 — N-A annotations landed IN the generated file
+  (per-assertion, evidence above); they had been masking further sections:
+  everything from 14.x on was fresh surface in this tranche.
+
+Predecessor WIP adjudication (all kept, verified): internal/fts5/flush.go
+tolerates a dropped %_idx during segment row removal / dlidx write —
+load-bearing for the committed TestFTS5CorruptReopenResilience Scenario B
+(fts5savepoint 2.0 mirror divergence: C fails the write "database disk image
+is malformed", the mirror model keeps serving; verified red without the
+tolerance). frigolite_fts5corrupt_test.go's corrupt-structure expectation
+(MATCH yields no rows, count(*) intact) re-verified against the local oracle
+3.54.0. frigolite_fts5_testfn_test.go's single-statement insert makes the
+fts5detail 5.2/5.3 physical blob comparison statement-granularity fair.

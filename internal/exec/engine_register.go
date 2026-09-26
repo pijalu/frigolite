@@ -189,6 +189,10 @@ func (e *Engine) registerFTSModules() {
 	// fts5tokenize (ext/fts5/fts5_test_tok.c): a tokenizer exposed as a
 	// virtual table; querying WHERE input = <text> returns one row per token.
 	e.vtabs.Register("fts5tokenize", fts5.NewTokenizeModule())
+	// fts5_structure (ext/fts5/fts5_index.c fts5struct*, SQLITE_TEST): the
+	// structure-record decoder TVF — FROM fts5_structure((SELECT block FROM
+	// <fts>_data WHERE id=10)) reports one row per segment.
+	e.vtabs.Register("fts5_structure", fts5.NewStructModule())
 	// fts4aux reads the FTS3/4 in-memory indexes (fts3_aux.c). Register it
 	// after the FTS modules so it can resolve the target table.
 	e.vtabs.Register("fts4aux", fts.NewFTS4AuxModule(map[string]*fts.FTS3Module{
@@ -220,6 +224,13 @@ func (e *Engine) registerFTSModules() {
 	// for locale=1 tables; writing one to a locale-less table is an error
 	// enforced by the fts5 insert/update path (fts5_main.c:2005).
 	e.funcs.Register("fts5_locale", fts5.LocaleFunc, 2, 2)
+	// fts5/fts5_source_id: fts5Init's two module scalars (fts5_main.c
+	// fts5Fts5Func:3795, fts5SourceIdFunc:3800). fts5(X) fetches the extension
+	// API pointer for host embeddings — no SQL argument can carry the
+	// fts5_api_ptr tag, so the observable result is NULL; fts5_source_id()
+	// reports C's fixed tag.
+	e.funcs.Register("fts5", fts5.APIFunc, 1, 1)
+	e.funcs.Register("fts5_source_id", fts5.SourceIDFunc, 0, 0)
 }
 
 // resolveFTS5VocabTarget resolves an fts5vocab module's target table: the

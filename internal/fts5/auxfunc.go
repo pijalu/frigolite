@@ -22,6 +22,10 @@ import (
 // ErrSQLITERange is the out-of-range failure of the index/phrase accessors.
 var ErrSQLITERange = errors.New("SQLITE_RANGE")
 
+// ErrSQLITECorruptVtab is the rc name the API object reports for
+// corrupt-class failures (xColumnText on a missing content row).
+var ErrSQLITECorruptVtab = errors.New("SQLITE_CORRUPT_VTAB")
+
 // InstCount returns the row's phrase-instance count (xInstCount).
 func (aq *AuxQuery) InstCount(rowid int64) int {
 	return len(aq.RowInstances(rowid))
@@ -79,6 +83,13 @@ func (aq *AuxQuery) ColumnText(rowid int64, iCol int) (string, error) {
 		var rangeErr *ColumnRangeError
 		if errors.As(err, &rangeErr) {
 			return "", ErrSQLITERange
+		}
+		// The API object methods report failures as rc NAME strings
+		// (fts5_tcl.c's sqlite3Fts5RcName convention): a corrupt-class row
+		// fetch surfaces as "SQLITE_CORRUPT_VTAB", not the vtab message
+		// (fts5content 9.6).
+		if ReportCorrupt(err) {
+			return "", ErrSQLITECorruptVtab
 		}
 		return "", err
 	}

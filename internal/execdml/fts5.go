@@ -21,20 +21,27 @@ import (
 // through the storage API and never touch db->lastRowid — the same
 // preserve-and-restore the FTS3 segment flush applies).
 func (e *DMLExecutor) flushFTS5Shadow(t5 *fts5.Table) error {
-	// In autocommit the statement is its own transaction: the secure-delete
-	// format upgrade flushes here, at the statement boundary (C's per-
+	// In autocommit the statement is its own transaction: the sync point is
+	// the statement boundary (C's xSync), so the pending hash flushes here —
+	// and the secure-delete format upgrade flushes with it (C's per-
 	// statement xCommit -> fts5FlushSecureDelete). Inside an explicit
-	// transaction the request stays pending until COMMIT/SAVEPOINT.
+	// transaction the pending hash stays pending until COMMIT/SAVEPOINT
+	// (fts5hash 2.2: %_data holds only the seed rows mid-transaction).
 	if !e.ctx.InTransaction() {
+		// The sync runs with the index write transaction still open (C's
+		// xSync → sqlite3Fts5IndexSync at statement end): its shadow writes
+		// (%_data/%_idx/%_config) fire shadow-table triggers mid-write, so
+		// the re-entrancy guard stays active through the flush.
+		defer t5.BeginWriteScope()()
 		if err := t5.ApplySecureUpgrade(); err != nil {
 			return err
 		}
+		saved := e.ctx.LastRowID()
+		if err := t5.FlushShadowIfDirty(); err != nil {
+			return err
+		}
+		e.ctx.SetLastRowID(saved)
 	}
-	saved := e.ctx.LastRowID()
-	if err := t5.FlushShadowIfDirty(); err != nil {
-		return err
-	}
-	e.ctx.SetLastRowID(saved)
 	return nil
 }
 

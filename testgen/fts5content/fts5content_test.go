@@ -610,8 +610,22 @@ func Test_fts5content(t *testing.T) {
 				}
 			}
 		}
-		// proc definition (not transpiled)
-		db.RegisterFunction("text_value", func(args []interface{}) (interface{}, error) { return nil, nil }, 0, -1)
+		// proc definition (not transpiled) — faithful port of fts5content.test's
+		// text_value proc (i==1 "one", i==2 "two", otherwise "many"; the earlier
+		// generated NULL stub lost the proc body and hollowed 8.3.1/8.3.3/8.3.4).
+		db.RegisterFunction("text_value", func(args []interface{}) (interface{}, error) {
+			if len(args) == 1 {
+				if i, ok := args[0].(int64); ok {
+					if i == 1 {
+						return "one", nil
+					}
+					if i == 2 {
+						return "two", nil
+					}
+				}
+			}
+			return "many", nil
+		}, 1, 1)
 		{ // "8.3.1"
 			r = db.Query(" SELECT * FROM t1 ")
 			if r.Error != nil {

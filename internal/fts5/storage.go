@@ -110,10 +110,16 @@ func (t *Table) createShadowTables() error {
 	}
 	// Seed the config version row and the two seed blocks C writes
 	// (fts5StorageConfigValue 'version', the empty averages record id=1 and
-	// the empty structure record id=10).
+	// the initial structure record id=10 — the V2 form for
+	// contentless_delete=1 tables, fts5IndexReinit's nOriginCntr=1).
+	t.structRec = newStructRec(t.cfg.ContentlessDelete)
+	if t.structRec.V2 {
+		t.structRec.NOriginCntr = 1
+	}
+	t.nextSegid = 1
 	seed := fmt.Sprintf("INSERT INTO %s(k, v) VALUES('version', 4);", q("_config")) +
 		fmt.Sprintf("INSERT INTO %s(id, block) VALUES(1, X'');", q("_data")) +
-		fmt.Sprintf("INSERT INTO %s(id, block) VALUES(10, X'00000000000000');", q("_data"))
+		fmt.Sprintf("INSERT INTO %s(id, block) VALUES(10, X'%s');", q("_data"), hexEncode(t.structRec.encode()))
 	_, err := t.db.ExecSQL(seed)
 	return err
 }
@@ -165,30 +171,61 @@ func (t *Table) applyLoadedConfigRow(key string, val interface{}) {
 		if v, ok := asInt64(val); ok {
 			t.cfg.FormatVersion = int(v)
 		}
+	case "pgsz":
+		if v, ok := asInt64(val); ok {
+			t.cfg.Pgsz = v
+		}
+	case "hashsize":
+		if v, ok := asInt64(val); ok {
+			t.cfg.HashSize = v
+		}
+	case "automerge":
+		if v, ok := asInt64(val); ok {
+			t.cfg.Automerge = v
+		}
+	case "usermerge":
+		if v, ok := asInt64(val); ok {
+			t.cfg.Usermerge = v
+		}
+	case "crisismerge":
+		if v, ok := asInt64(val); ok {
+			t.cfg.CrisisMerge = v
+		}
+	case "deletemerge":
+		if v, ok := asInt64(val); ok {
+			t.cfg.DeleteMerge = v
+		}
 	}
 }
 
-// flushShadowIndex rewrites the %_data id=11 block with the serialized token
-// streams (sqlite3Fts5StorageSync's persistence point). The payload honors
-// the detail mode — C's detail=none persists no positions and detail=column
-// no offsets — so coarser tables persist strictly smaller blocks
-// (fts5detail 5.2/5.3's block-size ordering).
-func (t *Table) flushShadowIndex() error {
+// resetIndexStructure drops every persisted segment/tombstone row and
+// resets the in-memory structure to the initial (empty) record
+// (fts5IndexReinit: a fully emptied index re-seeds averages + structure,
+// with nOriginCntr=1 for contentless_delete tables).
+func (t *Table) resetIndexStructure() error {
 	qData := qual(t.dbName, t.cfg.Name+"_data")
-	var payload bytes.Buffer
-	payload.WriteString("GF") // magic checked by loadFromShadow
-	blob := indexBlob{Docs: make([]blobDoc, 0)}
-	for _, rowid := range t.ix.SortedRowids() {
-		doc := t.ix.Doc(rowid)
-		blob.Docs = append(blob.Docs, blobDoc{Rowid: rowid, Cols: detailCols(t.cfg.Detail, doc.cols)})
-	}
-	if err := gob.NewEncoder(&payload).Encode(blob); err != nil {
+	if _, err := t.db.ExecSQL(fmt.Sprintf("DELETE FROM %s WHERE id=11", qData)); err != nil {
 		return err
 	}
-	hexed := hex.EncodeToString(payload.Bytes())
-	_, err := t.db.ExecSQL(fmt.Sprintf("DELETE FROM %s WHERE id=11; INSERT INTO %s(id, block) VALUES(11, X'%s');",
-		qData, qData, hexed))
-	return err
+	if t.structRec != nil {
+		for _, seg := range t.structRec.allSegments() {
+			if err := t.removeSegmentRows(seg); err != nil {
+				return err
+			}
+			if err := t.removeTombstoneRows(seg); err != nil {
+				return err
+			}
+		}
+	}
+	t.pendingReset()
+	t.nContentlessDelete = 0
+	t.docOrigins = make(map[int64]uint64)
+	t.structRec = newStructRec(t.cfg.ContentlessDelete)
+	if t.structRec.V2 {
+		t.structRec.NOriginCntr = 1
+	}
+	t.nextSegid = 1
+	return t.structureWrite()
 }
 
 // detailCols reduces a document's token streams to the detail mode's
@@ -216,8 +253,10 @@ func detailCols(detail DetailMode, cols [][]string) [][]string {
 }
 
 // loadFromShadow rebuilds the in-memory index from the shadow tables
-// (fts5IndexOpen's xConnect path). Missing/corrupt blocks yield an empty
-// index; document values for normal-content tables come from %_content.
+// (fts5IndexOpen's xConnect path): the structure record drives which segment
+// payloads restore, each segment's tombstone pages filtering its deleted
+// documents. Missing/corrupt blocks yield an empty index; document values for
+// normal-content tables come from %_content.
 func (t *Table) loadFromShadow() error {
 	t.ix = NewInvertedIndex(len(t.cfg.Columns))
 	if err := t.loadConfigValues(); err != nil {
@@ -228,12 +267,103 @@ func (t *Table) loadFromShadow() error {
 			return err
 		}
 	}
-	blob, ok := t.readShadowIndexBlob()
-	if !ok {
+	t.docOrigins = make(map[int64]uint64)
+	sr, err := t.structureRead()
+	if err != nil {
+		// A missing/unreadable structure record: fall back to the legacy
+		// single-blob payload (pre-segment databases), else start empty.
+		t.structRec = newStructRec(t.cfg.ContentlessDelete)
+		t.nextSegid = 1
+		if blob, ok := t.readShadowIndexBlob(); ok {
+			t.restoreShadowDocs(blob)
+		}
+		t.restoreMaxRowid()
 		return nil
 	}
-	t.restoreShadowDocs(blob)
+	t.structRec = sr
+	maxSegid := int64(0)
+	for _, seg := range sr.allSegments() {
+		if seg.Segid > maxSegid {
+			maxSegid = seg.Segid
+		}
+		seg.Tombs = map[int64]bool{}
+		docs, err := t.readSegmentBlob(seg.Segid)
+		if err != nil {
+			return nil
+		}
+		for ipg := int64(0); ipg < seg.NPgTombstone; ipg++ {
+			pg, err := t.readTombstonePage(seg, ipg)
+			if err != nil {
+				return nil
+			}
+			if pg == nil {
+				continue
+			}
+			nSlot := tombstoneNSlot(pg)
+			for i := 0; i < nSlot; i++ {
+				off := 8 + i*tombstoneKeySize(pg)
+				var val uint64
+				if tombstoneKeySize(pg) == 4 {
+					val = uint64(beUint32(pg[off : off+4]))
+				} else {
+					val = beUint64(pg[off : off+8])
+				}
+				if val != 0 {
+					seg.Tombs[int64(val)] = true
+				}
+			}
+		}
+		for _, bd := range docs {
+			if seg.Tombs[bd.Rowid] {
+				continue
+			}
+			t.restoreOneDoc(bd)
+		}
+	}
+	t.nextSegid = maxSegid + 1
+	t.restoreMaxRowid()
+	// Restore the docsize origins of contentless_delete tables
+	// (fts5StorageDelete reads them from %_docsize).
+	if t.cfg.ContentlessDelete && t.cfg.ColumnSize {
+		qd := qual(t.dbName, t.cfg.Name+"_docsize")
+		if rows, err := t.db.ExecSQL(fmt.Sprintf("SELECT id, origin FROM %s", qd)); err == nil {
+			for _, row := range rows {
+				if id, ok := asInt64(row[0]); ok {
+					if origin, ok := asInt64(row[1]); ok {
+						t.docOrigins[id] = uint64(origin)
+					}
+				}
+			}
+		}
+	}
 	return nil
+}
+
+// restoreMaxRowid seeds the auto-rowid watermark from the shadow tables
+// (fts5StorageNewRowid reads max(id) from %_content/%_docsize, not the
+// index).
+func (t *Table) restoreMaxRowid() {
+	q := func(suffix string) string { return qual(t.dbName, t.cfg.Name+suffix) }
+	if t.cfg.EContent == ContentNormal || t.cfg.EContent == ContentUnindexed {
+		if rows, err := t.db.ExecSQL(fmt.Sprintf("SELECT max(id) FROM %s", q("_content"))); err == nil && len(rows) > 0 {
+			if id, ok := asInt64(rows[0][0]); ok && id > t.maxRowid {
+				t.maxRowid = id
+			}
+		}
+	}
+	if t.cfg.ColumnSize {
+		if rows, err := t.db.ExecSQL(fmt.Sprintf("SELECT max(id) FROM %s", q("_docsize"))); err == nil && len(rows) > 0 {
+			if id, ok := asInt64(rows[0][0]); ok && id > t.maxRowid {
+				t.maxRowid = id
+			}
+		}
+	}
+}
+
+// beUint32/beUint64 read big-endian integers.
+func beUint32(b []byte) uint32 { return uint32(b[0])<<24 | uint32(b[1])<<16 | uint32(b[2])<<8 | uint32(b[3]) }
+func beUint64(b []byte) uint64 {
+	return uint64(beUint32(b[0:4]))<<32 | uint64(beUint32(b[4:8]))
 }
 
 // readShadowIndexBlob decodes the persisted index payload (the id=11 row of
@@ -256,23 +386,28 @@ func (t *Table) readShadowIndexBlob() (indexBlob, bool) {
 	return blob, true
 }
 
-// restoreShadowDocs rebuilds the in-memory index from a decoded blob.
+// restoreShadowDocs rebuilds the in-memory index from a decoded legacy blob.
 func (t *Table) restoreShadowDocs(blob indexBlob) {
 	for _, bd := range blob.Docs {
-		var values []interface{}
-		if stored, ok := t.contentValues[bd.Rowid]; ok {
-			values = stored
-		}
-		cols := bd.Cols
-		// A detail=none blob stores no token streams; a normal-content table
-		// rebuilds them from %_content so single-term MATCH keeps working
-		// after a reopen (C's detail=none segments keep the term rowids).
-		if t.cfg.Detail == DetailNone && cols == nil && len(values) > 0 && t.tokErr == nil {
-			cols, _ = t.tokenizeValues(values)
-		}
-		t.ix.AddDoc(bd.Rowid, values, cols)
-		t.noteRowid(bd.Rowid)
+		t.restoreOneDoc(bd)
 	}
+}
+
+// restoreOneDoc restores one persisted document.
+func (t *Table) restoreOneDoc(bd blobDoc) {
+	var values []interface{}
+	if stored, ok := t.contentValues[bd.Rowid]; ok {
+		values = stored
+	}
+	cols := bd.Cols
+	// A detail=none blob stores no token streams; a normal-content table
+	// rebuilds them from %_content so single-term MATCH keeps working
+	// after a reopen (C's detail=none segments keep the term rowids).
+	if t.cfg.Detail == DetailNone && cols == nil && len(values) > 0 && t.tokErr == nil {
+		cols, _ = t.tokenizeValues(values)
+	}
+	t.ix.AddDoc(bd.Rowid, values, cols)
+	t.noteRowid(bd.Rowid)
 }
 
 // contentCols lists the column indexes stored in %_content (normal content
@@ -413,6 +548,14 @@ func (t *Table) insertDocsizeRow(rowid int64) error {
 		sz = putVarint(sz, uint64(n))
 	}
 	qd := qual(t.dbName, t.cfg.Name+"_docsize")
+	if t.cfg.ContentlessDelete {
+		// C's %_docsize carries an origin column for contentless_delete
+		// tables (fts5StorageWriteDocsize).
+		origin := t.docOrigins[rowid]
+		_, err := t.db.ExecSQL(fmt.Sprintf("INSERT OR REPLACE INTO %s(id, sz, origin) VALUES(%d, X'%s', %d)",
+			qd, rowid, hex.EncodeToString(sz), origin))
+		return err
+	}
 	_, err := t.db.ExecSQL(fmt.Sprintf("INSERT OR REPLACE INTO %s(id, sz) VALUES(%d, X'%s')",
 		qd, rowid, hex.EncodeToString(sz)))
 	return err
@@ -431,6 +574,10 @@ func (t *Table) deleteDocsizeRow(rowid int64) error {
 // readExternalValues fetches one document's values from the external content
 // table (fts5StorageRead's content=<table> path).
 func (t *Table) readExternalValues(rowid int64) ([]interface{}, error) {
+	// The content lookup steps a %_content read statement (C's bLock scope):
+	// a nested query plan against this table while it runs is a content
+	// recursion (fts5content 6.x "recursively defined fts5 content table").
+	defer t.beginContentScan()()
 	cols := strings.Join(quoteCols(t.cfg.Columns), ", ")
 	sql := fmt.Sprintf("SELECT %s, %s FROM %s WHERE %s = %d",
 		quoteIdent(t.cfg.ContentRowid), cols, quoteIdent(t.cfg.ContentTable),
@@ -448,6 +595,10 @@ func (t *Table) readExternalValues(rowid int64) ([]interface{}, error) {
 // scanExternal reads the whole external content table in rowid order:
 // (rowid, values...) pairs (fts5StorageScan's content-table walk).
 func (t *Table) scanExternal() ([]int64, [][]interface{}, error) {
+	// The content scan steps FTS5_STMT_SCAN_ASC (C's bLock scope): a nested
+	// query plan against this table while it runs is a content recursion
+	// (fts5_main.c fts5BestIndexMethod's bLock check).
+	defer t.beginContentScan()()
 	cols := strings.Join(quoteCols(t.cfg.Columns), ", ")
 	sql := fmt.Sprintf("SELECT %s, %s FROM %s ORDER BY %s",
 		quoteIdent(t.cfg.ContentRowid), cols, quoteIdent(t.cfg.ContentTable), quoteIdent(t.cfg.ContentRowid))

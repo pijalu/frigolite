@@ -84,7 +84,35 @@ type Config struct {
 	// insert: C's pConfig->zRank/zRankArgs; empty Func means the default
 	// "bm25" with no arguments).
 	Rank RankSpec
+
+	// Index-maintenance settings (the pgsz/hashsize/automerge/usermerge/
+	// crisismerge/deletemerge special inserts, fts5ConfigSetValue). Defaults
+	// mirror C's FTS5_DEFAULT_* constants.
+	Pgsz        int64
+	HashSize    int64
+	Automerge   int64
+	Usermerge   int64
+	CrisisMerge int64
+	DeleteMerge int64
 }
+
+// fts5 maintenance defaults (fts5_config.c FTS5_DEFAULT_*).
+const (
+	// DefaultPgsz is FTS5_DEFAULT_PAGE_SIZE.
+	DefaultPgsz int64 = 4050
+	// DefaultHashSize is FTS5_DEFAULT_HASHSIZE (1 MiB of pending data).
+	DefaultHashSize int64 = 1024 * 1024
+	// DefaultAutomerge is FTS5_DEFAULT_AUTOMERGE.
+	DefaultAutomerge int64 = 4
+	// DefaultCrisisMerge is FTS5_DEFAULT_CRISISMERGE.
+	DefaultCrisisMerge int64 = 16
+	// DefaultDeleteMerge is FTS5_DEFAULT_DELETE_AUTOMERGE (10%).
+	DefaultDeleteMerge int64 = 10
+	// DefaultUsermerge is C's nUsermerge default.
+	DefaultUsermerge int64 = 4
+	// WorkUnit is FTS5_WORK_UNIT: the automerge work quanta in leaf pages.
+	WorkUnit int64 = 64
+)
 
 // Contentless reports whether the table is content=” (no stored text).
 func (c *Config) Contentless() bool {
@@ -101,9 +129,15 @@ func (c *Config) DetailFull() bool { return c.Detail == DetailFull }
 // configuration fails like C's failed sqlite3_declare_vtab.
 func ParseConfig(name string, args []string) (*Config, error) {
 	cfg := &Config{
-		Name:       name,
-		ColumnSize: true,
-		Detail:     DetailFull,
+		Name:        name,
+		ColumnSize:  true,
+		Detail:      DetailFull,
+		Pgsz:        DefaultPgsz,
+		HashSize:    DefaultHashSize,
+		Automerge:   DefaultAutomerge,
+		Usermerge:   DefaultUsermerge,
+		CrisisMerge: DefaultCrisisMerge,
+		DeleteMerge: DefaultDeleteMerge,
 	}
 	if strings.EqualFold(name, "rank") {
 		return nil, fmt.Errorf("reserved fts5 table name: %s", name)
@@ -311,51 +345,53 @@ func parseColumn(cfg *Config, col, arg string) error {
 	return nil
 }
 
-// specialFlagFields maps each boolean directive to its Config setter; errName
-// is the directive named in the flag error text (the contentless_unindexed
-// error reuses the contentless_delete wording, fts5ConfigParseSpecial
-// copy-through).
-var specialFlagFields = []struct {
+// fts5ConfigParseSpecial's directive set in C's check order. A user key
+// matches the FIRST directive whose name extends it case-insensitively
+// (sqlite3_strnicmp(zName, zCmd, nCmd)==0): "c" binds content, while the
+// longer "contentless_delete" skips past the shorter "content" name. The
+// errName field is the directive named in the flag error text (the
+// contentless_unindexed error reuses the contentless_delete wording,
+// fts5ConfigParseSpecial copy-through).
+var specialDirectives = []struct {
 	name    string
 	errName string
-	set     func(*Config, bool)
+	apply   func(*Config, string) error
 }{
-	{"contentless_delete", "contentless_delete", func(c *Config, b bool) { c.ContentlessDelete = b }},
-	{"contentless_unindexed", "contentless_delete", func(c *Config, b bool) { c.ContentlessUnindexed = b }},
-	{"columnsize", "columnsize", func(c *Config, b bool) { c.ColumnSize = b }},
-	{"locale", "locale", func(c *Config, b bool) { c.Locale = b }},
-	{"tokendata", "tokendata", func(c *Config, b bool) { c.Tokendata = b }},
+	{"prefix", "", func(c *Config, v string) error { return parsePrefix(c, v) }},
+	{"tokenize", "", func(c *Config, v string) error { return parseTokenize(c, v) }},
+	{"content", "", setDirectiveContent},
+	{"contentless_delete", "contentless_delete", flagDirective("contentless_delete", func(c *Config, b bool) { c.ContentlessDelete = b })},
+	{"contentless_unindexed", "contentless_delete", flagDirective("contentless_delete", func(c *Config, b bool) { c.ContentlessUnindexed = b })},
+	{"content_rowid", "", setDirectiveContentRowid},
+	{"columnsize", "columnsize", flagDirective("columnsize", func(c *Config, b bool) { c.ColumnSize = b })},
+	{"locale", "locale", flagDirective("locale", func(c *Config, b bool) { c.Locale = b })},
+	{"detail", "", setDirectiveDetail},
+	{"tokendata", "tokendata", flagDirective("tokendata", func(c *Config, b bool) { c.Tokendata = b })},
 }
 
-// parseSpecial dispatches one key=value option (fts5ConfigParseSpecial).
+// parseSpecial dispatches one key=value option (fts5ConfigParseSpecial): the
+// first directive whose name extends the key case-insensitively wins.
 func parseSpecial(cfg *Config, key, val string) error {
-	if strings.EqualFold(key, "prefix") {
-		return parsePrefix(cfg, val)
-	}
-	if strings.EqualFold(key, "tokenize") {
-		return parseTokenize(cfg, val)
-	}
-	if strings.EqualFold(key, "content") {
-		return setDirectiveContent(cfg, val)
-	}
-	if strings.EqualFold(key, "content_rowid") {
-		return setDirectiveContentRowid(cfg, val)
-	}
-	if strings.EqualFold(key, "detail") {
-		return setDirectiveDetail(cfg, val)
-	}
-	for _, f := range specialFlagFields {
-		if !strings.EqualFold(key, f.name) {
+	for _, d := range specialDirectives {
+		if len(key) > len(d.name) || !strings.EqualFold(d.name[:len(key)], key) {
 			continue
 		}
-		b, err := flagArg(val, f.errName)
+		return d.apply(cfg, val)
+	}
+	return fmt.Errorf("unrecognized option: \"%s\"", key)
+}
+
+// flagDirective adapts a boolean setter to the directive signature, naming
+// the directive in the value error text (flagArg).
+func flagDirective(errName string, set func(*Config, bool)) func(*Config, string) error {
+	return func(c *Config, v string) error {
+		b, err := flagArg(v, errName)
 		if err != nil {
 			return err
 		}
-		f.set(cfg, b)
+		set(c, b)
 		return nil
 	}
-	return fmt.Errorf("unrecognized option: \"%s\"", key)
 }
 
 // setDirectiveContent applies content= (fts5ConfigParseSpecial's content

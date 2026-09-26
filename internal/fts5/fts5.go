@@ -225,9 +225,6 @@ type Table struct {
 	// version bumps on every index mutation, invalidating the match cache.
 	version uint64
 	cache   *matchCacheEntry
-	// shadowDirty records pending %_data blob writes (flushed at the
-	// statement boundary by FlushShadowIfDirty).
-	shadowDirty bool
 	// pendingSecureUpgrade records a secure delete made while the format
 	// version is still 4; the engine applies the 'version'=5 write at the
 	// flush point (xSavepoint / COMMIT) or drops it on rollback.
@@ -241,6 +238,41 @@ type Table struct {
 	// operation that tokenizes reports the constructor error
 	// (fts5tokenizer 10.x).
 	tokErr error
+
+	// Segment/pending state (fts5Index): the structure record, the pending
+	// (unflushed) document rowids with C's pending-hash byte accounting, and
+	// the contentless-delete operation counter. Pending docs flush at sync
+	// points (autocommit statement ends, COMMIT) or when the pending byte
+	// estimate crosses 'hashsize' (fts5IndexBeginWrite's overflow flush).
+	structRec          *StructRec
+	nextSegid          int64
+	pendingRowids      []int64
+	pendingBytes       int64
+	pendingTermState   map[string]*pendingTerm
+	nContentlessDelete int64
+	// docOrigins mirrors the %_docsize origin column of contentless_delete
+	// tables (the origin value each deleted rowid tombstones against).
+	docOrigins map[int64]uint64
+	// dirtySegments flags segments whose persisted payload no longer
+	// matches the in-memory index (plain deletes rewrite them at sync).
+	dirtySegments map[*Segment]bool
+	// writeActive counts in-flight write operations; a query arriving while
+	// it is nonzero re-enters the table mid-write and fails with C's corrupt
+	// error (fts5circref: triggers on shadow tables reading the table being
+	// written).
+	writeActive int
+	// scanGuard counts in-flight external-content scans of this table (C's
+	// pConfig->bLock, held while the %_content read statements prepare and
+	// step): a query plan arriving while it is nonzero is a content-table
+	// recursion and fails with C's "recursively defined fts5 content table"
+	// (fts5_main.c fts5BestIndexMethod's bLock check).
+	scanGuard int
+}
+
+// pendingTerm is one term's state in the pending-hash byte accounting
+// mirror (the fields of C's Fts5HashEntry that nPendingData accumulates).
+type pendingTerm struct {
+	lastRowid int64
 }
 
 // newTable builds a Table with its mirrors initialized.
@@ -331,6 +363,7 @@ func (t *Table) tokenizeFor(text string) []Token {
 
 // Insert adds a document (fts5UpdateMethod's insert path + fts5StorageInsert).
 func (t *Table) Insert(rowid int64, values []interface{}) error {
+	defer t.beginWrite()()
 	cols, err := t.tokenizeValues(values)
 	if err != nil {
 		return err
@@ -338,29 +371,58 @@ func (t *Table) Insert(rowid int64, values []interface{}) error {
 	defer t.bumpVersion()
 	t.noteRowid(rowid)
 	t.ix.AddDoc(rowid, nil, cols)
-	if t.cfg.EContent == ContentNormal || t.cfg.EContent == ContentUnindexed {
-		// ContentNormal stores every column; UNINDEXED content stores only
-		// the UNINDEXED ones — mirror the stored subset for scans and
-		// DocValues (fts5StorageInsert's content-table writes).
-		stored := make([]interface{}, len(values))
-		copy(stored, values)
-		if t.cfg.EContent == ContentUnindexed {
-			for i := range stored {
-				if i < len(t.cfg.Unindexed) && !t.cfg.Unindexed[i] {
-					stored[i] = nil
-				}
-			}
-		}
-		t.contentValues[rowid] = stored
-	}
+	t.storeContentCopy(rowid, values)
 	if err := t.insertContentRow(rowid, values); err != nil {
 		return err
 	}
+	t.noteContentlessOrigin(rowid)
 	if err := t.insertDocsizeRow(rowid); err != nil {
 		return err
 	}
-	t.markShadowDirty()
-	return nil
+	// The document joins the pending hash; the flush happens at the sync
+	// point or when 'hashsize' overflows (sqlite3Fts5IndexBeginWrite).
+	return t.AddPendingRow(rowid, cols)
+}
+
+// storeContentCopy mirrors the stored content subset for scans and
+// DocValues: ContentNormal stores every column; UNINDEXED content stores
+// only the UNINDEXED ones (fts5StorageInsert's content-table writes).
+func (t *Table) storeContentCopy(rowid int64, values []interface{}) {
+	if t.cfg.EContent != ContentNormal && t.cfg.EContent != ContentUnindexed {
+		return
+	}
+	stored := make([]interface{}, len(values))
+	copy(stored, values)
+	if t.cfg.EContent == ContentUnindexed {
+		for i := range stored {
+			if i < len(t.cfg.Unindexed) && !t.cfg.Unindexed[i] {
+				stored[i] = nil
+			}
+		}
+	}
+	t.contentValues[rowid] = stored
+}
+
+// noteContentlessOrigin records the origin value a contentless_delete
+// docsize row carries for the document (sqlite3Fts5IndexGetOrigin: the
+// origin the NEXT flush will assign its segment).
+func (t *Table) noteContentlessOrigin(rowid int64) {
+	if !t.cfg.ContentlessDelete {
+		return
+	}
+	if t.docOrigins == nil {
+		t.docOrigins = make(map[int64]uint64)
+	}
+	t.docOrigins[rowid] = t.structRec.NOriginCntr
+}
+
+// commandRebuild handles the 'rebuild' directive: contentless tables cannot
+// re-read their documents (fts5UpdateMethod's rebuild branch).
+func (t *Table) commandRebuild() (bool, error) {
+	if t.cfg.Contentless() {
+		return true, fmt.Errorf("'rebuild' may not be used with a contentless fts5 table")
+	}
+	return true, t.rebuild()
 }
 
 // Delete removes a document (fts5StorageDelete). It reports whether the
@@ -369,6 +431,7 @@ func (t *Table) Delete(rowid int64) (bool, error) {
 	if !t.ix.RemoveDoc(rowid) {
 		return false, nil
 	}
+	defer t.beginWrite()()
 	defer t.bumpVersion()
 	// A secure delete requests the one-time format upgrade (fts5_index.c
 	// fts5FlushSecureDelete's REPLACE INTO %_config when
@@ -381,27 +444,83 @@ func (t *Table) Delete(rowid int64) (bool, error) {
 	if t.cfg.SecureDelete && t.cfg.FormatVersion != 5 {
 		t.pendingSecureUpgrade = true
 	}
-	delete(t.contentValues, rowid)
-	if err := t.deleteContentRow(rowid); err != nil {
+	if t.cfg.ContentlessDelete {
+		if err := t.contentlessDeleteTombstone(rowid); err != nil {
+			return true, err
+		}
+	}
+	if err := t.deleteShadowRows(rowid); err != nil {
 		return true, err
 	}
-	if err := t.deleteDocsizeRow(rowid); err != nil {
-		return true, err
+	if !t.cfg.ContentlessDelete {
+		// A plain (or secure) delete rewrites the containing segments'
+		// payloads at the next sync (fts5IndexDelete's in-place segment
+		// edits; contentless_delete records tombstones instead).
+		t.markSegmentsDirty(rowid)
 	}
-	if len(t.ix.SortedRowids()) == 0 {
-		// An emptied table restarts auto rowid allocation at 1: the shadow
-		// %_content rowid table is empty, and OP_NewRowid (no AUTOINCREMENT)
-		// picks 1 for an empty b-tree.
-		t.maxRowid = 0
-	}
-	t.markShadowDirty()
 	return true, nil
 }
 
-// markShadowDirty records that the in-memory index has diverged from the
-// %_data id=11 blob (the pending-terms state; C flushes pending terms at
-// sync points, i.e. statement ends).
-func (t *Table) markShadowDirty() { t.shadowDirty = true }
+// contentlessDeleteTombstone tombstones the rowid in every segment whose
+// origin range covers the document's origin; the FIRST such segment (highest
+// level first) also bumps nEntryTombstone
+// (sqlite3Fts5IndexContentlessDelete).
+func (t *Table) contentlessDeleteTombstone(rowid int64) error {
+	origin := t.docOrigins[rowid]
+	found := false
+	for lvl := len(t.structRec.Levels) - 1; lvl >= 0 && !found; lvl-- {
+		for i := len(t.structRec.Levels[lvl]) - 1; i >= 0; i-- {
+			seg := t.structRec.Levels[lvl][i]
+			if seg.Origin1 > origin || seg.Origin2 < origin {
+				continue
+			}
+			if !found {
+				seg.NEntryTombstone++
+				found = true
+			}
+			seg.Tombs[rowid] = true
+			if err := t.tombstoneAdd(seg, rowid); err != nil {
+				return err
+			}
+		}
+	}
+	return nil
+}
+
+// deleteShadowRows drops the document's mirrors: the in-memory content copy,
+// the %_content/%_docsize rows and the origin bookkeeping. An emptied table
+// restarts auto rowid allocation at 1: the shadow %_content rowid table is
+// empty, and OP_NewRowid (no AUTOINCREMENT) picks 1 for an empty b-tree.
+func (t *Table) deleteShadowRows(rowid int64) error {
+	delete(t.contentValues, rowid)
+	if err := t.deleteContentRow(rowid); err != nil {
+		return err
+	}
+	if err := t.deleteDocsizeRow(rowid); err != nil {
+		return err
+	}
+	delete(t.docOrigins, rowid)
+	if len(t.ix.SortedRowids()) == 0 {
+		t.maxRowid = 0
+	}
+	return nil
+}
+
+// markSegmentsDirty flags every segment holding rowid whose payload needs a
+// rewrite at the next sync.
+func (t *Table) markSegmentsDirty(rowid int64) {
+	if t.dirtySegments == nil {
+		t.dirtySegments = make(map[*Segment]bool)
+	}
+	for _, seg := range t.structRec.allSegments() {
+		for _, rid := range seg.Rowids {
+			if rid == rowid {
+				t.dirtySegments[seg] = true
+				break
+			}
+		}
+	}
+}
 
 // ApplySecureUpgrade persists the deferred secure-delete format upgrade:
 // REPLACE 'version'=5 into %_config (fts5FlushSecureDelete's one-time
@@ -427,19 +546,10 @@ func (t *Table) ApplySecureUpgrade() error {
 // sqlite3Fts5StorageRollback discard the pending data).
 func (t *Table) DiscardSecureUpgrade() { t.pendingSecureUpgrade = false }
 
-// FlushShadowIfDirty persists the index blob when the index changed since
-// the last flush (sqlite3Fts5StorageSync at the statement boundary).
-func (t *Table) FlushShadowIfDirty() error {
-	if !t.shadowDirty {
-		return nil
-	}
-	t.shadowDirty = false
-	return t.flushShadowIndex()
-}
-
 // DeleteAll clears the whole index (the 'delete-all' special command and a
 // WHERE-less DELETE on a contentless table: fts5SpecialDelete).
 func (t *Table) DeleteAll() error {
+	defer t.beginWrite()()
 	defer t.bumpVersion()
 	t.maxRowid = 0
 	t.ix = NewInvertedIndex(len(t.cfg.Columns))
@@ -456,31 +566,40 @@ func (t *Table) DeleteAll() error {
 			return err
 		}
 	}
-	return t.flushShadowIndex()
+	// fts5StorageDeleteAll empties %_data and re-seeds the averages and
+	// structure records (sqlite3Fts5IndexReinit).
+	return t.resetIndexStructure()
 }
 
 // SpecialCommand handles the INSERT INTO t1(t1, rank) VALUES('cmd', ...)
 // directives (fts5UpdateMethod's special-insert path). handled is false for
 // an unknown command.
 func (t *Table) SpecialCommand(cmd string, args []interface{}) (bool, error) {
+	defer t.beginWrite()()
 	switch strings.ToLower(cmd) {
 	case "delete-all":
 		return t.specialDeleteAll()
 	case "delete":
 		return true, t.specialDelete(args)
 	case "rebuild":
-		if t.cfg.Contentless() {
-			return true, fmt.Errorf("'rebuild' may not be used with a contentless fts5 table")
-		}
-		return true, t.rebuild()
+		return t.commandRebuild()
 	case "rank":
 		return t.specialRank(args)
 	case "pgsz", "hashsize", "automerge", "usermerge", "crisismerge",
 		"deletemerge", "secure-delete", "insttoken":
 		return t.specialConfigValue(strings.ToLower(cmd), args)
-	case "merge", "integrity-check", "optimize":
-		// Index maintenance directives with no SQL-observable effect at this
-		// storage granularity; integrity-check on a healthy index is a no-op.
+	case "merge":
+		n := int64(-1)
+		if len(args) > 0 {
+			if v, ok := asInt64(args[0]); ok {
+				n = v
+			}
+		}
+		return true, t.mergeCommand(n)
+	case "optimize":
+		return true, t.optimizeCommand()
+	case "integrity-check":
+		// On a healthy index a no-op (the mirror model validates on load).
 		return true, nil
 	case "flush":
 		// sqlite3Fts5FlushToDisk: write any pending in-memory index data to
@@ -533,8 +652,21 @@ func (t *Table) specialConfigValue(cmd string, args []interface{}) (bool, error)
 	// C keeps bSecureDelete in memory (fts5_config.c fts5ConfigSetValue);
 	// the format version upgrade happens lazily on the first secure
 	// delete.
-	if cmd == "secure-delete" {
+	switch cmd {
+	case "secure-delete":
 		t.cfg.SecureDelete = v != 0
+	case "pgsz":
+		t.cfg.Pgsz = v
+	case "hashsize":
+		t.cfg.HashSize = v
+	case "automerge":
+		t.cfg.Automerge = v
+	case "usermerge":
+		t.cfg.Usermerge = v
+	case "crisismerge":
+		t.cfg.CrisisMerge = v
+	case "deletemerge":
+		t.cfg.DeleteMerge = v
 	}
 	return true, t.storeConfigValue(cmd, v)
 }
@@ -624,193 +756,4 @@ func badConfigValue(cmd string, v int64) bool {
 		return v < 0
 	}
 	return true
-}
-
-// rebuild re-indexes every external content row (fts5StorageRebuild).
-func (t *Table) rebuild() error {
-	defer t.bumpVersion()
-	type doc struct {
-		rowid  int64
-		values []interface{}
-	}
-	var docs []doc
-	if t.cfg.EContent == ContentExternal {
-		rowids, values, err := t.scanExternal()
-		if err != nil {
-			return err
-		}
-		for i, rowid := range rowids {
-			docs = append(docs, doc{rowid: rowid, values: values[i]})
-		}
-	} else {
-		// Normal content re-reads the stored %_content mirror
-		// (fts5StorageRebuild scans %_content for content= tables).
-		for _, rowid := range t.ix.SortedRowids() {
-			docs = append(docs, doc{rowid: rowid, values: t.contentValues[rowid]})
-		}
-	}
-	t.ix = NewInvertedIndex(len(t.cfg.Columns))
-	t.maxRowid = 0
-	// Rebuild reinitializes the index at the current file format
-	// (fts5StorageRebuild: REPLACE 'version'=FTS5_CURRENT_VERSION), so a
-	// secure-delete-upgraded table rebuilds back to version 4
-	// (fts5version 1.11 second block).
-	if t.cfg.FormatVersion != 4 {
-		if err := t.storeConfigValue("version", 4); err != nil {
-			return err
-		}
-		t.cfg.FormatVersion = 4
-		t.pendingSecureUpgrade = false
-	}
-	for _, d := range docs {
-		cols, err := t.tokenizeValues(d.values)
-		if err != nil {
-			return err
-		}
-		t.ix.AddDoc(d.rowid, nil, cols)
-		t.noteRowid(d.rowid)
-	}
-	return t.flushShadowIndex()
-}
-
-// ScanDocs returns the documents a full scan visits in ascending rowid order
-// with their stored values (fts5StorageScan). A contentless table without
-// columnsize has no scan source and fails like C. Normal and unindexed
-// content tables scan %_content itself (C's FTS5_PLAN_SCAN runs
-// FTS5_STMT_SCAN_ASC — "SELECT <cols>, rowid FROM %_content ORDER BY rowid"),
-// so a document whose content row is missing does not appear even if the
-// index still holds it (fts5matchinfo 15.2/15.3).
-func (t *Table) ScanDocs() ([]int64, [][]interface{}, error) {
-	if t.cfg.EContent == ContentExternal {
-		return t.scanExternal()
-	}
-	if t.cfg.Contentless() && !t.cfg.ColumnSize {
-		return nil, nil, fmt.Errorf("%s: table does not support scanning", t.cfg.Name)
-	}
-	if t.cfg.EContent == ContentNormal || t.cfg.EContent == ContentUnindexed {
-		return t.scanContentTable()
-	}
-	rowids := t.ix.SortedRowids()
-	values := make([][]interface{}, len(rowids))
-	for i, rowid := range rowids {
-		if t.cfg.EContent == ContentNormal {
-			values[i] = t.contentValues[rowid]
-		}
-	}
-	return rowids, values, nil
-}
-
-// scanContentTable scans %_content itself (C's FTS5_PLAN_SCAN runs
-// FTS5_STMT_SCAN_ASC — "SELECT <cols>, rowid FROM %_content ORDER BY rowid"),
-// so a document whose content row is missing does not appear even if the
-// index still holds it (fts5matchinfo 15.2/15.3).
-func (t *Table) scanContentTable() ([]int64, [][]interface{}, error) {
-	qc := qual(t.dbName, t.cfg.Name+"_content")
-	colList := "id"
-	for _, c := range t.contentCols() {
-		colList += fmt.Sprintf(", c%d", c)
-	}
-	rows, err := t.db.ExecSQL(fmt.Sprintf("SELECT %s FROM %s ORDER BY id ASC", colList, qc))
-	if err != nil {
-		return nil, nil, err
-	}
-	rowids := make([]int64, 0, len(rows))
-	values := make([][]interface{}, 0, len(rows))
-	stored := t.contentCols()
-	for _, row := range rows {
-		id, ok := asInt64(row[0])
-		if !ok {
-			continue
-		}
-		rowids = append(rowids, id)
-		values = append(values, t.storedRowValues(row, stored))
-	}
-	return rowids, values, nil
-}
-
-// storedRowValues spreads a %_content row over the user-column slots.
-func (t *Table) storedRowValues(row []interface{}, stored []int) []interface{} {
-	full := make([]interface{}, len(t.cfg.Columns))
-	for j, c := range stored {
-		if j+1 < len(row) {
-			full[c] = row[j+1]
-		}
-	}
-	return full
-}
-
-// DocValues returns one document's stored values in user-column order
-// (fts5StorageColumn): the %_content mirror for normal content, a live read
-// of the external content table, or NULLs for a contentless table.
-func (t *Table) DocValues(rowid int64) ([]interface{}, error) {
-	switch t.cfg.EContent {
-	case ContentNormal, ContentUnindexed:
-		// ContentNormal stores every column; UNINDEXED content stores only
-		// the UNINDEXED ones (the mirror already expands them to user
-		// positions). Indexed columns of a contentless_unindexed table read
-		// as NULL (fts5StorageColumn's content-only paths).
-		if v, ok := t.contentValues[rowid]; ok {
-			return v, nil
-		}
-		return make([]interface{}, len(t.cfg.Columns)), nil
-	case ContentExternal:
-		v, err := t.readExternalValues(rowid)
-		if err != nil {
-			return nil, err
-		}
-		if v == nil {
-			v = make([]interface{}, len(t.cfg.Columns))
-		}
-		return v, nil
-	default:
-		return nil, nil
-	}
-}
-
-// SortedMatchRowids returns the union of rowids in the given set, ascending.
-func (t *Table) SortedMatchRowids(set map[int64]bool) []int64 {
-	out := make([]int64, 0, len(set))
-	for rowid := range set {
-		out = append(out, rowid)
-	}
-	sortRowids(out)
-	return out
-}
-
-// Rename renames the table and its shadow family (fts5StorageRename).
-func (t *Table) Rename(newName string) error {
-	return t.renameShadowTables(newName)
-}
-
-// Drop removes the shadow family (fts5DestroyMethod).
-func (t *Table) Drop() error { return t.dropShadowTables() }
-
-// TableState is a statement-rollback snapshot of the table's in-memory state
-// (the shadow tables themselves are covered by the pager snapshot).
-type TableState struct {
-	ix       *InvertedIndex
-	content  map[int64][]interface{}
-	maxRowid int64
-}
-
-// Snapshot captures the in-memory state.
-func (t *Table) Snapshot() *TableState {
-	return &TableState{ix: t.ix.Snapshot(), content: snapshotContent(t.contentValues), maxRowid: t.maxRowid}
-}
-
-// snapshotContent deep-copies the values mirror.
-func snapshotContent(src map[int64][]interface{}) map[int64][]interface{} {
-	out := make(map[int64][]interface{}, len(src))
-	for k, v := range src {
-		out[k] = append([]interface{}(nil), v...)
-	}
-	return out
-}
-
-// Restore rolls the in-memory state back to a snapshot.
-func (t *Table) Restore(s *TableState) {
-	t.ix = s.ix
-	t.contentValues = s.content
-	t.maxRowid = s.maxRowid
-	t.bumpVersion()
 }

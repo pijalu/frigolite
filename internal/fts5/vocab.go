@@ -165,8 +165,8 @@ func (v *vocabTable) Open() (vtab.Cursor, error) {
 		return nil, err
 	}
 	// Structure integrity check (fts5VocabNextMethod's
-	// sqlite3Fts5StructureTest): the engine's structure record is the fixed
-	// seven-byte empty-structure seed; any other content is uninterpretable.
+	// sqlite3Fts5StructureTest): the %_data id=10 record must decode as a
+	// valid (legacy or V2) structure record.
 	rows, err := t.db.ExecSQL(fmt.Sprintf(
 		"SELECT block FROM %s WHERE id=10", qual(t.dbName, t.cfg.Name+"_data")))
 	if err != nil {
@@ -175,8 +175,10 @@ func (v *vocabTable) Open() (vtab.Cursor, error) {
 	if len(rows) == 0 {
 		return nil, fmt.Errorf("database disk image is malformed")
 	}
-	if raw, ok := toBytes(rows[0][0]); !ok || len(raw) != 7 {
+	if raw, ok := toBytes(rows[0][0]); !ok {
 		return nil, fmt.Errorf("database disk image is malformed")
+	} else if _, derr := decodeStructRec(raw); derr != nil {
+		return nil, derr
 	}
 	return newVocabCursor(v, t), nil
 }

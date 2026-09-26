@@ -9291,6 +9291,72 @@ regenerated; suite net −2274 fails vs pre-tranche baseline (7230 → ~4950).
    oracle-verify the want, and enumerate EVERY construct the outer query
    can address a subquery/view column through (this class needed three
    passes: window defs + subquery bodies, then declared view names).
+
+## T33-fts5-resume (2026-09-25)
+
+- **TVF cursor protocol: Column() MUST error out-of-range.** execquery's
+  readCursorRowsWithRowids drains columns `for i:=0;;i++` until the FIRST
+  error. A vtab cursor whose Column(i) returns (nil, nil) for every i spins
+  the query forever (fts5contentless/contentless3 "signal: killed"). Any new
+  cursor must bound its column index with an error, like vocabCursor.
+- **The transpiler's TCL-proc handling is a failure CLASS, not noise.** Three
+  separate packages failed wholesale because the transpiler stubbed TCL
+  procs: document() → NULL (fts5contentless4: no segment ever forms —
+  oracle-verified C produces the identical empty structure for NULL docs),
+  text_value → NULL (fts5content 8.3.x), and brace-guarded `ft($v)` bound
+  parameters rendered as bare identifiers `ft(A)` (fts5contentless 4.x —
+  oracle: `SELECT rowid FROM ft(A)` = "no such column: A"). Plus one
+  INESCAPABLE generated loop: `break` parses the literal "([db total_changes]
+  - $nChange)" via Atoi → never true (fts5contentless3 3.6 — the run can
+  only time out; same class as fts5interrupt's always-interrupt stub).
+  Adjudicate with the oracle before writing engine code: several "failures"
+  were the engine matching C on the mangled input.
+- **C's bLock is TWO observable guards.** fts5Config->bLock is held across
+  %_content statement prepare AND step: (a) a nested query plan of a table
+  whose content scan is in flight → "recursively defined fts5 content table"
+  (fts5BestIndexMethod, mutual content=t2/content=t1 AND the TVF form —
+  oracle-verified); (b) the mirror analogue for a query plan arriving while
+  the table's WRITE transaction is open (triggers on any shadow table
+  selecting from the table being written, incl. the statement-end xSync
+  flush) → "database disk image is malformed" (fts5circref). Implement as
+  two counters (scanGuard, writeActive) checked at one BeginQuery chokepoint.
+- **C flushes a %_idx btree row per segment unconditionally.** Even a
+  single-row INSERT writes one %_idx row (fts5WriteFlushBtree:
+  (segid, X'', bFlag+(leaf<<1)) = (segid, X'', 2) for a single-leaf
+  segment) and the sync runs with the write transaction open — shadow
+  triggers fire mid-write. The mirror now writes the dlidx row and the DML
+  layer wraps flushFTS5Shadow in the write scope.
+- **C's option parser binds prefixes in a fixed order.** prefix, tokenize,
+  content, contentless_delete, contentless_unindexed, content_rowid,
+  columnsize, locale, detail, tokendata — first name that extends the user
+  key case-insensitively wins ("c" → content; "contentless_delete" skips
+  past "content" because the shorter name can't extend). Match with
+  strings.EqualFold(name[:len(key)], key) over an ordered table.
+- **NATURAL JOIN must skip HIDDEN vtab columns.** The fts5 operand's defs
+  carry hidden table-name/rank columns; counting them as common columns
+  turns t1(a,b,rank) NATURAL JOIN ft(a) into an a AND rank equality that
+  can never match (rank NULL). Filter cd.Hidden in naturalJoinCommonCols/
+  generateNaturalJoinOn. Explicit USING(hidden) is legal but requires C's
+  argvIndex constraint consumption (parameterized inner scan) — fts5misc
+  12.3 stays N-A.
+- **Lazy content fetch (xColumn parity).** MATCH-driven universes must not
+  fetch DocValues unless the statement reads a user column (star counts;
+  `SELECT rowid FROM ft('two')` succeeds even when the content row is
+  gone), while a column read errors "fts5: missing row N from content
+  table 'db'.'tbl'"; the fts5_tcl.c API layer reports the rc NAME
+  (SQLITE_CORRUPT_VTAB) not the vtab message. Full scans stay eager —
+  fts5StorageScan walks the content table for the doc set.
+- **Predecessor WIP adjudication.** Kept: structvtab.go (fts5_structure TVF),
+  vocab decode validation, writeActive (wired), tombstonePageHas/
+  tombstoneContains (removed — mirror reads seg.Tombs in memory). The
+  predecessor's tombstone.go/flush.go violated gocognit/gocyclo AND
+  fts5.go crossed the 1000-line hard cap only after my additions —
+  quality_gate.sh + wc -l on every touched file BEFORE committing; the
+  pre-commit hook was not installed in this worktree.
+- **Re-merge main before finishing.** 33 commits (incl. T33-win2's view
+  column-list fix) landed mid-tranche; join2's failure was main-fixed, not
+  mine — check `git log HEAD..main | wc -l` before diagnosing cross-branch
+  failures.
 =======
 
 ## T33-idxfix (2026-09-25) — autoindex b-trees mis-ordered at multi-page scale
@@ -9372,3 +9438,44 @@ stack alone.
 (`collectBalanceCells` rejects non-table siblings; emptied INDEX leaves stay
 in place), so index dividers never enter the DELETE rebalance paths — the
 lifecycle sites above are the complete set.
+
+## T33-fts5-resume2 (2026-09-26)
+
+- **Merge of main's idxfix tranche was orthogonal to fts5.** The value-ordered
+  index storage (divider payload descent) did not disturb %_idx/%_data mirror
+  reads; the only "interaction" was the predecessor's WIP statement-
+  granularity fix for fts5detail 5.2/5.3 (compare one flushed segment per
+  table, not 2-vs-1). Verify oracle claims in resurrected WIP before
+  trusting them — the corrupt-structure expectation re-verified on 3.54.0.
+- **An early `return` in a linear generated test MASKS every later section.**
+  fts5misc 14.0's `return` hid sections 20-27 for the whole T33 lifetime.
+  When you make previously-unreachable assertions run for the first time,
+  expect a fresh failure list and probe each (three were engine gaps, two
+  were already-adjudicated N-As needing mechanical annotation).
+- **MULTI-INDEX OR emission order is branch-major, not rowid-sorted.**
+  where.c whereLoopAddOr runs one sub-plan per OR branch (each branch in
+  rowid order, RowSet dedup at first emission): 'a' OR 'y' emits 1 4 3, 'y'
+  OR 'a' emits 3 4 1. Frigolite's materialized universe sorted globally —
+  fixed with Table.MatchOrBranchRowids (branch = pure MATCH conjunction;
+  mixed shapes keep the scan fallback rather than guess C's plan).
+- **fts5Init registers TWO module scalars beyond the aux family**: fts5(X)
+  (API-pointer fetch; NULL for every SQL argument since no SQL value carries
+  the fts5_api_ptr tag) and fts5_source_id() ("--FTS5-SOURCE-ID--", C's
+  literal). Register arity-exact; the scalar namespace does not collide with
+  the module name.
+- **Instance APIs have a contentless cutoff**: fts5CsrPoslist returns an
+  EMPTY poslist when contentless (content='' / contentless_unindexed) AND
+  detail!=full — no content to re-derive positions from. detail=none with
+  readable content still has instances (re-derived from content). Guarded at
+  the AuxQuery.RowInstances chokepoint so every xInst-family consumer sees
+  C's semantics at once.
+- **A transpiled UDF stub can be PORTED FAITHFULLY instead of N-A'd**: the
+  fts5content text_value proc is three lines (i==1 "one", i==2 "two", else
+  "many"); a faithful port flipped 8.3.1/8.3.3/8.3.4 from adjudicated-N-A to
+  genuinely green. Before adjudicating an N-A, read the TCL proc — if it is
+  portable, port it; N-A is for the untranspilable (VFS fixtures, physical
+  page counts), not for lazily-stubbed procs.
+- **Debugging win**: when a fix "doesn't fire", print the AST node types at
+  the boundary first — the bug was topOrBranches returning nil for leaves
+  (append(nil, nil...)); split functions must return []Expr{leaf}, like the
+  existing topAndConjuncts.
