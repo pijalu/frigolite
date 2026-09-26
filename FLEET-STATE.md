@@ -146,6 +146,47 @@ LATE-BREAKING (2026-09-25 late evening):
   the resume agent re-baselines all 9.
 - Race gate (§5e-2) running in background on main aa23922dd; will
   re-run after the fts5 merge lands.
+
+## T33-close wave 4 (2026-09-26) — post-merge census regression wave
+
+fts5 merged (239b5c4f5): ALL 9 former fts5 targets green on main
+(resume2: fts5content fully green — N-A upgraded to real pass;
+MULTI-INDEX OR branch order; fts5Init scalars; 27-pkg fence green).
+
+Final census (2026-09-26, -timeout 900s, ALONE): 1363 pkgs →
+1037 pass / 39 fail / 287 skip. The 26 baseline fails are ALL GREEN.
+BUT 39 NEW fails: (a) ENGINE regressions from T33 merges — values/
+distinct/nulls1 PROVEN red at pre-corpus-sync 748fdb03a; reservebytes/
+corrupt "Page N never used" = idxfix divider-chain leak residue;
+(b) corpus-activated assertions from the double full-regen (kernel
+singles: mutex1/softheap1/shortread1/e_blobclose/btreefault);
+(c) emitter gaps — avfs "got [fosAvfs $fa]" (un-interpolated $var);
+(d) fts5 wave — fts5prefix MATCH syntax error + slow-family real fails
+(fts5delete 68s etc.) suspecting f5cfbdd69/aa23922dd interaction.
+NOTE: first census rerun (1038/38) was contaminated — raced the root
+race leg in the same worktree; kernel singles "failed" spuriously.
+LESSON: never run the census concurrently with any other go test load.
+
+Race gate: lockreg.NewConnID non-atomic counter raced under parallel
+Open (8 DATA RACE warnings) — FIXED (atomic.AddInt64, on main). Root
+race leg still fails TestFTS4Merge4Automerge8Grind under -race (no
+DATA RACE; timing-sensitive grind vs race slowdown) — with
+fts4merge4 failing the census too, the t33r-fts agent owns the root
+cause. tools/status self-test fails on 17 unresolved timeout-suspects
+in the ledger — resolves at close: adjudicate serially + re-seed.
+
+TRIAGE FLEET DISPATCHED (worktrees frigolite-wt-t33r-*):
+- fleet/t33r-order: values distinct nulls1 windowC with3 selectC
+  whereA whereF unionall backup e_fkey bigrow pragma corrupt
+  e_blobclose reservebytes (engine regressions + idxfix residue;
+  bisect protocol per package).
+- fleet/t33r-kernel: avfs (emitter $var interpolation) + mutex1
+  softheap1 shortread1 e_blobclose btreefault (corpus-activated
+  classification: engine vs emitter vs NA_EVIDENCE).
+- fleet/t33r-fts: fts5prefix + fts4merge fts4merge4 fts5aj fts5bigid
+  fts5merge fts5optimize fts5contentless2 fts5delete.
+Coordinator re-censuses AFTER all three land (alone, nothing else
+running).
 - fleet/t33-fts5 STILL ACTIVE in frigolite-wt-t33-fts5 (fts5hash +
   fts5unindexed + contentless3-2.x green at ef605a1ad; segment/structure
   persistence model landed; 4 dirty files mid-work).
