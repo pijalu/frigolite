@@ -494,3 +494,59 @@ lifecycle sites above are the complete set.
   the boundary first — the bug was topOrBranches returning nil for leaves
   (append(nil, nil...)); split functions must return []Expr{leaf}, like the
   existing topAndConjuncts.
+
+## T33r-kernel (2026-09-26) — kernel-singles + emitter wave: the red was a dropped skip map, not the engine (branch fleet/t33r-kernel)
+
+- **Diff the skip-entry SETS across a file split, not just the diff hunks.**
+  The 5d.close skiptests2_part2→part3 split (ba9247849, a complexity-refactor
+  commit) silently dropped the whole `skipTestsMoreT30Kernel` map (11
+  oracle-adjudicated evidence skips); the same commit also added e_fkey-4.1
+  with a WRONG "(no-side-effects)" marker. The next full-corpus regen
+  re-activated broken assertions and produced an 11-package red wave
+  (avfs/mutex1/softheap1/shortread1/e_blobclose/btreefault/bigrow/sqllimits1/
+  corrupt/e_fkey/pragma) that looked like engine regressions. Prove the
+  corpus-emitter attribution by extracting
+  `git grep -h -oE '"key":' <rev> -- tools/tcl2go/skiptests*.go | sort -u`
+  before/after and diffing.
+- **"got [literal TCL text]" = the emitter, not the engine.** softheap1-1.0's
+  want was the literal string "sqlite3_soft_heap_limit -1": an untranspiled
+  C fixture command baked into expected position. The fix was a real
+  lowering, not a skip: test1.c test_soft_heap_limit (6436) shares the
+  pragma.c PragTyp_SOFT_HEAP_LIMIT state, so the fixture lowers to
+  `PRAGMA soft_heap_limit(N)` in all three positions (statement, do_test
+  body via a new doTestBodyKindHandler, expected value via
+  expectedStringExpr). +3 genuinely-running assertions, zero skips.
+- **The caught message of a C-wrapper error is per-wrapper in test1.c.**
+  test_bind_text/text16 Tcl_AppendResult(sqlite3ErrName(rc)) before
+  returning TCL_ERROR (4167/4219) → `catch {...} res` yields "SQLITE_TOOBIG";
+  test_bind_int/int64/double/null/blob return bare TCL_ERROR (3850...) →
+  res = "". One emission rule per bind KIND (bind-10.8.1 wants {1 {}},
+  sqllimits1-5.14.4 wants SQLITE_TOOBIG) — grep the amalgamation's test1.c,
+  don't guess a single rule.
+- **A skipped do_test must still replay what later tests OBSERVE** — and
+  that includes `sqlite3 db FILE` re-binds, not just SQL batches and file
+  ops. pragma-3.19 replayed `os.RemoveAll("test.db")` without the reopen,
+  leaving db writing to an unlinked inode → the NEXT test failed with
+  "attempt to write a readonly database" — two tests away from the actual
+  emitter gap. e_fkey-4.1's marker suppressed the CREATE TABLE p/c that
+  e_fkey-4.2 reuses → "no such table: c". When a skip breaks a LATER
+  assertion, walk the skipped body line by line for un-replayed effects.
+- **Scope fixture lowerings with overrideFile(tp)** (the existing per-file
+  override seam): sqlite3_soft_heap_limit appears in ~20 corpus files;
+  gating to softheap1 kept the regen diff at exactly the targeted package
+  (byte-diff discipline). Corpus-wide lowering is a clean follow-up.
+- **Per-worktree environment triage order**: gitignored oracle fixtures
+  (testdata/backupconformance etc.) first — a fresh worktree fails
+  backup/conformance with "no oracle fixtures", and rsync
+  --ignore-existing from the main checkout fixes it. Then the parallel-run
+  census (600s timeouts are load artifacts — rerun serially before
+  believing).
+- **Pre-existing ≠ activated**: nulls1/distinct/values fail identically at
+  the old-corpus worktree (748fdb03a) with MORE failures (3/2/2 → 2/1/1 now
+  — main's engine work has been improving them). They are an active
+  engine seam (index-order row emission), not the corpus wave; report with
+  counts, don't absorb.
+- **Root-package `go test .` needs -timeout beyond 10m** on this machine
+  (the 1002-file JSON suite alone exceeds the default in serial runs);
+  a bare "FAIL ... 600.365s" with no --- FAIL blocks is the timeout, not
+  a regression.
