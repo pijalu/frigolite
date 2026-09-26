@@ -5,6 +5,7 @@
 package enc
 
 import (
+"errors"
 "fmt"
 "github.com/pijalu/frigolite"
 "github.com/pijalu/frigolite/internal/vtab"
@@ -292,15 +293,24 @@ func Test_enc(t *testing.T) {
 	tclConnRegister("db", db)
 	if err != nil { t.Fatal(err) }
 	{ // do_test "enc-13.1"
-		r = db.Query("PRAGMA function_list")
-		if r.Error != nil {
-			t.Errorf("query error: %v\n  sql: %s", r.Error, "PRAGMA function_list")
-			return
+		_dbevalRows0 := db.Query("PRAGMA function_list")
+		var _dbevalRb1 bool
+		var _dbevalErr2 error
+		var _dbevalInt3 bool
+		if _dbevalRows0.Error != nil { _dbevalErr2 = _dbevalRows0.Error }
+		db.BeginActiveStatement()
+		for _ri := 0; _ri < len(_dbevalRows0.Rows) && _dbevalErr2 == nil; _ri++ {
+			for _ci := 0; _ci < len(_dbevalRows0.Columns); _ci++ {
+				switch _dbevalRows0.Columns[_ci] {
+				}
+			}
+			_res = db.Exec("SELECT * FROM sqlite_schema")
+			if _dbevalRb1 { _dbevalErr2 = errors.New("abort due to ROLLBACK") }
+			if _dbevalInt3 { _dbevalErr2 = errors.New("interrupted"); db.ClearInterrupt() }
 		}
-		got := flatten(r)
-		want := "{}"
-		if got != want && !tclFpnumCompare(got, want) {
-			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		db.EndActiveStatement()
+		if _dbevalErr2 != nil {
+			t.Errorf("db eval callback error: %v", _dbevalErr2)
 		}
 	}
 	_res = db.Exec("CREATE VIRTUAL TABLE t3 USING rtree(id,x1,x2)")
