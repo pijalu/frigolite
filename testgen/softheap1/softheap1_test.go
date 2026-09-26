@@ -8,6 +8,7 @@ import (
 "fmt"
 "github.com/pijalu/frigolite"
 "os"
+"strconv"
 "testing"
 )
 
@@ -82,7 +83,7 @@ func Test_softheap1(t *testing.T) {
 			return
 		}
 		got := flatten(r)
-		want := "sqlite3_soft_heap_limit -1"
+		want := flatten(db.Query("PRAGMA soft_heap_limit(-1)"))
 		if got != want && !tclFpnumCompare(got, want) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
@@ -100,7 +101,16 @@ func Test_softheap1(t *testing.T) {
 		}
 	}
 	{ // do_test "softheap1-1.2"
-		// sqlite3_soft_heap_limit -1 (unsupported command, not transpiled)
+		r = db.Query("PRAGMA soft_heap_limit(-1)")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "PRAGMA soft_heap_limit(-1)")
+			return
+		}
+		got := flatten(r)
+		want := "123456"
+		if got != want && !tclFpnumCompare(got, want) {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]\n  body: do_test %s", got, want, "softheap1-1.2")
+		}
 	}
 	{ // do_test "softheap1-1.3"
 		r = db.Query("PRAGMA soft_heap_limit(-1); PRAGMA soft_heap_limit;")
@@ -126,7 +136,10 @@ func Test_softheap1(t *testing.T) {
 			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 		}
 	}
-	// sqlite3_soft_heap_limit 5000 (unsupported command, not transpiled)
+	r = db.Query("PRAGMA soft_heap_limit(5000)")
+	if r.Error != nil {
+		t.Errorf("query error: %v\n  sql: %s", r.Error, "PRAGMA soft_heap_limit(5000)")
+	}
 	{ // do_test "softheap1-2.0"
 		r = db.Query("PRAGMA soft_heap_limit")
 		if r.Error != nil {
@@ -157,5 +170,8 @@ func Test_softheap1(t *testing.T) {
 			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    PRAGMA integrity_check;\n  ")
 		}
 	}
-	// sqlite3_soft_heap_limit $cmdlinearg(soft-heap-limit) (unsupported command, not transpiled)
+	r = db.Query("PRAGMA soft_heap_limit(" + strconv.Itoa(tclToInt(cmdlinearg_soft_heap_limit)) + ")")
+	if r.Error != nil {
+		t.Errorf("query error: %v\n  sql: %s", r.Error, "PRAGMA soft_heap_limit(" + strconv.Itoa(tclToInt(cmdlinearg_soft_heap_limit)) + ")")
+	}
 }

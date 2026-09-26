@@ -24,18 +24,8 @@ func (tp *transpiler) expectedStringExpr(w tcl.RawWord) (string, bool) {
 	// resolves to a runtime registry call whose result is the wanted value
 	// (vtabH 3.x: [sort_files $res true], [contents $pwd]).
 	if strings.HasPrefix(text, "[") && strings.HasSuffix(text, "]") {
-		cmdText := strings.TrimSuffix(strings.TrimPrefix(text, "["), "]")
-		fields := tclCmdWords(cmdText)
-		// [ifcapable GUARD {BODY} [else {BODY}]] — a capability-selected
-		// expected value folds at transpile time (autoinc-2.70/2.71: the
-		// sqlite_sequence contents differ only for a !tempdb build). The
-		// chosen body is a `list a b c` script whose rendering is the
-		// static word list. Unknown/elseif forms are not folded.
-		if len(fields) >= 3 && fields[0] == "ifcapable" {
-			return foldIfcapableExpected(fields)
-		}
-		if len(fields) >= 1 && globalUserProcs[fields[0]] {
-			return userProcExpectedCall(fields), true
+		if expr, ok := tp.bracketCommandExpectedExpr(text); ok {
+			return expr, true
 		}
 		// Otherwise fall through: the bracketed word may still be one of
 		// the supported [string repeat [binary format ...]] /
@@ -71,6 +61,38 @@ func userProcExpectedCall(fields []string) string {
 		callArgs = append(callArgs, strconv.Quote(a))
 	}
 	return fmt.Sprintf("callTclUserProc(%q, %s)", fields[0], strings.Join(callArgs, ", "))
+}
+
+// bracketCommandExpectedExpr renders a bracketed TCL command substitution
+// ([cmd args...]) whose runtime result supplies the wanted value: the
+// ifcapable folds, registered fixture procs, and the sqlite3_soft_heap_limit
+// fixture lowering. Returns ("", false) when the command form is not
+// supported.
+func (tp *transpiler) bracketCommandExpectedExpr(text string) (string, bool) {
+	cmdText := strings.TrimSuffix(strings.TrimPrefix(text, "["), "]")
+	fields := tclCmdWords(cmdText)
+	// [ifcapable GUARD {BODY} [else {BODY}]] — a capability-selected
+	// expected value folds at transpile time (autoinc-2.70/2.71: the
+	// sqlite_sequence contents differ only for a !tempdb build). The
+	// chosen body is a `list a b c` script whose rendering is the
+	// static word list. Unknown/elseif forms are not folded.
+	if len(fields) >= 3 && fields[0] == "ifcapable" {
+		return foldIfcapableExpected(fields)
+	}
+	if len(fields) >= 1 && globalUserProcs[fields[0]] {
+		return userProcExpectedCall(fields), true
+	}
+	// [sqlite3_soft_heap_limit N] — the test1.c fixture command returns
+	// the effective soft heap limit; the engine exposes the same state
+	// through PRAGMA soft_heap_limit (softheap1-1.0's expected value).
+	// Gated to softheap1.test like the statement-form lowering.
+	if overrideFile(tp) == "softheap1" && len(fields) == 2 &&
+		(fields[0] == "sqlite3_soft_heap_limit" || fields[0] == "sqlite3_soft_heap_limit64") {
+		if n, err := strconv.Atoi(strings.TrimSpace(fields[1])); err == nil {
+			return fmt.Sprintf("flatten(db.Query(%q))", fmt.Sprintf("PRAGMA soft_heap_limit(%d)", n)), true
+		}
+	}
+	return "", false
 }
 
 // lreverseExpectedExpr renders `lreverse $VAR` as a runtime list reversal.
