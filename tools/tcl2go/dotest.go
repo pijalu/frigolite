@@ -808,53 +808,6 @@ func (tp *transpiler) emitLSortComparison(nameExpr, expectedExpr string, bodyCmd
 
 // emitDBEvalComparison handles a single `db eval { SQL }` do_test body (query
 // → flatten → compare). Returns true when handled.
-func (tp *transpiler) emitDBEvalComparison(nameExpr, expectedExpr string, bodyCmds [][]tcl.RawWord, args []tcl.RawWord) bool {
-	if !(len(bodyCmds) == 1 && len(bodyCmds[0]) >= 3 &&
-		bodyCmds[0][0].Text == "db" && bodyCmds[0][1].Text == "eval") {
-		return false
-	}
-	sqlExpr := tp.collectSQLExpression(bodyCmds[0][2:3])
-	sql := bodyCmds[0][2].Text
-	lastStmt := lastStatementSQL(sql)
-	isQuery := isQueryStmt(lastStmt)
-	// A db eval whose SQL is a bare variable reference (e.g. `db eval $sql`
-	// in a foreach loop) cannot be classified statically. Most such bodies in
-	// do_test are SELECTs whose result is compared to the expected value, so
-	// default to the query path.
-	if !isQuery && strings.HasPrefix(strings.TrimSpace(sql), "$") {
-		isQuery = true
-	}
-
-	tp.emitLine("{ // do_test %s", nameExpr)
-	tp.indent++
-	if isQuery && expectedExpr != `""` {
-		tp.emitDBEvalQueryResult(nameExpr, expectedExpr, sqlExpr, args)
-	} else if isQuery {
-		tp.emitLine("r = db.Query(%s)", sqlExpr)
-		tp.emitLine("if r.Error != nil {")
-		tp.emitLine("\tt.Errorf(\"query error: %%v\\n  sql: %%s\", r.Error, %s)", sqlExpr)
-		tp.emitLine("}")
-	} else {
-		if isBareGoIdent(expectedExpr) {
-			// The expected value is a variable holding an error message
-			// (e.g. foreach $error in "13.2.$tn.1"): the statement must fail
-			// with that message.
-			tp.emitLine("_res = db.Exec(%s)", sqlExpr)
-			tp.emitLine("if _res.Error == nil || !strings.Contains(_res.Error.Error(), %s) {", expectedExpr)
-			tp.emitLine("\tt.Errorf(\"expected error containing %%s, got: %%v\\n  sql: %%s\", %s, resErrString(_res), %s)", expectedExpr, sqlExpr)
-			tp.emitLine("}")
-		} else {
-			tp.emitLine("_res = db.Exec(%s)", sqlExpr)
-			tp.emitLine("if _res.Error != nil {")
-			tp.emitLine("\tt.Errorf(\"exec error: %%v\\n  sql: %%s\", resErrString(_res), %s)", sqlExpr)
-			tp.emitLine("}")
-		}
-	}
-	tp.indent--
-	tp.emitLine("}")
-	return true
-}
-
 // emitDBEvalQueryResult emits the query-result comparison for a single
 // `db eval` do_test body with a non-empty expected value.
 func (tp *transpiler) emitDBEvalQueryResult(nameExpr, expectedExpr, sqlExpr string, args []tcl.RawWord) {

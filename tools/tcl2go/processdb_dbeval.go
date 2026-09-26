@@ -203,6 +203,16 @@ func (tp *transpiler) emitDBEvalCallback(rest []tcl.RawWord) {
 	tp.emitDBEvalCallbackConn("db", rest)
 }
 
+// emitDBEvalCallbackConnRef breaks the handler-table initialization cycle
+// (doTestBodyKindHandlers → emitDBEvalComparison → emitDBEvalCallbackConn →
+// processCommands → tclHandlers → processDoTest → doTestBodyKindHandlers):
+// the callback emitter is reached through this reference, assigned at init.
+var emitDBEvalCallbackConnRef func(tp *transpiler, dbConn string, rest []tcl.RawWord)
+
+func init() {
+	emitDBEvalCallbackConnRef = (*transpiler).emitDBEvalCallbackConn
+}
+
 // emitDBEvalCallbackConn is emitDBEvalCallback for an arbitrary connection
 // variable (db, db2, ...): `dbN eval {SQL} {body}` runs the braced body
 // once per result row with the row's columns bound as TCL variables.

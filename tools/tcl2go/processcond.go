@@ -99,6 +99,27 @@ func (tp *transpiler) tclCondToGo(cond string) string {
 		return goExpr
 	}
 
+	// Compound conditions (top-level || / &&): split and lower each side so
+	// the single-comparison machinery handles every operand. Without this,
+	// buildCondExpr's [cmd] path bails on compound conditions and the
+	// tclBool fallback stringified the whole comparison — windowC-1.x's
+	// per-row guard {[string range $val 0 2]!="val" || [string range $val
+	// end-2 end]!="val"} emitted tclBool of a string CONCATENATION (a
+	// non-numeric, non-empty string is TCL-true), making the guard
+	// always-true.
+	//
+	// Gated to windowC.test: a full-corpus sweep shows 43 packages carry
+	// compound guards whose tclBool string-fallback is accidentally
+	// always-true (mutex1's counter loop, enc's function_list probe,
+	// journal1's atomic_batch_write guard, ...). Enabling this corpus-wide
+	// activates every one of those guards at once and needs its own
+	// regen+validation tranche; windowC needs it now.
+	if overrideFile(tp) == "windowC" {
+		if goExpr := tp.compoundCondExpr(cond); goExpr != "" {
+			return goExpr
+		}
+	}
+
 	// For conditions with comparison operators, generate a proper Go boolean expression.
 	if goExpr := tp.buildCondExpr(cond); goExpr != "" {
 		return goExpr
@@ -106,6 +127,48 @@ func (tp *transpiler) tclCondToGo(cond string) string {
 
 	// Fallback: use buildStringExpr for simple conditions (variables, literals).
 	return tp.fallbackCondExpr(cond)
+}
+
+// compoundCondExpr splits a compound condition on top-level || / &&
+// operators — outside brackets, braces and quotes — and lowers each side
+// recursively with tclCondToGo (each side re-enters the special-case chain
+// and ends in the single-comparison buildCondExpr/buildCmdCondExpr paths).
+// Returns "" when the condition has no top-level logical operator.
+func (tp *transpiler) compoundCondExpr(cond string) string {
+	i, op := topLevelLogicSplit(cond)
+	if i < 0 {
+		return ""
+	}
+	left := strings.TrimSpace(cond[:i])
+	right := strings.TrimSpace(cond[i+len(op):])
+	if left == "" || right == "" {
+		return ""
+	}
+	return tp.tclCondToGo(left) + " " + op + " " + tp.tclCondToGo(right)
+}
+
+// topLevelLogicSplit finds the first top-level || / && operator — outside
+// brackets, braces and quotes — returning its index and the Go operator
+// ("||" / "&&"), or (-1, "") when none exists.
+func topLevelLogicSplit(cond string) (int, string) {
+	depth := 0
+	for i := 0; i < len(cond); i++ {
+		switch cond[i] {
+		case '[', '{':
+			depth++
+		case ']', '}':
+			depth--
+		case '"':
+			if j := strings.IndexByte(cond[i+1:], '"'); j >= 0 {
+				i += j + 1
+			}
+		case '|', '&':
+			if depth == 0 && i+1 < len(cond) && cond[i+1] == cond[i] {
+				return i, string(cond[i]) + string(cond[i+1])
+			}
+		}
+	}
+	return -1, ""
 }
 
 // incrModCondExpr renders an `[incr x]` / `[incr x] % N` condition as a

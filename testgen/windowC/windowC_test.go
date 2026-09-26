@@ -5,6 +5,7 @@
 package windowC
 
 import (
+"errors"
 "fmt"
 "github.com/pijalu/frigolite"
 "github.com/pijalu/frigolite/internal/vtab"
@@ -140,15 +141,28 @@ func Test_windowC(t *testing.T) {
 					_ = win // suppress unused warning
 					_ = _idx1
 						{ // do_test "1." + _type + "." + tn + ".2." + tn2
-							r = db.Query("\n          SELECT group_concat('val', x) OVER ( ORDER BY i " + win + " ) AS val FROM x1\n          ")
-							if r.Error != nil {
-								t.Errorf("query error: %v\n  sql: %s", r.Error, "\n          SELECT group_concat('val', x) OVER ( ORDER BY i " + win + " ) AS val FROM x1\n          ")
-								return
+							_dbevalRows2 := db.Query("\n          SELECT group_concat('val', x) OVER ( ORDER BY i " + win + " ) AS val FROM x1\n          ")
+							var _dbevalRb3 bool
+							var _dbevalErr4 error
+							var _dbevalInt5 bool
+							if _dbevalRows2.Error != nil { _dbevalErr4 = _dbevalRows2.Error }
+							db.BeginActiveStatement()
+							for _ri := 0; _ri < len(_dbevalRows2.Rows) && _dbevalErr4 == nil; _ri++ {
+								for _ci := 0; _ci < len(_dbevalRows2.Columns); _ci++ {
+									switch _dbevalRows2.Columns[_ci] {
+										case "val":
+											val = tclStr(_dbevalRows2.Rows[_ri][_ci])
+									}
+								}
+								if tclStringRange(val, "0", "2") != "val" || tclStringRange(val, "end-2", "end") != "val" {
+									t.Errorf("TCL error: %s", "unexpected return value: " + val)
+								}
+								if _dbevalRb3 { _dbevalErr4 = errors.New("abort due to ROLLBACK") }
+								if _dbevalInt5 { _dbevalErr4 = errors.New("interrupted"); db.ClearInterrupt() }
 							}
-							got := flatten(r)
-							want := "{}"
-							if got != want && !tclFpnumCompare(got, want) {
-								t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+							db.EndActiveStatement()
+							if _dbevalErr4 != nil {
+								t.Errorf("db eval callback error: %v", _dbevalErr4)
 							}
 						}
 					}

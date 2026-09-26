@@ -7,6 +7,7 @@ package selectC
 import (
 "fmt"
 "github.com/pijalu/frigolite"
+"github.com/pijalu/frigolite/internal/function"
 "github.com/pijalu/frigolite/internal/vtab"
 "os"
 "strings"
@@ -217,7 +218,11 @@ func Test_selectC(t *testing.T) {
 		}
 	}
 	// proc definition (not transpiled)
-	db.RegisterFunction("uppercaseconversionfunctionwithaverylongname", func(args []interface{}) (interface{}, error) { return nil, nil }, 0, -1)
+	// db function uppercaseconversionfunctionwithaverylongname longname_toupper (TCL toupper UDF: case-map of args[0])
+	db.RegisterFunction("uppercaseconversionfunctionwithaverylongname", func(args []interface{}) (interface{}, error) {
+		if len(args) < 1 || args[0] == nil { return nil, nil }
+		return strings.ToUpper(function.ValueText(args[0])), nil
+	}, 0, -1)
 	{ // do_test "selectC-1.12.1"
 		r = db.Query("\n    SELECT DISTINCT upper(b) AS x\n      FROM t1\n     ORDER BY x\n  ")
 		if r.Error != nil {

@@ -501,6 +501,19 @@ func isSingleBracedStructuredLiteral(expr string) bool {
 func (tp *transpiler) expectLiteral(w tcl.RawWord) string {
 	nw, flat := normalizeExpectedWord(w)
 	if !flat {
+		// A /regex/ pattern expected value is REGEXP data, not a TCL list
+		// element: its backslash escapes (\y, \d, \., \+) belong to the
+		// regex engine and must survive to the pattern lowering
+		// (normalizePatternText converts TCL's \y word boundary to RE2's
+		// \b). TCL's list-element escape resolution would turn `\y` into a
+		// literal y, making the EQP pattern demand tables named "t2y"/"t1y"
+		// (whereF-1.x) and `4.6116\d*e\+18` into "4.6116d*e+18" (strict1).
+		// The shape test mirrors isTCLRegexPattern, which decides the
+		// comparison form downstream — the two must agree.
+		if isRegexPatternWord(nw.Text) {
+			tp.expectPreFlattened = false
+			return tp.goStringLiteral(nw)
+		}
 		// Resolve TCL backslash escapes the way TCL parsing does for bare
 		// words (the word is consumed as a list / command argument):
 		// backslash-newline folds to a space, \n \t \r resolve, \uXXXX and
@@ -513,6 +526,17 @@ func (tp *transpiler) expectLiteral(w tcl.RawWord) string {
 	}
 	tp.expectPreFlattened = flat
 	return tp.goStringLiteral(nw)
+}
+
+// isRegexPatternWord reports whether raw expected-word text is a TCL
+// regex-pattern value (the /.../ or ~/.../ forms whose comparison is a
+// regexp.MatchString). Same shape rule as isTCLRegexPattern, on raw text.
+func isRegexPatternWord(text string) bool {
+	s := strings.TrimSpace(text)
+	if strings.HasPrefix(s, "~/") {
+		return len(s) >= 3 && strings.HasSuffix(s, "/")
+	}
+	return len(s) >= 2 && s[0] == '/' && s[len(s)-1] == '/'
 }
 
 // skipFoldedBlank consumes following spaces/tabs after a backslash-newline
