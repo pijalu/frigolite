@@ -264,3 +264,37 @@ func TestProbeWindow8OrderByWindowCol(t *testing.T) {
 		t.Errorf("got %q want %q", got, want)
 	}
 }
+
+// TestProbeTkt3a77CorrelatedUnionSubquery pins tkt-3a77c9714e 2.2: the
+// scalar subquery's derived-table body reads SrcWord from the outer
+// UNION-scan through an UNQUALIFIED reference — a correlated body, so the
+// omit-unused-subquery-column optimization must decline (the outer statement
+// only names BeginningId; nulling the un-referenced SrcWord output broke the
+// body's own WHERE and the query returned zero rows). Oracle 3.54: two rows.
+func TestProbeTkt3a77CorrelatedUnionSubquery(t *testing.T) {
+	db := openProbeDB(t)
+	for _, s := range []string{
+		`CREATE TABLE Beginnings (Id INTEGER PRIMARY KEY AUTOINCREMENT, Title TEXT, EndingId INTEGER)`,
+		`CREATE TABLE Endings (Id INT, Title TEXT, EndingId INT)`,
+		`INSERT INTO Beginnings VALUES (1, 'FACTOR', 18)`,
+		`INSERT INTO Beginnings VALUES (2, 'SWIMM', 18)`,
+		`INSERT INTO Endings VALUES (1, 'ING', 18)`,
+	} {
+		if err := db.Exec(s).Error; err != nil {
+			t.Fatalf("%s: %v", s, err)
+		}
+	}
+	res := db.Query(`SELECT SrcWord, Beginnings.Title
+		FROM (SELECT 'FACTORING' AS SrcWord UNION SELECT 'SWIMMING' AS SrcWord)
+		LEFT JOIN Beginnings
+		WHERE Beginnings.Id = (SELECT BeginningId FROM (
+			SELECT SrcWord, B.Id as BeginningId, B.Title || E.Title As Connected
+			FROM Beginnings B LEFT JOIN Endings E ON B.EndingId=E.EndingId
+			WHERE Connected=SrcWord LIMIT 1))`)
+	if res.Error != nil {
+		t.Fatalf("query error: %v", res.Error)
+	}
+	if got, want := flatRows(res), "FACTORING FACTOR SWIMMING SWIMM"; got != want {
+		t.Errorf("got %q want %q", got, want)
+	}
+}

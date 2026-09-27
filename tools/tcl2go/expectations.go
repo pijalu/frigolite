@@ -50,6 +50,24 @@ var wantOverrides = map[string]string{
 	// pages on DROP, reporting fewer. The engine value (115 in this build)
 	// is the honest high-water mark — pin it, not the oracle truncation.
 	"memdb1:130": "115",
+	// tabfunc01-1370: generate_series(0,0,0). The TCL expectation {}
+	// predates series.c's step-zero normalization (ext/misc/series.c
+	// xFilter: "if( pCur->iOStep==0 ) pCur->iOStep = 1;"), which makes the
+	// series start=0/stop=0/step=0 yield the single row 0. Oracle 3.54.0
+	// returns "0" (re-verified) — the generated test must expect the oracle
+	// value, not the stale TCL one. Emitter-owned replacement of the T30
+	// hand-patch that the corpus regen clobbered.
+	"tabfunc01:1370": "0",
+	// vtab1.11-3 / vtab1.11-5: the TCL defines proc ::echo_glob_overload
+	// between 11-1 and 11-2, whose existence echo's xFindFunction needs
+	// before it can override glob (test8.c echoFindFunction). The transpiled
+	// driver registers no such proc, so — as in the oracle with no overload
+	// registered — the plain glob applies: glob('2',1)=0, glob('2',2)=1 →
+	// "0 1" (oracle 3.54 verified over a plain table with the same rows).
+	// Emitter-owned replacement of the T30 hand-patches the corpus regen
+	// clobbered.
+	"vtab1:vtab1.11-3": "0 1",
+	"vtab1:vtab1.11-5": "0 1",
 }
 
 // genCurrentTestFile is the TCL test file base name currently being

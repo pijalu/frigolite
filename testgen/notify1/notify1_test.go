@@ -257,7 +257,7 @@ func Test_notify1(t *testing.T) {
 			// sqlite3 $con test.db (dynamic connection name)
 			_dbtmp1, err := frigolite.Open("test.db")
 			if err != nil { t.Logf("open dynamic connection failed: %v (not fatal)", err) }
-			_ = _dbtmp1
+			tclConnRegister(con, _dbtmp1)
 			// $con eval { ATTACH 'test2.db' AS aux2 } (unsupported command, not transpiled)
 			// $con eval { ATTACH 'test3.db' AS aux3 } (unsupported command, not transpiled)
 		}
@@ -414,7 +414,7 @@ func Test_notify1(t *testing.T) {
 					// sqlite3 $cmd test.db (dynamic connection name)
 					_dbtmp5, err := frigolite.Open("test.db")
 					if err != nil { t.Logf("open dynamic connection failed: %v (not fatal)", err) }
-					_ = _dbtmp5
+					tclConnRegister(cmd, _dbtmp5)
 					_res = db.Exec(" SELECT * FROM t1 ")
 					_ = _res // catchsql
 				}
@@ -472,7 +472,7 @@ func Test_notify1(t *testing.T) {
 				// sqlite3 $conn test.db (dynamic connection name)
 				_dbtmp6, err := frigolite.Open("test.db")
 				if err != nil { t.Logf("open dynamic connection failed: %v (not fatal)", err) }
-				_ = _dbtmp6
+				tclConnRegister(conn, _dbtmp6)
 				_res = db.Exec(" ATTACH 'test2.db' AS two ")
 				if _res.Error != nil {
 					t.Errorf("exec error: %v\n  sql: %s", _res.Error, " ATTACH 'test2.db' AS two ")
@@ -604,7 +604,7 @@ func Test_notify1(t *testing.T) {
 				// sqlite3 $conn test.db (dynamic connection name)
 				_dbtmp7, err := frigolite.Open("test.db")
 				if err != nil { t.Logf("open dynamic connection failed: %v (not fatal)", err) }
-				_ = _dbtmp7
+				tclConnRegister(conn, _dbtmp7)
 			}
 			_res = db.Exec("\n    BEGIN;\n    INSERT INTO t1 VALUES(5, 6);\n  ")
 			if _res.Error != nil {

@@ -124,7 +124,7 @@ func Test_vtab3(t *testing.T) {
 		}
 		auth_log = tclListAppend(auth_log, action.String(), arg1, arg2, arg3, arg4)
 		vtab.TclVarSet("auth_log", "", auth_log)
-		tclIncrMod(&auth_fail, -1)
+		tclIncrBy(&auth_fail, -1)
 		vtab.TclVarSet("auth_fail", "", auth_fail)
 		if tclInt(auth_fail) == 0 {
 			return auth.ResultDeny

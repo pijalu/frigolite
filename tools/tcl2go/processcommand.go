@@ -56,12 +56,43 @@ func (tp *transpiler) processCommand(words []tcl.RawWord) {
 	if tp.emitConnVarClose(cmdName, args) {
 		return
 	}
+	// `$dbVar eval {SQL} {body}` — the row-callback eval on a runtime
+	// connection-name variable (vtab_shared-1.9: the foreach loop variable
+	// holds "db" or "db2", and the body closes the OTHER connection
+	// mid-scan). Resolve the connection through the runtime registry and
+	// share the row-callback machinery with the static form.
+	if tp.emitConnVarEval(cmdName, args) {
+		return
+	}
 	// Inline user procs recorded by processProc (zero-arg or single
 	// defaulted-param calls): bind the default, then transpile the body.
 	if tp.emitInlineZeroArgProc(cmdName, args) {
 		return
 	}
 	tp.processDefaultCommand(cmdName, args)
+}
+
+// emitConnVarEval handles `$dbVar eval {SQL} {body}` — the db-eval
+// row-callback form whose receiver is a runtime connection-name variable.
+// The connection resolves at runtime via tclConnByName over the harness's
+// named connections; the row-callback emitter is shared with the static
+// `db eval` form (emitDBEvalCallbackConn accepts any connection
+// expression). Returns true when handled.
+func (tp *transpiler) emitConnVarEval(cmdName string, args []tcl.RawWord) bool {
+	if !strings.HasPrefix(cmdName, "$") || len(args) < 3 || args[0].Text != "eval" || !args[1].Braced {
+		return false
+	}
+	goVar := tclVarToGo(strings.TrimPrefix(cmdName, "$"))
+	if renamed, ok := tp.varRenames[goVar]; ok {
+		goVar = renamed
+	}
+	if !isValidGoIdent(goVar) {
+		return false
+	}
+	tp.emitDBEvalCallbackConn(
+		fmt.Sprintf("tclConnByName(%s, db, db1, db2, db3, db4, db5, db6, db7, db8, db9)", goVar),
+		args[1:])
+	return true
 }
 
 // emitUserProcOverride emits the file-local proc body override for cmdName
@@ -474,9 +505,38 @@ func (tp *transpiler) emitRegisterEchoModule(args []tcl.RawWord) {
 	if len(args) >= 1 {
 		if name := connNameFromPointerArg(args[0].Text); name != "" {
 			conn = tclVarToGo(name)
+		} else if goVar := tp.dynamicConnGoVar(args[0].Text); goVar != "" {
+			// `register_echo_module [sqlite3_connection_pointer $dbClose]` —
+			// the connection name is a RUNTIME value (vtab_shared-1.9
+			// re-registers the echo module on the reopened connection);
+			// resolve through the runtime connection registry.
+			tp.emitLine("tclConnByName(%s, db, db1, db2, db3, db4, db5, db6, db7, db8, db9).RegisterEchoModule()", goVar)
+			return
 		}
 	}
 	tp.emitLine("%s.RegisterEchoModule()", conn)
+}
+
+// dynamicConnGoVar extracts the Go variable for a dynamic connection-name
+// argument ("$dbClose" or "[sqlite3_connection_pointer $dbClose]").
+// Returns "" when the argument does not name a runtime connection variable.
+func (tp *transpiler) dynamicConnGoVar(arg string) string {
+	f := strings.Fields(strings.TrimSpace(strings.TrimPrefix(strings.TrimSuffix(strings.TrimSpace(arg), "]"), "[")))
+	if len(f) == 0 {
+		return ""
+	}
+	last := f[len(f)-1]
+	if !strings.HasPrefix(last, "$") {
+		return ""
+	}
+	goVar := tclVarToGo(strings.TrimPrefix(strings.TrimPrefix(last, "$"), "::"))
+	if renamed, ok := tp.varRenames[goVar]; ok {
+		goVar = renamed
+	}
+	if !isValidGoIdent(goVar) {
+		return ""
+	}
+	return goVar
 }
 
 // emitCorruptFreelist inlines corrupt_freelist FILE N — corrupt9.test's proc

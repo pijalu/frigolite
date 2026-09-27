@@ -6,6 +6,7 @@ package main
 // dotest.go to keep both files under the 1000-line quality-gate limit).
 
 import (
+	"strconv"
 	"strings"
 
 	"github.com/pijalu/frigolite/tools/tclconvert/tcl"
@@ -33,27 +34,8 @@ func (tp *transpiler) emitSkippedDoTestSideEffects(name, reason string, args []t
 	// forcecopy test.db tst/test.db before sqlite3 db tst/test.db).
 	var effects []skipSideEffect
 	for _, cmd := range bodyCmds {
-		if connVar, sqlExpr, ok := tp.sqlSideEffectCmd(cmd); ok {
-			effects = append(effects, skipSideEffect{kind: "sql", connVar: connVar, sqlExpr: sqlExpr})
-			continue
-		}
-		if eff, ok := tp.fileSideEffectCmd(cmd); ok {
-			effects = append(effects, eff)
-			continue
-		}
-		// `sqlite3 db FILE` inside a skipped body re-binds the main
-		// connection to FILE (pragma-3.19: `forcedelete test.db; sqlite3 db
-		// test.db` — replaying the forcedelete without the reopen leaves db
-		// writing to an unlinked inode and the following do_test fails with
-		// "attempt to write a readonly database"). Skipped tests whose N-A
-		// subject IS the reopen lifecycle (vtab1-1.1x's echo
-		// reopen-unregister family: C unregisters a test module on reopen,
-		// which the engine cannot model) opt out — replaying the reopen
-		// there re-activates the very seam the skip adjudicated. Only the
-		// pre-declared main connection is handled; secondary handles keep
-		// their old conservative no-op.
-		if eff, ok := tp.reopenSideEffectCmd(cmd, reason); ok {
-			effects = append(effects, eff)
+		if eff, ok := tp.classifySkipSideEffect(cmd, reason); ok {
+			effects = append(effects, eff...)
 		}
 	}
 	if len(effects) == 0 {
@@ -227,6 +209,42 @@ func (tp *transpiler) literalGoWords(words []tcl.RawWord) ([]string, bool) {
 	return out, true
 }
 
+// classifySkipSideEffect maps one skipped-body command to its replay side
+// effects (SQL statements, file operations, or the main-connection reopen).
+// Returns ok=false for commands with no replayable side effect.
+func (tp *transpiler) classifySkipSideEffect(cmd []tcl.RawWord, reason string) ([]skipSideEffect, bool) {
+	if effs, ok := tp.sqlSideEffectEffects(cmd); ok {
+		return effs, true
+	}
+	if eff, ok := tp.fileSideEffectCmd(cmd); ok {
+		// A `db close` inside a reopen-unregister skip is half of the
+		// unrepresentable close+reopen pair: replaying the close without
+		// the reopen leaves every later test writing to a CLOSED
+		// connection ("file already closed" — vtab1-1.10). The reopen
+		// half already opts out in reopenSideEffectCmd; opt the close
+		// out symmetrically.
+		if eff.kind == "close" && strings.Contains(reason, "reopen-unregister") {
+			return nil, false
+		}
+		return []skipSideEffect{eff}, true
+	}
+	// `sqlite3 db FILE` inside a skipped body re-binds the main
+	// connection to FILE (pragma-3.19: `forcedelete test.db; sqlite3 db
+	// test.db` — replaying the forcedelete without the reopen leaves db
+	// writing to an unlinked inode and the following do_test fails with
+	// "attempt to write a readonly database"). Skipped tests whose N-A
+	// subject IS the reopen lifecycle (vtab1-1.1x's echo
+	// reopen-unregister family: C unregisters a test module on reopen,
+	// which the engine cannot model) opt out — replaying the reopen
+	// there re-activates the very seam the skip adjudicated. Only the
+	// pre-declared main connection is handled; secondary handles keep
+	// their old conservative no-op.
+	if eff, ok := tp.reopenSideEffectCmd(cmd, reason); ok {
+		return []skipSideEffect{eff}, true
+	}
+	return nil, false
+}
+
 // sqlSideEffectCmd classifies one body command as a SQL side effect,
 // reporting the connection variable and the SQL expression. Recognizes
 // `dbN eval {SQL}` and plain `execsql {SQL}` (resolved through the
@@ -250,4 +268,42 @@ func (tp *transpiler) sqlSideEffectCmd(cmd []tcl.RawWord) (connVar, sqlExpr stri
 		return "", "", false
 	}
 	return connVar, tp.collectSQLExpression(cmd[sqlIdx : sqlIdx+1]), true
+}
+
+// sqlSideEffectEffects classifies one body command as a SQL side effect and
+// renders its replay effects. Recognizes `dbN eval {SQL}` and plain
+// `execsql {SQL}` (resolved through the alias/connection map, so
+// `execsql {SQL} db2` lands on db2). A braced multi-statement batch replays
+// STATEMENT BY STATEMENT: the C bodies these skips stand in for run their
+// statements independently and it is the END STATE later tests depend on, so
+// a failed statement must not strand the ones after it (vtab-1.2152.4:
+// "DROP TABLE t2152a; DROP TABLE t2152b" — the emulated body never created
+// t2152a, a combined Exec aborted on it under sqlite3_exec semantics, and
+// the surviving t2152b poisoned every later sqlite_master assertion).
+// Splitting uses the corpus-standard splitSQLStatements (semicolon, not
+// quote-aware; a fragment that splits inside a literal merely errors, which
+// the replay tolerates).
+func (tp *transpiler) sqlSideEffectEffects(cmd []tcl.RawWord) ([]skipSideEffect, bool) {
+	connVar, sqlExpr, ok := tp.sqlSideEffectCmd(cmd)
+	if !ok {
+		return nil, false
+	}
+	// Recover the braced raw SQL for splitting: `dbN eval {SQL}` puts the
+	// body at index 2, `execsql {SQL}` at index 1.
+	sqlIdx := 1
+	if len(cmd) >= 3 && strings.HasPrefix(cmd[0].Text, "db") && cmd[1].Text == "eval" {
+		sqlIdx = 2
+	}
+	if !cmd[sqlIdx].Braced {
+		return []skipSideEffect{{kind: "sql", connVar: connVar, sqlExpr: sqlExpr}}, true
+	}
+	stmts := splitSQLStatements(cmd[sqlIdx].Text)
+	if len(stmts) <= 1 {
+		return []skipSideEffect{{kind: "sql", connVar: connVar, sqlExpr: sqlExpr}}, true
+	}
+	out := make([]skipSideEffect, 0, len(stmts))
+	for _, st := range stmts {
+		out = append(out, skipSideEffect{kind: "sql", connVar: connVar, sqlExpr: strconv.Quote(st)})
+	}
+	return out, true
 }

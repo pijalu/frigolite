@@ -184,6 +184,22 @@ func (tp *transpiler) channelPutsMsgExpr(msgArgs []tcl.RawWord) string {
 	return msgExpr
 }
 
+// channelSeekKey returns the fileChannelSeek map key expression for a file
+// channel. When the channel's path is a TCL VARIABLE the faithful key is the
+// Go expression holding the runtime path: a fresh channel carries fresh
+// state (vtabH 3.3 reuses the same `fd` variable per loop iteration for
+// different files, so a var-name key carried x1.txt's end offset into
+// x2.txt and the file was written as 143+153=296 bytes — the T30-vtab
+// call-site fix, emitter-owned since the corpus regen clobbered the
+// hand-patch). Literal-path channels keep the historical var-name key so
+// existing corpus output stays byte-identical.
+func (tp *transpiler) channelSeekKey(chName string) string {
+	if path, ok := activeFileChannels[chName]; ok && activeFileChannelExprs[chName] && isValidGoIdent(path) {
+		return path
+	}
+	return strconv.Quote(chName)
+}
+
 // emitChannelPuts writes to a registered file channel. Always honor the
 // runtime fileChannelSeek value: when the test did a `seek $fd [expr X+Y]`
 // with a non-foldable expression, the transpile-time map is empty but the
@@ -196,12 +212,13 @@ func (tp *transpiler) channelPutsMsgExpr(msgArgs []tcl.RawWord) string {
 // `puts -nonewline $fd "abcd,$T"` builds a two-line file).
 func (tp *transpiler) emitChannelPuts(chName, path, msgExpr string, nonewline bool) {
 	dest := channelDestExpr(chName, path)
+	key := tp.channelSeekKey(chName)
 	if nonewline {
-		tp.emitLine("tclChannelAppendAt(%s, %s, fileChannelSeek[%q])", dest, msgExpr, chName)
-		tp.emitLine("fileChannelSeek[%q] += int64(len(%s))", chName, msgExpr)
+		tp.emitLine("tclChannelAppendAt(%s, %s, fileChannelSeek[%s])", dest, msgExpr, key)
+		tp.emitLine("fileChannelSeek[%s] += int64(len(%s))", key, msgExpr)
 	} else {
-		tp.emitLine("tclChannelAppendAt(%s, %s+\"\\n\", fileChannelSeek[%q])", dest, msgExpr, chName)
-		tp.emitLine("fileChannelSeek[%q] += int64(len(%s+\"\\n\"))", chName, msgExpr)
+		tp.emitLine("tclChannelAppendAt(%s, %s+\"\\n\", fileChannelSeek[%s])", dest, msgExpr, key)
+		tp.emitLine("fileChannelSeek[%s] += int64(len(%s+\"\\n\"))", key, msgExpr)
 	}
 }
 

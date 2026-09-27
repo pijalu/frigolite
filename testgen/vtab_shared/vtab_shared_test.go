@@ -5,10 +5,12 @@
 package vtab_shared
 
 import (
+"errors"
 "fmt"
 "github.com/pijalu/frigolite"
 "github.com/pijalu/frigolite/internal/vtab"
 "os"
+"strconv"
 "strings"
 "testing"
 )
@@ -140,7 +142,11 @@ func Test_vtab_shared(t *testing.T) {
 		_ = _res.Error // tolerate unsupported-feature errors in skipped tests
 	}
 	{ // "vtab_shared-1.8.1" — skipped: shared-cache cross-connection locking not supported (SQL + file side effects only)
-		_res = db.Exec(" \n    BEGIN;\n    INSERT INTO t1 VALUES(4, 5, 6);\n    SELECT * FROM t1;\n  ")
+		_res = db.Exec("BEGIN")
+		_ = _res.Error // tolerate unsupported-feature errors in skipped tests
+		_res = db.Exec("INSERT INTO t1 VALUES(4, 5, 6)")
+		_ = _res.Error // tolerate unsupported-feature errors in skipped tests
+		_res = db.Exec("SELECT * FROM t1")
 		_ = _res.Error // tolerate unsupported-feature errors in skipped tests
 	}
 	{ // "vtab_shared-1.8.2" — skipped: shared-cache cross-connection locking not supported
@@ -170,12 +176,41 @@ func Test_vtab_shared(t *testing.T) {
 			{ // do_test "vtab_shared-1.9." + iTest
 				res = ""
 				_ = res // suppress unused warning
-				// $dbSelect eval { SELECT * FROM t1 } {\n      if {$a == 1} {$dbClose close}\n      lappe...... (unsupported command, not transpiled)
+				_dbevalRows1 := tclConnByName(dbSelect, db, db1, db2, db3, db4, db5, db6, db7, db8, db9).Query(" SELECT * FROM t1 ")
+				var _dbevalRb2 bool
+				var _dbevalErr3 error
+				var _dbevalInt4 bool
+				if _dbevalRows1.Error != nil { _dbevalErr3 = _dbevalRows1.Error }
+				tclConnByName(dbSelect, db, db1, db2, db3, db4, db5, db6, db7, db8, db9).BeginActiveStatement()
+				for _ri := 0; _ri < len(_dbevalRows1.Rows) && _dbevalErr3 == nil; _ri++ {
+					for _ci := 0; _ci < len(_dbevalRows1.Columns); _ci++ {
+						switch _dbevalRows1.Columns[_ci] {
+							case "a":
+								a = tclStr(_dbevalRows1.Rows[_ri][_ci])
+							case "dbClose":
+								dbClose = tclStr(_dbevalRows1.Rows[_ri][_ci])
+							case "b":
+								b = tclStr(_dbevalRows1.Rows[_ri][_ci])
+							case "c":
+								c = tclStr(_dbevalRows1.Rows[_ri][_ci])
+						}
+					}
+					if func() bool { a_n, _a_e := strconv.Atoi(a); if _a_e != nil { return false }; return a_n == 1 }() {
+						tclConnByName(dbClose, db, db1, db2, db3, db4, db5, db6, db7, db8, db9).Close()
+					}
+					res = tclListAppend(res, a, b, c)
+					if _dbevalRb2 { _dbevalErr3 = errors.New("abort due to ROLLBACK") }
+					if _dbevalInt4 { _dbevalErr3 = errors.New("interrupted"); tclConnByName(dbSelect, db, db1, db2, db3, db4, db5, db6, db7, db8, db9).ClearInterrupt() }
+				}
+				tclConnByName(dbSelect, db, db1, db2, db3, db4, db5, db6, db7, db8, db9).EndActiveStatement()
+				if _dbevalErr3 != nil {
+					t.Errorf("db eval callback error: %v", _dbevalErr3)
+				}
 				// sqlite3 $dbClose test.db (dynamic connection name)
-				_dbtmp1, err := frigolite.Open("test.db")
+				_dbtmp5, err := frigolite.Open("test.db")
 				if err != nil { t.Logf("open dynamic connection failed: %v (not fatal)", err) }
-				_ = _dbtmp1
-				db.RegisterEchoModule()
+				tclConnRegister(dbClose, _dbtmp5)
+				tclConnByName(dbClose, db, db1, db2, db3, db4, db5, db6, db7, db8, db9).RegisterEchoModule()
 				got := tclListFlatten(res)
 				want := tclListFlatten("1 2 3 4 5 6")
 				if got != want && !tclFpnumCompare(got, want) {
@@ -188,7 +223,9 @@ func Test_vtab_shared(t *testing.T) {
 			_ = _res.Error // tolerate unsupported-feature errors in skipped tests
 		}
 		{ // "vtab_shared-1.11" — skipped: shared-cache cross-connection vtab visibility not supported (SQL + file side effects only)
-			_res = db.Exec("\n    CREATE VIRTUAL TABLE t2 USING echo(t0);\n    CREATE VIRTUAL TABLE t3 USING echo(t0);\n  ")
+			_res = db.Exec("CREATE VIRTUAL TABLE t2 USING echo(t0)")
+			_ = _res.Error // tolerate unsupported-feature errors in skipped tests
+			_res = db.Exec("CREATE VIRTUAL TABLE t3 USING echo(t0)")
 			_ = _res.Error // tolerate unsupported-feature errors in skipped tests
 			_res = db2.Exec(" SELECT * FROM t3 ")
 			_ = _res.Error // tolerate unsupported-feature errors in skipped tests
@@ -228,7 +265,9 @@ func Test_vtab_shared(t *testing.T) {
 			_ = _res.Error // tolerate unsupported-feature errors in skipped tests
 		}
 		{ // "vtab_shared_1.14.2" — skipped: shared-cache cross-connection vtab visibility not supported (SQL + file side effects only)
-			_res = db2.Exec(" \n    UPDATE t3 SET c = 'six' WHERE c = 6;\n    SELECT * FROM t3;\n  ")
+			_res = db2.Exec("UPDATE t3 SET c = 'six' WHERE c = 6")
+			_ = _res.Error // tolerate unsupported-feature errors in skipped tests
+			_res = db2.Exec("SELECT * FROM t3")
 			_ = _res.Error // tolerate unsupported-feature errors in skipped tests
 		}
 		{ // "vtab_shared_1.14.3" — skipped: shared-cache cross-connection vtab visibility not supported (SQL + file side effects only)
@@ -237,7 +276,9 @@ func Test_vtab_shared(t *testing.T) {
 			_ = _res.Error // tolerate unsupported-feature errors in skipped tests
 		}
 		{ // "vtab_shared_1.14.4" — skipped: shared-cache cross-connection vtab visibility not supported (SQL + file side effects only)
-			_res = db2.Exec(" \n    DELETE FROM t3 WHERE c = 'six';\n    SELECT * FROM t3;\n  ")
+			_res = db2.Exec("DELETE FROM t3 WHERE c = 'six'")
+			_ = _res.Error // tolerate unsupported-feature errors in skipped tests
+			_res = db2.Exec("SELECT * FROM t3")
 			_ = _res.Error // tolerate unsupported-feature errors in skipped tests
 		}
 		{ // "vtab_shared_1.14.5" — skipped: shared-cache cross-connection vtab visibility not supported (SQL + file side effects only)
@@ -246,22 +287,30 @@ func Test_vtab_shared(t *testing.T) {
 			_ = _res.Error // tolerate unsupported-feature errors in skipped tests
 		}
 		{ // "vtab_shared_1.14.6" — skipped: shared-cache cross-connection vtab visibility not supported (SQL + file side effects only)
-			_res = db2.Exec(" \n    INSERT INTO t3 VALUES(4, 5, 6);\n    SELECT * FROM t3;\n  ")
+			_res = db2.Exec("INSERT INTO t3 VALUES(4, 5, 6)")
+			_ = _res.Error // tolerate unsupported-feature errors in skipped tests
+			_res = db2.Exec("SELECT * FROM t3")
 			_ = _res.Error // tolerate unsupported-feature errors in skipped tests
 		}
 		{ // "vtab_shared_1.15.1" — skipped: shared-cache cross-connection vtab visibility not supported (SQL + file side effects only)
 			db2.Close()
-			_res = db2.Exec(" \n    UPDATE t3 SET c = 'six' WHERE c = 6;\n    SELECT * FROM t3;\n  ")
+			_res = db2.Exec("UPDATE t3 SET c = 'six' WHERE c = 6")
+			_ = _res.Error // tolerate unsupported-feature errors in skipped tests
+			_res = db2.Exec("SELECT * FROM t3")
 			_ = _res.Error // tolerate unsupported-feature errors in skipped tests
 		}
 		{ // "vtab_shared_1.15.2" — skipped: shared-cache cross-connection vtab visibility not supported (SQL + file side effects only)
 			db2.Close()
-			_res = db2.Exec(" \n    DELETE FROM t3 WHERE c = 'six';\n    SELECT * FROM t3;\n  ")
+			_res = db2.Exec("DELETE FROM t3 WHERE c = 'six'")
+			_ = _res.Error // tolerate unsupported-feature errors in skipped tests
+			_res = db2.Exec("SELECT * FROM t3")
 			_ = _res.Error // tolerate unsupported-feature errors in skipped tests
 		}
 		{ // "vtab_shared_1.15.3" — skipped: shared-cache cross-connection vtab visibility not supported (SQL + file side effects only)
 			db2.Close()
-			_res = db.Exec(" \n    INSERT INTO t3 VALUES(4, 5, 6);\n    SELECT * FROM t3;\n  ")
+			_res = db.Exec("INSERT INTO t3 VALUES(4, 5, 6)")
+			_ = _res.Error // tolerate unsupported-feature errors in skipped tests
+			_res = db.Exec("SELECT * FROM t3")
 			_ = _res.Error // tolerate unsupported-feature errors in skipped tests
 		}
 		db.Close()
@@ -278,7 +327,11 @@ func Test_vtab_shared(t *testing.T) {
 			db, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
 			tclConnRegister("db", db)
-			_res = db.Exec("\n      CREATE VIRTUAL TABLE rt USING rtree(id, x1, x2);\n      INSERT INTO rt VALUES(1, 2 ,3);\n      SELECT * FROM rt;\n    ")
+			_res = db.Exec("CREATE VIRTUAL TABLE rt USING rtree(id, x1, x2)")
+			_ = _res.Error // tolerate unsupported-feature errors in skipped tests
+			_res = db.Exec("INSERT INTO rt VALUES(1, 2 ,3)")
+			_ = _res.Error // tolerate unsupported-feature errors in skipped tests
+			_res = db.Exec("SELECT * FROM rt")
 			_ = _res.Error // tolerate unsupported-feature errors in skipped tests
 			_res = db2.Exec(" DROP TABLE rt ")
 			_ = _res.Error // tolerate unsupported-feature errors in skipped tests
@@ -296,7 +349,11 @@ func Test_vtab_shared(t *testing.T) {
 			db, err = frigolite.Open("test.db")
 			if err != nil { t.Fatal(err) }
 			tclConnRegister("db", db)
-			_res = db.Exec("\n      CREATE VIRTUAL TABLE ft USING fts3;\n      INSERT INTO ft VALUES('hello world');\n      SELECT * FROM ft;\n    ")
+			_res = db.Exec("CREATE VIRTUAL TABLE ft USING fts3")
+			_ = _res.Error // tolerate unsupported-feature errors in skipped tests
+			_res = db.Exec("INSERT INTO ft VALUES('hello world')")
+			_ = _res.Error // tolerate unsupported-feature errors in skipped tests
+			_res = db.Exec("SELECT * FROM ft")
 			_ = _res.Error // tolerate unsupported-feature errors in skipped tests
 			_res = db2.Exec(" DROP TABLE ft ")
 			_ = _res.Error // tolerate unsupported-feature errors in skipped tests

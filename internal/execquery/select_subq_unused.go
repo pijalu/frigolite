@@ -533,14 +533,17 @@ func resultColumnNameOf(col sql.SelectColumn) string {
 // selectUsesExternalTables reports whether any column reference inside s
 // (including nested subqueries and CTE bodies) names a source that is not in
 // scope at that point inside s — i.e. s is correlated with an enclosing
-// statement. Unqualified references are treated as internal (they normally
-// resolve to an in-scope source; treating them as external would only
-// shrink the optimization).
-func (e *SelectEngine) selectUsesExternalTables(s *sql.SelectStmt, scopes []map[string]bool) bool {
+// statement. An UNQUALIFIED reference is external when it does not resolve to
+// any column of the scope's own sources (resolve.c binds every reference at
+// resolution time; a reference that walks past every in-scope source to an
+// outer one marks the subquery correlated — sqlite3Select isCorrelated skips
+// the omit-unused-column optimization for it, tkt-3a77c9714e 2.2: the body's
+// `WHERE Connected=SrcWord` reads an outer UNION-scan column).
+func (e *SelectEngine) selectUsesExternalTables(s *sql.SelectStmt, scopes []subqueryScope) bool {
 	if s == nil {
 		return false
 	}
-	inner := subqueryScopeWithLocals(s, scopes)
+	inner := e.subqueryScopeWithLocals(s, scopes)
 	if e.selectClausesUseExternalTables(s, inner) {
 		return true
 	}
@@ -550,16 +553,27 @@ func (e *SelectEngine) selectUsesExternalTables(s *sql.SelectStmt, scopes []map[
 	return e.nestedSourcesUseExternalTables(s, inner)
 }
 
+// subqueryScope is one enclosing SELECT level of the name-resolution stack:
+// the source/alias names in scope, and the columns those sources supply.
+// cols is nil when the scope's column set cannot be derived (an
+// unresolvable source) — unqualified references then stay "internal" there,
+// which only shrinks the optimization.
+type subqueryScope struct {
+	names      map[string]bool
+	cols       map[string]bool
+	unresolved bool
+}
+
 // subqueryScopeWithLocals returns scopes extended with s's own FROM/join
 // sources and CTE names.
-func subqueryScopeWithLocals(s *sql.SelectStmt, scopes []map[string]bool) []map[string]bool {
-	local := map[string]bool{}
+func (e *SelectEngine) subqueryScopeWithLocals(s *sql.SelectStmt, scopes []subqueryScope) []subqueryScope {
+	local := subqueryScope{names: map[string]bool{}, cols: map[string]bool{}}
 	addSource := func(t sql.TableRef) {
 		if t.Name != "" {
-			local[strings.ToLower(t.Name)] = true
+			local.names[strings.ToLower(t.Name)] = true
 		}
 		if t.As != "" {
-			local[strings.ToLower(t.As)] = true
+			local.names[strings.ToLower(t.As)] = true
 		}
 	}
 	addSource(s.From)
@@ -568,17 +582,76 @@ func subqueryScopeWithLocals(s *sql.SelectStmt, scopes []map[string]bool) []map[
 	}
 	for _, cte := range s.CTEs {
 		if cte.Name != "" {
-			local[strings.ToLower(cte.Name)] = true
+			local.names[strings.ToLower(cte.Name)] = true
 		}
 	}
-	inner := make([]map[string]bool, 0, len(scopes)+1)
+	for _, n := range e.scopeColumnNames(s) {
+		local.cols[strings.ToLower(n)] = true
+	}
+	inner := make([]subqueryScope, 0, len(scopes)+1)
 	inner = append(inner, scopes...)
 	return append(inner, local)
 }
 
+// scopeColumnNames unions the columns each of s's FROM/join sources supplies:
+// a named table's schema columns, or a derived source's output column names
+// (leftmost compound member — the compound's result set). A source whose
+// columns cannot be derived marks the scope unresolved: the caller then
+// treats unqualified references as internal (conservative — the optimization
+// shrinks instead of mis-firing).
+func (e *SelectEngine) scopeColumnNames(s *sql.SelectStmt) []string {
+	var out []string
+	addRef := func(t sql.TableRef) bool {
+		switch {
+		case t.Subquery != nil:
+			names, ok := e.derivedOutputColumnNames(t.Subquery)
+			if !ok {
+				return false
+			}
+			out = append(out, names...)
+		case t.Name != "":
+			names, err := e.resolveTableColumnNames(s, t.Name)
+			if err != nil {
+				return false
+			}
+			out = append(out, names...)
+		}
+		return true
+	}
+	if s.From.Name != "" || s.From.As != "" || s.From.Subquery != nil {
+		if !addRef(s.From) {
+			return nil
+		}
+	}
+	for _, j := range s.Joins {
+		if !addRef(j.Table) {
+			return nil
+		}
+	}
+	return out
+}
+
+// derivedOutputColumnNames returns a derived source's output column names
+// (the leftmost compound member's, matching the compound's result set).
+// ok is false when a member's stars cannot be expanded or the subquery is nil.
+func (e *SelectEngine) derivedOutputColumnNames(sub *sql.SelectStmt) ([]string, bool) {
+	if sub == nil {
+		return nil, false
+	}
+	_, expanded, ok := e.expandCompoundMembers(sub)
+	if !ok || len(expanded) == 0 {
+		return nil, false
+	}
+	out := make([]string, len(expanded[0]))
+	for i, col := range expanded[0] {
+		out[i] = resultColumnNameOf(col)
+	}
+	return out, true
+}
+
 // selectClausesUseExternalTables checks the statement's own clauses
 // (columns, WHERE, join ONs, GROUP BY, HAVING, ORDER BY, LIMIT, OFFSET).
-func (e *SelectEngine) selectClausesUseExternalTables(s *sql.SelectStmt, inner []map[string]bool) bool {
+func (e *SelectEngine) selectClausesUseExternalTables(s *sql.SelectStmt, inner []subqueryScope) bool {
 	for _, col := range s.Columns {
 		if e.exprUsesExternalTables(col.Expr, inner) {
 			return true
@@ -608,7 +681,7 @@ func (e *SelectEngine) selectClausesUseExternalTables(s *sql.SelectStmt, inner [
 
 // nestedSourcesUseExternalTables checks FROM-clause subqueries, join derived
 // tables, and CTE bodies.
-func (e *SelectEngine) nestedSourcesUseExternalTables(s *sql.SelectStmt, inner []map[string]bool) bool {
+func (e *SelectEngine) nestedSourcesUseExternalTables(s *sql.SelectStmt, inner []subqueryScope) bool {
 	if s.From.Subquery != nil && e.selectUsesExternalTables(s.From.Subquery, inner) {
 		return true
 	}
@@ -626,25 +699,45 @@ func (e *SelectEngine) nestedSourcesUseExternalTables(s *sql.SelectStmt, inner [
 	return false
 }
 
+// columnRefUsesExternalTables resolves one column reference against the
+// scope stack: a qualified reference is external when its table/alias is in
+// no scope; an unqualified one when its name is supplied by no in-scope
+// source column (scopes that cannot be resolved keep the reference internal).
+func columnRefUsesExternalTables(v *sql.ColumnRef, scopes []subqueryScope) bool {
+	if v.Table == "" {
+		if v.Name == "*" {
+			// A bare * wildcard expands over the scope's own sources —
+			// never an outer reference.
+			return false
+		}
+		name := strings.ToLower(v.Name)
+		for _, sc := range scopes {
+			if sc.unresolved || sc.cols[name] {
+				return false
+			}
+		}
+		return true
+	}
+	t := strings.ToLower(v.Table)
+	for _, sc := range scopes {
+		if sc.names[t] {
+			return false
+		}
+	}
+	return true
+}
+
 // exprUsesExternalTables walks expr (recursing through expression children
-// and nested subqueries) for a qualified column reference whose table is not
-// in any of the given scopes.
-func (e *SelectEngine) exprUsesExternalTables(expr sql.Expr, scopes []map[string]bool) bool {
+// and nested subqueries) for a column reference that resolves outside every
+// given scope: a qualified reference whose table is missing, or an
+// unqualified reference whose name no in-scope source column supplies.
+func (e *SelectEngine) exprUsesExternalTables(expr sql.Expr, scopes []subqueryScope) bool {
 	if expr == nil {
 		return false
 	}
 	switch v := expr.(type) {
 	case *sql.ColumnRef:
-		if v.Table == "" {
-			return false
-		}
-		t := strings.ToLower(v.Table)
-		for _, sc := range scopes {
-			if sc[t] {
-				return false
-			}
-		}
-		return true
+		return columnRefUsesExternalTables(v, scopes)
 	case *sql.Subquery:
 		return e.selectUsesExternalTables(v.Select, scopes)
 	case *sql.ExistsExpr:

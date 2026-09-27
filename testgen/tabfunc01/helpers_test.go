@@ -1883,6 +1883,17 @@ func tclIncrMod(x *string, n int) bool {
 	return v != 0
 }
 
+// tclIncrBy mirrors the TCL incr statement for callers that do not read
+// the result: it adds N to x in place (TCL ints, so the string var holds the
+// new decimal value). N may be negative (vtab3's authorizer deny countdown
+// "incr ::auth_fail -1"). Distinct from tclIncrMod, whose arithmetic is
+// always +1 and whose argument is a condition modulus.
+func tclIncrBy(x *string, n int) {
+	v, _ := strconv.ParseInt(strings.TrimSpace(*x), 10, 64)
+	v += int64(n)
+	*x = strconv.FormatInt(v, 10)
+}
+
 func tclBool(s string) bool {
 	s = strings.TrimSpace(s)
 	if s == "" {

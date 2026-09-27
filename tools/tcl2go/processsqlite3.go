@@ -80,14 +80,25 @@ func (tp *transpiler) processSqlite3(args []tcl.RawWord) {
 }
 
 // emitDynamicSqlite3Open handles `sqlite3 $con FILE`: the connection name is
-// a runtime TCL value, so open into a throwaway handle to preserve the SQL
-// side effect (the file is created/opened).
+// a runtime TCL value, so the handle cannot land in a named Go variable.
+// Open AND register the handle under the runtime name via tclConnRegister —
+// TCL rebinds NAME to the new connection (vtab_shared-1.9 reopens $dbClose
+// mid-loop; the following iteration's `$dbSelect eval` must resolve to the
+// REOPENED connection, not to the closed handle the registry held before).
 func (tp *transpiler) emitDynamicSqlite3Open(args []tcl.RawWord, filename string) {
 	dbName := args[0].Text
 	tp.emitLine("// sqlite3 %s %s (dynamic connection name)", sanitizeTCLComment(dbName), strings.TrimSpace(args[len(args)-1].Text))
 	tp.emitLine("_dbtmp%d, err := frigolite.Open(%s)", tp.varCount, filename)
 	tp.emitLine("if err != nil { t.Logf(\"open dynamic connection failed: %%v (not fatal)\", err) }")
-	tp.emitLine("_ = _dbtmp%d", tp.varCount)
+	goVar := tclVarToGo(strings.TrimPrefix(dbName, "$"))
+	if renamed, ok := tp.varRenames[goVar]; ok {
+		goVar = renamed
+	}
+	if isValidGoIdent(goVar) {
+		tp.emitLine("tclConnRegister(%s, _dbtmp%d)", goVar, tp.varCount)
+	} else {
+		tp.emitLine("_ = _dbtmp%d", tp.varCount)
+	}
 	tp.varCount++
 }
 
