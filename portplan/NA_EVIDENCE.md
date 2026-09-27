@@ -2591,3 +2591,16 @@ MATCH results survive, and 'merge' on an empty table (6.1/6.2) is a no-op.
 Note C's fts5IndexMerge only starts a level merge when the biggest level
 holds >= nMin (usermerge) segments — usermerge=2 is the corpus's own
 convergence setting.
+
+## FULL-SUITE-DRIFT.T33-close — race-profile guard for wall-clock grind pins (2026-09-27)
+
+- The §5e-2 race gate (`go test -race -count=1 -run "^Test[^C]" ./...`) failed
+  on exactly one test with NO data race: TestFTS4Merge4Automerge8Grind — a
+  wall-clock-scheduled automerge grind whose checkpoint cadence cannot survive
+  the race detector's 5-20x CPU slowdown (fails at 121s under race; serially
+  GREEN at 683.8s, twice). Guarded with the standard `race` build-tag const
+  (frigolite_race_test.go / frigolite_norace_test.go): the test skips under
+  -race and holds its full contract in the normal profile (verified both
+  modes). This is a detector-slowdown artifact class, not an engine
+  correctness gap; the underlying fts4merge4 census package is adjudicated
+  slow-but-green in tools/status/ledger.json (P9.PERF backlog).
