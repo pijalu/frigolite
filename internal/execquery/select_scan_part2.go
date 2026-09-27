@@ -53,10 +53,102 @@ func wrapAffinityCollated(cd sql.ColumnDef, v interface{}) interface{} {
 	return cv
 }
 
+// affinityPlan precomputes, per table scan, which columns receive
+// affinity/collation wrappers and which slots are INTEGER PRIMARY KEY
+// rowid-alias fills. Building the plan once per scan replaces the per-row
+// needsAffinity map+EqualFold scans, util.Affinity (ToUpper), collation
+// EqualFold, and isIPKRowidAliasCol walks with two indexed loops.
+type affinityPlan struct {
+	wrapIdx  []int    // column indices to wrap with affinity/collation
+	wrapAff  []rune   // affinity rune per wrapIdx
+	wrapColl []string // uppercased collation per wrapIdx ("" = BINARY)
+	ipkIdx   []int    // INTEGER PRIMARY KEY rowid-alias column indices
+	ipkAff   []rune   // affinity rune per ipkIdx
+	ipkColl  []string // uppercased collation per ipkIdx ("" = BINARY)
+}
+
+// columnWrapInfo precomputes the affinity rune and uppercased collation a
+// column's values are wrapped with (wrapAffinityCollated semantics).
+func columnWrapInfo(cd *sql.ColumnDef) (rune, string) {
+	aff := util.Affinity(cd.Type)
+	collName := ""
+	if coll := cd.Collate; coll != "" && !strings.EqualFold(coll, "BINARY") {
+		collName = strings.ToUpper(coll)
+	}
+	return aff, collName
+}
+
+// newAffinityPlan builds the plan for a scan's colDefs against the collected
+// affinity column names. Returns nil when affinityCols is nil (no wrapping),
+// mirroring the previous fill-time `if affinityCols != nil` gate.
+func newAffinityPlan(colDefs []sql.ColumnDef, affinityCols map[string]bool) *affinityPlan {
+	if affinityCols == nil {
+		return nil
+	}
+	p := &affinityPlan{}
+	for i := range colDefs {
+		cd := &colDefs[i]
+		if needsAffinity(affinityCols, cd.Name) {
+			aff, coll := columnWrapInfo(cd)
+			p.wrapIdx = append(p.wrapIdx, i)
+			p.wrapAff = append(p.wrapAff, aff)
+			p.wrapColl = append(p.wrapColl, coll)
+		}
+		if isIPKRowidAliasCol(*cd) {
+			aff, coll := columnWrapInfo(cd)
+			p.ipkIdx = append(p.ipkIdx, i)
+			p.ipkAff = append(p.ipkAff, aff)
+			p.ipkColl = append(p.ipkColl, coll)
+		}
+	}
+	return p
+}
+
+// wrapPrecomputed wraps a raw value with a precomputed affinity/collation
+// pair, producing the same wrapper chain wrapAffinityCollated builds.
+func wrapPrecomputed(aff rune, collName string, v interface{}) interface{} {
+	cv := &util.ColumnValue{Value: v, Affinity: aff}
+	if collName != "" {
+		return &CollatedValue{Value: cv, Collation: collName}
+	}
+	return cv
+}
+
+// apply wraps the planned columns' values in place, then fills rowid-alias
+// columns that SQLite stores as NULL (INTEGER PRIMARY KEY) with the rowid.
+// Order matches the previous applyStructRowAffinity: wrap first, then the
+// rowid-alias fill.
+func (p *affinityPlan) apply(values []interface{}, rowID int64) {
+	for k, i := range p.wrapIdx {
+		if v := values[i]; v != nil {
+			values[i] = wrapPrecomputed(p.wrapAff[k], p.wrapColl[k], v)
+		}
+	}
+	for k, i := range p.ipkIdx {
+		if values[i] == nil {
+			values[i] = wrapPrecomputed(p.ipkAff[k], p.ipkColl[k], rowID)
+		}
+	}
+}
+
+// ipkAliasIndices returns the indices of INTEGER PRIMARY KEY rowid-alias
+// columns in colDefs. Unlike the affinity plan (which is only built when
+// affinity columns are referenced), this list is computed for every scan so
+// the lazy-decode phase-2 refill can skip its per-row isIPKRowidAliasCol walk.
+func ipkAliasIndices(colDefs []sql.ColumnDef) []int {
+	var idx []int
+	for i := range colDefs {
+		if isIPKRowidAliasCol(colDefs[i]) {
+			idx = append(idx, i)
+		}
+	}
+	return idx
+}
+
 // fillStructRowFromTypes fills a StructRow using pre-parsed serial types.
 // It clears all values and decodes only the columns in colIndices.
 // Unlike fillStructRow, it does not re-parse the record header.
-func (e *SelectEngine) fillStructRowFromTypes(sr *StructRow, payload []byte, dataStart int, colDefs []sql.ColumnDef, rowID int64, affinityCols map[string]bool, serialTypes []uint64, colIndices map[int]bool, wrOrder []int) {
+func (e *SelectEngine) fillStructRowFromTypes(sr *StructRow, payload []byte, dataStart int, colDefs []sql.ColumnDef, rowID int64, plan *affinityPlan, serialTypes []uint64, colIndices map[int]bool, wrOrder []int) {
 	values := sr.Values
 	for i := range values {
 		values[i] = nil
@@ -84,12 +176,12 @@ func (e *SelectEngine) fillStructRowFromTypes(sr *StructRow, payload []byte, dat
 	// read time. Only columns beyond the record's value count get the default.
 	e.applyColumnDefaults(values, colDefs, len(serialTypes))
 
-	// Apply affinity wrappers for columns referenced in affinityCols. Match
+	// Apply affinity wrappers for the columns planned at scan setup. Match
 	// buildRowMap: wrap ALL columns (including INTEGER/REAL) with their
 	// affinity so comparison logic applies the same SQLite affinity rules on
 	// both the fast StructRow path and the map path.
-	if affinityCols != nil {
-		applyStructRowAffinity(values, colDefs, affinityCols, rowID)
+	if plan != nil {
+		plan.apply(values, rowID)
 	}
 }
 
@@ -131,29 +223,6 @@ func shiftDroppedColumns(values []interface{}, colDefs []sql.ColumnDef) {
 		ci++
 	}
 	copy(values, shifted)
-}
-
-// applyStructRowAffinity wraps the columns referenced by affinityCols with
-// their affinity/collation and fills rowid-alias columns that are NULL. The
-// reference name match is case-insensitive (WHERE/SELECT may differ in case
-// from the declared column name).
-func applyStructRowAffinity(values []interface{}, colDefs []sql.ColumnDef, affinityCols map[string]bool, rowID int64) {
-	for i := 0; i < len(values); i++ {
-		if values[i] == nil {
-			continue
-		}
-		if needsAffinity(affinityCols, colDefs[i].Name) {
-			values[i] = wrapAffinityCollated(colDefs[i], values[i])
-		}
-	}
-	// Fill rowid-alias columns that SQLite stores as NULL in the record
-	// (INTEGER PRIMARY KEY): their value is the rowid, for every read —
-	// not only queries that reference the column by name.
-	for i, cd := range colDefs {
-		if isIPKRowidAliasCol(cd) && values[i] == nil {
-			values[i] = wrapAffinityCollated(cd, rowID)
-		}
-	}
 }
 
 // needsAffinity reports whether a column name is referenced in affinityCols,

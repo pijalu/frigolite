@@ -42,6 +42,43 @@ func ExprCollation(e sql.Expr) (string, bool) {
 	return exprCollation(e)
 }
 
+// exprCollationMemo resolves the compile-time collation of an expression
+// through the per-statement memo. exprCollation is a pure function of the
+// AST subtree, so the result for a given node never changes within a
+// statement; caching keyed by node pointer removes the per-row EqualFold/
+// type-switch recomputation on the WHERE hot path. The memo is statement-
+// scoped (cleared by ResetStatementAux — the Evaluator itself is engine-
+// scoped) and the engine is single-threaded, so no locking is needed.
+func (ev *Evaluator) exprCollationMemo(e sql.Expr) (string, bool) {
+	if r, ok := ev.collMemo[e]; ok {
+		return r.coll, r.explicit
+	}
+	coll, explicit := exprCollation(e)
+	if ev.collMemo == nil {
+		ev.collMemo = make(map[sql.Expr]collationResult)
+	}
+	ev.collMemo[e] = collationResult{coll: coll, explicit: explicit}
+	return coll, explicit
+}
+
+// exprCanCarryExplicitCollation reports whether an expression's compile-time
+// collation can be explicit (exprCollation can return explicit=true). Explicit
+// collation originates only in COLLATE operators and propagates through ||,
+// function calls, CASE, and unary operators. Every other node type statically
+// resolves to ("", false), and binaryOpCollation returns ("", false) for every
+// operator other than COLLATE and || WITHOUT consulting the operands — so the
+// collation walk/memo lookup can be skipped entirely for those nodes on the
+// per-row comparison hot path.
+func exprCanCarryExplicitCollation(e sql.Expr) bool {
+	switch v := e.(type) {
+	case *sql.BinaryOp:
+		return strings.EqualFold(v.Operator, "COLLATE") || v.Operator == "||"
+	case *sql.FuncCall, *sql.CaseExpr, *sql.UnaryOp:
+		return true
+	}
+	return false
+}
+
 // binaryOpCollation resolves the collation of a binary operator. COLLATE yields
 // its explicit collation; "||" (concat) takes the right operand's collation
 // when explicit, else the left's; all other operators have no collation.

@@ -506,7 +506,13 @@ type scanState struct {
 	colDefs      []sql.ColumnDef
 	hasJoins     bool
 	affinityCols map[string]bool
-	reuseSRow    *StructRow
+	// affPlan precomputes the per-column affinity/collation wrapping for the
+	// scan (nil exactly when affinityCols is nil, preserving the old gate).
+	affPlan *affinityPlan
+	// ipkFillIdx holds the INTEGER PRIMARY KEY rowid-alias column indices
+	// (always computed; drives the phase-2 rowid refill in lazy decode).
+	ipkFillIdx []int
+	reuseSRow  *StructRow
 	// wrOrder permutes PK-first index-leaf records back to declared order
 	// (nil for rowid tables and legacy table-leaf WR roots). Set by
 	// execSelectScanPhase via initWROrder; decodeRowFull applies it.
@@ -563,6 +569,8 @@ func newScanState(e *SelectEngine, s *sql.SelectStmt, colDefs []sql.ColumnDef, n
 		hasJoins:               hasJoins,
 		whereExpr:              whereExpr,
 		affinityCols:           affinityCols,
+		affPlan:                newAffinityPlan(colDefs, affinityCols),
+		ipkFillIdx:             ipkAliasIndices(colDefs),
 		reuseSRow:              &StructRow{Values: make([]interface{}, len(colDefs)), Index: colIndex},
 		useLazyDecode:          useLazyDecode,
 		whereDecodeIndices:     whereDecodeIndices,
@@ -598,7 +606,7 @@ func (st *scanState) decodeAndFilterRow(cursor *btree.Cursor, payload []byte, ro
 // remaining (expensive) columns are never decoded. Otherwise decode the rest
 // (phase 2) using the cached serial types.
 func (st *scanState) decodeRowLazy(cursor *btree.Cursor, payload []byte, dataStart int, rowID int64, serialTypes []uint64) (bool, bool, error) {
-	st.e.fillStructRowFromTypes(st.reuseSRow, payload, dataStart, st.colDefs, rowID, st.affinityCols, serialTypes, st.whereDecodeIndices, nil)
+	st.e.fillStructRowFromTypes(st.reuseSRow, payload, dataStart, st.colDefs, rowID, st.affPlan, serialTypes, st.whereDecodeIndices, nil)
 	passesWhere, err := st.evalRowWhere(cursor)
 	if err != nil {
 		return false, false, err
@@ -606,7 +614,7 @@ func (st *scanState) decodeRowLazy(cursor *btree.Cursor, payload []byte, dataSta
 	if !passesWhere {
 		return false, true, nil // filtered — skip decoding remaining columns
 	}
-	st.e.fillStructRowRemainingFromTypes(st.reuseSRow, payload, dataStart, st.colDefs, serialTypes, st.remainingDecodeIndices)
+	st.e.fillStructRowRemainingFromTypes(st.reuseSRow, payload, dataStart, st.colDefs, serialTypes, st.remainingDecodeIndices, st.ipkFillIdx)
 	return true, false, nil
 }
 
@@ -614,7 +622,7 @@ func (st *scanState) decodeRowLazy(cursor *btree.Cursor, payload []byte, dataSta
 func (st *scanState) decodeRowFull(cursor *btree.Cursor, payload []byte, dataStart int, rowID int64, serialTypes []uint64) (bool, bool, error) {
 	// wrOrder drives the PK-first → declared permutation inside the fill
 	// (before affinity/defaults), so the row is fully declared-order here.
-	st.e.fillStructRowFromTypes(st.reuseSRow, payload, dataStart, st.colDefs, rowID, st.affinityCols, serialTypes, nil, st.wrOrder)
+	st.e.fillStructRowFromTypes(st.reuseSRow, payload, dataStart, st.colDefs, rowID, st.affPlan, serialTypes, nil, st.wrOrder)
 	passesWhere, err := st.evalRowWhere(cursor)
 	return passesWhere, false, err
 }

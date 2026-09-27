@@ -1030,3 +1030,54 @@ conflict risk maintained by zero edits — read-only diagnosis only, nothing sta
   HEAD:refs/heads/fleet/t34r-btree` (the colon-less form followed
   upstream=main).
 >>>>>>> origin/fleet/t34r-btree
+
+## T34-perf-resume (fleet/t34-perf, 2026-09-27)
+
+Resumed a dead predecessor mid-tranche on P9.PERF hot-path work (base 5807a9c1e,
+5-file WIP that did not compile). Adjudication + three tranches landed.
+
+- **Resume protocol value proved immediately**: the WIP did not compile
+  (`ipkAliasIndices` never written; two `fillStructRowFromTypes` call sites
+  still on the old signature) and carried a LATENT BUG the first fence missed:
+  the keyword length-switch used wrong lengths (CURRENT_TIME written as 11
+  chars, actually 12; CURRENT_TIMESTAMP 16, actually 17), so
+  `SELECT CURRENT_TIME/CURRENT_TIMESTAMP` returned empty. The mission fence
+  (insert/update/select/index families) does NOT evaluate CURRENT_*; only the
+  expr testgen package caught it. LESSON: any fence for expression-eval changes
+  must include testgen/expr + testgen/collate*; length-switch tables must be
+  derived with `len()` checks, not eyeballed.
+- **Pointer-keyed memos on an engine-scoped Evaluator must be statement-scoped**:
+  the WIP memoized exprCollation by AST node pointer on the connection-lifetime
+  Evaluator and claimed "statement-scoped" — false. After GC of a freed
+  statement's AST, a later statement can reuse addresses and serve stale
+  results. Fix: clear in ResetStatementAux (already called per outermost
+  statement via resetOuterStatementScopes). Statement scope also preserves the
+  hit-rate (per-row reuse is within one statement anyway).
+- **Static fast paths beat memos**: after memoization the collation map lookup
+  itself was 30% of evalExprWithCollation. exprCollation resolves ("", false)
+  WITHOUT consulting operands for every BinaryOp except COLLATE/|| and for
+  every node type outside {BinaryOp, FuncCall, CaseExpr, UnaryOp} — so
+  exprCanCarryExplicitCollation short-circuits before the memo. Same-window
+  A/B vs base: Select1 −18%, Range5k −18% for this change alone.
+- **op-keyed dispatch maps are per-row overhead**: binaryOpDispatch (string
+  hash per comparison per row) → three switch helpers, ~−11% more on scan
+  benches. Keep maps only when keys are dynamic. Complexity gates (gocognit 15
+  / gocyclo 12) force splitting a 19-case switch into small helpers — split by
+  operator family, and note `return f(), true` is illegal Go for multi-value f.
+- **Affinity-plan gating subtlety**: fillStructRowFromTypes's old
+  `if affinityCols != nil` gated BOTH the wrap AND the IPK rowid-alias refill;
+  the plan-nil gate must reproduce that exactly (affinityPlan.apply handles
+  both; nil plan skips both), while fillStructRowRemainingFromTypes's refill is
+  UNCONDITIONAL — hence a separate always-computed ipkAliasIndices list.
+- **Benchmarking on the shared fleet host**: sibling agents' test runs (one
+  frigolite.test burned 576% CPU for ~40 min) make absolute ns/op meaningless
+  and can fake regressions (Update3 read 10.1s→17.7s under load with NO code
+  change). Mitigation: same-window interleaved A/B against a `git archive`
+  export of base in /tmp (no stash, no extra worktree), compare relative
+  deltas only; never trust single-window numbers.
+- **Harness validation**: full TestSQLiteSuite needs -timeout 3600s (default
+  10m panics mid-run with a goroutine dump). Pre-existing env failures on this
+  host: 13 subtests of 8_3_names/f_8_3_names/walcrash2 (macOS shortname
+  fixtures, crash-sim) — byte-identical failure set on base, so not
+  regressions; TestBackupConformance fails for missing oracle fixtures, also
+  on base.
