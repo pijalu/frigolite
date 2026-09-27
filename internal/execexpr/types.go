@@ -177,6 +177,20 @@ type Evaluator struct {
 	// function-call state that lives for the duration of the outermost
 	// statement and dies when the next one starts. Keyed by function name.
 	stmtAux map[string]interface{}
+	// collMemo caches compile-time collation resolution per expression node.
+	// exprCollation is a pure function of the AST subtree, so per-statement
+	// memoization removes the per-row recomputation in evalExprWithCollation
+	// (the WHERE hot path). Statement-scoped like stmtAux: the Evaluator is
+	// engine-scoped, so entries are dropped when the next outermost statement
+	// starts — otherwise a freed statement's node addresses could be reused
+	// by a later statement's AST and serve stale results.
+	collMemo map[sql.Expr]collationResult
+}
+
+// collationResult is a memoized exprCollation outcome.
+type collationResult struct {
+	coll     string
+	explicit bool
 }
 
 // New creates an Evaluator bound to the given engine context.
@@ -201,7 +215,9 @@ func (ev *Evaluator) SetAuxData(key string, v interface{}) {
 // each outermost statement: SQLite frees auxdata when a statement is reset,
 // so per-statement sequences (stmtrand()) restart with every statement.
 // Statements nested inside the outer one (triggers, eval()) share the outer
-// statement's auxdata.
+// statement's auxdata (and the collation memo — their ASTs stay alive for
+// the outer statement's duration).
 func (ev *Evaluator) ResetStatementAux() {
 	ev.stmtAux = nil
+	ev.collMemo = nil
 }

@@ -298,19 +298,22 @@ func UnwrapRowMap(row RowMap) RowMap {
 // evaluation passes, decode the columns that were skipped in the first phase.
 // Only columns in affinityCols get ColumnValue wrappers (these are the WHERE-referenced
 // columns — already decoded in phase 1). Remaining columns are left raw.
-func (e *SelectEngine) fillStructRowRemainingFromTypes(sr *StructRow, payload []byte, dataStart int, colDefs []sql.ColumnDef, serialTypes []uint64, indices map[int]bool) {
+// ipkIdx holds the precomputed INTEGER PRIMARY KEY rowid-alias column indices
+// (from scanState.ipkFillIdx) so the refill below skips the per-row
+// isIPKRowidAliasCol walk over all column definitions.
+func (e *SelectEngine) fillStructRowRemainingFromTypes(sr *StructRow, payload []byte, dataStart int, colDefs []sql.ColumnDef, serialTypes []uint64, indices map[int]bool, ipkIdx []int) {
 	storage.DecodeRecordValuesFromTypes(payload, dataStart, sr.Values, serialTypes, indices)
 	// Same missing-column default handling as fillStructRowFromTypes: rows
 	// written before ALTER TABLE ADD COLUMN need the added column's DEFAULT.
 	e.applyColumnDefaults(sr.Values, colDefs, len(serialTypes))
 	// Re-apply the INTEGER PRIMARY KEY rowid-alias substitution AFTER the
-	// second decode: phase 1 (applyStructRowAffinity) fills the alias column
-	// with the rowid, but the remaining-columns decode here re-reads the
-	// stored NULL from the record and would overwrite it ("SELECT * WHERE
+	// second decode: phase 1 (the scan's affinity plan) fills the alias
+	// column with the rowid, but the remaining-columns decode here re-reads
+	// the stored NULL from the record and would overwrite it ("SELECT * WHERE
 	// c>1" showed NULL for the alias column — filtered-scan class,
 	// regexp1/indexexpr1/tableopts/whereA).
-	for i := range colDefs {
-		if isIPKRowidAliasCol(colDefs[i]) && sr.Values[i] == nil {
+	for _, i := range ipkIdx {
+		if sr.Values[i] == nil {
 			sr.Values[i] = wrapAffinityCollated(colDefs[i], sr.RowID)
 		}
 	}

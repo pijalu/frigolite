@@ -96,7 +96,7 @@ func (ev *Evaluator) evalExprWithCollation(expr sql.Expr, row Row) (interface{},
 	// COLLATE operator at the top, or an explicit COLLATE propagating up from
 	// a function argument / CASE branch / || operand. Column collations are
 	// already carried by the runtime CollatedValue marker (explicit=false).
-	coll, explicit := exprCollation(expr)
+	coll, explicit := ev.exprCollationMemo(expr)
 	if explicit && coll != "" {
 		// A CASE expression's runtime value is the selected branch (which may
 		// carry that branch's collation marker). The compile-time collation
@@ -524,18 +524,16 @@ func (ev *Evaluator) evalColumnRef(v *sql.ColumnRef, row Row) (interface{}, erro
 	// CURRENT_TIME / CURRENT_DATE / CURRENT_TIMESTAMP are SQL keywords
 	// evaluated as the statement-cached current time (SQLite evaluates them
 	// once per statement via sqlite3StmtCurrentTime). They are equivalent to
-	// time('now'), date('now'), and datetime('now') respectively.
+	// time('now'), date('now'), and datetime('now') respectively. TRUE/FALSE
+	// are boolean literals (1/0), not column references. This is the per-row
+	// hot path for every scan, so keyword detection is a length-switch that
+	// ordinary column names (the overwhelmingly common case) skip entirely.
 	if v.Table == "" {
-		if val, ok := evalCurrentTimeKeyword(v.Name); ok {
+		if val, ok := boolKeywordColumnValue(v.Name); ok {
 			return val, nil
 		}
-		// TRUE/FALSE keywords are boolean literals (1/0), not column references.
-		// The parser represents them as ColumnRef{Name:"TRUE"} / {Name:"FALSE"}.
-		if strings.EqualFold(v.Name, "TRUE") {
-			return int64(1), nil
-		}
-		if strings.EqualFold(v.Name, "FALSE") {
-			return int64(0), nil
+		if val, ok := currentTimeKeywordColumnValue(v.Name); ok {
+			return val, nil
 		}
 	}
 	if v.Name == "*" {
@@ -554,19 +552,47 @@ func (ev *Evaluator) evalColumnRef(v *sql.ColumnRef, row Row) (interface{}, erro
 	return ev.evalUnqualifiedColumnRef(v, row)
 }
 
-// evalCurrentTimeKeyword evaluates the CURRENT_TIME / CURRENT_DATE /
-// CURRENT_TIMESTAMP keyword literals, returning ok=false for other names.
-func evalCurrentTimeKeyword(name string) (interface{}, bool) {
-	switch strings.ToUpper(name) {
-	case "CURRENT_TIME":
-		v, _ := function.FnTimeNow()
-		return v, true
-	case "CURRENT_DATE":
-		v, _ := function.FnDateNow()
-		return v, true
-	case "CURRENT_TIMESTAMP":
-		v, _ := function.FnDateTimeNow()
-		return v, true
+// boolKeywordColumnValue resolves the parser's TRUE/FALSE keyword ColumnRefs
+// (boolean literals 1/0). Keyword detection is a length-switch: ordinary
+// column names (the overwhelmingly common case) skip all keyword comparisons,
+// and each keyword is checked with a single allocation-free EqualFold only
+// when the name length matches. Returns ok=false for other names.
+func boolKeywordColumnValue(name string) (interface{}, bool) {
+	switch len(name) {
+	case 4: // TRUE
+		if strings.EqualFold(name, "TRUE") {
+			return int64(1), true
+		}
+	case 5: // FALSE
+		if strings.EqualFold(name, "FALSE") {
+			return int64(0), true
+		}
+	}
+	return nil, false
+}
+
+// currentTimeKeywordColumnValue resolves the CURRENT_TIME / CURRENT_DATE /
+// CURRENT_TIMESTAMP keyword literals to the statement-cached current time.
+// The length-switch mirrors boolKeywordColumnValue: only names whose length
+// matches a keyword pay an EqualFold comparison. Returns ok=false for other
+// names.
+func currentTimeKeywordColumnValue(name string) (interface{}, bool) {
+	switch len(name) {
+	case 11: // CURRENT_TIME
+		if strings.EqualFold(name, "CURRENT_TIME") {
+			t, _ := function.FnTimeNow()
+			return t, true
+		}
+	case 12: // CURRENT_DATE
+		if strings.EqualFold(name, "CURRENT_DATE") {
+			d, _ := function.FnDateNow()
+			return d, true
+		}
+	case 16: // CURRENT_TIMESTAMP
+		if strings.EqualFold(name, "CURRENT_TIMESTAMP") {
+			ts, _ := function.FnDateTimeNow()
+			return ts, true
+		}
 	}
 	return nil, false
 }
