@@ -40,12 +40,15 @@ func TestVacuumDoesNotCorruptBTree(t *testing.T) {
 	}
 	defer e.Close()
 
+	// All statements below run in autocommit mode (no BEGIN): SQLite raises
+	// "cannot commit - no transaction is active" for a bare COMMIT after
+	// autocommit statements (oracle-verified, T34-vacuum), so the original
+	// stray COMMITs — silent no-ops when this test was written — were removed.
 	mustExec(t, e, "PRAGMA auto_vacuum=INCREMENTAL")
 	mustExec(t, e, "CREATE TABLE t1(x)")
 	for i := 0; i < 20; i++ {
 		mustExec(t, e, "INSERT INTO t1 VALUES(randomblob(400))")
 	}
-	mustExec(t, e, "COMMIT")
 
 	// Sanity: SELECT works after inserts.
 	if r := mustExec(t, e, "SELECT count(*) FROM t1"); len(r.Rows) == 0 || r.Rows[0][0] != int64(20) {
@@ -53,7 +56,6 @@ func TestVacuumDoesNotCorruptBTree(t *testing.T) {
 	}
 
 	mustExec(t, e, "DELETE FROM t1")
-	mustExec(t, e, "COMMIT")
 
 	// After DELETE all, the btree must still be navigable. The fix
 	// (clearEmptyRootRightmost + cursor RightmostPtr==0 handling)
