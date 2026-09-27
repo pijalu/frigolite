@@ -71,7 +71,22 @@ guarded by the race build-tag const (serial contract intact).
   enc/memdb slow profiles documented.
 
 
-## T33 session START (2026-09-24, coordinator + 4 cluster agents) — ACTIVE
+
+## T34 session (2026-09-27) — residue fleet ACTIVE
+
+Objective: close the 4 documented T33 residue items (FLEET-STATE above).
+Worktrees cut from main 3b9cc6646:
+
+| Branch | Worktree | Items |
+|---|---|---|
+| fleet/t34-vacuum | frigolite-wt-t34-vac | TestVacuumDoesNotCorruptBTree (txn-state) + testgen/corrupt-7.3 (balance-deeper oversize-cell accounting) |
+| fleet/t34-bigrow | frigolite-wt-t34-bigrow | bigrow-2.2 oversized-record UPDATE loses first 2 bytes (~65KB swap) |
+| fleet/t34-x6 | frigolite-wt-t34-x6 | TestWriterConformance fts-x6-growth fixture-vs-fix verdict (91e4296b5) — FAILED DISPATCH (concurrency limit), RE-DISPATCH pending after a slot frees |
+
+Protocol unchanged: engine-first, oracle ground truth, serial validation,
+per-commit push, no main merges by agents. Merge log: (none yet).
+
+## T33 session START (2026-09-24, coordinator + 4 cluster agents) — superseded by T33 CLOSE below
 
 Objective: implement the remaining PORTPLAN work — drive the 17 actionable
 testgen fails (of the 26-fail census) to green or evidence-adjudicated
