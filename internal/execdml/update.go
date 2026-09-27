@@ -437,10 +437,7 @@ func (e *DMLExecutor) applyUpdateChanges(tableName string, rootPage uint32, chan
 	changes = dedupeUpdateChanges(changes)
 
 	// Build a set of rowIDs to update
-	toUpdate := make(map[int64]bool, len(changes))
-	for _, c := range changes {
-		toUpdate[c.rowID] = true
-	}
+	toUpdate := rowidsToUpdate(changes)
 
 	// WITHOUT ROWID tables live in an index btree: rows are addressed by
 	// PK key (cell.RowID is a synthetic 0 shared by every row), so match
@@ -454,12 +451,30 @@ func (e *DMLExecutor) applyUpdateChanges(tableName string, rootPage uint32, chan
 
 	tree := e.updateApplyTree(tableName, rootPage, wrEntry)
 
+	// Step 0: in-place same-size overwrites (sqlite3BtreeInsert's loc==0
+	// fast path, src/btree.c:9596-9614). A same-rowid change whose new cell
+	// is the same byte size as the stored one overwrites the cell bytes at
+	// the SAME offset: the cell pointer array, content start and page layout
+	// stay byte-identical and no dropCell/insertCell/balance runs. Handled
+	// changes are excluded from the bulk delete/reinsert below — its page
+	// compaction rewrites the pointer array, which is externally observable
+	// through corruption detection (corrupt.test 7.2/7.3 craft a cell
+	// pointer at a record body, rewrite that body with a same-size UPDATE,
+	// and expect the NEXT statement's page initialization to detect it).
+	inPlace := map[int64]bool{}
+	if wrEntry == nil {
+		var res *Result
+		if inPlace, res = e.applyInPlaceUpdates(tableName, tree, rootPage, changes); res != nil {
+			return res
+		}
+	}
+
 	// Step 1: Delete all existing rows in a single pass
 	_, delErr := tree.DeleteCellsWhere(func(cell *storage.Cell) bool {
 		if wrEntry != nil {
 			return wrCellMatchesOldKey(cell, wrOldKeys, wrEntry, e.ctx)
 		}
-		return toUpdate[cell.RowID]
+		return toUpdate[cell.RowID] && !inPlace[cell.RowID]
 	})
 	if delErr != nil {
 		return &Result{Error: delErr}
@@ -467,13 +482,8 @@ func (e *DMLExecutor) applyUpdateChanges(tableName string, rootPage uint32, chan
 	e.ctx.InvalidateRowIDCache(e.dmlPager(tableName), rootPage)
 
 	// Step 2: Insert all new rows, firing the preupdate hook per row.
-	for _, c := range changes {
-		if err := e.writeUpdatedCellWR(tableName, tree, rootPage, c, wrEntry); err != nil {
-			return &Result{Error: err}
-		}
-		if res := e.fireUpdatePreupdate(tableName, c); res != nil {
-			return res
-		}
+	if res := e.reinsertUpdatedRows(tableName, tree, rootPage, changes, inPlace, wrEntry); res != nil {
+		return res
 	}
 
 	// The re-insert loop above bumps the rowid cache with each re-inserted
@@ -489,6 +499,34 @@ func (e *DMLExecutor) applyUpdateChanges(tableName string, rootPage uint32, chan
 	e.ctx.InvalidateRowIDCache(e.dmlPager(tableName), rootPage)
 
 	return &Result{Changes: int64(len(changes))}
+}
+
+// rowidsToUpdate builds the set of rowids the changes rewrite.
+func rowidsToUpdate(changes []updateChange) map[int64]bool {
+	toUpdate := make(map[int64]bool, len(changes))
+	for _, c := range changes {
+		toUpdate[c.rowID] = true
+	}
+	return toUpdate
+}
+
+// reinsertUpdatedRows writes every non-in-place change back to the tree and
+// fires its preupdate hook (applyUpdateChanges Step 2). Changes already
+// written by the Step-0 in-place pass (preupdate hook included there) are
+// skipped.
+func (e *DMLExecutor) reinsertUpdatedRows(tableName string, tree *btree.BTree, rootPage uint32, changes []updateChange, inPlace map[int64]bool, wrEntry *schema.Entry) *Result {
+	for _, c := range changes {
+		if inPlace[c.rowID] {
+			continue
+		}
+		if err := e.writeUpdatedCellWR(tableName, tree, rootPage, c, wrEntry); err != nil {
+			return &Result{Error: err}
+		}
+		if res := e.fireUpdatePreupdate(tableName, c); res != nil {
+			return res
+		}
+	}
+	return nil
 }
 
 // deleteUpdateOldIndexEntries removes every change's OLD entries from the
@@ -538,6 +576,65 @@ func (e *DMLExecutor) wrSnapshotOldKeys(tableName string, changes []updateChange
 		keys = append(keys, wrPkKeyFromDeclared(c.oldValues, idx))
 	}
 	return keys, te
+}
+
+// applyInPlaceUpdates attempts the Step-0 in-place same-size overwrite for
+// every same-rowid change (rowid tables only; sqlite3BtreeInsert's loc==0
+// fast path, src/btree.c:9596-9614). Returns the set of rowids written in
+// place — they are excluded from the bulk delete/reinsert pass.
+func (e *DMLExecutor) applyInPlaceUpdates(tableName string, tree *btree.BTree, rootPage uint32, changes []updateChange) (map[int64]bool, *Result) {
+	inPlace := make(map[int64]bool)
+	for _, c := range changes {
+		if updateWriteRowID(c) != c.rowID {
+			continue
+		}
+		handled, res := e.tryUpdateCellInPlaceBulk(tableName, tree, rootPage, c)
+		if res != nil {
+			return nil, res
+		}
+		if handled {
+			inPlace[c.rowID] = true
+		}
+	}
+	return inPlace, nil
+}
+
+// tryUpdateCellInPlaceBulk applies the in-place same-size cell overwrite
+// (btree.BTree.OverwriteCellByRowID — sqlite3BtreeInsert's loc==0 fast path,
+// src/btree.c:9596-9614) to one rowid-table change that keeps its rowid.
+// handled=true means the cell was rewritten at its original offset (or the
+// attempt failed with res) and the change must skip the bulk delete/reinsert
+// pass; handled=false means a guard declined (row not found, different cell
+// size, non-local payload) and the change rejoins the normal path. The NEW
+// index entries, rowid-cache bump and preupdate hook fire here exactly as
+// writeUpdatedCellWR does after the reinsert.
+func (e *DMLExecutor) tryUpdateCellInPlaceBulk(tableName string, tree *btree.BTree, rootPage uint32, c updateChange) (bool, *Result) {
+	newRecord, err := storage.EncodeRecord(c.values)
+	if err != nil {
+		return false, &Result{Error: err}
+	}
+	cellData := storage.EncodeCell(&storage.Cell{
+		Type:    storage.CellTableLeaf,
+		RowID:   c.rowID,
+		Payload: newRecord,
+	})
+	done, oerr := tree.OverwriteCellByRowID(c.rowID, cellData)
+	if oerr != nil {
+		return false, &Result{Error: oerr}
+	}
+	if !done {
+		return false, nil
+	}
+	if te, _, terr := e.ctx.FindTable(tableName); terr == nil && te != nil {
+		if err := e.writeUpdateIndexEntries(te, e.ctx.ParseColumnDefs(te.Name, te.SQL), c, c.rowID); err != nil {
+			return false, &Result{Error: err}
+		}
+	}
+	e.ctx.BumpRowIDCache(e.dmlPager(tableName), rootPage, c.rowID)
+	if res := e.fireUpdatePreupdate(tableName, c); res != nil {
+		return false, res
+	}
+	return true, nil
 }
 
 // writeUpdatedCellWR re-inserts one updated row; for WITHOUT ROWID tables

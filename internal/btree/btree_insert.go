@@ -132,22 +132,30 @@ func (t *BTree) dropTableLeafDuplicateRowid(pg *pager.Page, page *storage.BTreeP
 	return t.deleteCellOnPage(pg, page, idx)
 }
 
-// splitFullLeaf handles a full leaf: a ROOT whose usable area cannot hold the
-// cell even when empty reconciles through balance_deeper; everything else
+// splitFullLeaf handles a full leaf: a ROOT leaf reconciles through
+// balance_deeper — the root's content moves to a fresh child leaf and the
+// root is rewritten as an interior page over it — and every other full leaf
 // splits across multiple pages (splitLeafMulti).
 func (t *BTree) splitFullLeaf(pg *pager.Page, page *storage.BTreePage, parentPgno uint32, newCell *storage.Cell, cellData []byte) ([]leafSplitResult, error) {
 	coff := contentOffset(pg.PageNum)
-	// Leaf is full. If the cell's local form cannot fit this page even when
-	// the page is EMPTY, no redistribution can ever place it here: the page
-	// is a ROOT whose usable area is smaller than the largest legal cell.
-	// The live case is page 1 (sqlite_schema's permanent root): its content
-	// area loses 100 bytes to the database file header, so a fully-local
-	// cell of up to maxLocal bytes satisfies the file-format formula yet
-	// exceeds page 1's area (corrupt-5.2/misc1 manycol: ~100 columns at
-	// page_size=1024). SQLite keeps the formula-mandated local size and
-	// reconciles through balance_deeper (src/btree.c:9010) — the root's
-	// content moves to a fresh child leaf and the root becomes interior.
-	if parentPgno == 0 && !leafCellsFit([][]byte{cellData}, coff, int(t.usableSize)) {
+	// The root routing is UNCONDITIONAL (btree.c balance's do-loop, src/
+	// btree.c:9115-9129): whenever the root leaf is overfull — the new cell
+	// could not be placed on the page, i.e. nOverflow>0 — balance() calls
+	// balance_deeper (copy root content to a fresh child, btreeInitPage the
+	// child, then balance the child), regardless of whether the pending cell
+	// would fit an EMPTY root. The fill-the-root-then-split-child
+	// choreography is also where the cell-size check detects a crafted cell
+	// pointer array (corrupt.test 7.3: the root's 39 cells leave 2 free
+	// bytes, so the 40th INSERT overflows the root and the copied child's
+	// btreeInitPage rejects the rewritten pointer).
+	//
+	// The page-1 extreme of the same rule (sqlite_schema's permanent root):
+	// its content area loses 100 bytes to the database file header, so a
+	// fully-local cell of up to maxLocal bytes satisfies the file-format
+	// formula yet exceeds page 1's area (corrupt-5.2/misc1 manycol: ~100
+	// columns at page_size=1024). SQLite keeps the formula-mandated local
+	// size and reconciles through balance_deeper (src/btree.c:9010).
+	if parentPgno == 0 {
 		return t.balanceDeeperRootLeaf(pg, page, newCell, cellData, coff)
 	}
 	if page.CellCount == 0 {

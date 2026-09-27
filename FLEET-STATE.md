@@ -551,3 +551,18 @@ non-adjudicated fails:
   reindex (planner sorter-omission tranche), skipscan2, without_rowid4
   (4 residual), tpch01, rtree1.
 - fts3corrupt6, e_fkey-class items: re-enumerate at next census.
+
+## T34-vacuum (2026-09-27, branch fleet/t34-vacuum — residue updates)
+
+- internal/exec TestVacuumDoesNotCorruptBTree ("cannot commit - no transaction is
+  active") RESOLVED — test-side expectation drift (stray autocommit COMMITs written
+  before the execCommit guard existed); oracle-verified, removed (f9da41aac).
+- corrupt-7.3 RESOLVED at the engine level (02ade962b) — NOT layout-bound (that
+  read was wrong: frigolite's cell layout matches the reference build at offset
+  788). Real gaps: same-size UPDATE went delete+reinsert (compacted the page and
+  destroyed the crafted cellPtr[0]) and overfull root leaves skipped
+  balance_deeper. Fixed with btree.OverwriteCellByRowID (btree.c loc==0 in-place
+  overwrite) + unconditional balance_deeper for overfull root leaves (raw
+  copyNodeContent + ValidateCellSizeCheck); contract pinned in TestW6_Corrupt7.
+  The tcl2go skiptests entry stays (tools/tcl2go untouched); bigrow-2.2 and the
+  fts-x6 / pager WAL-fixture items remain with their owners.

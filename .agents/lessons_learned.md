@@ -762,3 +762,52 @@ lifecycle sites above are the complete set.
   `mkdir -p ori/sqlite/test` as a real dir, cp `*.test *.tcl` from main
   (~1221 files, *.test is gitignored), `git checkout -- ` the two tracked
   files. git status stays clean and the transpiler finds its inputs.
+
+## T34-vacuum (fleet/t34-vacuum, 2026-09-27) — vacuum-test drift resolved; corrupt-7.3 engine contract landed
+
+- **Stray autocommit COMMITs** in TestVacuumDoesNotCorruptBTree were written when
+  execCommit had no "no transaction is active" guard (added later, oracle-verified
+  for interrupt-3.x); the bare COMMITs became expectation drift. Oracle rule that
+  keeps these from being "fixed" on the engine side: a bare COMMIT after autocommit
+  statements MUST error — `/usr/bin/sqlite3` errors identically ("Error near line 4:
+  cannot commit - no transaction is active"). When a test predates an error contract,
+  diff the test against the oracle before touching the engine.
+- **macOS /usr/bin/sqlite3 (3.54.0) has 12 reserved bytes per page** (header byte 20;
+  usable = pageSize-12; verified via maxLocal overflow boundary: randomblob(980)
+  overflows at page_size=1024 → maxLocal 977, not 989). Oracle byte-layout diffs are
+  only comparable after normalizing reserved bytes; the testgen corpus targets the
+  reference build (reserved=0), which frigolite's layout matches exactly.
+- **corrupt-7.3 root cause was TWO engine divergences, not layout** (frigolite's
+  24-byte cell layout already matched the reference build: rowid 10's blob at page
+  offset 788, root leaf 2 bytes from full after 39 inserts):
+  1. Same-size UPDATE went delete+reinsert (applyUpdateChanges bulk pass) — the
+     delete pass compacts the page and rewrites the cell pointer array, DESTROYING
+     the crafted corruption before the INSERT runs. SQLite (btree.c:9596-9614,
+     sqlite3BtreeInsert loc==0): same-size + fully-local overwrite = memcpy at the
+     SAME offset, pointer array untouched, no balance(). Implemented as
+     btree.OverwriteCellByRowID (guard list: old fully local, szNew==szOld,
+     !autovacuum||szNew<minLocal, new payload fully local by formula; bounds
+     <coff+10 / >pageSize → ErrMalformedImage) wired into BOTH update appliers.
+  2. An overfull ROOT leaf reconciled via split-then-relocateRootSplit unless the
+     new cell could not fit an EMPTY root. btree.c balance() routes EVERY overfull
+     root leaf through balance_deeper (src/btree.c:9115-9129) — copyNodeContent
+     (RAW byte copy: content area verbatim + header/pointer array rebuilt at the
+     child's header offset; cells are NOT decoded) then balance the child. The
+     raw copy is load-bearing: the copied child's btreeInitPage (CellSizeCk →
+     storage.ValidateCellSizeCheck) is the canonical corruption-detection site.
+- **Page-allocation order flipped for root splits** (balance_deeper allocates the
+  child FIRST, then the child's split allocates the sibling) — final 2-leaf layout
+  is identical, but unit tests that pick leaves[0] and hand it to ptrmap machinery
+  can collide with ptrmap page arithmetic (page 2 for 1KB pages) in harness pagers
+  that are not in autovacuum mode. Real autovacuum allocators skip ptrmap pages;
+  harness pagers don't — guard test sources like the targets.
+- **Oracle cross-check gotcha (corrupt.test on macOS CLI):** the corrupt-7 sequence
+  still produces "database disk image is malformed" on the INSERT even though the
+  oracle's root split EARLIER (usable 1012 vs 1024): the corruption hits an interior
+  root's rightmost pointer instead of a leaf's cellPtr[0]. Message-level oracle
+  checks survive layout shifts; byte-offset reasoning does not transfer across
+  reserved-byte differences.
+- **SELECT after crafted-pointer corruption**: frigolite's scan silently returns no
+  rows (count 0, no error) on the corrupted root; the oracle errors "malformed" on
+  the same scan. Not part of the corrupt-7.x corpus contract (no assertion between
+  7.2 and 7.3) — left as-is; revisit only if a corpus case pins scan-after-craft.

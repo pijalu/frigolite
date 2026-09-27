@@ -73,6 +73,11 @@ func TestRelocatePageBasic(t *testing.T) {
 	}
 	// Pick a non-root leaf, free a slot manually (mimic the
 	// post-DELETE state), then relocate the last page to it.
+	// The source leaf must not be a pointer-map page number — ReadPtrmap
+	// rejects those (T34-vacuum: root-leaf overflow now reconciles through
+	// balance_deeper, src/btree.c:9115-9129, so the first child leaf lands
+	// on the page right after the root; this harness pager is not in
+	// autovacuum mode, so its allocator does not skip ptrmap page numbers).
 	lastPg := pg.NumPages()
 	target := lastPg - 1 // pick a low free page
 	if target == 1 {
@@ -88,6 +93,16 @@ func TestRelocatePageBasic(t *testing.T) {
 	if target <= 1 {
 		t.Skipf("could not find a non-ptrmap target near lastPg=%d", lastPg)
 	}
+	src := uint32(0)
+	for _, leaf := range leaves {
+		if !storage.IsPtrmapPageNo(leaf, tr.pageSize) {
+			src = leaf
+			break
+		}
+	}
+	if src == 0 {
+		t.Skipf("no non-ptrmap source leaf among %v", leaves)
+	}
 	// We need a "free" page to be allocated. AllocatePageLE returns
 	// one from the in-memory freelist, which is empty, so this would
 	// fail. Instead, use the last page of the file as the "to"
@@ -95,11 +110,11 @@ func TestRelocatePageBasic(t *testing.T) {
 	// a different page to it. This bypasses AllocatePageLE.
 	// RelocatePage(0, 5) → move page 5's content to page 0... no, we
 	// need a real destination. Use lastPg-1.
-	if _, err := tr.RelocatePage(target, leaves[0]); err != nil {
-		t.Fatalf("RelocatePage(%d, %d): %v", target, leaves[0], err)
+	if _, err := tr.RelocatePage(target, src); err != nil {
+		t.Fatalf("RelocatePage(%d, %d): %v", target, src, err)
 	}
 	// P8.INCRVACUUM.phase8: RelocatePage no longer calls
-	// FreePage(leaves[0]). The source page is reclaimed by the
+	// FreePage(src). The source page is reclaimed by the
 	// caller's Truncate (mirrors SQLite's btree.c::relocatePage +
 	// sqlite3BtreeCommitPhaseOne pipeline). Verify the contract:
 	//   - the target page now holds the source's b-tree content
@@ -108,8 +123,8 @@ func TestRelocatePageBasic(t *testing.T) {
 	//     didn't add it; the caller is responsible for truncating
 	//     it away, which reclaims the slot without going through
 	//     the on-disk chain).
-	if pager.IsPageOnFreelist(pg, leaves[0]) {
-		t.Errorf("page %d should NOT be on freelist after RelocatePage (caller truncates)", leaves[0])
+	if pager.IsPageOnFreelist(pg, src) {
+		t.Errorf("page %d should NOT be on freelist after RelocatePage (caller truncates)", src)
 	}
 	targetPg, _ := pg.ReadPage(target)
 	if targetPg.Data[0] == 0 {

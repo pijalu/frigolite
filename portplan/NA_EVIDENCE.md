@@ -2624,3 +2624,47 @@ convergence setting.
 - Root-package -race leg needs -timeout >= 1800s (default 600s kills the
   package under detector slowdown; with the fts4merge4 grind guard +
   2400s the leg is race-clean).
+
+## T34-vacuum — FULL-SUITE-DRIFT.T33-close residue resolution (2026-09-27)
+
+Both T33-close residue items are RESOLVED on branch fleet/t34-vacuum. No new skips
+introduced; no corpus files touched.
+
+1. internal/exec TestVacuumDoesNotCorruptBTree ("cannot commit - no transaction is
+   active") — TEST-SIDE expectation drift, RESOLVED (f9da41aac). Oracle
+   (/usr/bin/sqlite3): a bare COMMIT after autocommit statements errors with exactly
+   "cannot commit - no transaction is active"; the engine's execCommit guard
+   (added post-2b283766b, oracle-verified for interrupt-3.x) is correct. The test's
+   stray COMMITs were silent no-ops when written (execCommit had no guard at the
+   test-creation commit) and were removed; the scenario (autocommit inserts,
+   DELETE all, BEGIN + PRAGMA incremental_vacuum + SELECT) is oracle-verified green
+   and the test passes isolated and in-suite.
+2. testgen/corrupt-7.3 (oversize-cell check at balance_deeper child init never
+   fired) — ENGINE gaps fixed (02ade962b), contract pinned natively in
+   TestW6_Corrupt7 (frigolite_w6_kernel_pin_test.go), which now asserts the full
+   oracle contract: UPDATE in place (cellPtr[0] stays 788, record body rewritten) +
+   INSERT fails with "database disk image is malformed". The tcl2go skip entry for
+   corrupt-7.3 remains untouched (tools/tcl2go is out of scope for this agent);
+   the engine now satisfies the corpus assertion the skip stood in for.
+   Root causes were NOT layout (frigolite's cell layout matches the reference build
+   byte-for-byte at offset 788): (a) same-size UPDATE went delete+reinsert and
+   compacted the page, destroying the crafted pointer — fixed with
+   btree.OverwriteCellByRowID (sqlite3BtreeInsert loc==0 in-place overwrite,
+   src/btree.c:9596-9614) wired into both update appliers; (b) overfull root leaves
+   reconciled via split-then-relocate instead of balance_deeper — now every overfull
+   root leaf goes through balanceDeeperRootLeaf with a raw copyNodeContent mirror
+   (cells NOT decoded) so ValidateCellSizeCheck's btreeInitPage site (src/btree.c
+   :8152-8160) is the canonical detector. internal/btree TestRelocatePageBasic
+   adapted to the C-correct allocation order (source leaf skips ptrmap page
+   numbers, same guard the test already applied to the target).
+
+### Residual observations (not residue claims)
+- internal/fts TestSegviewOracleX6InteriorNodes + TestWriterConformance still fail
+  at the session-start base 9372fbb85 (verified by worktree run) — the documented
+  fts-x6 fixture residue (another agent's item), NOT a T34 regression.
+- internal/pager WAL/journal conformance tests fail on the never-committed
+  testdata/walconformance fixture binaries — the x6 fixture item, pre-existing.
+- SELECT count(*) on the corrupt-7.3-crafted page returns 0 rows with no error in
+  frigolite (oracle errors "malformed" on the same scan). No corpus case asserts a
+  scan between corrupt-7.2 and 7.3; revisit only if one appears (see lessons_learned
+  T34-vacuum).
