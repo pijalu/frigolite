@@ -5,10 +5,12 @@
 package vtab_shared
 
 import (
+"errors"
 "fmt"
 "github.com/pijalu/frigolite"
 "github.com/pijalu/frigolite/internal/vtab"
 "os"
+"strconv"
 "strings"
 "testing"
 )
@@ -170,12 +172,41 @@ func Test_vtab_shared(t *testing.T) {
 			{ // do_test "vtab_shared-1.9." + iTest
 				res = ""
 				_ = res // suppress unused warning
-				// $dbSelect eval { SELECT * FROM t1 } {\n      if {$a == 1} {$dbClose close}\n      lappe...... (unsupported command, not transpiled)
+				_dbevalRows1 := tclConnByName(dbSelect, db, db1, db2, db3, db4, db5, db6, db7, db8, db9).Query(" SELECT * FROM t1 ")
+				var _dbevalRb2 bool
+				var _dbevalErr3 error
+				var _dbevalInt4 bool
+				if _dbevalRows1.Error != nil { _dbevalErr3 = _dbevalRows1.Error }
+				tclConnByName(dbSelect, db, db1, db2, db3, db4, db5, db6, db7, db8, db9).BeginActiveStatement()
+				for _ri := 0; _ri < len(_dbevalRows1.Rows) && _dbevalErr3 == nil; _ri++ {
+					for _ci := 0; _ci < len(_dbevalRows1.Columns); _ci++ {
+						switch _dbevalRows1.Columns[_ci] {
+							case "a":
+								a = tclStr(_dbevalRows1.Rows[_ri][_ci])
+							case "dbClose":
+								dbClose = tclStr(_dbevalRows1.Rows[_ri][_ci])
+							case "b":
+								b = tclStr(_dbevalRows1.Rows[_ri][_ci])
+							case "c":
+								c = tclStr(_dbevalRows1.Rows[_ri][_ci])
+						}
+					}
+					if func() bool { a_n, _a_e := strconv.Atoi(a); if _a_e != nil { return false }; return a_n == 1 }() {
+						tclConnByName(dbClose, db, db1, db2, db3, db4, db5, db6, db7, db8, db9).Close()
+					}
+					res = tclListAppend(res, a, b, c)
+					if _dbevalRb2 { _dbevalErr3 = errors.New("abort due to ROLLBACK") }
+					if _dbevalInt4 { _dbevalErr3 = errors.New("interrupted"); tclConnByName(dbSelect, db, db1, db2, db3, db4, db5, db6, db7, db8, db9).ClearInterrupt() }
+				}
+				tclConnByName(dbSelect, db, db1, db2, db3, db4, db5, db6, db7, db8, db9).EndActiveStatement()
+				if _dbevalErr3 != nil {
+					t.Errorf("db eval callback error: %v", _dbevalErr3)
+				}
 				// sqlite3 $dbClose test.db (dynamic connection name)
-				_dbtmp1, err := frigolite.Open("test.db")
+				_dbtmp5, err := frigolite.Open("test.db")
 				if err != nil { t.Logf("open dynamic connection failed: %v (not fatal)", err) }
-				_ = _dbtmp1
-				db.RegisterEchoModule()
+				tclConnRegister(dbClose, _dbtmp5)
+				tclConnByName(dbClose, db, db1, db2, db3, db4, db5, db6, db7, db8, db9).RegisterEchoModule()
 				got := tclListFlatten(res)
 				want := tclListFlatten("1 2 3 4 5 6")
 				if got != want && !tclFpnumCompare(got, want) {
