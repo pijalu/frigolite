@@ -2604,3 +2604,23 @@ convergence setting.
   modes). This is a detector-slowdown artifact class, not an engine
   correctness gap; the underlying fts4merge4 census package is adjudicated
   slow-but-green in tools/status/ledger.json (P9.PERF backlog).
+
+### Race-profile residue (2026-09-27, not T33 regressions)
+- internal/fts TestParseAND/NOT/ComplexQuery asserted enhanced-syntax MATCH
+  shapes; the shipped contract is the T30-fts3b legacy parser (corpus +
+  legacy-oracle verified). Unit tests updated to the legacy shapes
+  (AND/NOT = plain terms; OR binds tighter): And(And(hello,AND),world),
+  And(Or(one,two),three); minus-syntax keeps NotNode.
+- internal/fts TestWriterConformance/fts-x6-growth diverges (457 vs 455
+  blocks; position lists) since 91e4296b5 (fts3corrupt6-2.1
+  truncated-doclist position-bleed fix, testgen-verified). The fixture
+  snapshot predates the fix — re-derive the oracle fixture or revisit the
+  fix's byte-level fidelity (P6.FTS-WPORT UCL seam). OPEN residue.
+- internal/exec TestVacuumDoesNotCorruptBTree ("cannot commit - no
+  transaction is active") fails isolated at the session-start base
+  9372fbb85 and at every T33 merge point — pre-existing; NOT a T33
+  regression (an earlier bisect read that suggested otherwise was a
+  grep-truncation error). OPEN residue (order/txn-state TBD).
+- Root-package -race leg needs -timeout >= 1800s (default 600s kills the
+  package under detector slowdown; with the fts4merge4 grind guard +
+  2400s the leg is race-clean).

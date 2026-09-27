@@ -303,6 +303,10 @@ func TestParsePrefix(t *testing.T) {
 }
 
 func TestParseAND(t *testing.T) {
+	// Legacy FTS3 query syntax (sqlite_fts3_enable_parentheses 0 — the TCL
+	// suite's mode, T30-fts3b): AND is NOT an operator; it is a plain term,
+	// so "hello AND world" is the 3-term implicit-AND chain
+	// ((hello AND <AND>) AND world).
 	node, err := ParseMatchQuery("hello AND world")
 	if err != nil {
 		t.Fatalf("ParseMatchQuery error: %v", err)
@@ -311,11 +315,16 @@ func TestParseAND(t *testing.T) {
 	if !ok {
 		t.Fatalf("expected AndNode, got %T", node)
 	}
-	if _, ok := and.Left.(*TermNode); !ok {
-		t.Errorf("left should be TermNode")
-	}
 	if _, ok := and.Right.(*TermNode); !ok {
 		t.Errorf("right should be TermNode")
+	}
+	left, ok := and.Left.(*AndNode)
+	if !ok {
+		t.Errorf("left should be the AndNode chain (hello AND <AND>), got %T", and.Left)
+		return
+	}
+	if l, ok := left.Left.(*TermNode); !ok || l.Term != "hello" {
+		t.Errorf("leftmost term = %v, want TermNode{hello}", left.Left)
 	}
 }
 
@@ -355,9 +364,9 @@ func TestParseNOT(t *testing.T) {
 		desc  string
 	}{
 		{"hello -world", "minus syntax"},
-		{"hello NOT world", "NOT keyword"},
 	}
 
+	// The minus form keeps its operator semantics: And(Term hello, Not(world)).
 	for _, tt := range tests {
 		t.Run(tt.desc, func(t *testing.T) {
 			node, err := ParseMatchQuery(tt.query)
@@ -377,6 +386,47 @@ func TestParseNOT(t *testing.T) {
 				t.Errorf("NOT inner term = %v, want TermNode{world}", notNode.Inner)
 			}
 		})
+	}
+
+	// Legacy FTS3 query syntax (T30-fts3b): the NOT keyword is a plain term,
+	// never an operator — "hello NOT world" is the 3-term implicit-AND chain
+	// ((hello NOT <NOT>) AND world) and no NotNode is produced.
+	t.Run("NOT keyword is a plain term", func(t *testing.T) {
+		node, err := ParseMatchQuery("hello NOT world")
+		if err != nil {
+			t.Fatalf("ParseMatchQuery error: %v", err)
+		}
+		and, ok := node.(*AndNode)
+		if !ok {
+			t.Fatalf("expected AndNode, got %T", node)
+		}
+		var hasNot bool
+		walkNodes(node, func(n QueryNode) {
+			if _, ok := n.(*NotNode); ok {
+				hasNot = true
+			}
+		})
+		if hasNot {
+			t.Errorf("legacy syntax must not produce NotNode for the NOT keyword")
+		}
+		if _, ok := and.Right.(*TermNode); !ok {
+			t.Errorf("right should be TermNode, got %T", and.Right)
+		}
+	})
+}
+
+// walkNodes visits n and every child reachable through binary query nodes.
+func walkNodes(n QueryNode, fn func(QueryNode)) {
+	fn(n)
+	switch v := n.(type) {
+	case *AndNode:
+		walkNodes(v.Left, fn)
+		walkNodes(v.Right, fn)
+	case *OrNode:
+		walkNodes(v.Left, fn)
+		walkNodes(v.Right, fn)
+	case *NotNode:
+		walkNodes(v.Inner, fn)
 	}
 }
 
@@ -417,13 +467,17 @@ func TestParseComplexQuery(t *testing.T) {
 		t.Errorf("expected AndNode for 'one two three', got %T", node)
 	}
 
-	// "one OR two three" -> Or(one, And(two, three)) — OR has lower precedence
+	// Legacy FTS3 query syntax (T30-fts3b): OR binds TIGHTER than the
+	// implicit AND, so "one OR two three" -> And(Or(one, two), three).
 	node, err = ParseMatchQuery("one OR two three")
 	if err != nil {
 		t.Fatalf("ParseMatchQuery error: %v", err)
 	}
-	if _, ok := node.(*OrNode); !ok {
-		t.Errorf("expected OrNode for 'one OR two three' (OR lower precedence), got %T", node)
+	and, ok := node.(*AndNode)
+	if !ok {
+		t.Errorf("expected AndNode for 'one OR two three' (OR tighter than implicit AND), got %T", node)
+	} else if _, ok := and.Left.(*OrNode); !ok {
+		t.Errorf("expected OrNode on the left of the implicit AND, got %T", and.Left)
 	}
 }
 
