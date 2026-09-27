@@ -373,22 +373,23 @@ func (tp *transpiler) processSeek(args []tcl.RawWord) {
 			// expression. Emit the offset as a Go expression so it is
 			// evaluated at runtime (corrupt2.test 5.1: `seek $fd
 			// [expr 1024 + $iCelloffset]`).
-			tp.emitLine("fileChannelSeek[%q] = int64(tclAtoi(%s))", chName, offset)
+			tp.emitLine("fileChannelSeek[%s] = int64(tclAtoi(%s))", tp.channelSeekKey(chName), offset)
 			return
 		}
 		fileChannelSeek[chName] = off
 		_ = startIsLiteral
 	}
+	key := tp.channelSeekKey(chName)
 	switch whence {
 	case "start":
-		tp.emitLine("fileChannelSeek[%q] = %d", chName, fileChannelSeek[chName])
+		tp.emitLine("fileChannelSeek[%s] = %d", key, fileChannelSeek[chName])
 	case "current":
-		tp.emitLine("fileChannelSeek[%q] += int64(tclAtoi(%s))", chName, offset)
+		tp.emitLine("fileChannelSeek[%s] += int64(tclAtoi(%s))", key, offset)
 	case "end":
-		tp.emitLine("fileChannelSeek[%q] = tclFileLen(%s) + int64(tclAtoi(%s))", chName, channelDestExpr(chName, activeFileChannels[chName]), offset)
+		tp.emitLine("fileChannelSeek[%s] = tclFileLen(%s) + int64(tclAtoi(%s))", key, channelDestExpr(chName, activeFileChannels[chName]), offset)
 	default:
 		tp.emitLine("// seek %s (whence=%s unsupported, defaulting to start)", describeArgsShort(args), whence)
-		tp.emitLine("fileChannelSeek[%q] = int64(tclAtoi(%s))", chName, offset)
+		tp.emitLine("fileChannelSeek[%s] = int64(tclAtoi(%s))", key, offset)
 	}
 }
 
