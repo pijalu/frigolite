@@ -1555,8 +1555,7 @@ func Test_tabfunc01(t *testing.T) {
 				return
 			}
 			got := flatten(r)
-			want := tclListFlatten("{}")
-			got = tclListFlattenCollapse(got)
+			want := "0"
 			if got != want && !tclFpnumCompare(got, want) {
 				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 			}

@@ -50,6 +50,14 @@ var wantOverrides = map[string]string{
 	// pages on DROP, reporting fewer. The engine value (115 in this build)
 	// is the honest high-water mark — pin it, not the oracle truncation.
 	"memdb1:130": "115",
+	// tabfunc01-1370: generate_series(0,0,0). The TCL expectation {}
+	// predates series.c's step-zero normalization (ext/misc/series.c
+	// xFilter: "if( pCur->iOStep==0 ) pCur->iOStep = 1;"), which makes the
+	// series start=0/stop=0/step=0 yield the single row 0. Oracle 3.54.0
+	// returns "0" (re-verified) — the generated test must expect the oracle
+	// value, not the stale TCL one. Emitter-owned replacement of the T30
+	// hand-patch that the corpus regen clobbered.
+	"tabfunc01:1370": "0",
 }
 
 // genCurrentTestFile is the TCL test file base name currently being
