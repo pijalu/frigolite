@@ -979,3 +979,58 @@ lifecycle sites above are the complete set.
 owner session (its pagerconfig.go byte-20 stamping + usable-end re-anchoring is the
 C-parity fix; my temp-side vacuum.c:271 analysis above is its reference). No merge
 conflict risk maintained by zero edits — read-only diagnosis only, nothing staged.
+
+## T34r-btree (reservebytes close, fleet/t34r-btree, 2026-09-27) — vacuum copy-back reserve propagation
+
+- **Root cause chain (reservebytes 1.3.4/1.3.5/1.4.x):** the vacuum copy-back's
+  logical rebuild FAILED with "database disk image is malformed" and the
+  pre-existing fallback (`vacuumRebuild`'s restore-on-failure) masked it while
+  re-copying with keepDestPageSize=false — a second ResetToEmpty stamped a
+  DefaultHeader (byte 20 = 0) onto a pager whose p.reserved=8 drove every
+  btree layout decision. Result: cells laid out with usable=1016, header
+  claiming reserve=0 → a FRESH reader (or db2 after cache invalidation)
+  decodes local=104 vs written 102, every overflowing cell's chain pointer
+  misreads, integrity_check reports "Page N: never used" for all the overflow
+  pages, and byte-20 probes read 00 where the test wants 08/10. The WRITER
+  connection passed integrity_check only because its own pager state still
+  agreed with the layout.
+- **The primary rebuild's CSC failure was itself a reserve bug:** the copied
+  root leaf's first cell sat at pageSize-108 (916 on a 1024 page) — its cells
+  had been packed from the PAGE end instead of the USABLE end. C's zeroPage
+  anchors the empty-page content pointer at pBt->usableSize
+  (put2byte(&data[hdr+5], pBt->usableSize), src/btree.c:2189); at reserve=0
+  the two coincide (every prior test), at reserve=8 the 8-byte delta pushes
+  cells into the reserved tail and btreeCellSizeCheck rejects the page.
+  Fixed EVERY pageSize-anchored content-start writer, not just the one the
+  test tripped: pager ResetToEmpty (which must also preserve the
+  materialized reserve into its fresh DefaultHeader), ApplyReservedBytes
+  (re-anchors page 1's EMPTY schema-leaf content pointer to the new usable),
+  execddl initIndexRootPage, btree_tail's empty-root rewrite,
+  writeInteriorSplitLeft/Right, writeInteriorRootHeader and
+  createInteriorRoot's page-1 branch.
+- **ValidateCellSizeCheck takes the USABLE size, not pageSize** (btree.c
+  btreeCellSizeCheck bounds: iCellLast = usableSize-4, pc+sz <= usableSize,
+  xCellSize formulas usable-based). balance_deeper's caller passed
+  t.pageSize — identical at reserve=0, wrong at reserve>0.
+- **Reader-side stale header (db2):** schema.checkExternalMod's
+  pager.InvalidateCache dropped the page cache but NOT the cached header, so
+  the second connection kept walking with the pre-VACUUM usable (C's lockBtree
+  re-reads page 1 on every new read transaction). InvalidateCache now re-reads
+  the 100-byte header and adopts page size + reserve via
+  adoptHeaderPageSizeLocked when it still parses; a non-parsing header keeps
+  the headerCorrupt deferral (filefmt-1.2 contract).
+- **Debugging protocol that cracked it:** trace the INVARIANT (header byte 20
+  vs p.reserved) at the flush boundary instead of grepping mutation sites —
+  the divergence print at flushPage(1) pinpointed the failing path in one
+  run. The panic-at-error-site trick (CSC-BAIL, PRIMARY-COPYBACK-FAILED)
+  localized each layer; remove ALL instrumentation before committing
+  (`git status` must show only intended files — a broad `git checkout --`
+  during cleanup cost a re-apply of the min-4 fixes).
+**Push refspec trap (fleet-wide)**: `push.default=tracking` (~/.gitconfig) + a
+branch pre-wired with `branch.<name>.merge=refs/heads/main` (fleet branch-cut
+tooling) makes a colon-less `git push origin <branch>` land on REMOTE MAIN
+(the colon-less dst resolves via push.default). Always push branches with an
+EXPLICIT full refspec: `git push origin <branch>:refs/heads/<branch>`. A
+misdirected push is repairable with
+`git push --force-with-lease=refs/heads/main:<observed-sha> origin <base>:refs/heads/main`
+then creating the intended branch ref; verify with `git ls-remote origin`.
