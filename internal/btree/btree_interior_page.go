@@ -634,10 +634,10 @@ func (t *BTree) splitInteriorPage(pg *pager.Page, page *storage.BTreePage, paren
 		pg.Data[i] = 0
 	}
 
-	if err := t.writeInteriorSplitLeft(pg, coff, ptroff, int(t.pageSize), entries, splitIdx); err != nil {
+	if err := t.writeInteriorSplitLeft(pg, coff, ptroff, int(t.usableSize), entries, splitIdx); err != nil {
 		return 0, leafSplitResult{}, err
 	}
-	if err := t.writeInteriorSplitRight(newPg, newCoff, ptroff, int(t.pageSize), entries, splitIdx, rightmostChild); err != nil {
+	if err := t.writeInteriorSplitRight(newPg, newCoff, ptroff, int(t.usableSize), entries, splitIdx, rightmostChild); err != nil {
 		return 0, leafSplitResult{}, err
 	}
 
@@ -721,9 +721,9 @@ func (t *BTree) collectInteriorEntries(pg *pager.Page, ptrBase int, page *storag
 // writeInteriorSplitLeft rewrites the splitting page in place as the left
 // half: entries[0..splitIdx-1), with the divider's left child
 // (entries[splitIdx-1].leftChild) as the rightmost pointer.
-func (t *BTree) writeInteriorSplitLeft(pg *pager.Page, coff, ptroff, pageSize int, entries []interiorEntry, splitIdx int) error {
+func (t *BTree) writeInteriorSplitLeft(pg *pager.Page, coff, ptroff, usableSize int, entries []interiorEntry, splitIdx int) error {
 	leftRightmost := entries[splitIdx-1].leftChild
-	leftCellContentEnd := pageSize // track content end in local var
+	leftCellContentEnd := usableSize // track content end in local var (zeroPage: cbrk=usableSize)
 	for i := 0; i < splitIdx-1; i++ {
 		cellData, eerr := t.encodeDividerCell(entries[i].leftChild, entries[i].splitResult(t.isTable), pg.PageNum)
 		if eerr != nil {
@@ -742,7 +742,7 @@ func (t *BTree) writeInteriorSplitLeft(pg *pager.Page, coff, ptroff, pageSize in
 	if splitIdx-1 > 0 {
 		binary.BigEndian.PutUint16(pg.Data[coff+5:coff+7], uint16(leftCellContentEnd))
 	} else {
-		binary.BigEndian.PutUint16(pg.Data[coff+5:coff+7], uint16(pageSize))
+		binary.BigEndian.PutUint16(pg.Data[coff+5:coff+7], uint16(usableSize))
 	}
 	binary.BigEndian.PutUint32(pg.Data[coff+8:coff+12], leftRightmost)
 	return nil
@@ -751,9 +751,9 @@ func (t *BTree) writeInteriorSplitLeft(pg *pager.Page, coff, ptroff, pageSize in
 // writeInteriorSplitRight writes the new right half page:
 // entries[splitIdx..) — never empty (see the split guard) — with the
 // original rightmost pointer.
-func (t *BTree) writeInteriorSplitRight(newPg *pager.Page, newCoff, ptroff, pageSize int, entries []interiorEntry, splitIdx int, rightmostChild uint32) error {
+func (t *BTree) writeInteriorSplitRight(newPg *pager.Page, newCoff, ptroff, usableSize int, entries []interiorEntry, splitIdx int, rightmostChild uint32) error {
 	rightCount := 0
-	rightCellContentEnd := pageSize
+	rightCellContentEnd := usableSize // zeroPage: cbrk=usableSize
 	for i := splitIdx; i < len(entries); i++ {
 		cellData, eerr := t.encodeDividerCell(entries[i].leftChild, entries[i].splitResult(t.isTable), newPg.PageNum)
 		if eerr != nil {

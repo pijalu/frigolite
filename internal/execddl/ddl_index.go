@@ -202,7 +202,7 @@ func newIndexRootPage(tableCtx *DatabaseContext) (*pager.Page, *Result) {
 	if perr != nil {
 		return nil, &Result{Error: perr}
 	}
-	initIndexRootPage(pg, tableCtx.Pager.PageSize())
+	initIndexRootPage(pg, tableCtx.Pager.UsableSize())
 	if err := tableCtx.Pager.WritePage(pg); err != nil {
 		return nil, &Result{Error: err}
 	}
@@ -211,13 +211,17 @@ func newIndexRootPage(tableCtx *DatabaseContext) (*pager.Page, *Result) {
 
 // initIndexRootPage initializes a freshly allocated index root page: zero the
 // data, set the leaf-index page type, and write a valid header (freeblock=0,
-// cellCount=0, contentOffset=pageSize) so a reused page (from a dropped
+// cellCount=0, contentOffset=usableSize) so a reused page (from a dropped
 // table/index) does not retain stale cells and ParsePage accepts the page.
 // The empty-page content pointer is the usable end (zeroPage:
-// put2byte(&data[hdr+5], pBt->usableSize); reserved bytes are 0 here); without
-// it a fresh page's zeroed content offset fails ParsePage's free-space
-// consistency check ("database disk image is malformed").
-func initIndexRootPage(pg *pager.Page, pageSize uint32) {
+// put2byte(&data[hdr+5], pBt->usableSize)); a pageSize anchor would push the
+// first inserted cell into the reserved tail on databases with a non-zero
+// per-page reserve (reservebytes: VACUUM materializes the requested reserve,
+// then CREATE INDEX's root inserts cross the usable boundary and
+// btreeCellSizeCheck rejects the page on its next init — "database disk
+// image is malformed"). Without a valid content offset a fresh page's zeroed
+// content offset fails ParsePage's free-space consistency check.
+func initIndexRootPage(pg *pager.Page, usableSize uint32) {
 	for i := range pg.Data {
 		pg.Data[i] = 0
 	}
@@ -228,7 +232,7 @@ func initIndexRootPage(pg *pager.Page, pageSize uint32) {
 	}
 	// Header: type(1) freeblock(2) cellCount(2)=0 contentOffset(2)=pageSize
 	binary.BigEndian.PutUint16(pg.Data[coff+3:coff+5], 0)
-	binary.BigEndian.PutUint16(pg.Data[coff+5:coff+7], uint16(int(pageSize)))
+	binary.BigEndian.PutUint16(pg.Data[coff+5:coff+7], uint16(int(usableSize)))
 }
 
 // validateIndexCollations resolves each index column's collation from the

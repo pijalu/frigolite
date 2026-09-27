@@ -117,13 +117,18 @@ func (t *BTree) repointRelocatedSplitChildren(children []uint32) error {
 // pointer.
 func (t *BTree) writeInteriorRootHeader(pg *pager.Page, coff int, dst uint32, children []uint32, seps []leafSplitResult) error {
 	cellCount := uint16(0)
-	contentStart := int(t.pageSize)
+	// zeroPage parity: cell content packs from the USABLE end
+	// (put2byte(&data[hdr+5], pBt->usableSize)), not the page end — with a
+	// per-page reserve the page-end anchor pushes divider cells into the
+	// reserved tail and btreeCellSizeCheck rejects the page on its next
+	// init (reservebytes-1.3.2).
+	contentStart := int(t.usableSize)
 	if len(seps) > 0 {
 		cellData, derr := t.encodeDividerCell(children[0], seps[0], dst)
 		if derr != nil {
 			return derr
 		}
-		contentStart = int(t.pageSize) - len(cellData)
+		contentStart = int(t.usableSize) - len(cellData)
 		copy(pg.Data[contentStart:], cellData)
 		cellCount = 1
 	}
@@ -280,7 +285,7 @@ func (t *BTree) createInteriorRootAtPage1(divider leafSplitResult, rightChild ui
 	if err != nil {
 		return nil, err
 	}
-	cellStart := int(t.pageSize) - len(cellData)
+	cellStart := int(t.usableSize) - len(cellData)
 	copy(pg1.Data[cellStart:], cellData)
 	binary.BigEndian.PutUint16(pg1.Data[rootCoff+cellPtrOffset(pg1.Data[rootCoff]):], uint16(cellStart))
 	binary.BigEndian.PutUint16(pg1.Data[rootCoff+3:rootCoff+5], 1)

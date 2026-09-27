@@ -10,6 +10,8 @@ import (
 	"fmt"
 	"io"
 	"os"
+
+	"github.com/pijalu/frigolite/internal/storage"
 )
 
 // For page 1, the first HeaderSize bytes are reserved for the database header.
@@ -297,17 +299,18 @@ func (p *Pager) FileInfo() (os.FileInfo, bool) {
 // mode the cache is then rebuilt through the shared wal-index (reads resolve
 // via walIndexFind → frame → page bytes), so a schema reload never loses
 // uncheckpointed commits.
+//
+// Rollback mode also RE-READS the 100-byte header and adopts its page size
+// and reserved-space byte when it still parses (btree.c lockBtree reloads
+// page 1 on every new read transaction: another connection's VACUUM may have
+// materialized a new reserve, and the usable size drives every cell parse —
+// reservebytes-1.3.4's integrity_check on a second connection walks the
+// rebuilt image with the NEW usable size). A header that fails to parse is
+// left untouched: the headerCorrupt deferral survives (filefmt-1.2).
 func (p *Pager) InvalidateCache() {
 	p.mu.Lock()
 	defer p.mu.Unlock()
 	p.pages = make(map[uint32]*Page)
-	// Preserve the headerCorrupt deferral across cache invalidation (do NOT
-	// clear p.header here either): the on-disk image is still corrupt
-	// (filefmt-1.2 patches the magic then reopens; the new connection's
-	// external-mod check drops the page cache before the first schema
-	// read). Clearing the header would let ValidateHeader see a nil header
-	// and pass, serving stale rows. The next ReadPage re-reads page 1 from
-	// disk including the corrupt header bytes.
 	if p.wal != nil {
 		// Refresh the shared wal-index header (recovering it when another
 		// connection left it unparsable) and rebuild the header/page-count
@@ -316,6 +319,13 @@ func (p *Pager) InvalidateCache() {
 		return
 	}
 	if p.file != nil {
+		buf := make([]byte, HeaderSize)
+		if _, err := p.file.ReadAt(buf, 0); err == nil {
+			if _, perr := storage.ParseHeader(buf); perr == nil {
+				p.header = buf
+				p.adoptHeaderPageSizeLocked(buf)
+			}
+		}
 		if info, err := p.file.Stat(); err == nil {
 			p.fileSize = info.Size()
 			p.numPages = uint32(info.Size() / int64(p.pageSize))

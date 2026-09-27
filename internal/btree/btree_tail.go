@@ -161,7 +161,11 @@ func (t *BTree) clearEmptyRootRightmost() error {
 		rootPg.Data[coff] = storage.PageTypeLeafIndex
 	}
 	binary.BigEndian.PutUint16(rootPg.Data[coff+1:coff+3], 0)
-	binary.BigEndian.PutUint16(rootPg.Data[coff+5:coff+7], uint16(t.pageSize))
+	// zeroPage parity: the empty page's content pointer is the USABLE end
+	// (src/btree.c:2189), not the page end — with a per-page reserve the
+	// page-end anchor pushes the first re-inserted cell into the reserved
+	// tail (reservebytes-1.3.2).
+	binary.BigEndian.PutUint16(rootPg.Data[coff+5:coff+7], uint16(t.usableSize))
 	rootPg.Data[coff+7] = 0
 	binary.BigEndian.PutUint32(rootPg.Data[coff+8:coff+12], 0)
 	pager.MarkPageDirtyForVacuum(t.pager, t.rootPage)

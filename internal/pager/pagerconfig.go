@@ -67,6 +67,16 @@ func (p *Pager) SetPageSize(ps uint32) {
 // image is self-consistent), page 1 is recreated as an empty schema leaf,
 // and the file is truncated to exactly one page so the next Flush
 // materializes precisely pageSize bytes.
+//
+// The materialized reserve (p.reserved, set by ApplyReservedBytes — vacuum.c
+// materializes a requested SQLITE_FCNTL_RESERVE_BYTES into the rebuilt image)
+// rides along: the fresh header's byte 20 carries p.reserved and the empty
+// leaf's cell-content pointer is the USABLE end (btree.c zeroPage writes
+// put2byte(&data[hdr+5], pBt->usableSize), src/btree.c:2189 — NOT the page
+// end). A content pointer of pageSize with reserved>0 would push the first
+// inserted cell into the reserved area, and btreeCellSizeCheck then rejects
+// the page on its next init ("database disk image is malformed",
+// reservebytes-1.3.2).
 func (p *Pager) ResetToEmpty(pageSize uint32) {
 	p.mu.Lock()
 	defer p.mu.Unlock()
@@ -77,6 +87,7 @@ func (p *Pager) ResetToEmpty(pageSize uint32) {
 	p.pages = make(map[uint32]*Page)
 	p.dirty = make(map[uint32]bool)
 	hdr := storage.DefaultHeader(pageSize).Encode()
+	hdr[20] = byte(p.reserved)
 	p.header = hdr
 	p.numPages = 1
 	pg := &Page{PageNum: 1, Data: make([]byte, pageSize)}
@@ -86,7 +97,7 @@ func (p *Pager) ResetToEmpty(pageSize uint32) {
 	// is 0 looks crash-written — "free space corruption").
 	coff := HeaderSize
 	pg.Data[coff] = storage.PageTypeLeafTable
-	binary.BigEndian.PutUint16(pg.Data[coff+5:coff+7], uint16(pageSize))
+	binary.BigEndian.PutUint16(pg.Data[coff+5:coff+7], uint16(pageSize-p.reserved))
 	p.pages[1] = pg
 	p.dirty[1] = true
 	if p.file != nil {
@@ -288,6 +299,17 @@ func (p *Pager) ApplyReservedBytes(n uint32) {
 		p.dirty[1] = true
 		if pg, ok := p.pages[1]; ok && pg != nil && len(pg.Data) >= HeaderSize {
 			copy(pg.Data[:HeaderSize], p.header)
+			// zeroPage parity: an EMPTY page 1 schema leaf must anchor its
+			// cell-content pointer at the NEW usable end, or the first
+			// schema insert after the reserve change packs cells into the
+			// reserved tail (reservebytes-1.3.2: the vacuum copy-back's
+			// CREATE TABLE then fails btreeCellSizeCheck with "database
+			// disk image is malformed"). Non-empty pages re-anchor through
+			// their own write paths.
+			coff := HeaderSize
+			if binary.BigEndian.Uint16(pg.Data[coff+3:coff+5]) == 0 {
+				binary.BigEndian.PutUint16(pg.Data[coff+5:coff+7], uint16(p.pageSize-n))
+			}
 		}
 	}
 }
