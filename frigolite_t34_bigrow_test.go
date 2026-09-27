@@ -264,3 +264,34 @@ func TestT34BigRowUpdateSizeSweep(t *testing.T) {
 		}
 	}
 }
+
+// TestT34BigRowSeamSweep targets the partial-local branch of the surplus
+// formula — the seam where the cell's local fragment lands strictly between
+// minLocal and maxLocal — and the seam-CROSSING sizes where an UPDATE's
+// +3-byte growth flips local from maxLocal to minLocal (the local fragment
+// shrinks and the overflow chain is rebuilt; the rewrite boundary the
+// bigrow-2.2 residue pointed at). Sizes are derived per page size from
+// LocalPayloadSize's formula.
+func TestT34BigRowSeamSweep(t *testing.T) {
+	cases := map[int][]int{
+		// ps=512: maxLocal=477, minLocal=39, period 508.
+		512: {478, 479, 480, 547, 916, 917, 918, 985, 1424, 1425, 1426},
+		// ps=1024: maxLocal=989, minLocal=104, period 1020.
+		1024: {990, 991, 992, 1093, 1873, 1874, 1875, 1876, 2000, 2893, 2894, 2895, 2896, 4061},
+		// ps=4096: maxLocal=4061, minLocal=489, period 4092; 8152->8155
+		// (via +3) crosses local 4060 -> 489.
+		4096: {4092, 4093, 4094, 5000, 8150, 8151, 8152, 8153, 8154, 12288},
+		// ps=65536: maxLocal=65501, minLocal=8199, period 65532; the
+		// partial branch lives near n=98304.
+		65536: {65502, 65503, 98304, 98305, 131072},
+	}
+	for ps, sizes := range cases {
+		for _, n := range sizes {
+			ps, n := ps, n
+			t.Run(fmt.Sprintf("ps%d/n%d", ps, n), func(t *testing.T) {
+				t.Parallel()
+				t34SweepUpdateRewrite(t, ps, n)
+			})
+		}
+	}
+}
