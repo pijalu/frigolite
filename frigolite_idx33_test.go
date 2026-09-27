@@ -290,3 +290,43 @@ func TestIdx33WR1BeforeTriggerDeleteSkips(t *testing.T) {
 		t.Errorf("got [%s] want [b a 3 b b 4]", got)
 	}
 }
+
+// TestIdx33Ba7cGroupAllDesc pins tkt-ba7cbfaedc 1.x: GROUP BY x, y ORDER BY
+// x DESC, y DESC over an index on (x, y) — the grouped output rows carry no
+// scan rowid, so the index-satisfied ORDER BY emission must DECLINE (its
+// index walk cannot key group representative rows) and the temp-sort
+// comparator reverse-sorts. Regression: the emission reported success with an
+// identity permutation and the ASC group-key order leaked through.
+func TestIdx33Ba7cGroupAllDesc(t *testing.T) {
+	db, _ := frigolite.Open(":memory:")
+	defer db.Close()
+	for _, s := range []string{
+		"CREATE TABLE t1(x, y)",
+		"INSERT INTO t1 VALUES(3,'a'),(1,'a'),(2,'b'),(2,'a'),(3,'b'),(1,'b')",
+		"CREATE INDEX i1 ON t1(x, y)",
+	} {
+		if res := db.Exec(s); res.Error != nil {
+			t.Fatalf("%s: %v", s, res.Error)
+		}
+	}
+	cases := []struct{ q, want string }{
+		{"SELECT * FROM t1 GROUP BY x,y ORDER BY x DESC, y DESC", "3 b 3 a 2 b 2 a 1 b 1 a"},
+		{"SELECT * FROM t1 GROUP BY x,y ORDER BY x DESC, y", "3 a 3 b 2 a 2 b 1 a 1 b"},
+		{"SELECT * FROM t1 GROUP BY x,y ORDER BY x DESC", "3 a 3 b 2 a 2 b 1 a 1 b"},
+	}
+	for _, c := range cases {
+		r := db.Query(c.q)
+		if r.Error != nil {
+			t.Fatalf("%s: %v", c.q, r.Error)
+		}
+		var parts []string
+		for _, row := range r.Rows {
+			for _, v := range row {
+				parts = append(parts, fmt.Sprintf("%v", v))
+			}
+		}
+		if got := strings.Join(parts, " "); got != c.want {
+			t.Errorf("%s\n  got:  [%s]\n  want: [%s]", c.q, got, c.want)
+		}
+	}
+}

@@ -239,7 +239,7 @@ func (e *SelectEngine) emitRowsInIndexOrder(result *Result, rowMaps []RowMap, ta
 		return true
 	}
 	if len(result.Rows) < 2 || len(rowMaps) != len(result.Rows) {
-		return false
+			return false
 	}
 	rowids, ok := e.indexStoredRowidOrder(tableName, idxName)
 	if !ok || len(rowids) == 0 {
@@ -249,7 +249,17 @@ func (e *SelectEngine) emitRowsInIndexOrder(result *Result, rowMaps []RowMap, ta
 		// A backward scan reads the index b-tree in the opposite direction.
 		reverseRowids(rowids)
 	}
-	perm := indexOrderPermutation(rowids, scanRowidPositions(rowMaps), len(result.Rows))
+	positions := scanRowidPositions(rowMaps)
+	if len(positions) == 0 {
+		// No scan row carries a rowid — aggregate (GROUP BY) outputs are the
+		// case: each group's row map is its representative row, and the
+		// index walk cannot key it. The identity permutation such a walk
+		// would produce leaks the ASC group-key order as a "consumed" ORDER
+		// BY (tkt-ba7cbfaedc 1.x.4: GROUP BY x,y ORDER BY x DESC, y DESC
+		// must reverse-sort); the temp-sort comparator owns the ordering.
+		return false
+	}
+	perm := indexOrderPermutation(rowids, positions, len(result.Rows))
 	e.permuteScanResults(result.Rows, rowMaps, perm)
 	return true
 }
