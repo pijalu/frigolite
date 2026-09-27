@@ -919,3 +919,58 @@ lifecycle sites above are the complete set.
   the dynamic (quota stop → chomp → append → drain) on the oracle BEFORE
   pinning: the first 10-verse attempt merged everything inside the quota and
   exercised nothing.
+
+## T34r-btree-resume (fleet/t34r-btree, 2026-09-27) — 64KiB CellContent wrap + pad-4 leaf cells landed; fts4aa attributed
+
+- **64KiB cell-content wrap was the tranche-wide root cause (btree01 + fts4aa).**
+  On page_size=65536 an EMPTY page's content start = usableSize = 65536, which
+  truncates to 0 in the 16-bit on-disk header field (C zeroPage writes
+  (u16)usableSize; C never re-reads the field — insertCell works from MemPage
+  in-memory offsets). frigolite re-parses page headers to drive cell-content
+  arithmetic, so the wrapped 0 poisoned every subsequent `content - len(cell)`
+  computation → `errInteriorFull` ("interior page full, cannot add child
+  pointer") once the T34-vacuum tranche routed overfull ROOT leaves through
+  balance_deeper (which re-parses/re-inits the copied child). Fix: CellContent
+  widened uint16→int with a ParsePage normalization (0→65536 on 64KiB pages
+  only) + call-site adaptation; validatePageHeader keeps accepting exactly the
+  normalized shape. SAME root cause fixed testgen/btree01 and testgen/fts4aa
+  (fts4aa builds its FTS4 corpus at PRAGMA page_size=65536, fts4aa_test.go:284).
+- **pad-4 leaf cells is C parity, not a hack** (cellSizePtrTableLeaf /
+  cellSizePtrIdxLeaf: "if( nSize<4 ) nSize = 4"): a fully-local leaf cell
+  smaller than 4 bytes (all-NULL single-column record: 3 bytes) is ALLOCATED
+  4 bytes with dead trailing bytes. Needed on BOTH sides: encode
+  (padLeafCell in storage/cell.go) and size accounting (TableLeafCellSizeAt +
+  cellsize_check walkers + btree_shallower absorbChildCellSize), else a tiny
+  cell sits at usableSize-3 and trips the btreeCellSizeCheck bound
+  (pc <= usableSize-4) after the next split. Fixed testgen/changes
+  (5000-row recursive NULL insert).
+- **fts4aa bisect attribution** (throwaway detached worktrees, removed after):
+  PASS at f2433a886^ → FAIL at f2433a886 (T34-vacuum merge) → FAIL at
+  8d589f1e8 → PASS with the CellContent-wrap fix. The vacuum tranche's
+  unconditional balance_deeper for overfull root leaves EXPOSED the wrap; the
+  regression was in the interaction, not balance_deeper itself.
+- **reservebytes root cause (analysis gift to the owner session; NOT fixed
+  here):** the vacuum copy-back lays rows out with usable=1016 (reserved=8
+  honored by the btrees) but the final header byte 20 stays 0, so a FRESH
+  reader decodes local=104 vs written 102 → every overflowing cell misread →
+  integrity_check "Page N never used" (overflow pages unreferenced) + empty
+  scans; the WRITER connection passes integrity_check only because its pager
+  cache still holds the old image. C parity: vacuum.c:271 applies
+  nRes = GetRequestedReserve(pMain) to the TEMP (vacuum_db) BEFORE the
+  schema/row copy (SetPageSize(pTemp, mainPageSize, nRes, 0)), so the temp's
+  header byte 20 = 8 and its layout already carry the reserve; the page-level
+  copy-back (sqlite3BtreeCopyFile) then transfers the header verbatim, and
+  vacuum.c:383-385 re-syncs main via SetPageSize(pMain, tempSize, nRes, 1).
+  frigolite applies the reserve only to main mid-rebuild (vacuumResetDest)
+  and its two LOGICAL backup copies never stamp byte 20 into the rebuilt
+  image. Fix direction: apply reqReserve to the :memory: temp before the
+  first copy (and/or stamp byte 20 from the pager's reserve wherever page 1's
+  header is rebuilt after the copy-back).
+- **Shared-worktree protocol (two live agents):** when another session owns
+  adjacent files, commit with EXPLICIT paths only; split a co-edited file with
+  `git apply --cached` on hand-built hunks (recompute hunk line offsets for
+  the applied subset; include trailing blank context lines or the patch is
+  "corrupt"); run gocognit/gocyclo/staticcheck on the STAGED versions
+  (`git show :path`) — the working tree can carry the other agent's
+  env-gated tracing that inflates complexity (ValidateCellSizeCheck hit 41
+  cognitive in the working copy while the staged version stayed clean).
