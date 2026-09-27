@@ -254,7 +254,15 @@ func (tp *transpiler) emitExpectedQueryResult(dbConn, sqlExpr, expectedExpr stri
 	// literal containing braced sub-lists, normalize it: multi-row expectations
 	// hold list braces that flatten() does not produce (TCL list equality is
 	// brace- and whitespace-insensitive).
-	if tp.expectPreFlattened {
+	// An EMPTY-LIST expectation ({}) compares against the harness rendering
+	// of a 0-row result: flatten() prints the empty list as "{}" (the
+	// nullvalue braces), not as the empty string normalizeExpectedWord
+	// collapses the word to — the scalar comparison would then fail against
+	// a correct 0-row result (vtab1-2.8: sqlite_master is empty after the
+	// DROP; oracle 3.54: 0 rows).
+	if isEmptyListExpectedWord(args) {
+		tp.emitLine(`want := "{}"`)
+	} else if tp.expectPreFlattened {
 		// normalizeExpectedWord already produced the final flat form;
 		// runtime tclListFlatten would strip the data braces a second time.
 		tp.emitLine("want := %s", expectedExpr)

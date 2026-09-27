@@ -828,6 +828,19 @@ func (tp *transpiler) emitDBEvalQueryResult(nameExpr, expectedExpr, sqlExpr stri
 		tp.emitDBEvalNestedQueryWant(dbEvalSQL, isSubst, quoted)
 		return
 	}
+	// An EMPTY-LIST expectation ({}) compares against the harness rendering
+	// of a 0-row result: flatten() prints the empty list as "{}" (the
+	// nullvalue braces), not as the empty string normalizeExpectedWord
+	// collapses the word to — the scalar comparison would then fail against
+	// a correct 0-row result (vtab1-2.8: sqlite_master is empty after the
+	// DROP; oracle 3.54: 0 rows).
+	if isEmptyListExpectedWord(args) {
+		tp.emitLine(`want := "{}"`)
+		tp.emitLine("if got != want && !tclFpnumCompare(got, want) {")
+		tp.emitLine("\tt.Errorf(\"result mismatch\\n  got:  [%%s]\\n  want: [%%s]\", got, want)")
+		tp.emitLine("}")
+		return
+	}
 	// Normalize TCL list variable expectations (see processDoExecSQLTest).
 	tp.emitDBEvalPlainWant(expectedExpr)
 }

@@ -767,3 +767,16 @@ func tclBracesBalancedGen(s string) bool {
 	}
 	return depth == 0
 }
+
+// isEmptyListExpectedWord reports whether the raw expected do_test/
+// do_execsql_test word is the EMPTY LIST: the literal {} or the [list]
+// command substitution with no elements. Both normalize to the empty string
+// downstream, which loses the list-ness the harness rendering of a 0-row
+// result ("{}") needs for the comparison to succeed.
+func isEmptyListExpectedWord(args []tcl.RawWord) bool {
+	if len(args) < 3 {
+		return false
+	}
+	raw := strings.TrimSpace(args[len(args)-1].Text)
+	return raw == "{}" || raw == "[list]"
+}

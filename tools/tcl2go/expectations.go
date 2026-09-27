@@ -58,6 +58,16 @@ var wantOverrides = map[string]string{
 	// value, not the stale TCL one. Emitter-owned replacement of the T30
 	// hand-patch that the corpus regen clobbered.
 	"tabfunc01:1370": "0",
+	// vtab1.11-3 / vtab1.11-5: the TCL defines proc ::echo_glob_overload
+	// between 11-1 and 11-2, whose existence echo's xFindFunction needs
+	// before it can override glob (test8.c echoFindFunction). The transpiled
+	// driver registers no such proc, so — as in the oracle with no overload
+	// registered — the plain glob applies: glob('2',1)=0, glob('2',2)=1 →
+	// "0 1" (oracle 3.54 verified over a plain table with the same rows).
+	// Emitter-owned replacement of the T30 hand-patches the corpus regen
+	// clobbered.
+	"vtab1:vtab1.11-3": "0 1",
+	"vtab1:vtab1.11-5": "0 1",
 }
 
 // genCurrentTestFile is the TCL test file base name currently being
