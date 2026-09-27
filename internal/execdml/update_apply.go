@@ -358,6 +358,18 @@ func (e *DMLExecutor) writeUpdateCell(tree *btree.BTree, tableName string, rootP
 		}
 	}
 	withoutRowid := tableEntry != nil && hasWithoutRowidKeyword(strings.ToUpper(tableEntry.SQL))
+	// sqlite3BtreeInsert's loc==0 fast path (src/btree.c:9596-9614): a
+	// same-rowid UPDATE whose new cell is the same byte size as the stored
+	// one overwrites the old cell's bytes IN PLACE — the cell pointer array,
+	// content start and page layout stay byte-identical, and no
+	// dropCell/insertCell/balance runs. A delete+reinsert would restructure
+	// the page and rewrite the pointer array, which is observable through
+	// corruption detection: corrupt.test 7.2/7.3 craft a cell pointer to a
+	// record body, overwrite that body with a same-size UPDATE, and expect
+	// the NEXT statement's page initialization to still detect it.
+	if res, handled := e.updateCellInPlaceGate(tree, tableName, rootPage, ch, writeRowID, finalValues, tableEntry, colDefs, withoutRowid); handled {
+		return res
+	}
 	res, skip := e.deleteUpdatedRow(tree, tableEntry, colDefs, ch, withoutRowid)
 	if res != nil {
 		return res
@@ -393,6 +405,51 @@ func (e *DMLExecutor) writeUpdateCell(tree *btree.BTree, tableName string, rootP
 	// tables report rowid 0 (SQLite uses the key columns instead); rowid
 	// tables report the rowid (old for UPDATE, per the preupdate contract).
 	return e.fireUpdateWritePreupdate(tableName, ch, finalValues)
+}
+
+// updateCellInPlaceGate routes a change into the in-place same-size
+// overwrite when it qualifies: a rowid-table UPDATE that keeps the row's
+// rowid. handled=false means the change must take the delete+reinsert path.
+func (e *DMLExecutor) updateCellInPlaceGate(tree *btree.BTree, tableName string, rootPage uint32, ch updateChange, writeRowID int64, finalValues []interface{}, tableEntry *schema.Entry, colDefs []sql.ColumnDef, withoutRowid bool) (*Result, bool) {
+	if withoutRowid || writeRowID != ch.rowID || tableEntry == nil {
+		return nil, false
+	}
+	handled, res := e.tryUpdateCellInPlace(tree, tableName, tableEntry, colDefs, ch, writeRowID, finalValues, rootPage)
+	return res, handled
+}
+
+// tryUpdateCellInPlace applies the in-place same-size cell overwrite
+// (btree.BTree.OverwriteCellByRowID, the loc==0 fast path of
+// sqlite3BtreeInsert, src/btree.c:9596-9614) for a rowid-table UPDATE that
+// keeps the row's rowid. handled=true means the cell was written (or the
+// attempt failed with res) and the caller must skip the delete+reinsert
+// path; handled=false means a guard declined (row not on a table leaf,
+// different sizes, non-local payload, autovacuum) and the caller falls back
+// to dropCell+insertCell. The index-entry write, rowid-cache bump and
+// preupdate hook fire here exactly as they do after the reinsert path.
+func (e *DMLExecutor) tryUpdateCellInPlace(tree *btree.BTree, tableName string, tableEntry *schema.Entry, colDefs []sql.ColumnDef, ch updateChange, writeRowID int64, finalValues []interface{}, rootPage uint32) (bool, *Result) {
+	record, cellType, tree, err := e.encodeUpdatedRecord(tree, tableName, tableEntry, colDefs, finalValues, false)
+	if err != nil {
+		return true, &Result{Error: err}
+	}
+	if cellType != storage.CellTableLeaf {
+		return false, nil
+	}
+	cellData := storage.EncodeCell(&storage.Cell{Type: cellType, RowID: writeRowID, Payload: record})
+	done, oerr := tree.OverwriteCellByRowID(ch.rowID, cellData)
+	if oerr != nil {
+		return true, &Result{Error: oerr}
+	}
+	if !done {
+		return false, nil
+	}
+	if tableEntry != nil {
+		if err := e.writeUpdateIndexEntriesFor(tableEntry, colDefs, ch.oldValues, ch.rowID, finalValues, writeRowID); err != nil {
+			return true, &Result{Error: err}
+		}
+	}
+	e.bumpUpdateRowIDCache(tableName, rootPage, ch.rowID, writeRowID)
+	return true, e.fireUpdateWritePreupdate(tableName, ch, finalValues)
 }
 
 // deleteUpdatedRow deletes the row a change rewrites: OLD-PK identity delete

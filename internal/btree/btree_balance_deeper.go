@@ -50,12 +50,12 @@ func (t *BTree) balanceDeeperRootLeaf(pg *pager.Page, page *storage.BTreePage, n
 		return nil, err
 	}
 	// The balance do-loop's next iteration balances the child: insert the
-	// pending cell there with the normal machinery. A fresh child always
-	// has room for a cell the root could not hold, so splits never actually
-	// occur on this insert; routing through insertPage keeps the shape
-	// general (any root leaf, any page size) and applyChildSplits' right-
-	// most-pointer branch would wire a split's divider chain to the fresh
-	// interior root.
+	// pending cell there with the normal machinery. The child inherits the
+	// root's full cell set, so it is usually overfull itself and splits
+	// (btree.c balance_nonroot on the copied child); routing through
+	// insertPage keeps the shape general (any root leaf, any page size) and
+	// applyChildSplits' right-most-pointer branch wires a split's divider
+	// chain to the fresh interior root.
 	splits, err := t.insertPage(child.PageNum, pg.PageNum, newCell)
 	if err != nil {
 		return nil, err
@@ -72,32 +72,35 @@ func (t *BTree) balanceDeeperRootLeaf(pg *pager.Page, page *storage.BTreePage, n
 	return nil, nil
 }
 
-// copyLeafRootToChild moves the root leaf's existing cells to the freshly
-// allocated child page (copyNodeContent, src/btree.c:9021). The cell set
-// fit the root's (header-reduced) area, so it fits the child's full-size
-// area. writeLeafHalf rebuilds the b-tree header and cell pointer array at
-// the child's content offset (0 vs page 1's 100); cell data offsets are
-// page-absolute and copy verbatim. Moved cells take their overflow chains:
-// each chain's first page is re-parented to the child (ptrmapPutOvflPtr,
-// src/btree.c:8025).
+// copyLeafRootToChild moves the root leaf's content to the freshly allocated
+// child page (copyNodeContent, src/btree.c:8124): two verbatim copies — the
+// cell content area at its page-absolute offsets, and the b-tree header plus
+// cell pointer array rebuilt at the child's header offset (0 vs page 1's
+// 100; cell data offsets are page-absolute so the copied pointer values stay
+// valid). Cells are NOT decoded: the copied bytes must reach the child's
+// page initialization exactly as they lived on the root, because that
+// btreeInitPage — with the cell-size check enabled (ValidateCellSizeCheck in
+// the caller) — is what rejects a root whose pointer array was crafted to
+// point at record bodies (corrupt.test 7.3). Decoding instead of copying
+// would either fail at a different site or re-encode the cells and destroy
+// the evidence. Moved cells keep their overflow chains: each chain's first
+// page is re-parented to the child (ptrmapPutOvflPtr, src/btree.c:8025).
 func (t *BTree) copyLeafRootToChild(child, root *pager.Page, page *storage.BTreePage, coff int) error {
-	cellType := storage.CellTableLeaf
-	if !t.isTable {
-		cellType = storage.CellIndexLeaf
+	usable := int(t.usableSize)
+	// memcpy(&aTo[iData], &aFrom[iData], pBt->usableSize-iData): the cell
+	// content area, verbatim.
+	iData := int(page.CellContent)
+	if iData > usable {
+		iData = usable
 	}
-	var moved []splitEntry
-	for i := uint16(0); i < page.CellCount; i++ {
-		cellOff := int(storage.CellPointer(root.Data, coff, int(i), int(t.pageSize)))
-		c, err := storage.DecodeCell(root.Data, cellOff, cellType, int(t.usableSize))
-		if err != nil {
-			return err
-		}
-		moved = append(moved, splitEntry{cell: c, cellData: storage.EncodeCell(c)})
-	}
-	child.Data[0] = root.Data[coff] // the child inherits the leaf page type
-	if err := writeLeafHalf(child, 0, moved, int(t.usableSize)); err != nil {
-		return err
-	}
+	copy(child.Data[iData:usable], root.Data[iData:usable])
+	// memcpy(&aTo[iToHdr], &aFrom[iFromHdr], cellOffset+2*nCell): the leaf
+	// b-tree header (8 bytes: type, first freeblock, nCell, content start,
+	// fragmented bytes — freeblock chain offsets are page-absolute too) and
+	// the cell pointer array.
+	hdrLen := 8
+	n := hdrLen + 2*int(page.CellCount)
+	copy(child.Data[0:n], root.Data[coff:coff+n])
 	if err := t.pager.WritePage(child); err != nil {
 		return err
 	}

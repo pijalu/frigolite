@@ -289,10 +289,17 @@ func TestW6_Btreefault22(t *testing.T) {
 	}
 }
 
-// TestW6_Corrupt7 pins corrupt-7.x: a root page whose cell count was
-// corrupted to 788 still allows an in-place UPDATE (corrupt-7.2) but the
-// following INSERT that forces a balance detects the malformed page
-// (corrupt-7.3).
+// TestW6_Corrupt7 pins corrupt-7.x end to end (oracle-verified,
+// T34-vacuum): 39 blob inserts leave the root leaf 2 bytes from full, the
+// crafted cellPtr[0]:=788 lands on rowid 10's record body (the reference
+// build's 24-byte cell layout: 1024-24*10 = 784 cell, +4 = 788 body), the
+// same-size UPDATE overwrites that body IN PLACE — the cell pointer array
+// stays byte-identical (sqlite3BtreeInsert's loc==0 fast path,
+// src/btree.c:9596-9614) so the corruption survives — and the 40th INSERT
+// overflows the root into balance_deeper, whose copyNodeContent +
+// btreeInitPage cell-size check (storage.ValidateCellSizeCheck) rejects the
+// rewritten pointer with "database disk image is malformed"
+// (src/btree.c:8152-8160, btreeCellSizeCheck).
 func TestW6_Corrupt7(t *testing.T) {
 	path := t.TempDir() + "/corrupt7.db"
 	db, err := Open(path)
@@ -304,7 +311,7 @@ func TestW6_Corrupt7(t *testing.T) {
 		execW6(t, db, "INSERT INTO t1 VALUES(X'000100020003000400050006000700080009000A');")
 	}
 	db.Close()
-	// Corrupt: page 2 cell count ← 0x0314 (788).
+	// Corrupt: cellPtr[0] ← 0x0314 (788) — rowid 10's record body.
 	f, err := os.OpenFile(path, os.O_RDWR, 0)
 	if err != nil {
 		t.Fatal(err)
@@ -318,20 +325,29 @@ func TestW6_Corrupt7(t *testing.T) {
 		t.Fatal(err)
 	}
 	defer db.Close()
-	execW6(t, db, "UPDATE t1 SET x = X'870400020003000400050006000700080009000A' WHERE rowid = 10;")
-	// corrupt-7.2: the UPDATE still succeeds (the page parses).
-	execW6(t, db, "SELECT count(*) FROM t1")
-	// corrupt-7.3: the generated assertion crafts cellPtr[0]:=788 at page
-	// offset 1024+8 — a byte offset that is rowid 10's record BODY under the
-	// reference build's cell layout. Frigolite's file-format-conforming
-	// layout puts different bytes at 788, so the crafted pointer targets
-	// arbitrary in-bounds content and the assertion is layout-bound
-	// (evidence-skipped). The engine contract behind it — the
-	// btreeCellSizeCheck validation of the balance_deeper child — is
-	// implemented (storage.ValidateCellSizeCheck) and the malformed-pointer
-	// rejection is exercised by the corrupt family's other cases.
-	if r := db.Exec("INSERT INTO t1 VALUES(X'000100020003000400050006000700080009000A');"); r.Error != nil &&
-		!strings.Contains(r.Error.Error(), "database disk image is malformed") {
+	// corrupt-7.2: the same-size UPDATE succeeds and must NOT restructure
+	// the page — a defragmenting delete+reinsert would rewrite the crafted
+	// pointer and the corruption report below would never fire.
+	if r := db.Exec("UPDATE t1 SET x = X'870400020003000400050006000700080009000A' WHERE rowid = 10;"); r.Error != nil {
+		t.Fatalf("corrupt-7.2: UPDATE failed: %v", r.Error)
+	}
+	// The crafted pointer survives the in-place overwrite byte-for-byte.
+	raw, err := os.ReadFile(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	page2 := raw[1024:2048]
+	if got := int(page2[8])<<8 | int(page2[9]); got != 788 {
+		t.Fatalf("corrupt-7.2: cellPtr[0] = %d, want the crafted 788 (page restructured)", got)
+	}
+	if got := page2[788:790]; got[0] != 0x87 || got[1] != 0x04 {
+		t.Fatalf("corrupt-7.2: bytes at 788 = %x, want the updated record body 8704", got)
+	}
+	// corrupt-7.3: the INSERT forces balance_deeper; the copied child's page
+	// initialization must reject the crafted pointer.
+	if r := db.Exec("INSERT INTO t1 VALUES(X'000100020003000400050006000700080009000A');"); r.Error == nil {
+		t.Errorf("corrupt-7.3: INSERT succeeded, want %q", "database disk image is malformed")
+	} else if !strings.Contains(r.Error.Error(), "database disk image is malformed") {
 		t.Errorf("corrupt-7.3: unexpected error class %v", r.Error)
 	}
 }
