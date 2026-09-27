@@ -542,79 +542,100 @@ func (ev *Evaluator) evalBinaryOpValues(op string, left, right interface{}) (int
 		}
 		return res, nil
 	}
-	if fn, ok := binaryOpDispatch[op]; ok {
-		return fn(ev, left, right)
+	// AND/OR take the Kleene path directly: none of the value dispatches
+	// below handle them, so routing here skips their failed lookups.
+	if op == "AND" || op == "OR" {
+		return evalArithmeticOp(op, left, right)
+	}
+	if res, handled := ev.dispatchComparisonValues(op, left, right); handled {
+		return res, nil
+	}
+	if res, err, handled := ev.dispatchMatchLikeValues(op, left, right); handled {
+		return res, err
+	}
+	if res, err, handled := ev.dispatchAuxBinaryValues(op, left, right); handled {
+		return res, err
 	}
 	return evalArithmeticOp(op, left, right)
 }
 
-// binaryOpFn evaluates a binary operator over two scalar values.
-type binaryOpFn func(ev *Evaluator, left, right interface{}) (interface{}, error)
-
-// binaryOpDispatch maps scalar binary operators (comparison, LIKE/GLOB/REGEXP,
-// COLLATE, and the unsupported MATCH/JSON operators) to their evaluators.
-var binaryOpDispatch = map[string]binaryOpFn{
-	"=":  func(ev *Evaluator, l, r interface{}) (interface{}, error) { return ev.evalEqualityOp(l, r), nil },
-	"<>": func(ev *Evaluator, l, r interface{}) (interface{}, error) { return ev.evalInequalityOp(l, r), nil },
-	"!=": func(ev *Evaluator, l, r interface{}) (interface{}, error) { return ev.evalInequalityOp(l, r), nil },
-	"<": func(ev *Evaluator, l, r interface{}) (interface{}, error) {
-		return boolToInt(ev.ctx.CompareValuesWithCollate(l, r) < 0), nil
-	},
-	">": func(ev *Evaluator, l, r interface{}) (interface{}, error) {
-		return boolToInt(ev.ctx.CompareValuesWithCollate(l, r) > 0), nil
-	},
-	"<=": func(ev *Evaluator, l, r interface{}) (interface{}, error) {
-		return boolToInt(ev.ctx.CompareValuesWithCollate(l, r) <= 0), nil
-	},
-	">=": func(ev *Evaluator, l, r interface{}) (interface{}, error) {
-		return boolToInt(ev.ctx.CompareValuesWithCollate(l, r) >= 0), nil
-	},
-	"LIKE":     func(ev *Evaluator, l, r interface{}) (interface{}, error) { return ev.evalLikeOp(l, r, false), nil },
-	"NOT LIKE": func(ev *Evaluator, l, r interface{}) (interface{}, error) { return ev.evalLikeOp(l, r, true), nil },
-	"GLOB": func(ev *Evaluator, l, r interface{}) (interface{}, error) {
-		bumpLikeCallCount()
-		res := globValues(l, r)
-		if res {
-			ev.probeOperatorOverload("GLOB", r, l)
-		}
-		return boolToInt(res), nil
-	},
-	"NOT GLOB": func(ev *Evaluator, l, r interface{}) (interface{}, error) {
-		bumpLikeCallCount()
-		return boolToInt(!globValues(l, r)), nil
-	},
-	"REGEXP": func(ev *Evaluator, l, r interface{}) (interface{}, error) {
-		res, err := ev.evalRegexpOp(l, r, false)
-		if err == nil && res == int64(1) {
-			ev.probeOperatorOverload("REGEXP", r, l)
-		}
-		return res, err
-	},
-	"NOT REGEXP": func(ev *Evaluator, l, r interface{}) (interface{}, error) { return ev.evalRegexpOp(l, r, true) },
-	"MATCH":      nilBinaryFn(0),
-	"NOT MATCH":  nilBinaryFn(1),
-	"->":         func(ev *Evaluator, l, r interface{}) (interface{}, error) { return function.JSONArrowExtract(l, r) },
-	"->>":        func(ev *Evaluator, l, r interface{}) (interface{}, error) { return function.JSONArrowExtractSQL(l, r) },
-	"COLLATE":    func(ev *Evaluator, l, r interface{}) (interface{}, error) { return ev.evalCollateOp(l, r) },
-	"||": func(ev *Evaluator, l, r interface{}) (interface{}, error) {
-		res, err := evalConcat(l, r)
-		if err != nil {
-			return nil, err
-		}
-		// vdbe.c OP_Concat: output longer than SQLITE_LIMIT_LENGTH fails
-		// with "string or blob too big" (sqllimits1-5.17.3/5.21).
-		if s, ok := res.(string); ok {
-			if int64(len(s)) > int64(ev.ctx.LengthLimit()) {
-				return nil, fmt.Errorf("string or blob too big")
-			}
-		}
-		return res, nil
-	},
+// dispatchComparisonValues evaluates the six scalar comparison operators over
+// already-extracted values (compareValuesWithCollate resolves the collation
+// from CollatedValue wrappers internally). Returns handled=false for other
+// operators. A switch replaces the former op-keyed dispatch map: the operator
+// string is a compile-time constant per AST node, so a per-row map hash was
+// pure overhead on the WHERE hot path.
+func (ev *Evaluator) dispatchComparisonValues(op string, left, right interface{}) (interface{}, bool) {
+	switch op {
+	case "=":
+		return ev.evalEqualityOp(left, right), true
+	case "<>", "!=":
+		return ev.evalInequalityOp(left, right), true
+	case "<":
+		return boolToInt(ev.ctx.CompareValuesWithCollate(left, right) < 0), true
+	case ">":
+		return boolToInt(ev.ctx.CompareValuesWithCollate(left, right) > 0), true
+	case "<=":
+		return boolToInt(ev.ctx.CompareValuesWithCollate(left, right) <= 0), true
+	case ">=":
+		return boolToInt(ev.ctx.CompareValuesWithCollate(left, right) >= 0), true
+	}
+	return nil, false
 }
 
-// nilBinaryFn returns a fixed integer result for an operator.
-func nilBinaryFn(v int64) binaryOpFn {
-	return func(ev *Evaluator, l, r interface{}) (interface{}, error) { return v, nil }
+// dispatchMatchLikeValues evaluates the LIKE / GLOB / REGEXP family (and their
+// negations) over already-extracted values. Returns handled=false for other
+// operators.
+func (ev *Evaluator) dispatchMatchLikeValues(op string, left, right interface{}) (interface{}, error, bool) {
+	switch op {
+	case "LIKE":
+		return ev.evalLikeOp(left, right, false), nil, true
+	case "NOT LIKE":
+		return ev.evalLikeOp(left, right, true), nil, true
+	case "GLOB":
+		bumpLikeCallCount()
+		res := globValues(left, right)
+		if res {
+			ev.probeOperatorOverload("GLOB", right, left)
+		}
+		return boolToInt(res), nil, true
+	case "NOT GLOB":
+		bumpLikeCallCount()
+		return boolToInt(!globValues(left, right)), nil, true
+	case "REGEXP":
+		res, err := ev.evalRegexpOp(left, right, false)
+		if err == nil && res == int64(1) {
+			ev.probeOperatorOverload("REGEXP", right, left)
+		}
+		return res, err, true
+	case "NOT REGEXP":
+		res, err := ev.evalRegexpOp(left, right, true)
+		return res, err, true
+	}
+	return nil, nil, false
+}
+
+// dispatchAuxBinaryValues evaluates the remaining value-level binary
+// operators: MATCH/NOT MATCH (fixed 0/1 result — SQLite without a MATCH
+// function), the JSON arrow operators, and COLLATE. Returns handled=false
+// for other operators.
+func (ev *Evaluator) dispatchAuxBinaryValues(op string, left, right interface{}) (interface{}, error, bool) {
+	switch op {
+	case "MATCH":
+		return int64(0), nil, true
+	case "NOT MATCH":
+		return int64(1), nil, true
+	case "->":
+		res, err := function.JSONArrowExtract(left, right)
+		return res, err, true
+	case "->>":
+		res, err := function.JSONArrowExtractSQL(left, right)
+		return res, err, true
+	case "COLLATE":
+		res, err := ev.evalCollateOp(left, right)
+		return res, err, true
+	}
+	return nil, nil, false
 }
 
 // evalEqualityOp evaluates = with SQLite's type-matching rule: when a TEXT
@@ -724,6 +745,14 @@ func evalArithmeticOp(op string, left, right interface{}) (interface{}, error) {
 	// Unwrap BlobColumnValue so arithmetic functions see the base value.
 	left = util.UnwrapColumnValue(left)
 	right = util.UnwrapColumnValue(right)
+	// Kleene boolean operators first: they are the most frequent arrivals on
+	// WHERE paths and must not pay the arithmetic dispatch lookup below.
+	switch op {
+	case "AND":
+		return kleeneAnd(left, right), nil
+	case "OR":
+		return kleeneOr(left, right), nil
+	}
 	if fn, ok := binaryArithOps[op]; ok {
 		return fn(left, right)
 	}
@@ -732,10 +761,6 @@ func evalArithmeticOp(op string, left, right interface{}) (interface{}, error) {
 		return evalAdd(left, right)
 	case "||":
 		return evalConcat(left, right)
-	case "AND":
-		return kleeneAnd(left, right), nil
-	case "OR":
-		return kleeneOr(left, right), nil
 	default:
 		return nil, fmt.Errorf("unknown operator: %s", op)
 	}
