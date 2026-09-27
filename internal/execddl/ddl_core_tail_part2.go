@@ -214,7 +214,7 @@ func addAutoIndexEntry(ctx *DatabaseContext, tableName string, seq int) error {
 	if perr != nil {
 		return perr
 	}
-	initIndexRootPage(pg, ctx.Pager.PageSize())
+	initIndexRootPage(pg, ctx.Pager.UsableSize())
 	if err := ctx.Pager.WritePage(pg); err != nil {
 		return err
 	}

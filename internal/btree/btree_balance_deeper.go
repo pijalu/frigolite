@@ -43,7 +43,7 @@ func (t *BTree) balanceDeeperRootLeaf(pg *pager.Page, page *storage.BTreePage, n
 	// pointer array was rewritten to point at record bodies is rejected
 	// here — the INSERT forcing balance_deeper is where corrupt.test 7.3
 	// expects "database disk image is malformed".
-	if err := storage.ValidateCellSizeCheck(child.Data, int(t.pageSize), 0); err != nil {
+	if err := storage.ValidateCellSizeCheck(child.Data, int(t.usableSize), 0); err != nil {
 		return nil, err
 	}
 	if err := t.rewriteRootLeafAsInterior(pg, child.PageNum, coff); err != nil {

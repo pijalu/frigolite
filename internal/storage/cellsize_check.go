@@ -28,7 +28,11 @@ var ErrMalformedImage = errors.New("database disk image is malformed")
 // ValidateCellSizeCheck validates the cell pointer array of the b-tree page
 // at pageData[contentOffset:]; it returns ErrMalformedImage when any cell
 // pointer or cell size violates the page bounds, mirroring the btreeInitPage
-// cell-size-check path. contentOffset is 100 for page 1, 0 otherwise.
+// cell-size-check path (btree.c btreeCellSizeCheck). pageSize is the caller's
+// USABLE size (pageSize - reserved): C bounds every cell by
+// iCellLast = usableSize-4 and pc+sz <= usableSize, and the embedded
+// local-payload formulas are usable-based. contentOffset is 100 for page 1,
+// 0 otherwise.
 func ValidateCellSizeCheck(pageData []byte, pageSize int, contentOffset int) error {
 	if len(pageData) < contentOffset+8 {
 		// Partial/synthetic page buffers (unit-test headers) are out of
@@ -43,7 +47,7 @@ func ValidateCellSizeCheck(pageData []byte, pageSize int, contentOffset int) err
 	}
 	nCell := int(binary.BigEndian.Uint16(pageData[contentOffset+3 : contentOffset+5]))
 	iCellFirst := cellOffset + 2*nCell
-	iCellLast := pageSize - 4
+	iCellLast := pageSize - 4 // pageSize IS the usable size here (btree.c: usableSize-4)
 	if !leaf {
 		iCellLast--
 	}
