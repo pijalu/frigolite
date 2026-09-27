@@ -560,12 +560,12 @@ lifecycle sites above are the complete set.
   block only hexio-patches the header); e_blobclose 2.3.3/2.3.5 (proc val
   executes SQL mid-scan; genuinely untranspilable without re-entrant UDF
   support — N-A candidate with evidence).
-- **Pre-existing at base, triaged not fixed:** bigrow-2.2 (UPDATE swapping a
-  ~65KB value returns it minus the first 2 bytes — oversized-record rewrite
-  boundary; identical at 01e0371e4) and corrupt-7.3 (the INSERT that must
+- **Pre-existing at base, triaged not fixed:** corrupt-7.3 (the INSERT that must
   trip balance-deeper's oversize-cell check doesn't: the engine's leaner
   leaf accounting keeps the root under-full where SQLite overflows — the
   ValidateCellSizeCheck site exists and is correct, it just never fires).
+  (bigrow-2.2, the other half of this entry, RESOLVED by attribution in
+  T34-bigrow — see that section: the engine was byte-exact all along.)
 - **Bisect attribution pays in one hop:** the "Page N: never used" leak was
   absent at all four coordinator candidates but reproduced verbatim (same
   page number) at aa23922dd — the T33-idxfix merge — because divider chains
@@ -811,3 +811,53 @@ lifecycle sites above are the complete set.
   rows (count 0, no error) on the corrupted root; the oracle errors "malformed" on
   the same scan. Not part of the corrupt-7.x corpus contract (no assertion between
   7.2 and 7.3) — left as-is; revisit only if a corpus case pins scan-after-craft.
+## T34-bigrow (fleet/t34-bigrow, 2026-09-27) — bigrow-2.2 residue: engine byte-exact, the "2-byte loss" was the emitter's want rendering
+
+- **Dissect the printed got/want before believing a symptom summary.** The
+  T33r-order residue note ("UPDATE swapping a ~65KB value returns it minus
+  the first 2 bytes") was a mis-description of the emitted bigrow-2.2
+  mismatch. Extracting the failure text from the base (01e0371e4) corpus run
+  and diffing programmatically: got = big1 byte-exact (65520 chars, ends
+  "9360 "), want = tclListFlatten(big1) = big1 minus its trailing space
+  (65519 chars, ends "9360") — 65519-char common prefix, delta = ONE
+  trailing space in the WANT. The engine never dropped anything; the
+  emitter's list-flattening collapses the trailing space of the
+  single-element [list $::big1] want (exactly what the emitted skip note
+  says). tclQuoteListElem does not brace space-only values, so flatten()
+  returns the value verbatim — the shapes differ only in that space.
+- **Attribution protocol that settled it in one pass** (per the pure-Go
+  supersession policy): (1) pure-Go probe replaying the exact corpus
+  statement sequence (1.2→2.2, including the index and both swaps) compares
+  byte-for-byte and PASSES at HEAD, at 01e0371e4 and at 9372fbb85 — pure-Go
+  green + transpiled red = transpiler suspect; (2) oracle /usr/bin/sqlite3
+  byte-exact on the same sequence (and on a size×page-size matrix);
+  (3) run the BASE-emitted corpus package and diff its got/want strings to
+  see the rendering delta with your own eyes instead of trusting prose.
+- **Engine audit that closed it** (all SQLite-faithful, nothing changed):
+  storage.LocalPayloadSize ports btreeParseCellPtr's surplus formula
+  (minLocal + (payload-minLocal)%(usable-4), capped by maxLocal; table-leaf
+  maxLocal = usable-35, index = (usable-12)*64/255-23); UPDATE has NO
+  in-place cell rewrite — writeUpdateCell deletes the old cell and re-inserts
+  through the same InsertCell/prepareCell path as INSERT; prepareCell spills
+  c.Payload[local:] from offset 0 and readOverflow reassembles bounded by
+  PayloadLen. No off-by-2 exists anywhere in the overflow encode/decode.
+- **Pin:** frigolite_t34_bigrow_test.go (4 tests, ~170 subtests) — the exact
+  corpus sequence, swap shapes × ps 512..65536 × index/no-index, a 24-size ×
+  5-page-size UPDATE-rewrite sweep (256/257 and 65536/65537 transitions,
+  minLocal/maxLocal boundaries), and a per-page-size SEAM sweep (partial-local
+  branch + seam-CROSSING sizes where an UPDATE's +3-byte growth flips local
+  maxLocal→minLocal and rebuilds the overflow chain, e.g. ps=4096
+  n=8152→8155), each byte-exact in-session, after PRAGMA integrity_check,
+  and after close/reopen; wants oracle-verified. The testgen/bigrow skip
+  stays (emitter-owned; un-skipping needs the tcl2go want fix, not an
+  engine change).
+- **Parallel test subtests perturb state-sensitive root-leg tests.** The
+  sweeps first ran with t.Parallel() (~100 concurrent open DBs) and the
+  full-root run flipped TestP8IncrVacuum3OracleSequence (freelist_count=21
+  vs 0) — a test that passes isolated and fails isolated at base too
+  (pre-existing state dependence). Running the sweeps sequentially (~1s)
+  removed the interference; new root-package tests that open many DBs must
+  not parallelize.
+- **Test-writing trap:** t.Fatalf arguments are evaluated even when the
+  guard short-circuited — `len(res.Rows[0])` inside a Fatalf format list
+  panics on a 0-row result. Capture into a local under the guard first.

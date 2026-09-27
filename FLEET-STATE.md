@@ -61,9 +61,12 @@ guarded by the race build-tag const (serial contract intact).
 
 - fts4merge4 census profile: 683-805s serial green; census 8-worker
   runs can content-thrash it — adjudicated in ledger; P9.PERF backlog.
-- bigrow-2.2 (oversized-record rewrite boundary) + corrupt-7.3
-  (layout-bound) pre-existing at base — documented, engine-perfect
-  follow-ups.
+- corrupt-7.3 (layout-bound) pre-existing at base — documented,
+  engine-perfect follow-up. (bigrow-2.2, listed here alongside it,
+  RESOLVED by attribution in T34-bigrow: the engine is byte-exact —
+  oracle-verified; the failure is the emitter's tclListFlatten want
+  rendering dropping the trailing space; native pin
+  frigolite_t34_bigrow_test.go carries the contract.)
 - TestFTS4Merge4Automerge8Grind fails under -race timing slowdown
   (no DATA RACE) — grind test; race-clean otherwise on the final run
   pending the background leg.
