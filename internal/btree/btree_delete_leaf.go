@@ -288,11 +288,11 @@ func (t *BTree) finishLeafDelete(pg *pager.Page, page *storage.BTreePage, encode
 		// The page became empty: SQLite sets the cell content pointer to the
 		// page's usable end for empty leaves (zeroPage: put2byte(&data[hdr+5],
 		// pBt->usableSize)).
-		page.CellContent = uint16(t.usableSize)
+		page.CellContent = int(t.usableSize)
 		binary.BigEndian.PutUint16(pg.Data[coff+5:coff+7], uint16(t.usableSize))
 		pg.Data[coff+7] = 0
 	} else {
-		page.CellContent = uint16(start)
+		page.CellContent = start
 		binary.BigEndian.PutUint16(pg.Data[coff+5:coff+7], uint16(start))
 		pg.Data[coff+7] = 0
 	}
@@ -341,7 +341,7 @@ func (t *BTree) deleteCellOnPage(pg *pager.Page, page *storage.BTreePage, cellId
 		// consistent; an empty page whose content pointer is 0 looks like a
 		// crash-written page — "free space corruption"). Reset it to the
 		// usable size so the next insert treats it as fresh.
-		page.CellContent = uint16(t.usableSize)
+		page.CellContent = int(t.usableSize)
 		binary.BigEndian.PutUint16(pg.Data[coff+5:coff+7], uint16(t.usableSize))
 		pg.Data[coff+7] = 0 // fragmented free bytes
 		return t.pager.WritePage(pg)
@@ -390,7 +390,7 @@ func (t *BTree) compactLeafAfterDelete(pg *pager.Page, page *storage.BTreePage, 
 		binary.BigEndian.PutUint16(pg.Data[ptrBase+i*2:ptrBase+i*2+2], uint16(start))
 	}
 
-	page.CellContent = uint16(start)
+	page.CellContent = start
 	binary.BigEndian.PutUint16(pg.Data[coff+5:coff+7], uint16(start))
 	// After compaction there is no fragmented free space.
 	pg.Data[coff+7] = 0

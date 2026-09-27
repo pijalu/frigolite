@@ -715,7 +715,7 @@ func (t *BTree) defragmentInterior(pg *pager.Page, page *storage.BTreePage) erro
 	// ("Multiple uses for byte N"); the engine never maintains a
 	// freeblock chain, so after a defragment there is none.
 	binary.BigEndian.PutUint16(pg.Data[coff+1:coff+3], 0) // first freeblock
-	page.CellContent = uint16(start)
+	page.CellContent = start
 	binary.BigEndian.PutUint16(pg.Data[coff+5:coff+7], uint16(start))
 	pg.Data[coff+7] = 0 // fragmented free bytes
 	return nil

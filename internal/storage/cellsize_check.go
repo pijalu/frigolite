@@ -101,6 +101,12 @@ func tableLeafCellSize(cell []byte, pageSize int) (int, error) {
 	if local < int(plen) {
 		sz += 4
 	}
+	if sz < 4 {
+		// cellSizePtrTableLeaf: "if( nSize<4 ) nSize = 4" — a tiny fully-local
+		// leaf cell is allocated 4 bytes (1 dead pad byte), so its extent
+		// never undercuts the pc <= usableSize-4 bound checked below.
+		sz = 4
+	}
 	return sz, nil
 }
 
@@ -128,6 +134,10 @@ func indexLeafCellSize(cell []byte, pageSize int) (int, error) {
 	sz := n + local
 	if local < int(plen) {
 		sz += 4
+	}
+	if sz < 4 {
+		// cellSizePtrIdxLeaf: "if( nSize<4 ) nSize = 4" (see above).
+		sz = 4
 	}
 	return sz, nil
 }
