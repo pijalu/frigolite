@@ -793,13 +793,23 @@ lifecycle sites above are the complete set.
   through the same InsertCell/prepareCell path as INSERT; prepareCell spills
   c.Payload[local:] from offset 0 and readOverflow reassembles bounded by
   PayloadLen. No off-by-2 exists anywhere in the overflow encode/decode.
-- **Pin:** frigolite_t34_bigrow_test.go (130 subtests) — the exact corpus
-  sequence, swap shapes × ps 512..65536 × index/no-index, and a 24-size ×
+- **Pin:** frigolite_t34_bigrow_test.go (4 tests, ~170 subtests) — the exact
+  corpus sequence, swap shapes × ps 512..65536 × index/no-index, a 24-size ×
   5-page-size UPDATE-rewrite sweep (256/257 and 65536/65537 transitions,
-  minLocal/maxLocal boundaries), each byte-exact in-session, after
-  PRAGMA integrity_check, and after close/reopen; wants oracle-verified.
-  The testgen/bigrow skip stays (emitter-owned; un-skipping needs the
-  tcl2go want fix, not an engine change).
+  minLocal/maxLocal boundaries), and a per-page-size SEAM sweep (partial-local
+  branch + seam-CROSSING sizes where an UPDATE's +3-byte growth flips local
+  maxLocal→minLocal and rebuilds the overflow chain, e.g. ps=4096
+  n=8152→8155), each byte-exact in-session, after PRAGMA integrity_check,
+  and after close/reopen; wants oracle-verified. The testgen/bigrow skip
+  stays (emitter-owned; un-skipping needs the tcl2go want fix, not an
+  engine change).
+- **Parallel test subtests perturb state-sensitive root-leg tests.** The
+  sweeps first ran with t.Parallel() (~100 concurrent open DBs) and the
+  full-root run flipped TestP8IncrVacuum3OracleSequence (freelist_count=21
+  vs 0) — a test that passes isolated and fails isolated at base too
+  (pre-existing state dependence). Running the sweeps sequentially (~1s)
+  removed the interference; new root-package tests that open many DBs must
+  not parallelize.
 - **Test-writing trap:** t.Fatalf arguments are evaluated even when the
   guard short-circuited — `len(res.Rows[0])` inside a Fatalf format list
   panics on a 0-row result. Capture into a local under the guard first.
