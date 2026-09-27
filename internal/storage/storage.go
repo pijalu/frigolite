@@ -165,7 +165,7 @@ type BTreePage struct {
 	PageType     byte
 	FirstFree    uint16
 	CellCount    uint16
-	CellContent  uint16 // offset where cell content starts
+	CellContent  int // offset where cell content starts (unwrapped: 65536 on a 64KiB empty page)
 	FragFree     byte
 	RightmostPtr uint32 // for interior pages
 }
@@ -182,7 +182,7 @@ func ParsePage(pageData []byte, pageSize int, contentOffset int) (*BTreePage, er
 		PageType:    header[0],
 		FirstFree:   binary.BigEndian.Uint16(header[1:3]),
 		CellCount:   binary.BigEndian.Uint16(header[3:5]),
-		CellContent: binary.BigEndian.Uint16(header[5:7]),
+		CellContent: int(binary.BigEndian.Uint16(header[5:7])),
 		FragFree:    header[7],
 	}
 	switch p.PageType {
@@ -191,7 +191,17 @@ func ParsePage(pageData []byte, pageSize int, contentOffset int) (*BTreePage, er
 	default:
 		// Leaf pages don't have rightmost pointer
 	}
-	if p.PageType == 0 {
+	if p.CellContent == 0 && pageSize == 65536 {
+		// A 65536-byte page's content start (usableSize on an empty page,
+		// src/btree.c zeroPage put2byte) truncates to 0 in the 16-bit
+		// header field. SQLite never re-reads the field after initPage —
+		// insertCell and friends work from MemPage's in-memory offsets —
+		// so the wrap is invisible there. The Go port re-parses headers to
+		// drive cell-content arithmetic, so normalize the wrapped value
+		// back to the unwrapped offset (validatePageHeader already accepts
+		// exactly this shape). The field is an int precisely so 65536 is
+		// representable.
+		p.CellContent = 65536
 	}
 	if err := validatePageHeader(p, pageData, pageSize, contentOffset); err != nil {
 		return nil, err
@@ -206,13 +216,11 @@ func ParsePage(pageData []byte, pageSize int, contentOffset int) (*BTreePage, er
 // pointer must lie inside the page. Crash-written pages carry inconsistent
 // offsets (fts3corrupt4 21.1/24.1: Tree 4/7 free space corruption; a cell
 // pointer beyond the page). The engine now writes cellcontent=pageSize on
-// empty pages (matching SQLite), so a page with cellcontent=0 or an
-// out-of-range value is corrupt. The stored offset is a 16-bit field; for a
-// 65536-byte page the page size wraps to 0 on disk (SQLite writes
-// (u16)cellOffset, and a full 65536 offset becomes 0), so a CellContent of 0
-// is valid only when pageSize is exactly 65536. The checks are skipped for
-// partial/synthetic page buffers smaller than a real page (unit tests build
-// 12-byte headers).
+// empty pages (matching SQLite), so a page with an out-of-range value is
+// corrupt; a raw 0 on a 65536-byte page was already normalized to 65536 by
+// ParsePage (the 16-bit field wraps for the full-page content start). The
+// checks are skipped for partial/synthetic page buffers smaller than a real
+// page (unit tests build 12-byte headers).
 func validatePageHeader(p *BTreePage, pageData []byte, pageSize int, contentOffset int) error {
 	switch p.PageType {
 	case PageTypeInteriorIndex, PageTypeInteriorTable, PageTypeLeafIndex, PageTypeLeafTable:
@@ -220,10 +228,7 @@ func validatePageHeader(p *BTreePage, pageData []byte, pageSize int, contentOffs
 		return fmt.Errorf("storage: unknown page type: 0x%02x", p.PageType)
 	}
 	cellPtrEnd := uint16(contentOffset + 8 + 2*int(p.CellCount))
-	cellContent := int(p.CellContent)
-	if cellContent == 0 && pageSize == 65536 {
-		cellContent = 65536
-	}
+	cellContent := p.CellContent
 	if len(pageData) >= pageSize && (cellContent < int(cellPtrEnd) || cellContent > pageSize) {
 		return fmt.Errorf("database disk image is malformed")
 	}

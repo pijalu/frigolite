@@ -311,6 +311,10 @@ func (t *BTree) absorbChildCellSize(childPg *pager.Page, src int, isInterior boo
 		if local < int(plen) {
 			sz += 4
 		}
+		if sz < 4 {
+			// cellSizePtrIdxLeaf: "if( nSize<4 ) nSize = 4" — leaf-cell pad.
+			sz = 4
+		}
 		return sz, nil
 	default:
 		return storage.TableLeafCellSizeAt(childPg.Data, src, int(t.usableSize))

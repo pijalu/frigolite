@@ -186,7 +186,7 @@ func (t *BTree) rekeyCarrierChainIndex(pg *pager.Page, page *storage.BTreePage, 
 		copy(pg.Data[rkStart:], rekeyed)
 		binary.BigEndian.PutUint16(pg.Data[ptrBase+idx*2:], uint16(rkStart))
 		binary.BigEndian.PutUint16(pg.Data[coff+5:coff+7], uint16(rkStart))
-		page.CellContent = uint16(rkStart)
+		page.CellContent = rkStart
 		// Insert the new sibling cell AFTER it, carrying carrierPayload.
 		newData, eerr := t.encodeDividerCell(cs.pageNum, leafSplitResult{medianPayload: carrierPayload}, pg.PageNum)
 		if eerr != nil {
@@ -199,7 +199,7 @@ func (t *BTree) rekeyCarrierChainIndex(pg *pager.Page, page *storage.BTreePage, 
 			return deadBytes, errInteriorFull
 		}
 		copy(pg.Data[ncStart:], newData)
-		page.CellContent = uint16(ncStart)
+		page.CellContent = ncStart
 		shiftCellPtrsRight(pg.Data, ptrBase, idx+1, int(page.CellCount))
 		binary.BigEndian.PutUint16(pg.Data[ptrBase+(idx+1)*2:], uint16(ncStart))
 		page.CellCount = uint16(nCount)
@@ -371,7 +371,7 @@ func (t *BTree) applyChildSplitsRightmost(pg *pager.Page, page *storage.BTreePag
 		// from the stale offset and overwrites cell si's bytes (both cell
 		// pointers then read identical child/key data — duplicate adjacent
 		// separators, orphaned keys).
-		page.CellContent = uint16(ncStart)
+		page.CellContent = ncStart
 		binary.BigEndian.PutUint16(pg.Data[coff+3:coff+5], uint16(nCount))
 		binary.BigEndian.PutUint16(pg.Data[coff+5:coff+7], uint16(ncStart))
 	}
@@ -439,7 +439,7 @@ func (t *BTree) rekeyCarrierChain(pg *pager.Page, page *storage.BTreePage, coff,
 		copy(pg.Data[rkStart:], rekeyed)
 		binary.BigEndian.PutUint16(pg.Data[ptrBase+idx*2:], uint16(rkStart))
 		binary.BigEndian.PutUint16(pg.Data[coff+5:coff+7], uint16(rkStart))
-		page.CellContent = uint16(rkStart)
+		page.CellContent = rkStart
 		// Insert the new sibling cell AFTER it, carrying carrierKey.
 		newData := t.encodeInteriorCell(cs.pageNum, carrierKey)
 		ncStart := int(page.CellContent) - len(newData)
@@ -452,7 +452,7 @@ func (t *BTree) rekeyCarrierChain(pg *pager.Page, page *storage.BTreePage, coff,
 		// Advance the content pointer past the sibling cell: the next
 		// iteration's relocated cell must land BELOW it, otherwise the two
 		// writes overlap and both cell pointers read identical bytes.
-		page.CellContent = uint16(ncStart)
+		page.CellContent = ncStart
 		// Shift pointers [idx+1..CellCount) right by one.
 		shiftCellPtrsRight(pg.Data, ptrBase, idx+1, int(page.CellCount))
 		binary.BigEndian.PutUint16(pg.Data[ptrBase+(idx+1)*2:], uint16(ncStart))

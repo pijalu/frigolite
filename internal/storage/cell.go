@@ -142,12 +142,17 @@ func TableLeafCellSizeAt(pageData []byte, offset int, pageSize int) (int, error)
 		return 0, err
 	}
 	// Cell bytes: payload-length varint + rowid varint + local payload +
-	// optional 4-byte overflow pointer.
+	// optional 4-byte overflow pointer. A fully-local cell smaller than 4
+	// bytes is padded on the page (cellSizePtrTableLeaf: "if( nSize<4 )
+	// nSize = 4"), so the on-page extent is never below 4.
 	_, n1 := util.GetVarint(pageData[offset:])
 	_, n2 := util.GetVarint(pageData[offset+n1:])
 	sz := n1 + n2 + c.LocalLen
 	if c.LocalLen < c.PayloadLen {
 		sz += 4
+	}
+	if sz < 4 {
+		sz = 4
 	}
 	return sz, nil
 }
@@ -303,7 +308,7 @@ func encodeTableLeafCell(c *Cell) []byte {
 	if local < plen {
 		binary.BigEndian.PutUint32(buf[pos:], c.Overflow)
 	}
-	return buf
+	return padLeafCell(buf)
 }
 
 func encodeTableInteriorCell(c *Cell) []byte {
@@ -336,7 +341,27 @@ func encodeIndexLeafCell(c *Cell) []byte {
 	if local < plen {
 		binary.BigEndian.PutUint32(buf[pos:], c.Overflow)
 	}
-	return buf
+	return padLeafCell(buf)
+}
+
+// padLeafCell enforces SQLite's minimum on-page cell size for leaf cells
+// (btree.c cellSizePtrTableLeaf / cellSizePtrIdxLeaf: "if( nSize<4 ) nSize =
+// 4", mirrored in btreeParseCellPtr's nSize). A fully-local leaf cell whose
+// varint header + payload is smaller than 4 bytes — e.g. an all-NULL
+// single-column record — is ALLOCATED 4 bytes, the trailing byte(s) never
+// parsed and effectively dead. Every cell pointer therefore stays at or
+// before usableSize-4, the bound btreeCellSizeCheck (PRAGMA
+// cell_size_check, on in the test-suite build) enforces; without the pad
+// such a cell would sit at usableSize-3 and read back as corrupt after the
+// next root split. Interior cells always exceed 4 bytes (4-byte child
+// pointer + at least one varint), so they are never padded.
+func padLeafCell(buf []byte) []byte {
+	if len(buf) >= 4 {
+		return buf
+	}
+	padded := make([]byte, 4)
+	copy(padded, buf)
+	return padded
 }
 
 // encodeIndexInteriorCell encodes an index-interior (divider) cell: when the
