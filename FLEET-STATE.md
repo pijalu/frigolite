@@ -188,6 +188,20 @@ TRIAGE FLEET DISPATCHED (worktrees frigolite-wt-t33r-*):
 Coordinator re-censuses AFTER all three land (alone, nothing else
 running).
 
+## Census wave RESIDUE (2026-09-27)
+
+All wave-4 branches merged (kernel2 = 0b7639954; t33r-fts incl. 90595c293
+follow-up = c44b2e9b3). Census (545949b03): 1064 pass / 9 fail / 290
+skip. Serial adjudication by coordinator: fts4merge4 GREEN (683s,
+slow-but-green — census panic was parallel-load contention),
+fts5content GREEN (census flake). REAL residue = vtab constraint
+propagation cluster (vtab1/vtab3/vtabH/vtab_shared/tabfunc01/
+tkt_ba7cbfaedc — extra rows = WHERE constraints not reaching
+xBestIndex/xFilter; PRIME suspect t33r-order bestindex.go seek-prefix
+rewrite) + tkt_3a77c9714e (string-case UDF shape from kernel2).
+→ fleet/t33r-vtab (frigolite-wt-t33r-vtab) dispatched; bisect protocol
+against 7efda8cdf.
+
 ## Wave-4 merge status (2026-09-26 late)
 
 - fleet/t33r-order MERGED (a90f0597a → main): use-walk three-ways
