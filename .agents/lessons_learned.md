@@ -699,3 +699,66 @@ lifecycle sites above are the complete set.
   profiling for infinite-loop triage; CPU profiles are the complement for
   allocation-heavy slowness (fts5optimize: 110s of WritePage under
   structureWrite per INSERT).
+
+## T33r-vtab (fleet/t33r-vtab, 2026-09-27)
+
+- **Attribution (census 2026-09-24T18:06Z green → 2026-09-27 red, 7 pkgs):**
+  - vtab3/vtab1/vtabH/vtab_shared/tabfunc01/tkt_ba7cbfaedc-generated-side:
+    NOT the t33r-order merge (7efda8cdf is t33r-KERNEL; 10d05820f is order —
+    both innocent). The corpus regen syncs (563dcf819..2bc2153be, §5d
+    baseline) re-ran the transpiler over hand-patched generated files and
+    CLOBBERED four T30-vtab/T30-kernel hand-patches whose emitter-side
+    equivalents were missing or wrong:
+    (1) vtab3: `incr ::auth_fail -1` was emitted as `tclIncrMod(&x,-1)` —
+    tclIncrMod's arithmetic is ALWAYS +1 (its 2nd arg is the `[incr x] % n`
+    condition modulus, introduced T24-vtab af9090613) → the authorizer deny
+    counter never reached 0 → nothing was denied. Fix: faithful
+    `tclIncrBy(x, N)` (processauth.go emitAuthorizerIncr).
+    (2) vtabH: `fileChannelSeek` keyed by the TCL var NAME ("fd") instead of
+    the channel's runtime path → x2.txt inherited x1.txt's end offset
+    (written 143+153=296 bytes). Fix: channelSeekKey keys by the Go path
+    expression for variable-path channels (processmisc/processblob); literal
+    paths keep the historical key (byte-identical corpus).
+    (3) vtab1: three patches — per-statement skip-side-effect replay (a
+    combined Exec aborts at the first error and strands the rest;
+    vtab-1.2152.4), the reopen-unregister skip must opt out of the HALF
+    close replay too (the regen emitted a bare `db.Close()` and everything
+    downstream ran on a closed connection), and empty-list expectations
+    (`{}` / `[list]`) must render the harness 0-row form `"{}"` not `""`.
+    (4) tabfunc01: wantOverride `tabfunc01:1370` (series.c step-zero
+    normalization; oracle 3.54 returns "0" for generate_series(0,0,0)).
+  - **Rule: a hand-patched generated file is a LOAN against the next regen.**
+    When hand-patching is the T-answer, the same session must land the
+    emitter-side equivalent (wantOverrides entry, shape fix, or keying fix)
+    or the next corpus regen silently reverts it.
+  - tkt_ba7cbfaedc (ENGINE): a9a61dd19 (t33-idx "ORDER BY emits the index
+    b-tree's stored key order") — emitRowsInIndexOrder returned SUCCESS with
+    an identity permutation for GROUP BY outputs (group representative
+    rowMaps carry no `rowid`), leaking the ASC group-key order over all-DESC
+    ORDER BY. Fix: decline when `scanRowidPositions(rowMaps)` is empty;
+    the comparator sort owns grouped ORDER BY.
+  - tkt_3a77c9714e (ENGINE): 2421001cb (t33-query omit-unused-subquery-
+    column) — the correlation check treated every UNQUALIFIED reference as
+    internal, so a body whose `WHERE Connected=SrcWord` reads the outer
+    UNION-scan was "uncorrelated"; the pass nulled the un-referenced SrcWord
+    output and the query lost all rows. Fix (resolve.c parity): unqualified
+    references resolve scope-by-scope against each scope's source columns
+    (named tables via schema; derived sources via expanded output names);
+    a name no scope supplies = correlated = optimization declines. Bare `*`
+    is a wildcard, never an outer reference; unresolvable scopes keep refs
+    internal (only shrinks the optimization). selectH counter/star pins stay
+    green — the optimization still applies when references resolve in scope.
+- **Oracle wins:** GROUP BY x,y ORDER BY y DESC,x = y-DESC groups with x ASC
+  inside (not the full reversal); generate_series(0,0,0) → row `0`.
+- **Method:** engine-vs-emitter isolation = `git checkout <census> --
+  testgen/<pkg>` into the HEAD worktree (old gen + new engine) vs the same
+  package at the census commit; a package that flips with ONLY the generated
+  files changed is emitter-side, one that fails both ways is engine-side.
+  Native probes (frigolite.Open/Query) reproduce without the harness; the
+  same probe binary dropped into throwaway worktrees bisects an engine
+  regression in minutes.
+- **Worktree ori trap:** `rm -rf ori && ln -s <main>/ori ori` deletes the two
+  TRACKED files (ori/sqlite/test/genesis.tcl, rtree_util.tcl). Instead:
+  `mkdir -p ori/sqlite/test` as a real dir, cp `*.test *.tcl` from main
+  (~1221 files, *.test is gitignored), `git checkout -- ` the two tracked
+  files. git status stays clean and the transpiler finds its inputs.
