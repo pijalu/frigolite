@@ -1,19 +1,19 @@
-Frigolite testgen status  (generated 2026-09-27T02:28:00Z)
+Frigolite testgen status  (generated 2026-09-27T11:51:14Z)
 
 FAMILY              TOTAL   PASS   FAIL   SKIP     PCT
 ----------------------------------------------------------
 AGG                     7      7      0      0  100.0%
-C-API                  48     38      0     10   79.2%
+C-API                  48     37      1     10   77.1%
 CONCURRENCY            39     12      0     27   30.8%
 CRUD                   59     59      0      0  100.0%
 CTE-WINDOW             34     34      0      0  100.0%
 EXPR                   43     41      0      2   95.3%
-FTS                   240    186      1     53   77.5%
+FTS                   240    185      2     53   77.1%
 FUNCTIONS              25     25      0      0  100.0%
 JOIN                   37     30      0      7   81.1%
 JSON                   12     12      0      0  100.0%
 ORDER                  26     24      0      2   92.3%
-OTHER                 507    394      0    113   77.7%
+OTHER                 507    392      2    113   77.3%
 PLANNER                38     19      0     19   50.0%
 RTREE                  27     20      0      7   74.1%
 SCHEMA                121    114      0      7   94.2%
@@ -21,7 +21,7 @@ SESSION                 2      2      0      0  100.0%
 VTAB                   49     42      0      7   85.7%
 WAL                    49     13      0     36   26.5%
 ----------------------------------------------------------
-TOTAL                1363   1072      1    290   78.7%
+TOTAL                1363   1068      5    290   78.4%
 
 PACKAGES
 PKG                FAMILY         STATE     DETAIL
@@ -49,7 +49,8 @@ capi3b             C-API          pass      1 files
 capi3c             C-API          pass      1 files, 6 tests skipped
 capi3d             C-API          pass      1 files
 capi3e             C-API          pass      1 files
-changes            C-API          pass      1 files
+changes            C-API          fail      1 files — CT 1 UNION ALL SELECT i+1 FROM s WHERE i < 5000
+         ...
 changes2           C-API          pass      1 files
 colmeta            C-API          pass      1 files
 dbstatus           C-API          pass      1 files
@@ -327,7 +328,8 @@ fts3sort           FTS            pass      1 files
 fts3tok1           FTS            pass      1 files
 fts3tok_err        FTS            pass      1 files
 fts3varint         FTS            pass      1 files
-fts4aa             FTS            pass      1 files
+fts4aa             FTS            fail      1 files — --- FAIL: Test_fts4aa (41.56s)
+    fts4aa_test.go:37: fts...
 fts4check          FTS            pass      1 files
 fts4content        FTS            pass      1 files, 11 tests skipped
 fts4docid          FTS            pass      1 files
@@ -340,7 +342,7 @@ fts4lastrowid      FTS            pass      1 files
 fts4merge          FTS            pass      1 files
 fts4merge2         FTS            pass      1 files
 fts4merge3         FTS            pass      1 files
-fts4merge4         FTS            fail      1 files — thub.com/pijalu/frigolite.(*DB).Exec(0x5b9676742180, {0x5...
+fts4merge4         FTS            fail      1 files — thub.com/pijalu/frigolite.(*DB).Exec(0x74b03003e780, {0x7...
 fts4merge5         FTS            pass      1 files
 fts4min            FTS            pass      1 files
 fts4noti           FTS            pass      1 files
@@ -627,7 +629,8 @@ boundary1          OTHER          pass      1 files
 boundary2          OTHER          pass      1 files
 boundary3          OTHER          pass      1 files
 boundary4          OTHER          pass      1 files
-btree01            OTHER          pass      1 files
+btree01            OTHER          fail      1 files — --- FAIL: Test_btree01 (0.00s)
+    btree01_test.go:86: qu...
 btree02            OTHER          pass      1 files
 btreefault         OTHER          pass      1 files, 1 tests skipped
 cache              OTHER          pass      1 files
@@ -875,7 +878,7 @@ readonly           OTHER          pass      1 files
 recover_pkg        OTHER          pass      1 files
 regexp1            OTHER          pass      1 files
 regexp2            OTHER          pass      1 files
-reservebytes       OTHER          pass      1 files
+reservebytes       OTHER          fail      1 files — e 93: never used Page 95: never used Page 96: never used ...
 resetdb            OTHER          pass      1 files
 resolver01         OTHER          pass      1 files
 round1             OTHER          pass      1 files
