@@ -65,19 +65,53 @@ each) under a self-imposed "verify-time budget". Fix = optimize engine.
 
 ---
 
-## 2. Current State (checkpoint 2026-09-16)
+## 2. Current State (checkpoint 2026-09-27 — T33 fleet close)
 
-- **Live full-suite baseline (2026-09-22, census 2026-09-19T23:22:27Z superseded — see below):
-  953 PASS, 113 FAIL, 280 SKIPPED, 17 timeout-suspects (serially adjudicated
-  set: 9 slow-but-green, 8 confirmed slow-class)** of 1,362 testgen packages.
-  **Corpus regeneration event (2026-09-20, §5g-4)**: the tcl2go emitter was
-  made flatten()-symmetric (want/got rendering) and escape-faithful, and the
-  full corpus was regenerated — activating PREVIOUSLY-UNEMITTED assertions
-  corpus-wide. The regenerated corpus is STRICTER: ~113 packages carry at
-  least one newly-exposed failing assertion against the engine (real
-  engine-visible contracts, being fixed in the T30 wave — NOT skip
-  candidates). Prior-census numbers on the OLD corpus (2026-09-14:
-  887/216/260; 2026-09-19T23:22Z: 1053/20/280) are not directly comparable.
+- **Live full-suite close (2026-09-27, census stamp 2026-09-27T02:28:00Z,
+  ledger re-seeded, `tools/status -check` 0 flips, `-audit` pass):
+  1,363 testgen packages → 1,072 PASS, 0 FAIL, 290 SKIP (all skips
+  NA_EVIDENCE-audited), 0 unresolved timeout-suspects (fts4merge4
+  serially adjudicated green at 683.8s — census contention artifact).
+  Every goal family in §4 carries zero red packages.** The session-start
+  baseline (1,037/26/283 at 2026-09-24T18:06Z) closed as follows: the 26
+  fails = 9 fts5 "architectural" (all now genuinely green — segment/
+  structure persistence, contentless_delete supersession with native
+  pins, LEFT JOIN ON-MATCH, circref re-entrancy guards, NATURAL JOIN
+  hidden columns) + 17 actionable (all green: misc2/3/5/7/8, having,
+  where6, window8, selectH, index, reindex, skipscan2, without_rowid4,
+  permutations, fts3corrupt6, rtree1, tpch01). Two mid-session
+  regressions introduced and fixed within the session: window1 + view
+  declared-column-lists (t33-query omit-unused-subquery-column use-walk
+  — fixed in fleet/t33-win + T33-win2), misc5/permutations-family
+  autoindex ordering (t33-idx value-ordered index storage completed by
+  fleet/t33-idxfix: key-guided insert descent through full-payload
+  dividers, btree.c:8820 parity). The full-corpus regeneration (2 syncs)
+  and the §5d tcl2go refactors surfaced a 39-package wave
+  (corpus-activated assertions + emitter gaps + engine residue), closed
+  by fleet/t33r-{order,kernel,fts,vtab}: use-walk holes (VALUES columnN,
+  CTE descent, grouped-output ORDER BY, unqualified-reference scope),
+  ORDER-BY-index collation/NULLS gate, autoindex DDL slot parity,
+  divider-chain leak, fts5delete duplicate markers, fts5optimize blob
+  total_changes, and the emitter-side restoration of hand-patched
+  generated files (skipTestsMoreT30Kernel map drop in the §5d skiptests
+  split — root cause of the kernel-singles wave). The legacy
+  TestSQLiteSuite JSON-harness drift (≈385 files, pre-squash per §2
+  DRIFT ALERT below) remains adjudicated: superseded pipeline, the
+  regenerated testgen corpus is the census currency.
+- **§5d golang-check closure COMPLETE (2026-09-27)**: gocognit >15 = 0,
+  gocyclo >12 = 0, staticcheck ./... = 0 findings, go vet ./... = 0,
+  zero production files over 1,000 lines (16 files split across
+  fleet/t33d-{set,db,cmd,flow,exec,q} + skiptests2_part3.go), with the
+  transpiler refactors gated by full-corpus regen byte-identity and the
+  engine refactors by per-package validation sets. Race gate: the one
+  DATA RACE (lockreg.NewConnID non-atomic counter under parallel Open)
+  fixed (atomic.AddInt64).
+- **Historical baseline (2026-09-22)**: 953 PASS, 113 FAIL, 280 SKIPPED,
+  17 timeout-suspects of 1,362 packages. **Corpus regeneration event
+  (2026-09-20, §5g-4)**: the tcl2go emitter was made flatten()-symmetric
+  (want/got rendering) and escape-faithful, and the full corpus was
+  regenerated — activating PREVIOUSLY-UNEMITTED assertions corpus-wide
+  (~113 packages newly failing; closed by the T30..T33 waves).
 - **Session progress (2026-09-16..22, 30+ fleet goals)**: T23 tkt_hash;
   T25 btree corruption family (overflow-chain freeing, fragmentation,
   ptrmap re-parenting, rebalance five-defect class); 9 T26 cluster goals
@@ -297,7 +331,7 @@ Each phase starts only after its dependencies are green.
 | `P6.JSON` | [`P6.JSON.md`](plan/goals/P6.JSON.md) | 12 | ⚠ live 10/12, 1 skipped (2026-09-03) — 🔄 constructor/extract/insert slice passes pure-Go tests; all 12 target packages still skipped; missing full JSON1/JSONB function matrix, JSONB binary representation, and ->/->> execution coverage | JSON1 functions, JSONB, ->/->> operators |
 | `P6.VTAB` | [`P6.VTAB.md`](plan/goals/P6.VTAB.md) | 30 | ⚠ live 19/30, 6 skipped (2026-09-03) — ✅ **complete** — all 30 target packages accounted for: 24 passing natively as testgen (csv, carray, closure, dbdata/dbpage, intarray, rowvaluevtab, spellfix×4, tabfunc01, unionvtab, vtabE/H/J/K/L, vtabdrop, zipfile×2, amatch1) + 6 superseded by native Go ports per the Pure-Go supersession policy (swarmvtab×3 harness-scaffolding-dependent; stmtvtab1/vtabdistinct/vtabrhs1 C-API/query-planner introspection modules `sqlite_stmt`/`qpvtab` not ported — see P6.VTAB.md Session 12). Engine: union/swarm LRU + aux-arg forms, spellfix editdist3/phonetic hash/MATCH scoring, zipfile crafted-archive/corrupt handling, rtree stat1 probe, ANALYZE/integrity_check/gen-col subquery contracts | Virtual table modules: csv, carray, spellfix, zipfile, etc. |
 | `P6.RTREE` | [`P6.RTREE.md`](plan/goals/P6.RTREE.md) | 27 | ✅ **complete (2026-09-13, T29+T30)** — 27/27 GREEN: rtree,rtree1-9,A-K,check,circ,connect,doc,doc2,doc3,fuzz001. T29 landed the xBestIndex-era rtree contract + aux columns + node hardening + backup/VACUUM vtab handling + master-order parity; T30 landed the feature-complete geopoly port (GeoPoly JSON/blob codec, 12 scalar fns + group_bbox aggregate, Bentley-Ottmann overlap sweep, rtree-subclass vtab with _shape + MATCH overloads via RtreeQueryInfo). Partial supersessions with native evidence (frigolite_rtreeA_J_8_native_test.go, frigolite_rtree_query2_test.go, frigolite_geopoly_test.go). Remaining non-goal: geopoly_debug (debug builds only), aux-write perf slice (P9.PERF) | R-tree virtual table module (rtree, rtree_i32, geopoly) |
-| `P6.FTS5` | [`P6.FTS5.md`](plan/goals/P6.FTS5.md) | 144 | ✅ **live 127/144 GREEN (2026-09-16, T24 fleet tranches: the actionable classes closed)** — fts5 engine ported (internal/fts5/: config+tokenizers+storage+inverted index+full MATCH query language+rank/bm25+highlight/snippet+special queries); T24 closed the 8 escalated engine gaps + 6 oracle-drift + 6 harness artifacts (20 flips: porter/trigram ports, fts5_locale + write guard, OP_MustBeInt rowids, BEFORE-trigger new.rowid, REPLACE-into-view NEW mapping, secure-delete %_config version bump, special-'delete' semantics, lazy tokenizer load + concrete reopen errors, \f whitespace, NEAR empty-phrase merge, detail-mode reset_db + pmatch UDF emission); 17 remaining reds are ADJUDICATED N-A: 9 architectural (pending-hash/deferred-leaf, contentless_delete tombstone storage, right-side MATCH, shadow re-entrancy) + 8 slow/PERF-class + 3 whole-package TCL-harness N-As (fts5locale, fts5origintext2/5) — evidence in portplan/NA_EVIDENCE.md + plan/goals/P6.FTS5.md | fts5 full-text engine |
+| `P6.FTS5` | [`P6.FTS5.md`](plan/goals/P6.FTS5.md) | 144 | ✅ **live 0 FAIL (2026-09-27, T33: the 9 'architectural' adjudications superseded by real engine work — segment/structure persistence model, contentless_delete tombstone supersession with native pins, LEFT JOIN ON-MATCH, circref re-entrancy guards, NATURAL JOIN hidden columns, MULTI-INDEX OR branch order, fts5Init module scalars, special-'delete' duplicate-marker corruption, optimize blob-tier total_changes; fts5aj/fts5bigid/fts5merge wall-clock workloads superseded with native contract pins per NA_EVIDENCE §FULL-SUITE-DRIFT.T33r-fts)** — previously (2026-09-16, T24): live 127/144 GREEN — fts5 engine ported (internal/fts5/: config+tokenizers+storage+inverted index+full MATCH query language+rank/bm25+highlight/snippet+special queries); T24 closed the 8 escalated engine gaps + 6 oracle-drift + 6 harness artifacts (20 flips: porter/trigram ports, fts5_locale + write guard, OP_MustBeInt rowids, BEFORE-trigger new.rowid, REPLACE-into-view NEW mapping, secure-delete %_config version bump, special-'delete' semantics, lazy tokenizer load + concrete reopen errors, \f whitespace, NEAR empty-phrase merge, detail-mode reset_db + pmatch UDF emission); 17 remaining reds are ADJUDICATED N-A: 9 architectural (pending-hash/deferred-leaf, contentless_delete tombstone storage, right-side MATCH, shadow re-entrancy) + 8 slow/PERF-class + 3 whole-package TCL-harness N-As (fts5locale, fts5origintext2/5) — evidence in portplan/NA_EVIDENCE.md + plan/goals/P6.FTS5.md | fts5 full-text engine |
 | `P6.DBDATA` | [`P6.DBDATA.md`](plan/goals/P6.DBDATA.md) | 1 | ✅ **complete (2026-09-13)** — `sqlite_dbdata` + `sqlite_dbptr` feature-complete port of ext/recover/dbdata.c (internal/vtab/dbdata.go): (pgno, cell, field, value, schema HIDDEN) schema, eponymous-only, overflow chains + local-payload math, corruption tolerance, 'fn()' page-function form; internal/vtab/dbdata.go native tests cross-validated BYTE-IDENTICAL against a purpose-built C oracle on 8 databases (UTF-16, WITHOUT ROWID, 512-8192 pages, 3 corrupted images). testgen/dbdata stays green (vacuously — load_extension gate). dbdata Noop removed | sqlite_dbdata raw-page virtual table |
 | `P6.DBSTAT` | [`P6.DBSTAT.md`](plan/goals/P6.DBSTAT.md) | 0→1 | ✅ **complete (2026-09-13, T32)** — internal/vtab/dbstat.go: feature-complete port of src/dbstat.c (page rows + per-btree aggregates, corruption tolerance, schema=/aggregate= hidden bindings, eponymous); native tests frigolite_dbstat_test.go (structure, formulas, overflow chains, corrupted pages via sqlite_dbpage); dbstat.test corpus conversion deferred to the next testgen regen window | dbstat b-tree page-statistics virtual table |
 

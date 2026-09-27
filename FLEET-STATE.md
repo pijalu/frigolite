@@ -1,4 +1,68 @@
-# Fleet State — clear snapshot at fleet stop (2026-09-23)
+# Fleet State — T33 CLOSE (2026-09-27)
+
+## T33 session CLOSE — COMPLETE
+
+Main: c148ede78+ (all waves merged, pushed). Final census stamp
+2026-09-27T02:28:00Z: **1,363 testgen packages → 1,072 PASS / 0 FAIL /
+290 SKIP (all NA_EVIDENCE-audited) / 0 unresolved suspects**
+(fts4merge4 serially adjudicated green 683.8s — census contention
+artifact). `tools/status -check` = 0 flips; `-audit` = pass;
+`go test ./tools/status/` = ok; ledger re-seeded
+(tools/status/ledger.json + last_run.json adjudication note).
+
+PORTPLAN: §2 checkpoint rewritten to the 2026-09-27 close state;
+§5d closure declared COMPLETE (gocognit/gocyclo/staticcheck/vet/
+file-size ALL ZERO repo-wide); §4 P6.FTS5 row updated to 0 FAIL.
+Legacy TestSQLiteSuite JSON-harness drift (≈385 files) stays
+adjudicated: superseded pipeline; testgen corpus is the census
+currency (pre-squash drift, §2 DRIFT ALERT).
+
+Race gate: lockreg.NewConnID atomic fix on main; root leg re-run
+results recorded at close if available (previous full run had the one
+race + the tools/status ledger-hygiene failure, both resolved).
+
+## What T33 did (chronological)
+
+1. Baselines: census 1037/26/283; staticcheck 4 U1000; §5d worklist
+   (16 over-1000 files, ~110 tcl2go + ~30 engine complexity findings);
+   SOLID green; root suite 2 fails.
+2. Fix fleet (5 agents): solo (fts3corrupt6/rtree1/tpch01), misc
+   (misc2/3/5/7/8), idx (permutations/index/reindex/skipscan2/
+   without_rowid4 + TestP5AnalyzeReindex), query (having/where6/
+   window8/selectH), fts5 (the 9 architectural — died twice, resumed
+   twice per protocol).
+3. §5d refactor fleet (6 agents + coordinator remainder): ALL gates
+   zero repo-wide; corpus regen sync ×2; compile-break fixes (varCount
+   sub-transpiler literals, fpnum interface{}, $args list rendering,
+   prefix UDF TCL quoting).
+4. Regressions found+fixed in-session: window1 + view column lists
+   (use-walk), misc5 autoindex ordering (idxfix: value-ordered index
+   storage — key-guided descent, full-payload dividers), lockreg race.
+5. Census wave 4 (39 fails from regen + engine changes): t33r-order
+   (use-walk 3 ways, ORDER-BY-index collation/NULLS gate, autoindex
+   slot parity, divider-chain leak), t33r-kernel (+2) (T30Kernel skip
+   map restore [coordinator's split bug], softheap1/shortread1/
+   e_fkey/pragma emitter, selectC/whereF/windowC), t33r-fts
+   (fts5delete/optimize/contentless2/prefix/aj/bigid/merge/fts4merge),
+   t33r-vtab (vtab cluster + 2 engine: grouped-output ORDER BY decline,
+   unqualified-ref scope resolution).
+6. Close: census 1072/0/290 + ledger seed + adjudications + PORTPLAN
+   §2/§4/§5d + lessons consolidation (live 496 lines; pre-T33 archive
+   at .agents/lessons_archive_2026-09.md).
+
+## Known residue (non-blockers)
+
+- fts4merge4 census profile: 683-805s serial green; census 8-worker
+  runs can content-thrash it — adjudicated in ledger; P9.PERF backlog.
+- bigrow-2.2 (oversized-record rewrite boundary) + corrupt-7.3
+  (layout-bound) pre-existing at base — documented, engine-perfect
+  follow-ups.
+- TestFTS4Merge4Automerge8Grind fails under -race timing slowdown
+  (no DATA RACE) — grind test; race-clean otherwise on the final run
+  pending the background leg.
+- vtab_shared-1.9.x engine-seam failures were fixed in T33r-vtab;
+  enc/memdb slow profiles documented.
+
 
 ## T33 session START (2026-09-24, coordinator + 4 cluster agents) — ACTIVE
 
