@@ -258,7 +258,6 @@ func TestT34BigRowUpdateSizeSweep(t *testing.T) {
 		for _, n := range sizes {
 			ps, n := ps, n
 			t.Run(fmt.Sprintf("ps%d/n%d", ps, n), func(t *testing.T) {
-				t.Parallel()
 				t34SweepUpdateRewrite(t, ps, n)
 			})
 		}
@@ -289,7 +288,6 @@ func TestT34BigRowSeamSweep(t *testing.T) {
 		for _, n := range sizes {
 			ps, n := ps, n
 			t.Run(fmt.Sprintf("ps%d/n%d", ps, n), func(t *testing.T) {
-				t.Parallel()
 				t34SweepUpdateRewrite(t, ps, n)
 			})
 		}
