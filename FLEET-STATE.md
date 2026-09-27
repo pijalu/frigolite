@@ -105,6 +105,24 @@ new paths), fts4aa (41s, bisect pending). fts4merge4 = known contention
 artifact. → fleet/t34r-btree (frigolite-wt-t34r-btree) dispatched to
 repair the tranche to full C parity (keep corrupt-7.3 contract).
 
+T34r-btree RESOLVED (merged 2fb3aa7aa): btree01/changes/fts4aa green —
+64KiB cell-content u16 wrap normalization + pad-4 leaf cells C parity.
+reservebytes root cause isolated: vacuum copy-back never stamps header
+byte 20 (usable mismatch on reopen) — fix owned by the T34r-vacuum
+owner session (still active in frigolite-wt-t34r-btree, its
+pagerconfig.go ResetToEmpty byte-20 stamping in progress). Second
+resume agent stood down per shared-worktree protocol (zero edits,
+lessons note committed).
+
+T34 EXPANDED FLEET (user directive: max sub-agents + telegram style on
+all; fresh worktrees, disjoint scopes):
+| Branch | Worktree | Scope |
+|---|---|---|
+| (owner session) | frigolite-wt-t34r-btree | reservebytes byte-20 fix (in flight) |
+| fleet/t34-planner | frigolite-wt-t34-planner | SEARCH-plan index-order emission (EQP sorter omission, trans6 family) — execquery only |
+| fleet/t34-perf | frigolite-wt-t34-perf | P9.PERF hot-path tranches (profile→optimize→byte-identical fence); balance-file + pager exclusions |
+All prompts enforce telegram thinking style per the telegram skill.
+
 ## T33 session START (2026-09-24, coordinator + 4 cluster agents) — superseded by T33 CLOSE below
 
 Objective: implement the remaining PORTPLAN work — drive the 17 actionable
