@@ -572,8 +572,7 @@ func (e *SelectEngine) sortRowsWithMaps(result *Result, orderBy []sql.OrderByTer
 	// (all-DESC) scan (memdb-6.6: ORDER BY c DESC over i2(c) ties in
 	// descending rowid). A temp-b-tree sort has no defined tie order, so
 	// without the index the stable scan order is kept.
-	if idxName, backward, ok := e.indexOrderedScanForOrderBy(s, orderBy); ok &&
-		e.emitRowsInIndexOrder(result, rowMaps, s.From.Name, idxName, backward) {
+	if e.emitIndexOrderedRows(result, rowMaps, s, orderBy) {
 		return nil
 	}
 	tie := e.orderByIndexRowidTie(s, orderBy)

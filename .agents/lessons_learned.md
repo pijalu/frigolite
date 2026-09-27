@@ -1029,4 +1029,52 @@ conflict risk maintained by zero edits — read-only diagnosis only, nothing sta
   and push with the EXPLICIT refspec `git push origin
   HEAD:refs/heads/fleet/t34r-btree` (the colon-less form followed
   upstream=main).
->>>>>>> origin/fleet/t34r-btree
+
+## T34-planner (fleet/t34-planner, 2026-09-27) — SEARCH-plan ORDER BY consumption (wherePathSatisfiesOrderBy)
+
+- **Probe first, on BOTH engines, with data.** The sqlite3-oracle EQP battery
+  (t table + ASC/DESC/multi-col/unique indexes + ~30 SELECT shapes) mapped 10
+  divergence classes before any edit. Trap: running the battery through
+  `EXPLAIN QUERY PLAN <DDL>` executes NOTHING — schema/rows never exist and
+  the plans are empty-table plans; Exec the DDL first, EQP only the probes.
+  Second trap: a battery without INSERT produces different plan choices
+  (unique-index preference disappears).
+- **wherePathSatisfiesOrderBy model (single loop), now mirrored in
+  execquery/select_order_search.go:** (1) pre-pass — every ORDER BY term
+  whose column an AND conjunct fixes (col=const / col==const / col IS const /
+  col IS NULL) is consumed without direction, collation must agree for
+  value-carrying equalities (IS NULL skips it); (2) walk — index columns in
+  key order, skipping the equality-bound prefix (nEq = equality-run only; a
+  trailing range column is a FREE column and still orders); the FIRST
+  unsatisfied term must name the column (one candidate per column — bOnce),
+  under the column's collation, with ONE scan direction shared by all free
+  matches (rev = idxDesc ^ termDesc); (3) mark-off — when the loop is
+  order-distinct (unique index, walk reached past the last key column, free
+  columns NOT NULL, no IS/ISNULL in the prefix), remaining table-column terms
+  are consumed (distinct rows, no ties, term is a no-op).
+- **The order-distinct/NOT NULL subtlety is load-bearing:** `WHERE a=1 AND
+  d=2 ORDER BY c` over a NON-unique (a,d) index needs a sorter (rows can tie
+  on (a,d)); over the UNIQUE index it does not (one row). Nullable free
+  columns void distinctness (tag-20210426-1) — duplicates via NULL make the
+  remaining term matter.
+- **EQP and runtime emission must share ONE gate.** planSingleTable now
+  computes a scanLoop once (scanLoopForQuery) and renders from it; the same
+  struct feeds orderByConsumedByLoop (drops "USE TEMP B-TREE FOR ORDER BY")
+  and loopOrderedEmission (permutes the result rows into the index b-tree
+  order via emitRowsInIndexOrder, incl. backward rowid-desc ties). The
+  legacy naive sortCoveredByIndex suppressed the sorter for the WRONG index
+  (`a=1 ORDER BY c` found a sort-index i2 while the scan used i1) — corpus
+  still green because no green test asserted those shapes, and the where.c
+  gate fixed the direction (mixed-direction plain scans gained the sorter
+  sqlite has).
+- **Known remaining N-A (documented, do not "fix" blindly):** IS NULL seek
+  refs (collectIndexedRefs has no IS NULL ref, so those plans stay SCAN+sorter
+  where sqlite SEARCHes), IPK range rendering (rowid>3 renders SCAN, oracle
+  SEARCH IPK), rowid-range vs full-index-scan cost choice, partial sorter
+  text ("USE TEMP B-TREE FOR LAST TERM OF ORDER BY" — needs block-sort
+  semantics, out of scope), skip-scan ORDER BY consumption.
+- **Complexity gates bite refactors:** the walk decomposed into
+  walkColumnStep/matchWalkColumn to stay under gocognit 15 / gocyclo 12;
+  adding ONE if to a 12-gocyclo function (sortRowsWithMaps) trips the gate —
+  run gocognit/gocyclo on every touched file before committing (the
+  pre-commit hook was not installed in this worktree either).

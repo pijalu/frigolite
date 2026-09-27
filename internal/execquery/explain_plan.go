@@ -8,7 +8,6 @@ package execquery
 
 import (
 	"fmt"
-	"math"
 	"strconv"
 	"strings"
 
@@ -17,83 +16,36 @@ import (
 	"github.com/pijalu/frigolite/internal/vtab"
 )
 
-// planSingleTable computes the plan node for a query over a single table.
-func (e *SelectEngine) planSingleTable(t queryTable, s *sql.SelectStmt) string {
+// planSingleTable computes the plan node for a query over a single table
+// together with the scan loop the planner chose (the loop feeds the ORDER BY
+// consumption analysis in planSortNodes).
+func (e *SelectEngine) planSingleTable(t queryTable, s *sql.SelectStmt) (string, scanLoop) {
 	// Created virtual tables plan through xBestIndex (wherecode.c:205-208
 	// "VIRTUAL TABLE INDEX" rendering) before any b-tree index logic; a vtab
 	// has no indexes of its own.
 	if plan := e.vtabExplainPlan(t, s); plan != "" {
-		return plan
+		return plan, scanLoop{kind: loopVtab}
 	}
-	tableName := t.display
-
-	// Get actual row count from table
-	nRow := e.tableRowCount(tableName)
-	if nRow == 0 {
-		nRow = 1000000 // default estimate
-	}
-
-	// Collect indexed constraints and conditions for plan output
-	bestIndex := ""
-	bestEstimate := float64(nRow)
-	conditions := "" // formatted as "(col op ? AND col op ?)"
-	if s.Where != nil {
-		bestIndex, conditions = e.bestIndexForQuery(tableName, s.Where, &bestEstimate)
-	}
-
-	// Skip-scan: when an index has unconstrained low-cardinality leading
-	// columns and a later column IS constrained, the planner iterates over
-	// each leading prefix and runs an index range scan. This beats a regular
-	// scan or a less-selective index lookup. where.c:3517 (WHERE_SKIPSCAN).
-	if s.Where != nil {
-		if ss := e.trySkipScanPlan(tableName, s.Where, bestEstimate); ss != nil {
-			return e.searchPlan(tableName, ss.indexName, ss.conditions, s)
+	loop := e.scanLoopForQuery(t, s)
+	switch loop.kind {
+	case loopSkipScan, loopIndex:
+		if loop.seek {
+			return e.searchPlan(t.display, loop.token, loop.conditions, s), loop
 		}
+		// Full index walk chosen for the ORDER BY / GROUP BY / DISTINCT
+		// optimization: "SCAN <t> USING [COVERING] INDEX <idx>".
+		return e.indexScanDetail(t, loop, s), loop
+	case loopIPK:
+		// INTEGER PRIMARY KEY / rowid equality is a direct table-btree seek:
+		// SQLite renders "SEARCH <t> USING INTEGER PRIMARY KEY (rowid=?)"
+		// (intpkey-1.12.2 "WHERE a==4" over t1(a INTEGER PRIMARY KEY)).
+		return e.ipkSearchDetail(t.display, s.Where), loop
 	}
-
-	// INTEGER PRIMARY KEY / rowid equality is a direct table-btree seek:
-	// SQLite renders "SEARCH <t> USING INTEGER PRIMARY KEY (rowid=?)" and
-	// bestIndexForQuery only knows secondary b-tree indexes (intpkey-1.12.2
-	// "WHERE a==4" over t1(a INTEGER PRIMARY KEY) plans "SEARCH t1").
-	if s.Where != nil {
-		if detail := e.ipkSearchDetail(tableName, s.Where); detail != "" {
-			return detail
-		}
-	}
-	return e.finishSingleTablePlan(t, s, tableName, bestIndex, conditions, bestEstimate, float64(nRow))
-}
-
-// finishSingleTablePlan applies the threshold and fallback plans after the
-// best secondary index is known: an index seek when selective (or when no
-// sqlite_stat1 row prices it — SQLite's default cost model prices an index
-// range seek at one tenth of a full scan, so the seek always wins,
-// intpkey-2.5 "WHERE b>'a'" plans "SEARCH t1 USING INDEX i1 (b>?)" without
-// any ANALYZE), else index-assisted ORDER BY/GROUP BY/DISTINCT or COUNT
-// covering plans, else a full SCAN.
-func (e *SelectEngine) finishSingleTablePlan(t queryTable, s *sql.SelectStmt, tableName, bestIndex, conditions string, bestEstimate, nRow float64) string {
-	threshold := nRow * 0.10
-	if bestIndex != "" && bestIndex != "PRIMARY KEY" && len(e.stat1Tokens(bestIndex)) == 0 {
-		threshold = math.MaxFloat64
-	}
-	if bestIndex != "" && (bestIndex == "PRIMARY KEY" || bestEstimate < threshold) {
-		return e.searchPlan(tableName, bestIndex, conditions, s)
-	}
-
-	// ORDER BY / GROUP BY / DISTINCT index optimization: when the sort or
-	// dedup columns match an index (covering the output for GROUP BY /
-	// DISTINCT), scan the index instead of sorting in a temp b-tree.
-	if bestIndex == "" {
-		if plan := e.indexScanPlan(t, s); plan != "" {
-			return plan
-		}
-	}
-
 	// Covering index: for COUNT(col) on an indexed column, use the best covering index
-	if plan := e.countIndexPlan(t, s); plan != "" {
-		return plan
+	if plan, ok := e.countIndexPlan(t, s); ok {
+		return plan, loop
 	}
-
-	return fmt.Sprintf("SCAN %s", tableName)
+	return fmt.Sprintf("SCAN %s", t.display), loop
 }
 
 // vtabExplainPlan renders the "SCAN <name> VIRTUAL TABLE INDEX <idxNum>:<idxStr>"
@@ -148,21 +100,6 @@ func vtabBestIndexPlan(ii *vtab.IndexInfo, vt vtab.VirtualTable) error {
 	return nil
 }
 
-// indexScanPlan renders a "SCAN <table> USING [COVERING] INDEX <idx>" node
-// for the ORDER BY / GROUP BY / DISTINCT optimization, or "" when no index
-// qualifies (a temp b-tree sort is needed instead).
-func (e *SelectEngine) indexScanPlan(t queryTable, s *sql.SelectStmt) string {
-	if len(s.OrderBy) > 0 {
-		if plan := e.orderByIndexPlan(t, s); plan != "" {
-			return plan
-		}
-	}
-	if len(s.GroupBy) > 0 || s.Distinct {
-		return e.groupDistinctIndexPlan(t, s)
-	}
-	return ""
-}
-
 // searchPlan renders a "SEARCH <table> USING <index> (<conditions>)" node for
 // a selective index on a single-table query.
 func (e *SelectEngine) searchPlan(tableName, idx, conditions string, s *sql.SelectStmt) string {
@@ -174,31 +111,36 @@ func (e *SelectEngine) searchPlan(tableName, idx, conditions string, s *sql.Sele
 	return plan
 }
 
-// orderByIndexPlan renders a "SCAN <table> USING [COVERING] INDEX <idx>" node
-// when the ORDER BY columns match an index prefix, or "" when no index
-// qualifies (a temp b-tree sort is needed instead). Partial indexes are only
-// used when the query WHERE implies the partial-index predicate. When the
-// query has WHERE constraints on columns outside the index, the ORDER BY
-// index optimisation is skipped (SQLite prefers a full scan + sort).
-func (e *SelectEngine) orderByIndexPlan(t queryTable, s *sql.SelectStmt) string {
+// indexScanDetail renders a "SCAN <table> USING [COVERING] INDEX <idx>" node
+// for the loop's full index walk. A GROUP BY / DISTINCT walk is always
+// COVERING (its token selection required coverage); an ORDER BY walk is
+// COVERING when the index also covers the output columns.
+func (e *SelectEngine) indexScanDetail(t queryTable, loop scanLoop, s *sql.SelectStmt) string {
+	if loop.groupDistinct || e.indexCoversCols(loop.token, t.real, selectOutputCols(s)) {
+		return fmt.Sprintf("SCAN %s USING COVERING INDEX %s", t.display, indexSchemaName(loop.token))
+	}
+	return fmt.Sprintf("SCAN %s USING INDEX %s", t.display, indexSchemaName(loop.token))
+}
+
+// orderByIndexToken resolves the index whose leading columns match the ORDER
+// BY columns (a temp-b-tree-free ORDER BY walk), or ok=false when no index
+// qualifies. Partial indexes are only used when the query WHERE implies the
+// partial-index predicate. When the query has WHERE constraints on columns
+// outside the index, SQLite prefers a full scan + temp sort rather than an
+// index scan with post-filtering.
+func (e *SelectEngine) orderByIndexToken(t queryTable, s *sql.SelectStmt) (string, bool) {
 	obCols := orderByCols(s)
 	if len(obCols) == 0 {
-		return ""
+		return "", false
 	}
 	idxName := e.findIndexOnColsForQuery(t.display, obCols, s.Where)
 	if idxName == "" {
-		return ""
+		return "", false
 	}
-	// When the WHERE clause constrains columns that the index does not cover,
-	// SQLite does a full table scan + temp sort rather than an index scan
-	// with post-filtering.
 	if s.Where != nil && e.whereHasNonIndexConstraint(s.Where, t.real, idxName) {
-		return ""
+		return "", false
 	}
-	if e.indexCoversCols(idxName, t.real, selectOutputCols(s)) {
-		return fmt.Sprintf("SCAN %s USING COVERING INDEX %s", t.display, indexSchemaName(idxName))
-	}
-	return fmt.Sprintf("SCAN %s USING INDEX %s", t.display, indexSchemaName(idxName))
+	return idxName, true
 }
 
 // whereHasNonIndexConstraint reports whether the WHERE expression contains a
@@ -242,10 +184,10 @@ func (e *SelectEngine) whereHasNonIndexConstraint(where sql.Expr, tableName, idx
 	return found
 }
 
-// groupDistinctIndexPlan renders a "SCAN <table> USING COVERING INDEX <idx>"
-// node when the GROUP BY / DISTINCT columns match an index that also covers
-// every output column, or "" when no such index exists.
-func (e *SelectEngine) groupDistinctIndexPlan(t queryTable, s *sql.SelectStmt) string {
+// groupDistinctIndexToken resolves the index whose leading columns match the
+// GROUP BY / DISTINCT columns and which covers every output column (the
+// temp-b-tree-free grouping/dedup walk), or ok=false when none qualifies.
+func (e *SelectEngine) groupDistinctIndexToken(t queryTable, s *sql.SelectStmt) (string, bool) {
 	var cols []string
 	if len(s.GroupBy) > 0 {
 		cols = groupByCols(s)
@@ -253,34 +195,34 @@ func (e *SelectEngine) groupDistinctIndexPlan(t queryTable, s *sql.SelectStmt) s
 		cols = distinctCols(s)
 	}
 	if len(cols) == 0 {
-		return ""
+		return "", false
 	}
 	idxName := e.findIndexOnCols(t.display, cols)
 	if idxName == "" || !e.indexCoversCols(idxName, t.real, selectOutputCols(s)) {
-		return ""
+		return "", false
 	}
-	return fmt.Sprintf("SCAN %s USING COVERING INDEX %s", t.display, indexSchemaName(idxName))
+	return idxName, true
 }
 
 // countIndexPlan renders an "INDEX <idx>" node for COUNT(col) when a covering
-// index on the counted column exists, or "" otherwise.
-func (e *SelectEngine) countIndexPlan(t queryTable, s *sql.SelectStmt) string {
+// index on the counted column exists, or ok=false otherwise.
+func (e *SelectEngine) countIndexPlan(t queryTable, s *sql.SelectStmt) (string, bool) {
 	if len(s.Columns) != 1 {
-		return ""
+		return "", false
 	}
 	fn, ok := s.Columns[0].Expr.(*sql.FuncCall)
 	if !ok || strings.ToUpper(fn.Name) != "COUNT" || len(fn.Args) != 1 {
-		return ""
+		return "", false
 	}
 	colRef, ok := fn.Args[0].(*sql.ColumnRef)
 	if !ok {
-		return ""
+		return "", false
 	}
 	bestCoverIdx := e.findBestCoveringIndex(t.display, colRef.Name)
 	if bestCoverIdx != "" {
-		return fmt.Sprintf("INDEX %s", indexSchemaName(bestCoverIdx))
+		return fmt.Sprintf("INDEX %s", indexSchemaName(bestCoverIdx)), true
 	}
-	return ""
+	return "", false
 }
 
 // planJoin computes one plan node per joined table. The driving table is the

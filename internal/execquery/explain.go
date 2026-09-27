@@ -302,8 +302,11 @@ func (e *SelectEngine) explainQueryPlanSelect(s *sql.SelectStmt) *Result {
 	}
 
 	var nodes []planNode
+	loop := scanLoop{}
 	if len(tables) == 1 {
-		nodes = append(nodes, e.planSingleTableNodes(tables[0], s)...)
+		var memberNodes []planNode
+		memberNodes, loop = e.planSingleTableNodesLoop(tables[0], s)
+		nodes = append(nodes, memberNodes...)
 	} else {
 		nodes = append(nodes, e.planJoin(tables, s)...)
 	}
@@ -312,7 +315,7 @@ func (e *SelectEngine) explainQueryPlanSelect(s *sql.SelectStmt) *Result {
 	// an index. When the single table's scan already used a covering index
 	// for the sort (planSingleTable returned "SCAN ... USING COVERING INDEX"),
 	// no temp b-tree is needed.
-	nodes = append(nodes, e.planSortNodes(tables, s)...)
+	nodes = append(nodes, e.planSortNodes(tables, s, loop)...)
 
 	// EXISTS/subquery expressions in the WHERE, HAVING, or select list add a
 	// subquery node to the plan (SQLite emits "CORRELATED SCALAR SUBQUERY n"
@@ -378,25 +381,28 @@ func (e *SelectEngine) planSelectMember(s *sql.SelectStmt) []planNode {
 	if len(tables) == 0 {
 		return []planNode{{detail: "SCAN CONSTANT ROW"}}
 	}
+	loop := scanLoop{}
 	if len(tables) == 1 {
-		nodes = append(nodes, e.planSingleTableNodes(tables[0], s)...)
+		var memberNodes []planNode
+		memberNodes, loop = e.planSingleTableNodesLoop(tables[0], s)
+		nodes = append(nodes, memberNodes...)
 	} else {
 		nodes = append(nodes, e.planJoin(tables, s)...)
 	}
-	nodes = append(nodes, e.planSortNodes(tables, s)...)
+	nodes = append(nodes, e.planSortNodes(tables, s, loop)...)
 	nodes = append(nodes, e.planSubqueryNodes(s)...)
 	return nodes
 }
 
 // planSortNodes appends SQLite's temp-b-tree nodes for ORDER BY / GROUP BY /
-// DISTINCT that cannot be satisfied by an index. A single-table scan that
-// already returned "USING COVERING INDEX" (or "USING INDEX") for the sort
-// suppresses the node; multi-table queries always sort in a temp b-tree when
-// ORDER BY/GROUP BY/DISTINCT is present (SQLite may still use an index for
-// one of the tables, but the temp-b-tree shape is what the CLI shows).
-func (e *SelectEngine) planSortNodes(tables []queryTable, s *sql.SelectStmt) []planNode {
+// DISTINCT that cannot be satisfied by the chosen plan. A single-table scan
+// whose loop delivers the ordering (orderByConsumedByLoop: an index seek
+// whose equality prefix and residual columns, or the loop's full walk,
+// matches the ORDER BY — where.c orderByConsumed) suppresses the ORDER BY
+// node; GROUP BY / DISTINCT keep the legacy covering-index heuristic.
+func (e *SelectEngine) planSortNodes(tables []queryTable, s *sql.SelectStmt, loop scanLoop) []planNode {
 	var nodes []planNode
-	if len(s.OrderBy) > 0 && !e.sortCoveredByIndex(tables, s, orderByCols(s)) {
+	if len(s.OrderBy) > 0 && !e.orderByConsumedByLoop(tables, s, loop) {
 		nodes = append(nodes, planNode{detail: "USE TEMP B-TREE FOR ORDER BY"})
 	}
 	if len(s.GroupBy) > 0 && !e.sortCoveredByIndex(tables, s, groupByCols(s)) {
@@ -563,8 +569,16 @@ func (e *SelectEngine) subqueryHasColumn(sub *sql.SelectStmt, name string) bool 
 // a CO-ROUTINE node (with the body plan nested) plus a SCAN of the subquery
 // alias when it is a compound or aggregate (SQLite materializes those).
 func (e *SelectEngine) planSingleTableNodes(t queryTable, s *sql.SelectStmt) []planNode {
+	nodes, _ := e.planSingleTableNodesLoop(t, s)
+	return nodes
+}
+
+// planSingleTableNodesLoop is planSingleTableNodes plus the scan loop the
+// planner chose, for the ORDER BY consumption analysis.
+func (e *SelectEngine) planSingleTableNodesLoop(t queryTable, s *sql.SelectStmt) ([]planNode, scanLoop) {
 	if t.subquery == nil {
-		return []planNode{{detail: e.planSingleTable(t, s)}}
+		detail, loop := e.planSingleTable(t, s)
+		return []planNode{{detail: detail}}, loop
 	}
 	sub := t.subquery
 	// Compound and aggregate FROM subqueries must be materialized (SQLite
@@ -582,11 +596,11 @@ func (e *SelectEngine) planSingleTableNodes(t queryTable, s *sql.SelectStmt) []p
 			coroutine.children = e.planSelectMember(sub)
 		}
 		scan := planNode{detail: "SCAN " + alias}
-		return []planNode{coroutine, scan}
+		return []planNode{coroutine, scan}, scanLoop{}
 	}
 	// Simple subquery: inline its body plan (the outer WHERE may still add
 	// constraints, but SQLite merges the subquery's own plan).
-	return e.planSelectMember(sub)
+	return e.planSelectMember(sub), scanLoop{}
 }
 
 // hasAggregate reports whether a SELECT uses any aggregate function in its
