@@ -87,7 +87,23 @@ Worktrees cut from main 3b9cc6646:
 | fleet/t34-x6 | frigolite-wt-t34-x6 | TestWriterConformance fts-x6-growth fixture-vs-fix verdict (91e4296b5) — RESOLVED 2026-09-27: verdict (b) ENGINE bug (decodeSegmentBlock NULL marker row blocked the continuation append; attribution "since 91e4296b5" wrong, fixture correct per fresh oracle regen); fix + native pin TestT34X6_FTS4GrowthMergeContinuationPin on fleet/t34-x6 |
 
 Protocol unchanged: engine-first, oracle ground truth, serial validation,
-per-commit push, no main merges by agents. Merge log: (none yet).
+per-commit push, no main merges by agents. Merge log:
+- fleet/t34-vacuum MERGED f2433a886 (verified: corrupt green, vacuum test
+  fixed, SOLID).
+- fleet/t34-bigrow MERGED d62a178d7 (RESOLVED by attribution — engine
+  byte-exact; residue was tclListFlatten want-rendering; native pin
+  ~170 subtests).
+- fleet/t34-x6 MERGED 8d589f1e8 (verdict (b): ENGINE bug — NULL
+  appendable-segment row misclassified malformed in decodeSegmentBlock;
+  conformance 5/5 byte-exact vs oracle after C fts3IsAppendable parity).
+
+T34 CENSUS (main 8d589f1e8): 1068/5/290. NEW FAILS = T34-vacuum tranche
+fallout: btree01 (interior page full @65536 — balance_deeper routing
+must stay leaf-root-only per C balance()), changes (malformed on 5000
+recursive insert), reservebytes (Page never used again — chain leak via
+new paths), fts4aa (41s, bisect pending). fts4merge4 = known contention
+artifact. → fleet/t34r-btree (frigolite-wt-t34r-btree) dispatched to
+repair the tranche to full C parity (keep corrupt-7.3 contract).
 
 ## T33 session START (2026-09-24, coordinator + 4 cluster agents) — superseded by T33 CLOSE below
 
