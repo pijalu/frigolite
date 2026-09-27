@@ -744,14 +744,22 @@ func (t *Table) specialDelete(args []interface{}) error {
 // recordSpecDelMarkers marks every (column, rowid, term) triple of a
 // special-'delete' command; a triple seen twice sets the sticky corrupt
 // read flag (C: a doclist holding the same rowid twice — see
-// specDelMarkers).
+// specDelMarkers). Repeated tokens WITHIN one command aggregate into a
+// single marker (C's delete hash merges per (term, rowid) — 't h r e e'
+// writes the e marker once), so only the first occurrence of each triple
+// per command participates.
 func (t *Table) recordSpecDelMarkers(rowid int64, cols [][]string) {
 	if t.specDelMarkers == nil {
 		t.specDelMarkers = make(map[string]bool)
 	}
+	seen := make(map[string]bool)
 	for i, toks := range cols {
 		for _, tok := range toks {
 			key := fmt.Sprintf("%d\x00%d\x00%s", i, rowid, tok)
+			if seen[key] {
+				continue
+			}
+			seen[key] = true
 			if t.specDelMarkers[key] {
 				t.idxCorrupt = true
 			} else {
