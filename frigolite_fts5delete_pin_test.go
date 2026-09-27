@@ -87,6 +87,31 @@ INSERT INTO ti(rowid, name) VALUES(9, 'crunch cronch');`); err != nil {
 		t.Errorf("secure4: want success, got %v", err)
 	}
 
+	// Repeated tokens WITHIN one delete aggregate into a single marker (C's
+	// delete hash merges per (term, rowid)): the first 'e e t' delete
+	// records e once and stays clean; a LATER identical delete repeats the
+	// markers and corrupts. (fts5content 2.x external-content triggers
+	// repeat tokens like 't h r e e' on every UPDATE and must not corrupt
+	// merely for carrying a token twice.)
+	if err := exec(`DROP TABLE ti;
+CREATE VIRTUAL TABLE ti USING fts5(name, content=test, content_rowid=id);
+INSERT INTO ti(rowid, name) VALUES(7, 'e e t');
+INSERT INTO ti(rowid, name) VALUES(8, 'z z z z');
+INSERT INTO ti(ti, rowid, name) VALUES('delete', 7, 'e e t');`); err != nil {
+		t.Fatalf("repeated-token delete: want success, got %v", err)
+	}
+	if err := query(`SELECT rowid FROM ti WHERE ti MATCH 'z';`); err != nil {
+		t.Fatalf("read after repeated-token delete: want clean, got %v", err)
+	}
+	// The repeated delete itself is SILENT (fts5delete 2.3: the redundant
+	// statement succeeds while the violation sits in the doclist).
+	if err := exec(`INSERT INTO ti(ti, rowid, name) VALUES('delete', 7, 'e e t');`); err != nil {
+		t.Fatalf("repeated delete: want silent success, got %v", err)
+	}
+	if err := query(`SELECT rowid FROM ti WHERE ti MATCH 'z';`); err == nil || err.Error() != corrupt {
+		t.Errorf("repeated delete: want %q on later reads, got %v", corrupt, err)
+	}
+
 	// Re-insert consumes the markers — the second delete pair is fresh.
 	if err := exec(`DROP TABLE ti;
 CREATE VIRTUAL TABLE ti USING fts5(name, content=test, content_rowid=id);
