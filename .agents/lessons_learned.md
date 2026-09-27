@@ -1181,3 +1181,32 @@ Resumed a dead predecessor mid-tranche on P9.PERF hot-path work (base 5807a9c1e,
   conversion) all fail at pre-fix HEAD too — pre-existing, out of tranche.
   And `go test .` (root) without `-timeout 3600s` dies at the 600s default
   on TestSQLiteSuite — expected, not a hang.
+
+## T34r-split-resume (2026-09-27) — resume validation of commit 18037545d
+
+- **Resume race:** the dying predecessor's process committed AND pushed
+  18037545d at 01:34:40, minutes after the resume snapshot was taken — the
+  "zero commits" resume note was already stale on arrival. Adjudicate a
+  resume by re-reading `git status`/`git log` at session start AND right
+  before reverting anything: a clean tree + a matching `git show --stat`
+  means the WIP is already shipped. (Backup-before-revert to /tmp saved
+  the review baseline here.)
+- **"Revert to HEAD" checks must target the BASE commit, not HEAD.** The
+  first control run ("does seed 6 fail without the fix?") used
+  `git checkout -- <files>` on an already-clean tree — a no-op that
+  re-tested the fix against itself. The true control is
+  `git checkout <base> -- <files>` (860543fc2 here): seed 6 → FAIL at
+  i=9403 "interior page 1848 has no cells to split", seed 34 → FAIL at
+  i=9364 "interior page 349", both PASS with the fix. Restore via
+  `git checkout <fix-commit> -- <files>` afterwards.
+- **Root-cause attribution of the vacuum6 flake confirmed operational, not
+  re-bisected:** failure reproduces at base 860543fc2 (post-reservebytes,
+  post-afcbc3397) and the atomic-precheck + divider-by-divider apply fixes
+  it there; the predecessor's seeded-probe window (afcbc3397 fat index
+  dividers enabling both defects) is consistent with the observed
+  geometry (fat full-payload dividers are what make the whole-chain apply
+  unfittable on 1KiB pages).
+- **Engine randomblob is global math/rand (unseeded, fnRANDOMBLOB)** —
+  testgen vacuum6 4.0 is content-nondeterministic across runs; seeded
+  hex-literal probes are the only deterministic repro. A single green
+  package run proves nothing about this flake; only the seeded probes do.
