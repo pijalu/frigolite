@@ -96,6 +96,12 @@ func (ev *Evaluator) evalExprWithCollation(expr sql.Expr, row Row) (interface{},
 	// COLLATE operator at the top, or an explicit COLLATE propagating up from
 	// a function argument / CASE branch / || operand. Column collations are
 	// already carried by the runtime CollatedValue marker (explicit=false).
+	// Static fast path: nodes that can never carry an explicit collation
+	// (all literals/column refs, and every binary operator other than
+	// COLLATE and ||) skip the memo lookup entirely.
+	if !exprCanCarryExplicitCollation(expr) {
+		return v, nil
+	}
 	coll, explicit := ev.exprCollationMemo(expr)
 	if explicit && coll != "" {
 		// A CASE expression's runtime value is the selected branch (which may
@@ -578,17 +584,16 @@ func boolKeywordColumnValue(name string) (interface{}, bool) {
 // names.
 func currentTimeKeywordColumnValue(name string) (interface{}, bool) {
 	switch len(name) {
-	case 11: // CURRENT_TIME
+	case 12: // CURRENT_TIME, CURRENT_DATE
 		if strings.EqualFold(name, "CURRENT_TIME") {
 			t, _ := function.FnTimeNow()
 			return t, true
 		}
-	case 12: // CURRENT_DATE
 		if strings.EqualFold(name, "CURRENT_DATE") {
 			d, _ := function.FnDateNow()
 			return d, true
 		}
-	case 16: // CURRENT_TIMESTAMP
+	case 17: // CURRENT_TIMESTAMP
 		if strings.EqualFold(name, "CURRENT_TIMESTAMP") {
 			ts, _ := function.FnDateTimeNow()
 			return ts, true

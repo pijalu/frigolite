@@ -61,6 +61,24 @@ func (ev *Evaluator) exprCollationMemo(e sql.Expr) (string, bool) {
 	return coll, explicit
 }
 
+// exprCanCarryExplicitCollation reports whether an expression's compile-time
+// collation can be explicit (exprCollation can return explicit=true). Explicit
+// collation originates only in COLLATE operators and propagates through ||,
+// function calls, CASE, and unary operators. Every other node type statically
+// resolves to ("", false), and binaryOpCollation returns ("", false) for every
+// operator other than COLLATE and || WITHOUT consulting the operands — so the
+// collation walk/memo lookup can be skipped entirely for those nodes on the
+// per-row comparison hot path.
+func exprCanCarryExplicitCollation(e sql.Expr) bool {
+	switch v := e.(type) {
+	case *sql.BinaryOp:
+		return strings.EqualFold(v.Operator, "COLLATE") || v.Operator == "||"
+	case *sql.FuncCall, *sql.CaseExpr, *sql.UnaryOp:
+		return true
+	}
+	return false
+}
+
 // binaryOpCollation resolves the collation of a binary operator. COLLATE yields
 // its explicit collation; "||" (concat) takes the right operand's collation
 // when explicit, else the left's; all other operators have no collation.
