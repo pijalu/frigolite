@@ -17,9 +17,16 @@ Legacy TestSQLiteSuite JSON-harness drift (≈385 files) stays
 adjudicated: superseded pipeline; testgen corpus is the census
 currency (pre-squash drift, §2 DRIFT ALERT).
 
-Race gate: lockreg.NewConnID atomic fix on main; root leg re-run
-results recorded at close if available (previous full run had the one
-race + the tools/status ledger-hygiene failure, both resolved).
+Race gate (final, 2026-09-27): ZERO data races (lockreg.NewConnID
+atomic fix). Remaining -race failures are documented pre-existing
+residue (NA_EVIDENCE T33-close section): internal/fts legacy-parse
+unit tests UPDATED to the shipped T30-fts3b contract (fixed);
+TestWriterConformance/fts-x6-growth diverges from its pre-fix oracle
+snapshot since 91e4296b5 (OPEN — re-derive fixture or revisit);
+TestVacuumDoesNotCorruptBTree fails isolated at the session-start
+base too (OPEN — pre-existing); root leg needs -timeout >= 1800s
+(default 600s kills it under detector slowdown); fts4merge4 grind
+guarded by the race build-tag const (serial contract intact).
 
 ## What T33 did (chronological)
 
