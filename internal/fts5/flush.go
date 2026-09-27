@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"io"
 	"strings"
+
+	"github.com/pijalu/frigolite/internal/vtab"
 )
 
 // Segment flush, merge and optimize machinery — the mirror-model port of
@@ -28,9 +30,22 @@ func (t *Table) writeSegmentBlob(seg *Segment, docs []blobDoc) error {
 		return err
 	}
 	qData := qual(t.dbName, t.cfg.Name+"_data")
-	_, err := t.db.ExecSQL(fmt.Sprintf("INSERT OR REPLACE INTO %s(id, block) VALUES(%d, X'%s');",
+	_, err := t.execUntracked(fmt.Sprintf("INSERT OR REPLACE INTO %s(id, block) VALUES(%d, X'%s');",
 		qData, segmentBlobRowid(seg.Segid), hexEncode(payload.Bytes())))
 	return err
+}
+
+// execUntracked runs SQL as the module's direct storage I/O: C writes the
+// %_data payloads, the structure record and the %_idx dlidx rows through
+// sqlite3_blob / btree calls that never move the connection's change
+// counters (vtab.UntrackedExecutor; oracle 3.54.0 — a plain fts5 INSERT
+// moves total_changes by +7 and none of those are the blob writes, while a
+// 'merge=1' special insert moves it by exactly +1).
+func (t *Table) execUntracked(sql string, args ...interface{}) ([][]interface{}, error) {
+	if u, ok := t.db.(vtab.UntrackedExecutor); ok {
+		return u.ExecSQLUntracked(sql, args...)
+	}
+	return t.db.ExecSQL(sql, args...)
 }
 
 // readSegmentBlob loads and decodes one segment's payload (nil when absent).
@@ -56,11 +71,11 @@ func (t *Table) readSegmentBlob(segid int64) ([]blobDoc, error) {
 // deletes from %_idx; tombstone pages are removed separately).
 func (t *Table) removeSegmentRows(seg *Segment) error {
 	qData := qual(t.dbName, t.cfg.Name+"_data")
-	if _, err := t.db.ExecSQL(fmt.Sprintf("DELETE FROM %s WHERE id=%d", qData, segmentBlobRowid(seg.Segid))); err != nil {
+	if _, err := t.execUntracked(fmt.Sprintf("DELETE FROM %s WHERE id=%d", qData, segmentBlobRowid(seg.Segid))); err != nil {
 		return err
 	}
 	qIdx := qual(t.dbName, t.cfg.Name+"_idx")
-	_, err := t.db.ExecSQL(fmt.Sprintf("DELETE FROM %s WHERE segid=%d", qIdx, seg.Segid))
+	_, err := t.execUntracked(fmt.Sprintf("DELETE FROM %s WHERE segid=%d", qIdx, seg.Segid))
 	if err != nil && strings.Contains(err.Error(), "no such table") {
 		return nil
 	}
@@ -73,7 +88,7 @@ func (t *Table) removeSegmentRows(seg *Segment) error {
 // single-leaf segment blobs, bFlag 0 since no dlidx page flushes).
 func (t *Table) writeDlidxRow(seg *Segment) error {
 	qIdx := qual(t.dbName, t.cfg.Name+"_idx")
-	_, err := t.db.ExecSQL(fmt.Sprintf("INSERT OR REPLACE INTO %s(segid, term, pgno) VALUES(%d, X'', 2)", qIdx, seg.Segid))
+	_, err := t.execUntracked(fmt.Sprintf("INSERT OR REPLACE INTO %s(segid, term, pgno) VALUES(%d, X'', 2)", qIdx, seg.Segid))
 	if err != nil && strings.Contains(err.Error(), "no such table") {
 		// A dropped %_idx is tolerated (dlidx is optional to C's readers —
 		// fts5corrupt drops shadow tables and the table stays readable).

@@ -19,11 +19,40 @@ type engineVtabDB struct{ e *Engine }
 
 // ExecSQL parses and runs one or more SQL statements. It returns the result rows
 // of the final statement (nil for non-SELECT) or the first error.
+//
+// Shadow statements a module issues as SQL count toward the connection's
+// change counters, exactly as C's shadow SQL (fts5's %_content / %_docsize /
+// %_config / %_stat statements step through the same connection and move
+// sqlite3_total_changes — oracle 3.54.0: a plain fts5 INSERT moves it by +7).
+// The statements C performs as direct blob/btree I/O (fts5's %_data and
+// %_idx writes) belong on ExecSQLUntracked instead.
 func (d engineVtabDB) ExecSQL(sql string, args ...interface{}) ([][]interface{}, error) {
 	stmts, err := parse.ParseSQL(sql)
 	if err != nil {
 		return nil, err
 	}
+	var rows [][]interface{}
+	for _, s := range stmts {
+		res := d.e.Exec(s)
+		if res.Error != nil {
+			return nil, res.Error
+		}
+		rows = res.Rows
+	}
+	return rows, nil
+}
+
+// ExecSQLUntracked implements vtab.UntrackedExecutor: same as ExecSQL, but
+// the statements run as internal writes whose row changes do not accumulate
+// into sqlite3_total_changes (C's direct blob/btree shadow I/O — fts5's
+// %_data segment/structure payloads and %_idx dlidx rows).
+func (d engineVtabDB) ExecSQLUntracked(sql string, args ...interface{}) ([][]interface{}, error) {
+	stmts, err := parse.ParseSQL(sql)
+	if err != nil {
+		return nil, err
+	}
+	endInternal := d.e.BeginInternalWrites()
+	defer endInternal()
 	var rows [][]interface{}
 	for _, s := range stmts {
 		res := d.e.Exec(s)

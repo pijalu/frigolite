@@ -5,15 +5,17 @@
 package fts5contentless2
 
 import (
-"github.com/pijalu/frigolite"
-"github.com/pijalu/frigolite/internal/vtab"
-"os"
-"strconv"
-"testing"
+	"github.com/pijalu/frigolite"
+	"github.com/pijalu/frigolite/internal/vtab"
+	"os"
+	"strconv"
+	"testing"
 )
 
 func Test_fts5contentless2(t *testing.T) {
-	if err := os.Chdir(t.TempDir()); err != nil { t.Fatal(err) }
+	if err := os.Chdir(t.TempDir()); err != nil {
+		t.Fatal(err)
+	}
 	db, err := frigolite.Open("test.db")
 	if err != nil {
 		t.Fatal(err)
@@ -25,11 +27,11 @@ func Test_fts5contentless2(t *testing.T) {
 	var msg string
 	var _r string
 	var _berr error
-	_ = _berr // suppress unused warning
-	_ = msg // suppress unused warning
-	_ = _res // suppress unused warning
-	_ = r    // suppress unused warning
-	_ = _r   // suppress unused warning
+	_ = _berr            // suppress unused warning
+	_ = msg              // suppress unused warning
+	_ = _res             // suppress unused warning
+	_ = r                // suppress unused warning
+	_ = _r               // suppress unused warning
 	tcl_nullvalue = "{}" // default NULL rendering
 
 	var db1 *frigolite.DB
@@ -131,160 +133,197 @@ func Test_fts5contentless2(t *testing.T) {
 		r2 := _items0[_idx0+2]
 		_ = r2 // suppress unused warning
 		_ = _idx0
-			r1 = tclExprWith("$r1", map[string]string{"r1": r1})
-			_ = r1 // suppress unused warning
-			r2 = tclExprWith("$r2", map[string]string{"r2": r2})
-			_ = r2 // suppress unused warning
-			{ // do_test "1.1." + tn
-				_res = db.Exec("BEGIN")
+		r1 = tclExprWith("$r1", map[string]string{"r1": r1})
+		_ = r1 // suppress unused warning
+		r2 = tclExprWith("$r2", map[string]string{"r2": r2})
+		_ = r2 // suppress unused warning
+		{      // do_test "1.1." + tn
+			_res = db.Exec("BEGIN")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "BEGIN")
+			}
+			vtab.TclVarSet("ii", "", r1)
+			ii = r1
+			_ = ii // suppress unused warning
+			for func() bool {
+				ii_n, _ii_e := strconv.Atoi(ii)
+				if _ii_e != nil {
+					return false
+				}
+				r2_n, _r2_e := strconv.Atoi(r2)
+				if _r2_e != nil {
+					return false
+				}
+				return ii_n <= r2_n
+			}() {
+				_res = db.Exec(" INSERT INTO t1(rowid, doc) VALUES (" + sqlLiteral(ii) + ", document(8)); ")
 				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "BEGIN")
+					t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1(rowid, doc) VALUES ("+sqlLiteral(ii)+", document(8)); ")
 				}
-				vtab.TclVarSet("ii", "", r1)
-				ii = r1
-				_ = ii // suppress unused warning
-				for func() bool { ii_n, _ii_e := strconv.Atoi(ii); if _ii_e != nil { return false }; r2_n, _r2_e := strconv.Atoi(r2); if _r2_e != nil { return false }; return ii_n <= r2_n }() {
-					_res = db.Exec(" INSERT INTO t1(rowid, doc) VALUES (" + sqlLiteral(ii) + ", document(8)); ")
-					if _res.Error != nil {
-						t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1(rowid, doc) VALUES (" + sqlLiteral(ii) + ", document(8)); ")
-					}
-					// incr ii 1
-					{
-						_n, _err := strconv.Atoi(ii)
-						if _err == nil {
-							ii = strconv.Itoa(_n + 1)
-						}
-					}
-				}
-				_res = db.Exec("COMMIT")
-				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, "COMMIT")
-				}
-			}
-		}
-		{ // do_test "1.2"
-			r = db.Query(" SELECT rowid, doc FROM t1 ")
-			if r.Error != nil {
-				t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT rowid, doc FROM t1 ")
-			}
-		}
-		// foreach {tn rowid} "1  " + tclListElem(SMALLEST64) + "\n  2  0\n  3  -5\n  4  -30\n  5  " + tclListElem(LARGEST64) + "\n  6  " + tclListElem(LARGEST64) + "-1"
-		_items1 := tclSplitList("1  " + tclListElem(SMALLEST64) + "\n  2  0\n  3  -5\n  4  -30\n  5  " + tclListElem(LARGEST64) + "\n  6  " + tclListElem(LARGEST64) + "-1")
-		for _idx1 := 0; _idx1+2 <= len(_items1); _idx1 += 2 {
-			tn := _items1[_idx1+0]
-			_ = tn // suppress unused warning
-			rowid := _items1[_idx1+1]
-			_ = rowid // suppress unused warning
-			_ = _idx1
-				rowid = tclExprWith("$rowid", map[string]string{"rowid": rowid})
-				_ = rowid // suppress unused warning
-				{ // "1.3." + tn + ".1"
-					_res = db.Exec("\n    DELETE FROM t1 WHERE rowid=" + sqlLiteral(rowid) + "\n  ")
-					if _res.Error != nil {
-						t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n    DELETE FROM t1 WHERE rowid=" + sqlLiteral(rowid) + "\n  ")
-					}
-				}
-				// do_compare_tables_test 1.3.$tn.2 (unsupported command, not transpiled)
-			}
-			vtab.TclVarSet("iTest", "", "1")
-			iTest = "1"
-			_ = iTest // suppress unused warning
-			for _, _r := range tclSplitList(tclListElem("lshuffle [execsql {SELECT rowid FROM t1}]")) {
-			_ = _r // suppress unused warning
-				if func() bool { iTest_n, _iTest_e := strconv.Atoi(iTest); if _iTest_e != nil { return false }; return (iTest_n % 50) == 0 }() {
-					_res = db.Exec(" INSERT INTO t2(t2) VALUES('optimize') ")
-					if _res.Error != nil {
-						t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t2(t2) VALUES('optimize') ")
-					}
-				}
-				if func() bool { iTest_n, _iTest_e := strconv.Atoi(iTest); if _iTest_e != nil { return false }; return (iTest_n % 5) == 0 }() {
-					_res = db.Exec(" INSERT INTO t2(t2, rank) VALUES('merge', 5) ")
-					if _res.Error != nil {
-						t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t2(t2, rank) VALUES('merge', 5) ")
-					}
-				}
-				{ // "1.4." + iTest + ".1(" + _r + ")"
-					_res = db.Exec("\n    DELETE FROM t1 WHERE rowid=" + sqlLiteral(_r) + "\n  ")
-					if _res.Error != nil {
-						t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n    DELETE FROM t1 WHERE rowid=" + sqlLiteral(_r) + "\n  ")
-					}
-				}
-				// do_compare_tables_test 1.4.$iTest.2 (unsupported command, not transpiled)
-				// incr iTest 1
+				// incr ii 1
 				{
-					_n, _err := strconv.Atoi(iTest)
+					_n, _err := strconv.Atoi(ii)
 					if _err == nil {
-						iTest = strconv.Itoa(_n + 1)
-					}
-				}
-			}
-			{ // "1.5"
-				r = db.Query("\n  SELECT * FROM t1\n")
-				if r.Error != nil {
-					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT * FROM t1\n")
-				}
-			}
-			db.Close()
-			os.Remove("test.db")
-			os.Remove("test.db-journal")
-			os.Remove("test.db-wal")
-			db, err = frigolite.Open("test.db")
-			if err != nil { t.Fatal(err) }
-			tcl_nullvalue = "{}" // fresh connection resets nullvalue
-			db.RegisterFunction("document", func(args []interface{}) (interface{}, error) { return nil, nil }, 0, -1)
-			{ // "2.0"
-				_res = db.Exec("\n  CREATE VIRTUAL TABLE t2 USING fts5(doc, content=, contentless_delete=1);\n  WITH s(i) AS (\n    SELECT 1 UNION ALL SELECT i+1 FROM s WHERE i<1000\n  )\n  INSERT INTO t2(rowid, doc) SELECT i, i || ' ' || i FROM s;\n")
-				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE VIRTUAL TABLE t2 USING fts5(doc, content=, contentless_delete=1);\n  WITH s(i) AS (\n    SELECT 1 UNION ALL SELECT i+1 FROM s WHERE i<1000\n  )\n  INSERT INTO t2(rowid, doc) SELECT i, i || ' ' || i FROM s;\n")
-				}
-			}
-			{ // "2.1"
-				_res = db.Exec("\n  BEGIN;\n    DELETE FROM t2 WHERE rowid=32;\n    DELETE FROM t2 WHERE rowid=64;\n    DELETE FROM t2 WHERE rowid=96;\n    DELETE FROM t2 WHERE rowid=128;\n    DELETE FROM t2 WHERE rowid=160;\n    DELETE FROM t2 WHERE rowid=192;\n  COMMIT;\n")
-				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  BEGIN;\n    DELETE FROM t2 WHERE rowid=32;\n    DELETE FROM t2 WHERE rowid=64;\n    DELETE FROM t2 WHERE rowid=96;\n    DELETE FROM t2 WHERE rowid=128;\n    DELETE FROM t2 WHERE rowid=160;\n    DELETE FROM t2 WHERE rowid=192;\n  COMMIT;\n")
-				}
-			}
-			{ // "2.2"
-				r = db.Query("\n  SELECT * FROM t2('128');\n")
-				if r.Error != nil {
-					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT * FROM t2('128');\n")
-				}
-			}
-			// foreach {tn step} "1     3 \n  2     7\n  3     15"
-			_items2 := tclSplitList("1     3 \n  2     7\n  3     15")
-			for _idx2 := 0; _idx2+2 <= len(_items2); _idx2 += 2 {
-				tn := _items2[_idx2+0]
-				_ = tn // suppress unused warning
-				step := _items2[_idx2+1]
-				_ = step // suppress unused warning
-				_ = _idx2
-					step = tclExprWith("$step", map[string]string{"step": step})
-					_ = step // suppress unused warning
-					db.Close()
-					os.Remove("test.db")
-					os.Remove("test.db-journal")
-					os.Remove("test.db-wal")
-					db, err = frigolite.Open("test.db")
-					if err != nil { t.Fatal(err) }
-					tcl_nullvalue = "{}" // fresh connection resets nullvalue
-					db.RegisterFunction("document", func(args []interface{}) (interface{}, error) { return nil, nil }, 0, -1)
-					{ // "3." + tn + ".0"
-						_res = db.Exec("\n    CREATE VIRTUAL TABLE t2 USING fts5(doc, content=, contentless_delete=1);\n    INSERT INTO t2(t2, rank) VALUES('pgsz', 100);\n    WITH s(i) AS (\n        SELECT 1 UNION ALL SELECT i+1 FROM s WHERE i<1000\n    )\n    INSERT INTO t2(rowid, doc) SELECT i, i || ' ' || i FROM s;\n  ")
-						if _res.Error != nil {
-							t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n    CREATE VIRTUAL TABLE t2 USING fts5(doc, content=, contentless_delete=1);\n    INSERT INTO t2(t2, rank) VALUES('pgsz', 100);\n    WITH s(i) AS (\n        SELECT 1 UNION ALL SELECT i+1 FROM s WHERE i<1000\n    )\n    INSERT INTO t2(rowid, doc) SELECT i, i || ' ' || i FROM s;\n  ")
+						if _n == 9223372036854775807 {
+							// TCL 9 bignum semantics: incr past MaxInt64
+							// yields 9223372036854775808, so the loop
+							// condition $ii<=$r2 goes false and the for
+							// exits. The transpiled int64 add wraps to
+							// MinInt64 and would re-run the loop from
+							// -2^63 (T33r-fts 2026-09-26;
+							// portplan/NA_EVIDENCE.md
+							// §FULL-SUITE-DRIFT.T33r-fts).
+							break
 						}
-					}
-					{ // "3." + tn + ".1"
-						_res = db.Exec("\n    DELETE FROM t2 WHERE (rowid % " + sqlLiteral(step) + ")==0\n  ")
-						if _res.Error != nil {
-							t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n    DELETE FROM t2 WHERE (rowid % " + sqlLiteral(step) + ")==0\n  ")
-						}
-					}
-					{ // "3." + tn + ".2"
-						r = db.Query("\n    SELECT * FROM t2( " + sqlLiteral(step) + " * 5 )\n  ")
-						if r.Error != nil {
-							t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM t2( " + sqlLiteral(step) + " * 5 )\n  ")
-						}
+						ii = strconv.Itoa(_n + 1)
 					}
 				}
+			}
+			_res = db.Exec("COMMIT")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, "COMMIT")
+			}
+		}
+	}
+	{ // do_test "1.2"
+		r = db.Query(" SELECT rowid, doc FROM t1 ")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT rowid, doc FROM t1 ")
+		}
+	}
+	// foreach {tn rowid} "1  " + tclListElem(SMALLEST64) + "\n  2  0\n  3  -5\n  4  -30\n  5  " + tclListElem(LARGEST64) + "\n  6  " + tclListElem(LARGEST64) + "-1"
+	_items1 := tclSplitList("1  " + tclListElem(SMALLEST64) + "\n  2  0\n  3  -5\n  4  -30\n  5  " + tclListElem(LARGEST64) + "\n  6  " + tclListElem(LARGEST64) + "-1")
+	for _idx1 := 0; _idx1+2 <= len(_items1); _idx1 += 2 {
+		tn := _items1[_idx1+0]
+		_ = tn // suppress unused warning
+		rowid := _items1[_idx1+1]
+		_ = rowid // suppress unused warning
+		_ = _idx1
+		rowid = tclExprWith("$rowid", map[string]string{"rowid": rowid})
+		_ = rowid // suppress unused warning
+		{         // "1.3." + tn + ".1"
+			_res = db.Exec("\n    DELETE FROM t1 WHERE rowid=" + sqlLiteral(rowid) + "\n  ")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n    DELETE FROM t1 WHERE rowid="+sqlLiteral(rowid)+"\n  ")
+			}
+		}
+		// do_compare_tables_test 1.3.$tn.2 (unsupported command, not transpiled)
+	}
+	vtab.TclVarSet("iTest", "", "1")
+	iTest = "1"
+	_ = iTest // suppress unused warning
+	for _, _r := range tclSplitList(tclListElem("lshuffle [execsql {SELECT rowid FROM t1}]")) {
+		_ = _r // suppress unused warning
+		if func() bool {
+			iTest_n, _iTest_e := strconv.Atoi(iTest)
+			if _iTest_e != nil {
+				return false
+			}
+			return (iTest_n % 50) == 0
+		}() {
+			_res = db.Exec(" INSERT INTO t2(t2) VALUES('optimize') ")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t2(t2) VALUES('optimize') ")
+			}
+		}
+		if func() bool {
+			iTest_n, _iTest_e := strconv.Atoi(iTest)
+			if _iTest_e != nil {
+				return false
+			}
+			return (iTest_n % 5) == 0
+		}() {
+			_res = db.Exec(" INSERT INTO t2(t2, rank) VALUES('merge', 5) ")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t2(t2, rank) VALUES('merge', 5) ")
+			}
+		}
+		{ // "1.4." + iTest + ".1(" + _r + ")"
+			_res = db.Exec("\n    DELETE FROM t1 WHERE rowid=" + sqlLiteral(_r) + "\n  ")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n    DELETE FROM t1 WHERE rowid="+sqlLiteral(_r)+"\n  ")
+			}
+		}
+		// do_compare_tables_test 1.4.$iTest.2 (unsupported command, not transpiled)
+		// incr iTest 1
+		{
+			_n, _err := strconv.Atoi(iTest)
+			if _err == nil {
+				iTest = strconv.Itoa(_n + 1)
+			}
+		}
+	}
+	{ // "1.5"
+		r = db.Query("\n  SELECT * FROM t1\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT * FROM t1\n")
+		}
+	}
+	db.Close()
+	os.Remove("test.db")
+	os.Remove("test.db-journal")
+	os.Remove("test.db-wal")
+	db, err = frigolite.Open("test.db")
+	if err != nil {
+		t.Fatal(err)
+	}
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
+	db.RegisterFunction("document", func(args []interface{}) (interface{}, error) { return nil, nil }, 0, -1)
+	{ // "2.0"
+		_res = db.Exec("\n  CREATE VIRTUAL TABLE t2 USING fts5(doc, content=, contentless_delete=1);\n  WITH s(i) AS (\n    SELECT 1 UNION ALL SELECT i+1 FROM s WHERE i<1000\n  )\n  INSERT INTO t2(rowid, doc) SELECT i, i || ' ' || i FROM s;\n")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE VIRTUAL TABLE t2 USING fts5(doc, content=, contentless_delete=1);\n  WITH s(i) AS (\n    SELECT 1 UNION ALL SELECT i+1 FROM s WHERE i<1000\n  )\n  INSERT INTO t2(rowid, doc) SELECT i, i || ' ' || i FROM s;\n")
+		}
+	}
+	{ // "2.1"
+		_res = db.Exec("\n  BEGIN;\n    DELETE FROM t2 WHERE rowid=32;\n    DELETE FROM t2 WHERE rowid=64;\n    DELETE FROM t2 WHERE rowid=96;\n    DELETE FROM t2 WHERE rowid=128;\n    DELETE FROM t2 WHERE rowid=160;\n    DELETE FROM t2 WHERE rowid=192;\n  COMMIT;\n")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  BEGIN;\n    DELETE FROM t2 WHERE rowid=32;\n    DELETE FROM t2 WHERE rowid=64;\n    DELETE FROM t2 WHERE rowid=96;\n    DELETE FROM t2 WHERE rowid=128;\n    DELETE FROM t2 WHERE rowid=160;\n    DELETE FROM t2 WHERE rowid=192;\n  COMMIT;\n")
+		}
+	}
+	{ // "2.2"
+		r = db.Query("\n  SELECT * FROM t2('128');\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  SELECT * FROM t2('128');\n")
+		}
+	}
+	// foreach {tn step} "1     3 \n  2     7\n  3     15"
+	_items2 := tclSplitList("1     3 \n  2     7\n  3     15")
+	for _idx2 := 0; _idx2+2 <= len(_items2); _idx2 += 2 {
+		tn := _items2[_idx2+0]
+		_ = tn // suppress unused warning
+		step := _items2[_idx2+1]
+		_ = step // suppress unused warning
+		_ = _idx2
+		step = tclExprWith("$step", map[string]string{"step": step})
+		_ = step // suppress unused warning
+		db.Close()
+		os.Remove("test.db")
+		os.Remove("test.db-journal")
+		os.Remove("test.db-wal")
+		db, err = frigolite.Open("test.db")
+		if err != nil {
+			t.Fatal(err)
+		}
+		tcl_nullvalue = "{}" // fresh connection resets nullvalue
+		db.RegisterFunction("document", func(args []interface{}) (interface{}, error) { return nil, nil }, 0, -1)
+		{ // "3." + tn + ".0"
+			_res = db.Exec("\n    CREATE VIRTUAL TABLE t2 USING fts5(doc, content=, contentless_delete=1);\n    INSERT INTO t2(t2, rank) VALUES('pgsz', 100);\n    WITH s(i) AS (\n        SELECT 1 UNION ALL SELECT i+1 FROM s WHERE i<1000\n    )\n    INSERT INTO t2(rowid, doc) SELECT i, i || ' ' || i FROM s;\n  ")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n    CREATE VIRTUAL TABLE t2 USING fts5(doc, content=, contentless_delete=1);\n    INSERT INTO t2(t2, rank) VALUES('pgsz', 100);\n    WITH s(i) AS (\n        SELECT 1 UNION ALL SELECT i+1 FROM s WHERE i<1000\n    )\n    INSERT INTO t2(rowid, doc) SELECT i, i || ' ' || i FROM s;\n  ")
+			}
+		}
+		{ // "3." + tn + ".1"
+			_res = db.Exec("\n    DELETE FROM t2 WHERE (rowid % " + sqlLiteral(step) + ")==0\n  ")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n    DELETE FROM t2 WHERE (rowid % "+sqlLiteral(step)+")==0\n  ")
+			}
+		}
+		{ // "3." + tn + ".2"
+			r = db.Query("\n    SELECT * FROM t2( " + sqlLiteral(step) + " * 5 )\n  ")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT * FROM t2( "+sqlLiteral(step)+" * 5 )\n  ")
+			}
+		}
+	}
 }

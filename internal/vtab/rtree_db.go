@@ -38,6 +38,22 @@ type Database interface {
 	RegisterAggregate(name string, minArgs, maxArgs int, newAgg func() Aggregator)
 }
 
+// UntrackedExecutor is the optional Database capability for running a
+// module's DIRECT STORAGE I/O: the statements' row changes do not accumulate
+// into the connection's sqlite3_total_changes, exactly as C's blob / btree
+// calls (sqlite3_blob_write, fts5Index.c fts5DataWrite) bypass the change
+// counters. Modules use it for the shadow writes C performs outside SQL —
+// fts5's %_data segment/structure blobs and %_idx dlidx rows — while shadow
+// writes C itself issues as SQL statements (%_content, %_docsize,
+// %_config, %_stat) stay on the tracked ExecSQL path (oracle 3.54.0: a
+// plain fts5 INSERT moves total_changes by +7, a 'merge=1' special insert
+// by +1). Adapters that do not implement it keep the tracked behavior.
+type UntrackedExecutor interface {
+	// ExecSQLUntracked behaves like ExecSQL but marks the statements as
+	// internal writes (no sqlite3_total_changes accumulation).
+	ExecSQLUntracked(sql string, args ...interface{}) ([][]interface{}, error)
+}
+
 // Aggregator is the vtab-local aggregate contract. It mirrors function.Aggregator
 // but is declared here so vtab does not import the function package; the engine
 // adapts a vtab.Aggregator to a function.Aggregator.

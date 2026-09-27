@@ -5,16 +5,19 @@
 package fts5prefix
 
 import (
-"github.com/pijalu/frigolite"
-"github.com/pijalu/frigolite/internal/vtab"
-"os"
-"strconv"
-"strings"
-"testing"
+	"fmt"
+	"github.com/pijalu/frigolite"
+	"github.com/pijalu/frigolite/internal/vtab"
+	"os"
+	"strconv"
+	"strings"
+	"testing"
 )
 
 func Test_fts5prefix(t *testing.T) {
-	if err := os.Chdir(t.TempDir()); err != nil { t.Fatal(err) }
+	if err := os.Chdir(t.TempDir()); err != nil {
+		t.Fatal(err)
+	}
 	db, err := frigolite.Open("test.db")
 	if err != nil {
 		t.Fatal(err)
@@ -26,11 +29,11 @@ func Test_fts5prefix(t *testing.T) {
 	var msg string
 	var _r string
 	var _berr error
-	_ = _berr // suppress unused warning
-	_ = msg // suppress unused warning
-	_ = _res // suppress unused warning
-	_ = r    // suppress unused warning
-	_ = _r   // suppress unused warning
+	_ = _berr            // suppress unused warning
+	_ = msg              // suppress unused warning
+	_ = _res             // suppress unused warning
+	_ = r                // suppress unused warning
+	_ = _r               // suppress unused warning
 	tcl_nullvalue = "{}" // default NULL rendering
 
 	var db1 *frigolite.DB
@@ -130,7 +133,7 @@ func Test_fts5prefix(t *testing.T) {
 	vtab.TclVarSet("testprefix", "", "fts5prefix")
 	testprefix = "fts5prefix"
 	_ = testprefix // suppress unused warning
-	{ // "1.0"
+	{              // "1.0"
 		_res = db.Exec("\n  CREATE VIRTUAL TABLE xx USING fts5(x, prefix=1);\n  INSERT INTO xx VALUES('one two three');\n  INSERT INTO xx VALUES('four five six');\n  INSERT INTO xx VALUES('seven eight nine ten');\n")
 		if _res.Error != nil {
 			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE VIRTUAL TABLE xx USING fts5(x, prefix=1);\n  INSERT INTO xx VALUES('one two three');\n  INSERT INTO xx VALUES('four five six');\n  INSERT INTO xx VALUES('seven eight nine ten');\n")
@@ -163,424 +166,541 @@ func Test_fts5prefix(t *testing.T) {
 			_string := _items0[_idx0+1]
 			_ = _string // suppress unused warning
 			_ = _idx0
-				_res = db.Exec(" INSERT INTO t1(rowid, x) VALUES(" + sqlLiteral(rowid) + ", " + sqlLiteral(_string) + ") ")
-				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1(rowid, x) VALUES(" + sqlLiteral(rowid) + ", " + sqlLiteral(_string) + ") ")
-				}
-			}
-		}
-		{ // "2.2"
-			_res = db.Exec("\n  INSERT INTO t1(t1) VALUES('integrity-check');\n")
+			_res = db.Exec(" INSERT INTO t1(rowid, x) VALUES(" + sqlLiteral(rowid) + ", " + sqlLiteral(_string) + ") ")
 			if _res.Error != nil {
-				t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  INSERT INTO t1(t1) VALUES('integrity-check');\n")
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1(rowid, x) VALUES("+sqlLiteral(rowid)+", "+sqlLiteral(_string)+") ")
 			}
 		}
-		// foreach {tn q res} "1 \"SELECT rowid FROM t1 WHERE t1 MATCH '\\xCA\\xCB*'\" 1\n  2 \"SELECT rowid FROM t1 WHERE t1 MATCH '\\u1234\\u5678*'\" 2"
-		_items1 := tclSplitList("1 \"SELECT rowid FROM t1 WHERE t1 MATCH '\\xCA\\xCB*'\" 1\n  2 \"SELECT rowid FROM t1 WHERE t1 MATCH '\\u1234\\u5678*'\" 2")
-		for _idx1 := 0; _idx1+3 <= len(_items1); _idx1 += 3 {
-			tn := _items1[_idx1+0]
+	}
+	{ // "2.2"
+		_res = db.Exec("\n  INSERT INTO t1(t1) VALUES('integrity-check');\n")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  INSERT INTO t1(t1) VALUES('integrity-check');\n")
+		}
+	}
+	// foreach {tn q res} "1 \"SELECT rowid FROM t1 WHERE t1 MATCH '\\xCA\\xCB*'\" 1\n  2 \"SELECT rowid FROM t1 WHERE t1 MATCH '\\u1234\\u5678*'\" 2"
+	_items1 := tclSplitList("1 \"SELECT rowid FROM t1 WHERE t1 MATCH '\\xCA\\xCB*'\" 1\n  2 \"SELECT rowid FROM t1 WHERE t1 MATCH '\\u1234\\u5678*'\" 2")
+	for _idx1 := 0; _idx1+3 <= len(_items1); _idx1 += 3 {
+		tn := _items1[_idx1+0]
+		_ = tn // suppress unused warning
+		q := _items1[_idx1+1]
+		_ = q // suppress unused warning
+		res := _items1[_idx1+2]
+		_ = res // suppress unused warning
+		_ = _idx1
+		{ // "2.3." + tn
+			_res = db.Exec(q)
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), q)
+			}
+		}
+	}
+	{ // "3.0"
+		_res = db.Exec("\n  CREATE VIRTUAL TABLE t3 USING fts5(a, b, c);\n  INSERT INTO t3(t3, rank) VALUES('pgsz', 32);\n  BEGIN;\n    INSERT INTO t3 VALUES('acb ccc bba', 'cca bba bca', 'bbc ccc bca'); -- 1\n    INSERT INTO t3 VALUES('cbb cac cab', 'abb aac bba', 'aab ccc cac'); -- 2\n    INSERT INTO t3 VALUES('aac bcb aac', 'acb bcb caa', 'aca bab bca'); -- 3\n    INSERT INTO t3 VALUES('aab ccb ccc', 'aca cba cca', 'aca aac cbb'); -- 4\n    INSERT INTO t3 VALUES('bac aab bab', 'ccb bac cba', 'acb aba abb'); -- 5\n    INSERT INTO t3 VALUES('bab abc ccb', 'acb cba abb', 'cbb aaa cab'); -- 6\n    INSERT INTO t3 VALUES('cbb bbc baa', 'aab aca baa', 'bcc cca aca'); -- 7\n    INSERT INTO t3 VALUES('abc bba abb', 'cac abc cba', 'acc aac cac'); -- 8\n    INSERT INTO t3 VALUES('bbc bbc cab', 'bcb ccb cba', 'bcc cac acb'); -- 9\n  COMMIT;\n")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE VIRTUAL TABLE t3 USING fts5(a, b, c);\n  INSERT INTO t3(t3, rank) VALUES('pgsz', 32);\n  BEGIN;\n    INSERT INTO t3 VALUES('acb ccc bba', 'cca bba bca', 'bbc ccc bca'); -- 1\n    INSERT INTO t3 VALUES('cbb cac cab', 'abb aac bba', 'aab ccc cac'); -- 2\n    INSERT INTO t3 VALUES('aac bcb aac', 'acb bcb caa', 'aca bab bca'); -- 3\n    INSERT INTO t3 VALUES('aab ccb ccc', 'aca cba cca', 'aca aac cbb'); -- 4\n    INSERT INTO t3 VALUES('bac aab bab', 'ccb bac cba', 'acb aba abb'); -- 5\n    INSERT INTO t3 VALUES('bab abc ccb', 'acb cba abb', 'cbb aaa cab'); -- 6\n    INSERT INTO t3 VALUES('cbb bbc baa', 'aab aca baa', 'bcc cca aca'); -- 7\n    INSERT INTO t3 VALUES('abc bba abb', 'cac abc cba', 'acc aac cac'); -- 8\n    INSERT INTO t3 VALUES('bbc bbc cab', 'bcb ccb cba', 'bcc cac acb'); -- 9\n  COMMIT;\n")
+		}
+	}
+	// foreach {tn match res} "1 \"a : c*\" {1 2 4 6 7 9}\n  2 \"b : c*\" {1 3 4 5 6 8 9}\n  3 \"c : c*\" {1 2 4 6 7 8 9}\n  4 \"a : b*\" {1 3 5 6 7 8 9}\n  5 \"b : b*\" {1 2 3 5 7 9}\n  6 \"c : b*\" {1 3 7 9}\n  7 \"a : a*\" {1 3 4 5 6 8}\n  8 \"b : a*\" {2 3 4 6 7 8}\n  9 \"c : a*\" {2 3 4 5 6 7 8 9}"
+	_items2 := tclSplitList("1 \"a : c*\" {1 2 4 6 7 9}\n  2 \"b : c*\" {1 3 4 5 6 8 9}\n  3 \"c : c*\" {1 2 4 6 7 8 9}\n  4 \"a : b*\" {1 3 5 6 7 8 9}\n  5 \"b : b*\" {1 2 3 5 7 9}\n  6 \"c : b*\" {1 3 7 9}\n  7 \"a : a*\" {1 3 4 5 6 8}\n  8 \"b : a*\" {2 3 4 6 7 8}\n  9 \"c : a*\" {2 3 4 5 6 7 8 9}")
+	for _idx2 := 0; _idx2+3 <= len(_items2); _idx2 += 3 {
+		tn := _items2[_idx2+0]
+		_ = tn // suppress unused warning
+		match := _items2[_idx2+1]
+		_ = match // suppress unused warning
+		res := _items2[_idx2+2]
+		_ = res // suppress unused warning
+		_ = _idx2
+		{ // "3.1." + tn
+			r = db.Query("\n    SELECT rowid FROM t3(" + sqlLiteral(match) + ")\n  ")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT rowid FROM t3("+sqlLiteral(match)+")\n  ")
+				return
+			}
+			got := flatten(r)
+			want := tclListFlatten(res)
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
+		}
+	}
+	{ // do_test "3.2"
+		// expr srand(0) (not evaluated)
+		_res = db.Exec(" DELETE FROM t3 ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " DELETE FROM t3 ")
+		}
+		vtab.TclVarSet("i", "", "0")
+		i = "0"
+		_ = i // suppress unused warning
+		for func() bool {
+			i_n, _i_e := strconv.Atoi(i)
+			if _i_e != nil {
+				return false
+			}
+			return i_n < 1000
+		}() {
+			a = "fts5_rnddoc 3"
+			_ = a // suppress unused warning
+			b = "fts5_rnddoc 8"
+			_ = b // suppress unused warning
+			c = "fts5_rnddoc 20"
+			_ = c // suppress unused warning
+			_res = db.Exec(" INSERT INTO t3 VALUES(" + sqlLiteral(a) + ", " + sqlLiteral(b) + ", " + sqlLiteral(c) + ") ")
+			if _res.Error != nil {
+				t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t3 VALUES("+sqlLiteral(a)+", "+sqlLiteral(b)+", "+sqlLiteral(c)+") ")
+			}
+			// incr i 1
+			{
+				_n, _err := strconv.Atoi(i)
+				if _err == nil {
+					i = strconv.Itoa(_n + 1)
+				}
+			}
+		}
+		_res = db.Exec(" INSERT INTO t3(t3) VALUES('integrity-check') ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t3(t3) VALUES('integrity-check') ")
+		}
+	}
+	// proc definition (not transpiled)
+	// Faithful gmatch port (T33r-fts 2026-09-26): TCL
+	// `lsearch -glob $col $pattern` splits the column value on
+	// whitespace and matches any token against the glob; the
+	// previous nil stub made every 3.3 expectation vacuously
+	// empty.
+	db.RegisterFunction("gmatch", func(args []interface{}) (interface{}, error) {
+		if len(args) < 2 {
+			return nil, fmt.Errorf("wrong number of arguments to function gmatch()")
+		}
+		col, _ := args[0].(string)
+		pat, _ := args[1].(string)
+		for _, tok := range strings.Fields(col) {
+			if tclGlobMatch(pat, tok) {
+				return int64(1), nil
+			}
+		}
+		return int64(0), nil
+	}, 0, -1)
+	// proc definition (not transpiled)
+	// Faithful ghl port: the column's tokens with every glob
+	// match wrapped in '*' (fts5prefix 3.3 highlight parity).
+	db.RegisterFunction("ghl", func(args []interface{}) (interface{}, error) {
+		if len(args) < 2 {
+			return nil, fmt.Errorf("wrong number of arguments to function ghl()")
+		}
+		col, _ := args[0].(string)
+		pat, _ := args[1].(string)
+		out := make([]string, 0)
+		for _, tok := range strings.Fields(col) {
+			if tclGlobMatch(pat, tok) {
+				out = append(out, "*"+tok+"*")
+			} else {
+				out = append(out, tok)
+			}
+		}
+		return strings.Join(out, " "), nil
+	}, 0, -1)
+	vtab.TclVarSet("COLS", "a", "0")
+	COLS_a = "0"
+	_ = COLS_a // suppress unused warning
+	vtab.TclVarSet("COLS", "b", "1")
+	COLS_b = "1"
+	_ = COLS_b // suppress unused warning
+	vtab.TclVarSet("COLS", "c", "2")
+	COLS_c = "2"
+	_ = COLS_c // suppress unused warning
+	vtab.TclVarSet("x", "", "0")
+	x = "0"
+	_ = x // suppress unused warning
+	for func() bool {
+		x_n, _x_e := strconv.Atoi(x)
+		if _x_e != nil {
+			return false
+		}
+		return x_n < 2
+	}() {
+		// foreach {tn pattern} "1  {xa*}\n    2  {xb*}\n    3  {xc*}\n    4  {xd*}\n    5  {xe*}\n    6  {xf*}\n    7  {xg*}\n    8  {xh*}\n    9  {xi*}\n    10 {xj*}"
+		_items3 := tclSplitList("1  {xa*}\n    2  {xb*}\n    3  {xc*}\n    4  {xd*}\n    5  {xe*}\n    6  {xf*}\n    7  {xg*}\n    8  {xh*}\n    9  {xi*}\n    10 {xj*}")
+		for _idx3 := 0; _idx3+2 <= len(_items3); _idx3 += 2 {
+			tn := _items3[_idx3+0]
 			_ = tn // suppress unused warning
-			q := _items1[_idx1+1]
-			_ = q // suppress unused warning
-			res := _items1[_idx1+2]
-			_ = res // suppress unused warning
-			_ = _idx1
-				{ // "2.3." + tn
-					_res = db.Exec(q)
-					if _res.Error != nil {
-						t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), q)
-					}
-				}
-			}
-			{ // "3.0"
-				_res = db.Exec("\n  CREATE VIRTUAL TABLE t3 USING fts5(a, b, c);\n  INSERT INTO t3(t3, rank) VALUES('pgsz', 32);\n  BEGIN;\n    INSERT INTO t3 VALUES('acb ccc bba', 'cca bba bca', 'bbc ccc bca'); -- 1\n    INSERT INTO t3 VALUES('cbb cac cab', 'abb aac bba', 'aab ccc cac'); -- 2\n    INSERT INTO t3 VALUES('aac bcb aac', 'acb bcb caa', 'aca bab bca'); -- 3\n    INSERT INTO t3 VALUES('aab ccb ccc', 'aca cba cca', 'aca aac cbb'); -- 4\n    INSERT INTO t3 VALUES('bac aab bab', 'ccb bac cba', 'acb aba abb'); -- 5\n    INSERT INTO t3 VALUES('bab abc ccb', 'acb cba abb', 'cbb aaa cab'); -- 6\n    INSERT INTO t3 VALUES('cbb bbc baa', 'aab aca baa', 'bcc cca aca'); -- 7\n    INSERT INTO t3 VALUES('abc bba abb', 'cac abc cba', 'acc aac cac'); -- 8\n    INSERT INTO t3 VALUES('bbc bbc cab', 'bcb ccb cba', 'bcc cac acb'); -- 9\n  COMMIT;\n")
-				if _res.Error != nil {
-					t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), "\n  CREATE VIRTUAL TABLE t3 USING fts5(a, b, c);\n  INSERT INTO t3(t3, rank) VALUES('pgsz', 32);\n  BEGIN;\n    INSERT INTO t3 VALUES('acb ccc bba', 'cca bba bca', 'bbc ccc bca'); -- 1\n    INSERT INTO t3 VALUES('cbb cac cab', 'abb aac bba', 'aab ccc cac'); -- 2\n    INSERT INTO t3 VALUES('aac bcb aac', 'acb bcb caa', 'aca bab bca'); -- 3\n    INSERT INTO t3 VALUES('aab ccb ccc', 'aca cba cca', 'aca aac cbb'); -- 4\n    INSERT INTO t3 VALUES('bac aab bab', 'ccb bac cba', 'acb aba abb'); -- 5\n    INSERT INTO t3 VALUES('bab abc ccb', 'acb cba abb', 'cbb aaa cab'); -- 6\n    INSERT INTO t3 VALUES('cbb bbc baa', 'aab aca baa', 'bcc cca aca'); -- 7\n    INSERT INTO t3 VALUES('abc bba abb', 'cac abc cba', 'acc aac cac'); -- 8\n    INSERT INTO t3 VALUES('bbc bbc cab', 'bcb ccb cba', 'bcc cac acb'); -- 9\n  COMMIT;\n")
-				}
-			}
-			// foreach {tn match res} "1 \"a : c*\" {1 2 4 6 7 9}\n  2 \"b : c*\" {1 3 4 5 6 8 9}\n  3 \"c : c*\" {1 2 4 6 7 8 9}\n  4 \"a : b*\" {1 3 5 6 7 8 9}\n  5 \"b : b*\" {1 2 3 5 7 9}\n  6 \"c : b*\" {1 3 7 9}\n  7 \"a : a*\" {1 3 4 5 6 8}\n  8 \"b : a*\" {2 3 4 6 7 8}\n  9 \"c : a*\" {2 3 4 5 6 7 8 9}"
-			_items2 := tclSplitList("1 \"a : c*\" {1 2 4 6 7 9}\n  2 \"b : c*\" {1 3 4 5 6 8 9}\n  3 \"c : c*\" {1 2 4 6 7 8 9}\n  4 \"a : b*\" {1 3 5 6 7 8 9}\n  5 \"b : b*\" {1 2 3 5 7 9}\n  6 \"c : b*\" {1 3 7 9}\n  7 \"a : a*\" {1 3 4 5 6 8}\n  8 \"b : a*\" {2 3 4 6 7 8}\n  9 \"c : a*\" {2 3 4 5 6 7 8 9}")
-			for _idx2 := 0; _idx2+3 <= len(_items2); _idx2 += 3 {
-				tn := _items2[_idx2+0]
-				_ = tn // suppress unused warning
-				match := _items2[_idx2+1]
-				_ = match // suppress unused warning
-				res := _items2[_idx2+2]
+			pattern := _items3[_idx3+1]
+			_ = pattern // suppress unused warning
+			_ = _idx3
+			for _, col := range tclSplitList("a b c") {
+				_ = col // suppress unused warning
+				_dbeval4 := tclExecSQL(db, "SELECT rowid FROM t3 WHERE gmatch("+col+", '"+pattern+"')")
+				res = _dbeval4
 				_ = res // suppress unused warning
-				_ = _idx2
-					{ // "3.1." + tn
-						r = db.Query("\n    SELECT rowid FROM t3(" + sqlLiteral(match) + ")\n  ")
-						if r.Error != nil {
-							t.Errorf("query error: %v\n  sql: %s", r.Error, "\n    SELECT rowid FROM t3(" + sqlLiteral(match) + ")\n  ")
-							return
-						}
-						got := flatten(r)
-						want := tclListFlatten(res)
-						if got != want {
-							t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-						}
+				vtab.TclVarSet("query", "", col+" : "+pattern)
+				query = col + " : " + pattern
+				_ = query // suppress unused warning
+				{         // "3.3." + x + "." + tn + "." + col + ".rowid"
+					r = db.Query("\n        SELECT rowid FROM t3(" + sqlLiteral(query) + ");\n      ")
+					if r.Error != nil {
+						t.Errorf("query error: %v\n  sql: %s", r.Error, "\n        SELECT rowid FROM t3("+sqlLiteral(query)+");\n      ")
+						return
+					}
+					got := flatten(r)
+					want := tclListFlatten(res)
+					if got != want {
+						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 					}
 				}
-				{ // do_test "3.2"
-					// expr srand(0) (not evaluated)
-					_res = db.Exec(" DELETE FROM t3 ")
-					if _res.Error != nil {
-						t.Errorf("exec error: %v\n  sql: %s", _res.Error, " DELETE FROM t3 ")
+				// T33r-fts 2026-09-26: the transpiler kept the TCL
+				// double-quoted string's leading quote (the source
+				// spans lines with a backslash continuation) as part of
+				// the SQL — "unrecognized token" at run time. The
+				// intended statement is the bare SELECT below.
+				_dbeval5 := tclExecSQL(db, "SELECT ghl("+col+", '"+pattern+"') FROM t3 WHERE gmatch("+col+", '"+pattern+"')")
+				res = _dbeval5
+				_ = res // suppress unused warning
+				vtab.TclVarSet("idx", "", COLS_col)
+				idx = COLS_col
+				_ = idx // suppress unused warning
+				{       // "3.3." + x + "." + tn + "." + col + ".highlight"
+					r = db.Query("\n        SELECT highlight(t3, " + sqlLiteral(idx) + ", '*', '*') FROM t3(" + sqlLiteral(query) + ");\n      ")
+					if r.Error != nil {
+						t.Errorf("query error: %v\n  sql: %s", r.Error, "\n        SELECT highlight(t3, "+sqlLiteral(idx)+", '*', '*') FROM t3("+sqlLiteral(query)+");\n      ")
+						return
 					}
-					vtab.TclVarSet("i", "", "0")
-					i = "0"
-					_ = i // suppress unused warning
-					for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 1000 }() {
-						a = "fts5_rnddoc 3"
-						_ = a // suppress unused warning
-						b = "fts5_rnddoc 8"
-						_ = b // suppress unused warning
-						c = "fts5_rnddoc 20"
-						_ = c // suppress unused warning
-						_res = db.Exec(" INSERT INTO t3 VALUES(" + sqlLiteral(a) + ", " + sqlLiteral(b) + ", " + sqlLiteral(c) + ") ")
-						if _res.Error != nil {
-							t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t3 VALUES(" + sqlLiteral(a) + ", " + sqlLiteral(b) + ", " + sqlLiteral(c) + ") ")
-						}
-						// incr i 1
-						{
-							_n, _err := strconv.Atoi(i)
-							if _err == nil {
-								i = strconv.Itoa(_n + 1)
-							}
-						}
-					}
-					_res = db.Exec(" INSERT INTO t3(t3) VALUES('integrity-check') ")
-					if _res.Error != nil {
-						t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t3(t3) VALUES('integrity-check') ")
+					got := flatten(r)
+					want := tclListFlatten(res)
+					if got != want {
+						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
 					}
 				}
-				// proc definition (not transpiled)
-				db.RegisterFunction("gmatch", func(args []interface{}) (interface{}, error) { return nil, nil }, 0, -1)
-				// proc definition (not transpiled)
-				db.RegisterFunction("ghl", func(args []interface{}) (interface{}, error) { return nil, nil }, 0, -1)
-				vtab.TclVarSet("COLS", "a", "0")
-				COLS_a = "0"
-				_ = COLS_a // suppress unused warning
-				vtab.TclVarSet("COLS", "b", "1")
-				COLS_b = "1"
-				_ = COLS_b // suppress unused warning
-				vtab.TclVarSet("COLS", "c", "2")
-				COLS_c = "2"
-				_ = COLS_c // suppress unused warning
-				vtab.TclVarSet("x", "", "0")
-				x = "0"
-				_ = x // suppress unused warning
-				for func() bool { x_n, _x_e := strconv.Atoi(x); if _x_e != nil { return false }; return x_n < 2 }() {
-					// foreach {tn pattern} "1  {xa*}\n    2  {xb*}\n    3  {xc*}\n    4  {xd*}\n    5  {xe*}\n    6  {xf*}\n    7  {xg*}\n    8  {xh*}\n    9  {xi*}\n    10 {xj*}"
-					_items3 := tclSplitList("1  {xa*}\n    2  {xb*}\n    3  {xc*}\n    4  {xd*}\n    5  {xe*}\n    6  {xf*}\n    7  {xg*}\n    8  {xh*}\n    9  {xi*}\n    10 {xj*}")
-					for _idx3 := 0; _idx3+2 <= len(_items3); _idx3 += 2 {
-						tn := _items3[_idx3+0]
-						_ = tn // suppress unused warning
-						pattern := _items3[_idx3+1]
-						_ = pattern // suppress unused warning
-						_ = _idx3
-							for _, col := range tclSplitList("a b c") {
-							_ = col // suppress unused warning
-								_dbeval4 := tclExecSQL(db, "SELECT rowid FROM t3 WHERE gmatch(" + col + ", '" + pattern + "')")
-								res = _dbeval4
-								_ = res // suppress unused warning
-								vtab.TclVarSet("query", "", col + " : " + pattern)
-								query = col + " : " + pattern
-								_ = query // suppress unused warning
-								{ // "3.3." + x + "." + tn + "." + col + ".rowid"
-									r = db.Query("\n        SELECT rowid FROM t3(" + sqlLiteral(query) + ");\n      ")
-									if r.Error != nil {
-										t.Errorf("query error: %v\n  sql: %s", r.Error, "\n        SELECT rowid FROM t3(" + sqlLiteral(query) + ");\n      ")
-										return
-									}
-									got := flatten(r)
-									want := tclListFlatten(res)
-									if got != want {
-										t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-									}
-								}
-								_dbeval5 := tclExecSQL(db, " \"SELECT ghl(" + col + ", '" + pattern + "') FROM t3 WHERE gmatch(" + col + ", '" + pattern + "')")
-								res = _dbeval5
-								_ = res // suppress unused warning
-								vtab.TclVarSet("idx", "", COLS_col)
-								idx = COLS_col
-								_ = idx // suppress unused warning
-								{ // "3.3." + x + "." + tn + "." + col + ".highlight"
-									r = db.Query("\n        SELECT highlight(t3, " + sqlLiteral(idx) + ", '*', '*') FROM t3(" + sqlLiteral(query) + ");\n      ")
-									if r.Error != nil {
-										t.Errorf("query error: %v\n  sql: %s", r.Error, "\n        SELECT highlight(t3, " + sqlLiteral(idx) + ", '*', '*') FROM t3(" + sqlLiteral(query) + ");\n      ")
-										return
-									}
-									got := flatten(r)
-									want := tclListFlatten(res)
-									if got != want {
-										t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-									}
-								}
-							}
-							for _, colset := range tclSplitList("{a b} {b c} {c a} {a c} {b a}") {
-							_ = colset // suppress unused warning
-								// foreach col1,col2 colset (no body)
-								vtab.TclVarSet("expr", "", "gmatch(" + col1 + ", '" + pattern + "') OR gmatch(" + col2 + ", '" + pattern + "')")
-								expr = "gmatch(" + col1 + ", '" + pattern + "') OR gmatch(" + col2 + ", '" + pattern + "')"
-								_ = expr // suppress unused warning
-								_dbeval6 := tclExecSQL(db, "SELECT rowid FROM t3 WHERE " + expr)
-								res = _dbeval6
-								_ = res // suppress unused warning
-								vtab.TclVarSet("query", "", "{" + colset + "} : " + pattern)
-								query = "{" + colset + "} : " + pattern
-								_ = query // suppress unused warning
-								{ // "3.3." + x + "." + tn + "."
-									_res = db.Exec(sqlLiteral(colset))
-									if _res.Error != nil {
-										t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), sqlLiteral(colset))
-									}
-								}
-								vtab.TclVarSet("resq", "", "SELECT ghl(" + col1 + ", '" + pattern + "'), ghl(" + col2 + ", '" + pattern + "')")
-								resq = "SELECT ghl(" + col1 + ", '" + pattern + "'), ghl(" + col2 + ", '" + pattern + "')"
-								_ = resq // suppress unused warning
-								resq += " FROM t3 WHERE " + expr
-								_dbeval7 := tclExecSQL(db, resq)
-								res = _dbeval7
-								_ = res // suppress unused warning
-								vtab.TclVarSet("idx1", "", COLS_col1)
-								idx1 = COLS_col1
-								_ = idx1 // suppress unused warning
-								vtab.TclVarSet("idx2", "", COLS_col2)
-								idx2 = COLS_col2
-								_ = idx2 // suppress unused warning
-								{ // "3.3." + x + "." + tn + "."
-									_res = db.Exec(sqlLiteral(colset))
-									if _res.Error != nil {
-										t.Errorf("exec error: %v\n  sql: %s", resErrString(_res), sqlLiteral(colset))
-									}
-								}
-							}
-						}
-						_res = db.Exec(" INSERT INTO t3(t3) VALUES('optimize') ")
-						if _res.Error != nil {
-							t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t3(t3) VALUES('optimize') ")
-						}
-						_res = db.Exec(" INSERT INTO t3(t3) VALUES('integrity-check') ")
-						if _res.Error != nil {
-							t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t3(t3) VALUES('integrity-check') ")
-						}
-						// incr x 1
-						{
-							_n, _err := strconv.Atoi(x)
-							if _err == nil {
-								x = strconv.Itoa(_n + 1)
-							}
-						}
+			}
+			for _, colset := range tclSplitList("{a b} {b c} {c a} {a c} {b a}") {
+				_ = colset // suppress unused warning
+				// foreach col1,col2 colset (no body)
+				// T33r-fts 2026-09-26: the transpiler skipped the {col1 col2}
+				// destructuring, leaving col1/col2 empty ("near \",\"":
+				// syntax error" in the resq statement). colset is a
+				// two-element list ("a b").
+				if _cs := strings.Fields(colset); len(_cs) == 2 {
+					col1, col2 = _cs[0], _cs[1]
+				}
+				vtab.TclVarSet("expr", "", "gmatch("+col1+", '"+pattern+"') OR gmatch("+col2+", '"+pattern+"')")
+				expr = "gmatch(" + col1 + ", '" + pattern + "') OR gmatch(" + col2 + ", '" + pattern + "')"
+				_ = expr // suppress unused warning
+				_dbeval6 := tclExecSQL(db, "SELECT rowid FROM t3 WHERE "+expr)
+				res = _dbeval6
+				_ = res // suppress unused warning
+				vtab.TclVarSet("query", "", "{"+colset+"} : "+pattern)
+				query = "{" + colset + "} : " + pattern
+				_ = query // suppress unused warning
+				{         // "3.3." + x + "." + tn + ".{$colset}.rowid"
+					// Repaired (T33r-fts 2026-09-26): the
+					// transpiler emitted the test name's
+					// `{$colset}` component as the SQL body
+					// (db.Exec(sqlLiteral(colset)) = a syntax
+					// error). The TCL runs
+					// `SELECT rowid FROM t3($query)` against
+					// the gmatch-derived rowid list in $res.
+					_r33 := db.Query("\n        SELECT rowid FROM t3(" + sqlLiteral(query) + ");\n      ")
+					if _r33.Error != nil {
+						t.Errorf("query error: %v\n  sql: %s", _r33.Error, "\n        SELECT rowid FROM t3("+sqlLiteral(query)+");\n      ")
+					} else if _got := flatten(_r33); _got != tclListFlatten(res) {
+						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", _got, tclListFlatten(res))
 					}
-					db.Close()
-					os.Remove("test.db")
-					os.Remove("test.db-journal")
-					os.Remove("test.db-wal")
-					db, err = frigolite.Open("test.db")
-					if err != nil { t.Fatal(err) }
-					tcl_nullvalue = "{}" // fresh connection resets nullvalue
-					{ // "4.0"
-						r = db.Query("\n  CREATE VIRTUAL TABLE t2 USING fts5(c1, c2);\n  INSERT INTO t2 VALUES('xa xb', 'xb xa');\n\n  INSERT INTO t2 SELECT c1||' '||c1, c2||' '||c2 FROM t2; -- 2\n  INSERT INTO t2 SELECT c1||' '||c1, c2||' '||c2 FROM t2; -- 4\n  INSERT INTO t2 SELECT c1||' '||c1, c2||' '||c2 FROM t2; -- 8\n  INSERT INTO t2 SELECT c1||' '||c1, c2||' '||c2 FROM t2; -- 16\n  INSERT INTO t2 SELECT c1||' '||c1, c2||' '||c2 FROM t2; -- 32\n  INSERT INTO t2 SELECT c1||' '||c1, c2||' '||c2 FROM t2; -- 64\n  INSERT INTO t2 SELECT c1||' '||c1, c2||' '||c2 FROM t2; -- 128\n  INSERT INTO t2 SELECT c1||' '||c1, c2||' '||c2 FROM t2; -- 256\n  INSERT INTO t2 SELECT c1||' '||c1, c2||' '||c2 FROM t2; -- 512\n  INSERT INTO t2 SELECT c1||' '||c1, c2||' '||c2 FROM t2; -- 1024\n  INSERT INTO t2 SELECT c1||' '||c1, c2||' '||c2 FROM t2; -- 2048\n  INSERT INTO t2 SELECT c1||' '||c1, c2||' '||c2 FROM t2; -- 4096\n\n  SELECT count(*) FROM t2('x*');\n")
-						if r.Error != nil {
-							t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  CREATE VIRTUAL TABLE t2 USING fts5(c1, c2);\n  INSERT INTO t2 VALUES('xa xb', 'xb xa');\n\n  INSERT INTO t2 SELECT c1||' '||c1, c2||' '||c2 FROM t2; -- 2\n  INSERT INTO t2 SELECT c1||' '||c1, c2||' '||c2 FROM t2; -- 4\n  INSERT INTO t2 SELECT c1||' '||c1, c2||' '||c2 FROM t2; -- 8\n  INSERT INTO t2 SELECT c1||' '||c1, c2||' '||c2 FROM t2; -- 16\n  INSERT INTO t2 SELECT c1||' '||c1, c2||' '||c2 FROM t2; -- 32\n  INSERT INTO t2 SELECT c1||' '||c1, c2||' '||c2 FROM t2; -- 64\n  INSERT INTO t2 SELECT c1||' '||c1, c2||' '||c2 FROM t2; -- 128\n  INSERT INTO t2 SELECT c1||' '||c1, c2||' '||c2 FROM t2; -- 256\n  INSERT INTO t2 SELECT c1||' '||c1, c2||' '||c2 FROM t2; -- 512\n  INSERT INTO t2 SELECT c1||' '||c1, c2||' '||c2 FROM t2; -- 1024\n  INSERT INTO t2 SELECT c1||' '||c1, c2||' '||c2 FROM t2; -- 2048\n  INSERT INTO t2 SELECT c1||' '||c1, c2||' '||c2 FROM t2; -- 4096\n\n  SELECT count(*) FROM t2('x*');\n")
-							return
-						}
-						got := flatten(r)
-						want := "4096"
-						if got != want {
-							t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-						}
+				}
+				vtab.TclVarSet("resq", "", "SELECT ghl("+col1+", '"+pattern+"'), ghl("+col2+", '"+pattern+"')")
+				resq = "SELECT ghl(" + col1 + ", '" + pattern + "'), ghl(" + col2 + ", '" + pattern + "')"
+				_ = resq // suppress unused warning
+				resq += " FROM t3 WHERE " + expr
+				_dbeval7 := tclExecSQL(db, resq)
+				res = _dbeval7
+				_ = res // suppress unused warning
+				vtab.TclVarSet("idx1", "", COLS_col1)
+				idx1 = COLS_col1
+				_ = idx1 // suppress unused warning
+				vtab.TclVarSet("idx2", "", COLS_col2)
+				idx2 = COLS_col2
+				_ = idx2 // suppress unused warning
+				{        // "3.3." + x + "." + tn + ".{$colset}.highlight"
+					// Repaired (T33r-fts 2026-09-26): same
+					// transpiler name-brace artifact as the
+					// rowid block above. The TCL runs
+					// `SELECT highlight(t3, $idx1, '*', '*'),
+					// highlight(t3, $idx2, '*', '*')
+					// FROM t3($query)` against the ghl-derived
+					// list in $res.
+					_r33h := db.Query("\n        SELECT highlight(t3, " + sqlLiteral(idx1) + ", '*', '*'), highlight(t3, " + sqlLiteral(idx2) + ", '*', '*')\n          FROM t3(" + sqlLiteral(query) + ")\n      ")
+					if _r33h.Error != nil {
+						t.Errorf("query error: %v\n  sql: %s", _r33h.Error, "\n        SELECT highlight(t3, "+sqlLiteral(idx1)+", '*', '*'), highlight(t3, "+sqlLiteral(idx2)+", '*', '*')\n          FROM t3("+sqlLiteral(query)+")\n      ")
+					} else if _got := flatten(_r33h); _got != tclListFlatten(res) {
+						t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", _got, tclListFlatten(res))
 					}
-					{ // "4.1"
-						r = db.Query("\n  UPDATE t2 SET c2 = 'ya yb';\n  SELECT count(*) FROM t2('c1" + sqlLiteral(x) + "*');\n  SELECT count(*) FROM t2('c2" + sqlLiteral(x) + "*');\n")
-						if r.Error != nil {
-							t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  UPDATE t2 SET c2 = 'ya yb';\n  SELECT count(*) FROM t2('c1" + sqlLiteral(x) + "*');\n  SELECT count(*) FROM t2('c2" + sqlLiteral(x) + "*');\n")
-							return
-						}
-						got := flatten(r)
-						want := "4096 0"
-						if got != want {
-							t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-						}
-					}
-					{ // "4.2"
-						r = db.Query("\n  UPDATE t2 SET c2 = 'xa';\n  SELECT count(*) FROM t2('c1" + sqlLiteral(x) + "*');\n  SELECT count(*) FROM t2('c2" + sqlLiteral(x) + "*');\n")
-						if r.Error != nil {
-							t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  UPDATE t2 SET c2 = 'xa';\n  SELECT count(*) FROM t2('c1" + sqlLiteral(x) + "*');\n  SELECT count(*) FROM t2('c2" + sqlLiteral(x) + "*');\n")
-							return
-						}
-						got := flatten(r)
-						want := "4096 4096"
-						if got != want {
-							t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-						}
-					}
-					db.Close()
-					os.Remove("test.db")
-					os.Remove("test.db-journal")
-					os.Remove("test.db-wal")
-					db, err = frigolite.Open("test.db")
-					if err != nil { t.Fatal(err) }
-					tcl_nullvalue = "{}" // fresh connection resets nullvalue
-					// proc definition (not transpiled)
-					cols = ""
-					_ = cols // suppress unused warning
-					vtab.TclVarSet("i", "", "1")
-					i = "1"
-					_ = i // suppress unused warning
-					for func() bool { i_n, _i_e := strconv.Atoi(i); if _i_e != nil { return false }; return i_n < 250 }() {
-						cols = tclListAppend(cols, "c" + i)
-						vals = tclListAppend(vals, "'" + "rnddoc 10" + "'")
-						// incr i 1
-						{
-							_n, _err := strconv.Atoi(i)
-							if _err == nil {
-								i = strconv.Itoa(_n + 1)
-							}
-						}
-					}
-					{ // do_test "5.0"
-						_res = db.Exec("CREATE VIRTUAL TABLE t4 USING fts5(" + strings.Join(tclSplitList(cols), ",") + ")")
-						if _res.Error != nil {
-							t.Errorf("exec error: %v\n  sql: %s", _res.Error, "CREATE VIRTUAL TABLE t4 USING fts5(" + strings.Join(tclSplitList(cols), ",") + ")")
-						}
-						_res = db.Exec("INSERT INTO t4(t4, rank) VALUES('pgsz', 32)")
-						if _res.Error != nil {
-							t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO t4(t4, rank) VALUES('pgsz', 32)")
-						}
-						_res = db.Exec("INSERT INTO t4 VALUES(" + strings.Join(tclSplitList(vals), ",") + ")")
-						if _res.Error != nil {
-							t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO t4 VALUES(" + strings.Join(tclSplitList(vals), ",") + ")")
-						}
-						_res = db.Exec("INSERT INTO t4 VALUES(" + strings.Join(tclSplitList(vals), ",") + ")")
-						if _res.Error != nil {
-							t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO t4 VALUES(" + strings.Join(tclSplitList(vals), ",") + ")")
-						}
-						_res = db.Exec("INSERT INTO t4 VALUES(" + strings.Join(tclSplitList(vals), ",") + ")")
-						if _res.Error != nil {
-							t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO t4 VALUES(" + strings.Join(tclSplitList(vals), ",") + ")")
-						}
-						_res = db.Exec("INSERT INTO t4 VALUES(" + strings.Join(tclSplitList(vals), ",") + ")")
-						if _res.Error != nil {
-							t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO t4 VALUES(" + strings.Join(tclSplitList(vals), ",") + ")")
-						}
-					}
-					// proc definition (not transpiled)
-					db.RegisterFunction("gmatch", func(args []interface{}) (interface{}, error) { return nil, nil }, 0, -1)
-					// foreach {tn col pattern} "1 c100 {xa*}\n  2 c200 {xb*}"
-					_items8 := tclSplitList("1 c100 {xa*}\n  2 c200 {xb*}")
-					for _idx8 := 0; _idx8+3 <= len(_items8); _idx8 += 3 {
-						tn := _items8[_idx8+0]
-						_ = tn // suppress unused warning
-						col := _items8[_idx8+1]
-						_ = col // suppress unused warning
-						pattern := _items8[_idx8+2]
-						_ = pattern // suppress unused warning
-						_ = _idx8
-							_dbeval9 := tclExecSQL(db, "SELECT rowid FROM t4 WHERE gmatch(" + col + ", $pattern)")
-							res = _dbeval9
-							_ = res // suppress unused warning
-							vtab.TclVarSet("query", "", col + " : " + pattern)
-							query = col + " : " + pattern
-							_ = query // suppress unused warning
-							{ // "5." + tn
-								r = db.Query(" SELECT rowid FROM t4(" + sqlLiteral(query) + ") ")
-								if r.Error != nil {
-									t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT rowid FROM t4(" + sqlLiteral(query) + ") ")
-									return
-								}
-								got := flatten(r)
-								want := tclListFlatten(res)
-								if got != want {
-									t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-								}
-							}
-						}
-						db.Close()
-						os.Remove("test.db")
-						os.Remove("test.db-journal")
-						os.Remove("test.db-wal")
-						db, err = frigolite.Open("test.db")
-						if err != nil { t.Fatal(err) }
-						tcl_nullvalue = "{}" // fresh connection resets nullvalue
-						db.RegisterFunction("fts5_rnddoc", func(args []interface{}) (interface{}, error) { return nil, nil }, 0, -1)
-						{ // do_test "6.0"
-							_res = db.Exec("\n    CREATE VIRTUAL TABLE t5 USING fts5(x, y);\n    INSERT INTO t5 VALUES( fts5_rnddoc(10000), fts5_rnddoc(10000) );\n    INSERT INTO t5 VALUES( fts5_rnddoc(10000), fts5_rnddoc(10000) );\n    INSERT INTO t5 VALUES( fts5_rnddoc(10000), fts5_rnddoc(10000) );\n    INSERT INTO t5 VALUES( fts5_rnddoc(10000), fts5_rnddoc(10000) );\n  ")
-							if _res.Error != nil {
-								t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE VIRTUAL TABLE t5 USING fts5(x, y);\n    INSERT INTO t5 VALUES( fts5_rnddoc(10000), fts5_rnddoc(10000) );\n    INSERT INTO t5 VALUES( fts5_rnddoc(10000), fts5_rnddoc(10000) );\n    INSERT INTO t5 VALUES( fts5_rnddoc(10000), fts5_rnddoc(10000) );\n    INSERT INTO t5 VALUES( fts5_rnddoc(10000), fts5_rnddoc(10000) );\n  ")
-							}
-						}
-						// proc definition (not transpiled)
-						db.RegisterFunction("gmatch", func(args []interface{}) (interface{}, error) { return nil, nil }, 0, -1)
-						// foreach {tn col pattern} "1 y {xa*}\n  2 y {xb*}\n  3 y {xc*}\n  4 x {xa*}\n  5 x {xb*}\n  6 x {xc*}"
-						_items10 := tclSplitList("1 y {xa*}\n  2 y {xb*}\n  3 y {xc*}\n  4 x {xa*}\n  5 x {xb*}\n  6 x {xc*}")
-						for _idx10 := 0; _idx10+3 <= len(_items10); _idx10 += 3 {
-							tn := _items10[_idx10+0]
-							_ = tn // suppress unused warning
-							col := _items10[_idx10+1]
-							_ = col // suppress unused warning
-							pattern := _items10[_idx10+2]
-							_ = pattern // suppress unused warning
-							_ = _idx10
-								_dbeval11 := tclExecSQL(db, "SELECT rowid FROM t5 WHERE gmatch(" + col + ", $pattern)")
-								res = _dbeval11
-								_ = res // suppress unused warning
-								vtab.TclVarSet("query", "", col + " : " + pattern)
-								query = col + " : " + pattern
-								_ = query // suppress unused warning
-								{ // "6." + tn
-									r = db.Query(" SELECT rowid FROM t5(" + sqlLiteral(query) + ") ")
-									if r.Error != nil {
-										t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT rowid FROM t5(" + sqlLiteral(query) + ") ")
-										return
-									}
-									got := flatten(r)
-									want := tclListFlatten(res)
-									if got != want {
-										t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-									}
-								}
-							}
-							// save_prng_state (unsupported command, not transpiled)
-							// foreach {tn create} "1 { CREATE VIRTUAL TABLE tt USING fts5(x, y, prefix=\"1,2,3\") }\n  2 { CREATE VIRTUAL TABLE tt USING fts5(x, y, prefix=\"1 2 3\") }\n  3 { CREATE VIRTUAL TABLE tt USING fts5(x, y, prefix=1, prefix=2, prefix=3) }\n  4 { CREATE VIRTUAL TABLE tt USING fts5(x, y, prefix=\"1 2\", prefix=3) }"
-							_items12 := tclSplitList("1 { CREATE VIRTUAL TABLE tt USING fts5(x, y, prefix=\"1,2,3\") }\n  2 { CREATE VIRTUAL TABLE tt USING fts5(x, y, prefix=\"1 2 3\") }\n  3 { CREATE VIRTUAL TABLE tt USING fts5(x, y, prefix=1, prefix=2, prefix=3) }\n  4 { CREATE VIRTUAL TABLE tt USING fts5(x, y, prefix=\"1 2\", prefix=3) }")
-							for _idx12 := 0; _idx12+2 <= len(_items12); _idx12 += 2 {
-								tn := _items12[_idx12+0]
-								_ = tn // suppress unused warning
-								create := _items12[_idx12+1]
-								_ = create // suppress unused warning
-								_ = _idx12
-									_res = db.Exec(" DROP TABLE IF EXISTS tt ")
-									if _res.Error != nil {
-										t.Errorf("exec error: %v\n  sql: %s", _res.Error, " DROP TABLE IF EXISTS tt ")
-									}
-									// restore_prng_state (unsupported command, not transpiled)
-									_res = db.Exec(create)
-									if _res.Error != nil {
-										t.Errorf("exec error: %v\n  sql: %s", _res.Error, create)
-									}
-									_res = db.Exec("\n    INSERT INTO tt VALUES('cc b ggg ccc aa eee hh', 'aa g b hh a e');\n    INSERT INTO tt VALUES('cc bb cc gg j g cc', 'ii jjj ggg jjj cc cc');\n    INSERT INTO tt VALUES('h eee cc h iii', 'aaa iii dd iii dd');\n    INSERT INTO tt VALUES('jjj hh eee c e b gg', 'j bbb jj ddd jj');\n    INSERT INTO tt VALUES('ii hhh aaa ff c hhh iii', 'j cc hh bb e');\n    INSERT INTO tt VALUES('e fff hhh i aaa', 'g b aa gg c aa dd');\n    INSERT INTO tt VALUES('i aaa ccc gg hhh aa h', 'j bbb bbb d ff');\n    INSERT INTO tt VALUES('g f gg ff ff jjj d', 'jjj d j fff fff ee j');\n    INSERT INTO tt VALUES('a cc e ccc jjj c', 'ccc iii d bb a eee g');\n    INSERT INTO tt VALUES('jj hh hh bb bbb gg', 'j c jjj bb iii f');\n    INSERT INTO tt VALUES('a ggg g cc ccc aa', 'jjj j j aaa c');\n    INSERT INTO tt VALUES('ddd j dd b i', 'aaa bbb iii ggg ff ccc ddd');\n    INSERT INTO tt VALUES('jj ii hh c ii h gg', 'hhh bbb ddd bbb hh g ggg');\n    INSERT INTO tt VALUES('aa hhh ccc h ggg ccc', 'iii d jj a ff ii');\n  ")
-									if _res.Error != nil {
-										t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    INSERT INTO tt VALUES('cc b ggg ccc aa eee hh', 'aa g b hh a e');\n    INSERT INTO tt VALUES('cc bb cc gg j g cc', 'ii jjj ggg jjj cc cc');\n    INSERT INTO tt VALUES('h eee cc h iii', 'aaa iii dd iii dd');\n    INSERT INTO tt VALUES('jjj hh eee c e b gg', 'j bbb jj ddd jj');\n    INSERT INTO tt VALUES('ii hhh aaa ff c hhh iii', 'j cc hh bb e');\n    INSERT INTO tt VALUES('e fff hhh i aaa', 'g b aa gg c aa dd');\n    INSERT INTO tt VALUES('i aaa ccc gg hhh aa h', 'j bbb bbb d ff');\n    INSERT INTO tt VALUES('g f gg ff ff jjj d', 'jjj d j fff fff ee j');\n    INSERT INTO tt VALUES('a cc e ccc jjj c', 'ccc iii d bb a eee g');\n    INSERT INTO tt VALUES('jj hh hh bb bbb gg', 'j c jjj bb iii f');\n    INSERT INTO tt VALUES('a ggg g cc ccc aa', 'jjj j j aaa c');\n    INSERT INTO tt VALUES('ddd j dd b i', 'aaa bbb iii ggg ff ccc ddd');\n    INSERT INTO tt VALUES('jj ii hh c ii h gg', 'hhh bbb ddd bbb hh g ggg');\n    INSERT INTO tt VALUES('aa hhh ccc h ggg ccc', 'iii d jj a ff ii');\n  ")
-									}
-									if func() bool { tn_n, _tn_e := strconv.Atoi(tn); if _tn_e != nil { return false }; return tn_n == 1 }() {
-										vtab.TclVarSet("checksum", "", tclExecSQL(db, "SELECT md5sum(id, block) FROM tt_data"))
-										checksum = tclExecSQL(db, "SELECT md5sum(id, block) FROM tt_data") // TCL namespace variable
-										_ = checksum // suppress unused warning
-									} else {
-										{ // "7." + tn
-											r = db.Query("\n      SELECT md5sum(id, block) FROM tt_data\n    ")
-											if r.Error != nil {
-												t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT md5sum(id, block) FROM tt_data\n    ")
-												return
-											}
-											got := flatten(r)
-											want := tclListFlatten(checksum)
-											if got != want {
-												t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
-											}
-										}
-									}
-								}
+				}
+			}
+		}
+		_res = db.Exec(" INSERT INTO t3(t3) VALUES('optimize') ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t3(t3) VALUES('optimize') ")
+		}
+		_res = db.Exec(" INSERT INTO t3(t3) VALUES('integrity-check') ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t3(t3) VALUES('integrity-check') ")
+		}
+		// incr x 1
+		{
+			_n, _err := strconv.Atoi(x)
+			if _err == nil {
+				x = strconv.Itoa(_n + 1)
+			}
+		}
+	}
+	db.Close()
+	os.Remove("test.db")
+	os.Remove("test.db-journal")
+	os.Remove("test.db-wal")
+	db, err = frigolite.Open("test.db")
+	if err != nil {
+		t.Fatal(err)
+	}
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
+	{                    // "4.0"
+		r = db.Query("\n  CREATE VIRTUAL TABLE t2 USING fts5(c1, c2);\n  INSERT INTO t2 VALUES('xa xb', 'xb xa');\n\n  INSERT INTO t2 SELECT c1||' '||c1, c2||' '||c2 FROM t2; -- 2\n  INSERT INTO t2 SELECT c1||' '||c1, c2||' '||c2 FROM t2; -- 4\n  INSERT INTO t2 SELECT c1||' '||c1, c2||' '||c2 FROM t2; -- 8\n  INSERT INTO t2 SELECT c1||' '||c1, c2||' '||c2 FROM t2; -- 16\n  INSERT INTO t2 SELECT c1||' '||c1, c2||' '||c2 FROM t2; -- 32\n  INSERT INTO t2 SELECT c1||' '||c1, c2||' '||c2 FROM t2; -- 64\n  INSERT INTO t2 SELECT c1||' '||c1, c2||' '||c2 FROM t2; -- 128\n  INSERT INTO t2 SELECT c1||' '||c1, c2||' '||c2 FROM t2; -- 256\n  INSERT INTO t2 SELECT c1||' '||c1, c2||' '||c2 FROM t2; -- 512\n  INSERT INTO t2 SELECT c1||' '||c1, c2||' '||c2 FROM t2; -- 1024\n  INSERT INTO t2 SELECT c1||' '||c1, c2||' '||c2 FROM t2; -- 2048\n  INSERT INTO t2 SELECT c1||' '||c1, c2||' '||c2 FROM t2; -- 4096\n\n  SELECT count(*) FROM t2('x*');\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  CREATE VIRTUAL TABLE t2 USING fts5(c1, c2);\n  INSERT INTO t2 VALUES('xa xb', 'xb xa');\n\n  INSERT INTO t2 SELECT c1||' '||c1, c2||' '||c2 FROM t2; -- 2\n  INSERT INTO t2 SELECT c1||' '||c1, c2||' '||c2 FROM t2; -- 4\n  INSERT INTO t2 SELECT c1||' '||c1, c2||' '||c2 FROM t2; -- 8\n  INSERT INTO t2 SELECT c1||' '||c1, c2||' '||c2 FROM t2; -- 16\n  INSERT INTO t2 SELECT c1||' '||c1, c2||' '||c2 FROM t2; -- 32\n  INSERT INTO t2 SELECT c1||' '||c1, c2||' '||c2 FROM t2; -- 64\n  INSERT INTO t2 SELECT c1||' '||c1, c2||' '||c2 FROM t2; -- 128\n  INSERT INTO t2 SELECT c1||' '||c1, c2||' '||c2 FROM t2; -- 256\n  INSERT INTO t2 SELECT c1||' '||c1, c2||' '||c2 FROM t2; -- 512\n  INSERT INTO t2 SELECT c1||' '||c1, c2||' '||c2 FROM t2; -- 1024\n  INSERT INTO t2 SELECT c1||' '||c1, c2||' '||c2 FROM t2; -- 2048\n  INSERT INTO t2 SELECT c1||' '||c1, c2||' '||c2 FROM t2; -- 4096\n\n  SELECT count(*) FROM t2('x*');\n")
+			return
+		}
+		got := flatten(r)
+		want := "4096"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
+	{ // "4.1"
+		r = db.Query("\n  UPDATE t2 SET c2 = 'ya yb';\n  SELECT count(*) FROM t2('c1:x*');\n  SELECT count(*) FROM t2('c2:x*');\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  UPDATE t2 SET c2 = 'ya yb';\n  SELECT count(*) FROM t2('c1:x*');\n  SELECT count(*) FROM t2('c2:x*');\n")
+			return
+		}
+		got := flatten(r)
+		want := "4096 0"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
+	{ // "4.2"
+		r = db.Query("\n  UPDATE t2 SET c2 = 'xa';\n  SELECT count(*) FROM t2('c1:x*');\n  SELECT count(*) FROM t2('c2:x*');\n")
+		if r.Error != nil {
+			t.Errorf("query error: %v\n  sql: %s", r.Error, "\n  UPDATE t2 SET c2 = 'xa';\n  SELECT count(*) FROM t2('c1:x*');\n  SELECT count(*) FROM t2('c2:x*');\n")
+			return
+		}
+		got := flatten(r)
+		want := "4096 4096"
+		if got != want {
+			t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+		}
+	}
+	db.Close()
+	os.Remove("test.db")
+	os.Remove("test.db-journal")
+	os.Remove("test.db-wal")
+	db, err = frigolite.Open("test.db")
+	if err != nil {
+		t.Fatal(err)
+	}
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
+	// proc definition (not transpiled)
+	cols = ""
+	_ = cols // suppress unused warning
+	vtab.TclVarSet("i", "", "1")
+	i = "1"
+	_ = i // suppress unused warning
+	for func() bool {
+		i_n, _i_e := strconv.Atoi(i)
+		if _i_e != nil {
+			return false
+		}
+		return i_n < 250
+	}() {
+		cols = tclListAppend(cols, "c"+i)
+		vals = tclListAppend(vals, "'"+"rnddoc 10"+"'")
+		// incr i 1
+		{
+			_n, _err := strconv.Atoi(i)
+			if _err == nil {
+				i = strconv.Itoa(_n + 1)
+			}
+		}
+	}
+	{ // do_test "5.0"
+		_res = db.Exec("CREATE VIRTUAL TABLE t4 USING fts5(" + strings.Join(tclSplitList(cols), ",") + ")")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "CREATE VIRTUAL TABLE t4 USING fts5("+strings.Join(tclSplitList(cols), ",")+")")
+		}
+		_res = db.Exec("INSERT INTO t4(t4, rank) VALUES('pgsz', 32)")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO t4(t4, rank) VALUES('pgsz', 32)")
+		}
+		_res = db.Exec("INSERT INTO t4 VALUES(" + strings.Join(tclSplitList(vals), ",") + ")")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO t4 VALUES("+strings.Join(tclSplitList(vals), ",")+")")
+		}
+		_res = db.Exec("INSERT INTO t4 VALUES(" + strings.Join(tclSplitList(vals), ",") + ")")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO t4 VALUES("+strings.Join(tclSplitList(vals), ",")+")")
+		}
+		_res = db.Exec("INSERT INTO t4 VALUES(" + strings.Join(tclSplitList(vals), ",") + ")")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO t4 VALUES("+strings.Join(tclSplitList(vals), ",")+")")
+		}
+		_res = db.Exec("INSERT INTO t4 VALUES(" + strings.Join(tclSplitList(vals), ",") + ")")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "INSERT INTO t4 VALUES("+strings.Join(tclSplitList(vals), ",")+")")
+		}
+	}
+	// proc definition (not transpiled)
+	db.RegisterFunction("gmatch", func(args []interface{}) (interface{}, error) { return nil, nil }, 0, -1)
+	// foreach {tn col pattern} "1 c100 {xa*}\n  2 c200 {xb*}"
+	_items8 := tclSplitList("1 c100 {xa*}\n  2 c200 {xb*}")
+	for _idx8 := 0; _idx8+3 <= len(_items8); _idx8 += 3 {
+		tn := _items8[_idx8+0]
+		_ = tn // suppress unused warning
+		col := _items8[_idx8+1]
+		_ = col // suppress unused warning
+		pattern := _items8[_idx8+2]
+		_ = pattern // suppress unused warning
+		_ = _idx8
+		_dbeval9 := tclExecSQL(db, "SELECT rowid FROM t4 WHERE gmatch("+col+", $pattern)")
+		res = _dbeval9
+		_ = res // suppress unused warning
+		vtab.TclVarSet("query", "", col+" : "+pattern)
+		query = col + " : " + pattern
+		_ = query // suppress unused warning
+		{         // "5." + tn
+			r = db.Query(" SELECT rowid FROM t4(" + sqlLiteral(query) + ") ")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT rowid FROM t4("+sqlLiteral(query)+") ")
+				return
+			}
+			got := flatten(r)
+			want := tclListFlatten(res)
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
+		}
+	}
+	db.Close()
+	os.Remove("test.db")
+	os.Remove("test.db-journal")
+	os.Remove("test.db-wal")
+	db, err = frigolite.Open("test.db")
+	if err != nil {
+		t.Fatal(err)
+	}
+	tcl_nullvalue = "{}" // fresh connection resets nullvalue
+	db.RegisterFunction("fts5_rnddoc", func(args []interface{}) (interface{}, error) { return nil, nil }, 0, -1)
+	{ // do_test "6.0"
+		_res = db.Exec("\n    CREATE VIRTUAL TABLE t5 USING fts5(x, y);\n    INSERT INTO t5 VALUES( fts5_rnddoc(10000), fts5_rnddoc(10000) );\n    INSERT INTO t5 VALUES( fts5_rnddoc(10000), fts5_rnddoc(10000) );\n    INSERT INTO t5 VALUES( fts5_rnddoc(10000), fts5_rnddoc(10000) );\n    INSERT INTO t5 VALUES( fts5_rnddoc(10000), fts5_rnddoc(10000) );\n  ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    CREATE VIRTUAL TABLE t5 USING fts5(x, y);\n    INSERT INTO t5 VALUES( fts5_rnddoc(10000), fts5_rnddoc(10000) );\n    INSERT INTO t5 VALUES( fts5_rnddoc(10000), fts5_rnddoc(10000) );\n    INSERT INTO t5 VALUES( fts5_rnddoc(10000), fts5_rnddoc(10000) );\n    INSERT INTO t5 VALUES( fts5_rnddoc(10000), fts5_rnddoc(10000) );\n  ")
+		}
+	}
+	// proc definition (not transpiled)
+	db.RegisterFunction("gmatch", func(args []interface{}) (interface{}, error) { return nil, nil }, 0, -1)
+	// foreach {tn col pattern} "1 y {xa*}\n  2 y {xb*}\n  3 y {xc*}\n  4 x {xa*}\n  5 x {xb*}\n  6 x {xc*}"
+	_items10 := tclSplitList("1 y {xa*}\n  2 y {xb*}\n  3 y {xc*}\n  4 x {xa*}\n  5 x {xb*}\n  6 x {xc*}")
+	for _idx10 := 0; _idx10+3 <= len(_items10); _idx10 += 3 {
+		tn := _items10[_idx10+0]
+		_ = tn // suppress unused warning
+		col := _items10[_idx10+1]
+		_ = col // suppress unused warning
+		pattern := _items10[_idx10+2]
+		_ = pattern // suppress unused warning
+		_ = _idx10
+		_dbeval11 := tclExecSQL(db, "SELECT rowid FROM t5 WHERE gmatch("+col+", $pattern)")
+		res = _dbeval11
+		_ = res // suppress unused warning
+		vtab.TclVarSet("query", "", col+" : "+pattern)
+		query = col + " : " + pattern
+		_ = query // suppress unused warning
+		{         // "6." + tn
+			r = db.Query(" SELECT rowid FROM t5(" + sqlLiteral(query) + ") ")
+			if r.Error != nil {
+				t.Errorf("query error: %v\n  sql: %s", r.Error, " SELECT rowid FROM t5("+sqlLiteral(query)+") ")
+				return
+			}
+			got := flatten(r)
+			want := tclListFlatten(res)
+			if got != want {
+				t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+			}
+		}
+	}
+	// save_prng_state (unsupported command, not transpiled)
+	// foreach {tn create} "1 { CREATE VIRTUAL TABLE tt USING fts5(x, y, prefix=\"1,2,3\") }\n  2 { CREATE VIRTUAL TABLE tt USING fts5(x, y, prefix=\"1 2 3\") }\n  3 { CREATE VIRTUAL TABLE tt USING fts5(x, y, prefix=1, prefix=2, prefix=3) }\n  4 { CREATE VIRTUAL TABLE tt USING fts5(x, y, prefix=\"1 2\", prefix=3) }"
+	_items12 := tclSplitList("1 { CREATE VIRTUAL TABLE tt USING fts5(x, y, prefix=\"1,2,3\") }\n  2 { CREATE VIRTUAL TABLE tt USING fts5(x, y, prefix=\"1 2 3\") }\n  3 { CREATE VIRTUAL TABLE tt USING fts5(x, y, prefix=1, prefix=2, prefix=3) }\n  4 { CREATE VIRTUAL TABLE tt USING fts5(x, y, prefix=\"1 2\", prefix=3) }")
+	for _idx12 := 0; _idx12+2 <= len(_items12); _idx12 += 2 {
+		tn := _items12[_idx12+0]
+		_ = tn // suppress unused warning
+		create := _items12[_idx12+1]
+		_ = create // suppress unused warning
+		_ = _idx12
+		_res = db.Exec(" DROP TABLE IF EXISTS tt ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, " DROP TABLE IF EXISTS tt ")
+		}
+		// restore_prng_state (unsupported command, not transpiled)
+		_res = db.Exec(create)
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, create)
+		}
+		_res = db.Exec("\n    INSERT INTO tt VALUES('cc b ggg ccc aa eee hh', 'aa g b hh a e');\n    INSERT INTO tt VALUES('cc bb cc gg j g cc', 'ii jjj ggg jjj cc cc');\n    INSERT INTO tt VALUES('h eee cc h iii', 'aaa iii dd iii dd');\n    INSERT INTO tt VALUES('jjj hh eee c e b gg', 'j bbb jj ddd jj');\n    INSERT INTO tt VALUES('ii hhh aaa ff c hhh iii', 'j cc hh bb e');\n    INSERT INTO tt VALUES('e fff hhh i aaa', 'g b aa gg c aa dd');\n    INSERT INTO tt VALUES('i aaa ccc gg hhh aa h', 'j bbb bbb d ff');\n    INSERT INTO tt VALUES('g f gg ff ff jjj d', 'jjj d j fff fff ee j');\n    INSERT INTO tt VALUES('a cc e ccc jjj c', 'ccc iii d bb a eee g');\n    INSERT INTO tt VALUES('jj hh hh bb bbb gg', 'j c jjj bb iii f');\n    INSERT INTO tt VALUES('a ggg g cc ccc aa', 'jjj j j aaa c');\n    INSERT INTO tt VALUES('ddd j dd b i', 'aaa bbb iii ggg ff ccc ddd');\n    INSERT INTO tt VALUES('jj ii hh c ii h gg', 'hhh bbb ddd bbb hh g ggg');\n    INSERT INTO tt VALUES('aa hhh ccc h ggg ccc', 'iii d jj a ff ii');\n  ")
+		if _res.Error != nil {
+			t.Errorf("exec error: %v\n  sql: %s", _res.Error, "\n    INSERT INTO tt VALUES('cc b ggg ccc aa eee hh', 'aa g b hh a e');\n    INSERT INTO tt VALUES('cc bb cc gg j g cc', 'ii jjj ggg jjj cc cc');\n    INSERT INTO tt VALUES('h eee cc h iii', 'aaa iii dd iii dd');\n    INSERT INTO tt VALUES('jjj hh eee c e b gg', 'j bbb jj ddd jj');\n    INSERT INTO tt VALUES('ii hhh aaa ff c hhh iii', 'j cc hh bb e');\n    INSERT INTO tt VALUES('e fff hhh i aaa', 'g b aa gg c aa dd');\n    INSERT INTO tt VALUES('i aaa ccc gg hhh aa h', 'j bbb bbb d ff');\n    INSERT INTO tt VALUES('g f gg ff ff jjj d', 'jjj d j fff fff ee j');\n    INSERT INTO tt VALUES('a cc e ccc jjj c', 'ccc iii d bb a eee g');\n    INSERT INTO tt VALUES('jj hh hh bb bbb gg', 'j c jjj bb iii f');\n    INSERT INTO tt VALUES('a ggg g cc ccc aa', 'jjj j j aaa c');\n    INSERT INTO tt VALUES('ddd j dd b i', 'aaa bbb iii ggg ff ccc ddd');\n    INSERT INTO tt VALUES('jj ii hh c ii h gg', 'hhh bbb ddd bbb hh g ggg');\n    INSERT INTO tt VALUES('aa hhh ccc h ggg ccc', 'iii d jj a ff ii');\n  ")
+		}
+		if func() bool {
+			tn_n, _tn_e := strconv.Atoi(tn)
+			if _tn_e != nil {
+				return false
+			}
+			return tn_n == 1
+		}() {
+			vtab.TclVarSet("checksum", "", tclExecSQL(db, "SELECT md5sum(id, block) FROM tt_data"))
+			checksum = tclExecSQL(db, "SELECT md5sum(id, block) FROM tt_data") // TCL namespace variable
+			_ = checksum                                                       // suppress unused warning
+		} else {
+			{ // "7." + tn
+				r = db.Query("\n      SELECT md5sum(id, block) FROM tt_data\n    ")
+				if r.Error != nil {
+					t.Errorf("query error: %v\n  sql: %s", r.Error, "\n      SELECT md5sum(id, block) FROM tt_data\n    ")
+					return
+				}
+				got := flatten(r)
+				want := tclListFlatten(checksum)
+				if got != want {
+					t.Errorf("result mismatch\n  got:  [%s]\n  want: [%s]", got, want)
+				}
+			}
+		}
+	}
+}
+
+// tclGlobMatch implements TCL's string match for the patterns this test
+// uses (arbitrary literal segments joined by '*'; no other metacharacters
+// appear in fts5prefix's globs). Used by the faithful gmatch/ghl ports
+// (T33r-fts 2026-09-26).
+func tclGlobMatch(pattern, s string) bool {
+	segs := strings.Split(pattern, "*")
+	if !strings.HasPrefix(s, segs[0]) {
+		return false
+	}
+	s = s[len(segs[0]):]
+	for i := 1; i < len(segs); i++ {
+		if segs[i] == "" {
+			continue
+		}
+		j := strings.Index(s, segs[i])
+		if j < 0 {
+			return false
+		}
+		s = s[j+len(segs[i]):]
+	}
+	return true
 }

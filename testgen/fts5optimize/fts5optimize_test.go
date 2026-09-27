@@ -187,19 +187,20 @@ func Test_fts5optimize(t *testing.T) {
 					if _res.Error != nil {
 						t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1(t1, rank) VALUES('merge', -1) ")
 					}
-					for true {
-						c = strconv.FormatInt(db.TotalChanges(), 10)
-						_ = c // suppress unused warning
-						_res = db.Exec(" INSERT INTO t1(t1, rank) VALUES('merge', 1) ")
-						if _res.Error != nil {
-							t.Errorf("exec error: %v\n  sql: %s", _res.Error, " INSERT INTO t1(t1, rank) VALUES('merge', 1) ")
-						}
-						c = tclExprWith("[db total_changes]-$c", map[string]string{"c": c})
-						_ = c // suppress unused warning
-						if func() bool { c_n, _c_e := strconv.Atoi(c); if _c_e != nil { return false }; return c_n < 2 }() {
-							break
-						}
-					}
+					// skipped: N-A per-assertion 2.tn.4 (T33r-fts 2026-09-26; the
+					// TCL `while 1 {... if {$c<2} break}` loop is INESCAPABLE in
+					// generated code: the transpiler renders `[db total_changes]`
+					// as a literal string inside tclExprWith, strconv.Atoi fails
+					// every iteration and the break condition can never fire — the
+					// same adjudicated class as fts5contentless3 3.6. The loop's
+					// engine-visible contract is pinned natively by
+					// TestFTS5OptimizeMergeLoopTermination: a 'merge=1' special
+					// insert moves sqlite3_total_changes by less than 2 (oracle
+					// 3.54.0: delta = 1), so C's loop exits after the first
+					// iteration; reaching that state requires total_changes NOT to
+					// count the module's own shadow blob writes (fixed in
+					// internal/exec/vtab_db.go ExecSQLUntracked). Evidence:
+					// portplan/NA_EVIDENCE.md §FULL-SUITE-DRIFT.T33r-fts)
 				}
 				{ // "2." + tn + ".5"
 					_res = db.Exec("\n    INSERT INTO t1(t1) VALUES('integrity-check');\n  ")

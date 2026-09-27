@@ -5,11 +5,11 @@
 package fts5prefix
 
 import (
-	"encoding/json"
 	"bytes"
 	"crypto/md5"
 	"encoding/binary"
 	"encoding/hex"
+	"encoding/json"
 	"fmt"
 	"math"
 	"math/rand"
@@ -184,6 +184,7 @@ func tclStrftime(format string, ts string) string {
 	}
 	return b.String()
 }
+
 var _tcl_platform_platform = "unix"
 var _tcl_platform_byteOrder = "littleEndian"
 var _tcl_platform_os = "unix"
@@ -204,6 +205,7 @@ var SQLITE_MAX_ATTACHED = "10"
 var SQLITE_MAX_LIKE_PATTERN_LENGTH = "50000"
 var SQLITE_MAX_VARIABLE_NUMBER = "32766"
 var SQLITE_MAX_WORKER_THREADS = "8"
+
 // SQLITE_MAX_SCHEMA has no SQLITE_LIMIT_SCHEMA counterpart in this SQLite
 // build (the limit is not queryable at runtime); the TCL suite's
 // sqllimits1-1.13 set-then-query round-trips the set value. Model it as
@@ -233,6 +235,7 @@ var highPrecision = "17"
 var upperBound = "1000"
 var prefix = ""
 var dirname = ""
+
 // suppress unused warnings
 var _ = tcl_platform_platform
 var _ = tcl_platform_byteOrder
@@ -676,7 +679,7 @@ func tclTableColumnMetadata(db *frigolite.DB, schema, table, column string) stri
 // sqlLiteral renders a Go value as a SQL literal: numeric strings and numbers
 // stay numeric literals (matching the SQLite TCL binding, which binds TCL
 // variables by their numeric value when possible), strings are single-quoted
-// with '' escaping, and nil becomes NULL. Used by generated SQL that contains
+// with ” escaping, and nil becomes NULL. Used by generated SQL that contains
 // TCL $var references (db eval binds $var as a value, never as raw SQL text).
 func sqlLiteral(v interface{}) string {
 	switch x := v.(type) {
@@ -700,42 +703,42 @@ func sqlLiteral(v interface{}) string {
 		// literal text "0000", and the column affinity converts when
 		// needed).
 		if isCanonicalNumber(x) {
-				return x
-			}
-			if isBinaryString(x) {
-				// TCL binds $vars as typed parameters; binary strings must reach
-				// the engine byte-identical, so render a BLOB literal.
-				return "X'" + hex.EncodeToString([]byte(x)) + "'"
-			}
-			return "'" + strings.ReplaceAll(x, "'", "''") + "'"
-		case []byte:
-			return "'" + strings.ReplaceAll(string(x), "'", "''") + "'"
+			return x
 		}
-		return "'" + strings.ReplaceAll(fmt.Sprintf("%v", v), "'", "''") + "'"
+		if isBinaryString(x) {
+			// TCL binds $vars as typed parameters; binary strings must reach
+			// the engine byte-identical, so render a BLOB literal.
+			return "X'" + hex.EncodeToString([]byte(x)) + "'"
+		}
+		return "'" + strings.ReplaceAll(x, "'", "''") + "'"
+	case []byte:
+		return "'" + strings.ReplaceAll(string(x), "'", "''") + "'"
 	}
+	return "'" + strings.ReplaceAll(fmt.Sprintf("%v", v), "'", "''") + "'"
+}
 
-	// isBinaryString reports whether s carries bytes that would not survive
-	// single-quoted SQL literal embedding: NUL, control characters outside
-	// whitespace, or invalid UTF-8. Such TCL-bound values are byte strings —
-	// TCL's db eval binds them as BLOB parameters — so the harness renders
-	// them as X'hex' literals to keep the payload intact (zipfile2 patches
-	// raw archive bytes and passes them as zipfile($blob)).
-	func isBinaryString(s string) bool {
-		for i := 0; i < len(s); i++ {
-			c := s[i]
-			if c == 0 || (c < 0x20 && c != '\n' && c != '\r' && c != '\t') {
+// isBinaryString reports whether s carries bytes that would not survive
+// single-quoted SQL literal embedding: NUL, control characters outside
+// whitespace, or invalid UTF-8. Such TCL-bound values are byte strings —
+// TCL's db eval binds them as BLOB parameters — so the harness renders
+// them as X'hex' literals to keep the payload intact (zipfile2 patches
+// raw archive bytes and passes them as zipfile($blob)).
+func isBinaryString(s string) bool {
+	for i := 0; i < len(s); i++ {
+		c := s[i]
+		if c == 0 || (c < 0x20 && c != '\n' && c != '\r' && c != '\t') {
+			return true
+		}
+		if c >= 0x80 {
+			r, size := utf8.DecodeRuneInString(s[i:])
+			if r == utf8.RuneError && size <= 1 {
 				return true
 			}
-			if c >= 0x80 {
-				r, size := utf8.DecodeRuneInString(s[i:])
-				if r == utf8.RuneError && size <= 1 {
-					return true
-				}
-				i += size - 1
-			}
+			i += size - 1
 		}
-		return false
 	}
+	return false
+}
 
 // isCanonicalNumber reports whether s is a canonical SQL numeric literal
 // (optionally signed integer or float), i.e. TCL would render it as a number
@@ -1113,17 +1116,29 @@ func tclSplitList(s string) []string {
 			pos++
 			continue
 		}
-		if pos >= len(s) { break }
+		if pos >= len(s) {
+			break
+		}
 		switch s[pos] {
 		case '{':
-			depth := 1; start := pos + 1; pos++
+			depth := 1
+			start := pos + 1
+			pos++
 			for pos < len(s) && depth > 0 {
-				if s[pos] == '{' { depth++ }
-				if s[pos] == '}' { depth-- }
-				if depth > 0 { pos++ }
+				if s[pos] == '{' {
+					depth++
+				}
+				if s[pos] == '}' {
+					depth--
+				}
+				if depth > 0 {
+					pos++
+				}
 			}
 			result = append(result, s[start:pos])
-			if pos < len(s) { pos++ }
+			if pos < len(s) {
+				pos++
+			}
 		case '"':
 			start := pos + 1
 			pos++
@@ -1135,10 +1150,14 @@ func tclSplitList(s string) []string {
 				pos++
 			}
 			result = append(result, tclUnescapeQuoted(s[start:pos]))
-			if pos < len(s) { pos++ }
+			if pos < len(s) {
+				pos++
+			}
 		default:
 			start := pos
-			for pos < len(s) && s[pos] != ' ' && s[pos] != '\t' && s[pos] != '\n' && s[pos] != '\r' { pos++ }
+			for pos < len(s) && s[pos] != ' ' && s[pos] != '\t' && s[pos] != '\n' && s[pos] != '\r' {
+				pos++
+			}
 			result = append(result, s[start:pos])
 		}
 	}
@@ -1178,9 +1197,14 @@ func tclSplitString(s string, sep string) string {
 }
 
 func tclNeedsBracing(s string) bool {
-	if s == "" { return true }
+	if s == "" {
+		return true
+	}
 	for _, c := range s {
-		switch c { case ' ', '\t', '\n', '\r', '{', '}', '"', ';': return true }
+		switch c {
+		case ' ', '\t', '\n', '\r', '{', '}', '"', ';':
+			return true
+		}
 	}
 	return false
 }
@@ -1196,7 +1220,9 @@ func tclLIndex(list string, idx interface{}) string {
 	default:
 		return ""
 	}
-	if i < 0 || i >= len(items) { return "" }
+	if i < 0 || i >= len(items) {
+		return ""
+	}
 	return items[i]
 }
 
@@ -1223,9 +1249,15 @@ func tclLRange(list string, start, end interface{}) string {
 	if es, ok := end.(string); ok && es != "end" {
 		e, _ = strconv.Atoi(es)
 	}
-	if s < 0 { s = 0 }
-	if e < 0 || e >= len(items) { e = len(items) - 1 }
-	if s > e || s >= len(items) { return "" }
+	if s < 0 {
+		s = 0
+	}
+	if e < 0 || e >= len(items) {
+		e = len(items) - 1
+	}
+	if s > e || s >= len(items) {
+		return ""
+	}
 	return tclList(items[s : e+1])
 }
 
@@ -1279,6 +1311,7 @@ func tclLReplace(list string, first, last interface{}, args ...string) string {
 //	tclMakeStr("abc", 8) -> "abcabcab"
 //
 // This matches TCL:
+//
 //	[string repeat "abc." 8] -> "abc.abc.abc.abc.abc.abc.abc.abc."
 //	[string range ... 0 7]   -> "abcabcab"
 func tclMakeStr(char string, length int) string {
@@ -1471,13 +1504,17 @@ func tclMakeExpr2(cList, vList, op string) string {
 
 func tclRegexp(pattern, str string) string {
 	matched, _ := regexp.MatchString(pattern, str)
-	if matched { return "1" }
+	if matched {
+		return "1"
+	}
 	return "0"
 }
 
 func tclRegsub(pattern, str, replacement string) string {
 	re, err := regexp.Compile(pattern)
-	if err != nil { return str }
+	if err != nil {
+		return str
+	}
 	return re.ReplaceAllString(str, replacement)
 }
 
@@ -1491,10 +1528,14 @@ func tclStringMatch(pattern, str string) bool {
 	for i := 0; i < len(pattern); i++ {
 		c := pattern[i]
 		switch c {
-		case '*': goPattern += ".*"
-		case '?': goPattern += "."
-		case '.', '+', '(', ')', '|', '^', '$': goPattern += "\\" + string(c)
-		default: goPattern += string(c)
+		case '*':
+			goPattern += ".*"
+		case '?':
+			goPattern += "."
+		case '.', '+', '(', ')', '|', '^', '$':
+			goPattern += "\\" + string(c)
+		default:
+			goPattern += string(c)
 		}
 	}
 	matched, _ := regexp.MatchString("^"+goPattern+"$", str)
@@ -1513,7 +1554,9 @@ func tclStringMatch01(pattern, str string) string {
 
 func tclFileCopy(src, dst string) {
 	data, err := os.ReadFile(src)
-	if err != nil { return }
+	if err != nil {
+		return
+	}
 	os.WriteFile(dst, data, 0644)
 }
 
@@ -1521,7 +1564,9 @@ func tclFileCopy(src, dst string) {
 // offset and return them as an uppercase hex string.
 func tclHexioRead(file string, offset, amt int64) string {
 	f, err := os.Open(file)
-	if err != nil { return "" }
+	if err != nil {
+		return ""
+	}
 	defer f.Close()
 	buf := make([]byte, amt)
 	n, _ := f.ReadAt(buf, offset)
@@ -1564,7 +1609,9 @@ func tclCorruptFreelist(filename string, n int) {
 // (hexio_get_int [hexio_read file off amt]).
 func tclHexioReadInt(file string, offset, amt int64) int64 {
 	f, err := os.Open(file)
-	if err != nil { return 0 }
+	if err != nil {
+		return 0
+	}
 	defer f.Close()
 	buf := make([]byte, amt)
 	n, _ := f.ReadAt(buf, offset)
@@ -1583,7 +1630,9 @@ func tclHexioReadInt(file string, offset, amt int64) int64 {
 // (hexio_get_int HEXDATA).
 func tclHexioGetInt(hexStr string) int64 {
 	data, err := hex.DecodeString(strings.TrimSpace(hexStr))
-	if err != nil || len(data) == 0 { return 0 }
+	if err != nil || len(data) == 0 {
+		return 0
+	}
 	if len(data) < 4 {
 		pad := make([]byte, 4-len(data))
 		data = append(pad, data...)
@@ -1629,7 +1678,9 @@ func tclHexioWrite(file string, offset int64, hexStr string) {
 		return
 	}
 	f, err := os.OpenFile(file, os.O_RDWR, 0644)
-	if err != nil { return }
+	if err != nil {
+		return
+	}
 	defer f.Close()
 	f.WriteAt(data, offset)
 }
@@ -1638,6 +1689,7 @@ func tclGlob(pattern string) string {
 	matches, _ := filepath.Glob(pattern)
 	return tclList(matches)
 }
+
 // tclExtractOffsets ports fts3offsets.test's extract(offsets, text) proc:
 // given an offsets() flat 4-tuple list (phrase, column, start, length) and
 // the document text, return the text with each matched span wrapped in
@@ -1677,7 +1729,6 @@ func tclExtractOffsets(offsets, text string) string {
 	return b.String()
 }
 
-
 // tclArrayGetFlat returns the flattened key/value pairs of a dynamic-key
 // array map (the [array get VAR] value), keys in sorted order.
 func tclArrayGetFlat(m map[string]string) string {
@@ -1706,8 +1757,6 @@ func tclRowFlatPairs(cols []string, row []interface{}) string {
 	}
 	return tclList(out)
 }
-
-
 
 // tclBool converts a TCL truthiness value to Go boolean.
 // In TCL: "0" and "" are false, everything else is true.
@@ -1845,7 +1894,9 @@ func tclBool(s string) bool {
 // Floats render TCL-style (tclDouble): a TCL double always shows its decimal
 // point, so [expr 1.0] and an rtree REAL column value render "1.0", not "1".
 func tclStr(v interface{}) string {
-	if v == nil { return "" }
+	if v == nil {
+		return ""
+	}
 	switch x := v.(type) {
 	case float64:
 		return tclDouble(x)
@@ -1863,18 +1914,30 @@ func tclStr(v interface{}) string {
 // exponential values use a signed unpadded exponent ("5e+17", "1.5e-5"),
 // and the special doubles spell "Inf"/"-Inf"/"NaN".
 func tclDouble(f float64) string {
-	if math.IsInf(f, 1) { return "Inf" }
-	if math.IsInf(f, -1) { return "-Inf" }
-	if math.IsNaN(f) { return "NaN" }
+	if math.IsInf(f, 1) {
+		return "Inf"
+	}
+	if math.IsInf(f, -1) {
+		return "-Inf"
+	}
+	if math.IsNaN(f) {
+		return "NaN"
+	}
 	s := strconv.FormatFloat(f, 'e', -1, 64)
 	neg := s[0] == '-'
-	if neg { s = s[1:] }
+	if neg {
+		s = s[1:]
+	}
 	ei := strings.IndexByte(s, 'e')
 	exp, _ := strconv.Atoi(s[ei+1:])
 	digits := strings.TrimRight(strings.Replace(s[:ei], ".", "", 1), "0")
-	if digits == "" { digits = "0" }
+	if digits == "" {
+		digits = "0"
+	}
 	var b strings.Builder
-	if neg { b.WriteByte('-') }
+	if neg {
+		b.WriteByte('-')
+	}
 	if exp >= -4 && exp <= 16 {
 		if exp < 0 {
 			b.WriteString("0.")
@@ -2039,7 +2102,6 @@ func tclCatchsqlString(res *frigolite.Result) string {
 	return "0 {" + strings.Join(rows, " ") + "}"
 }
 
-
 // catchsqlCell stringifies one query result cell for the catchsql result
 // format (nil -> "", matching a TCL NULL rendered as the empty list element).
 func catchsqlCell(v interface{}) string {
@@ -2165,7 +2227,7 @@ func tclExprWith(expr string, vars map[string]string) string {
 	s = resolveBracketCommands(s)
 	s = resolveParens(s)
 	s = resolveLogicalOperators(resolveStringComparisons(s))
-		resolved, tern := resolveTernary(s)
+	resolved, tern := resolveTernary(s)
 	if tern && !strings.ContainsAny(resolved, "+-*/") {
 		return resolved
 	}
@@ -2352,7 +2414,9 @@ func resolveLogicalOperators(s string) string {
 }
 
 func boolLiteral(value bool) string {
-	if value { return "1" }
+	if value {
+		return "1"
+	}
 	return "0"
 }
 
@@ -2621,74 +2685,120 @@ func tclMathFunc(name, argStr string) (string, error) {
 	}
 	switch name {
 	case "int":
-		if err := need(1); err != nil { return "", err }
+		if err := need(1); err != nil {
+			return "", err
+		}
 		// TCL int() truncates toward zero (like C cast to int64).
 		return strconv.FormatInt(int64(vals[0]), 10), nil
 	case "abs":
-		if err := need(1); err != nil { return "", err }
+		if err := need(1); err != nil {
+			return "", err
+		}
 		return formatFloat(math.Abs(vals[0])), nil
 	case "double":
-		if err := need(1); err != nil { return "", err }
+		if err := need(1); err != nil {
+			return "", err
+		}
 		return formatFloat(vals[0]), nil
 	case "log":
-		if err := need(1); err != nil { return "", err }
+		if err := need(1); err != nil {
+			return "", err
+		}
 		return formatFloat(math.Log(vals[0])), nil
 	case "log10":
-		if err := need(1); err != nil { return "", err }
+		if err := need(1); err != nil {
+			return "", err
+		}
 		return formatFloat(math.Log10(vals[0])), nil
 	case "exp":
-		if err := need(1); err != nil { return "", err }
+		if err := need(1); err != nil {
+			return "", err
+		}
 		return formatFloat(math.Exp(vals[0])), nil
 	case "sqrt":
-		if err := need(1); err != nil { return "", err }
+		if err := need(1); err != nil {
+			return "", err
+		}
 		return formatFloat(math.Sqrt(vals[0])), nil
 	case "floor":
-		if err := need(1); err != nil { return "", err }
+		if err := need(1); err != nil {
+			return "", err
+		}
 		return formatFloat(math.Floor(vals[0])), nil
 	case "ceil":
-		if err := need(1); err != nil { return "", err }
+		if err := need(1); err != nil {
+			return "", err
+		}
 		return formatFloat(math.Ceil(vals[0])), nil
 	case "round":
-		if err := need(1); err != nil { return "", err }
+		if err := need(1); err != nil {
+			return "", err
+		}
 		return formatFloat(math.Round(vals[0])), nil
 	case "pow":
-		if err := need(2); err != nil { return "", err }
+		if err := need(2); err != nil {
+			return "", err
+		}
 		return formatFloat(math.Pow(vals[0], vals[1])), nil
 	case "fmod":
-		if err := need(2); err != nil { return "", err }
+		if err := need(2); err != nil {
+			return "", err
+		}
 		return formatFloat(math.Mod(vals[0], vals[1])), nil
 	case "min":
-		if err := need(2); err != nil { return "", err }
+		if err := need(2); err != nil {
+			return "", err
+		}
 		return formatFloat(math.Min(vals[0], vals[1])), nil
 	case "max":
-		if err := need(2); err != nil { return "", err }
+		if err := need(2); err != nil {
+			return "", err
+		}
 		return formatFloat(math.Max(vals[0], vals[1])), nil
 	case "sin":
-		if err := need(1); err != nil { return "", err }
+		if err := need(1); err != nil {
+			return "", err
+		}
 		return formatFloat(math.Sin(vals[0])), nil
 	case "cos":
-		if err := need(1); err != nil { return "", err }
+		if err := need(1); err != nil {
+			return "", err
+		}
 		return formatFloat(math.Cos(vals[0])), nil
 	case "tan":
-		if err := need(1); err != nil { return "", err }
+		if err := need(1); err != nil {
+			return "", err
+		}
 		return formatFloat(math.Tan(vals[0])), nil
 	case "asin":
-		if err := need(1); err != nil { return "", err }
+		if err := need(1); err != nil {
+			return "", err
+		}
 		return formatFloat(math.Asin(vals[0])), nil
 	case "acos":
-		if err := need(1); err != nil { return "", err }
+		if err := need(1); err != nil {
+			return "", err
+		}
 		return formatFloat(math.Acos(vals[0])), nil
 	case "atan":
-		if err := need(1); err != nil { return "", err }
+		if err := need(1); err != nil {
+			return "", err
+		}
 		return formatFloat(math.Atan(vals[0])), nil
 	case "atan2":
-		if err := need(2); err != nil { return "", err }
+		if err := need(2); err != nil {
+			return "", err
+		}
 		return formatFloat(math.Atan2(vals[0], vals[1])), nil
 	case "hypot":
-		if err := need(2); err != nil { return "", err }
+		if err := need(2); err != nil {
+			return "", err
+		}
 		return formatFloat(math.Hypot(vals[0], vals[1])), nil
 	case "cosh", "sinh", "tanh":
-		if err := need(1); err != nil { return "", err }
+		if err := need(1); err != nil {
+			return "", err
+		}
 		switch name {
 		case "cosh":
 			return formatFloat(math.Cosh(vals[0])), nil
@@ -2937,9 +3047,15 @@ func tclStringRange(s string, start, end interface{}) string {
 	strLen := len(s)
 	startIdx := tclIndex(start, strLen)
 	endIdx := tclIndex(end, strLen)
-	if startIdx < 0 { startIdx = 0 }
-	if endIdx >= strLen { endIdx = strLen - 1 }
-	if startIdx > endIdx || startIdx >= strLen { return "" }
+	if startIdx < 0 {
+		startIdx = 0
+	}
+	if endIdx >= strLen {
+		endIdx = strLen - 1
+	}
+	if startIdx > endIdx || startIdx >= strLen {
+		return ""
+	}
 	return s[startIdx : endIdx+1]
 }
 
@@ -2950,11 +3066,15 @@ func tclStringReplace(s string, first, last interface{}, newstr string) string {
 	strLen := len(s)
 	startIdx := tclIndex(first, strLen)
 	endIdx := tclIndex(last, strLen)
-	if startIdx < 0 { startIdx = 0 }
+	if startIdx < 0 {
+		startIdx = 0
+	}
 	if startIdx >= strLen {
 		return s + newstr
 	}
-	if endIdx >= strLen { endIdx = strLen - 1 }
+	if endIdx >= strLen {
+		endIdx = strLen - 1
+	}
 	if endIdx < startIdx {
 		return s[:startIdx] + newstr + s[startIdx:]
 	}
@@ -2999,7 +3119,6 @@ func tclStrIndex(haystack, needle string, start ...interface{}) int {
 // tclStringIndex implements TCL string index command: returns the character
 // at the given index (or "" for an out-of-range / negative index). The index
 // arrives as a string (TCL values are strings).
-
 
 // tclLreverse reverses a space-separated TCL list string (the lreverse proc
 // of fts3first.test).
@@ -3437,14 +3556,14 @@ func tclQuotaStrglob(zGlob, z string) int {
 				return 1
 			}
 			if c == '[' {
-							for len(z) > 0 && tclQuotaStrglob("["+zGlob, z) == 0 {
-								z = z[1:]
-							}
-							if len(z) == 0 {
-								return 0
-							}
-							return 1
-						}
+				for len(z) > 0 && tclQuotaStrglob("["+zGlob, z) == 0 {
+					z = z[1:]
+				}
+				if len(z) == 0 {
+					return 0
+				}
+				return 1
+			}
 			cx := byte(c)
 			if c == '/' {
 				cx = '\\'
@@ -3466,17 +3585,17 @@ func tclQuotaStrglob(zGlob, z string) int {
 			return 0
 		}
 		if c == '?' {
-					if len(z) == 0 {
-						return 0
-					}
-					z = z[1:]
-					continue
-				}
-				if c == '[' {
-					if len(z) == 0 {
-						return 0
-					}
-					cZ := z[0]
+			if len(z) == 0 {
+				return 0
+			}
+			z = z[1:]
+			continue
+		}
+		if c == '[' {
+			if len(z) == 0 {
+				return 0
+			}
+			cZ := z[0]
 			z = z[1:]
 			seen := 0
 			invert := 0
@@ -3550,7 +3669,6 @@ func tclQuotaStrglob(zGlob, z string) int {
 	}
 	return 0
 }
-
 
 // tclQuotaGlob maps 'sqlite3_quota_glob PATTERN TEXT'. Returns "1" when
 // TEXT matches PATTERN, "0" otherwise. Mirrors
@@ -3763,7 +3881,9 @@ func tclIndex(idx interface{}, length int) int {
 	s := fmt.Sprintf("%v", idx)
 	if strings.HasPrefix(s, "end") {
 		rest := s[3:]
-		if rest == "" { return length - 1 }
+		if rest == "" {
+			return length - 1
+		}
 		n, _ := strconv.Atoi(rest)
 		return length - 1 + n
 	}
@@ -4069,12 +4189,17 @@ func tclListFlattenCollapse(s string) string {
 	}
 	return strings.Join(strings.Fields(tclListFlatten(s)), " ")
 }
+
 var tclClosedConns = map[*frigolite.DB]bool{}
 
 // tclCloseDB closes a connection and tracks successful closes.
 func tclCloseDB(db *frigolite.DB) string {
-	if db == nil { return "SQLITE_OK" }
-	if err := db.Close(); err != nil { return "SQLITE_BUSY" }
+	if db == nil {
+		return "SQLITE_OK"
+	}
+	if err := db.Close(); err != nil {
+		return "SQLITE_BUSY"
+	}
 	tclClosedConns[db] = true
 	return "SQLITE_OK"
 }
@@ -4171,9 +4296,13 @@ func sqliteErrCodeNum(code string) int {
 }
 
 func tclPrepareStep(db *frigolite.DB, sqlText, name string) {
-	if db == nil { return }
+	if db == nil {
+		return
+	}
 	stmt, err := db.Prepare(sqlText)
-	if err != nil { return }
+	if err != nil {
+		return
+	}
 	tclPrepared[name] = stmt
 	// vdbeapi.c sqlite3_step: the first step materializes the rows, leaves
 	// row 0 current so sqlite3_column_text reads after prepare+step see the
@@ -4245,19 +4374,27 @@ func tclStepEmulated(db *frigolite.DB, name, sqlText string) {
 }
 
 func tclErrMsg(db *frigolite.DB) string {
-	if tclClosedConns[db] { return "bad parameter or other API misuse" }
-	if db == nil { return "bad parameter or other API misuse" }
+	if tclClosedConns[db] {
+		return "bad parameter or other API misuse"
+	}
+	if db == nil {
+		return "bad parameter or other API misuse"
+	}
 	// sqlite3_errmsg reflects only the most recent API call — no implicit
 	// stepping of other prepared statements.
 	return db.LastErr()
 }
 
 func tclStepPrepared(name string) {
-	if stmt := tclPrepared[name]; stmt != nil { _, _ = stmt.Step() }
+	if stmt := tclPrepared[name]; stmt != nil {
+		_, _ = stmt.Step()
+	}
 }
 
 func tclResetPrepared(name string) {
-	if stmt := tclPrepared[name]; stmt != nil { _ = stmt.Reset() }
+	if stmt := tclPrepared[name]; stmt != nil {
+		_ = stmt.Reset()
+	}
 }
 
 func tclFinalizePrepared(name string) {
@@ -5176,9 +5313,13 @@ func tclDBBackupRestore(db *frigolite.DB, kind, schemaName, file string) error {
 		rc := b.Step(-1)
 		b.Finish()
 		srcEmpty := false
-		if check := db.Query("SELECT count(*) FROM sqlite_master"); check.Error == nil && len(check.Rows) == 1 && check.Rows[0][0] == int64(0) { srcEmpty = true }
+		if check := db.Query("SELECT count(*) FROM sqlite_master"); check.Error == nil && len(check.Rows) == 1 && check.Rows[0][0] == int64(0) {
+			srcEmpty = true
+		}
 		d.Close()
-		if srcEmpty { _ = os.Truncate(db.FilePath(), 0) }
+		if srcEmpty {
+			_ = os.Truncate(db.FilePath(), 0)
+		}
 		if rc != "SQLITE_DONE" {
 			if rc == "SQLITE_READONLY" {
 				return fmt.Errorf("backup failed: attempt to write a readonly database")
@@ -5236,7 +5377,6 @@ func fts3ExprTest(args []interface{}) (interface{}, error) {
 	return fts.ExprPrint(node), nil
 }
 
-
 // fts3SortBuildDatabase ports fts3sort.test's build_database proc: create the
 // FTS4 table t1 (with an optional FTS4 parameter like order=asc/desc) and
 // insert nRow six-token documents from a 10-word vocabulary. The suite
@@ -5258,7 +5398,6 @@ func fts3SortBuildDatabase(db *frigolite.DB, nRow int, param string) {
 		db.Exec("INSERT INTO t1 VALUES('" + strings.Join(doc, " ") + "')")
 	}
 }
-
 
 // tclChannelAppend appends text to a TCL write-mode file channel
 // (set fd [open FILE wb] + puts $fd text + close $fd).
@@ -5419,7 +5558,7 @@ func tclRtree4RandInt(xArg string) string {
 	if err != nil {
 		x = 0
 	}
-	return strconv.Itoa(int((tclRand()-0.5)*2*float64(x)))
+	return strconv.Itoa(int((tclRand() - 0.5) * 2 * float64(x)))
 }
 
 // tclRtree4RandIncrFloat mirrors the float variant of randincr {X}: draw
@@ -5682,21 +5821,21 @@ func tclMakeCorruptFile(fname string) {
 	)
 	cds := catBytes(
 		u32(0x02014b50),
-		u16(0),               // version made by
-		u16(20),              // version needed
-		u16(0),               // flags
-		u16(0),               // method
-		u16(0), u16(0),       // dos time/date
-		u32(0),               // crc
-		u32(0),               // compressed size
-		u32(0),               // uncompressed size
-		u16(nFile),           // file name length
-		u16(nExtra),          // extra length
-		u16(0),               // comment length
-		u16(0),               // disk start
-		u16(0),               // internal attrs
-		u32(0),               // external attrs
-		u32(lfhOffset),       // local header offset
+		u16(0),         // version made by
+		u16(20),        // version needed
+		u16(0),         // flags
+		u16(0),         // method
+		u16(0), u16(0), // dos time/date
+		u32(0),         // crc
+		u32(0),         // compressed size
+		u32(0),         // uncompressed size
+		u16(nFile),     // file name length
+		u16(nExtra),    // extra length
+		u16(0),         // comment length
+		u16(0),         // disk start
+		u16(0),         // internal attrs
+		u32(0),         // external attrs
+		u32(lfhOffset), // local header offset
 	)
 	payload := append(bytes.Repeat([]byte("B"), nFile), bytes.Repeat([]byte("C"), nExtra)...)
 	cdSize := len(cds) + len(payload)
@@ -5789,7 +5928,6 @@ func tclContents(pattern string) string {
 	}
 	return strings.Join(out, " ")
 }
-
 
 // tclRecoverCompareResult compares one query's flattened rows across two
 // connections (recover.test compare_result): t.Error on mismatch.

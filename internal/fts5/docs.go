@@ -98,6 +98,12 @@ func (t *Table) ScanDocs() ([]int64, [][]interface{}, error) {
 	if t.cfg.EContent == ContentNormal || t.cfg.EContent == ContentUnindexed {
 		return t.scanContentTable()
 	}
+	if err := t.checkIndexRead(); err != nil {
+		// The index-served scan reads the doclists C's readers would reject
+		// after a duplicate special-'delete' marker (fts5delete 2.4's
+		// SELECT-rowid shape, oracle 3.54.0).
+		return nil, nil, err
+	}
 	rowids := t.ix.SortedRowids()
 	values := make([][]interface{}, len(rowids))
 	for i, rowid := range rowids {
@@ -213,6 +219,8 @@ type TableState struct {
 	pendingTermState   map[string]*pendingTerm
 	nContentlessDelete int64
 	docOrigins         map[int64]uint64
+	specDelMarkers     map[string]bool
+	idxCorrupt         bool
 }
 
 // Snapshot captures the in-memory state.
@@ -228,6 +236,8 @@ func (t *Table) Snapshot() *TableState {
 		pendingTermState:   snapshotTermState(t.pendingTermState),
 		nContentlessDelete: t.nContentlessDelete,
 		docOrigins:         snapshotOrigins(t.docOrigins),
+		specDelMarkers:     snapshotBoolSet(t.specDelMarkers),
+		idxCorrupt:         t.idxCorrupt,
 	}
 }
 
@@ -252,6 +262,8 @@ func (t *Table) Restore(s *TableState) {
 	t.pendingTermState = s.pendingTermState
 	t.nContentlessDelete = s.nContentlessDelete
 	t.docOrigins = s.docOrigins
+	t.specDelMarkers = s.specDelMarkers
+	t.idxCorrupt = s.idxCorrupt
 	t.dirtySegments = nil
 	t.bumpVersion()
 }
@@ -291,6 +303,16 @@ func snapshotTermState(src map[string]*pendingTerm) map[string]*pendingTerm {
 // snapshotOrigins deep-copies the docsize origin mirror.
 func snapshotOrigins(src map[int64]uint64) map[int64]uint64 {
 	out := make(map[int64]uint64, len(src))
+	for k, v := range src {
+		out[k] = v
+	}
+	return out
+}
+
+// snapshotBoolSet deep-copies a set-shaped map (the special-delete marker
+// set).
+func snapshotBoolSet(src map[string]bool) map[string]bool {
+	out := make(map[string]bool, len(src))
 	for k, v := range src {
 		out[k] = v
 	}

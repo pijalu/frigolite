@@ -2448,3 +2448,146 @@ tolerance). frigolite_fts5corrupt_test.go's corrupt-structure expectation
 (MATCH yields no rows, count(*) intact) re-verified against the local oracle
 3.54.0. frigolite_fts5_testfn_test.go's single-statement insert makes the
 fts5detail 5.2/5.3 physical blob comparison statement-granularity fair.
+
+## FULL-SUITE-DRIFT.T33r-fts — fts5 regression-wave triage (2026-09-26)
+
+Branch fleet/t33r-fts. The "regression wave" from the final census proved to
+be predominantly PRE-EXISTING (each package reproduced at the census commit
+5c2bfa675), with two genuine engine findings on top.
+
+### fts5optimize 2.tn.4 — inescapable transpiled merge loop (N-A, per-assertion)
+
+The TCL `while 1 { set c [db total_changes]; execsql {INSERT INTO t1(t1,
+rank) VALUES('merge', 1)}; if {$c<2} break }` becomes an infinite loop in
+generated code: `[db total_changes]` is passed through tclExprWith as a
+literal string, strconv.Atoi fails every iteration, and the break condition
+can never fire (same adjudicated class as fts5contentless3 3.6). The
+package therefore burned 900s+ of CPU (first hang observed in the 2026-09-26
+census rerun; reproduced at census commit 5c2bfa675). Per-assertion N-A
+annotation landed in testgen/fts5optimize/fts5optimize_test.go; the loop's
+engine-visible contract is pinned by TestFTS5OptimizeMergeLoopTermination:
+a 'merge=1' special insert must move sqlite3_total_changes by less than 2
+(oracle 3.54.0 delta = 1) so the loop exits after the first iteration.
+
+Engine fix surfaced by the adjudication: module shadow writes C performs as
+direct blob/btree I/O (fts5 %_data segment/structure payloads, %_idx dlidx
+rows) were counted into sqlite3_total_changes because the mirror issues
+them as SQL (internal/exec engineVtabDB.ExecSQL). New
+vtab.UntrackedExecutor capability + engineVtabDB.ExecSQLUntracked
+(internal-writes window); fts5 blob-tier sites (writeSegmentBlob,
+removeSegmentRows, writeDlidxRow, structureWrite, removeTombstoneRows,
+resetIndexStructure page delete) route through it. Oracle deltas: plain
+fts5 INSERT = +7 (C's %_content/%_docsize/%_stat SQL counts; mirror +3 —
+documented blob-per-segment divergence), 'merge=1' = +1 (mirror 0: the
+special insert reports no row change; the loop contract only needs < 2).
+
+### fts5delete 2.4 — duplicate special-'delete' markers (ENGINE FIX)
+
+Oracles 3.54.0, fts5delete.test 2.1-2.4 (re-verified): a special 'delete'
+whose tokens underflow a column total errors immediately (2.1, already
+implemented); a second delete of a removed (term,rowid) errors (2.2, via
+the empty-index check); a redundant delete while OTHER documents remain is
+silent at statement time (2.3) but C's flushed level-0 doclist would hold
+that rowid TWICE — a structural violation its index readers reject with
+"database disk image is malformed" on later reads (2.4: MATCH 'two'
+and MATCH 'two ORDER BY rank' both fail; full scans fail; MATCH 'one'
+still passes because its iterator never reaches the violating entry;
+'integrity-check' passes). The mirror keeps the processed (column, rowid,
+term) pairs and sets a sticky read-side corrupt flag on a duplicate
+(internal/fts5 fts5.go specDelMarkers/idxCorrupt); MatchRowids and the
+index-served ScanDocs branch report C's corrupt error while it is set.
+Re-inserting a document consumes its markers (C's fresh entries merge
+against the pending markers). Documented superset: the mirror flags ALL
+index reads, C only those that traverse the violating doclist. Pinned by
+TestFTS5SpecialDeleteCorruptPin (12 oracle-derived assertions).
+
+### fts5contentless2 1.1 — transpiled incr wraps at MaxInt64 (generated-file fidelity fix)
+
+TCL 9 integers are bignums: `for {set ii $r1} {$ii<=$r2} {incr ii}` over
+r1=9223372036854775757, r2=9223372036854775807 inserts ii=...807, then incr
+yields the bignum 9223372036854775808, the condition goes false and the loop
+exits (51 inserts). The transpiled `ii = strconv.Itoa(_n + 1)` wraps int64 to
+MinInt64, Atoi succeeds, and the loop restarts from -2^63 — 1.8e19
+iterations of real INSERT statements (observed 90k+ inserts after 5 minutes;
+600s+ timeout at census commit 5c2bfa675 AND on main, both reproduced).
+Fix in the generated file: overflow guard at the incr (break at
+ii==9223372036854775807), a faithful translation of the TCL 9 bignum exit,
+preserving every assertion of sections 1.x-3.x. All sections then ran for
+the first time and passed. Companion engine hardening: random-free-rowid
+allocation probes via O(log n) b-tree seek
+(internal/exec/expression_compare.go rowIDExistsInTree now SeekToRowID —
+SQLite's OP_NotExists on the intkey btree) instead of a full-tree scan per
+candidate.
+
+### fts5prefix 3.3/4.1/4.2 — transpiler artifact cluster repaired in place
+
+All PRE-EXISTING (fail identically at census commit 5c2bfa675). (a) The two
+3.3 do_execsql_tests whose NAMES embed a brace group
+(`3.3.$x.$tn.{$colset}.rowid`) lost their SQL bodies: the transpiler
+executed the name component as SQL (db.Exec(sqlLiteral(colset)) — "near
+\"a c\": syntax error") and dropped `SELECT rowid FROM t3($query)` /
+the highlight query entirely. (b) TCL 9's
+`foreach {col1 col2} $colset` two-variable destructuring was skipped
+(col1/col2 stayed empty → "near \",\": syntax error" in the resq). (c) The
+per-col highlight res kept the TCL double-quoted continuation string's
+leading quote inside the SQL ("unrecognized token"). (d) §4.1/4.2's
+brace-quoted `t2('c1:x*')` column filter was rewritten to
+`t2('c1<value-of-x>*')` — a $var hallucination from the `:` character.
+Repairs landed IN the generated file, preserving the corpus as contract:
+real gmatch/ghl UDF ports (TCL lsearch -glob / token-wrapping semantics;
+the nil stubs had made every 3.3 expectation vacuously empty), the
+{col1 col2} destructuring, the two full query bodies with their
+comparisons, and the literal column-filter strings. Native pin:
+TestFTS5ColumnListAndFilterPrefixPin (column-list filter {a b} : c* rowids,
+highlight parity, and the 4096-row UPDATE + c1:x*/c2:x* counts).
+testgen/fts5prefix: FAIL -> ok 194s.
+
+### fts4merge 5.9 — unregistered TCL var L (faithful literal repair)
+
+`set L [expr 16*16*7 + 16*3 + 12]` = 1852 was never registered by the
+transpiler, so `LIMIT $L` bound NULL and failed with "datatype mismatch"
+(oracle 3.54.0 rejects LIMIT NULL with exactly that error — the failure was
+census-verified pre-existing, 5c2bfa675). Repaired to the literal
+`LIMIT 1852` in the generated file. The downstream 5.10/5.11 segment
+layouts (which presuppose 5.9's 1852 duplicate inserts) were verified
+natively against the C constants for both fts3 and fts4 and are pinned by
+TestFTS4MergeDupInsertMergeLayout:
+5.10 = 0 {0 1 2 3 4 5 6 7 8 9 10 11} 1 0 2 0 3 0 X'010E';
+5.11 = 1 {0 1} 2 0 3 0 X'010E'.
+testgen/fts4merge: FAIL -> ok 274s.
+
+### fts5aj / fts5bigid — superseded (transpiler artifact + wall-clock), pinned natively
+
+fts5aj: the fifty 1.$iTest.$sz.{$s} checkpoints embed a brace-group in the
+do_execsql_test NAME — the transpiler executed the name component as the
+SQL (db.Exec(sqlLiteral(s)) → 'near "structure": syntax error') and dropped
+the real body (the checkpoint 'integrity-check' itself). The substance is a
+50,000-op rolling-window DML workload; superseded for wall-clock (100k
+autocommit statements ≈ 20+ min) with the contract pinned by
+TestFTS5RollingWindowIntegrityPin (2000-op rolling window, integrity-check
+checkpoints, newest-term searchable, out-of-window rowids gone).
+
+fts5bigid: ZERO assertions in the generated package — 20,000 random-rowid
+REPLACEs + DELETE FROM + 20,000 INSERTs at 0x6FFFFFFFFFFFFFFF+i. Pure
+wall-clock: 60,000 autocommit statements exceeded 45 minutes on darwin
+(profile: per-statement rollback-journal before-image reads
+(pager.journalBeforeImageLocked ReadAt), statement snapshots, GC; NOT a
+tranche regression — reproduced at census 5c2bfa675). Superseded; contract
+pinned by TestFTS5BigRowidRoundTrip (random-rowid REPLACE phase, DELETE
+FROM, big-rowid reinsert with MATCH counts and rowid range check).
+
+### fts5merge — superseded (unbounded transpiled proc-condition loops), pinned natively
+
+Three unbounded loops: (a) 1.1/3.4's `while {[not_merged x8]}` — not_merged
+is a non-transpiled TCL proc and tclBool's bare-word fallback returns true
+forever, so the merge-until-converged loop never exits (3922s CPU timeout
+reproduced on main); (b) 5.2's `while 1 {[db total_changes]-$nChange}` —
+inescapable tclExprWith literal (fts5optimize 2.tn.4 class); (c) rnddoc/
+mydoc nil stubs leave the transpiled corpus with no real documents.
+Superseded; contract pinned by TestFTS5UsermergeIncrementalConvergence:
+usermerge=2 incremental merge work units converge the structure to every
+level ≤1 segment (fts5_structure TVF verified), integrity-check passes,
+MATCH results survive, and 'merge' on an empty table (6.1/6.2) is a no-op.
+Note C's fts5IndexMerge only starts a level merge when the biggest level
+holds >= nMin (usermerge) segments — usermerge=2 is the corpus's own
+convergence setting.

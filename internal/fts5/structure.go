@@ -239,11 +239,11 @@ func decodeStructRec(data []byte) (*StructRec, error) {
 }
 
 // structureWrite persists the structure record (fts5StructureWrite's
-// fts5DataWrite of %_data id=10).
+// fts5DataWrite of %_data id=10 — direct blob I/O, untracked).
 func (t *Table) structureWrite() error {
 	qData := qual(t.dbName, t.cfg.Name+"_data")
 	hexed := hexEncode(t.structRec.encode())
-	_, err := t.db.ExecSQL(fmt.Sprintf("DELETE FROM %s WHERE id=10; INSERT INTO %s(id, block) VALUES(10, X'%s');",
+	_, err := t.execUntracked(fmt.Sprintf("DELETE FROM %s WHERE id=10; INSERT INTO %s(id, block) VALUES(10, X'%s');",
 		qData, qData, hexed))
 	return err
 }

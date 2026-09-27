@@ -204,7 +204,7 @@ func (t *Table) applyLoadedConfigRow(key string, val interface{}) {
 // with nOriginCntr=1 for contentless_delete tables).
 func (t *Table) resetIndexStructure() error {
 	qData := qual(t.dbName, t.cfg.Name+"_data")
-	if _, err := t.db.ExecSQL(fmt.Sprintf("DELETE FROM %s WHERE id=11", qData)); err != nil {
+	if _, err := t.execUntracked(fmt.Sprintf("DELETE FROM %s WHERE id=11", qData)); err != nil {
 		return err
 	}
 	if t.structRec != nil {
