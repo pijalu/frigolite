@@ -1130,3 +1130,54 @@ Resumed a dead predecessor mid-tranche on P9.PERF hot-path work (base 5807a9c1e,
   adding ONE if to a 12-gocyclo function (sortRowsWithMaps) trips the gate —
   run gocognit/gocyclo on every touched file before committing (the
   pre-commit hook was not installed in this worktree either).
+
+## T34r-split (fleet/t34r-split, 2026-09-27) — vacuum6 "interior page has no cells to split" flake closed
+
+- **The flake was NOT the reservebytes tranche.** Mission attribution said
+  425857347; the seeded-probe bisect (fixed-seed randomblob content →
+  deterministic repro) put the window at afcbc3397 (T33-idxfix,
+  value-ordered index b-trees): full-payload index dividers made interior
+  cells ~10-100x fatter, which both enabled the two defects below and made
+  them reachable at scale. Harness vacuum6 4.0's deterministic
+  `sum(length(b))=18018886` (+9886 = row 9886 counted twice) failed there
+  too — same root cause, silent form. Always attribute a "flake" with a
+  SEEDED repro before bisecting by commit: `rand.New(rand.NewSource(seed))`
+  content in a loop beats whole-package reruns (13 package runs passed
+  between the two catches; the probe caught failures at seeds 6 and 34
+  within 40 seeds).
+- **Defect 1 — non-atomic rightmost-path apply left a duplicated child
+  pointer.** applyChildSplitsRightmost appended its divider cells one per
+  iteration and checked room per cell; a chain whose FIRST cell fit but
+  whose SECOND did not returned errInteriorFull with cell 0 already written
+  and the rightmost pointer still unchanged → cell(leftChild=C) AND
+  rightmost=C — the same subtree reachable twice. The invariant "a child is
+  a cell's leftChild XOR the rightmost pointer" is what C's
+  balance_nonroot never violates: it gathers pending cells and
+  redistributes in one pass, never mutating until the fit is known. Fix:
+  exact aggregate precheck (Σ dividerCellLen + pointer slots) before any
+  mutation — the atomicity the re-key path already had (childSplitsHaveRoom)
+  but the rightmost path never got. Symptom cascade worth remembering:
+  the duplicated pointer made the parent's apply take the CELL path
+  (findChildCellIndex found the dup cell) whose carrier arithmetic then
+  never fit, the retry loop drained the left page 7→5→3→1 cells, and the
+  <3 guard fired "has no cells to split" — the error text pointed at the
+  GUARD, not at the corruption three levels earlier. Trace the INVARIANT
+  violation (dump cell.leftChild == rightmost), not the error site.
+- **Defect 2 — whole-chain apply starved the retry loop.** Applying a
+  child's full separator chain per attempt needs Σ dividers + N carrier
+  cells in ONE page; with fat index dividers that exceeds any page
+  (1300 bytes of need on 1024-byte pages), so the tail-split retry loop
+  drained the left page without ever fitting the chain. C inserts each
+  split's divider with its OWN insertCell and balances around that single
+  pending cell — the space need per balance is bounded by two cells. Fix:
+  applyChildSplitChain applies the chain divider-by-divider (each divider's
+  anchor is the previous divider's new sibling page), reusing the existing
+  firstfit+tail-split retry per divider. The <3 guard is now unreachable
+  for page sizes up to ~13KiB (2 max cells + 2 max divider cells always
+  fit); it remains as the safety net for pathological huge-page shapes.
+- **Reuse the fixture-gap lens for "new" failures:** TestSegviewOracleX6
+  InteriorNodes / TestWriterConformance (internal/fts) and harness vacuum6
+  1.2/3.0 ("table t1 already exists" = missing reset_db in the JSON
+  conversion) all fail at pre-fix HEAD too — pre-existing, out of tranche.
+  And `go test .` (root) without `-timeout 3600s` dies at the 600s default
+  on TestSQLiteSuite — expected, not a hang.

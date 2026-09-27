@@ -341,6 +341,27 @@ func findChildCellIndex(pg *pager.Page, page *storage.BTreePage, ptrBase int, or
 //	rightmost=C, splits=[(P1,D1)..(Pn,Dn)]  →
 //	cells += (C,D1),(P1,D2)…(Pn-1,Dn);  rightmost = Pn
 func (t *BTree) applyChildSplitsRightmost(pg *pager.Page, page *storage.BTreePage, coff, ptroff, ptrBase int, origChild uint32, splits []leafSplitResult) error {
+	// EXACT room precheck for the WHOLE chain, before any mutation. The
+	// apply must be ATOMIC like the re-key path (childSplitsHaveRoom): a
+	// mid-chain errInteriorFull after cell si already landed would leave
+	// the page with a cell whose leftChild equals the (still unchanged)
+	// rightmost pointer — a duplicated subtree pointer (vacuum6 seed case:
+	// the corrupted page cascades through the split retry loop until the
+	// insert dies with "interior page has no cells to split", and scans
+	// count the duplicated subtree's rows twice). The appended cells are
+	// exactly Σ dividerCellLen(splits[i]) data bytes plus len(splits)
+	// pointer slots, and each append descends the content pointer
+	// monotonically, so the fit is computable up front — matching C's
+	// balance_nonroot, which gathers the pending cells and redistributes
+	// them in one pass instead of mutating until it runs out of room.
+	dataNeed := 0
+	for _, cs := range splits {
+		dataNeed += t.dividerCellLen(cs)
+	}
+	ptrNeed := coff + ptroff + (int(page.CellCount)+len(splits))*2 + 2
+	if page.CellContent == 0 || int(page.CellContent)-dataNeed < ptrNeed {
+		return errInteriorFull
+	}
 	for si := 0; si < len(splits); si++ {
 		leftOfCell := origChild
 		if si > 0 {
