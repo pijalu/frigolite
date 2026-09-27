@@ -207,30 +207,63 @@ func (t *BTree) insertInteriorPage(pg *pager.Page, page *storage.BTreePage, pare
 		return nil, nil
 	}
 
-	// Child split occurred. Apply the separator chain to this interior page.
-	if err := t.applyChildSplits(pg, page, childPageNum, childSplits); err != nil {
-		if err != errInteriorFull {
-			return nil, err
-		}
-		// This interior page is full. SQLite's balance_nonroot keeps creating
-		// sibling pages until the overfull page has absorbed the pending
-		// divider cells (btree.c: the do-while over apCell redistributes cells
-		// across as many siblings as needed); a single tail split frees only
-		// one cell slot, which is not always enough for the exact room the
-		// separator chain requires (fts4opt churn: the retried apply hit
-		// precheck-noroom again and the insert failed outright). Mirror the
-		// loop: split the left page repeatedly, each split moving its last
-		// cell to a fresh sibling, until the half that owns the split child
-		// can take the chain.
-		return t.retryChildSplitApply(pg, parentPgno, childPageNum, childSplits)
-	}
+	// Child split occurred. Apply the separator chain to this interior page,
+	// ONE divider at a time (btree.c inserts each split's divider with its
+	// own insertCell and balances the parent around that single pending
+	// cell — balance_nonroot never has to make room for a whole divider
+	// chain at once). Applying divider-by-divider bounds every apply's
+	// space need to two cells (the re-keyed divider plus the carrier
+	// sibling), so the tail-split retry loop below always converges: a
+	// page that cannot hold a fat full-payload index divider chain in one
+	// piece (vacuum6's randomblob index) is still balanced one divider at
+	// a time instead of draining to the no-cells-to-split guard.
+	return t.applyChildSplitChain(pg, parentPgno, childPageNum, childSplits)
+}
 
-	return nil, nil
+// applyChildSplitChain applies a child's separator chain to this interior
+// page one divider at a time. Divider i re-keys the cell (or rightmost
+// pointer) that anchors child i-1's subtree and inserts the new sibling
+// page; whenever the anchor page cannot take the divider, the left page is
+// tail-split (retryChildSplitApply) until the half owning the anchor can.
+// The dividers of THIS page's own splits are accumulated in insertion order
+// and returned to the caller reversed (left-to-right), matching
+// retryChildSplitApply's contract.
+func (t *BTree) applyChildSplitChain(pg *pager.Page, parentPgno, childPageNum uint32, childSplits []leafSplitResult) ([]leafSplitResult, error) {
+	var outs []leafSplitResult
+	// Every page that may hold the anchor of the next divider: the left
+	// page plus each sibling created by its splits (retryChildSplitApply
+	// may move the anchor rightward).
+	order := []uint32{pg.PageNum}
+	target := childPageNum
+	for i := range childSplits {
+		done, aerr := t.applyChildSplitsToFirstFit(order, target, childSplits[i:i+1])
+		if aerr != nil {
+			return nil, aerr
+		}
+		if !done {
+			more, serr := t.retryChildSplitApply(pg, parentPgno, target, childSplits[i:i+1])
+			if serr != nil {
+				return nil, serr
+			}
+			outs = append(outs, more...)
+			order = childOrderAmongSplits(pg, outs)
+		}
+		// The divider landed: its new sibling page anchors the next one.
+		target = childSplits[i].pageNum
+	}
+	if len(outs) == 0 {
+		return nil, nil
+	}
+	rev := make([]leafSplitResult, len(outs))
+	for i := range outs {
+		rev[i] = outs[len(outs)-1-i]
+	}
+	return rev, nil
 }
 
 // retryChildSplitApply repeatedly splits the left interior page, each split
 // moving its last cell to a fresh sibling, until the half that owns the split
-// child can take the separator chain. Successive left-page splits nest
+// child can take the pending divider. Successive left-page splits nest
 // rightward (split #2's page sorts between the left page and split #1's
 // page), so the dividers returned to the parent are in reverse accumulation
 // order and are handed up left-to-right.
