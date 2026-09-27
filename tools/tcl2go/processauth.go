@@ -196,9 +196,16 @@ func (tp *transpiler) emitAuthorizerLappend(m []string) {
 }
 
 // emitAuthorizerIncr emits one `incr ::counter [N]` deny-counter adjustment
-// (authorizerProcBodyTranspilable only admits the matching shapes).
+// (authorizerProcBodyTranspilable only admits the matching shapes). TCL incr
+// adds N to the variable in place — including NEGATIVE N (vtab3-1.7's
+// `incr ::auth_fail -1` deny countdown) — so the faithful helper is
+// tclIncrBy. tclIncrMod is wrong here: its arithmetic is always +1 and its
+// second argument is the `[incr x] % n` condition modulus, so an emitted
+// `tclIncrMod(&x, -1)` incremented past the deny threshold and the
+// authorization was never denied (regression introduced when the §5d
+// processauth split re-routed this line through the condition helper).
 func (tp *transpiler) emitAuthorizerIncr(name, amount string) {
-	tp.emitLine("tclIncrMod(&%s, %s)", tclVarToGo(name), amount)
+	tp.emitLine("tclIncrBy(&%s, %s)", tclVarToGo(name), amount)
 	tp.emitLine("vtab.TclVarSet(%q, \"\", %s)", name, tclVarToGo(name))
 }
 
