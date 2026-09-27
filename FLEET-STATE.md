@@ -84,7 +84,7 @@ Worktrees cut from main 3b9cc6646:
 |---|---|---|
 | fleet/t34-vacuum | frigolite-wt-t34-vac | TestVacuumDoesNotCorruptBTree (txn-state) + testgen/corrupt-7.3 (balance-deeper oversize-cell accounting) |
 | fleet/t34-bigrow | frigolite-wt-t34-bigrow | bigrow-2.2 oversized-record UPDATE loses first 2 bytes (~65KB swap) |
-| fleet/t34-x6 | frigolite-wt-t34-x6 | TestWriterConformance fts-x6-growth fixture-vs-fix verdict (91e4296b5) — FAILED DISPATCH (concurrency limit), RE-DISPATCH pending after a slot frees |
+| fleet/t34-x6 | frigolite-wt-t34-x6 | TestWriterConformance fts-x6-growth fixture-vs-fix verdict (91e4296b5) — RESOLVED 2026-09-27: verdict (b) ENGINE bug (decodeSegmentBlock NULL marker row blocked the continuation append; attribution "since 91e4296b5" wrong, fixture correct per fresh oracle regen); fix + native pin TestT34X6_FTS4GrowthMergeContinuationPin on fleet/t34-x6 |
 
 Protocol unchanged: engine-first, oracle ground truth, serial validation,
 per-commit push, no main merges by agents. Merge log: (none yet).

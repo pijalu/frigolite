@@ -861,3 +861,61 @@ lifecycle sites above are the complete set.
 - **Test-writing trap:** t.Fatalf arguments are evaluated even when the
   guard short-circuited — `len(res.Rows[0])` inside a Fatalf format list
   panics on a 0-row result. Capture into a local under the guard first.
+=======
+
+## T34-x6 (fleet/t34-x6, 2026-09-27) — fts-x6 writer divergence was an ENGINE bug (NULL marker row), not fixture staleness
+
+- **Verdict (b)**: TestWriterConformance/fts-x6-growth diverged because the
+  ENGINE declined SQLite's append-to-existing-output continuation, not because
+  the fixture predated 91e4296b5. The "diverges since 91e4296b5" attribution was
+  wrong — the failure reproduces identically at 91e4296b5^ (bd8effd42) with the
+  intact fixture. The reader-only position-bleed fix is irrelevant to writer
+  bytes (the x6 scenario runs no queries). Re-verify residue attributions by
+  checking out the blamed commit in a scratch worktree before acting on them.
+- **Fixture hygiene trap**: the `ftsconformance/*.db` oracle fixtures are
+  GITIGNORED (`*.db`) local artifacts, as is `tools/orafixture` itself. A fresh
+  worktree runs the conformance test with MISSING or stale-local fixtures —
+  TestSegviewOracleX6InteriorNodes "database disk image is malformed" was a
+  0-byte `fts-x6-growth.db` (pager opens lazily, then btree on a missing page),
+  not an engine regression. Copy the fixture set from the main worktree (or
+  regenerate) before diagnosing; the canonical set lives at
+  `/Users/muaddib/dev/frigolite/internal/fts/testdata/ftsconformance/`.
+- **Oracle-version drift vs content comparison**: `/usr/bin/sqlite3` moved
+  3.51.0 (ORACLE_VERSION at generation time) → 3.54.0. `orafixture -check`
+  (whole-file byte compare) FAILS across that drift, but the FTS shadow-table
+  CONTENT (the conformance comparison surface: segdir rows + segment block
+  bytes) is byte-identical for all 5 scenarios. Compare CONTENT across oracle
+  versions; whole-file equality is only meaningful within one oracle build.
+- **Root cause (engine)**: `fts3IncrmergeWriter` pre-allocates the output's
+  block range and writes a `(iEnd, NULL)` row in `%_segments`; `fts3IsAppendable`
+  (fts3_write.c) detects the appendable segment by
+  `SELECT 1 FROM %_segments WHERE blockid=? AND block IS NULL`. The marker row
+  is DATA for the writer, not corruption. frigolite's
+  `execddl.decodeSegmentBlock` returned "malformed [SEG16]" for a NULL block
+  column, so the continuation's GEOMETRY fallback
+  (`ftsMergeRun.loadGeometryFallback`) declined the append (`readFTSBlock`
+  errored on the marker) and created a NEW output segment: fts4growth 7.4
+  produced level-1 idx=1 where SQLite extends idx=0 in place (leaves_end
+  744→769), and the level arithmetic cascaded (final segdir level 2 vs 1,
+  636896 vs 635247 segment bytes).
+- **The geometry fallback exists because the in-memory merge state dies**: the
+  MergeCtx (FTS3Table.mergeCtx) is wiped by ANY direct SQL write to a shadow
+  table (InvalidateSegmentCache — the scenario's 7.3 `UPDATE x6_segdir SET
+  end_block=...` does exactly that). A continuation must then be decidable from
+  persisted state alone: segdir geometry + the NULL marker row + the term-order
+  check. Fix = `case nil: return nil, nil` in decodeSegmentBlock (C parity);
+  consumers that need leaf content still fail at parse time (a NULL inside a
+  leaf range → loadLeafBlock's height-varint read → "corrupt segment root"),
+  and the integrity walk's checkSegdirLeafBlock flags a NULL below
+  leaves_end_block (that carve-out was dead code until this fix).
+- **Native pin method for corpus-dependent FTS contracts**: embed a COMPACT
+  deterministic corpus (12 KJV-Genesis verses x 6 copies x 6 rounds — small
+  enough for a test file, large enough that merge=25,4 stops at its quota),
+  derive the expected segdir/geometry scalars from `/usr/bin/sqlite3` on THAT
+  corpus, and hard-code them (TestT34X6_FTS4GrowthMergeContinuationPin). This
+  covers the contract of the skipped testgen fts4growth 7.4-7.7 cases
+  ("MergeFTS-continuation divergence") without the 269KB genesis_t1.sql and
+  without the untracked fixture .dbs. Verify the pin corpus actually reproduces
+  the dynamic (quota stop → chomp → append → drain) on the oracle BEFORE
+  pinning: the first 10-verse attempt merged everything inside the quota and
+  exercised nothing.

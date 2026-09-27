@@ -2668,3 +2668,55 @@ introduced; no corpus files touched.
   frigolite (oracle errors "malformed" on the same scan). No corpus case asserts a
   scan between corrupt-7.2 and 7.3; revisit only if one appears (see lessons_learned
   T34-vacuum).
+
+## T34-x6 — fts-x6 fixture residue RESOLVED as an engine bug (2026-09-27)
+
+The FULL-SUITE-DRIFT.T33-close residue item "TestWriterConformance/fts-x6-growth
+diverges since 91e4296b5 ... re-derive the oracle fixture or revisit the fix" is
+RESOLVED on branch fleet/t34-x6. Verdict: (b) engine bug, fixture correct.
+
+1. **Attribution corrected.** The divergence does NOT start at 91e4296b5: it
+   reproduces identically at 91e4296b5^ (bd8effd42) with the intact fixture
+   (verified in a scratch worktree). 91e4296b5 is reader-only (loadDoclist);
+   the x6 scenario runs no queries. The T33-close "TestSegviewOracleX6 fails
+   identically" observation was a stale-local-fixture artifact: the local
+   `fts-x6-growth.db` was 0 bytes (fixtures are gitignored); with the intact
+   fixture the segview test passes at every commit in the range (it only reads
+   the oracle file through frigolite's pager/btree).
+2. **Fixture correct.** The committed 3.51.0-era fixture and a fresh
+   3.54.0 regeneration have byte-identical FTS shadow-table content
+   (segdir rows + segment block bytes) for all five scenarios — the oracle,
+   both versions, produces exactly one level-1 segdir row
+   (1,0,719,1171,23694) and sum(length(block))=635247 (fts4growth 7.7).
+   Whole-FILE regeneration differs (Apple-build layout drift), but the
+   conformance comparison surface does not.
+3. **Root cause (engine).** fts3IsAppendable (fts3_write.c) detects the
+   appendable output segment by the NULL marker row
+   (`WHERE blockid=? AND block IS NULL`) that fts3IncrmergeWriter writes at
+   iEnd. frigolite's `execddl.decodeSegmentBlock` classified a NULL block
+   column as "malformed [SEG16]", so the continuation's persisted-geometry
+   fallback (needed because the scenario's 7.3 `UPDATE x6_segdir` wipes the
+   in-memory MergeCtx via InvalidateSegmentCache) declined the append and
+   created a NEW level-1 segment — 7.4 produced level-1 idx=1 where SQLite
+   extends idx=0 in place (leaves_end 744→769), cascading to a level-2 final
+   segdir (636896 segment bytes vs 635247).
+4. **Fix.** `decodeSegmentBlock` returns (nil, nil) for a NULL block (C
+   parity): `case nil: return nil, nil` (internal/execddl/
+   ddl_fts_integrity.go). Zero-length blocks inside a leaf range still fail at
+   parse time (loadLeafBlock height-varint read → "corrupt segment root");
+   the integrity walk's NULL-below-leaves_end carve-out (checkSegdirLeafBlock)
+   becomes live as documented. fts3corrupt 6.10's malformed contract is
+   unaffected (it flows through the empty-ROOT check).
+5. **Native pin.** TestT34X6_FTS4GrowthMergeContinuationPin
+   (frigolite_x6pin_test.go) carries the contract of the skipped testgen
+   fts4growth 7.4-7.7 cases with oracle-derived scalars (/usr/bin/sqlite3
+   3.54.0, compact deterministic corpus): 7.4 must APPEND to the existing
+   level-1 segment (single row, leaves_end extended, L0 starts 13/35/57/79/
+   101/123, count=112 sum=117951), 7.5 drains to one segdir row
+   (1,0,133,220,"4356") count=89 sum=116533, 7.6 is a no-op.
+6. **Validation.** TestWriterConformance 5/5 + TestSegviewOracleX6 green;
+   internal/fts 39/39 green; testgen serial batch (fts3corrupt4/5/6,
+   fts3corrupt, fts4growth, fts4merge, fts4onepass, fts3aa/ab/ac) green.
+   Step-by-step engine-vs-oracle parity verified on both the full genesis
+   corpus (oracle segdir/geometry identical at every step, final
+   719/1171/23694 + 635247) and the pin corpus.

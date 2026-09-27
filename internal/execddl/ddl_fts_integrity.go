@@ -522,6 +522,16 @@ func (e *DDLExecutor) scanFTSBlock(tree *btree.BTree, blockID int) ([]byte, *Res
 // decodeSegmentBlock decodes a %_segments row payload into its block bytes
 // (the row is (blockid, block); SEG15 on a short/corrupt record, SEG16 when
 // the block column is neither a blob nor text).
+//
+// A NULL block column is the incremental-merge writer's pre-allocation
+// marker, NOT corruption: fts3IncrmergeWriter writes (iEnd, NULL) and
+// fts3IsAppendable's "WHERE blockid=? AND block IS NULL" (fts3_write.c)
+// treats exactly that row as the appendable-segment marker, so the
+// continuation's geometry fallback must observe it. Consumers that need
+// leaf content reject the zero-length block at parse time (a NULL inside a
+// leaf range fails loadLeafBlock's height-varint read → "corrupt segment
+// root", the zero-length-node outcome in C); the integrity walk's
+// checkSegdirLeafBlock flags a NULL below leaves_end_block.
 func decodeSegmentBlock(payload []byte) ([]byte, *Result) {
 	rec, derr := storage.DecodeRecord(payload)
 	if derr != nil || rec == nil || len(rec.Values) < 2 {
@@ -532,6 +542,8 @@ func decodeSegmentBlock(payload []byte) ([]byte, *Result) {
 		return bv, nil
 	case string:
 		return []byte(bv), nil
+	case nil:
+		return nil, nil
 	}
 	return nil, &Result{Error: fmt.Errorf("database disk image is malformed [SEG16]")}
 }
