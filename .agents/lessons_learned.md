@@ -974,3 +974,8 @@ lifecycle sites above are the complete set.
   (`git show :path`) — the working tree can carry the other agent's
   env-gated tracing that inflates complexity (ValidateCellSizeCheck hit 41
   cognitive in the working copy while the staged version stayed clean).
+
+**T34r-reserve stand-down**: reservebytes fix ownership returned to the T34r-vacuum
+owner session (its pagerconfig.go byte-20 stamping + usable-end re-anchoring is the
+C-parity fix; my temp-side vacuum.c:271 analysis above is its reference). No merge
+conflict risk maintained by zero edits — read-only diagnosis only, nothing staged.
