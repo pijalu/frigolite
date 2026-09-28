@@ -9,6 +9,7 @@ package pager
 import (
 	"encoding/binary"
 	"fmt"
+	"os"
 	"sort"
 
 	"github.com/pijalu/frigolite/internal/quota"
@@ -444,6 +445,9 @@ func (p *Pager) flushPage(pageNum uint32) error {
 	// but should be 5" after an auto-vacuum drain).
 	if pageNum == 1 && len(pg.Data) >= HeaderSize && len(p.header) >= HeaderSize {
 		copy(pg.Data[:HeaderSize], p.header)
+	}
+	if os.Getenv("QDBG3") != "" {
+		fmt.Fprintf(os.Stderr, "QDBG3 flushPage page=%d fileSize=%d fileEnd=%d numPages=%d\n", pageNum, p.fileSize, fileEnd, p.numPages)
 	}
 	if p.fileSize < fileEnd {
 		// Quota enforcement (test_quota.c quotaWrite): growing the file
