@@ -674,6 +674,7 @@ func (e *DMLExecutor) runUpdateFail(tableName string, tableEntry *schema.Entry, 
 	idxColsList := e.uniqueIndexColumns(tableEntry.Name)
 	wrOrder := e.ctx.WRStorageOrder(tableEntry.SQL, colDefs)
 	tree := e.dmlTableBTree(tableName, tableEntry.RootPage)
+	defer tree.Close() // conflict/write tree is function-local
 	for i := range changes {
 		c := changes[i]
 		if res := e.checkEarlierChanges(changes, i, c, colDefs, colIndex, uniqueCols, idxColsList, tableEntry.Name); res.Error != nil {

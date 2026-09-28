@@ -750,6 +750,7 @@ func (e *DMLExecutor) rowExists(tableName string, rootPage uint32, rowID int64) 
 		pg = e.dmlPager(tableName)
 	}
 	tree := e.ctx.TableBTreePg(pg, tableName, rootPage, true)
+	defer tree.Close() // scan tree is function-local
 	cursor, err := tree.OpenCursor()
 	if err != nil {
 		return false, err

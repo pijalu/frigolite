@@ -103,7 +103,7 @@ func removeRegisteredCursor(key cursorTreeKey, c *Cursor) {
 // wrappers — an enclosing statement's positioned cursor must still be
 // saved/restored by a nested statement's write (misc8-1.6 contract).
 func (t *BTree) Close() {
-	if t.closed {
+	if t == nil || t.closed {
 		return
 	}
 	t.closed = true

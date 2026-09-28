@@ -299,6 +299,7 @@ func (e *DMLExecutor) rowIDConflictError(tableEntry *schema.Entry, colDefs []sql
 // rowIDExists reports whether the table already has a row with the given rowid.
 func (e *DMLExecutor) rowIDExists(tableName string, rootPage uint32, rowID int64) bool {
 	tree := e.dmlTableBTree(tableName, rootPage)
+	defer tree.Close() // tree and its scan cursor are function-local
 	cursor, err := tree.OpenCursor()
 	if err != nil {
 		return false
@@ -683,6 +684,7 @@ func (e *DMLExecutor) scanAllUniqueConflicts(tableEntry *schema.Entry, colDefs [
 		return nil
 	}
 	tree := e.dmlTableBTree(tableEntry.Name, tableEntry.RootPage)
+	defer tree.Close() // tree and its scan cursor are function-local
 	cursor, err := tree.OpenCursor()
 	if err != nil {
 		return nil

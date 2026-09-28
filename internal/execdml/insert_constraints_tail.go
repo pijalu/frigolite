@@ -323,6 +323,7 @@ func (e *DMLExecutor) findOnConflictRow(tableEntry *schema.Entry, colDefs []sql.
 			continue
 		}
 		tree := e.dmlTableBTree(tableEntry.Name, tableEntry.RootPage)
+		defer tree.Close() // per-group scan tree (deferred to function end)
 		cursor, err := tree.OpenCursor()
 		if err != nil {
 			continue
@@ -608,6 +609,7 @@ func (e *DMLExecutor) insertDefaultRow(tableEntry *schema.Entry, colDefs []sql.C
 		Payload: record,
 	}
 	tree := e.dmlTableBTree(tableEntry.Name, tableEntry.RootPage)
+	defer tree.Close() // tree and its write cursor are function-local
 	if err := tree.InsertCell(cell); err != nil {
 		return &Result{Error: err}
 	}

@@ -377,6 +377,7 @@ func (e *DMLExecutor) execSelectWithOrPlan(s *sql.SelectStmt, tableEntry *schema
 	defer func() { e.ctx.SetCurrentScanTable(prevScanTable) }()
 
 	tree := e.ctx.TableBTreePg(dbCtx.Pager, tableEntry.Name, tableEntry.RootPage, true)
+	defer tree.Close() // scan tree is function-local
 	cursor, err := tree.OpenCursor()
 	if err != nil {
 		return &Result{Error: err}

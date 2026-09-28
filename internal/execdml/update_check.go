@@ -32,6 +32,7 @@ func (e *DMLExecutor) checkUpdateConflicts(tableEntry *schema.Entry, colDefs []s
 	}
 
 	tree := e.dmlTableBTree(tableEntry.Name, tableEntry.RootPage)
+	defer tree.Close() // conflict-scan tree is function-local
 	for i := range changes {
 		c := changes[i]
 		if res := e.checkEarlierChanges(changes, i, c, colDefs, colIndex, uniqueCols, idxColsList, tableEntry.Name); res.Error != nil {

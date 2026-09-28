@@ -43,6 +43,7 @@ func (e *DMLExecutor) findRowByUniqueCols(tableName string, rootPage uint32, col
 	}
 
 	tree := e.uniqueScanTree(tableName, rootPage)
+	defer tree.Close() // scan tree is function-local
 	cursor, err := tree.OpenCursor()
 	if err != nil {
 		return 0, nil, -1, false
@@ -93,6 +94,7 @@ func (e *DMLExecutor) compositeConflictRow(tableName string, rootPage uint32, co
 			continue
 		}
 		tree := e.uniqueScanTree(tableName, rootPage)
+		defer tree.Close() // per-group scan tree (deferred to function end)
 		cursor, err := tree.OpenCursor()
 		if err != nil {
 			continue
@@ -151,6 +153,7 @@ func (e *DMLExecutor) ipkRowidAliasConflict(tableName string, rootPage uint32, c
 		return 0, nil, -1, false
 	}
 	tree := e.uniqueScanTree(tableName, rootPage)
+	defer tree.Close() // probe tree is function-local
 	cursor, err := tree.OpenCursor()
 	if err != nil {
 		return 0, nil, -1, false

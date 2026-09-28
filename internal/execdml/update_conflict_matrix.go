@@ -85,6 +85,7 @@ func (e *DMLExecutor) perRowConflictError(c updateChange, tableEntry *schema.Ent
 	idxColsList := e.uniqueIndexColumns(tableEntry.Name)
 	wrOrder := e.ctx.WRStorageOrder(tableEntry.SQL, colDefs)
 	tree := e.dmlTableBTree(tableEntry.Name, tableEntry.RootPage)
+	defer tree.Close() // conflict-scan tree is function-local
 	if res := e.checkEarlierChanges(nil, 0, c, colDefs, colIndexLocal, uniqueCols, idxColsList, tableEntry.Name); res.Error != nil {
 		return res.Error
 	}

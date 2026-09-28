@@ -691,7 +691,9 @@ func (e *DMLExecutor) writeFTSContentRow(tableName string, docID int64, values [
 	// machinery) — this runs per FTS insert, so a full Exec per row would be
 	// O(n) statement overhead (fts3b inserts 10k documents in a transaction).
 	if dbCtx != nil {
-		e.writeTableRow(dbCtx.Pager, contentEntry, colDefs, stored, docID)
+		if tr, _ := e.writeTableRow(dbCtx.Pager, contentEntry, colDefs, stored, docID); tr != nil {
+			tr.Close() // row-write tree dies with this FTS insert
+		}
 	}
 	return nil
 }
@@ -722,7 +724,8 @@ func (e *DMLExecutor) writeFTSDocsizeRow(tableName string, docID int64, ftsTable
 		})
 	}
 	colDefs := e.ctx.ParseColumnDefs(docsizeEntry.Name, docsizeEntry.SQL)
-	_, res := e.writeTableRow(dbCtx.Pager, docsizeEntry, colDefs, []interface{}{docID, blob}, docID)
+	tr, res := e.writeTableRow(dbCtx.Pager, docsizeEntry, colDefs, []interface{}{docID, blob}, docID)
+	tr.Close() // row-write tree dies with this FTS insert
 	return res
 }
 

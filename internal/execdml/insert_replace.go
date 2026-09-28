@@ -107,6 +107,7 @@ func (e *DMLExecutor) classifyReplaceSecondaryCols(colDefs []sql.ColumnDef, valu
 func (e *DMLExecutor) scanReplaceSecondaryConflict(tableEntry *schema.Entry, colDefs []sql.ColumnDef, values []interface{}, strictCols, ignoreCols map[int]bool) (*Result, bool) {
 	keyer := newConflictKeyer(tableEntry, colDefs)
 	tree := e.uniqueScanTree(tableEntry.Name, tableEntry.RootPage)
+	defer tree.Close() // scan tree is function-local
 	cursor, err := tree.OpenCursor()
 	if err != nil {
 		return nil, false
@@ -224,6 +225,7 @@ func (e *DMLExecutor) findNextReplaceConflict(pg *pager.Pager, tableEntry *schem
 // an ATTACHed table (currentDMLCtx pager) is scanned.
 func (e *DMLExecutor) findReplaceColumnConflict(tableEntry *schema.Entry, colDefs []sql.ColumnDef, values []interface{}, uniqueCols []int, seen map[string]bool, keyer conflictKeyer) (int64, []interface{}, bool) {
 	tree := e.uniqueScanTree(tableEntry.Name, tableEntry.RootPage)
+	defer tree.Close() // scan tree is function-local
 	cursor, err := tree.OpenCursor()
 	if err != nil {
 		return 0, nil, false

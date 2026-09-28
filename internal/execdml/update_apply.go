@@ -251,6 +251,7 @@ func (e *DMLExecutor) rowExistsForChange(tableName string, rootPage uint32, ch u
 	}
 	if len(e.ctx.WRStorageOrder(tableEntry.SQL, colDefs)) > 0 {
 		tree := e.updateRowTree(tableName, rootPage)
+		defer tree.Close() // probe tree is function-local
 		cursor, err := tree.OpenCursor()
 		if err != nil {
 			return false, err
@@ -545,7 +546,9 @@ func (e *DMLExecutor) fireUpdateWritePreupdate(tableName string, ch updateChange
 // Returns the full column-value slice to encode for the final row.
 func (e *DMLExecutor) mergeTriggerModifiedRow(tableName string, rootPage uint32, colDefs []sql.ColumnDef, ch updateChange) ([]interface{}, error) {
 	// Re-read the current row (post-trigger state) from the btree.
-	cursor, err := e.updateRowTree(tableName, rootPage).OpenCursor()
+	tree := e.updateRowTree(tableName, rootPage)
+	defer tree.Close() // re-read tree is function-local
+	cursor, err := tree.OpenCursor()
 	if err != nil {
 		return nil, err
 	}
@@ -776,6 +779,7 @@ func (e *DMLExecutor) applyUpdateReplace(tableEntry *schema.Entry, colDefs []sql
 	uniqueCols := uniqueColsForTable(colDefs)
 	idxColsList := e.uniqueIndexColumns(tableEntry.Name)
 	tree := e.dmlTableBTree(tableEntry.Name, tableEntry.RootPage)
+	defer tree.Close() // replace-write tree is function-local
 	hasTriggers := e.hasTriggersForTable(tableEntry.Name)
 	changesMade := int64(0)
 	// Snapshot so a FOREIGN KEY violation mid-statement rolls back any
