@@ -36,6 +36,12 @@
 // leaving earlier statements' writes intact.
 package pager
 
+import (
+	"github.com/pijalu/frigolite/internal/quota"
+)
+
+import ()
+
 // stmtEntryKind classifies a statement-journal before-image.
 type stmtEntryKind uint8
 
@@ -89,6 +95,12 @@ type StmtJournal struct {
 	// began and must be restored from memory, not from the stale disk image.
 	beginDirtyStamp uint64
 	done            bool
+	// fullState marks a quota-layer scope: with the quota shim active a
+	// flush can fail in the middle of writing pages to the FILE (after the
+	// cache state the lazy journal models is already stale), so the scope
+	// keeps a whole-state Snapshot and rollback reinstates it via Restore —
+	// the pre-journal P5 semantics. Test-harness only; nil in production.
+	fullState *PagerState
 }
 
 // BeginStatement opens a statement rollback scope (pager.c
@@ -96,6 +108,14 @@ type StmtJournal struct {
 // scope inside the outer statement's scope. The call is O(1) — no pages are
 // copied; before-images are captured lazily as pages are first modified.
 func (p *Pager) BeginStatement() *StmtJournal {
+	if quota.Active() {
+		// Quota layer (test_quota.c shim): a flush can fail mid-way through
+		// writing pages to the FILE — quota refusal happens per page write,
+		// so the file, the journal sidecar and the cache are in a state the
+		// lazily-captured journal does not model. Keep the legacy whole-state
+		// statement snapshot there (Restore reinstates it wholesale).
+		return &StmtJournal{p: p, done: false, fullState: p.Snapshot()}
+	}
 	p.mu.Lock()
 	defer p.mu.Unlock()
 	j := &StmtJournal{
@@ -125,6 +145,10 @@ func (p *Pager) EndStatement(j *StmtJournal) {
 	if j == nil {
 		return
 	}
+	if j.fullState != nil {
+		j.done = true
+		return
+	}
 	p.mu.Lock()
 	defer p.mu.Unlock()
 	if j.done {
@@ -149,6 +173,11 @@ func (p *Pager) EndStatement(j *StmtJournal) {
 // transaction wrote — and did this statement not touch — survive untouched.
 func (p *Pager) RollbackStatement(j *StmtJournal) {
 	if j == nil {
+		return
+	}
+	if j.fullState != nil {
+		j.done = true
+		p.Restore(j.fullState)
 		return
 	}
 	p.mu.Lock()
