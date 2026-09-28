@@ -9,6 +9,7 @@ package exec
 
 import (
 	"fmt"
+	"github.com/pijalu/frigolite/internal/quota"
 	"strings"
 
 	"github.com/pijalu/frigolite/internal/fts"
@@ -239,6 +240,68 @@ type ftsSnap struct {
 type fts5Snap struct {
 	table *fts5.Table
 	state *fts5.TableState
+}
+
+// dmlCanSkipSnapshot reports whether a DML statement keeps its historical
+// full skip of the statement-atomicity rollback: a single-row VALUES INSERT
+// (no SELECT, no RETURNING, not REPLACE/upsert, no triggers, no FK
+// enforcement) either writes its one row or fails before writing — and the
+// interrupted/failing row of that shape LEAVES ITS WRITES VISIBLE, the seam
+// frigolite_fts5interrupt_test.go pins (oracle-verified against C: an fts5
+// single-row insert interrupted by a progress handler keeps the row). The
+// statement journal made every other shape affordable, but re-enabling the
+// rollback for THIS shape changed that pinned semantics, so the skip stays.
+// (Its original motivation was the O(pages) snapshot copy — the journal
+// removed that cost for every non-skipped shape.)
+//
+// The main database being in WAL mode disables the skip: a WAL commit writes
+// to the "-wal" file, which is a SEPARATE I/O that can fail (disk error,
+// fault injection) AFTER the in-memory row write succeeds. The "cannot fail
+// after partially writing" assumption is then false, so the rollback must be
+// available (otherwise the uncommitted pages stay dirty and the next flush —
+// e.g. at Close — re-attempts and re-reports the error).
+func (e *Engine) dmlCanSkipSnapshot(stmt sql.Stmt) bool {
+	if e.mainDB != nil && e.mainDB.Pager != nil && e.mainDB.Pager.JournalMode() == "wal" {
+		return false
+	}
+	// Quota layer active (test_quota.c shim): a flush can refuse file
+	// growth with SQLITE_FULL after the in-memory write succeeded, so the
+	// "commit cannot fail" assumption below is void — keep the rollback.
+	if quota.Active() {
+		return false
+	}
+	// A registered commit hook makes every commit vetoable after the rows
+	// are written: a nonzero hook return fails the implicit COMMIT with
+	// SQLITE_CONSTRAINT_COMMITHOOK and rolls the transaction back
+	// (vdbeCommit's xCommitCallback check runs BEFORE btree commit phase
+	// one, src/vdbeaux.c:2978-2982).
+	if e.commitHook != nil {
+		return false
+	}
+	ins, ok := stmt.(*sql.InsertStmt)
+	if !ok {
+		return false // UPDATE/DELETE can fail mid-scan after earlier writes
+	}
+	if !isSimpleSingleValuesInsert(ins) {
+		return false
+	}
+	if ins.OnConflict != nil {
+		return false // DO NOTHING / DO UPDATE upsert paths may skip or modify rows
+	}
+	if e.settings.foreignKeys {
+		return false // FK enforcement could reject after other writes
+	}
+	if e.hasTriggersForTable(ins.Table) {
+		return false // a trigger could fail after the insert
+	}
+	return true
+}
+
+// isSimpleSingleValuesInsert reports whether the INSERT is the rollback-free
+// shape: a single-row VALUES insert with no source SELECT, no RETURNING, no
+// REPLACE form, and no multi-row values list.
+func isSimpleSingleValuesInsert(ins *sql.InsertStmt) bool {
+	return ins.Select == nil && !ins.HasReturning && !ins.IsReplace && len(ins.Values) == 1
 }
 
 // stmtTargetsFTSContent reports whether a statement writes to an FTS table's

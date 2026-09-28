@@ -310,6 +310,15 @@ func (p *Pager) unlinkStmtLocked(j *StmtJournal) {
 // in the pager goes through this method — it is the statement journal's
 // capture choke point. Caller holds p.mu.
 func (p *Pager) markDirtyLocked(pgno uint32) {
+	// Fast path: no open scope and no stale dirty stamps (dirtyMark is nil
+	// outside transactions — clearDirtySetLocked drops it at every commit
+	// boundary) — the statement journal needs nothing here, so keep this as
+	// cheap as the raw store it replaces (write-heavy workloads dirty
+	// pages millions of times).
+	if p.stmtTop == nil && p.dirtyMark == nil {
+		p.dirty[pgno] = true
+		return
+	}
 	if !p.dirty[pgno] {
 		p.dirtyStamp++
 	}

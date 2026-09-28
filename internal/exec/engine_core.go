@@ -823,8 +823,11 @@ func (e *Engine) execEntry(stmt sql.Stmt) *Result {
 // statement journal (before-images captured lazily at first page write — a
 // statement that modifies nothing rolls back nothing), and nested writes
 // (trigger bodies, the FTS flush's shadow writes) are covered by the
-// outermost statement's scope, so both skip opening their own. The CTE scope
-// push stays in Exec (its defer must outlive dispatch).
+// outermost statement's scope, so both skip opening their own. The
+// single-row VALUES INSERT keeps its historical skip entirely (see
+// dmlCanSkipSnapshot): a failed/interrupted row of that shape leaves its
+// writes visible — the seam frigolite_fts5interrupt_test.go pins. The CTE
+// scope push stays in Exec (its defer must outlive dispatch).
 func (e *Engine) execSnapshotDML(stmt sql.Stmt, isDML bool) []pagerSnap {
 	e.ftsSnapshots = nil
 	// With the quota layer active, any writing statement's COMMIT can fail
@@ -832,6 +835,9 @@ func (e *Engine) execSnapshotDML(stmt sql.Stmt, isDML bool) []pagerSnap {
 	// failed statement back (vdbeaux.c:3358-3383 treats SQLITE_FULL as a
 	// transaction-abort error) — so DDL statements need the journal too.
 	if !isDML && !quota.Active() {
+		return nil
+	}
+	if isDML && e.dmlCanSkipSnapshot(stmt) {
 		return nil
 	}
 	if e.tx.execDepth > 1 && (e.tx.snapActive || e.tx.inFTSFlush) {
