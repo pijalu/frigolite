@@ -49,6 +49,22 @@
 - **zsh gotcha for fleet runs**: unquoted `$VAR` does NOT word-split in zsh —
   `go test $DIRS` passed the whole list as ONE package ("file name too long").
   Use `xargs`.
+- **The quota shim (test_quota.c port) is a flush-failure semantics mine**:
+  its growth refusal fires PER PAGE WRITE at flush time (pager flushPage →
+  quota.CheckDBFileGrowth), so a quota-failed statement dies with the file,
+  the journal sidecar and the cache mutually stale — a state the lazy
+  statement journal does not model (quota-2.4.x: a later insert then SKIPS
+  its growth check and succeeds where SQLite reports disk-full). Any
+  statement-atomicity machinery must keep the legacy whole-state snapshot
+  under `quota.Active()`. Also: the quota callback's limit-raise contract
+  (test harness sets `*limit = size` when quota_request_ok) only re-checks
+  against the group limit inside CheckDBFileGrowth.
+- **Wall-clock fleet suites under parallel load lie**: fts4merge4 grind
+  (120s deadline) and savepoint2 (a ~90s suite at baseline too) failed with
+  deadlines/timeouts ONLY when 3-4 go test processes ran concurrently;
+  isolated A/B runs against a baseline worktree showed parity. Always do
+  the isolated A/B before chasing a phantom regression — and run the final
+  validation SEQUENTIALLY.
 
 ## T33-misc — misc2/3/5/7/8 driven green (2026-09-24)
 
