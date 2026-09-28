@@ -295,27 +295,16 @@ func (e *DMLExecutor) rowIDConflictError(tableEntry *schema.Entry, colDefs []sql
 }
 
 // rowIDExists reports whether the table already has a row with the given rowid.
-
-// rowIDExists reports whether the table already has a row with the given rowid.
+// The table b-tree (rowid or WITHOUT ROWID synthetic keys) is searched by
+// key — a binary seek, mirroring sqlite3BtreeMovetoUnpacked — never a scan.
 func (e *DMLExecutor) rowIDExists(tableName string, rootPage uint32, rowID int64) bool {
 	tree := e.dmlTableBTree(tableName, rootPage)
 	cursor, err := tree.OpenCursor()
 	if err != nil {
 		return false
 	}
-	for {
-		cell, err := cursor.ReadCell()
-		if err != nil || cell == nil {
-			return false
-		}
-		if cell.RowID == rowID {
-			return true
-		}
-		ok, err := cursor.Next()
-		if err != nil || !ok {
-			return false
-		}
-	}
+	found, err := cursor.SeekToRowID(rowID)
+	return err == nil && found
 }
 
 // replaceDeleteConflicts deletes every row that conflicts with the new values
