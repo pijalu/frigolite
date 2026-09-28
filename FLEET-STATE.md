@@ -609,3 +609,30 @@ numeric parser_rulesX.go split were unreadable. Landed:
   (349=349), bodies byte-identical (348/348; 8 stray in-body comments moved
   to proper headers), parse tests + 14 parse-heavy testgen packages green,
   staticcheck/vet/quality-gate/SOLID clean.
+
+## PERF: CRUD benchmark vs sqlite3 3.54 (2026-09-28, report committed)
+
+benchmarks/PERF_REPORT_2026-09-28.md — frigolite 8×–15,000× slower on CRUD
+hot paths (CPU+memory measured; GC-bound profiles). Six bottlenecks
+root-caused with probe/profile evidence:
+
+1. UPDATE uniqueness check full-scans table per row even when no unique
+   column changed (update_check.go checkLiveTableConflictsWR) — worst path
+   (15k× gap). Fix P1: change-detection gate (aUpdateFlag/chngRowid parity).
+2. SELECT rowid-alias equality misses seek fast path (rowid_seek.go matches
+   only literal rowid names; EQP already says SEARCH — plan/exec mismatch).
+   Fix P2: carry isIPKRowidAliasCol predicate into execquery (layering!).
+3. rowid range (BETWEEN/</>) never sought — planned+executed SCAN. Fix P4.
+4. DELETE: per-statement Pager.Snapshot deep-copies whole page cache
+   (9.4ms/statement constant, O(db)). Fix P5: before-image journaling.
+5. btree cursor registry (btree_cursor_save.go): finalizer-only pruning,
+   saveAllCursors allocates per stale entry — measured O(n²) insert growth,
+   191KB/stmt. Fix P6: explicit statement-end cursor release + fast-path.
+6. rowIDExists linear walk (insert REPLACE/conflict) — seek instead. Fix P3.
+
+Systemic: per-statement alloc volume → GC coordination dominates CPU
+(kevent/cond_wait 60-95% of samples); scan throughput 1.45M rows/s vs 53M
+(36×) = standing P9.PERF eval-engine gap. P1/P2/P3 small+independent
+(one-session fleet tasks); P5/P6 engine-level worktree branches. Harness +
+probes live in /tmp/perf (method in report §2); commit as cmd/perfbench if
+regression tracking is wanted.
