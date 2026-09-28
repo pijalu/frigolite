@@ -287,6 +287,7 @@ func (e *DMLExecutor) seekCandidateRowIDs(tableName string, rootPage uint32, pla
 // full scan via ok=false.
 func (e *DMLExecutor) scanIndexCandidates(plan *dmlSeekPlan) (rowIDs []int64, ok bool) {
 	idxTree := btree.NewBTree(plan.index.Ctx.Pager, plan.index.RootPage, false)
+	defer idxTree.Close() // tree and its probe cursor are function-local
 	seen := make(map[int64]bool)
 	for _, probe := range dmlIndexSeekProbes(plan) {
 		ids, err := idxTree.IndexKeyRowIDs(probe)

@@ -320,6 +320,7 @@ func (e *SelectEngine) indexStoredRowidOrder(tableName, idxName string) ([]int64
 	// table's root and misread the tree (an index walk must use the index's
 	// own rootpage).
 	tree := btree.NewBTree(e.ctx.Pager(), entry.RootPage, false)
+	defer tree.Close() // tree and its scan cursor are function-local
 	cursor, err := tree.OpenCursor()
 	if err != nil {
 		return nil, false

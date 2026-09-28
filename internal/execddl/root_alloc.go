@@ -14,5 +14,6 @@ import (
 // allocateRootPage allocates the next root page for a table or index.
 func allocateRootPage(p *pager.Pager) (*pager.Page, error) {
 	bt := btree.NewBTree(p, 1, true)
+	defer bt.Close() // tree and any allocation cursor are function-local
 	return bt.AllocateRootPage()
 }

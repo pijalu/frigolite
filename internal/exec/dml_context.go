@@ -499,6 +499,7 @@ func (e *Engine) SQLiteSequenceSeqFor(pg *pager.Pager, tableName string) (int64,
 			return 0, false, nil
 		}
 		tree := btree.NewBTree(pg, entry.RootPage, true)
+		defer tree.Close() // tree and its scan cursor are function-local
 		return readSQLiteSequenceSeq(tree, tableName)
 	}
 	return 0, false, nil
@@ -543,6 +544,7 @@ func (e *Engine) WriteSQLiteSequence(pg *pager.Pager, tableName string, seq int6
 			return nil
 		}
 		tree := btree.NewBTree(pg, entry.RootPage, true)
+		defer tree.Close() // tree and its rowid-write cursors are function-local
 		return writeSQLiteSequenceTree(tree, tableName, seq)
 	}
 	return nil

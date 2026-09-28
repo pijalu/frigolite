@@ -543,6 +543,7 @@ func (e *Engine) analyzeOneIndex(idxEntry *schema.Entry) *Result {
 // countTableRows counts the number of rows in a table by traversing its b-tree.
 func (e *Engine) countTableRows(rootPage uint32) int64 {
 	tree := btree.NewBTree(e.pager, rootPage, true)
+	defer tree.Close() // tree and its count cursor are function-local
 	cursor, err := tree.OpenCursor()
 	if err != nil {
 		return 0

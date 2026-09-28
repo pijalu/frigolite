@@ -322,6 +322,23 @@ type Engine struct {
 	// "database table is locked" (src/vdbe.c OP_Destroy).
 	activeReadsMu       sync.Mutex
 	activeExternalReads int
+
+	// stmtBtrees tracks the b-tree wrappers created during the innermost
+	// active statement (tableBTree/tableBTreeForName/tableBTreePg funnel all
+	// statement-execution tree creation through here). Engine.Exec closes
+	// everything the statement created when it returns — SQLite closes a
+	// statement's cursors when its program halts (vdbeaux.c
+	// closeCursorsInFrame) — so the btree package's cross-statement cursor
+	// registry holds only live cursors instead of growing by every
+	// OpenCursor until a GC finalizer runs. Nested statements (triggers,
+	// eval()) push their own segment: the inner Exec releases only the trees
+	// created while it ran, never the enclosing statement's positioned scan
+	// cursors (misc8-1.6 contract).
+	stmtBtrees []*btree.BTree
+	// stmtBtreeDepth counts active Engine.Exec frames; tree registration is
+	// tracked only while it is positive (trees built outside any statement
+	// keep the historical finalizer-only lifecycle).
+	stmtBtreeDepth int
 }
 
 // engineSettings groups the PRAGMA/config flags and limits that previously
@@ -653,14 +670,18 @@ func (e *Engine) restorePager(pg *pager.Pager, snap *pager.PagerState) {
 }
 
 func (e *Engine) tableBTree(tableName string, schemaRoot uint32, isTable bool) *btree.BTree {
-	return btree.NewBTree(e.tablePager(tableName), e.rootPage(tableName, schemaRoot), isTable)
+	t := btree.NewBTree(e.tablePager(tableName), e.rootPage(tableName, schemaRoot), isTable)
+	e.trackStatementBTree(t)
+	return t
 }
 
 // tableBTreeForName resolves the table's owning database context and builds a
 // BTree over that context's pager (a table in an ATTACHed database lives on
 // the attached pager, not the main pager).
 func (e *Engine) tableBTreeForName(tableName string, schemaRoot uint32, isTable bool) *btree.BTree {
-	return btree.NewBTree(e.tablePager(tableName), e.rootPage(tableName, schemaRoot), isTable)
+	t := btree.NewBTree(e.tablePager(tableName), e.rootPage(tableName, schemaRoot), isTable)
+	e.trackStatementBTree(t)
+	return t
 }
 
 // tablePager returns the pager that owns the given table: the attached
@@ -675,7 +696,33 @@ func (e *Engine) tablePager(tableName string) *pager.Pager {
 
 // tableBTreePg creates a BTree for a table using a specific pager.
 func (e *Engine) tableBTreePg(pg *pager.Pager, tableName string, schemaRoot uint32, isTable bool) *btree.BTree {
-	return btree.NewBTree(pg, e.rootPage(tableName, schemaRoot), isTable)
+	t := btree.NewBTree(pg, e.rootPage(tableName, schemaRoot), isTable)
+	e.trackStatementBTree(t)
+	return t
+}
+
+// trackStatementBTree records a b-tree wrapper for release at the end of the
+// innermost active statement (see Engine.stmtBtrees). Trees built outside any
+// Engine.Exec frame are not tracked; they keep the finalizer-only lifecycle.
+func (e *Engine) trackStatementBTree(t *btree.BTree) {
+	if e.stmtBtreeDepth == 0 || t == nil {
+		return
+	}
+	e.stmtBtrees = append(e.stmtBtrees, t)
+}
+
+// releaseStatementTrees closes the b-tree wrappers created since the given
+// statement-entry mark and truncates the tracking slice. BTree.Close is
+// idempotent, so trees already released through a tighter scope are no-ops.
+func (e *Engine) releaseStatementTrees(mark int) {
+	if mark >= len(e.stmtBtrees) {
+		return
+	}
+	trees := e.stmtBtrees[mark:]
+	e.stmtBtrees = e.stmtBtrees[:mark]
+	for i := len(trees) - 1; i >= 0; i-- {
+		trees[i].Close()
+	}
 }
 
 // maxStmtCacheSize limits the prepared statement cache to avoid unbounded

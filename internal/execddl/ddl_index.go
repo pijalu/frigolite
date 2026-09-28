@@ -320,6 +320,7 @@ func (e *DDLExecutor) populateIndexFromRows(tableCtx *DatabaseContext, tableEntr
 		return &Result{Error: err}
 	}
 	idxTree := btree.NewBTree(tableCtx.Pager, pg.PageNum, false)
+	defer idxTree.Close() // tree and its insert cursors are function-local
 	// SQLite builds the backfilled index b-tree in the keys' collation order
 	// (build.c sqlite3KeyInfoFromIndex drives every OP_IdxInsert of the
 	// CREATE INDEX program): install the collation-aware comparator. The

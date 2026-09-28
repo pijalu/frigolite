@@ -264,6 +264,7 @@ func (m *Manager) AddEntry(entry *Entry) error {
 	}
 
 	tree := btree.NewSchemaBTree(m.pager)
+	defer tree.Close() // schema tree and its cursors are function-local
 	err = tree.InsertCell(cell)
 
 	return err
@@ -294,6 +295,7 @@ func (m *Manager) addEntryWithRowID(entry *Entry, rowID int64) error {
 	}
 
 	tree := btree.NewSchemaBTree(m.pager)
+	defer tree.Close() // schema tree and its cursors are function-local
 	err = tree.InsertCell(cell)
 
 	return err
@@ -449,6 +451,7 @@ func (m *Manager) GetEntries(schemaType SchemaType) ([]*Entry, error) {
 // walkSchemaBTree reads every sqlite_schema row (page-1 b-tree walk).
 func (m *Manager) walkSchemaBTree() ([]*Entry, error) {
 	tree := btree.NewSchemaBTree(m.pager)
+	defer tree.Close() // schema tree and its cursors are function-local
 	cursor, err := tree.OpenCursor()
 	if err != nil {
 		return nil, err
@@ -900,6 +903,7 @@ func (m *Manager) UpdateEntryRoot(name string, newRoot uint32) error {
 	}
 
 	tree := btree.NewSchemaBTree(m.pager)
+	defer tree.Close() // schema tree and its cursors are function-local
 
 	var foundRowID int64 = -1
 	var foundType, foundTbl, foundSQL interface{}
