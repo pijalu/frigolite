@@ -38,7 +38,7 @@ type scanLoop struct {
 	seek          bool   // SEARCH positioning (vs a full index walk)
 	oneRow        bool   // at most one row (IPK equality seek)
 	groupDistinct bool   // full index walk chosen for GROUP BY / DISTINCT
-	conditions    string // formatted search constraints (rendering)
+	conditions    string // constraint text (loopIndex) or the full SEARCH node (loopIPK)
 	bestEst       float64
 	nRow          float64
 }
@@ -80,8 +80,8 @@ func (e *SelectEngine) whereScanLoop(t queryTable, s *sql.SelectStmt, loop scanL
 		ret.kind, ret.token, ret.seek, ret.conditions = loopSkipScan, ss.indexName, true, ss.conditions
 		return bestIndex, conditions, ret
 	}
-	if e.ipkSearchDetail(t.display, s.Where) != "" {
-		ret.kind, ret.oneRow = loopIPK, true
+	if detail, eq, ok := e.rowidSeekPlanDetail(t, s); ok {
+		ret.kind, ret.oneRow, ret.conditions = loopIPK, eq, detail
 		return bestIndex, conditions, ret
 	}
 	if bestIndex != "" && (bestIndex == "PRIMARY KEY" || e.indexSeekChosen(bestIndex, ret.bestEst, ret.nRow)) {

@@ -458,30 +458,22 @@ func (t *BTree) Clear() error {
 }
 
 // SeekToRowID positions the cursor at the entry with the given rowid (table
-// b-trees only). Returns true if found.
+// b-trees only). Returns true if found. The descent maintains the cursor
+// path stack (btree.c sqlite3BtreeTableMoveto keeps the cursor valid), so
+// Next()/Prev() continue from the sought position instead of the stale
+// leftmost-descent path — without it, iteration after a seek into a
+// non-leftmost leaf replays rows from earlier leaves.
 func (c *Cursor) SeekToRowID(rowID int64) (bool, error) {
-	return c.seekInPage(c.tx.rootPage, rowID)
+	c.path = c.path[:0]
+	return c.seekTableLeafWithPath(c.tx.rootPage, rowID)
 }
 
-func (c *Cursor) seekInPage(pageNum uint32, rowID int64) (bool, error) {
-	pg, err := c.tx.pager.ReadPage(pageNum)
-	if err != nil {
-		return false, err
-	}
-
-	page, err := storage.ParsePage(pg.Data, int(c.tx.pageSize), contentOffset(pg.PageNum))
-	if err != nil {
-		return false, err
-	}
-
-	switch page.PageType {
-	case storage.PageTypeLeafTable:
-		return c.seekInLeafTable(pg, page, rowID)
-	case storage.PageTypeInteriorTable:
-		return c.seekInInteriorTable(pg, page, rowID)
-	default:
-		return false, fmt.Errorf("btree: unexpected page type 0x%02x", page.PageType)
-	}
+// AtEnd reports whether the cursor has run off the end of the b-tree (a
+// seek to a rowid beyond every key, or a Next that passed the last entry).
+// Callers use it to distinguish a clean EOF from an I/O error after a
+// failed read.
+func (c *Cursor) AtEnd() bool {
+	return c.endOfBTree
 }
 
 func (c *Cursor) seekInLeafTable(pg *pager.Page, page *storage.BTreePage, rowID int64) (bool, error) {
@@ -514,39 +506,6 @@ func (c *Cursor) seekInLeafTable(pg *pager.Page, page *storage.BTreePage, rowID 
 	c.cellIdx = lo
 	c.endOfBTree = lo > int(page.CellCount)-1
 	return false, nil
-}
-
-func (c *Cursor) seekInInteriorTable(pg *pager.Page, page *storage.BTreePage, rowID int64) (bool, error) {
-	// Binary search on row IDs in interior page. Each interior table cell is
-	// (left child, key); SQLite's leafData separator convention (btree.c:8813
-	// paired with sqlite3BtreeTableMoveto at btree.c:5877) routes keys <= key
-	// to that cell's left child and keys > key to the next cell's left child
-	// (or the rightmost pointer for the last cell). So the child holding rowID
-	// is the first cell whose key is >= rowID — descend into that cell's left
-	// child. (The engine's pre-fix convention used MIN(right) as the divider
-	// and < key for the left routing, which kept reads consistent with the
-	// engine's own writes but produced files that sqlite3 integrity_check
-	// rejected with "right child Rowid N out of order" on every table btree
-	// split, see incrvacuum2 4.1.)
-	lo, hi := 0, int(page.CellCount)-1
-	childPage := page.RightmostPtr // default: rowID > all keys -> rightmost
-	for lo <= hi {
-		mid := (lo + hi) / 2
-		cellOff := int(storage.CellPointer(pg.Data, contentOffset(pg.PageNum)+cellPtrOffset(page.PageType)-8, mid, int(c.tx.pageSize)))
-		// Interior table cells: 4-byte left child + rowID varint
-		midRowID, _ := util.GetVarint(pg.Data[cellOff+4:])
-		if int64(midRowID) < rowID {
-			lo = mid + 1
-		} else {
-			childPage = binary.BigEndian.Uint32(pg.Data[cellOff : cellOff+4])
-			hi = mid - 1
-		}
-	}
-	if lo < int(page.CellCount) {
-		cellOff := int(storage.CellPointer(pg.Data, contentOffset(pg.PageNum)+cellPtrOffset(page.PageType)-8, lo, int(c.tx.pageSize)))
-		childPage = binary.BigEndian.Uint32(pg.Data[cellOff : cellOff+4])
-	}
-	return c.seekInPage(childPage, rowID)
 }
 
 // SeekToKey positions the cursor at the entry with the given key (index

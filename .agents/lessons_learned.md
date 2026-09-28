@@ -1259,3 +1259,42 @@ Resumed a dead predecessor mid-tranche on P9.PERF hot-path work (base 5807a9c1e,
 - **rowid tables allow rowid 0 on explicit SET rowid=rowid-1** (scan order
   shifts 1..N down to 0..N-1, vacated slots free) — oracle-verified; do not
   "fix" rowid 0 as a conflict.
+
+## fleet/perf-p24-rowid-seek — P2 IPK-alias equality seek + P4 rowid range seek (2026-09-28)
+
+- **Seek paths need the b-tree path stack**: `SeekToRowID` descended without
+  pushing `{pageNum, childIdx}` entries, so the FIRST `Next()` after seeking
+  into a non-leftmost leaf continued from the stale leftmost-descent path and
+  REPLAYED rows (BETWEEN 10000..10010 returned 13 rows: 10000,10001,10000,10001,...).
+  Fix: SeekToRowID now clears `c.path` and routes through
+  `seekTableLeafWithPath` (the same path-aware walk restoreIfNeeded already
+  used; btree.c sqlite3BtreeTableMoveto keeps the cursor valid). The equality
+  seek never noticed because it never calls Next().
+- **INTEGER PRIMARY KEY alias is stored as NULL**: the record holds NULL for
+  the IPK column and the scan substitutes the rowid (affinityPlan.apply +
+  fillStructRowRemainingFromTypes). Any new row-source must replicate:
+  affinity wrap loop must SKIP nils (wrapValueForRowMap(nil) produces a
+  wrapper-around-nil that blocks the substitution), then fill nils with
+  wrapAffinityCollated(colDef, rowid). Seek paths previously leaked the NULL
+  into outputs (`SELECT * FROM t WHERE rowid=5` → id=NULL) and dropped rows
+  whose WHERE re-check referenced the alias.
+- **Bound-vs-eval consistency rule for range seeks**: the seek bounds must be
+  SUPERSETS of what rowPassesWhere accepts — bounds wider than the engine's
+  affinity conversion silently change results (planned lo=5001 + eval-reject
+  = 0 rows while scan gives 15000). Frigolite's rowid-vs-text eval does NOT
+  trim whitespace (pre-existing: `+rowid>' 5000 '` = 0 vs oracle 15000 on the
+  SCAN path too), so text bounds parse with ParseFloat(text) — no TrimSpace —
+  and non-numeric text/blob bounds classify as lower→never / upper→always
+  (INTEGER < TEXT/BLOB always). Oracle-verified on 3.54.0: ranges render
+  "(rowid>? AND rowid<?)" regardless of >=/<= spellings, lower bound first,
+  eq dominates ranges, alias forms render the alias as display and "rowid" as
+  the constraint name, `+rowid>5` (unary + on the COLUMN) scans.
+- **reverse_unordered_selects applies to the rowid range walk too**
+  (where.c WHERE_REVERSE): whereA-2.2 fails unless the range path mirrors
+  select_scan's shouldReverse (ReverseUnordered && no ORDER BY &&
+  selectDepth==1) by reversing the collected rows.
+- **Lazy two-phase decode keeps the range loop at scan cost**: reuse
+  scanLazyDecodeIndices + parseRecordSerialTypes +
+  DecodeRecordValuesFromTypes (phase 1 = WHERE-referenced cols, phase 2
+  refill after the WHERE passes, re-applying defaults + IPK fill); a full
+  DecodeRecord per row made count(*) over a wide range 2x slower than scan.
