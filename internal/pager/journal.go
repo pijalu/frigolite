@@ -120,7 +120,7 @@ func recoverHotJournal(p *Pager, dbPath string) error {
 	p.mu.Lock()
 	defer p.mu.Unlock()
 	replayHotJournalPages(p, pages)
-	p.dirty = make(map[uint32]bool)
+	p.clearDirtySetLocked()
 	p.refreshKnownFileStamp()
 	_ = os.Remove(jpath)
 	return nil
@@ -644,7 +644,7 @@ func (p *Pager) rollbackFromJournalLocked() error {
 	// Drop the entire dirty set: every dirty page is being rolled back.
 	// (If a dirty page was never flushed during this transaction, the
 	// dirty cache state is still in memory and the rollback drops it.)
-	p.dirty = make(map[uint32]bool)
+	p.clearDirtySetLocked()
 	// Unlink the journal file (the in-memory rollback is complete;
 	// the file is no longer needed). Fire xDelete via the testvfs
 	// hook so journal2 sees a balanced sequence.

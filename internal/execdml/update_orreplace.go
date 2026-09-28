@@ -146,19 +146,19 @@ func (e *DMLExecutor) deleteOneConflictRow(tableEntry *schema.Entry, colDefs []s
 	return nil
 }
 
-func (e *DMLExecutor) enforceUpdateForeignKey(tableEntry *schema.Entry, colDefs []sql.ColumnDef, c updateChange, snap *pager.PagerState) *Result {
+func (e *DMLExecutor) enforceUpdateForeignKey(tableEntry *schema.Entry, colDefs []sql.ColumnDef, c updateChange, stmt *pager.StmtJournal) *Result {
 	if !e.ctx.ForeignKeys() {
 		return nil
 	}
 	if res := e.ctx.CheckForeignKeyViolations(tableEntry, colDefs, c.values, c.rowID); res.Error != nil {
-		e.ctx.RestorePager(e.ctx.Pager(), snap)
+		e.ctx.RollbackPagerStatement(e.ctx.Pager(), stmt)
 		e.ctx.InvalidateRowIDCache(e.dmlPager(tableEntry.Name), tableEntry.RootPage)
 		return res
 	}
 	oldRow := buildRowMapFromValues(c.oldValues, colDefs, c.rowID)
 	newRow := buildRowMapFromValues(c.values, colDefs, c.rowID)
 	if res := e.ctx.FkParentUpdate(tableEntry, colDefs, oldRow, newRow, c.rowID); res.Error != nil {
-		e.ctx.RestorePager(e.ctx.Pager(), snap)
+		e.ctx.RollbackPagerStatement(e.ctx.Pager(), stmt)
 		e.ctx.InvalidateRowIDCache(e.dmlPager(tableEntry.Name), tableEntry.RootPage)
 		return res
 	}
@@ -169,7 +169,7 @@ func (e *DMLExecutor) enforceUpdateForeignKey(tableEntry *schema.Entry, colDefs 
 // skips rows deleted by an earlier change's conflict resolution, aborts (with
 // rollback) when the row vanished during trigger firing, and returns whether
 // the row was actually updated.
-func (e *DMLExecutor) updateRowInPlace(tree *btree.BTree, tableEntry *schema.Entry, colDefs []sql.ColumnDef, c updateChange, deletedByConflict map[string]bool, snap *pager.PagerState) (bool, *Result) {
+func (e *DMLExecutor) updateRowInPlace(tree *btree.BTree, tableEntry *schema.Entry, colDefs []sql.ColumnDef, c updateChange, deletedByConflict map[string]bool, stmt *pager.StmtJournal) (bool, *Result) {
 	// If a conflict-resolution delete's trigger removed the row being
 	// updated too (e.g. a recursive DELETE FROM t0 inside an AFTER DELETE
 	// trigger), SQLite aborts the statement with the generic "constraint
@@ -184,7 +184,7 @@ func (e *DMLExecutor) updateRowInPlace(tree *btree.BTree, tableEntry *schema.Ent
 	// surfaces any anomaly), so the rowid probe runs for rowid tables only.
 	withoutRowidKw := hasWithoutRowidKeyword(strings.ToUpper(tableEntry.SQL))
 	if !withoutRowidKw && !e.rowIDExists(tableEntry.Name, tableEntry.RootPage, c.rowID) {
-		e.ctx.RestorePager(e.ctx.Pager(), snap)
+		e.ctx.RollbackPagerStatement(e.ctx.Pager(), stmt)
 		e.ctx.InvalidateRowIDCache(e.dmlPager(tableEntry.Name), tableEntry.RootPage)
 		return false, &Result{Error: fmt.Errorf("constraint failed")}
 	}
@@ -204,7 +204,7 @@ func (e *DMLExecutor) updateRowInPlace(tree *btree.BTree, tableEntry *schema.Ent
 	// the statement with the generic "constraint failed" error, like the
 	// rowid-table probe above (conflict3.test 13.2).
 	if withoutRowidKw && deletedCells == 0 {
-		e.ctx.RestorePager(e.ctx.Pager(), snap)
+		e.ctx.RollbackPagerStatement(e.ctx.Pager(), stmt)
 		e.ctx.InvalidateRowIDCache(e.dmlPager(tableEntry.Name), tableEntry.RootPage)
 		return false, &Result{Error: fmt.Errorf("constraint failed")}
 	}

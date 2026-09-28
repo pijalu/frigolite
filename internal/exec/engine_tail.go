@@ -14,7 +14,6 @@ import (
 	"github.com/pijalu/frigolite/internal/fts"
 	"github.com/pijalu/frigolite/internal/fts5"
 	"github.com/pijalu/frigolite/internal/pager"
-	"github.com/pijalu/frigolite/internal/quota"
 	"github.com/pijalu/frigolite/internal/schema"
 	"github.com/pijalu/frigolite/internal/sql"
 )
@@ -210,15 +209,21 @@ func duplicateCTEName(ctes []sql.CTEDef) string {
 	return ""
 }
 
-// pagerSnap pairs a pager with the snapshot taken from it, so a restore can
-// match each pager to its own snapshot regardless of map iteration order.
+// pagerStmtScope pairs a pager with the statement journal opened on it, so a
+// rollback can match each pager to its own scope regardless of map iteration
+// order.
 type pagerSnap struct {
-	pg    *pager.Pager
-	state *pager.PagerState
+	pg      *pager.Pager
+	journal *pager.StmtJournal
 }
 
+// dmlCanSkipSnapshot was removed when the per-statement PagerState snapshot
+// became a lazily-captured statement journal (pager.c sub-journal): the
+// journal costs O(1) per statement and O(modified pages) per rollback, so
+// every DML statement can afford one and no statement shape needs skipping.
+
 // ftsSnap pairs an FTS table with a deep copy of its in-memory index, so a
-// rollback can undo FTS changes that the pager snapshots do not cover (the
+// rollback can undo FTS changes that the pager journals do not cover (the
 // FTS store lives in memory, not in the btree pages). It also carries the
 // pending-docid list so a rolled-back insert does not get flushed as a
 // segment later.
@@ -234,64 +239,6 @@ type ftsSnap struct {
 type fts5Snap struct {
 	table *fts5.Table
 	state *fts5.TableState
-}
-
-// dmlCanSkipSnapshot reports whether a DML statement can skip the pre-rollback
-// pager snapshot because it cannot fail after partially writing. A single-row
-// VALUES INSERT (no SELECT, no RETURNING, not REPLACE/upsert, no triggers, no
-// FK enforcement) either writes its one row or fails before writing — there is
-// no partial state to restore.
-//
-// The main database being in WAL mode disables the skip: a WAL commit writes
-// to the "-wal" file, which is a SEPARATE I/O that can fail (disk error,
-// fault injection) AFTER the in-memory row write succeeds. The "cannot fail
-// after partially writing" assumption is then false, so the rollback snapshot
-// must be taken so a failed commit can restore the pre-statement pages
-// (otherwise the uncommitted pages stay dirty and the next flush — e.g. at
-// Close — re-attempts and re-reports the error).
-func (e *Engine) dmlCanSkipSnapshot(stmt sql.Stmt) bool {
-	if e.mainDB != nil && e.mainDB.Pager != nil && e.mainDB.Pager.JournalMode() == "wal" {
-		return false
-	}
-	// Quota layer active (test_quota.c shim): a flush can refuse file
-	// growth with SQLITE_FULL after the in-memory write succeeded, so the
-	// "commit cannot fail" assumption below is void — keep the snapshot.
-	if quota.Active() {
-		return false
-	}
-	// A registered commit hook makes every commit vetoable after the rows
-	// are written: a nonzero hook return fails the implicit COMMIT with
-	// SQLITE_CONSTRAINT_COMMITHOOK and rolls the transaction back
-	// (vdbeCommit's xCommitCallback check runs BEFORE btree commit phase
-	// one, src/vdbeaux.c:2978-2982) — the "commit cannot fail" assumption
-	// is void the same way the quota layer makes it.
-	if e.commitHook != nil {
-		return false
-	}
-	ins, ok := stmt.(*sql.InsertStmt)
-	if !ok {
-		return false // UPDATE/DELETE can fail mid-scan after earlier writes
-	}
-	if !isSimpleSingleValuesInsert(ins) {
-		return false
-	}
-	if ins.OnConflict != nil {
-		return false // DO NOTHING / DO UPDATE upsert paths may skip or modify rows
-	}
-	if e.settings.foreignKeys {
-		return false // FK enforcement could reject after other writes
-	}
-	if e.hasTriggersForTable(ins.Table) {
-		return false // a trigger could fail after the insert
-	}
-	return true
-}
-
-// isSimpleSingleValuesInsert reports whether the INSERT is the snapshot-free
-// shape: a single-row VALUES insert with no source SELECT, no RETURNING, no
-// REPLACE form, and no multi-row values list.
-func isSimpleSingleValuesInsert(ins *sql.InsertStmt) bool {
-	return ins.Select == nil && !ins.HasReturning && !ins.IsReplace && len(ins.Values) == 1
 }
 
 // stmtTargetsFTSContent reports whether a statement writes to an FTS table's
@@ -353,10 +300,13 @@ func (e *Engine) stmtFTSShadowOwner(stmt sql.Stmt) string {
 	return ""
 }
 
-// snapshotAllPagers captures the in-memory state of every database pager,
-// pairing each snapshot with the pager it came from. It also snapshots every
-// FTS table's in-memory index so a failed statement can undo FTS writes the
-// pager restore does not cover.
+// snapshotAllPagers opens a statement journal scope on every database pager
+// (pager.c sub-journal at statement begin), pairing each scope with the pager
+// it came from. The scope's before-images are captured lazily — a statement
+// that modifies nothing journals nothing — so the per-statement cost is O(1)
+// instead of the O(database) deep copy the previous PagerState snapshot took.
+// It also snapshots every FTS table's in-memory index so a failed statement
+// can undo FTS writes the pager journal does not cover.
 func (e *Engine) snapshotAllPagers() []pagerSnap {
 	var snaps []pagerSnap
 	seen := make(map[*pager.Pager]bool)
@@ -365,7 +315,7 @@ func (e *Engine) snapshotAllPagers() []pagerSnap {
 			continue
 		}
 		seen[ctx.Pager] = true
-		snaps = append(snaps, pagerSnap{pg: ctx.Pager, state: ctx.Pager.Snapshot()})
+		snaps = append(snaps, pagerSnap{pg: ctx.Pager, journal: ctx.Pager.BeginStatement()})
 	}
 	// Attach the FTS snapshots to the statement snapshot list via a marker:
 	// the pager restore loop ignores entries whose pg is nil, and the FTS
@@ -421,22 +371,35 @@ func (e *Engine) restoreAllFTS() {
 	e.fts5Snapshots = nil
 }
 
-// restoreAllPagers restores each pager to the snapshot captured from it by
-// snapshotAllPagers. Pairing by pager identity (rather than positional index)
-// keeps snapshots matched even though e.databases is a map with random
-// iteration order.
+// restoreAllPagers rolls back each pager's statement journal opened by
+// snapshotAllPagers (statement failure): only the pages the failing
+// statement actually modified are restored. Pairing by pager identity
+// (rather than positional index) keeps scopes matched even though
+// e.databases is a map with random iteration order.
 func (e *Engine) restoreAllPagers(snaps []pagerSnap) {
 	if len(snaps) == 0 {
 		return
 	}
 	for _, snap := range snaps {
-		if snap.pg != nil && snap.state != nil {
-			snap.pg.Restore(snap.state)
+		if snap.pg != nil && snap.journal != nil {
+			snap.pg.RollbackStatement(snap.journal)
 		}
 	}
 	e.invalidateTableCaches()
 	for _, dbCtx := range e.dbList {
 		dbCtx.Schema.InvalidateCache()
+	}
+}
+
+// endStatementScopes closes the statement's journal scopes after a succeeded
+// statement (entries splice into any enclosing scope, e.g. a trigger body's
+// statement inside an outer DML statement). Scopes already rolled back by a
+// failure path are no-ops.
+func (e *Engine) endStatementScopes(snaps []pagerSnap) {
+	for _, snap := range snaps {
+		if snap.pg != nil && snap.journal != nil {
+			snap.pg.EndStatement(snap.journal)
+		}
 	}
 }
 

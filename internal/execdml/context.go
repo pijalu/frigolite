@@ -141,7 +141,12 @@ type DMLContext interface {
 	UpdateRootPagePg(pg *pager.Pager, tableName string, newRoot uint32)
 	TrackRootPage(name string, root uint32)
 	InvalidateTableCaches()
-	RestorePager(pg *pager.Pager, snap *pager.PagerState)
+	// BeginPagerStatement opens a statement rollback scope on pg (pager.c
+	// sub-journal); RollbackPagerStatement replays it on a failed statement
+	// and invalidates the schema/table caches the page restore stales — the
+	// statement-journal counterpart of a snapshot restore.
+	BeginPagerStatement(pg *pager.Pager) *pager.StmtJournal
+	RollbackPagerStatement(pg *pager.Pager, j *pager.StmtJournal)
 	EchoVTabSource(name string) (string, bool)
 	// EchoVTabBegin runs the echo module's xBegin (vtab.Transactor) for a
 	// write statement targeting name: ok is false when name is not an echo

@@ -386,10 +386,37 @@ func (e *DMLExecutor) deleteRowsByIdentity(tableEntry *schema.Entry, colDefs []s
 			rowIDs[id] = true
 		}
 	}
+	// Sparse rowid deletes seek each rowid directly (OP_Delete parity,
+	// btree.DeleteCellByRowID): the bulk sweep walks EVERY leaf, which made
+	// a point DELETE ("DELETE FROM t WHERE id=<one row>") O(table) — the
+	// same per-statement cost class PERF_REPORT 3.4 flags. Beyond the
+	// cutoff the sweep wins (one pass over the leaves; per-row seeks would
+	// re-run saveAllCursors + rebalance per row), so mass deletes keep the
+	// batch path (fts4merge4).
+	if len(rowIDs) <= maxSeekDeletedRowIDs {
+		ids := make([]int64, 0, len(rowIDs))
+		for id := range rowIDs {
+			ids = append(ids, id)
+		}
+		sortInt64Ascending(ids)
+		var deleted int64
+		for _, id := range ids {
+			n, err := tree.DeleteCellByRowID(id)
+			if err != nil {
+				return deleted, err
+			}
+			deleted += n
+		}
+		return deleted, nil
+	}
 	return tree.DeleteCellsWhere(func(c *storage.Cell) bool {
 		return rowIDs[c.RowID]
 	})
 }
+
+// maxSeekDeletedRowIDs is the candidate count up to which a rowid-table
+// delete seeks rowids individually instead of sweeping the whole b-tree.
+const maxSeekDeletedRowIDs = 64
 
 // dropNilKeys filters out PK keys containing nil slots (a row whose record
 // predates a PK column can never match a full cell payload).

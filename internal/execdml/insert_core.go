@@ -508,24 +508,26 @@ func (e *DMLExecutor) insertRow(pg *pager.Pager, tableEntry *schema.Entry, colDe
 		return res
 	}
 
-	// Snapshot the pager so a statement-end FOREIGN KEY failure (checked
-	// after AFTER triggers, SQLite checks immediate FKs at statement end) can
-	// roll back the row, index entries, and any trigger side effects. Skip the
-	// snapshot for the FTS flush's internal shadow-table writes: they are part
-	// of the enclosing statement's rollback scope, and copying the whole
-	// pager (which holds the growing %_segments blocks) per block insert is
-	// O(n^2) across the automerge's many flushes (fts4merge4 2.2.x).
+	// Open a statement journal so a statement-end FOREIGN KEY failure
+	// (checked after AFTER triggers, SQLite checks immediate FKs at statement
+	// end) can roll back the row, index entries, and any trigger side
+	// effects. The journal captures before-images lazily at first page write,
+	// so a row that fails before writing anything costs O(1) — the whole-pager
+	// snapshot this used to take was O(pages) per row. Skip the journal for
+	// the FTS flush's internal shadow-table writes: they are part of the
+	// enclosing statement's rollback scope, and the per-block scope churn was
+	// measurable across the automerge's many flushes (fts4merge4 2.2.x).
 	//
 	// P8.PRAGMA (tkt2686): also skip when FK enforcement is OFF — the
-	// RestorePager call site is gated on ForeignKeys(), so the snapshot
-	// would be dead weight for plain inserts in the test's max_page_count
-	// loop. Cap enforcement happens at the pager itself (AllocatePage
-	// returns nil once numPages exceeds maxPageCount), so transaction-
-	// level consistency is preserved by the BEGIN/ROLLBACK pairing without
-	// a per-row pager snapshot.
-	var snap *pager.PagerState
+	// rollback call site is gated on ForeignKeys(), so the scope would be
+	// dead weight for plain inserts in the test's max_page_count loop. Cap
+	// enforcement happens at the pager itself (AllocatePage returns nil once
+	// numPages exceeds maxPageCount), so transaction-level consistency is
+	// preserved by the BEGIN/ROLLBACK pairing without a per-row scope.
+	var stmt *pager.StmtJournal
 	if !e.ctx.InFTSFlush() && e.ctx.ForeignKeys() {
-		snap = pg.Snapshot()
+		stmt = pg.BeginStatement()
+		defer pg.EndStatement(stmt)
 	}
 
 	nextRowID, res := e.prepareInsertRowValues(tableEntry, colDefs, values, fixedRowID, orConflict)
@@ -579,10 +581,10 @@ func (e *DMLExecutor) insertRow(pg *pager.Pager, tableEntry *schema.Entry, colDe
 	// Enforce FOREIGN KEY constraints at statement end (only when PRAGMA
 	// foreign_keys is ON). The check runs after the AFTER triggers so a
 	// trigger may repair the violation (e_fkey-31.3). On failure the whole
-	// statement is rolled back to the pre-insert snapshot.
+	// statement is rolled back to the pre-insert statement journal.
 	if e.ctx.ForeignKeys() {
 		if res := e.ctx.CheckForeignKeyViolations(tableEntry, colDefs, values, 0); res.Error != nil {
-			e.ctx.RestorePager(pg, snap)
+			e.ctx.RollbackPagerStatement(pg, stmt)
 			e.ctx.InvalidateRowIDCache(pg, tableEntry.RootPage)
 			return res
 		}

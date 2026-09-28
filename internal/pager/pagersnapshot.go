@@ -56,6 +56,16 @@ func (p *Pager) Restore(s *PagerState) {
 	}
 	p.mu.Lock()
 	defer p.mu.Unlock()
+	// A whole-state restore (transaction ROLLBACK, savepoint ROLLBACK TO,
+	// memdb isolation swap) supersedes every open statement scope: their
+	// journals describe pre-restore page states that no longer exist, and a
+	// later EndStatement/RollbackStatement on a stale token must be a no-op
+	// (a nested ROLLBACK via eval()/trigger undoes the enclosing statement's
+	// writes wholesale — trigger2-6.1h/6.2h contract).
+	for cur := p.stmtTop; cur != nil; cur = cur.parent {
+		cur.done = true
+	}
+	p.stmtTop = nil
 	// ROLLBACK ends the write transaction: drop the WRITER shm lock
 	// (sqlite3WalEndWriteTransaction parity; a savepoint rollback that still
 	// leaves dirty pages re-acquires it at the next write).
@@ -79,6 +89,11 @@ func (p *Pager) Restore(s *PagerState) {
 		p.pages[n] = cp
 	}
 	p.dirty = make(map[uint32]bool, len(s.dirty))
+	// Restored dirty pages carry earlier-statements' uncommitted writes whose
+	// only statement-start image is the restored bytes themselves: drop the
+	// dirty stamps so future statement scopes treat them as begin-dirty and
+	// capture their before-images from memory.
+	p.dirtyMark = make(map[uint32]uint64)
 	for n := range s.dirty {
 		p.dirty[n] = true
 	}

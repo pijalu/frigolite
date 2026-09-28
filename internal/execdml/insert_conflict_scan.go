@@ -196,12 +196,14 @@ func (e *DMLExecutor) execInsertSelect(tableEntry *schema.Entry, colDefs []sql.C
 	// Statement atomicity: REPLACE deletes rows and may fire triggers, and any
 	// row may fail a constraint (e.g. CHECK) after earlier rows were already
 	// written. If anything fails the whole statement must be rolled back
-	// (SQLite statement journal), so snapshot the pager up front. INSERT OR
-	// FAIL keeps the rows written before the conflict (SQLite ON CONFLICT
+	// (SQLite statement journal), so open the pager statement journal up
+	// front — before-images are captured lazily at first page write. INSERT
+	// OR FAIL keeps the rows written before the conflict (SQLite ON CONFLICT
 	// FAIL semantics) — the outer execRollbackOnError also skips the restore
-	// for OR FAIL, so the snapshot is only rolled back on error for the
-	// atomic modes (default/ABORT/REPLACE/ROLLBACK).
-	snap := e.ctx.Pager().Snapshot()
+	// for OR FAIL, so the journal is only replayed on error for the atomic
+	// modes (default/ABORT/REPLACE/ROLLBACK).
+	stmt := e.ctx.Pager().BeginStatement()
+	defer e.ctx.Pager().EndStatement(stmt)
 	// Per-constraint ON CONFLICT FAIL (e.g. "a PRIMARY KEY ON CONFLICT FAIL")
 	// aborts the statement but keeps rows written before the conflict, exactly
 	// like statement-level INSERT OR FAIL (e_createtable-4.15/4.16/4.17 t*_fa).
@@ -210,7 +212,7 @@ func (e *DMLExecutor) execInsertSelect(tableEntry *schema.Entry, colDefs []sql.C
 	// undo FTS writes the pager restore does not cover (the FTS store is
 	// in-memory; fts3conf 4.1.1 rolls back a rowid-conflict INSERT SELECT).
 	ftsSnaps := e.ftsSnapshots()
-	defer e.rollbackInsertSelectOnError(snap, s.OrFail, &keepPriorRowsOnError, &ret, ftsSnaps)
+	defer e.rollbackInsertSelectOnError(stmt, s.OrFail, &keepPriorRowsOnError, &ret, ftsSnaps)
 	if res := e.insertSelectArityCheck(tableEntry, colDefs, s, selectResult); res != nil {
 		return res
 	}
@@ -389,9 +391,9 @@ type ftsSnapshotPair struct {
 // (SQLite ON CONFLICT FAIL semantics: the failing row itself was never
 // written, so earlier rows survive); keepPriorRowsOnError is the same for a
 // per-constraint ON CONFLICT FAIL (e_createtable t*_fa tables).
-func (e *DMLExecutor) rollbackInsertSelectOnError(snap *pager.PagerState, orFail bool, keepPriorRowsOnError *bool, ret **Result, ftsSnaps []ftsSnapshotPair) {
+func (e *DMLExecutor) rollbackInsertSelectOnError(stmt *pager.StmtJournal, orFail bool, keepPriorRowsOnError *bool, ret **Result, ftsSnaps []ftsSnapshotPair) {
 	if *ret != nil && (*ret).Error != nil && !orFail && !*keepPriorRowsOnError {
-		e.ctx.RestorePager(e.ctx.Pager(), snap)
+		e.ctx.RollbackPagerStatement(e.ctx.Pager(), stmt)
 		// The pager rollback can invalidate cached rowid counters (rows
 		// whose rowids were computed for the aborted statement are gone).
 		e.ctx.ResetNextRowIDCache()

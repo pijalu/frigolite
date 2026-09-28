@@ -35,10 +35,11 @@ func hasColumnConflictClauses(colDefs []sql.ColumnDef, tableEntry *schema.Entry,
 // conflicting rows. FOREIGN KEY parent actions are checked per row before
 // the write.
 func (e *DMLExecutor) runPlainUpdatePerRow(s *sql.UpdateStmt, tableEntry *schema.Entry, colDefs []sql.ColumnDef, changes []updateChange) *Result {
-	snap := e.ctx.Pager().Snapshot()
+	stmt := e.ctx.Pager().BeginStatement()
+	defer e.ctx.Pager().EndStatement(stmt)
 	applied := int64(0)
 	for _, c := range changes {
-		written, res := e.applyPerRowUpdateChange(c, tableEntry, colDefs, snap)
+		written, res := e.applyPerRowUpdateChange(c, tableEntry, colDefs, stmt)
 		if res != nil {
 			return res
 		}
@@ -53,7 +54,7 @@ func (e *DMLExecutor) runPlainUpdatePerRow(s *sql.UpdateStmt, tableEntry *schema
 // resolution: FOREIGN KEY parent action, UNIQUE/PK conflict check, then the
 // row's own ON CONFLICT disposition. written=false with a nil Result skips
 // the row (IGNORE) or reports it already applied (REPLACE).
-func (e *DMLExecutor) applyPerRowUpdateChange(c updateChange, tableEntry *schema.Entry, colDefs []sql.ColumnDef, snap *pager.PagerState) (bool, *Result) {
+func (e *DMLExecutor) applyPerRowUpdateChange(c updateChange, tableEntry *schema.Entry, colDefs []sql.ColumnDef, stmt *pager.StmtJournal) (bool, *Result) {
 	// FOREIGN KEY parent action for this row, before the write (a
 	// mid-statement FK error with row-by-row processing keeps the rows
 	// written so far).
@@ -61,16 +62,16 @@ func (e *DMLExecutor) applyPerRowUpdateChange(c updateChange, tableEntry *schema
 		oldRow := buildRowMapFromValues(c.oldValues, colDefs, c.rowID)
 		newRow := buildRowMapFromValues(c.values, colDefs, c.rowID)
 		if res := e.ctx.FkParentUpdate(tableEntry, colDefs, oldRow, newRow, c.rowID); res.Error != nil {
-			e.ctx.RestorePager(e.ctx.Pager(), snap)
+			e.ctx.RollbackPagerStatement(e.ctx.Pager(), stmt)
 			return false, res
 		}
 	}
 	conflictErr := e.perRowConflictError(c, tableEntry, colDefs)
 	if conflictErr != nil {
-		return e.resolvePerRowConflict(conflictErr, c, tableEntry, colDefs, snap)
+		return e.resolvePerRowConflict(conflictErr, c, tableEntry, colDefs, stmt)
 	}
 	if ares := e.applyUpdateChanges(tableEntry.Name, tableEntry.RootPage, []updateChange{c}); ares.Error != nil {
-		e.ctx.RestorePager(e.ctx.Pager(), snap)
+		e.ctx.RollbackPagerStatement(e.ctx.Pager(), stmt)
 		return false, ares
 	}
 	return true, nil
@@ -99,11 +100,11 @@ func (e *DMLExecutor) perRowConflictError(c updateChange, tableEntry *schema.Ent
 // conflicting rows and applies the change, FAIL keeps prior rows, ROLLBACK
 // also rolls back the transaction, ABORT backs out the applied rows. A
 // non-UNIQUE error stands. written=false + nil Result: the row was skipped.
-func (e *DMLExecutor) resolvePerRowConflict(conflictErr error, c updateChange, tableEntry *schema.Entry, colDefs []sql.ColumnDef, snap *pager.PagerState) (bool, *Result) {
+func (e *DMLExecutor) resolvePerRowConflict(conflictErr error, c updateChange, tableEntry *schema.Entry, colDefs []sql.ColumnDef, stmt *pager.StmtJournal) (bool, *Result) {
 	// The violated constraint's own resolution applies.
 	msg := conflictErr.Error()
 	if !strings.Contains(msg, "UNIQUE constraint failed: ") {
-		e.ctx.RestorePager(e.ctx.Pager(), snap)
+		e.ctx.RollbackPagerStatement(e.ctx.Pager(), stmt)
 		return false, &Result{Error: conflictErr}
 	}
 	last := msg[strings.LastIndex(msg, ".")+1:]
@@ -120,11 +121,11 @@ func (e *DMLExecutor) resolvePerRowConflict(conflictErr error, c updateChange, t
 	case "REPLACE":
 		// Delete every conflicting row, then apply the change.
 		if rres := e.replaceDeleteConflicts(e.ctx.Pager(), tableEntry, colDefs, c.values, c.rowID); rres.Error != nil {
-			e.ctx.RestorePager(e.ctx.Pager(), snap)
+			e.ctx.RollbackPagerStatement(e.ctx.Pager(), stmt)
 			return false, rres
 		}
 		if ares := e.applyUpdateChanges(tableEntry.Name, tableEntry.RootPage, []updateChange{c}); ares.Error != nil {
-			e.ctx.RestorePager(e.ctx.Pager(), snap)
+			e.ctx.RollbackPagerStatement(e.ctx.Pager(), stmt)
 			return false, ares
 		}
 		return true, nil
@@ -137,13 +138,13 @@ func (e *DMLExecutor) resolvePerRowConflict(conflictErr error, c updateChange, t
 	case "ROLLBACK":
 		// The statement's changes back out AND the whole transaction
 		// rolls back.
-		e.ctx.RestorePager(e.ctx.Pager(), snap)
+		e.ctx.RollbackPagerStatement(e.ctx.Pager(), stmt)
 		out := &Result{Error: conflictErr}
 		out.SetRollbackTxOnError()
 		return false, out
 	default:
 		// ABORT: back out the statement's applied rows and fail.
-		e.ctx.RestorePager(e.ctx.Pager(), snap)
+		e.ctx.RollbackPagerStatement(e.ctx.Pager(), stmt)
 		return false, &Result{Error: conflictErr}
 	}
 }

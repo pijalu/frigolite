@@ -641,12 +641,16 @@ func (e *Engine) Exec(stmt sql.Stmt) *Result {
 
 	// SQLite guarantees statement atomicity: when a statement fails (a
 	// constraint violation, a trigger error, etc.) every change it made is
-	// rolled back. We emulate that by snapshotting all pagers before DML and
-	// restoring them on error. Nested Exec calls (trigger bodies) snapshot
-	// again, so a failure inside a trigger rolls back the inner statement and
-	// then propagates to the outer statement's restore.
+	// rolled back. We emulate SQLite's statement journal (pager.c
+	// sub-journal): the statement's scope captures the before-image of each
+	// page at its first modification, and a failure replays exactly those
+	// images — a statement that modifies nothing rolls back nothing. Nested
+	// Exec calls (trigger bodies) open scopes of their own, so a failure
+	// inside a trigger rolls back the inner statement and then propagates to
+	// the outer statement's restore.
 	isDML := e.isDMLStmt(stmt)
 	snaps := e.execSnapshotDML(stmt, isDML)
+	defer e.endStatementScopes(snaps)
 	// A nested-rollback flag from a PREVIOUS statement must not suppress this
 	// statement's own failure-path restore.
 	e.tx.nestedRollback = false
@@ -814,22 +818,20 @@ func (e *Engine) execEntry(stmt sql.Stmt) *Result {
 	return nil
 }
 
-// execSnapshotDML decides the statement-atomicity snapshot for a DML
-// statement (nil when none is needed): a single-row VALUES INSERT cannot
-// fail after writing, and nested writes (trigger bodies, the FTS flush's
-// shadow writes) are covered by the outermost statement's snapshot, so both
-// skip the O(pages) copy. The CTE scope push stays in Exec (its defer must
-// outlive dispatch).
+// execSnapshotDML opens the statement-atomicity journal for a DML statement
+// (nil scopes when none is needed): every DML statement gets a pager.c-style
+// statement journal (before-images captured lazily at first page write — a
+// statement that modifies nothing rolls back nothing), and nested writes
+// (trigger bodies, the FTS flush's shadow writes) are covered by the
+// outermost statement's scope, so both skip opening their own. The CTE scope
+// push stays in Exec (its defer must outlive dispatch).
 func (e *Engine) execSnapshotDML(stmt sql.Stmt, isDML bool) []pagerSnap {
 	e.ftsSnapshots = nil
 	// With the quota layer active, any writing statement's COMMIT can fail
 	// with SQLITE_FULL (the pager's file-growth check), and SQLite rolls a
 	// failed statement back (vdbeaux.c:3358-3383 treats SQLITE_FULL as a
-	// transaction-abort error) — so DDL statements need the snapshot too.
+	// transaction-abort error) — so DDL statements need the journal too.
 	if !isDML && !quota.Active() {
-		return nil
-	}
-	if isDML && e.dmlCanSkipSnapshot(stmt) {
 		return nil
 	}
 	if e.tx.execDepth > 1 && (e.tx.snapActive || e.tx.inFTSFlush) {
@@ -840,7 +842,7 @@ func (e *Engine) execSnapshotDML(stmt sql.Stmt, isDML bool) []pagerSnap {
 	// %_stat) does not modify the in-memory FTS index, so the O(index)
 	// InvertedIndex snapshot is unnecessary — skipping it removes the O(n^2)
 	// term from per-row FTS builds (fts3_build_db_2 30040: the %_stat REPLACE
-	// in every flush snapshots the whole index). The pager snapshot still
+	// in every flush snapshots the whole index). The pager journal still
 	// covers the shadow btree writes.
 	if !e.stmtTargetsFTSContent(stmt) {
 		e.ftsSnapshots = nil

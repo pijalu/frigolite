@@ -147,6 +147,18 @@ type Pager struct {
 	// appended record.
 	journalRecC1 uint32
 	journalRecC2 uint32
+	// Statement journal (pager.c sub-journal — see pagerstmt.go).
+	// stmtTop is the innermost open statement scope; scopes chain via their
+	// parent field. Guarded by mu (read under RLock in the ReadPage fast
+	// path).
+	stmtTop *StmtJournal
+	// dirtyStamp is a monotonic counter advanced on every clean→dirty
+	// transition; dirtyMark records, per page, the stamp at which the page
+	// became dirty. A statement scope's beginDirtyStamp splits its first
+	// modifications (disk image still valid) from pages that were already
+	// dirty when the statement began (must restore from memory).
+	dirtyStamp uint64
+	dirtyMark  map[uint32]uint64
 	// wal is non-nil while the pager is in WAL mode.
 	wal *walWriter
 	// walHook is the sqlite3_wal_hook callback, fired after each WAL commit.
@@ -445,10 +457,14 @@ func (p *Pager) BumpSchemaCookie() {
 	}
 	c := binary.BigEndian.Uint32(p.header[40:44]) + 1
 	binary.BigEndian.PutUint32(p.header[40:44], c)
+	// Mark page 1 dirty BEFORE mirroring the header into its buffer: the
+	// statement journal captures the page's before-image at the dirty mark,
+	// so the capture must precede the in-place mirror write (a statement
+	// rollback must be able to undo the cookie bump).
+	p.markDirtyLocked(1)
 	if pg, ok := p.pages[1]; ok && pg != nil && len(pg.Data) >= HeaderSize {
 		copy(pg.Data[:HeaderSize], p.header)
 	}
-	p.dirty[1] = true
 }
 
 func (p *Pager) FileChangeCounter() (uint32, bool) {

@@ -46,7 +46,7 @@ func (p *Pager) journalPageBeforeLocked(pgno uint32) {
 // so the next flush writes them (page 1's Data and p.header are separate
 // buffers). Caller holds p.mu.
 func (p *Pager) mirrorHeaderToPage1Locked() {
-	p.dirty[1] = true
+	p.markDirtyLocked(1)
 	if pg, ok := p.pages[1]; ok && pg != nil {
 		copy(pg.Data[:HeaderSize], p.header)
 	}
@@ -58,12 +58,12 @@ func (p *Pager) mirrorHeaderToPage1Locked() {
 // free-page content is garbage and is not journaled). Caller holds p.mu.
 func (p *Pager) grabPageLocked(pgno uint32) *Page {
 	if pg, ok := p.pages[pgno]; ok && pg != nil {
-		p.dirty[pgno] = true
+		p.markDirtyLocked(pgno)
 		return pg
 	}
 	pg := &Page{Data: make([]byte, p.pageSize), PageNum: pgno}
 	p.pages[pgno] = pg
-	p.dirty[pgno] = true
+	p.markDirtyLocked(pgno)
 	return pg
 }
 
@@ -136,7 +136,7 @@ func (p *Pager) writeFreelistTrunkLocked(t freelistTrunk) {
 		}
 		binary.BigEndian.PutUint32(pg.Data[off:off+4], 0)
 	}
-	p.dirty[t.pgno] = true
+	p.markDirtyLocked(t.pgno)
 }
 
 // unlinkTrunkLocked splices trunk pgno out of the chain: the previous
@@ -177,7 +177,7 @@ func (p *Pager) writePtrmapLocked(pgno uint32, parentType byte, parentPgno uint3
 	if _, err := storage.WritePtrmapEntry(pg.Data, pgno, p.pageSize, parentType, parentPgno); err != nil {
 		return
 	}
-	p.dirty[ptrmapPg] = true
+	p.markDirtyLocked(ptrmapPg)
 }
 
 // freelistCountLocked returns the on-disk chain head (header[32:36]) and

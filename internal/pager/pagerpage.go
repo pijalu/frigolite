@@ -111,7 +111,7 @@ func (p *Pager) allocateExtendLocked() *Page {
 			PageNum: p.numPages,
 		}
 		p.pages[pending.PageNum] = pending
-		p.dirty[pending.PageNum] = true
+		p.markDirtyLocked(pending.PageNum)
 		p.numPages++
 	}
 	// btree.c allocateBtreePage (auto-vacuum branch): when the next page is
@@ -125,7 +125,7 @@ func (p *Pager) allocateExtendLocked() *Page {
 			PageNum: p.numPages,
 		}
 		p.pages[ptr.PageNum] = ptr
-		p.dirty[ptr.PageNum] = true
+		p.markDirtyLocked(ptr.PageNum)
 		p.numPages++
 		// btree.c:6758 — re-check the pending byte after the ptrmap skip.
 		if p.numPages == pendingPage {
@@ -141,7 +141,7 @@ func (p *Pager) allocateExtendLocked() *Page {
 		copy(pg.Data[:HeaderSize], p.header)
 	}
 	p.pages[pg.PageNum] = pg
-	p.dirty[pg.PageNum] = true
+	p.markDirtyLocked(pg.PageNum)
 	return pg
 }
 
@@ -164,7 +164,7 @@ func (p *Pager) AllocateRootpage() *Page {
 		current := binary.BigEndian.Uint32(p.header[52:56])
 		if pg.PageNum > current {
 			binary.BigEndian.PutUint32(p.header[52:56], pg.PageNum)
-			p.dirty[1] = true
+			p.markDirtyLocked(1)
 		}
 	}
 	p.mu.Unlock()
@@ -177,11 +177,21 @@ func (p *Pager) ReadPage(pageNum uint32) (*Page, error) {
 		return nil, fmt.Errorf("database disk image is malformed")
 	}
 	p.mu.RLock()
-	if pg, ok := p.pages[pageNum]; ok {
-		p.mu.RUnlock()
+	pg, ok := p.pages[pageNum]
+	// Statement-journal probe: pages whose statement-start image is
+	// memory-only (already dirty at statement start, or a memory pager with
+	// no disk to recover from) must be byte-copied BEFORE the caller can
+	// mutate the handle. Clean pages of file-backed pagers skip the copy —
+	// their first dirtying journals a from-file entry instead — so the
+	// common scan path never takes the write lock here.
+	touch := ok && p.stmtTop != nil && (p.file == nil || p.dirty[pageNum])
+	p.mu.RUnlock()
+	if touch {
+		p.stmtReadTouch(pageNum)
+	}
+	if ok {
 		return pg, nil
 	}
-	p.mu.RUnlock()
 
 	p.mu.Lock()
 	defer p.mu.Unlock()
@@ -233,6 +243,15 @@ func (p *Pager) readPageLocked(pageNum uint32) (*Page, error) {
 		copy(p.header, pg.Data[:HeaderSize])
 	}
 	p.pages[pageNum] = pg
+	// Statement-journal capture of the loaded page, before it is handed to
+	// the caller: internal helpers (freelist trunk rewrites, ptrmap
+	// maintenance) mutate the returned bytes right after this call, so the
+	// before-image must be recorded here (the capture skips clean pages of
+	// file-backed pagers — their markDirty path journals a from-file entry
+	// instead).
+	if p.stmtTop != nil {
+		p.stmtReadTouchLocked(pageNum)
+	}
 	return pg, nil
 }
 
@@ -424,7 +443,7 @@ func (p *Pager) WritePage(pg *Page) error {
 		return err
 	}
 	p.pages[pg.PageNum] = pg
-	p.dirty[pg.PageNum] = true
+	p.markDirtyLocked(pg.PageNum)
 	// Open the rollback journal eagerly on the first write so a ROLLBACK
 	// before COMMIT can replay the BEFORE images. openRollbackJournalLocked
 	// is a no-op for memory/off/wal modes and for pagers without a file.

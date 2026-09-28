@@ -192,13 +192,13 @@ func (p *Pager) shrinkDatabaseFileLocked(n uint32) error {
 func (p *Pager) truncateHeaderCountsLocked(n uint32) {
 	if len(p.header) >= 32 {
 		binary.BigEndian.PutUint32(p.header[28:32], n)
-		p.dirty[1] = true
+		p.markDirtyLocked(1)
 	}
 	if len(p.header) >= 56 {
 		largest := binary.BigEndian.Uint32(p.header[52:56])
 		if largest > n {
 			binary.BigEndian.PutUint32(p.header[52:56], n)
-			p.dirty[1] = true
+			p.markDirtyLocked(1)
 		}
 	}
 	if p.header != nil {
@@ -304,7 +304,7 @@ func (p *Pager) flushAllCtx(multiDB bool) error {
 		if err != nil {
 			return err
 		}
-		p.dirty = make(map[uint32]bool)
+		p.clearDirtySetLocked()
 		return nil
 	}
 	if p.file != nil {
@@ -325,7 +325,7 @@ func (p *Pager) flushAllCtx(multiDB bool) error {
 	// Clear the dirty set in all cases (an in-memory pager has no file to
 	// write, but COMMIT/autocommit must still release the "exclusive" lock
 	// state that lock_status reports from HasDirtyPages).
-	p.dirty = make(map[uint32]bool)
+	p.clearDirtySetLocked()
 	return nil
 }
 
@@ -406,6 +406,11 @@ func (p *Pager) growHeaderSizeLocked(pageNum uint32) {
 		return
 	}
 	binary.BigEndian.PutUint32(p.header[28:32], pageNum)
+	// Mark page 1 dirty BEFORE mirroring the header into its buffer: the
+	// statement journal captures the page's before-image at the dirty mark,
+	// so the capture must precede the in-place mirror write (a statement
+	// rollback of a failed commit must be able to undo this stamp).
+	p.markDirtyLocked(1)
 	// Mirror the updated header into the cached page 1 so the
 	// subsequent flushAll() writes the new header bytes; the page
 	// cache holds a separate copy of pg.Data[0:100] from the
@@ -413,7 +418,6 @@ func (p *Pager) growHeaderSizeLocked(pageNum uint32) {
 	// likewise mutates page 1's buffer in place at COMMIT).
 	if pg1, ok := p.pages[1]; ok && pg1 != nil {
 		copy(pg1.Data[:HeaderSize], p.header)
-		p.dirty[1] = true
 	}
 }
 

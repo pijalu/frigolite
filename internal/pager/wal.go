@@ -892,7 +892,7 @@ func (w *walWriter) finishBackfillLocked(nTo, mxFrame uint32) error {
 			p.fileSize = szDb
 		}
 	}
-	p.dirty = make(map[uint32]bool)
+	p.clearDirtySetLocked()
 	p.refreshKnownFileStamp()
 	return nil
 }

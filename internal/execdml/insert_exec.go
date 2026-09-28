@@ -26,35 +26,27 @@ func (e *DMLExecutor) validateInsertReturning(s *sql.InsertStmt, colDefs []sql.C
 
 // withInsertReplaceSnapshot installs the statement-journal rollback for
 // INSERT OR REPLACE, keyed off the caller's named return value.
-
-// withInsertReplaceSnapshot installs the statement-journal rollback for
-// INSERT OR REPLACE, keyed off the caller's named return value.
-
-// withInsertReplaceSnapshot installs the statement-journal rollback for
-// INSERT OR REPLACE, keyed off the caller's named return value.
-// withInsertReplaceSnapshot installs the statement-journal rollback for
-// INSERT OR REPLACE, keyed off the caller's named return value.
 func (e *DMLExecutor) withInsertReplaceSnapshot(dbCtx *DatabaseContext, s *sql.InsertStmt, ret **Result) func() {
 	if !s.IsReplace {
 		return func() {}
 	}
-	// Skip the snapshot for the FTS flush's internal shadow-table REPLACEs
-	// (the %_stat hint write per automerge): they are part of the enclosing
-	// statement's rollback scope and have no constraints to violate, and
-	// copying the whole pager per flush was ~15% of the fts4merge4 automerge
-	// profile (fts4merge4 2.2.x).
+	// Skip the statement journal for the FTS flush's internal shadow-table
+	// REPLACEs (the %_stat hint write per automerge): they are part of the
+	// enclosing statement's rollback scope and have no constraints to violate
+	// (fts4merge4 2.2.x).
 	if e.ctx.InFTSFlush() {
 		return func() {}
 	}
-	snap := dbCtx.Pager.Snapshot()
+	stmt := dbCtx.Pager.BeginStatement()
 	return func() {
 		if *ret != nil && (*ret).Error != nil {
-			e.ctx.RestorePager(dbCtx.Pager, snap)
+			e.ctx.RollbackPagerStatement(dbCtx.Pager, stmt)
 			// Rows whose rowids were computed for the aborted statement
 			// are gone; the cached rowid counter must not survive.
 			e.ctx.ResetNextRowIDCache()
 			e.ctx.ResetAutoIncSeq()
 		}
+		defer dbCtx.Pager.EndStatement(stmt)
 	}
 }
 

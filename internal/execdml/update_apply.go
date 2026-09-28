@@ -780,7 +780,8 @@ func (e *DMLExecutor) applyUpdateReplace(tableEntry *schema.Entry, colDefs []sql
 	changesMade := int64(0)
 	// Snapshot so a FOREIGN KEY violation mid-statement rolls back any
 	// conflict rows already deleted.
-	snap := e.ctx.Pager().Snapshot()
+	stmt := e.ctx.Pager().BeginStatement()
+	defer e.ctx.Pager().EndStatement(stmt)
 	// Rows deleted by an earlier change's conflict resolution, keyed by
 	// conflictSeenKey (rowid, or PK values for WITHOUT ROWID tables). A later
 	// change targeting one of these rows must be skipped (the row is gone),
@@ -789,7 +790,7 @@ func (e *DMLExecutor) applyUpdateReplace(tableEntry *schema.Entry, colDefs []sql
 	deletedByConflict := map[string]bool{}
 
 	for _, c := range changes {
-		updated, res := e.replaceUpdateRow(tree, tableEntry, colDefs, colIndex, uniqueCols, idxColsList, hasTriggers, snap, deletedByConflict, c)
+		updated, res := e.replaceUpdateRow(tree, tableEntry, colDefs, colIndex, uniqueCols, idxColsList, hasTriggers, stmt, deletedByConflict, c)
 		if res != nil {
 			return res
 		}
@@ -803,7 +804,7 @@ func (e *DMLExecutor) applyUpdateReplace(tableEntry *schema.Entry, colDefs []sql
 // replaceUpdateRow applies one change under UPDATE OR REPLACE: delete other
 // rows whose values conflict with the row's NEW values (firing BEFORE/AFTER
 // DELETE triggers), then delete the row itself and insert its new version.
-func (e *DMLExecutor) replaceUpdateRow(tree *btree.BTree, tableEntry *schema.Entry, colDefs []sql.ColumnDef, colIndex map[string]int, uniqueCols []int, idxColsList []uniqueIndexDef, hasTriggers bool, snap *pager.PagerState, deletedByConflict map[string]bool, c updateChange) (bool, *Result) {
+func (e *DMLExecutor) replaceUpdateRow(tree *btree.BTree, tableEntry *schema.Entry, colDefs []sql.ColumnDef, colIndex map[string]int, uniqueCols []int, idxColsList []uniqueIndexDef, hasTriggers bool, stmt *pager.StmtJournal, deletedByConflict map[string]bool, c updateChange) (bool, *Result) {
 	// If this change's row was deleted by an earlier change's conflict
 	// resolution, the row is gone — skip it (SQLite processes the live
 	// table; the deleted row no longer needs updating).
@@ -824,12 +825,12 @@ func (e *DMLExecutor) replaceUpdateRow(tree *btree.BTree, tableEntry *schema.Ent
 	// UPDATE OR REPLACE still enforces FOREIGN KEY constraints: a new
 	// value that orphans a child (or a child value with no parent) is an
 	// error, matching SQLite.
-	if res := e.enforceUpdateForeignKey(tableEntry, colDefs, c, snap); res != nil {
+	if res := e.enforceUpdateForeignKey(tableEntry, colDefs, c, stmt); res != nil {
 		return false, res
 	}
 	// Delete the row being updated (no DELETE trigger: this is the UPDATE
 	// itself, not a conflict-replacement) and insert its new version.
-	return e.updateRowInPlace(tree, tableEntry, colDefs, c, deletedByConflict, snap)
+	return e.updateRowInPlace(tree, tableEntry, colDefs, c, deletedByConflict, stmt)
 }
 
 // updateTouchesUniqueColumn reports whether the UPDATE's SET clause assigns
