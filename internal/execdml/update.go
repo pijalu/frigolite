@@ -758,19 +758,13 @@ func (e *DMLExecutor) rowExists(tableName string, rootPage uint32, rowID int64) 
 	if err != nil {
 		return false, err
 	}
-	for {
-		cell, err := cursor.ReadCell()
-		if err != nil {
-			return false, nil
-		}
-		if cell.RowID == rowID {
-			return true, nil
-		}
-		ok, err := cursor.Next()
-		if err != nil || !ok {
-			return false, nil
-		}
+	// Direct b-tree descent (sqlite3BtreeMoveto shape); a from-start scan
+	// made re-key-heavy UPDATE statements quadratic in the table size.
+	found, serr := cursor.SeekToRowID(rowID)
+	if serr != nil {
+		return false, nil
 	}
+	return found, nil
 }
 
 // updateRowConflicts reports whether an existing row's values conflict with a
