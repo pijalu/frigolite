@@ -78,6 +78,7 @@ func (e *DMLExecutor) deleteIndexCellsBatch(def indexDef, targets map[int64][]in
 		encoded = append(encoded, payload)
 	}
 	idxTree := btree.NewBTree(def.Ctx.Pager, def.RootPage, false)
+	defer idxTree.Close() // tree and its cursor are function-local
 	if _, err := idxTree.DeleteIndexEntries(encoded); err != nil {
 		return err
 	}
@@ -98,6 +99,7 @@ func (e *DMLExecutor) deleteIndexCell(def indexDef, indexValues []interface{}) e
 		return err
 	}
 	idxTree := btree.NewBTree(def.Ctx.Pager, def.RootPage, false)
+	defer idxTree.Close() // tree and its cursor are function-local
 	if _, err := idxTree.DeleteIndexEntry(payload); err != nil {
 		return err
 	}

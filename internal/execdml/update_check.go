@@ -32,6 +32,7 @@ func (e *DMLExecutor) checkUpdateConflicts(tableEntry *schema.Entry, colDefs []s
 	}
 
 	tree := e.dmlTableBTree(tableEntry.Name, tableEntry.RootPage)
+	defer tree.Close() // conflict-scan tree is function-local
 	for i := range changes {
 		c := changes[i]
 		// No constrained value moved: the change's new values agree with its

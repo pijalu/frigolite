@@ -180,6 +180,7 @@ func (e *DMLExecutor) RebuildIndex(ctx *DatabaseContext, tableEntry *schema.Entr
 	// Empty the index b-tree in place (the schema rootpage stays valid,
 	// sqlite3BtreeClearTable semantics).
 	tree := btree.NewBTree(ctx.Pager, indexEntry.RootPage, false)
+	defer tree.Close() // tree and its clear cursor are function-local
 	if err := tree.Clear(); err != nil {
 		return 0, err
 	}

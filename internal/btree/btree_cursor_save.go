@@ -31,7 +31,12 @@ import (
 //
 // frigolite creates a fresh BTree wrapper per statement over the same
 // (pager, rootPage) pair — that pair is the BtShared identity — so the cursor
-// list lives in a registry keyed on it.
+// list lives in a registry keyed on it. SQLite closes a statement's cursors
+// when its program halts, so its saveAllCursors only ever sees live cursors;
+// frigolite mirrors that with BTree.Close at statement teardown, which
+// unregisters every cursor the closed wrapper owns. Without it the registry
+// only ever shrank through the (lazy) runtime finalizer, and each mutation's
+// saveAllCursors walked every cursor ever opened on the tree.
 
 type cursorTreeKey struct {
 	pg   *pager.Pager
@@ -52,8 +57,9 @@ var (
 )
 
 // registerTreeCursor adds a cursor to its tree's invalidation list. The list
-// entry is removed by a finalizer once the cursor becomes unreachable
-// (cursors have no explicit Close in this engine).
+// entry is removed deterministically by BTree.Close (statement teardown,
+// btree.c sqlite3VdbeFrameDelete/closeCursorsInFrame); a finalizer stays as
+// the safety net for wrappers that are never closed (out-of-statement use).
 func registerTreeCursor(key cursorTreeKey, c *Cursor) {
 	cursorRegMu.Lock()
 	defer cursorRegMu.Unlock()
@@ -67,6 +73,12 @@ func registerTreeCursor(key cursorTreeKey, c *Cursor) {
 func unregisterTreeCursor(key cursorTreeKey, c *Cursor) {
 	cursorRegMu.Lock()
 	defer cursorRegMu.Unlock()
+	removeRegisteredCursor(key, c)
+}
+
+// removeRegisteredCursor is unregisterTreeCursor without the lock (the caller
+// already holds cursorRegMu).
+func removeRegisteredCursor(key cursorTreeKey, c *Cursor) {
 	list := cursorRegistry[key]
 	for i, cc := range list {
 		if cc == c {
@@ -81,14 +93,56 @@ func unregisterTreeCursor(key cursorTreeKey, c *Cursor) {
 	}
 }
 
+// Close releases the wrapper's cursors deterministically at statement
+// teardown (btree.c closes a statement's cursors when its VDBE program
+// halts — vdbeaux.c closeCursorsInFrame). Every cursor opened from this
+// wrapper is removed from the cross-statement invalidation registry and
+// marked released: writers no longer save its position, and any later use
+// reports an error instead of silently reading pages that may hold other
+// rows. Close is idempotent. The registry itself is untouched for OTHER
+// wrappers — an enclosing statement's positioned cursor must still be
+// saved/restored by a nested statement's write (misc8-1.6 contract).
+func (t *BTree) Close() {
+	if t == nil || t.closed {
+		return
+	}
+	t.closed = true
+	owned := t.cursors
+	t.cursors = nil
+	if len(owned) == 0 {
+		return
+	}
+	key := cursorTreeKey{pg: t.pager, root: t.rootPage}
+	cursorRegMu.Lock()
+	for _, c := range owned {
+		c.released = true
+		runtime.SetFinalizer(c, nil)
+		removeRegisteredCursor(key, c)
+	}
+	cursorRegMu.Unlock()
+}
+
 // saveAllCursors saves the positions of every positioned cursor open on this
 // tree except the one being used to perform the write (btree.c
 // saveAllCursors). Called at the top of every public mutation entry point.
+// With statement-scoped teardown the registry holds only live cursors, so
+// the walk is short; the fast path returns before allocating when no cursor
+// needs saving.
 func (t *BTree) saveAllCursors() {
 	key := cursorTreeKey{pg: t.pager, root: t.rootPage}
 	cursorRegMu.Lock()
 	list := cursorRegistry[key]
-	targets := make([]*Cursor, 0, len(list))
+	n := 0
+	for _, c := range list {
+		if c.state == cursorValid && !c.endOfBTree {
+			n++
+		}
+	}
+	if n == 0 {
+		cursorRegMu.Unlock()
+		return
+	}
+	targets := make([]*Cursor, 0, n)
 	for _, c := range list {
 		if c.state == cursorValid && !c.endOfBTree {
 			targets = append(targets, c)
@@ -162,11 +216,16 @@ func (c *Cursor) currentKey() (int64, []byte, error) {
 }
 
 // restoreIfNeeded re-seeks a saved cursor to its recorded key before the
-// cursor's pages are used again (btree.c restoreCursorPosition). After the
-// restore, skipNext carries the moveto bias: +1 when the exact key is gone
-// and the cursor sits on the next-larger entry (the pending Next returns it
-// without advancing), -1 for the Previous mirror.
+// cursor's pages are used again (btree.c restoreCursorPosition). A cursor
+// released by its owner's Close is rejected here: this is the one checkpoint
+// every cursor use (Next/Prev/ReadCell/ReadCellData) already passes through.
+// After the restore, skipNext carries the moveto bias: +1 when the exact key
+// is gone and the cursor sits on the next-larger entry (the pending Next
+// returns it without advancing), -1 for the Previous mirror.
 func (c *Cursor) restoreIfNeeded() error {
+	if c.released {
+		return fmt.Errorf("btree: cursor used after close")
+	}
 	if c.state != cursorRequireSeek {
 		return nil
 	}

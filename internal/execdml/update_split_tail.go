@@ -153,6 +153,7 @@ func limitUpdateViewPairs(e *DMLExecutor, s *sql.UpdateStmt, pairs []viewUpdateP
 
 func (e *DMLExecutor) collectUpdateChanges(tableName string, rootPage uint32, colIndex map[string]int, colDefs []sql.ColumnDef, s *sql.UpdateStmt, deferSetEval bool) ([]updateChange, error) {
 	tree := e.dmlTableBTree(tableName, rootPage)
+	defer tree.Close() // scan tree is function-local
 	// WITHOUT ROWID tables store PK-first records; resolve the layout once
 	// so every decoded record below is remapped to declared order.
 	createSQL := ""
@@ -257,6 +258,7 @@ func (e *DMLExecutor) seekUpdateChanges(tableName string, rootPage uint32, colDe
 		return nil, nil, false
 	}
 	tree := e.dmlTableBTree(tableName, rootPage)
+	defer tree.Close() // seek tree is function-local
 	colIndex := buildColumnIndex(colDefs)
 	var changes []updateChange
 	var rowMaps []RowMap
@@ -721,6 +723,7 @@ func (e *DMLExecutor) scanUpdateFromFTS(ftsTable *fts.FTS3Table, colDefs []sql.C
 // row maps qualified with the table alias.
 func (e *DMLExecutor) scanUpdateFromTable(entry *schema.Entry, colDefs []sql.ColumnDef, fromCtx *DatabaseContext, alias string) ([]RowMap, error) {
 	tree := e.updateFromTree(entry, fromCtx)
+	defer tree.Close() // scan tree is function-local
 	cursor, err := tree.OpenCursor()
 	if err != nil {
 		return nil, err

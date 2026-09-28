@@ -60,6 +60,7 @@ func (e *DMLExecutor) autoIncNextRowID(pg *pager.Pager, rootPage uint32, tableNa
 	// SQLite uses the larger of sqlite_sequence.seq and the table's current
 	// maximum rowid, after numeric affinity coercion.
 	tree := btree.NewBTree(pg, e.ctx.RootPagePg(pg, tableName, rootPage), true)
+	defer tree.Close() // tree and its scan cursor are function-local
 	if maxID := e.scanMaxRowID(tree); maxID > seq {
 		seq = maxID
 	}
@@ -92,6 +93,7 @@ func (e *DMLExecutor) plainNextRowID(pg *pager.Pager, rootPage uint32, tableName
 		return cached + 1
 	}
 	tree := btree.NewBTree(pg, e.ctx.RootPagePg(pg, tableName, rootPage), true)
+	defer tree.Close() // tree and its scan cursor are function-local
 	maxID := e.scanMaxRowID(tree)
 	e.ctx.SetNextRowIDFor(pg, rootPage, maxID)
 	// AUTOINCREMENT never reuses rowid 1 after the sequence starts; the
@@ -114,6 +116,7 @@ func (e *DMLExecutor) overflowRowID(pg *pager.Pager, tableName string, rootPage 
 		return 0
 	}
 	tree := btree.NewBTree(pg, e.ctx.RootPagePg(pg, tableName, rootPage), true)
+	defer tree.Close() // tree and its probe cursor are function-local
 	return e.ctx.RandomFreeRowID(tree)
 }
 

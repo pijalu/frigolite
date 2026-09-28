@@ -20,6 +20,7 @@ func (m *Manager) UpdateEntryFull(oldName, newName, newSQL string) error {
 	}
 
 	tree := btree.NewSchemaBTree(m.pager)
+	defer tree.Close() // schema tree and its cursors are function-local
 
 	// Locate the matching cell, capture its rowid, type, name, tbl_name and
 	// rootpage so the replacement can reuse them (the b-tree orders by rowid,
@@ -83,6 +84,7 @@ func (m *Manager) RemoveEntryOfType(name string, schemaType SchemaType) error {
 	m.forgetSessionEntry(searchName, schemaType)
 
 	tree := btree.NewSchemaBTree(m.pager)
+	defer tree.Close() // schema tree and its cursors are function-local
 	_, err := tree.DeleteCellsWhere(func(cell *storage.Cell) bool {
 		rec, err := storage.DecodeRecord(cell.Payload)
 		if err != nil {
@@ -104,6 +106,7 @@ func (m *Manager) RemoveEntryOfType(name string, schemaType SchemaType) error {
 // and returns the next available value.
 func (m *Manager) nextRowID() int64 {
 	tree := btree.NewSchemaBTree(m.pager)
+	defer tree.Close() // schema tree and its cursors are function-local
 	cursor, err := tree.OpenCursor()
 	if err != nil {
 		return 1

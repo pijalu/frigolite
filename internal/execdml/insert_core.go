@@ -541,6 +541,7 @@ func (e *DMLExecutor) insertRow(pg *pager.Pager, tableEntry *schema.Entry, colDe
 	if res != nil {
 		return res
 	}
+	defer tree.Close() // the row-write tree dies with this row's insert
 
 	// Fire the preupdate hook (sqlite3_preupdate_hook) with the new row's
 	// values. WITHOUT ROWID tables report rowid 0 (SQLite uses the key

@@ -842,6 +842,7 @@ func (e *Engine) indexKeyShapeEntry(ctx *DatabaseContext, ent *schema.Entry) (mi
 	}
 	want := len(ci.Columns) + 1
 	tree := btree.NewBTree(ctx.Pager, ent.RootPage, false)
+	defer tree.Close() // tree and its probe cursor are function-local
 	cursor, err := tree.OpenCursor()
 	if err != nil {
 		return false, false

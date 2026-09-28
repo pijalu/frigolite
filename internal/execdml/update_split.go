@@ -674,6 +674,7 @@ func (e *DMLExecutor) runUpdateFail(tableName string, tableEntry *schema.Entry, 
 	idxColsList := e.updateConstrainedDefs(tableEntry, colDefs)
 	wrOrder := e.ctx.WRStorageOrder(tableEntry.SQL, colDefs)
 	tree := e.dmlTableBTree(tableName, tableEntry.RootPage)
+	defer tree.Close() // conflict/write tree is function-local
 	for i := range changes {
 		c := changes[i]
 		// Change-detection gate (see checkUpdateConflicts): nothing

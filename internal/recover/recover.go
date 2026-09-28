@@ -236,6 +236,7 @@ func renderLostAndFoundRow(r orphanRow) string {
 // (type, name, tbl_name, rootpage, sql) rows.
 func readSchema(pg *pager.Pager) ([]tableEntry, error) {
 	tree := btree.NewBTree(pg, 1, true)
+	defer tree.Close() // tree and its scan cursor are function-local
 	cursor, err := tree.OpenCursor()
 	if err != nil {
 		return nil, err
@@ -300,6 +301,7 @@ func recoverTableRows(sb *strings.Builder, pg *pager.Pager, e tableEntry, sequen
 // are skipped (an advance error after one still ends it).
 func walkTableRows(pg *pager.Pager, e tableEntry, fn func(rowID int64, rec []interface{})) error {
 	tree := btree.NewBTree(pg, uint32(e.rootPage), true)
+	defer tree.Close() // tree and its scan cursor are function-local
 	cursor, err := tree.OpenCursor()
 	if err != nil {
 		return err
@@ -406,6 +408,7 @@ func isDeclaredOrderWR(pg *pager.Pager, e tableEntry) bool {
 // for emission after DELETE FROM sqlite_sequence.
 func appendSequenceRows(sb *strings.Builder, pg *pager.Pager, e tableEntry, sequenceRows *[]string) error {
 	tree := btree.NewBTree(pg, uint32(e.rootPage), true)
+	defer tree.Close() // tree and its scan cursor are function-local
 	cursor, err := tree.OpenCursor()
 	if err != nil {
 		return nil

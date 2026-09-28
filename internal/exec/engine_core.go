@@ -615,6 +615,19 @@ func (e *Engine) Exec(stmt sql.Stmt) *Result {
 		return res
 	}
 	defer e.execDepthLeave()
+	// Statement-scoped b-tree cursor lifecycle (btree.c closes a statement's
+	// cursors when its program halts): track the wrappers created during this
+	// statement and release them — unregistering their cursors from the
+	// cross-statement invalidation registry — when it returns. Nested Exec
+	// frames (trigger bodies, eval()) mark their own segment, so an inner
+	// statement never releases the enclosing statement's positioned cursors
+	// (misc8-1.6 contract).
+	treeMark := len(e.stmtBtrees)
+	e.stmtBtreeDepth++
+	defer func() {
+		e.stmtBtreeDepth--
+		e.releaseStatementTrees(treeMark)
+	}()
 
 	// Reset the test-only counter() function state at the start of each
 	// statement. SQLite's column-pruning optimization skips evaluating

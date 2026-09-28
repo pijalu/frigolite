@@ -317,6 +317,7 @@ func (e *DMLExecutor) writeIndexCell(def indexDef, colDefs []sql.ColumnDef, inde
 		Payload: payload,
 	}
 	idxTree := btree.NewBTree(def.Ctx.Pager, def.RootPage, false)
+	defer idxTree.Close() // tree and its insert cursor are function-local
 	// SQLite orders index b-trees by the keys' collations at insert time
 	// (OP_IdxInsert → sqlite3BtreeIndexMoveto under the index's KeyInfo):
 	// install the collation-aware comparator before the insert.

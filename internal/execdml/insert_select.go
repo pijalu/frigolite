@@ -34,6 +34,7 @@ func (e *DMLExecutor) insertSelectWrittenRow(tableEntry *schema.Entry, colDefs [
 		cell.Type = storage.CellIndexLeaf
 	}
 	tree := e.wrTableBTree(e.dmlPager(tableEntry.Name), tableEntry, colDefs)
+	defer tree.Close() // the row-write tree dies with this row's insert
 	if err := tree.InsertCell(cell); err != nil {
 		return &Result{Error: err}, nil
 	}

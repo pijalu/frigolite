@@ -147,6 +147,7 @@ func (e *Engine) runIncrVacuumLoop(ctx *DatabaseContext, nFin uint32, limit int6
 // (matching btree.c autoVacuumCommit's `for(iFree=nOrig; iFree>nFin; iFree--)`).
 func (e *Engine) runIncrVacuumStep(ctx *DatabaseContext, bCommit bool, nFin uint32, iLastPg uint32) (int, error) {
 	bt := btree.NewBTree(ctx.Pager, 1, true)
+	defer bt.Close() // tree and its cursor are function-local
 	steps, err := bt.IncrVacuumStep(1, bCommit, nFin, iLastPg)
 	return steps, err
 }
@@ -361,5 +362,6 @@ func isPtrmapPageFor(pgno, pageSize uint32) bool {
 // src/btree.c ~10150). Used by the ANALYZE-driven sqlite_statN creation.
 func allocateRootPage(p *pager.Pager) (*pager.Page, error) {
 	bt := btree.NewBTree(p, 1, true)
+	defer bt.Close() // tree and any allocation cursor are function-local
 	return bt.AllocateRootPage()
 }

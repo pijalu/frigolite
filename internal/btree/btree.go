@@ -22,7 +22,7 @@ func contentOffset(pageNum uint32) int {
 
 // Cursor provides sequential access to b-tree entries.
 type Cursor struct {
-	tx         *BTree
+	tx         *BTree // the BTree wrapper that opened this cursor (its owner)
 	pageNum    uint32 // current leaf page
 	cellIdx    int
 	endOfBTree bool
@@ -43,6 +43,12 @@ type Cursor struct {
 	savedRowID int64
 	savedKey   []byte
 	skipNext   int8
+
+	// released is set when the owning BTree wrapper is closed (statement
+	// teardown). Use of a released cursor is an ownership bug upstream: its
+	// pages may already belong to other rows — reads report an error instead
+	// of silently returning stale data.
+	released bool
 }
 
 // cursorPathEntry records one level of the traversal path.
@@ -90,6 +96,14 @@ type BTree struct {
 	// btree.c's unpacked-record comparison (sqlite3VdbeRecordCompare).
 	keyCompare func(a, b []byte) int
 	isSchema   bool // true for the sqlite_schema btree (sqlite_schema's allocations bypass the freelist so the schema btree's pages don't take slots from the user-rootpage range; SQLite btree.c::btreeCreateTable uses meta[3] to track the highest rootpage and allocates rootpages at meta[3]+1)
+
+	// Statement-scoped cursor ownership. Cursors opened from this wrapper
+	// are tracked here so a single Close (statement teardown) unregisters
+	// them all from the cross-statement invalidation registry; without it
+	// the registry only ever shrank via the runtime finalizer, which made
+	// saveAllCursors O(total cursors ever opened) per mutation.
+	cursors []*Cursor
+	closed  bool
 }
 
 // NewBTree creates a new BTree instance.
@@ -171,6 +185,9 @@ func (t *BTree) allocPage() (*pager.Page, error) {
 
 // OpenCursor creates a new cursor positioned at the beginning.
 func (t *BTree) OpenCursor() (*Cursor, error) {
+	if t.closed {
+		return nil, fmt.Errorf("btree: cursor opened on closed tree")
+	}
 	c := &Cursor{
 		tx:      t,
 		pageNum: t.rootPage,
@@ -181,7 +198,10 @@ func (t *BTree) OpenCursor() (*Cursor, error) {
 		return nil, err
 	}
 	// Register for cross-statement invalidation: a nested statement's write
-	// on this tree saves the cursor's position (btree.c saveAllCursors).
+	// on this tree saves the cursor's position (btree.c saveAllCursors). The
+	// owner back-pointer lets BTree.Close unregister deterministically at
+	// statement teardown.
+	t.cursors = append(t.cursors, c)
 	registerTreeCursor(cursorTreeKey{pg: t.pager, root: t.rootPage}, c)
 	return c, nil
 }
@@ -457,6 +477,16 @@ func (t *BTree) Clear() error {
 	return t.pager.WritePage(pg)
 }
 
+// checkOpen reports an error when the cursor's owning wrapper has been
+// closed (statement teardown released it). A released cursor's pages may
+// already hold other rows, so every use must fail loudly.
+func (c *Cursor) checkOpen() error {
+	if c.released {
+		return fmt.Errorf("btree: cursor used after close")
+	}
+	return nil
+}
+
 // SeekToRowID positions the cursor at the entry with the given rowid (table
 // b-trees only). Returns true if found. The descent maintains the cursor
 // path stack (btree.c sqlite3BtreeTableMoveto keeps the cursor valid), so
@@ -464,6 +494,9 @@ func (t *BTree) Clear() error {
 // leftmost-descent path — without it, iteration after a seek into a
 // non-leftmost leaf replays rows from earlier leaves.
 func (c *Cursor) SeekToRowID(rowID int64) (bool, error) {
+	if err := c.checkOpen(); err != nil {
+		return false, err
+	}
 	c.path = c.path[:0]
 	return c.seekTableLeafWithPath(c.tx.rootPage, rowID)
 }
@@ -511,6 +544,9 @@ func (c *Cursor) seekInLeafTable(pg *pager.Page, page *storage.BTreePage, rowID 
 // SeekToKey positions the cursor at the entry with the given key (index
 // b-trees only). Returns true if found.
 func (c *Cursor) SeekToKey(key []byte) (bool, error) {
+	if err := c.checkOpen(); err != nil {
+		return false, err
+	}
 	return c.seekKeyInPage(c.tx.rootPage, key)
 }
 
