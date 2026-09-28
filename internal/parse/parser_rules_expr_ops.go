@@ -1,36 +1,22 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
+//
+// Copyright (C) 2026 Pierre Poissinger
+//
+// Package parse implements an LALR(1) SQL parser using go-lemon generated
+// parse tables from SQLite's grammar.
+//
+// Code in this file is ORGANIZED BY GRAMMAR FUNCTION, one file per family;
+// rule numbers are go-lemon table indices (see parser_ruleids.go).
+//
+// Expression operators: arithmetic, comparison, logic, LIKE/GLOB
+// family, BETWEEN, IN, IS, COLLATE, bit/shift, unary, and ->/->>.
+
 package parse
 
 import (
+	sql "github.com/pijalu/frigolite/internal/sql"
 	"strings"
-
-	"github.com/pijalu/frigolite/internal/sql"
 )
-
-// Rule 185: term ::= INTEGER
-func ruleTermInteger(ruleNo int, p *Parser) interface{} {
-	if tok, ok := getRHS(p, ruleNo, 1).(sql.Token); ok {
-		return &sql.NumericLit{Value: tok.Value}
-	}
-	if s, ok := getRHS(p, ruleNo, 1).(string); ok {
-		return &sql.NumericLit{Value: s}
-	}
-	return &sql.NumericLit{}
-
-}
-
-// Rule 186: expr ::= VARIABLE
-// A parameter placeholder (? or $name). Frigolite does not support bound
-// parameters; it evaluates to NULL, but is kept distinct from a NULL
-// literal so CREATE TABLE can reject it in non-constant DEFAULT
-// expressions.
-func ruleExprVariable(ruleNo int, p *Parser) interface{} {
-	param := &sql.ParameterExpr{}
-	if tok, ok := getRHS(p, ruleNo, 1).(sql.Token); ok {
-		param.Name = tok.Value
-	}
-	return param
-
-}
 
 // Rule 187: expr ::= expr COLLATE ID|STRING
 func ruleExprExprCollateIdString(ruleNo int, p *Parser) interface{} {
@@ -42,130 +28,6 @@ func ruleExprExprCollateIdString(ruleNo int, p *Parser) interface{} {
 		Operator: "COLLATE",
 		Right:    &sql.StringLit{Value: collation},
 	}
-
-}
-
-// Rule 188: expr ::= CAST LP expr AS typetoken RP
-func ruleExprCastLpExprAsTypetokenRp(ruleNo int, p *Parser) interface{} {
-	return &sql.CastExpr{
-		Operand: getExpr(getRHS(p, ruleNo, 3)),
-		AsType:  getString(getRHS(p, ruleNo, 5)),
-	}
-
-}
-
-// Rule 189: expr ::= ID|INDEXED|JOIN_KW LP distinct exprlist RP (function call)
-func ruleExprIdIndexedJoinKwLpDistinctExprlistRpFunctionCall(ruleNo int, p *Parser) interface{} {
-	name := getString(getRHS(p, ruleNo, 1))
-	distinct := getBool(getRHS(p, ruleNo, 3))
-	args := getExprList(getRHS(p, ruleNo, 4))
-	return &sql.FuncCall{
-		Name:     name,
-		Args:     args,
-		Distinct: distinct,
-	}
-
-}
-
-// Rule 190: expr ::= ID|INDEXED|JOIN_KW LP distinct exprlist ORDER BY sortlist RP
-// (function call with internal ORDER BY, e.g. group_concat(x ORDER BY y))
-func ruleExprIdIndexedJoinKwLpDistinctExprlistOrderBySortlistRp(ruleNo int, p *Parser) interface{} {
-	name := getString(getRHS(p, ruleNo, 1))
-	distinct := getBool(getRHS(p, ruleNo, 3))
-	args := getExprList(getRHS(p, ruleNo, 4))
-	orderBy := getOrderByList(getRHS(p, ruleNo, 6))
-	return &sql.FuncCall{
-		Name:     name,
-		Args:     args,
-		Distinct: distinct,
-		OrderBy:  orderBy,
-	}
-
-}
-
-// Rule 191: expr ::= ID|INDEXED|JOIN_KW LP STAR RP (function(star))
-func ruleExprIdIndexedJoinKwLpStarRpFunctionStar(ruleNo int, p *Parser) interface{} {
-	name := getString(getRHS(p, ruleNo, 1))
-	return &sql.FuncCall{
-		Name: name,
-		Args: []sql.Expr{&sql.ColumnRef{Name: "*"}}, // COUNT(*) — star as a column ref
-	}
-
-}
-
-func rule192(ruleNo int, p *Parser) interface{} {
-	name := getString(getRHS(p, ruleNo, 1))
-	distinct := getBool(getRHS(p, ruleNo, 3))
-	args := getExprList(getRHS(p, ruleNo, 4))
-	wf := getWindowFilter(getRHS(p, ruleNo, 6))
-	var over *sql.WindowDef
-	var filter sql.Expr
-	if wf != nil {
-		over = wf.over
-		filter = wf.filter
-	}
-	return &sql.FuncCall{
-		Name:     name,
-		Args:     args,
-		Distinct: distinct,
-		Filter:   filter,
-		Over:     over,
-	}
-
-}
-
-// Rule 193: expr ::= ID|INDEXED|JOIN_KW LP distinct exprlist ORDER BY sortlist RP filter_over
-func ruleExprIdIndexedJoinKwLpDistinctExprlistOrderBySortlistRpFilterOver(ruleNo int, p *Parser) interface{} {
-	name := getString(getRHS(p, ruleNo, 1))
-	distinct := getBool(getRHS(p, ruleNo, 3))
-	args := getExprList(getRHS(p, ruleNo, 4))
-	orderBy := getOrderByList(getRHS(p, ruleNo, 6))
-	wf := getWindowFilter(getRHS(p, ruleNo, 9))
-	var over *sql.WindowDef
-	var filter sql.Expr
-	if wf != nil {
-		over = wf.over
-		filter = wf.filter
-	}
-	return &sql.FuncCall{
-		Name:     name,
-		Args:     args,
-		Distinct: distinct,
-		OrderBy:  orderBy,
-		Filter:   filter,
-		Over:     over,
-	}
-
-}
-
-// Rule 194: expr ::= ID|INDEXED|JOIN_KW LP STAR RP filter_over (window function)
-func ruleExprIdIndexedJoinKwLpStarRpFilterOverWindowFunction(ruleNo int, p *Parser) interface{} {
-	name := getString(getRHS(p, ruleNo, 1))
-	wf := getWindowFilter(getRHS(p, ruleNo, 5))
-	var over *sql.WindowDef
-	var filter sql.Expr
-	if wf != nil {
-		over = wf.over
-		filter = wf.filter
-	}
-	return &sql.FuncCall{
-		Name:   name,
-		Args:   []sql.Expr{&sql.ColumnRef{Name: "*"}}, // COUNT(*) — star as a column ref
-		Filter: filter,
-		Over:   over,
-	}
-
-}
-
-// Rule 196: expr ::= LP exprlist COMMA expr RP (row value / vector)
-// A parenthesized list of two or more expressions is a row value used
-// in comparisons like (a, b) = ('x', 'y'). The grammar splits the list
-// as (exprlist, expr) with exprlist holding all but the last element.
-func ruleExprLpExprlistCommaExprRpRowValueVector(ruleNo int, p *Parser) interface{} {
-	exprs := getExprList(getRHS(p, ruleNo, 2))
-	last := getExpr(getRHS(p, ruleNo, 4))
-	exprs = append(exprs, last)
-	return &sql.RowValue{Values: exprs}
 
 }
 
@@ -226,7 +88,8 @@ func ruleExprExprEqNeExpr(ruleNo int, p *Parser) interface{} {
 
 }
 
-func rule201(ruleNo int, p *Parser) interface{} {
+// Rule 201: expr ::= expr BITOP expr (& | << >>)
+func ruleExprBitop(ruleNo int, p *Parser) interface{} {
 	left := getExpr(getRHS(p, ruleNo, 1))
 	right := getExpr(getRHS(p, ruleNo, 3))
 	// Read the operator from the RHS token value (lookahead is the NEXT
@@ -241,21 +104,6 @@ func rule201(ruleNo int, p *Parser) interface{} {
 		case ">>":
 			op = ">>"
 		}
-	}
-	return &sql.BinaryOp{Left: left, Operator: op, Right: right}
-
-}
-
-// Rule 217: expr ::= expr PTR expr — the SQLite '->' and '->>' JSON
-// operators. The grammar uses a single PTR terminal for both (SQLite
-// tokenize.c emits TK_PTR for either); the operator text distinguishes
-// them: '->' yields the subvalue as JSON text, '->>' as a plain SQL value.
-func ruleExprExprPtrExprTheSqLiteAndJson(ruleNo int, p *Parser) interface{} {
-	left := getExpr(getRHS(p, ruleNo, 1))
-	right := getExpr(getRHS(p, ruleNo, 3))
-	op := "->"
-	if tok, ok := getRHS(p, ruleNo, 2).(sql.Token); ok && tok.Value == "->>" {
-		op = "->>"
 	}
 	return &sql.BinaryOp{Left: left, Operator: op, Right: right}
 
@@ -303,7 +151,7 @@ func ruleExprExprConcatExpr(ruleNo int, p *Parser) interface{} {
 // Rule 205: likeop ::= NOT LIKE_KW|MATCH — the negated form of a
 // LIKE/GLOB/REGEXP/MATCH operator ("a NOT LIKE 'x'"). Returns the
 // negated operator name so rule 206 can build a NOT LIKE BinaryOp.
-func ruleLikeopNotLikeKwMatchTheNegatedFormOfA(ruleNo int, p *Parser) interface{} {
+func ruleLikeopNot(ruleNo int, p *Parser) interface{} {
 	op := "NOT LIKE"
 	if tok, ok := getRHS(p, ruleNo, 2).(sql.Token); ok {
 		switch strings.ToUpper(tok.Value) {
@@ -317,10 +165,10 @@ func ruleLikeopNotLikeKwMatchTheNegatedFormOfA(ruleNo int, p *Parser) interface{
 	}
 	return op
 
-	// Rule 206: expr ::= expr likeop expr (LIKE/GLOB/REGEXP/MATCH)
 }
 
-func rule206(ruleNo int, p *Parser) interface{} {
+// Rule 206: expr ::= expr likeop expr (LIKE/GLOB/REGEXP/MATCH)
+func ruleExprLikeop(ruleNo int, p *Parser) interface{} {
 	left := getExpr(getRHS(p, ruleNo, 1))
 	right := getExpr(getRHS(p, ruleNo, 3))
 	op := "LIKE"
@@ -329,10 +177,10 @@ func rule206(ruleNo int, p *Parser) interface{} {
 	}
 	return &sql.BinaryOp{Left: left, Operator: op, Right: right}
 
-	// Rule 207: expr ::= expr likeop expr ESCAPE expr
 }
 
-func rule207(ruleNo int, p *Parser) interface{} {
+// Rule 207: expr ::= expr likeop expr ESCAPE expr
+func ruleExprLikeopEscape(ruleNo int, p *Parser) interface{} {
 	left := getExpr(getRHS(p, ruleNo, 1))
 	right := getExpr(getRHS(p, ruleNo, 3))
 	escape := getExpr(getRHS(p, ruleNo, 5))
@@ -353,7 +201,8 @@ func rule207(ruleNo int, p *Parser) interface{} {
 
 }
 
-func rule208(ruleNo int, p *Parser) interface{} {
+// Rule 208: expr ::= expr ISNULL|NOTNULL
+func ruleExprIsnullNotnull(ruleNo int, p *Parser) interface{} {
 	operand := getExpr(getRHS(p, ruleNo, 1))
 	// Read the operator from the RHS token value (lookahead at reduce
 	// time is the NEXT token, not the ISNULL/NOTNULL keyword).
@@ -430,5 +279,184 @@ func ruleExprExprIsNotExpr(ruleNo int, p *Parser) interface{} {
 		return &sql.IsFalse{Operand: left, Negated: true}
 	}
 	return &sql.BinaryOp{Left: left, Operator: "IS NOT", Right: right}
+
+}
+
+// Rule 212: expr ::= expr IS NOT DISTINCT FROM expr (6 RHS symbols)
+func ruleExprExprIsNotDistinctFromExpr6RhsSymbols(ruleNo int, p *Parser) interface{} {
+	return &sql.IsNotDistinctFrom{
+		Left:  getExpr(getRHS(p, ruleNo, 1)),
+		Right: getExpr(getRHS(p, ruleNo, 6)),
+	}
+
+}
+
+// Rule 213: expr ::= expr IS DISTINCT FROM expr (5 RHS symbols)
+func ruleExprExprIsDistinctFromExpr5RhsSymbols(ruleNo int, p *Parser) interface{} {
+	return &sql.IsDistinctFrom{
+		Left:  getExpr(getRHS(p, ruleNo, 1)),
+		Right: getExpr(getRHS(p, ruleNo, 5)),
+	}
+
+}
+
+// Rule 214: expr ::= NOT expr
+func ruleExprNotExpr(ruleNo int, p *Parser) interface{} {
+	return &sql.UnaryOp{
+		Operand:  getExpr(getRHS(p, ruleNo, 2)),
+		Operator: "NOT",
+	}
+
+}
+
+// Rule 215: expr ::= BITNOT expr
+func ruleExprBitnotExpr(ruleNo int, p *Parser) interface{} {
+	return &sql.UnaryOp{
+		Operand:  getExpr(getRHS(p, ruleNo, 2)),
+		Operator: "~",
+	}
+
+}
+
+// Rule 216: expr ::= PLUS|MINUS expr (unary)
+func ruleExprPlusMinusExprUnary(ruleNo int, p *Parser) interface{} {
+	operand := getExpr(getRHS(p, ruleNo, 2))
+	// Read the operator from the RHS token value (lookahead is the NEXT
+	// token at reduce time, so it cannot distinguish + from -).
+	if tok, ok := getRHS(p, ruleNo, 1).(sql.Token); ok && tok.Value == "-" {
+		// SQLite special case: -9223372036854775808 is the minimum int64.
+		// The positive literal 9223372036854775808 does not fit in int64
+		// (it is 2^63), so SQLite folds the unary minus into the literal
+		// to produce math.MinInt64 as an INTEGER (not a REAL).
+		if nl, ok := operand.(*sql.NumericLit); ok && nl.Value == "9223372036854775808" {
+			return &sql.NumericLit{Value: "-9223372036854775808"}
+		}
+		// Leading zeros do not change the magnitude (SQLite numerals are
+		// decimal, never octal): -00000009223372036854775808 folds too
+		// (expr-8.41 typeof is integer).
+		if nl, ok := operand.(*sql.NumericLit); ok && strings.TrimLeft(nl.Value, "0") == "9223372036854775808" {
+			return &sql.NumericLit{Value: "-9223372036854775808"}
+		}
+		// SQLite folds the sign into hex literals too, so the "hex
+		// literal too big" error message carries the minus sign
+		// (e.g. "-0x08000000000000000").
+		if nl, ok := operand.(*sql.NumericLit); ok && isHexLiteral(nl.Value) {
+			return &sql.NumericLit{Value: "-" + nl.Value}
+		}
+		return &sql.UnaryOp{Operand: operand, Operator: "-"}
+	}
+	// Unary + is a no-op at parse level (SQLite semantics: +expr is
+	// equivalent to expr but the result has NO affinity).
+	return &sql.UnaryOp{Operand: operand, Operator: "+"}
+
+}
+
+// Rule 217: expr ::= expr PTR expr — the SQLite '->' and '->>' JSON
+// operators. The grammar uses a single PTR terminal for both (SQLite
+// tokenize.c emits TK_PTR for either); the operator text distinguishes
+// them: '->' yields the subvalue as JSON text, '->>' as a plain SQL value.
+func ruleExprPtr(ruleNo int, p *Parser) interface{} {
+	left := getExpr(getRHS(p, ruleNo, 1))
+	right := getExpr(getRHS(p, ruleNo, 3))
+	op := "->"
+	if tok, ok := getRHS(p, ruleNo, 2).(sql.Token); ok && tok.Value == "->>" {
+		op = "->>"
+	}
+	return &sql.BinaryOp{Left: left, Operator: op, Right: right}
+
+}
+
+// Rule 220: expr ::= expr between_op expr AND expr
+func ruleExprBetween(ruleNo int, p *Parser) interface{} {
+	// between_op is the raw keyword token: BETWEEN (or NOT for
+	// "NOT BETWEEN"). SQLite's grammar reduces between_op to an
+	// int flag; here the token itself sits on the stack.
+	negated := false
+	if tok, ok := getRHS(p, ruleNo, 2).(sql.Token); ok && strings.EqualFold(tok.Value, "NOT") {
+		negated = true
+	}
+	return &sql.Between{
+		Operand: getExpr(getRHS(p, ruleNo, 1)),
+		Low:     getExpr(getRHS(p, ruleNo, 3)),
+		High:    getExpr(getRHS(p, ruleNo, 5)),
+		Negated: negated,
+	}
+
+}
+
+// Rule 221: in_op ::= IN
+func ruleInOpIn(ruleNo int, p *Parser) interface{} {
+	return false
+
+}
+
+// Rule 222: in_op ::= NOT IN
+func ruleInOpNotIn(ruleNo int, p *Parser) interface{} {
+	return true
+
+}
+
+// Rule 223: expr ::= expr in_op LP exprlist RP
+func ruleExprExprInOpLpExprlistRp(ruleNo int, p *Parser) interface{} {
+	negated := getBool(getRHS(p, ruleNo, 2))
+	return &sql.InList{
+		Operand: getExpr(getRHS(p, ruleNo, 1)),
+		List:    getExprList(getRHS(p, ruleNo, 4)),
+		Negated: negated,
+	}
+
+}
+
+// Rule 225: expr ::= expr in_op LP select RP
+func ruleExprExprInOpLpSelectRp(ruleNo int, p *Parser) interface{} {
+	negated := getBool(getRHS(p, ruleNo, 2))
+	return &sql.InList{
+		Operand: getExpr(getRHS(p, ruleNo, 1)),
+		List:    []sql.Expr{&sql.Subquery{Select: getSelectStmt(getRHS(p, ruleNo, 4))}},
+		Negated: negated,
+	}
+
+}
+
+// Rule 226: expr ::= expr in_op nm dbnm paren_exprlist
+// SQLite extension: `expr IN table-name` is equivalent to
+// `expr IN (SELECT * FROM table-name)`. The optional paren_exprlist is
+// the argument list of a table-valued function in the FROM clause.
+func ruleExprExprInOpNmDbnmParenExprlist(ruleNo int, p *Parser) interface{} {
+	negated := getBool(getRHS(p, ruleNo, 2))
+	tbl := getString(getRHS(p, ruleNo, 3))
+	schema := getString(getRHS(p, ruleNo, 4))
+	if schema != "" {
+		tbl = tbl + "." + schema
+	}
+	args := getExprList(getRHS(p, ruleNo, 5))
+	// paren_exprlist may be empty: "x IN t" and "x IN t()" are the same
+	// rowid-lookup form (no table-function call), while "x IN tvf(a,b)"
+	// is a genuine table-valued function reference.
+	sub := &sql.Subquery{Select: &sql.SelectStmt{
+		Columns: []sql.SelectColumn{{Expr: &sql.ColumnRef{Name: "*"}}},
+		From:    sql.TableRef{Name: tbl, Args: args, IsTabFunc: len(args) > 0},
+	}}
+	return &sql.InList{
+		Operand: getExpr(getRHS(p, ruleNo, 1)),
+		List:    []sql.Expr{sub},
+		Negated: negated,
+	}
+
+}
+
+// Rule 387: likeop ::= LIKE|GLOB|MATCH|REGEXP (single keyword form)
+func ruleLikeopKeywords(ruleNo int, p *Parser) interface{} {
+	if tok, ok := getRHS(p, ruleNo, 1).(sql.Token); ok {
+		switch strings.ToUpper(tok.Value) {
+		case "MATCH":
+			return "MATCH"
+		case "GLOB":
+			return "GLOB"
+		case "REGEXP":
+			return "REGEXP"
+		}
+	}
+	return "LIKE"
 
 }

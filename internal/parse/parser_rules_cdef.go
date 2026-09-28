@@ -5,47 +5,25 @@
 // Package parse implements an LALR(1) SQL parser using go-lemon generated
 // parse tables from SQLite's grammar.
 //
-// Continuation of the per-rule grammar action handlers (split from
-// parser_rules*.go to keep file sizes manageable).
+// Code in this file is ORGANIZED BY GRAMMAR FUNCTION, one file per family;
+// rule numbers are go-lemon table indices (see parser_ruleids.go).
+//
+// Table-definition grammar shared by CREATE TABLE and ALTER TABLE ADD:
+// column definitions, types, column constraints (ccons), table
+// constraints (tcons), foreign-key refargs/refact, conflict resolution
+// (onconf/orconf/resolvel), AUTOINCREMENT, generated columns, WITHOUT
+// ROWID/STRICT table options, and eidlist (indexed-column lists).
 
 package parse
 
 import (
 	"fmt"
+	sql "github.com/pijalu/frigolite/internal/sql"
 	"strings"
-
-	"github.com/pijalu/frigolite/internal/sql"
 )
 
-// Rule 8: cmd ::= COMMIT|END trans_opt
-func ruleCmdCommitEndTransOpt(ruleNo int, p *Parser) interface{} {
-	return &sql.CommitStmt{}
-
-}
-
-// Rule 9: cmd ::= ROLLBACK trans_opt
-func ruleCmdRollbackTransOpt(ruleNo int, p *Parser) interface{} {
-	return &sql.RollbackStmt{}
-
-}
-
-// Rule 13: create_table ::= createkw temp TABLE ifnotexists nm dbnm
-func ruleCreateTableCreatekwTempTableIfnotexistsNmDbnm(ruleNo int, p *Parser) interface{} {
-	name := getString(getRHS(p, ruleNo, 5))
-	schema := getString(getRHS(p, ruleNo, 6)) // dbnm - optional schema
-	if schema != "" {
-		name = name + "." + schema
-	}
-	return &sql.CreateTableStmt{
-		Name:        name,
-		IfNotExists: getBool(getRHS(p, ruleNo, 4)),
-		Temporary:   getBool(getRHS(p, ruleNo, 2)),
-		Columns:     nil, // will be filled by create_table_args
-	}
-
-}
-
-func rule14(ruleNo int, p *Parser) interface{} {
+// Rule 14: createkw ::= CREATE
+func ruleCreatekw(ruleNo int, p *Parser) interface{} {
 	return nil
 
 }
@@ -74,45 +52,14 @@ func ruleTemp(ruleNo int, p *Parser) interface{} {
 
 }
 
-// Rule 19: create_table_args ::= LP columnlist conslist_opt RP table_option_set
-func ruleCreateTableArgsLpColumnlistConslistOptRpTableOptionSet(ruleNo int, p *Parser) interface{} {
-	// This rule produces columns from a column definition list plus
-	// table-level constraints (conslist_opt) and table options
-	// (table_option_set). The create_table value isn't available here;
-	// rule 359 combines them into the CreateTableStmt.
-	cols := getColumnList(getRHS(p, ruleNo, 2))
-	cons := getTableConstraints(getRHS(p, ruleNo, 3))
-	opts := getTableOptions(getRHS(p, ruleNo, 5))
-	return &createTableArgs{
-		columns:      cols,
-		constraints:  cons,
-		withoutRowid: opts.withoutRowid,
-		strict:       opts.strict,
-	}
-
-}
-
-// Rule 20: create_table_args ::= AS select
-func ruleCreateTableArgsAsSelect(ruleNo int, p *Parser) interface{} {
-	sel := getSelectStmt(getRHS(p, ruleNo, 2))
-	if sel != nil {
-		// Wrap in CreateTableStmt with AS SELECT
-		createStmt := &sql.CreateTableStmt{
-			AsSelect: sel,
-		}
-		return createStmt
-	}
-	return nil
-
-}
-
 // Rule 21: table_option_set ::=
 func ruleTableOptionSet(ruleNo int, p *Parser) interface{} {
 	return &createTableArgs{}
 
 }
 
-func rule22(ruleNo int, p *Parser) interface{} {
+// Rule 22: table_option_set ::= table_option_set table_option
+func ruleTableOptionSetList(ruleNo int, p *Parser) interface{} {
 	acc := getTableOptions(getRHS(p, ruleNo, 1))
 	opt := getTableOptions(getRHS(p, ruleNo, 3))
 	acc.withoutRowid = acc.withoutRowid || opt.withoutRowid
@@ -136,8 +83,8 @@ func ruleTableOptionNm(ruleNo int, p *Parser) interface{} {
 
 }
 
-// Rule 25: columnname :: nm typemod
-func rule25(ruleNo int, p *Parser) interface{} {
+// Rule 25: columnname ::= nm typetoken
+func ruleColumnnameNmTypemod(ruleNo int, p *Parser) interface{} {
 	name := getString(getRHS(p, ruleNo, 1))
 	typeName := getString(getRHS(p, ruleNo, 2))
 	return sql.ColumnDef{Name: name, Type: typeName}
@@ -176,7 +123,8 @@ func ruleTypenameTypenameIdMultiWordTypeNames(ruleNo int, p *Parser) interface{}
 
 }
 
-func rule32(ruleNo int, p *Parser) interface{} {
+// Rule 32: ccons ::= CONSTRAINT nm
+func ruleCconsConstraintNm(ruleNo int, p *Parser) interface{} {
 	return sql.ColumnDef{ConstraintName: getString(getRHS(p, ruleNo, 2))}
 
 }
@@ -240,16 +188,6 @@ func ruleCconsDefaultScantokId(ruleNo int, p *Parser) interface{} {
 
 }
 
-// isCurrentTimeKeyword reports whether name is CURRENT_TIME, CURRENT_DATE, or
-// CURRENT_TIMESTAMP (case-insensitive).
-func isCurrentTimeKeyword(name string) bool {
-	switch strings.ToUpper(name) {
-	case "CURRENT_TIME", "CURRENT_DATE", "CURRENT_TIMESTAMP":
-		return true
-	}
-	return false
-}
-
 // Rule 38: ccons ::= NOT NULL onconf
 func ruleCconsNotNullOnconf(ruleNo int, p *Parser) interface{} {
 	cd := sql.ColumnDef{NotNull: true}
@@ -278,7 +216,8 @@ func ruleCconsPrimaryKeySortorderOnconfAutoinc(ruleNo int, p *Parser) interface{
 
 }
 
-func rule40(ruleNo int, p *Parser) interface{} {
+// Rule 40: ccons ::= UNIQUE onconf
+func ruleCconsUniqueOnconf(ruleNo int, p *Parser) interface{} {
 	cd := sql.ColumnDef{Unique: true}
 	cd.OnConflict = strings.ToUpper(getString(getRHS(p, ruleNo, 2)))
 	return cd
@@ -339,7 +278,8 @@ func ruleAutoinc(ruleNo int, p *Parser) interface{} {
 
 }
 
-func rule48(ruleNo int, p *Parser) interface{} {
+// Rule 48: autoinc ::= AUTOINCR
+func ruleAutoincAutoincr(ruleNo int, p *Parser) interface{} {
 	return true
 
 }
@@ -357,41 +297,50 @@ func ruleRefargsRefargsRefarg(ruleNo int, p *Parser) interface{} {
 
 }
 
+// Rule 51: refarg ::= MATCH nm
 // Rules 51-59: refarg — FK reference actions (ON DELETE CASCADE, etc.)
 // Accumulated as strings into refargs.
-func rule51(ruleNo int, p *Parser) interface{} {
+func ruleRefargMatchNm(ruleNo int, p *Parser) interface{} {
 	return "MATCH " + getString(getRHS(p, ruleNo, 2))
 }
 
-func rule52(ruleNo int, p *Parser) interface{} {
+// Rule 52: refarg ::= ON INSERT refact
+func ruleRefargOnInsertRefact(ruleNo int, p *Parser) interface{} {
 	return "ON INSERT " + getString(getRHS(p, ruleNo, 3))
 }
 
-func rule53(ruleNo int, p *Parser) interface{} {
+// Rule 53: refarg ::= ON DELETE refact
+func ruleRefargOnDeleteRefact(ruleNo int, p *Parser) interface{} {
 	return "ON DELETE " + getString(getRHS(p, ruleNo, 3))
 }
 
-func rule54(ruleNo int, p *Parser) interface{} {
+// Rule 54: refarg ::= ON UPDATE refact
+func ruleRefargOnUpdateRefact(ruleNo int, p *Parser) interface{} {
 	return "ON UPDATE " + getString(getRHS(p, ruleNo, 3))
 }
 
-func rule55(ruleNo int, p *Parser) interface{} {
+// Rule 55: refact ::= SET NULL
+func ruleRefactSetNull(ruleNo int, p *Parser) interface{} {
 	return "SET NULL"
 }
 
-func rule56(ruleNo int, p *Parser) interface{} {
+// Rule 56: refact ::= SET DEFAULT
+func ruleRefactSetDefault(ruleNo int, p *Parser) interface{} {
 	return "SET DEFAULT"
 }
 
-func rule57(ruleNo int, p *Parser) interface{} {
+// Rule 57: refact ::= CASCADE
+func ruleRefactCascade(ruleNo int, p *Parser) interface{} {
 	return "CASCADE"
 }
 
-func rule58(ruleNo int, p *Parser) interface{} {
+// Rule 58: refact ::= RESTRICT
+func ruleRefactRestrict(ruleNo int, p *Parser) interface{} {
 	return "RESTRICT"
 }
 
-func rule59(ruleNo int, p *Parser) interface{} {
+// Rule 59: refact ::= NO ACTION
+func ruleRefactNoAction(ruleNo int, p *Parser) interface{} {
 	return "NO ACTION"
 
 }
@@ -412,7 +361,8 @@ func ruleInitDeferredPredOptEmpty(ruleNo int, p *Parser) interface{} {
 
 }
 
-func rule63(ruleNo int, p *Parser) interface{} {
+// Rule 63: init_deferred_pred_opt ::= INITIALLY DEFERRED
+func ruleInitDeferredPredOptInitiallyDeferred(ruleNo int, p *Parser) interface{} {
 	return " INITIALLY DEFERRED"
 
 }
@@ -472,7 +422,8 @@ func ruleTconsUniqueLpSortlistRpOnconf(ruleNo int, p *Parser) interface{} {
 
 }
 
-func rule70(ruleNo int, p *Parser) interface{} {
+// Rule 70: tcons ::= CHECK LP expr RP onconf
+func ruleTconsCheckOnconf(ruleNo int, p *Parser) interface{} {
 	return sql.TableConstraint{
 		Type:       sql.ConstraintCheck,
 		Expr:       getExpr(getRHS(p, ruleNo, 3)),
@@ -482,7 +433,7 @@ func rule70(ruleNo int, p *Parser) interface{} {
 }
 
 // Rule 71: tcons ::= FOREIGN KEY LP eidlist RP REFERENCES nm eidlist_opt refargs defer_subclause_opt
-func ruleTconsForeignKeyLpEidlistRpReferencesNmEidlistOptRefargsDeferSubclN71(ruleNo int, p *Parser) interface{} {
+func ruleTconsForeignKey(ruleNo int, p *Parser) interface{} {
 	refTable := getString(getRHS(p, ruleNo, 7))
 	refCols := getStringList(getRHS(p, ruleNo, 8))
 	refAction := ""
@@ -540,46 +491,190 @@ func ruleResolvelIgnore(ruleNo int, p *Parser) interface{} {
 
 }
 
-func rule78(ruleNo int, p *Parser) interface{} {
+// Rule 78: resolvel ::= REPLACE
+func ruleResolvelReplace(ruleNo int, p *Parser) interface{} {
 	return getString(getRHS(p, ruleNo, 1))
 
 }
 
-// Rule 79: cmd ::= DROP TABLE ifexists fullname
-func ruleCmdDropTableIfexistsFullname(ruleNo int, p *Parser) interface{} {
-	ifExists := getBool(getRHS(p, ruleNo, 3))
-	name := getString(getRHS(p, ruleNo, 4))
-	return &sql.DropTableStmt{Name: name, IfExists: ifExists}
+// Rule 242: eidlist_opt ::=
+func ruleEidlistOpt(ruleNo int, p *Parser) interface{} {
+	return ([]string)(nil)
 
 }
 
-// Rule 80: ifexists ::= IF EXISTS
-func ruleIfexistsIfExists(ruleNo int, p *Parser) interface{} {
-	return true
+// Rule 243: eidlist_opt ::= LP eidlist RP
+func ruleEidlistOptLpEidlistRp(ruleNo int, p *Parser) interface{} {
+	return getStringList(getRHS(p, ruleNo, 2))
 
 }
 
-// Rule 81: ifexists ::=
-func ruleIfexists(ruleNo int, p *Parser) interface{} {
-	return false
-
-}
-
-// Rule 82: cmd ::= createkw temp VIEW ifnotexists nm dbnm eidlist_opt AS select
-func ruleCmdCreatekwTempViewIfnotexistsNmDbnmEidlistOptAsSelect(ruleNo int, p *Parser) interface{} {
-	name := getString(getRHS(p, ruleNo, 5))
-	schema := getString(getRHS(p, ruleNo, 6)) // dbnm - optional schema
-	if schema != "" {
-		name = name + "." + schema
+// Rule 244: eidlist ::= eidlist COMMA nm collate sortorder
+func ruleEidlistEidlistCommaNmCollateSortorder(ruleNo int, p *Parser) interface{} {
+	acc := getStringList(getRHS(p, ruleNo, 1))
+	name := getString(getRHS(p, ruleNo, 3))
+	// SQLite rejects a COLLATE clause or ASC/DESC in an identifier list
+	// (eidlist), used by CREATE VIEW / CTE column lists and FK reference
+	// lists (parserAddExprIdListTerm raises "syntax error after column
+	// name"). The FIRST offending column wins (sqlite3ErrorMsg is only
+	// honored while zErrMsg is still NULL), so do not overwrite an
+	// already-set error. Schema reload (SchemaMode) skips the check: SQLite
+	// accepts such lists when re-parsing stored sqlite_schema text.
+	if getString(getRHS(p, ruleNo, 4)) != "" || getString(getRHS(p, ruleNo, 5)) != "" {
+		if !p.SchemaMode && p.SemanticErr == nil {
+			p.SemanticErr = fmt.Errorf("syntax error after column name %q", name)
+		}
+		return acc
 	}
-	sel := getSelectStmt(getRHS(p, ruleNo, 9))
-	cols := getStringList(getRHS(p, ruleNo, 7))
-	return &sql.CreateViewStmt{
-		Name:        name,
-		Columns:     cols,
-		Select:      sel,
-		Temporary:   getBool(getRHS(p, ruleNo, 2)), // temp nonterminal: TEMP/TEMPORARY
-		IfNotExists: getBool(getRHS(p, ruleNo, 4)), // ifnotexists nonterminal
+	return append(acc, name)
+
+}
+
+// Rule 245: eidlist ::= nm collate sortorder
+func ruleEidlistNmCollateSortorder(ruleNo int, p *Parser) interface{} {
+	name := getString(getRHS(p, ruleNo, 1))
+	if getString(getRHS(p, ruleNo, 2)) != "" || getString(getRHS(p, ruleNo, 3)) != "" {
+		if !p.SchemaMode && p.SemanticErr == nil {
+			p.SemanticErr = fmt.Errorf("syntax error after column name %q", name)
+		}
+		return []string{name}
 	}
+	return []string{name}
+
+}
+
+// Rule 359: cmd ::= create_table create_table_args
+func ruleCmdCreateTableCreateTableArgs(ruleNo int, p *Parser) interface{} {
+	ct, _ := getRHS(p, ruleNo, 1).(*sql.CreateTableStmt)
+	args := getRHS(p, ruleNo, 2)
+	if ct != nil {
+		if cta, ok := args.(*createTableArgs); ok {
+			ct.Columns = cta.columns
+			ct.Constraints = cta.constraints
+			ct.WithoutRowid = cta.withoutRowid
+			ct.Strict = cta.strict
+		} else if cols, ok := args.([]sql.ColumnDef); ok {
+			ct.Columns = cols
+		} else if ct2, ok := args.(*sql.CreateTableStmt); ok && ct2 != nil {
+			ct.Columns = ct2.Columns
+			ct.AsSelect = ct2.AsSelect
+		}
+	}
+	if ct != nil {
+		return ct
+	}
+	return getRHS(p, ruleNo, 1)
+
+}
+
+// Rule 360: table_option_set ::= table_option
+func ruleTableOptionSetTableOption(ruleNo int, p *Parser) interface{} {
+	return getRHS(p, ruleNo, 1)
+
+}
+
+// Rule 361: columnlist ::= columnlist COMMA columnname carglist
+func ruleColumnlistColumnlistCommaColumnnameCarglist(ruleNo int, p *Parser) interface{} {
+	acc := getColumnList(getRHS(p, ruleNo, 1))
+	col := getColumnDef(getRHS(p, ruleNo, 3))
+	mergeColumnConstraints(&col, getColumnList(getRHS(p, ruleNo, 4)))
+	return append(acc, col)
+
+}
+
+// Rule 362: columnlist ::= columnname carglist
+func ruleColumnlistColumnnameCarglist(ruleNo int, p *Parser) interface{} {
+	col := getColumnDef(getRHS(p, ruleNo, 1))
+	mergeColumnConstraints(&col, getColumnList(getRHS(p, ruleNo, 2)))
+	return []sql.ColumnDef{col}
+
+}
+
+// Rule 365: typetoken ::= typename
+func ruleTypetokenTypename(ruleNo int, p *Parser) interface{} {
+	return getString(getRHS(p, ruleNo, 1))
+
+}
+
+// Rule 366: typename ::= ID|STRING
+func ruleTypenameIdString(ruleNo int, p *Parser) interface{} {
+	if tok, ok := getRHS(p, ruleNo, 1).(sql.Token); ok {
+		return tok.Value
+	}
+	return fmt.Sprintf("%v", getRHS(p, ruleNo, 1))
+
+}
+
+// Rule 369: carglist ::= carglist ccons
+func ruleCarglistCarglistCcons(ruleNo int, p *Parser) interface{} {
+	acc := getColumnList(getRHS(p, ruleNo, 1))
+	if c, ok := getRHS(p, ruleNo, 2).(sql.ColumnDef); ok {
+		acc = append(acc, c)
+	}
+	return acc
+
+}
+
+// Rule 370: carglist ::=
+func ruleCarglist(ruleNo int, p *Parser) interface{} {
+	return nil
+
+}
+
+// Rule 371: ccons ::= AS generated
+func ruleCconsAsGenerated(ruleNo int, p *Parser) interface{} {
+	return sql.ColumnDef{Generated: getExpr(getRHS(p, ruleNo, 2))}
+
+}
+
+// Rule 372: ccons ::= GENERATED ALWAYS AS generated
+func ruleCconsGeneratedAlwaysAsGenerated(ruleNo int, p *Parser) interface{} {
+	return sql.ColumnDef{Generated: getExpr(getRHS(p, ruleNo, 4))}
+
+}
+
+// Rule 373: ccons ::= AS generated
+func ruleCconsAsGeneratedAlt(ruleNo int, p *Parser) interface{} {
+	return sql.ColumnDef{Generated: getExpr(getRHS(p, ruleNo, 2))}
+
+}
+
+// Rule 374: conslist_opt ::= COMMA conslist
+func ruleConslistOptCommaConslist(ruleNo int, p *Parser) interface{} {
+	return getConstraintSlice(getRHS(p, ruleNo, 2))
+
+}
+
+// Rule 375: conslist ::= conslist tconscomma tcons
+func ruleConslistListTconscommaTcons(ruleNo int, p *Parser) interface{} {
+	acc := getConstraintSlice(getRHS(p, ruleNo, 1))
+	tc, _ := getRHS(p, ruleNo, 3).(sql.TableConstraint)
+	// Attach a preceding CONSTRAINT-name marker.
+	if len(acc) > 0 && acc[len(acc)-1].Type == "" && tc.Type != "" {
+		tc.Name = acc[len(acc)-1].Name
+		acc = acc[:len(acc)-1]
+	}
+	if tc.Type != "" || tc.Name != "" {
+		acc = append(acc, tc)
+	}
+	return acc
+
+}
+
+// Rule 376: conslist ::= tcons
+func ruleConslistTcons(ruleNo int, p *Parser) interface{} {
+	return getConstraintSlice(getRHS(p, ruleNo, 1))
+
+}
+
+// Rule 377: tconscomma ::= (empty)
+func ruleTconscommaEmpty(ruleNo int, p *Parser) interface{} {
+	return nil
+
+}
+
+// Rule 379: resolvel ::= ROLLBACK|ABORT|FAIL
+func ruleResolvelRollbackAbortFail(ruleNo int, p *Parser) interface{} {
+	return getString(getRHS(p, ruleNo, 1))
 
 }

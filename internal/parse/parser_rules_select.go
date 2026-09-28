@@ -1,19 +1,24 @@
+// SPDX-License-Identifier: GPL-3.0-or-later
+//
+// Copyright (C) 2026 Pierre Poissinger
+//
+// Package parse implements an LALR(1) SQL parser using go-lemon generated
+// parse tables from SQLite's grammar.
+//
+// Code in this file is ORGANIZED BY GRAMMAR FUNCTION, one file per family;
+// rule numbers are go-lemon table indices (see parser_ruleids.go).
+//
+// SELECT grammar: compound selects, one-select suffixes (DISTINCT,
+// FROM/JOIN, WHERE, GROUP BY, HAVING, ORDER BY, LIMIT), VALUES rows,
+// and WITH/CTE.
+
 package parse
 
 import (
 	"fmt"
+	sql "github.com/pijalu/frigolite/internal/sql"
 	"strings"
-
-	"github.com/pijalu/frigolite/internal/sql"
 )
-
-// Rule 83: cmd ::= DROP VIEW ifexists fullname
-func ruleCmdDropViewIfexistsFullname(ruleNo int, p *Parser) interface{} {
-	ifExists := getBool(getRHS(p, ruleNo, 3))
-	name := getString(getRHS(p, ruleNo, 4))
-	return &sql.DropViewStmt{Name: name, IfExists: ifExists}
-
-}
 
 // Rule 84: cmd ::= select
 func ruleCmdSelect(ruleNo int, p *Parser) interface{} {
@@ -21,7 +26,8 @@ func ruleCmdSelect(ruleNo int, p *Parser) interface{} {
 
 }
 
-func rule85(ruleNo int, p *Parser) interface{} {
+// Rule 85: select ::= WITH wqlist selectnowith
+func ruleSelectWithWqlistSelectnowith(ruleNo int, p *Parser) interface{} {
 	sel := getSelectStmt(getRHS(p, ruleNo, 3))
 	if sel != nil {
 		sel.CTEs = getCTEDefs(getRHS(p, ruleNo, 2))
@@ -91,7 +97,7 @@ func ruleMultiselectOpExceptIntersect(ruleNo int, p *Parser) interface{} {
 }
 
 // Rule 92: oneselect ::= SELECT distinct selcollist from where_opt groupby_opt having_opt orderby_opt limit_opt
-func ruleOneselectSelectDistinctSelcollistFromWhereOptGroupbyOptHavingOptON92(ruleNo int, p *Parser) interface{} {
+func ruleOneselectCore(ruleNo int, p *Parser) interface{} {
 	distinct := getBool(getRHS(p, ruleNo, 2))
 	cols := getSelectColumns(getRHS(p, ruleNo, 3))
 	from, joins := fromValue(getRHS(p, ruleNo, 4))
@@ -116,7 +122,8 @@ func ruleOneselectSelectDistinctSelcollistFromWhereOptGroupbyOptHavingOptON92(ru
 
 }
 
-func rule93(ruleNo int, p *Parser) interface{} {
+// Rule 93: oneselect ::= SELECT distinct selcollist from where_opt groupby_opt having_opt window_clause orderby_opt limit_opt
+func ruleOneselectCoreWindow(ruleNo int, p *Parser) interface{} {
 	// Same as 92 but with window_clause before orderby_opt
 	distinct := getBool(getRHS(p, ruleNo, 2))
 	cols := getSelectColumns(getRHS(p, ruleNo, 3))
@@ -223,7 +230,8 @@ func ruleDistinct(ruleNo int, p *Parser) interface{} {
 
 }
 
-func rule102(ruleNo int, p *Parser) interface{} {
+// Rule 102: selcollist ::= sclp COMMA scanpt expr as
+func ruleSelcollistSclpCommaScanptExprAs(ruleNo int, p *Parser) interface{} {
 	expr := getExpr(getRHS(p, ruleNo, 3))
 	alias := getString(getRHS(p, ruleNo, 5))
 
@@ -284,7 +292,8 @@ func ruleStlPrefixSeltablistJoinop(ruleNo int, p *Parser) interface{} {
 
 }
 
-func rule110(ruleNo int, p *Parser) interface{} {
+// Rule 110: stl_prefix ::= (empty)
+func ruleStlPrefixEmpty(ruleNo int, p *Parser) interface{} {
 	return &seltablistAcc{}
 
 }
@@ -379,59 +388,359 @@ func ruleSeltablistStlPrefixLpSeltablistRpAsOnUsing(ruleNo int, p *Parser) inter
 
 }
 
-// Rule 116: dbnm ::=
-func ruleDbnm(ruleNo int, p *Parser) interface{} {
+// Rule 124: joinop ::= COMMA|JOIN
+func ruleJoinopCommaJoin(ruleNo int, p *Parser) interface{} {
+	// comma join (FROM a, b) and a plain JOIN keyword (INNER JOIN).
+	// Distinguish by the token value: "," is a comma join, "JOIN" is INNER.
+	if tok, ok := getRHS(p, ruleNo, 1).(sql.Token); ok && tok.Value == "," {
+		return joinOp{Comma: true}
+	}
+	return joinOp{Kind: "INNER"}
+
+}
+
+// Rule 125: joinop ::= JOIN_KW JOIN
+func ruleJoinopJoinKwJoin(ruleNo int, p *Parser) interface{} {
+	return joinOpFromKeywords(p, getString(getRHS(p, ruleNo, 1)))
+
+}
+
+// Rule 126: joinop ::= JOIN_KW nm JOIN
+// "NATURAL LEFT JOIN" has JOIN_KW=NATURAL and nm=LEFT; the nm join type
+// must be preserved so exec can NULL-fill the correct side (SQLite's
+// sqlite3JoinType ORs JT_NATURAL with the JOIN_KW/nm flags).
+func ruleJoinopJoinKwNmJoin(ruleNo int, p *Parser) interface{} {
+	return joinOpFromKeywords(p, getString(getRHS(p, ruleNo, 1)), getString(getRHS(p, ruleNo, 2)))
+
+}
+
+// Rule 127: joinop ::= JOIN_KW nm nm JOIN
+func ruleJoinopJoinKwNmNmJoin(ruleNo int, p *Parser) interface{} {
+	// joinop ::= JOIN_KW nm nm JOIN: all THREE keyword slots go to
+	// sqlite3JoinType, whose error names every keyword as written
+	// ("NATURAL AWK SED", join-1.2.3).
+	return joinOpFromKeywords(p, getString(getRHS(p, ruleNo, 1)), getString(getRHS(p, ruleNo, 2)), getString(getRHS(p, ruleNo, 3)))
+
+}
+
+// Rule 128: on_using ::= ON expr
+func ruleOnUsingOnExpr(ruleNo int, p *Parser) interface{} {
+	return getExpr(getRHS(p, ruleNo, 2))
+
+}
+
+// Rule 129: on_using ::= USING LP idlist RP — the USING column list.
+func ruleOnUsingUsing(ruleNo int, p *Parser) interface{} {
+	return getStringList(getRHS(p, ruleNo, 3))
+
+}
+
+// Rule 130: on_using ::=
+func ruleOnUsing(ruleNo int, p *Parser) interface{} {
+	return nil
+
+}
+
+// Rule 131: scanpt ::= (empty) — zero-width scan-position marker
+func ruleScanpt(ruleNo int, p *Parser) interface{} {
+	return nil
+
+}
+
+// Rule 132: indexed_by ::= INDEXED BY nm
+// Returns the index name. Consumers currently ignore indexed_by.
+func ruleIndexedByIndexedByNm(ruleNo int, p *Parser) interface{} {
+	return getString(getRHS(p, ruleNo, 3))
+
+}
+
+// Rule 133: indexed_by ::= NOT INDEXED
+// Marks the table reference as NOT INDEXED (no index hints).
+// Consumers currently ignore indexed_by; this returns a non-nil marker
+// so the rule does not fall through to a nil passthrough.
+func ruleIndexedByNotIndexed(ruleNo int, p *Parser) interface{} {
+	return "NOT INDEXED"
+
+}
+
+// Rule 134: orderby_opt ::=
+func ruleOrderbyOpt(ruleNo int, p *Parser) interface{} {
+	return ([]sql.OrderByTerm)(nil)
+
+}
+
+// Rule 135: orderby_opt ::= ORDER BY sortlist
+func ruleOrderbyOptOrderBySortlist(ruleNo int, p *Parser) interface{} {
+	return getOrderByList(getRHS(p, ruleNo, 3))
+
+}
+
+// Rule 136: sortlist ::= sortlist COMMA expr sortorder nulls
+func ruleSortlistSortlistCommaExprSortorderNulls(ruleNo int, p *Parser) interface{} {
+	acc := getOrderByList(getRHS(p, ruleNo, 1))
+	expr := getExpr(getRHS(p, ruleNo, 3))
+	desc := getRHS(p, ruleNo, 4) == "DESC"
+	nf, nl := getNullsOrder(getRHS(p, ruleNo, 5))
+	return append(acc, sql.OrderByTerm{Expr: expr, Desc: desc, NullsFirst: nf, NullsLast: nl})
+
+}
+
+// Rule 137: sortlist ::= expr sortorder nulls
+func ruleSortlistExprSortorderNulls(ruleNo int, p *Parser) interface{} {
+	expr := getExpr(getRHS(p, ruleNo, 1))
+	desc := getRHS(p, ruleNo, 2) == "DESC"
+	nf, nl := getNullsOrder(getRHS(p, ruleNo, 3))
+	return []sql.OrderByTerm{{Expr: expr, Desc: desc, NullsFirst: nf, NullsLast: nl}}
+
+}
+
+// Rule 138: sortorder ::= ASC
+// The sortorder value is a string: "ASC", "DESC", or "" (absent).
+// Consumers compare against "DESC" for descending order; eidlist rules
+// treat ANY explicit sortorder (ASC or DESC) as an error, matching SQLite's
+// SQLITE_SO_UNDEFINED distinction.
+func ruleSortorderAsc(ruleNo int, p *Parser) interface{} {
+	return "ASC"
+
+}
+
+// Rule 139: sortorder ::= DESC
+func ruleSortorderDesc(ruleNo int, p *Parser) interface{} {
+	return "DESC"
+
+}
+
+// Rule 140: sortorder ::=
+func ruleSortorder(ruleNo int, p *Parser) interface{} {
 	return ""
 
 }
 
-// Rule 117: dbnm ::= DOT nm
-func ruleDbnmDotNm(ruleNo int, p *Parser) interface{} {
-	return getString(getRHS(p, ruleNo, 2))
+// Rule 141: nulls ::= NULLS FIRST
+func ruleNullsNullsFirst(ruleNo int, p *Parser) interface{} {
+	return nullsOrder{first: true}
 
 }
 
-func rule118(ruleNo int, p *Parser) interface{} {
-	return getString(getRHS(p, ruleNo, 1))
+// Rule 142: nulls ::= NULLS LAST
+func ruleNullsNullsLast(ruleNo int, p *Parser) interface{} {
+	return nullsOrder{last: true}
 
 }
 
-// Rule 119: fullname ::= nm DOT nm
-func ruleFullnameNmDotNm(ruleNo int, p *Parser) interface{} {
-	a := getString(getRHS(p, ruleNo, 1))
-	b := getString(getRHS(p, ruleNo, 3))
-	return a + "." + b
+// Rule 143: nulls ::= (empty)
+func ruleNullsEmpty(ruleNo int, p *Parser) interface{} {
+	return nullsOrder{}
 
 }
 
-// Rule 121: xfullname ::= nm DOT nm (schema-qualified table name used by
-// INSERT/UPDATE/DELETE, e.g. "temp.t2"). Produces "schema.table".
-func ruleXfullnameNmDotNmSchemaQualifiedTableNameUsedBy(ruleNo int, p *Parser) interface{} {
-	a := getString(getRHS(p, ruleNo, 1))
-	b := getString(getRHS(p, ruleNo, 3))
-	return a + "." + b
+// Rule 144: groupby_opt ::=
+func ruleGroupbyOpt(ruleNo int, p *Parser) interface{} {
+	return ([]sql.Expr)(nil)
 
 }
 
-// Rule 122: xfullname ::= nm AS nm — table alias. The value is the
-// TABLE NAME (the alias is consumed into pendingDMLAlias so the DML
-// statement rule can set stmt.Alias); the join-op productions are
-// separate (rules 124+).
-func ruleXfullnameNmAsNmTableAliasTheValueIsThe(ruleNo int, p *Parser) interface{} {
-	p.pendingDMLAlias = getString(getRHS(p, ruleNo, 3))
-	return getString(getRHS(p, ruleNo, 1))
+// Rule 145: groupby_opt ::= GROUP BY nexprlist
+func ruleGroupbyOptGroupByNexprlist(ruleNo int, p *Parser) interface{} {
+	return getExprList(getRHS(p, ruleNo, 3))
 
 }
 
-// Rule 123: xfullname ::= nm DOT nm AS nm
-func ruleXfullnameNmDotNmAsNm(ruleNo int, p *Parser) interface{} {
-	// Rule 123: xfullname ::= nm DOT nm AS nm — schema-qualified target with
-	// an alias ("INSERT INTO main.t1 AS t2(a,b)"). The alias is consumed
-	// (SQLite keeps it in SrcList->a[0].zAlias); the value is the
-	// "schema.table" name. (This was mis-handled as a joinop production,
-	// leaking a zero joinOp into the table-name slot — "%v" printed
-	// "{ false false}" and every schema-qualified aliased DML target failed
-	// with "no such table".)
-	p.pendingDMLAlias = getString(getRHS(p, ruleNo, 5))
-	return getString(getRHS(p, ruleNo, 1)) + "." + getString(getRHS(p, ruleNo, 3))
+// Rule 146: having_opt ::=
+func ruleHavingOpt(ruleNo int, p *Parser) interface{} {
+	return nil
+
+}
+
+// Rule 147: having_opt ::= HAVING expr
+func ruleHavingOptHavingExpr(ruleNo int, p *Parser) interface{} {
+	return getExpr(getRHS(p, ruleNo, 2))
+
+}
+
+// Rule 148: limit_opt ::=
+func ruleLimitOpt(ruleNo int, p *Parser) interface{} {
+	return nil
+
+}
+
+// Rule 149: limit_opt ::= LIMIT expr
+func ruleLimitOptLimitExpr(ruleNo int, p *Parser) interface{} {
+	return &limitClause{limit: getExpr(getRHS(p, ruleNo, 2))}
+
+}
+
+// Rule 150: limit_opt ::= LIMIT expr OFFSET expr
+func ruleLimitOptLimitExprOffsetExpr(ruleNo int, p *Parser) interface{} {
+	return &limitClause{
+		limit:  getExpr(getRHS(p, ruleNo, 2)),
+		offset: getExpr(getRHS(p, ruleNo, 4)),
+	}
+
+}
+
+// Rule 151: limit_opt ::= LIMIT expr COMMA expr
+func ruleLimitOptLimitExprCommaExpr(ruleNo int, p *Parser) interface{} {
+	// SQLite's LIMIT expr, expr form: first expr is the OFFSET.
+	return &limitClause{
+		offset: getExpr(getRHS(p, ruleNo, 2)),
+		limit:  getExpr(getRHS(p, ruleNo, 4)),
+	}
+
+}
+
+// Rule 153: where_opt ::=
+func ruleWhereOpt(ruleNo int, p *Parser) interface{} {
+	return nil
+
+}
+
+// Rule 154: where_opt ::= WHERE expr
+func ruleWhereOptWhereExpr(ruleNo int, p *Parser) interface{} {
+	return getExpr(getRHS(p, ruleNo, 2))
+
+}
+
+// Rule 309: with ::= WITH wqlist
+// The wqlist value is []sql.CTEDef; propagate it as the with value so
+// INSERT (rule 164) can attach the CTEs.
+func ruleWithWithWqlist(ruleNo int, p *Parser) interface{} {
+	return getCTEDefs(getRHS(p, ruleNo, 2))
+
+}
+
+// Rule 310: with ::= WITH RECURSIVE wqlist
+// Mark every CTE as recursive (WITH RECURSIVE applies to the whole list).
+func ruleWithWithRecursiveWqlist(ruleNo int, p *Parser) interface{} {
+	defs := getCTEDefs(getRHS(p, ruleNo, 3))
+	for i := range defs {
+		defs[i].Recursive = true
+	}
+	return defs
+
+}
+
+// Rule 311: wqas ::= AS
+// The materialization hint (MATERIALIZED / NOT MATERIALIZED) is not
+// modeled; pass through a marker value.
+func ruleWqasAs(ruleNo int, p *Parser) interface{} {
+	return true
+
+}
+
+// Rule 314: wqitem ::= withnm eidlist_opt wqas LP select RP
+func ruleWqitemWithnmEidlistOptWqasLpSelectRp(ruleNo int, p *Parser) interface{} {
+	name := getString(getRHS(p, ruleNo, 1))
+	cols := getStringList(getRHS(p, ruleNo, 2))
+	sel := getSelectStmt(getRHS(p, ruleNo, 5))
+	return sql.CTEDef{Name: name, Columns: cols, Select: sel}
+
+}
+
+// Rule 315: withnm ::= nm
+func ruleWithnmNm(ruleNo int, p *Parser) interface{} {
+	return getRHS(p, ruleNo, 1)
+
+}
+
+// Rule 316: wqlist ::= wqitem
+func ruleWqlistWqitem(ruleNo int, p *Parser) interface{} {
+	if d, ok := getRHS(p, ruleNo, 1).(sql.CTEDef); ok {
+		return []sql.CTEDef{d}
+	}
+	return nil
+
+}
+
+// Rule 317: wqlist ::= wqlist COMMA wqitem
+func ruleWqlistListCommaWqitem(ruleNo int, p *Parser) interface{} {
+	defs := getCTEDefs(getRHS(p, ruleNo, 1))
+	if d, ok := getRHS(p, ruleNo, 3).(sql.CTEDef); ok {
+		return append(defs, d)
+	}
+	return defs
+
+}
+
+// Rule 380: selectnowith ::= oneselect (already handled, but keep for pass-through)
+func ruleSelectnowithOneselect(ruleNo int, p *Parser) interface{} {
+	return nil
+
+}
+
+// Rule 381: oneselect ::= values
+func ruleOneselectValues(ruleNo int, p *Parser) interface{} {
+	sel := getSelectStmt(getRHS(p, ruleNo, 1))
+	if sel != nil {
+		sel.ValuesChain = true
+	}
+	return sel
+
+}
+
+// Rule 383: as ::= ID|STRING
+func ruleAsIdString(ruleNo int, p *Parser) interface{} {
+	if tok, ok := getRHS(p, ruleNo, 1).(sql.Token); ok {
+		return tok.Value
+	}
+	return fmt.Sprintf("%v", getRHS(p, ruleNo, 1))
+
+}
+
+// Rule 409: with ::=
+func ruleWith(ruleNo int, p *Parser) interface{} {
+	return nil
+
+}
+
+// joinOpFromKeywords merges the joinop's raw keyword texts into the joinOp,
+// porting select.c sqlite3JoinType's error contract ("unknown join type",
+// vtab6-3.7: INNER OUTER / LEFT BOGUS). On an invalid combination the parse
+// carries the error via SemanticErr and the op degrades to INNER.
+func joinOpFromKeywords(p *Parser, kws ...string) joinOp {
+	kind, err := combineJoinKeywords(kws...)
+	if err != nil {
+		p.SemanticErr = err
+		return joinOp{Kind: "INNER"}
+	}
+	return joinOp{Kind: kind, Outer: true}
+}
+
+// valuesChainArmWidth counts the result columns of one VALUES/SELECT arm;
+// star reports a "*" column (which cannot be counted statically).
+func valuesChainArmWidth(cur *sql.SelectStmt) (n int, star bool) {
+	for _, col := range cur.Columns {
+		if ref, ok := col.Expr.(*sql.ColumnRef); ok && ref.Name == "*" {
+			return 0, true
+		}
+		n++
+	}
+	return n, false
+}
+
+// checkValuesChainWidths implements sqlite3SelectWrongNumTermsError during
+// compound generation: a VALUES chain whose arms have differing widths names
+// the set op (select4-11.16: "INSERT INTO t2(rowid) VALUES(2) UNION SELECT 3,4"
+// reports the UNION, not the INSERT column-count check). Arms with a star
+// cannot be counted statically and abort the check.
+func checkValuesChainWidths(sel *sql.SelectStmt) (badValues bool, badOp string) {
+	width := -1
+	for cur := sel; cur != nil && badOp == ""; cur = cur.Union {
+		n, star := valuesChainArmWidth(cur)
+		if star {
+			break
+		}
+		if width >= 0 && n != width {
+			if !cur.ExplicitSetOp {
+				// Comma-linked VALUES row: the SF_Values branch of
+				// sqlite3SelectWrongNumTermsError (values-2.1.x).
+				badValues = true
+			} else {
+				badOp = opNameOf(cur)
+			}
+			break
+		}
+		width = n
+	}
+	return badValues, badOp
 }
