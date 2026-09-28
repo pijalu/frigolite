@@ -1,9 +1,17 @@
-// Package pager — statement-level state snapshot/restore.
+// Package pager — whole-state snapshot/restore.
 //
-// PagerState is a deep snapshot of the pager's in-memory pages and header,
-// used for statement-level rollback (e.g. a failed REPLACE that fired
-// triggers): Snapshot captures, Restore reinstates (pager.c pager_rollback
-// via the journal playback path).
+// PagerState is a deep snapshot of the pager's in-memory pages and header:
+// Snapshot captures, Restore reinstates (pager.c pager_rollback via the
+// journal playback path). Snapshot/Restore is reserved for WHOLE-STATE
+// scopes — the BEGIN/ROLLBACK transaction pair and SAVEPOINT/ROLLBACK TO
+// (internal/exec/transaction.go) and the shared-memdb isolation swap
+// (internal/exec/select_delegate.go) — where the rollback must reach across
+// many statements and a full image is the contract.
+//
+// Per-STATEMENT rollback does NOT go through Snapshot: it uses the
+// statement journal (pagerstmt.go — pager.c sub-journal), which captures
+// before-images lazily at first page write and costs O(1) per statement
+// instead of O(database).
 package pager
 
 // Snapshot captures the pager's current in-memory pages and header so they

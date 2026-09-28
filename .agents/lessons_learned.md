@@ -6,6 +6,50 @@
 > followed by the current T33 session sections. Consult the archive for
 > closed-goal specifics (also in plan/goals/*.md and portplan/NA_EVIDENCE.md).
 
+## PERF.P5 — statement journal replaces per-statement pager snapshots (2026-09-28)
+
+- **The 9.4ms no-match DELETE was TWO O(database) costs stacked, not one.**
+  The report attributed it all to `execDeleteBulk`'s per-statement
+  `Pager.Snapshot()` (deep-copies every cached page). Removing that (statement
+  journal, below) only bought ~1ms on this machine: the DELETE's seek plan
+  (`seekDeleteRows`) fell back to `collectDeleteRows`' full table scan when
+  `fetchSeekRow` found the rowid ABSENT — `!found` was treated as a lookup
+  failure. A missing rowid is an exactly-empty candidate set (the equality
+  conjunct pins candidates exactly), so `continue`, not fallback. Third stack
+  layer: `deleteRowsByIdentity` swept every leaf via `DeleteCellsWhere` even
+  for 1 rowid — `btree.DeleteCellByRowID` (already existed for trigger
+  cascades) is O(log n) per rowid; use it for sparse sets (<=64), keep the
+  single-pass sweep for mass deletes. Profile BEFORE assuming the named root
+  cause is the only one: `collectDeleteRows`/`DeleteCellsWhere` in the profile
+  named the real remaining costs in minutes.
+- **Statement journal capture ordering** (pager.c sub-journal): frigolite's
+  btree mutates `pg.Data` in place THEN calls `WritePage`, so capture at
+  dirty-mark time is post-mutation. It is still correct for pages CLEAN at
+  statement start (their statement-start image is the transaction-start image
+  still on disk/WAL — pages reach the file only at commit — so the journal
+  stores a from-file entry and rollback restores by cache EVICTION, no bytes).
+  Only pages already dirty at statement begin (earlier statement of the same
+  transaction; disk image stale) and memory-pager pages (no disk) need a
+  pre-mutation MEMORY copy — the READ path (ReadPage fast path + end of
+  readPageLocked) is the only point guaranteed before the caller mutates.
+  Capture-at-read for every page would have kept the O(database) cost
+  (scans touch every page); capturing only begin-dirty/memory pages keeps
+  scans O(plan).
+- **BeginStatement must be O(1)**: copying the dirty SET per statement is
+  O(dirty count) → quadratic for per-row scopes inside big DML (the
+  fts4merge4/sqllimits1-7.5 trap again). A monotonic clean→dirty stamp
+  (`dirtyStamp`/`dirtyMark` map) answers "was this page already dirty when
+  the scope began" with two map ops at capture time and zero work at scope
+  open.
+- **restoreFileImageLocked consumes s.fileSize**: it truncates the FILE to the
+  snapshot size when `p.fileSize != s.fileSize` — pre-assigning `p.fileSize`
+  before calling it (naive metadata restore) silently skips the both-direction
+  truncate. Pass the metadata through the synthetic PagerState; don't assign
+  first.
+- **zsh gotcha for fleet runs**: unquoted `$VAR` does NOT word-split in zsh —
+  `go test $DIRS` passed the whole list as ONE package ("file name too long").
+  Use `xargs`.
+
 ## T33-misc — misc2/3/5/7/8 driven green (2026-09-24)
 
 - **WIP 380a22c5d adjudication**: of its ~30-file internal/ delta, only 3 hunks
