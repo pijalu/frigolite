@@ -39,7 +39,7 @@ func (e *SelectEngine) planSingleTable(t queryTable, s *sql.SelectStmt) (string,
 		// INTEGER PRIMARY KEY / rowid equality is a direct table-btree seek:
 		// SQLite renders "SEARCH <t> USING INTEGER PRIMARY KEY (rowid=?)"
 		// (intpkey-1.12.2 "WHERE a==4" over t1(a INTEGER PRIMARY KEY)).
-		return e.ipkSearchDetail(t.display, s.Where), loop
+		return e.ipkSearchDetail(t.real, t.display, s.From.As, s.Where), loop
 	}
 	// Covering index: for COUNT(col) on an indexed column, use the best covering index
 	if plan, ok := e.countIndexPlan(t, s); ok {

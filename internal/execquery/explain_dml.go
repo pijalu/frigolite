@@ -119,19 +119,21 @@ func colDefsHasColumn(colDefs []sql.ColumnDef, colName string) bool {
 // when the WHERE constrains the rowid (or an INTEGER PRIMARY KEY rowid-alias
 // column) by equality with a literal or bind parameter: SQLite seeks the
 // table b-tree directly (intpkey-1.12.2 "WHERE a==4"). Returns "" otherwise
-// so secondary b-tree index planning proceeds. A declared column named
+// so secondary b-tree index planning proceeds. realName is the FROM table
+// (lookup), display the rendered name (the alias when one was written),
+// alias the FROM alias for reference qualification. A declared column named
 // rowid/_rowid_/oid shadows the pseudo-column.
-func (e *SelectEngine) ipkSearchDetail(tableName string, where sql.Expr) string {
-	if where == nil || tableName == "" {
+func (e *SelectEngine) ipkSearchDetail(realName, display, alias string, where sql.Expr) string {
+	if where == nil || realName == "" {
 		return ""
 	}
-	colDefs, rowidTable := e.ipkSeekColDefs(tableName)
+	colDefs, rowidTable := e.ipkSeekColDefs(realName)
 	if !rowidTable {
 		return ""
 	}
 	shadowed := RowHasRowIDColumn(colDefs)
 	for _, conj := range splitAnd(where) {
-		if detail := e.ipkConjunctDetail(conj, tableName, colDefs, shadowed); detail != "" {
+		if detail := e.ipkConjunctDetail(conj, realName, display, alias, colDefs, shadowed); detail != "" {
 			return detail
 		}
 	}
@@ -153,20 +155,20 @@ func (e *SelectEngine) ipkSeekColDefs(tableName string) ([]sql.ColumnDef, bool) 
 
 // ipkConjunctDetail renders the IPK seek detail for one WHERE conjunct, or ""
 // when the conjunct is not an equality on a rowid reference.
-func (e *SelectEngine) ipkConjunctDetail(conj sql.Expr, tableName string, colDefs []sql.ColumnDef, shadowed bool) string {
+func (e *SelectEngine) ipkConjunctDetail(conj sql.Expr, realName, display, alias string, colDefs []sql.ColumnDef, shadowed bool) string {
 	bin, ok := conj.(*sql.BinaryOp)
 	if !ok || (bin.Operator != "=" && bin.Operator != "==") {
 		return ""
 	}
 	for _, sides := range [2][2]sql.Expr{{bin.Left, bin.Right}, {bin.Right, bin.Left}} {
 		ref, ok := sides[0].(*sql.ColumnRef)
-		if !ok || (ref.Table != "" && !strings.EqualFold(ref.Table, tableName)) {
+		if !ok {
 			continue
 		}
 		if !isDMLSearchLiteral(sides[1]) && !isParameterExpr(sides[1]) {
 			continue
 		}
-		if detail := e.ipkSideDetail(ref, tableName, colDefs, shadowed); detail != "" {
+		if detail := e.ipkSideDetail(ref, realName, display, alias, colDefs, shadowed); detail != "" {
 			return detail
 		}
 	}
@@ -175,14 +177,14 @@ func (e *SelectEngine) ipkConjunctDetail(conj sql.Expr, tableName string, colDef
 
 // ipkSideDetail renders the IPK seek detail for one equality operand side: a
 // rowid pseudo-column reference or an INTEGER PRIMARY KEY rowid-alias column.
-func (e *SelectEngine) ipkSideDetail(ref *sql.ColumnRef, tableName string, colDefs []sql.ColumnDef, shadowed bool) string {
-	if isRowIDName(ref.Name) && !shadowed {
-		return fmt.Sprintf("SEARCH %s USING INTEGER PRIMARY KEY (rowid=?)", tableName)
+func (e *SelectEngine) ipkSideDetail(ref *sql.ColumnRef, realName, display, alias string, colDefs []sql.ColumnDef, shadowed bool) string {
+	if shadowed {
+		return ""
 	}
-	if cd, ok := findColDefByName(colDefs, ref.Name); ok && isIPKRowidAliasCol(cd) {
-		return fmt.Sprintf("SEARCH %s USING INTEGER PRIMARY KEY (rowid=?)", tableName)
+	if !isRowidSeekRef(ref, realName, alias, colDefs) {
+		return ""
 	}
-	return ""
+	return fmt.Sprintf("SEARCH %s USING INTEGER PRIMARY KEY (rowid=?)", display)
 }
 
 // isParameterExpr reports whether expr is a bound-parameter placeholder.

@@ -72,20 +72,49 @@ func (e *SelectEngine) fetchSeekStructRow(s *sql.SelectStmt, tree *btree.BTree, 
 	if err != nil || rec == nil {
 		return nil, nil, false, false
 	}
+	affinityCols := e.scanTableAffinityCols(s, colDefs, needMaps)
+	srow = e.structRowFromRecord(rec.Values, len(rec.Values), colDefs, realRowID, affinityCols)
+	return cursor, srow, true, true
+}
+
+// structRowFromRecord builds a seek-path StructRow through the same per-row
+// pipeline the table scan applies (fillStructRowFromTypes): dropped-column
+// re-alignment, ALTER TABLE ADD COLUMN defaults, affinity wrappers on the
+// referenced columns, and the INTEGER PRIMARY KEY rowid-alias substitution
+// (the alias is stored as NULL in the record; both the alias seek's WHERE
+// re-check and the output read the alias value from here).
+func (e *SelectEngine) structRowFromRecord(values []interface{}, valueCount int, colDefs []sql.ColumnDef, rowID int64, affinityCols map[string]bool) *StructRow {
+	// Rows written before ALTER TABLE ADD COLUMN store fewer values than the
+	// table now declares: pad to the declared width so every colDefs slot
+	// exists (the scan path allocates the full width up front).
+	if len(values) < len(colDefs) {
+		padded := make([]interface{}, len(colDefs))
+		copy(padded, values)
+		values = padded
+	}
+	shiftDroppedColumns(values, colDefs)
+	e.applyColumnDefaults(values, colDefs, valueCount)
 	colIndex := make(map[string]int, len(colDefs))
 	for i, cd := range colDefs {
 		colIndex[cd.Name] = i
 	}
-	affinityCols := e.scanTableAffinityCols(s, colDefs, needMaps)
-	srow = &StructRow{Values: rec.Values, Index: colIndex, RowID: realRowID}
+	srow := &StructRow{Values: values, Index: colIndex, RowID: rowID}
+	// Wrap the referenced columns, skipping stored NULLs exactly like the
+	// scan's affinityPlan.apply — the INTEGER PRIMARY KEY rowid-alias column
+	// is stored as NULL and must reach the substitution below unwrapped.
 	if affinityCols != nil {
 		for i := range colDefs {
-			if affinityCols[strings.ToLower(colDefs[i].Name)] {
-				srow.Values[i] = wrapValueForRowMap(rec.Values[i], colDefs[i])
+			if affinityCols[strings.ToLower(colDefs[i].Name)] && values[i] != nil {
+				srow.Values[i] = wrapValueForRowMap(values[i], colDefs[i])
 			}
 		}
 	}
-	return cursor, srow, true, true
+	for _, i := range ipkAliasIndices(colDefs) {
+		if srow.Values[i] == nil {
+			srow.Values[i] = wrapAffinityCollated(colDefs[i], rowID)
+		}
+	}
+	return srow
 }
 
 // selectRowidSeekGate runs the eligibility checks and extracts the pinned
@@ -104,11 +133,7 @@ func (e *SelectEngine) selectRowidSeekGate(s *sql.SelectStmt, tableEntry *schema
 	if e.ctx.HasWithoutRowidKeyword(strings.ToUpper(tableEntry.SQL)) {
 		return 0, false, false
 	}
-	// A declared column named rowid/_rowid_/oid shadows the pseudo-column.
-	if RowHasRowIDColumn(colDefs) {
-		return 0, false, false
-	}
-	return selectRowidSeekConst(s.Where, tableEntry.Name, s.From.As)
+	return selectRowidSeekConst(s.Where, tableEntry.Name, s.From.As, colDefs)
 }
 
 // seekRowOutput builds the single row's output (SELECT * flat path or
@@ -138,31 +163,51 @@ func (e *SelectEngine) seekRowOutput(s *sql.SelectStmt, colDefs []sql.ColumnDef,
 }
 
 // selectRowidSeekConst extracts a rowid-pinning constant from the WHERE
-// clause: an AND conjunct "rowid = <literal>" (either side, optionally
-// table/alias qualified, or wrapped in a unary +/-). Returns planned=false
-// when no such conjunct exists or the constant is not a literal (subqueries,
-// functions, column references keep the scan), matches=false when the
-// constant provably equals no rowid under SQLite's affinity rules
-// (non-integral numbers, non-numeric text, blobs, NULL).
-func selectRowidSeekConst(where sql.Expr, tableName, alias string) (rowid int64, matches bool, planned bool) {
+// clause: an AND conjunct "rowid = <literal>" — where the rowid reference is
+// either the rowid/_rowid_/oid pseudo-column or the table's INTEGER PRIMARY
+// KEY rowid-alias column (isRowidSeekRef) — with either operand order,
+// optionally table/alias qualified, or wrapped in a unary +/-. Returns
+// planned=false when no such conjunct exists or the constant is not a
+// literal (subqueries, functions, column references keep the scan),
+// matches=false when the constant provably equals no rowid under SQLite's
+// affinity rules (non-integral numbers, non-numeric text, blobs, NULL).
+func selectRowidSeekConst(where sql.Expr, tableName, alias string, colDefs []sql.ColumnDef) (rowid int64, matches bool, planned bool) {
 	for _, conj := range splitAnd(where) {
 		bin, ok := unwrapParenExpr(conj).(*sql.BinaryOp)
-		if !ok || bin.Operator != "=" {
+		if !ok || (bin.Operator != "=" && bin.Operator != "==") {
 			continue
 		}
 		for _, sides := range [2][2]sql.Expr{{bin.Left, bin.Right}, {bin.Right, bin.Left}} {
 			ref, ok := unwrapParenExpr(sides[0]).(*sql.ColumnRef)
-			if !ok || !IsRowIDName(ref.Name) {
-				continue
-			}
-			if ref.Table != "" && !strings.EqualFold(ref.Table, tableName) &&
-				(alias == "" || !strings.EqualFold(ref.Table, alias)) {
+			if !ok || !isRowidSeekRef(ref, tableName, alias, colDefs) {
 				continue
 			}
 			return selectRowidLiteral(unwrapParenExpr(sides[1]))
 		}
 	}
 	return 0, false, false
+}
+
+// isRowidSeekRef reports whether a column reference designates the table's
+// rowid for seek planning: the rowid/_rowid_/oid pseudo-column — blocked
+// when a declared column of the same name shadows it (RowHasRowIDColumn) —
+// or the INTEGER PRIMARY KEY rowid-alias column, qualified by the table
+// name or its FROM alias. The same predicate drives the SELECT seek
+// executor and the EXPLAIN QUERY PLAN renderer so the two cannot diverge
+// (the alias keeps seeking under a shadow: intpkey tables with a declared
+// rowid column still SEARCH by the alias, only the pseudo-column scans).
+func isRowidSeekRef(ref *sql.ColumnRef, tableName, alias string, colDefs []sql.ColumnDef) bool {
+	if ref.Table != "" && !strings.EqualFold(ref.Table, tableName) &&
+		(alias == "" || !strings.EqualFold(ref.Table, alias)) {
+		return false
+	}
+	if IsRowIDName(ref.Name) {
+		return !RowHasRowIDColumn(colDefs)
+	}
+	if cd, ok := findColDefByName(colDefs, ref.Name); ok {
+		return isIPKRowidAliasCol(cd)
+	}
+	return false
 }
 
 // selectRowidLiteral converts a literal expression to the pinned rowid.

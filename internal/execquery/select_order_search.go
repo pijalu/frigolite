@@ -80,7 +80,7 @@ func (e *SelectEngine) whereScanLoop(t queryTable, s *sql.SelectStmt, loop scanL
 		ret.kind, ret.token, ret.seek, ret.conditions = loopSkipScan, ss.indexName, true, ss.conditions
 		return bestIndex, conditions, ret
 	}
-	if e.ipkSearchDetail(t.display, s.Where) != "" {
+	if e.ipkSearchDetail(t.real, t.display, s.From.As, s.Where) != "" {
 		ret.kind, ret.oneRow = loopIPK, true
 		return bestIndex, conditions, ret
 	}

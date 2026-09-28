@@ -463,6 +463,14 @@ func (c *Cursor) SeekToRowID(rowID int64) (bool, error) {
 	return c.seekInPage(c.tx.rootPage, rowID)
 }
 
+// AtEnd reports whether the cursor has run off the end of the b-tree (a
+// seek to a rowid beyond every key, or a Next that passed the last entry).
+// Callers use it to distinguish a clean EOF from an I/O error after a
+// failed read.
+func (c *Cursor) AtEnd() bool {
+	return c.endOfBTree
+}
+
 func (c *Cursor) seekInPage(pageNum uint32, rowID int64) (bool, error) {
 	pg, err := c.tx.pager.ReadPage(pageNum)
 	if err != nil {
