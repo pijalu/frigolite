@@ -101,7 +101,7 @@ func TestStmtJournalZeroPageStatement(t *testing.T) {
 // exactly those pages; pages other statements wrote survive.
 func TestStmtJournalNPageRollback(t *testing.T) {
 	p, _ := openStmtFilePager(t)
-	allocPagesLocked(p, 2) // materialize pages 1-2
+	allocPagesLocked(p, 2)   // materialize pages 1-2
 	writePage(t, p, 2, 0x11) // statement 1's write (stays dirty: no flush)
 	outer := p.Snapshot()
 

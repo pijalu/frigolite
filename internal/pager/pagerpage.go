@@ -211,29 +211,8 @@ func (p *Pager) readPageLocked(pageNum uint32) (*Page, error) {
 		Data:    make([]byte, p.pageSize),
 		PageNum: pageNum,
 	}
-	if p.wal != nil {
-		// WAL mode (P7.WAL-G7): resolve the page through the shared
-		// wal-index or the checkpointed main file (readPageWALLocked).
-		if err := p.readPageWALLocked(pg, pageNum); err != nil {
-			return nil, err
-		}
-	} else if p.file != nil {
-		off := int64(pageNum-1) * int64(p.pageSize)
-		_, err := p.file.ReadAt(pg.Data, off)
-		if err == io.EOF {
-			// A short final page (file size not a multiple of the page size,
-			// e.g. a deserialized/hexio-crafted image truncated mid-page) is
-			// not a read error: SQLite's pager zero-fills the remainder
-			// (pager.c sqlite3PagerGet's short-read memset). The corruption
-			// detection happens in the btree/schema layers on the resulting
-			// content, not in the I/O layer. io.EOF here means "fewer bytes
-			// than requested", which ReadAt may deliver together with a
-			// partial fill; pg.Data already holds what was read.
-			err = nil
-		}
-		if err != nil {
-			return nil, fmt.Errorf("pager: read page %d: %w", pageNum, err)
-		}
+	if err := p.loadPageFromDiskLocked(pg, pageNum); err != nil {
+		return nil, err
 	}
 	// For page 1, extract the header from the full page data (only when the
 	// page was actually sourced from a file — memory pagers own their header
@@ -243,16 +222,49 @@ func (p *Pager) readPageLocked(pageNum uint32) (*Page, error) {
 		copy(p.header, pg.Data[:HeaderSize])
 	}
 	p.pages[pageNum] = pg
-	// Statement-journal capture of the loaded page, before it is handed to
-	// the caller: internal helpers (freelist trunk rewrites, ptrmap
-	// maintenance) mutate the returned bytes right after this call, so the
-	// before-image must be recorded here (the capture skips clean pages of
-	// file-backed pagers — their markDirty path journals a from-file entry
-	// instead).
+	p.stmtCaptureOnReadLocked(pageNum)
+	return pg, nil
+}
+
+// loadPageFromDiskLocked fills a fresh page from the WAL or the main file
+// (memory pagers leave it zeroed). Caller holds p.mu.
+func (p *Pager) loadPageFromDiskLocked(pg *Page, pageNum uint32) error {
+	if p.wal != nil {
+		// WAL mode (P7.WAL-G7): resolve the page through the shared
+		// wal-index or the checkpointed main file (readPageWALLocked).
+		return p.readPageWALLocked(pg, pageNum)
+	}
+	if p.file == nil {
+		return nil
+	}
+	off := int64(pageNum-1) * int64(p.pageSize)
+	_, err := p.file.ReadAt(pg.Data, off)
+	if err == io.EOF {
+		// A short final page (file size not a multiple of the page size,
+		// e.g. a deserialized/hexio-crafted image truncated mid-page) is
+		// not a read error: SQLite's pager zero-fills the remainder
+		// (pager.c sqlite3PagerGet's short-read memset). The corruption
+		// detection happens in the btree/schema layers on the resulting
+		// content, not in the I/O layer. io.EOF here means "fewer bytes
+		// than requested", which ReadAt may deliver together with a
+		// partial fill; pg.Data already holds what was read.
+		err = nil
+	}
+	if err != nil {
+		return fmt.Errorf("pager: read page %d: %w", pageNum, err)
+	}
+	return nil
+}
+
+// stmtCaptureOnReadLocked records the loaded page's statement-journal
+// before-image before it is handed to the caller: internal helpers (freelist
+// trunk rewrites, ptrmap maintenance) mutate the returned bytes right after
+// this call. The capture itself skips clean pages of file-backed pagers —
+// their markDirty path journals a from-file entry instead. Caller holds p.mu.
+func (p *Pager) stmtCaptureOnReadLocked(pageNum uint32) {
 	if p.stmtTop != nil {
 		p.stmtReadTouchLocked(pageNum)
 	}
-	return pg, nil
 }
 
 // readPageWALLocked fills pg from the connection's WAL snapshot: the newest
