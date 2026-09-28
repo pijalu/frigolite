@@ -16,7 +16,7 @@ import (
 func (e *DMLExecutor) checkUpdateConflicts(tableEntry *schema.Entry, colDefs []sql.ColumnDef, changes []updateChange) *Result {
 	colIndex := buildColumnIndex(colDefs)
 	uniqueCols := uniqueColsForTable(colDefs)
-	idxColsList := e.uniqueIndexColumns(tableEntry.Name)
+	idxColsList := e.updateConstrainedDefs(tableEntry, colDefs)
 	wrOrder := e.ctx.WRStorageOrder(tableEntry.SQL, colDefs)
 
 	// A change that re-keys its row (SET rowid=...) must not land on an
@@ -34,6 +34,14 @@ func (e *DMLExecutor) checkUpdateConflicts(tableEntry *schema.Entry, colDefs []s
 	tree := e.dmlTableBTree(tableEntry.Name, tableEntry.RootPage)
 	for i := range changes {
 		c := changes[i]
+		// No constrained value moved: the change's new values agree with its
+		// old values on every UNIQUE/PK column and unique-index key, and the
+		// old values already coexisted with every other row, so neither the
+		// pairwise nor the live-table scan can find a conflict (update.c
+		// checks only constrained columns the statement changes).
+		if e.updateConstraintUnchanged(c, colDefs, colIndex, uniqueCols, idxColsList) {
+			continue
+		}
 		if res := e.checkEarlierChanges(changes, i, c, colDefs, colIndex, uniqueCols, idxColsList, tableEntry.Name); res.Error != nil {
 			return res
 		}

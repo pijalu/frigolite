@@ -82,8 +82,13 @@ func (e *DMLExecutor) applyPerRowUpdateChange(c updateChange, tableEntry *schema
 func (e *DMLExecutor) perRowConflictError(c updateChange, tableEntry *schema.Entry, colDefs []sql.ColumnDef) error {
 	colIndexLocal := buildColumnIndex(colDefs)
 	uniqueCols := uniqueColsForTable(colDefs)
-	idxColsList := e.uniqueIndexColumns(tableEntry.Name)
+	idxColsList := e.updateConstrainedDefs(tableEntry, colDefs)
 	wrOrder := e.ctx.WRStorageOrder(tableEntry.SQL, colDefs)
+	// Change-detection gate (see checkUpdateConflicts): nothing constrained
+	// moved, so no other row can conflict with this change.
+	if e.updateConstraintUnchanged(c, colDefs, colIndexLocal, uniqueCols, idxColsList) {
+		return nil
+	}
 	tree := e.dmlTableBTree(tableEntry.Name, tableEntry.RootPage)
 	if res := e.checkEarlierChanges(nil, 0, c, colDefs, colIndexLocal, uniqueCols, idxColsList, tableEntry.Name); res.Error != nil {
 		return res.Error

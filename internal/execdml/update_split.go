@@ -671,11 +671,16 @@ func (e *DMLExecutor) runUpdateFail(tableName string, tableEntry *schema.Entry, 
 	}
 	colIndex := buildColumnIndex(colDefs)
 	uniqueCols := uniqueColsForTable(colDefs)
-	idxColsList := e.uniqueIndexColumns(tableEntry.Name)
+	idxColsList := e.updateConstrainedDefs(tableEntry, colDefs)
 	wrOrder := e.ctx.WRStorageOrder(tableEntry.SQL, colDefs)
 	tree := e.dmlTableBTree(tableName, tableEntry.RootPage)
 	for i := range changes {
 		c := changes[i]
+		// Change-detection gate (see checkUpdateConflicts): nothing
+		// constrained moved, so no other row can conflict with this change.
+		if e.updateConstraintUnchanged(c, colDefs, colIndex, uniqueCols, idxColsList) {
+			continue
+		}
 		if res := e.checkEarlierChanges(changes, i, c, colDefs, colIndex, uniqueCols, idxColsList, tableEntry.Name); res.Error != nil {
 			return res
 		}

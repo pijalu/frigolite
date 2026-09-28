@@ -469,17 +469,21 @@ func (e *DMLExecutor) applyUpdateChanges(tableName string, rootPage uint32, chan
 		}
 	}
 
-	// Step 1: Delete all existing rows in a single pass
-	_, delErr := tree.DeleteCellsWhere(func(cell *storage.Cell) bool {
-		if wrEntry != nil {
-			return wrCellMatchesOldKey(cell, wrOldKeys, wrEntry, e.ctx)
+	// Step 1: Delete all existing rows in a single pass. When every change
+	// was written by the Step-0 in-place pass, the predicate excludes all
+	// their rowids and can match nothing — skip the O(table) sweep entirely.
+	if len(inPlace) != len(toUpdate) {
+		_, delErr := tree.DeleteCellsWhere(func(cell *storage.Cell) bool {
+			if wrEntry != nil {
+				return wrCellMatchesOldKey(cell, wrOldKeys, wrEntry, e.ctx)
+			}
+			return toUpdate[cell.RowID] && !inPlace[cell.RowID]
+		})
+		if delErr != nil {
+			return &Result{Error: delErr}
 		}
-		return toUpdate[cell.RowID] && !inPlace[cell.RowID]
-	})
-	if delErr != nil {
-		return &Result{Error: delErr}
+		e.ctx.InvalidateRowIDCache(e.dmlPager(tableName), rootPage)
 	}
-	e.ctx.InvalidateRowIDCache(e.dmlPager(tableName), rootPage)
 
 	// Step 2: Insert all new rows, firing the preupdate hook per row.
 	if res := e.reinsertUpdatedRows(tableName, tree, rootPage, changes, inPlace, wrEntry); res != nil {

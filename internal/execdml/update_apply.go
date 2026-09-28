@@ -20,7 +20,7 @@ func (e *DMLExecutor) applyUpdateWithTriggers(tableEntry *schema.Entry, colDefs 
 	}
 	colIndex := buildColumnIndex(colDefs)
 	uniqueCols := uniqueColsForTable(colDefs)
-	idxColsList := e.uniqueIndexColumns(tableEntry.Name)
+	idxColsList := e.updateConstrainedDefs(tableEntry, colDefs)
 	rootPage := tableEntry.RootPage
 	tableName := tableEntry.Name
 	tree := e.tableBTreeForDML(tableEntry, rootPage)
@@ -658,7 +658,7 @@ func (e *DMLExecutor) applyUpdateIgnore(tableEntry *schema.Entry, colDefs []sql.
 	}
 	colIndex := buildColumnIndex(colDefs)
 	uniqueCols := uniqueColsForTable(colDefs)
-	idxColsList := e.uniqueIndexColumns(tableEntry.Name)
+	idxColsList := e.updateConstrainedDefs(tableEntry, colDefs)
 	rootPage := tableEntry.RootPage
 	tableName := tableEntry.Name
 	tree := e.tableBTreeForDML(tableEntry, rootPage)
@@ -774,7 +774,7 @@ func (e *DMLExecutor) skipIgnoreChange(tableEntry *schema.Entry, colDefs []sql.C
 func (e *DMLExecutor) applyUpdateReplace(tableEntry *schema.Entry, colDefs []sql.ColumnDef, changes []updateChange) *Result {
 	colIndex := buildColumnIndex(colDefs)
 	uniqueCols := uniqueColsForTable(colDefs)
-	idxColsList := e.uniqueIndexColumns(tableEntry.Name)
+	idxColsList := e.updateConstrainedDefs(tableEntry, colDefs)
 	tree := e.dmlTableBTree(tableEntry.Name, tableEntry.RootPage)
 	hasTriggers := e.hasTriggersForTable(tableEntry.Name)
 	changesMade := int64(0)
