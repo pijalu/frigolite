@@ -583,3 +583,29 @@ non-adjudicated fails:
   copyNodeContent + ValidateCellSizeCheck); contract pinned in TestW6_Corrupt7.
   The tcl2go skiptests entry stays (tools/tcl2go untouched); bigrow-2.2 and the
   fts-x6 / pager WAL-fixture items remain with their owners.
+
+## Parse handler restructure (2026-09-28, commit 6fa561fde, direct on main)
+
+User-driven cleanup after 68f2816f5 review: ruleHandlers map keys and the
+numeric parser_rulesX.go split were unreadable. Landed:
+
+- 11 functional files replace the 7 arbitrary numeric splits: stmt, ddl,
+  cdef, select, expr, expr_ops, window, dml, trigger, pragma, misc.
+- parser_ruleids.go: one rid* constant per handled rule (349), each
+  commented with its grammar production; ruleHandlers map now reads
+  `ridExplainPlain: ruleExplainPlain`.
+- 61 legacy ruleNNN handlers named from body semantics + yyRuleInfoLhs
+  symbol-code resolution + neighbor-grammar continuity; 22 over-long /
+  prose-derived names shortened.
+- Two provably mislabeled headers corrected: rule 128 = on_using ::= ON
+  expr (NOT joinop), rule 131 = scanpt ::= (empty) — LHS symbol codes
+  (262/267) + bodies + production-count arithmetic all agree.
+- Grammar-comment provenance lesson: original generated file had only 57
+  "Rule N:" comments; 288 exist today; no authoritative grammar text ships
+  in-repo (no parse.y, no yyRuleName in sql_tables.go). If sql_tables.go is
+  ever regenerated, emit tables.RuleName (go-lemon supports it) so rule
+  comments become verifiable.
+- Zero behavior change evidence: rule-number set preserved exactly
+  (349=349), bodies byte-identical (348/348; 8 stray in-body comments moved
+  to proper headers), parse tests + 14 parse-heavy testgen packages green,
+  staticcheck/vet/quality-gate/SOLID clean.
