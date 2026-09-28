@@ -6,6 +6,7 @@ import (
 
 	"github.com/pijalu/frigolite/internal/auth"
 	"github.com/pijalu/frigolite/internal/fts"
+	"github.com/pijalu/frigolite/internal/pager"
 	"github.com/pijalu/frigolite/internal/schema"
 	"github.com/pijalu/frigolite/internal/sql"
 	"github.com/pijalu/frigolite/internal/storage"
@@ -691,11 +692,17 @@ func (e *DMLExecutor) writeFTSContentRow(tableName string, docID int64, values [
 	// machinery) — this runs per FTS insert, so a full Exec per row would be
 	// O(n) statement overhead (fts3b inserts 10k documents in a transaction).
 	if dbCtx != nil {
-		if tr, _ := e.writeTableRow(dbCtx.Pager, contentEntry, colDefs, stored, docID); tr != nil {
-			tr.Close() // row-write tree dies with this FTS insert
-		}
+		e.writeRowAndRelease(dbCtx.Pager, contentEntry, colDefs, stored, docID)
 	}
 	return nil
+}
+
+// writeRowAndRelease writes one row through writeTableRow and releases the
+// row-write tree immediately (its cursors are function-local to the write).
+func (e *DMLExecutor) writeRowAndRelease(pg *pager.Pager, entry *schema.Entry, colDefs []sql.ColumnDef, values []interface{}, rowID int64) {
+	if tr, _ := e.writeTableRow(pg, entry, colDefs, values, rowID); tr != nil {
+		tr.Close()
+	}
 }
 
 // writeFTSDocsizeRow writes the FTS4 %_docsize row for one document: the size

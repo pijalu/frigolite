@@ -672,9 +672,6 @@ func (c *Cursor) seekInInteriorIndex(pg *pager.Page, page *storage.BTreePage, ke
 
 // Next moves the cursor to the next entry. Returns false at end.
 func (c *Cursor) Next() (bool, error) {
-	if err := c.checkOpen(); err != nil {
-		return false, err
-	}
 	// A nested statement's write saved the position: re-seek first
 	// (btree.c btreeNext's restoreCursorPosition / CURSOR_SKIPNEXT path).
 	if err := c.restoreIfNeeded(); err != nil {
@@ -708,9 +705,6 @@ func (c *Cursor) Next() (bool, error) {
 
 // Prev moves the cursor to the previous entry.
 func (c *Cursor) Prev() (bool, error) {
-	if err := c.checkOpen(); err != nil {
-		return false, err
-	}
 	if err := c.restoreIfNeeded(); err != nil {
 		return false, err
 	}
@@ -727,9 +721,6 @@ func (c *Cursor) Prev() (bool, error) {
 
 // ReadCell reads the cell at the current cursor position.
 func (c *Cursor) ReadCell() (*storage.Cell, error) {
-	if err := c.checkOpen(); err != nil {
-		return nil, err
-	}
 	if err := c.restoreIfNeeded(); err != nil {
 		return nil, err
 	}
@@ -803,9 +794,6 @@ func (c *Cursor) skipEmptyLeaves() error {
 // cells without allocating a Cell struct. This is the fast path for table scans.
 // For non-table-leaf pages, it falls back to ReadCell.
 func (c *Cursor) ReadCellData() (payload []byte, rowID int64, err error) {
-	if err := c.checkOpen(); err != nil {
-		return nil, 0, err
-	}
 	// Re-seek past a nested statement's saved position (restoreCursorPosition
 	// precedes every cursor use in btree.c).
 	if err := c.restoreIfNeeded(); err != nil {

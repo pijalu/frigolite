@@ -216,11 +216,16 @@ func (c *Cursor) currentKey() (int64, []byte, error) {
 }
 
 // restoreIfNeeded re-seeks a saved cursor to its recorded key before the
-// cursor's pages are used again (btree.c restoreCursorPosition). After the
-// restore, skipNext carries the moveto bias: +1 when the exact key is gone
-// and the cursor sits on the next-larger entry (the pending Next returns it
-// without advancing), -1 for the Previous mirror.
+// cursor's pages are used again (btree.c restoreCursorPosition). A cursor
+// released by its owner's Close is rejected here: this is the one checkpoint
+// every cursor use (Next/Prev/ReadCell/ReadCellData) already passes through.
+// After the restore, skipNext carries the moveto bias: +1 when the exact key
+// is gone and the cursor sits on the next-larger entry (the pending Next
+// returns it without advancing), -1 for the Previous mirror.
 func (c *Cursor) restoreIfNeeded() error {
+	if c.released {
+		return fmt.Errorf("btree: cursor used after close")
+	}
 	if c.state != cursorRequireSeek {
 		return nil
 	}
