@@ -668,3 +668,24 @@ gates; end: full benchmark rerun + census + report update.
   (pre-existing NOCASE-UNIQUE under-enforcement, preserved).
 - Remaining in flight: fleet/perf-p24-rowid-seek, fleet/perf-p5-delete-journal,
   fleet/perf-p6-cursor-lifecycle.
+
+## PERF-FIX (during 2) — P2+P4 and P6 merged (2026-09-29)
+
+- P24 merged (9e1c80a3c): IPK-alias equality seek (5.35ms -> 8-20us @50k),
+  rowid range seek (BETWEEN 8.1ms -> 35-65us), EQP rendered from the SAME
+  analysis the executor runs (28-shape battery 0 diffs vs oracle). Lessons:
+  SeekToRowID must maintain the cursor path stack (else Next() replays
+  rows); IPK alias is stored NULL and row-sources must fill it from rowid;
+  range bounds must be supersets of rowPassesWhere affinity semantics;
+  reverse_unordered_selects reverses the range walk; lazy two-phase decode.
+  Pre-existing gap documented: rowid-vs-text eval ignores whitespace
+  (oracle divergence on SCAN path too; untouched).
+- P6 merged (90695ffe0; one code conflict resolved: SeekToRowID = checkOpen
+  guard + path-stack seek combined): BTree.Close() ownership model +
+  statement-funnel release (Engine.Exec defer, nested-Exec segment marks),
+  saveAllCursors fast-path, finalizer kept as safety net. Insert slope now
+  LINEAR: 105k/105k/104k ops/s @20k/40k/60k GOGC=off (was 45k/31k/23k
+  quadratic); alloc ~12.6KB/op flat; misc8-1.6 contract green; ~80 testgen
+  pkgs + btree race subset green.
+- Remaining in flight: fleet/perf-p5-delete-journal (riskiest — pager
+  before-image journaling).
