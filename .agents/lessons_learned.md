@@ -1210,3 +1210,52 @@ Resumed a dead predecessor mid-tranche on P9.PERF hot-path work (base 5807a9c1e,
   testgen vacuum6 4.0 is content-nondeterministic across runs; seeded
   hex-literal probes are the only deterministic repro. A single green
   package run proves nothing about this flake; only the seeded probes do.
+
+## Fleet perf-p1 — UPDATE uniqueness change-detection gate (2026-09-28)
+
+- **UPDATE conflict scans were gated on "table HAS constraints", not "constrained
+  value changed"**: checkUpdateConflicts ran a full table-btree walk per updated
+  row whenever the table had any UNIQUE/PK column or unique index, even when the
+  SET clause touched none of them (5.7ms per single-row UPDATE @20k rows). The
+  gate (updateConstraintUnchanged, internal/execdml/update_constrained.go)
+  compares a change's NEW vs OLD values on every constrained slot using the same
+  comparators the scan uses (uniqueColValuesMatch; indexKeyValue+CompareValues
+  for index defs; partial-index membership via evalIndexWhere) — skip iff all
+  agree. Correctness: old values already coexisted with every other row and with
+  every earlier change's old values, so an unchanged constrained value cannot
+  conflict. Gate applied ONLY on the no-trigger paths (checkUpdateConflicts,
+  runUpdateFail, perRowConflictError): BEFORE triggers can insert conflicting
+  rows mid-statement, which breaks the "old values were valid" assumption on the
+  trigger/OR IGNORE paths.
+- **WITHOUT ROWID table-level PKs were invisible to UPDATE uniqueness checks**:
+  frigolite creates no sqlite_autoindex schema row for WR tables (the table
+  btree IS the PK index), so uniqueIndexColumns returned nothing and
+  UPDATE...SET <pk-col> onto an existing key wrote DUPLICATE PKs (INSERT caught
+  it via WRPKIndices, UPDATE didn't). Fix: updateConstrainedDefs synthesizes a
+  uniqueIndexDef from WRPKIndices for WR tables not already covered — error text
+  via uniqueIndexColsConflictError matches the sqlite3 oracle byte-for-byte
+  ("UNIQUE constraint failed: t3.a, t3.b"). Oracle-verified.
+- **The second O(N) in the same workload is the APPLY path, not the check**:
+  after the gate, applyUpdateChanges still swept the whole table with
+  DeleteCellsWhere even when every change had been written by the in-place
+  same-size fast path (predicate excludes all in-place rowids → provably no-op).
+  Skip the sweep when len(inPlace)==len(toUpdate). Combined: 5.72ms→79µs and
+  14.15ms→159µs per op (>=70x).
+- **btree index "seeks" are exhaustive leaf walks today**: IndexKeyRowIDs and
+  SeekIndexKey (btree_indexseek.go) walk every index leaf in stored order
+  because stored order is byte order, not value order — a "probe" through them
+  is O(index), not O(log N). Do not swap a table scan for one expecting an
+  asymptotic win; the seam for a true sqlite3BtreeIndexMoveto is the
+  value-ordered-storage tranche. Cursor.SeekToRowID IS a real binary descent —
+  rowIDExists/rowExists now use it (was a from-start walk; re-key-heavy UPDATEs
+  were quadratic).
+- **UPDATE-path unique comparisons apply neither affinity nor collation**
+  (uniqueColsMatch/indexDefsMatch use raw util.CompareValues), so a TEXT COLLATE
+  NOCASE UNIQUE column accepts SET s='ABC' when 'abc' exists (oracle: raises
+  "UNIQUE constraint failed: tn.s"). Pre-existing gap, deliberately preserved
+  by the gate (task contract: "as strict as today"); the INSERT path DOES apply
+  affinity+collation (rowMatchesIndexKey). Follow-up candidate: thread column
+  collation/affinity through the UPDATE conflict comparators.
+- **rowid tables allow rowid 0 on explicit SET rowid=rowid-1** (scan order
+  shifts 1..N down to 0..N-1, vacated slots free) — oracle-verified; do not
+  "fix" rowid 0 as a conflict.
