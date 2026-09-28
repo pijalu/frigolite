@@ -651,3 +651,20 @@ coordinator; P7 after merges. Benchmark harness + probes: /tmp/perf
 - P7 alloc diet + prepare/reuse scoping — after merges, measured
 Verification per fix: pure-Go probes, targeted testgen suites, quality
 gates; end: full benchmark rerun + census + report update.
+
+## PERF-FIX (during) — P1 + P3 merged to main (2026-09-28)
+
+- P3 coordinator commit 65746ffe6 (rowIDExists -> SeekToRowID; REPLACE
+  3.14->2.59ms/op @20k; residual = alloc churn, P7 scope).
+- P1 agent branch fleet/perf-p1-update-gate merged (5bf40a8d0): UPDATE
+  change-detection gate; probe 5.72ms -> 79us/op @20k (73x), 14.15ms ->
+  159us @50k (89x). Bonus fix: WITHOUT ROWID table-level PK enforcement
+  was missing on UPDATE (no sqlite_autoindex row synthesized); now
+  oracle-exact. 50 testgen suites green; gates clean.
+- Deferred by P1 with justification: unique-index probe for changed
+  constrained columns — current IndexKeyRowIDs is an exhaustive leaf walk
+  (no asymptote vs scan); needs value-ordered-index tranche. Recorded as
+  follow-up. Also: UPDATE conflict compare does not apply collation
+  (pre-existing NOCASE-UNIQUE under-enforcement, preserved).
+- Remaining in flight: fleet/perf-p24-rowid-seek, fleet/perf-p5-delete-journal,
+  fleet/perf-p6-cursor-lifecycle.
