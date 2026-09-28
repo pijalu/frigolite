@@ -636,3 +636,18 @@ Systemic: per-statement alloc volume → GC coordination dominates CPU
 (one-session fleet tasks); P5/P6 engine-level worktree branches. Harness +
 probes live in /tmp/perf (method in report §2); commit as cmd/perfbench if
 regression tracking is wanted.
+
+## PERF-FIX (2026-09-28, START) — execute fix plan P1-P7 of benchmarks/PERF_REPORT_2026-09-28.md
+
+Coordinator on main; 4 fleet agents in worktrees (branches below) + P3 by
+coordinator; P7 after merges. Benchmark harness + probes: /tmp/perf
+(frigo/, ssql/, probe*/). Baseline numbers in the report tables.
+
+- fleet/perf-p1-update-gate   — P1 UPDATE change-detection gate (update_check.go)
+- fleet/perf-p24-rowid-seek   — P2 IPK-alias SELECT seek + P4 rowid range seek
+- fleet/perf-p5-delete-journal — P5 statement rollback without O(db) snapshot
+- fleet/perf-p6-cursor-lifecycle — P6 explicit cursor release + saveAllCursors fast-path
+- coordinator direct           — P3 rowIDExists → SeekToRowID
+- P7 alloc diet + prepare/reuse scoping — after merges, measured
+Verification per fix: pure-Go probes, targeted testgen suites, quality
+gates; end: full benchmark rerun + census + report update.
