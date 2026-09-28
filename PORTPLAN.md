@@ -67,7 +67,12 @@ each) under a self-imposed "verify-time budget". Fix = optimize engine.
 
 ## 2. Current State (checkpoint 2026-09-27 — T33 fleet close)
 
-- **Live full-suite close (2026-09-27, census stamp 2026-09-27T02:28:00Z,
+- **Live full-suite close (2026-09-28, census stamp 2026-09-28T00:11:56Z —
+  T34 residue session: vacuum copy-back reserve propagation + usable-end
+  anchors, in-place cell overwrite, 64KiB wrap + pad-4 cells, x6
+  conformance parity, SEARCH-plan index-order emission, P9.PERF
+  scan/eval −24..−29%, interior-split atomicity — details FLEET-STATE.md
+  T34 close; prior close state below):**
   ledger re-seeded, `tools/status -check` 0 flips, `-audit` pass):
   1,363 testgen packages → 1,072 PASS, 0 FAIL, 290 SKIP (all skips
   NA_EVIDENCE-audited), 0 unresolved timeout-suspects (fts4merge4

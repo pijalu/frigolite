@@ -1,78 +1,58 @@
-# Fleet State — T33 CLOSE (2026-09-27)
+# Fleet State — T34 CLOSE (2026-09-28)
 
-## T33 session CLOSE — COMPLETE
+## T34 session CLOSE — COMPLETE
 
-Main: c148ede78+ (all waves merged, pushed). Final census stamp
-2026-09-27T02:28:00Z: **1,363 testgen packages → 1,072 PASS / 0 FAIL /
-290 SKIP (all NA_EVIDENCE-audited) / 0 unresolved suspects**
-(fts4merge4 serially adjudicated green 683.8s — census contention
-artifact). `tools/status -check` = 0 flips; `-audit` = pass;
-`go test ./tools/status/` = ok; ledger re-seeded
-(tools/status/ledger.json + last_run.json adjudication note).
+Main: 74b5b39cb (+close commit). Final census stamp 2026-09-28T00:11:56Z:
+**1,363 testgen packages → 1,072 PASS / 0 FAIL / 290 SKIP (all
+NA_EVIDENCE-audited) / 0 unresolved suspects** (fts4merge4 serially
+adjudicated green 683-806s). `tools/status -check` = 0 flips; `-audit`
+= pass; status self-tests ok; ledger re-seeded.
 
-PORTPLAN: §2 checkpoint rewritten to the 2026-09-27 close state;
-§5d closure declared COMPLETE (gocognit/gocyclo/staticcheck/vet/
-file-size ALL ZERO repo-wide); §4 P6.FTS5 row updated to 0 FAIL.
-Legacy TestSQLiteSuite JSON-harness drift (≈385 files) stays
-adjudicated: superseded pipeline; testgen corpus is the census
-currency (pre-squash drift, §2 DRIFT ALERT).
+T34 additions over T33 close:
+- fleet/t34-vacuum (f2433a886): vacuum-corruption test stray COMMITs
+  dropped (oracle-verified drift); corrupt-7.3 REAL engine gaps closed
+  — in-place same-size cell overwrite (C loc==0 fast path,
+  btree_update_inplace.go) + unconditional balance_deeper for overfull
+  root leaves (raw copyNodeContent) — TestW6_Corrupt7 pin.
+- fleet/t34-bigrow (d62a178d7): bigrow-2.2 RESOLVED by attribution —
+  engine byte-exact vs oracle; residue was tclListFlatten want-
+  rendering; native pin ~170 subtests (size/seam sweep, all pagesizes).
+- fleet/t34-x6 (8d589f1e8): x6 conformance verdict (b) — ENGINE bug:
+  NULL appendable-segment row misclassified malformed
+  (decodeSegmentBlock); C fts3IsAppendable parity; conformance 5/5
+  byte-exact; fts4growth 7.4-7.7 pin.
+- fleet/t34r-btree (2fb3aa7aa): 64KiB cell-content u16 wrap
+  normalization + pad-4 leaf cells (btree01/changes/fts4aa);
+  reservebytes: vacuum copy-back reserve propagation (C zeroPage/
+  usable parity — header byte 20 from temp layout, usable-end anchors,
+  InvalidateCache header re-adoption).
+- fleet/t34-planner (860543fc2): SEARCH-plan index-order emission —
+  where.c wherePathSatisfiesOrderBy port (scanLoop, EQP sorter
+  omission, runtime index-order permutation incl. reverse/rowid-desc
+  ties); 30-shape oracle battery.
+- fleet/t34-perf (860543fc2): P9.PERF tranches — scan/eval −24..−29%
+  (affinity plan + IPK precompute, statement-scoped collation memo,
+  binaryOp switch dispatch), CURRENT_* keyword length fix; byte-
+  identical fence.
+- fleet/t34r-split (74b5b39cb): vacuum6 interior-split — atomic
+  aggregate room precheck in applyChildSplitsRightmost + divider-by-
+  divider chain apply (C balance_nonroot gather-then-redistribute
+  parity); seeded pins (unseeded randomblob had hidden the latent
+  defect). Attribution: latent since T33-idxfix fat dividers, NOT the
+  reservebytes tranche.
 
-Race gate (final, 2026-09-27): ZERO data races (lockreg.NewConnID
-atomic fix). Remaining -race failures are documented pre-existing
-residue (NA_EVIDENCE T33-close section): internal/fts legacy-parse
-unit tests UPDATED to the shipped T30-fts3b contract (fixed);
-TestWriterConformance/fts-x6-growth diverges from its pre-fix oracle
-snapshot since 91e4296b5 (OPEN — re-derive fixture or revisit);
-TestVacuumDoesNotCorruptBTree fails isolated at the session-start
-base too (OPEN — pre-existing); root leg needs -timeout >= 1800s
-(default 600s kills it under detector slowdown); fts4merge4 grind
-guarded by the race build-tag const (serial contract intact).
+Fleet-process notes: telegram skill style enforced on all agent prompts
+(user directive). Concurrency limit hit repeatedly — agents dispatched
+serially when needed. Two silent agent deaths + one shared-worktree
+double-writer incident resolved via split-scope protocol. Push refspec
+trap documented (always `<branch>:refs/heads/<branch>` — tracking
+config can redirect a colon-less push to main).
 
-## What T33 did (chronological)
-
-1. Baselines: census 1037/26/283; staticcheck 4 U1000; §5d worklist
-   (16 over-1000 files, ~110 tcl2go + ~30 engine complexity findings);
-   SOLID green; root suite 2 fails.
-2. Fix fleet (5 agents): solo (fts3corrupt6/rtree1/tpch01), misc
-   (misc2/3/5/7/8), idx (permutations/index/reindex/skipscan2/
-   without_rowid4 + TestP5AnalyzeReindex), query (having/where6/
-   window8/selectH), fts5 (the 9 architectural — died twice, resumed
-   twice per protocol).
-3. §5d refactor fleet (6 agents + coordinator remainder): ALL gates
-   zero repo-wide; corpus regen sync ×2; compile-break fixes (varCount
-   sub-transpiler literals, fpnum interface{}, $args list rendering,
-   prefix UDF TCL quoting).
-4. Regressions found+fixed in-session: window1 + view column lists
-   (use-walk), misc5 autoindex ordering (idxfix: value-ordered index
-   storage — key-guided descent, full-payload dividers), lockreg race.
-5. Census wave 4 (39 fails from regen + engine changes): t33r-order
-   (use-walk 3 ways, ORDER-BY-index collation/NULLS gate, autoindex
-   slot parity, divider-chain leak), t33r-kernel (+2) (T30Kernel skip
-   map restore [coordinator's split bug], softheap1/shortread1/
-   e_fkey/pragma emitter, selectC/whereF/windowC), t33r-fts
-   (fts5delete/optimize/contentless2/prefix/aj/bigid/merge/fts4merge),
-   t33r-vtab (vtab cluster + 2 engine: grouped-output ORDER BY decline,
-   unqualified-ref scope resolution).
-6. Close: census 1072/0/290 + ledger seed + adjudications + PORTPLAN
-   §2/§4/§5d + lessons consolidation (live 496 lines; pre-T33 archive
-   at .agents/lessons_archive_2026-09.md).
-
-## Known residue (non-blockers)
-
-- fts4merge4 census profile: 683-805s serial green; census 8-worker
-  runs can content-thrash it — adjudicated in ledger; P9.PERF backlog.
-- corrupt-7.3 (layout-bound) pre-existing at base — documented,
-  engine-perfect follow-up. (bigrow-2.2, listed here alongside it,
-  RESOLVED by attribution in T34-bigrow: the engine is byte-exact —
-  oracle-verified; the failure is the emitter's tclListFlatten want
-  rendering dropping the trailing space; native pin
-  frigolite_t34_bigrow_test.go carries the contract.)
-- TestFTS4Merge4Automerge8Grind fails under -race timing slowdown
-  (no DATA RACE) — grind test; race-clean otherwise on the final run
-  pending the background leg.
-- vtab_shared-1.9.x engine-seam failures were fixed in T33r-vtab;
-  enc/memdb slow profiles documented.
-
+Open residue (documented, non-blockers): internal/fts x6 fixture
+regen-from-oracle design (gitignored fixtures; fresh clones need
+tools/orafixture run), harness vacuum6 1.2/3.0 reset_db conversion gap
+(pre-existing), TestSQLiteSuite legacy drift (adjudicated superseded),
+speed1p 445s PERF profile (improved but still above C).
 
 
 ## T34 session (2026-09-27) — residue fleet ACTIVE
