@@ -1210,3 +1210,39 @@ Resumed a dead predecessor mid-tranche on P9.PERF hot-path work (base 5807a9c1e,
   testgen vacuum6 4.0 is content-nondeterministic across runs; seeded
   hex-literal probes are the only deterministic repro. A single green
   package run proves nothing about this flake; only the seeded probes do.
+
+## PERF.P6 cursor registry (2026-09-29, fleet/perf-p6-cursor-lifecycle)
+
+- **btree cursor registry was a strong-ref leak with an unreachable finalizer.**
+  `cursorRegistry[pager,rootPage][]*Cursor` kept every cursor reachable, so the
+  `SetFinalizer` "cleanup" could never run — the registry only grew. Every
+  mutation's `saveAllCursors` then walked + re-saved every cursor ever opened
+  on that tree: O(n^2) insert growth, 94% of per-INSERT allocations at 50k
+  rows (254KB/op at 60k). If a registry holds strong refs, a finalizer on the
+  referenced objects is dead code — cleanup must be deterministic.
+- **Fix = SQLite's own lifecycle, mirrored at Engine.Exec.** btree.c closes a
+  statement's cursors when its VDBE halts (closeCursorsInFrame), so
+  saveAllCursors only sees live cursors. frigolite equivalent: `BTree.Close()`
+  unregisters+releases the wrapper's cursors (Cursor keeps `tx` as owner
+  back-pointer; Close is idempotent and nil-safe); the
+  tableBTree/tableBTreeForName/tableBTreePg funnels register wrappers in
+  `Engine.stmtBtrees`, and Engine.Exec closes everything above its entry mark
+  on return. Nested Exec frames (triggers, eval()) mark their own segment, so
+  an inner statement never releases the enclosing statement's positioned scan
+  cursors — the misc8-1.6 contract survives via ownership, and the registry
+  stays as the cross-wrapper save/restore mechanism.
+- **Per-row tree creation needs per-row release, not statement release.**
+  Statement-scope alone still went quadratic WITHIN one multi-row statement
+  (single INSERT...SELECT: 17→30→42 us/op at 20k→60k) because each row's
+  dmlTableBTree/writeTableRow created a wrapper. Where a tree's use is
+  provably function-local (verified per site), `defer tree.Close()` releases
+  per row: after both layers the same probe is flat 4.66→4.00 us/op (~9x).
+- **Harness verdict hygiene:** `go test` caching hides failures without
+  `-count=1`; Go's default 10-min package timeout masquerades as "0 failing
+  subtests" (a timeout panic prints no `--- FAIL` lines); the JSON harness
+  runs files `t.Parallel()` and cascades within a file after a first failure
+  ("table t1 already exists" / "no such table: t1" are cascade noise, find the
+  file's FIRST failing case). Base b81c575d8 fails the same case sets
+  (triggerB/joinH/trigger2/tkt2820/tkt3334/8_3_names identical base vs head)
+  and `FRIGOLITE_TEST=<file>` pattern runs fail at base too — compare failing
+  SETS, never single verdicts.
