@@ -18,7 +18,7 @@ import (
 )
 
 // Rule 212: expr ::= expr IS NOT DISTINCT FROM expr (6 RHS symbols)
-func rule212(ruleNo int, p *Parser) interface{} {
+func ruleExprExprIsNotDistinctFromExpr6RhsSymbols(ruleNo int, p *Parser) interface{} {
 	return &sql.IsNotDistinctFrom{
 		Left:  getExpr(getRHS(p, ruleNo, 1)),
 		Right: getExpr(getRHS(p, ruleNo, 6)),
@@ -27,7 +27,7 @@ func rule212(ruleNo int, p *Parser) interface{} {
 }
 
 // Rule 213: expr ::= expr IS DISTINCT FROM expr (5 RHS symbols)
-func rule213(ruleNo int, p *Parser) interface{} {
+func ruleExprExprIsDistinctFromExpr5RhsSymbols(ruleNo int, p *Parser) interface{} {
 	return &sql.IsDistinctFrom{
 		Left:  getExpr(getRHS(p, ruleNo, 1)),
 		Right: getExpr(getRHS(p, ruleNo, 5)),
@@ -36,7 +36,7 @@ func rule213(ruleNo int, p *Parser) interface{} {
 }
 
 // Rule 214: expr ::= NOT expr
-func rule214(ruleNo int, p *Parser) interface{} {
+func ruleExprNotExpr(ruleNo int, p *Parser) interface{} {
 	return &sql.UnaryOp{
 		Operand:  getExpr(getRHS(p, ruleNo, 2)),
 		Operator: "NOT",
@@ -45,7 +45,7 @@ func rule214(ruleNo int, p *Parser) interface{} {
 }
 
 // Rule 215: expr ::= BITNOT expr
-func rule215(ruleNo int, p *Parser) interface{} {
+func ruleExprBitnotExpr(ruleNo int, p *Parser) interface{} {
 	return &sql.UnaryOp{
 		Operand:  getExpr(getRHS(p, ruleNo, 2)),
 		Operator: "~",
@@ -54,7 +54,7 @@ func rule215(ruleNo int, p *Parser) interface{} {
 }
 
 // Rule 216: expr ::= PLUS|MINUS expr (unary)
-func rule216(ruleNo int, p *Parser) interface{} {
+func ruleExprPlusMinusExprUnary(ruleNo int, p *Parser) interface{} {
 	operand := getExpr(getRHS(p, ruleNo, 2))
 	// Read the operator from the RHS token value (lookahead is the NEXT
 	// token at reduce time, so it cannot distinguish + from -).
@@ -104,19 +104,19 @@ func rule220(ruleNo int, p *Parser) interface{} {
 }
 
 // Rule 221: in_op ::= IN
-func rule221(ruleNo int, p *Parser) interface{} {
+func ruleInOpIn(ruleNo int, p *Parser) interface{} {
 	return false
 
 }
 
 // Rule 222: in_op ::= NOT IN
-func rule222(ruleNo int, p *Parser) interface{} {
+func ruleInOpNotIn(ruleNo int, p *Parser) interface{} {
 	return true
 
 }
 
 // Rule 223: expr ::= expr in_op LP exprlist RP
-func rule223(ruleNo int, p *Parser) interface{} {
+func ruleExprExprInOpLpExprlistRp(ruleNo int, p *Parser) interface{} {
 	negated := getBool(getRHS(p, ruleNo, 2))
 	return &sql.InList{
 		Operand: getExpr(getRHS(p, ruleNo, 1)),
@@ -127,7 +127,7 @@ func rule223(ruleNo int, p *Parser) interface{} {
 }
 
 // Rule 224: expr ::= LP select RP
-func rule224(ruleNo int, p *Parser) interface{} {
+func ruleExprLpSelectRp(ruleNo int, p *Parser) interface{} {
 	return &sql.Subquery{
 		Select: getSelectStmt(getRHS(p, ruleNo, 2)),
 	}
@@ -135,7 +135,7 @@ func rule224(ruleNo int, p *Parser) interface{} {
 }
 
 // Rule 225: expr ::= expr in_op LP select RP
-func rule225(ruleNo int, p *Parser) interface{} {
+func ruleExprExprInOpLpSelectRp(ruleNo int, p *Parser) interface{} {
 	negated := getBool(getRHS(p, ruleNo, 2))
 	return &sql.InList{
 		Operand: getExpr(getRHS(p, ruleNo, 1)),
@@ -149,7 +149,7 @@ func rule225(ruleNo int, p *Parser) interface{} {
 // SQLite extension: `expr IN table-name` is equivalent to
 // `expr IN (SELECT * FROM table-name)`. The optional paren_exprlist is
 // the argument list of a table-valued function in the FROM clause.
-func rule226(ruleNo int, p *Parser) interface{} {
+func ruleExprExprInOpNmDbnmParenExprlist(ruleNo int, p *Parser) interface{} {
 	negated := getBool(getRHS(p, ruleNo, 2))
 	tbl := getString(getRHS(p, ruleNo, 3))
 	schema := getString(getRHS(p, ruleNo, 4))
@@ -173,7 +173,7 @@ func rule226(ruleNo int, p *Parser) interface{} {
 }
 
 // Rule 227: expr ::= EXISTS LP select RP
-func rule227(ruleNo int, p *Parser) interface{} {
+func ruleExprExistsLpSelectRp(ruleNo int, p *Parser) interface{} {
 	return &sql.ExistsExpr{
 		Select:  getSelectStmt(getRHS(p, ruleNo, 3)),
 		Negated: false,
@@ -194,7 +194,7 @@ func rule228(ruleNo int, p *Parser) interface{} {
 }
 
 // Rule 229: case_exprlist ::= case_exprlist WHEN expr THEN expr
-func rule229(ruleNo int, p *Parser) interface{} {
+func ruleCaseExprlistCaseExprlistWhenExprThenExpr(ruleNo int, p *Parser) interface{} {
 	acc := getWhenClauses(getRHS(p, ruleNo, 1))
 	whenExpr := getExpr(getRHS(p, ruleNo, 3))
 	thenExpr := getExpr(getRHS(p, ruleNo, 5))
@@ -203,7 +203,7 @@ func rule229(ruleNo int, p *Parser) interface{} {
 }
 
 // Rule 230: case_exprlist ::= WHEN expr THEN expr
-func rule230(ruleNo int, p *Parser) interface{} {
+func ruleCaseExprlistWhenExprThenExpr(ruleNo int, p *Parser) interface{} {
 	whenExpr := getExpr(getRHS(p, ruleNo, 2))
 	thenExpr := getExpr(getRHS(p, ruleNo, 4))
 	return []sql.WhenClause{{When: whenExpr, Then: thenExpr}}
@@ -211,31 +211,31 @@ func rule230(ruleNo int, p *Parser) interface{} {
 }
 
 // Rule 231: case_else ::= ELSE expr
-func rule231(ruleNo int, p *Parser) interface{} {
+func ruleCaseElseElseExpr(ruleNo int, p *Parser) interface{} {
 	return getExpr(getRHS(p, ruleNo, 2))
 
 }
 
 // Rule 232: case_else ::=
-func rule232(ruleNo int, p *Parser) interface{} {
+func ruleCaseElse(ruleNo int, p *Parser) interface{} {
 	return nil
 
 }
 
 // Rule 233: case_operand ::=
-func rule233(ruleNo int, p *Parser) interface{} {
+func ruleCaseOperand(ruleNo int, p *Parser) interface{} {
 	return nil
 
 }
 
 // Rule 234: exprlist ::=
-func rule234(ruleNo int, p *Parser) interface{} {
+func ruleExprlist(ruleNo int, p *Parser) interface{} {
 	return ([]sql.Expr)(nil)
 
 }
 
 // Rule 235: nexprlist ::= nexprlist COMMA expr
-func rule235(ruleNo int, p *Parser) interface{} {
+func ruleNexprlistNexprlistCommaExpr(ruleNo int, p *Parser) interface{} {
 	acc := getExprList(getRHS(p, ruleNo, 1))
 	return append(acc, getExpr(getRHS(p, ruleNo, 3)))
 
@@ -247,19 +247,19 @@ func rule236(ruleNo int, p *Parser) interface{} {
 }
 
 // Rule 237: paren_exprlist ::=
-func rule237(ruleNo int, p *Parser) interface{} {
+func ruleParenExprlist(ruleNo int, p *Parser) interface{} {
 	return ([]sql.Expr)(nil)
 
 }
 
 // Rule 238: paren_exprlist ::= LP exprlist RP
-func rule238(ruleNo int, p *Parser) interface{} {
+func ruleParenExprlistLpExprlistRp(ruleNo int, p *Parser) interface{} {
 	return getExprList(getRHS(p, ruleNo, 2))
 
 }
 
 // Rule 239: cmd ::= createkw uniqueflag INDEX ifnotexists nm dbnm ON nm LP sortlist RP where_opt
-func rule239(ruleNo int, p *Parser) interface{} {
+func ruleCmdCreatekwUniqueflagIndexIfnotexistsNmDbnmOnNmLpSortlistRpWhereOpt(ruleNo int, p *Parser) interface{} {
 	name := getString(getRHS(p, ruleNo, 5))
 	dbnm := getString(getRHS(p, ruleNo, 6))
 	if dbnm != "" {
@@ -313,19 +313,19 @@ func rule239(ruleNo int, p *Parser) interface{} {
 }
 
 // Rule 242: eidlist_opt ::=
-func rule242(ruleNo int, p *Parser) interface{} {
+func ruleEidlistOpt(ruleNo int, p *Parser) interface{} {
 	return ([]string)(nil)
 
 }
 
 // Rule 243: eidlist_opt ::= LP eidlist RP
-func rule243(ruleNo int, p *Parser) interface{} {
+func ruleEidlistOptLpEidlistRp(ruleNo int, p *Parser) interface{} {
 	return getStringList(getRHS(p, ruleNo, 2))
 
 }
 
 // Rule 244: eidlist ::= eidlist COMMA nm collate sortorder
-func rule244(ruleNo int, p *Parser) interface{} {
+func ruleEidlistEidlistCommaNmCollateSortorder(ruleNo int, p *Parser) interface{} {
 	acc := getStringList(getRHS(p, ruleNo, 1))
 	name := getString(getRHS(p, ruleNo, 3))
 	// SQLite rejects a COLLATE clause or ASC/DESC in an identifier list
@@ -346,7 +346,7 @@ func rule244(ruleNo int, p *Parser) interface{} {
 }
 
 // Rule 245: eidlist ::= nm collate sortorder
-func rule245(ruleNo int, p *Parser) interface{} {
+func ruleEidlistNmCollateSortorder(ruleNo int, p *Parser) interface{} {
 	name := getString(getRHS(p, ruleNo, 1))
 	if getString(getRHS(p, ruleNo, 2)) != "" || getString(getRHS(p, ruleNo, 3)) != "" {
 		if !p.SchemaMode && p.SemanticErr == nil {
@@ -370,7 +370,7 @@ func rule248(ruleNo int, p *Parser) interface{} {
 // or "INTO expr", rule 251). Only a string literal fills Into; any other
 // expression node is carried in IntoExpr for the exec-side checks
 // (vacuum.c: NULL → "non-text filename", column → resolved first).
-func rule249(ruleNo int, p *Parser) interface{} {
+func ruleCmdVacuumIntoOpt(ruleNo int, p *Parser) interface{} {
 	return vacuumStmtFromInto("", getRHS(p, ruleNo, 2))
 }
 
@@ -398,13 +398,13 @@ func vacuumStmtFromInto(schema string, v interface{}) *sql.VacuumStmt {
 // Rule 250: cmd ::= VACUUM nm vinto
 // Schema-qualified VACUUM ("VACUUM main", "VACUUM aux INTO 'f'"): nm is the
 // schema name, vinto the optional INTO target (empty when absent).
-func rule250(ruleNo int, p *Parser) interface{} {
+func ruleCmdVacuumNmVinto(ruleNo int, p *Parser) interface{} {
 	return vacuumStmtFromInto(getString(getRHS(p, ruleNo, 2)), getRHS(p, ruleNo, 3))
 }
 
 // Rule 251: into_opt ::= INTO expr — the VACUUM INTO target. The raw value
 // is returned (string for a literal, expression node otherwise).
-func rule251(ruleNo int, p *Parser) interface{} {
+func ruleIntoOptIntoExprTheVacuumIntoTargetTheRawValue(ruleNo int, p *Parser) interface{} {
 	return getRHS(p, ruleNo, 2)
 }
 
@@ -412,7 +412,7 @@ func rule251(ruleNo int, p *Parser) interface{} {
 // The nm token is the pragma name, dbnm the optional schema qualifier.
 // When dbnm is present (PRAGMA main.foreign_key_check), nm is the schema
 // and dbnm the pragma name (mirroring sqlite3Pragma's swap).
-func rule253(ruleNo int, p *Parser) interface{} {
+func ruleCmdPragmaNmDbnm(ruleNo int, p *Parser) interface{} {
 	name := getString(getRHS(p, ruleNo, 2))
 	schema := getString(getRHS(p, ruleNo, 3))
 	if schema != "" {
@@ -427,7 +427,7 @@ func rule253(ruleNo int, p *Parser) interface{} {
 }
 
 // Rule 254: cmd ::= PRAGMA nm dbnm = pragma_value
-func rule254(ruleNo int, p *Parser) interface{} {
+func ruleCmdPragmaNmDbnmPragmaValue(ruleNo int, p *Parser) interface{} {
 	name := getString(getRHS(p, ruleNo, 2))
 	value := getString(getRHS(p, ruleNo, 5))
 	schema := getString(getRHS(p, ruleNo, 3))
@@ -446,7 +446,7 @@ func rule254(ruleNo int, p *Parser) interface{} {
 // Rule 255: cmd ::= PRAGMA nm dbnm LP pragma_value RP
 // Rule 257: cmd ::= PRAGMA nm dbnm LP minus_num RP
 // rule255 also implements rule(s) [257] (identical action).
-func rule255(ruleNo int, p *Parser) interface{} {
+func ruleCmdPragmaNmDbnmLpPragmaValueRp(ruleNo int, p *Parser) interface{} {
 	name := getString(getRHS(p, ruleNo, 2))
 	value := getString(getRHS(p, ruleNo, 5))
 	schema := getString(getRHS(p, ruleNo, 3))
@@ -465,7 +465,7 @@ func rule255(ruleNo int, p *Parser) interface{} {
 // Rule 256: cmd ::= PRAGMA nm dbnm EQ minus_num
 // (SQLite rule 1717: cmd ::= PRAGMA nm(X) dbnm(Z) EQ minus_num(Y))
 // The minus_num value (e.g. -500) becomes the pragma Value.
-func rule256(ruleNo int, p *Parser) interface{} {
+func ruleCmdPragmaNmDbnmEqMinusNum(ruleNo int, p *Parser) interface{} {
 	name := getString(getRHS(p, ruleNo, 2))
 	value := getString(getRHS(p, ruleNo, 5))
 	schema := getString(getRHS(p, ruleNo, 3))
@@ -485,7 +485,7 @@ func rule256(ruleNo int, p *Parser) interface{} {
 // SQLite's minus_num(A) ::= MINUS number(X). {A = X;} — the semantic
 // value is the NUMBER token, not the minus. PRAGMA ...(-51) uses this
 // rule so the pragma value must be "-51".
-func rule259(ruleNo int, p *Parser) interface{} {
+func ruleMinusNumMinusNumber(ruleNo int, p *Parser) interface{} {
 	number := getRHS(p, ruleNo, 2)
 	if tok, ok := number.(sql.Token); ok {
 		return "-" + tok.Value
@@ -498,7 +498,7 @@ func rule259(ruleNo int, p *Parser) interface{} {
 }
 
 // Rule 260: cmd ::= createkw trigger_decl BEGIN trigger_cmd_list END
-func rule260(ruleNo int, p *Parser) interface{} {
+func ruleCmdCreatekwTriggerDeclBeginTriggerCmdListEnd(ruleNo int, p *Parser) interface{} {
 	decl, _ := getRHS(p, ruleNo, 2).(*triggerDeclInfo)
 	if decl == nil {
 		return nil
@@ -537,7 +537,7 @@ func rule261(ruleNo int, p *Parser) interface{} {
 }
 
 // Rule 270: trigger_cmd_list ::= trigger_cmd_list trigger_cmd SEMI
-func rule270(ruleNo int, p *Parser) interface{} {
+func ruleTriggerCmdListTriggerCmdListTriggerCmdSemi(ruleNo int, p *Parser) interface{} {
 	list := getStmtList(getRHS(p, ruleNo, 1))
 	stmt := getStmt(getRHS(p, ruleNo, 2))
 	if stmt != nil {
@@ -548,7 +548,7 @@ func rule270(ruleNo int, p *Parser) interface{} {
 }
 
 // Rule 271: trigger_cmd_list ::= trigger_cmd SEMI
-func rule271(ruleNo int, p *Parser) interface{} {
+func ruleTriggerCmdListTriggerCmdSemi(ruleNo int, p *Parser) interface{} {
 	stmt := getStmt(getRHS(p, ruleNo, 1))
 	if stmt == nil {
 		return []sql.Stmt(nil)
@@ -558,7 +558,7 @@ func rule271(ruleNo int, p *Parser) interface{} {
 }
 
 // Rule 274: trigger_cmd ::= UPDATE orconf nm indexed_opt SET setlist from where_opt
-func rule274(ruleNo int, p *Parser) interface{} {
+func ruleTriggerCmdUpdateOrconfNmIndexedOptSetSetlistFromWhereOpt(ruleNo int, p *Parser) interface{} {
 	fromInfo := getFromInfo(getRHS(p, ruleNo, 7))
 	stmt := &sql.UpdateStmt{
 		Table:       getString(getRHS(p, ruleNo, 3)),
@@ -610,7 +610,7 @@ func rule275(ruleNo int, p *Parser) interface{} {
 }
 
 // Rule 276: trigger_cmd ::= DELETE FROM xfullname tridxby where_opt scanpt
-func rule276(ruleNo int, p *Parser) interface{} {
+func ruleTriggerCmdDeleteFromXfullnameTridxbyWhereOptScanpt(ruleNo int, p *Parser) interface{} {
 	stmt := &sql.DeleteStmt{
 		Table: getString(getRHS(p, ruleNo, 3)),
 		Where: getExpr(getRHS(p, ruleNo, 5)),
@@ -624,13 +624,13 @@ func rule276(ruleNo int, p *Parser) interface{} {
 
 // Rule 277: trigger_cmd ::= scanpt select scanpt
 // A bare SELECT as a trigger body. scanpt markers are empty (nil).
-func rule277(ruleNo int, p *Parser) interface{} {
+func ruleTriggerCmdScanptSelectScanpt(ruleNo int, p *Parser) interface{} {
 	return getRHS(p, ruleNo, 2)
 
 }
 
 // Rule 278: expr ::= RAISE LP IGNORE RP
-func rule278(ruleNo int, p *Parser) interface{} {
+func ruleExprRaiseLpIgnoreRp(ruleNo int, p *Parser) interface{} {
 	return &sql.RaiseExpr{Kind: "IGNORE"}
 
 }

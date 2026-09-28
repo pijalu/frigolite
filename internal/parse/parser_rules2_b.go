@@ -18,7 +18,7 @@ import (
 )
 
 // Rule 124: joinop ::= COMMA|JOIN
-func rule124(ruleNo int, p *Parser) interface{} {
+func ruleJoinopCommaJoin(ruleNo int, p *Parser) interface{} {
 	// Rule 124: joinop ::= COMMA|JOIN — the multiterminal covers both a
 	// comma join (FROM a, b) and a plain JOIN keyword (INNER JOIN).
 	// Distinguish by the token value: "," is a comma join, "JOIN" is INNER.
@@ -43,7 +43,7 @@ func joinOpFromKeywords(p *Parser, kws ...string) joinOp {
 }
 
 // Rule 125: joinop ::= JOIN_KW JOIN
-func rule125(ruleNo int, p *Parser) interface{} {
+func ruleJoinopJoinKwJoin(ruleNo int, p *Parser) interface{} {
 	return joinOpFromKeywords(p, getString(getRHS(p, ruleNo, 1)))
 
 }
@@ -52,7 +52,7 @@ func rule125(ruleNo int, p *Parser) interface{} {
 // "NATURAL LEFT JOIN" has JOIN_KW=NATURAL and nm=LEFT; the nm join type
 // must be preserved so exec can NULL-fill the correct side (SQLite's
 // sqlite3JoinType ORs JT_NATURAL with the JOIN_KW/nm flags).
-func rule126(ruleNo int, p *Parser) interface{} {
+func ruleJoinopJoinKwNmJoin(ruleNo int, p *Parser) interface{} {
 	return joinOpFromKeywords(p, getString(getRHS(p, ruleNo, 1)), getString(getRHS(p, ruleNo, 2)))
 
 }
@@ -66,33 +66,33 @@ func rule127(ruleNo int, p *Parser) interface{} {
 }
 
 // Rule 128: joinop ::= JOIN_KW nm JOIN
-func rule128(ruleNo int, p *Parser) interface{} {
+func ruleJoinopJoinKwNmJoinN128(ruleNo int, p *Parser) interface{} {
 	// Rule 128: on_using ::= ON expr — the ON condition for a JOIN.
 	return getExpr(getRHS(p, ruleNo, 2))
 
 }
 
 // Rule 129: on_using ::= USING LP idlist RP — the USING column list.
-func rule129(ruleNo int, p *Parser) interface{} {
+func ruleOnUsingUsingLpIdlistRpTheUsingColumnList(ruleNo int, p *Parser) interface{} {
 	return getStringList(getRHS(p, ruleNo, 3))
 
 }
 
 // Rule 130: on_using ::=
-func rule130(ruleNo int, p *Parser) interface{} {
+func ruleOnUsing(ruleNo int, p *Parser) interface{} {
 	return nil
 
 }
 
 // Rule 131: on_using ::=
-func rule131(ruleNo int, p *Parser) interface{} {
+func ruleOnUsingN131(ruleNo int, p *Parser) interface{} {
 	return nil
 
 }
 
 // Rule 132: indexed_by ::= INDEXED BY nm
 // Returns the index name. Consumers currently ignore indexed_by.
-func rule132(ruleNo int, p *Parser) interface{} {
+func ruleIndexedByIndexedByNm(ruleNo int, p *Parser) interface{} {
 	return getString(getRHS(p, ruleNo, 3))
 
 }
@@ -101,13 +101,13 @@ func rule132(ruleNo int, p *Parser) interface{} {
 // Marks the table reference as NOT INDEXED (no index hints).
 // Consumers currently ignore indexed_by; this returns a non-nil marker
 // so the rule does not fall through to a nil passthrough.
-func rule133(ruleNo int, p *Parser) interface{} {
+func ruleIndexedByNotIndexed(ruleNo int, p *Parser) interface{} {
 	return "NOT INDEXED"
 
 }
 
 // Rule 134: orderby_opt ::=
-func rule134(ruleNo int, p *Parser) interface{} {
+func ruleOrderbyOpt(ruleNo int, p *Parser) interface{} {
 	return ([]sql.OrderByTerm)(nil)
 
 }
@@ -118,7 +118,7 @@ func rule135(ruleNo int, p *Parser) interface{} {
 }
 
 // Rule 136: sortlist ::= sortlist COMMA expr sortorder nulls
-func rule136(ruleNo int, p *Parser) interface{} {
+func ruleSortlistSortlistCommaExprSortorderNulls(ruleNo int, p *Parser) interface{} {
 	acc := getOrderByList(getRHS(p, ruleNo, 1))
 	expr := getExpr(getRHS(p, ruleNo, 3))
 	desc := getRHS(p, ruleNo, 4) == "DESC"
@@ -128,7 +128,7 @@ func rule136(ruleNo int, p *Parser) interface{} {
 }
 
 // Rule 137: sortlist ::= expr sortorder nulls
-func rule137(ruleNo int, p *Parser) interface{} {
+func ruleSortlistExprSortorderNulls(ruleNo int, p *Parser) interface{} {
 	expr := getExpr(getRHS(p, ruleNo, 1))
 	desc := getRHS(p, ruleNo, 2) == "DESC"
 	nf, nl := getNullsOrder(getRHS(p, ruleNo, 3))
@@ -141,31 +141,31 @@ func rule137(ruleNo int, p *Parser) interface{} {
 // Consumers compare against "DESC" for descending order; eidlist rules
 // treat ANY explicit sortorder (ASC or DESC) as an error, matching SQLite's
 // SQLITE_SO_UNDEFINED distinction.
-func rule138(ruleNo int, p *Parser) interface{} {
+func ruleSortorderAsc(ruleNo int, p *Parser) interface{} {
 	return "ASC"
 
 }
 
 // Rule 139: sortorder ::= DESC
-func rule139(ruleNo int, p *Parser) interface{} {
+func ruleSortorderDesc(ruleNo int, p *Parser) interface{} {
 	return "DESC"
 
 }
 
 // Rule 140: sortorder ::=
-func rule140(ruleNo int, p *Parser) interface{} {
+func ruleSortorder(ruleNo int, p *Parser) interface{} {
 	return ""
 
 }
 
 // Rule 141: nulls ::= NULLS FIRST
-func rule141(ruleNo int, p *Parser) interface{} {
+func ruleNullsNullsFirst(ruleNo int, p *Parser) interface{} {
 	return nullsOrder{first: true}
 
 }
 
 // Rule 142: nulls ::= NULLS LAST
-func rule142(ruleNo int, p *Parser) interface{} {
+func ruleNullsNullsLast(ruleNo int, p *Parser) interface{} {
 	return nullsOrder{last: true}
 
 }
@@ -176,43 +176,43 @@ func rule143(ruleNo int, p *Parser) interface{} {
 }
 
 // Rule 144: groupby_opt ::=
-func rule144(ruleNo int, p *Parser) interface{} {
+func ruleGroupbyOpt(ruleNo int, p *Parser) interface{} {
 	return ([]sql.Expr)(nil)
 
 }
 
 // Rule 145: groupby_opt ::= GROUP BY nexprlist
-func rule145(ruleNo int, p *Parser) interface{} {
+func ruleGroupbyOptGroupByNexprlist(ruleNo int, p *Parser) interface{} {
 	return getExprList(getRHS(p, ruleNo, 3))
 
 }
 
 // Rule 146: having_opt ::=
-func rule146(ruleNo int, p *Parser) interface{} {
+func ruleHavingOpt(ruleNo int, p *Parser) interface{} {
 	return nil
 
 }
 
 // Rule 147: having_opt ::= HAVING expr
-func rule147(ruleNo int, p *Parser) interface{} {
+func ruleHavingOptHavingExpr(ruleNo int, p *Parser) interface{} {
 	return getExpr(getRHS(p, ruleNo, 2))
 
 }
 
 // Rule 148: limit_opt ::=
-func rule148(ruleNo int, p *Parser) interface{} {
+func ruleLimitOpt(ruleNo int, p *Parser) interface{} {
 	return nil
 
 }
 
 // Rule 149: limit_opt ::= LIMIT expr
-func rule149(ruleNo int, p *Parser) interface{} {
+func ruleLimitOptLimitExpr(ruleNo int, p *Parser) interface{} {
 	return &limitClause{limit: getExpr(getRHS(p, ruleNo, 2))}
 
 }
 
 // Rule 150: limit_opt ::= LIMIT expr OFFSET expr
-func rule150(ruleNo int, p *Parser) interface{} {
+func ruleLimitOptLimitExprOffsetExpr(ruleNo int, p *Parser) interface{} {
 	return &limitClause{
 		limit:  getExpr(getRHS(p, ruleNo, 2)),
 		offset: getExpr(getRHS(p, ruleNo, 4)),
@@ -230,7 +230,7 @@ func rule151(ruleNo int, p *Parser) interface{} {
 }
 
 // Rule 152: cmd ::= with DELETE FROM xfullname indexed_opt where_opt_ret
-func rule152(ruleNo int, p *Parser) interface{} {
+func ruleCmdWithDeleteFromXfullnameIndexedOptWhereOptRet(ruleNo int, p *Parser) interface{} {
 	tbl := getString(getRHS(p, ruleNo, 4))
 	wr := getWhereRet(getRHS(p, ruleNo, 6))
 	stmt := &sql.DeleteStmt{Table: tbl, CTEs: getCTEDefs(getRHS(p, ruleNo, 1))}
@@ -251,19 +251,19 @@ func rule152(ruleNo int, p *Parser) interface{} {
 }
 
 // Rule 153: where_opt ::=
-func rule153(ruleNo int, p *Parser) interface{} {
+func ruleWhereOpt(ruleNo int, p *Parser) interface{} {
 	return nil
 
 }
 
 // Rule 154: where_opt ::= WHERE expr
-func rule154(ruleNo int, p *Parser) interface{} {
+func ruleWhereOptWhereExpr(ruleNo int, p *Parser) interface{} {
 	return getExpr(getRHS(p, ruleNo, 2))
 
 }
 
 // Rule 155: where_opt_ret ::=
-func rule155(ruleNo int, p *Parser) interface{} {
+func ruleWhereOptRet(ruleNo int, p *Parser) interface{} {
 	return &whereRet{}
 
 }
@@ -274,13 +274,13 @@ func rule156(ruleNo int, p *Parser) interface{} {
 }
 
 // Rule 157: where_opt_ret ::= RETURNING selcollist
-func rule157(ruleNo int, p *Parser) interface{} {
+func ruleWhereOptRetReturningSelcollist(ruleNo int, p *Parser) interface{} {
 	return &whereRet{returning: getSelectColumns(getRHS(p, ruleNo, 2))}
 
 }
 
 // Rule 158: where_opt_ret ::= WHERE expr RETURNING selcollist
-func rule158(ruleNo int, p *Parser) interface{} {
+func ruleWhereOptRetWhereExprReturningSelcollist(ruleNo int, p *Parser) interface{} {
 	return &whereRet{
 		where:     getExpr(getRHS(p, ruleNo, 2)),
 		returning: getSelectColumns(getRHS(p, ruleNo, 4)),
@@ -289,7 +289,7 @@ func rule158(ruleNo int, p *Parser) interface{} {
 }
 
 // Rule 159: cmd ::= with UPDATE orconf xfullname indexed_opt SET setlist from where_opt_ret
-func rule159(ruleNo int, p *Parser) interface{} {
+func ruleCmdWithUpdateOrconfXfullnameIndexedOptSetSetlistFromWhereOptRet(ruleNo int, p *Parser) interface{} {
 	tbl := getString(getRHS(p, ruleNo, 4))
 	setlist := getAssignments(getRHS(p, ruleNo, 7))
 	fromInfo := getFromInfo(getRHS(p, ruleNo, 8))
@@ -321,7 +321,7 @@ func rule159(ruleNo int, p *Parser) interface{} {
 }
 
 // Rule 160: setlist ::= setlist COMMA nm EQ expr
-func rule160(ruleNo int, p *Parser) interface{} {
+func ruleSetlistSetlistCommaNmEqExpr(ruleNo int, p *Parser) interface{} {
 	acc := getAssignments(getRHS(p, ruleNo, 1))
 	col := getString(getRHS(p, ruleNo, 3))
 	val := getExpr(getRHS(p, ruleNo, 5))
@@ -330,7 +330,7 @@ func rule160(ruleNo int, p *Parser) interface{} {
 }
 
 // Rule 162: setlist ::= nm EQ expr
-func rule162(ruleNo int, p *Parser) interface{} {
+func ruleSetlistNmEqExpr(ruleNo int, p *Parser) interface{} {
 	col := getString(getRHS(p, ruleNo, 1))
 	val := getExpr(getRHS(p, ruleNo, 3))
 	return []sql.Assignment{{Column: col, Value: val}}
@@ -338,7 +338,7 @@ func rule162(ruleNo int, p *Parser) interface{} {
 }
 
 // Rule 164: cmd ::= with insert_cmd INTO xfullname idlist_opt select upsert
-func rule164(ruleNo int, p *Parser) interface{} {
+func ruleCmdWithInsertCmdIntoXfullnameIdlistOptSelectUpsert(ruleNo int, p *Parser) interface{} {
 	table := getString(getRHS(p, ruleNo, 4))
 	columns := getStringList(getRHS(p, ruleNo, 5))
 	sel := getSelectStmt(getRHS(p, ruleNo, 6))
@@ -430,7 +430,7 @@ func checkValuesChainWidths(sel *sql.SelectStmt) (badValues bool, badOp string) 
 }
 
 // Rule 165: cmd ::= with insert_cmd INTO xfullname idlist_opt DEFAULT VALUES returning
-func rule165(ruleNo int, p *Parser) interface{} {
+func ruleCmdWithInsertCmdIntoXfullnameIdlistOptDefaultValuesReturning(ruleNo int, p *Parser) interface{} {
 	table := getString(getRHS(p, ruleNo, 4))
 	columns := getStringList(getRHS(p, ruleNo, 5))
 	cmd := getString(getRHS(p, ruleNo, 2))
@@ -455,13 +455,13 @@ func rule165(ruleNo int, p *Parser) interface{} {
 }
 
 // Rule 166: upsert ::=
-func rule166(ruleNo int, p *Parser) interface{} {
+func ruleUpsert(ruleNo int, p *Parser) interface{} {
 	return &upsertVal{}
 
 }
 
 // Rule 167: upsert ::= RETURNING selcollist
-func rule167(ruleNo int, p *Parser) interface{} {
+func ruleUpsertReturningSelcollist(ruleNo int, p *Parser) interface{} {
 	return &upsertVal{returning: getSelectColumns(getRHS(p, ruleNo, 2))}
 
 }
@@ -469,7 +469,7 @@ func rule167(ruleNo int, p *Parser) interface{} {
 // Rule 168: upsert ::= ON CONFLICT LP sortlist RP where_opt
 //
 //	DO UPDATE SET setlist where_opt upsert
-func rule168(ruleNo int, p *Parser) interface{} {
+func ruleUpsertOnConflictLpSortlistRpWhereOpt(ruleNo int, p *Parser) interface{} {
 	target := getOrderByList(getRHS(p, ruleNo, 4))
 	// NULLS FIRST/LAST is not supported in an ON CONFLICT target.
 	if err := rejectNullsInSortlist(target); err != nil {
@@ -501,7 +501,7 @@ func rule168(ruleNo int, p *Parser) interface{} {
 }
 
 // Rule 169: upsert ::= ON CONFLICT LP sortlist RP where_opt DO NOTHING upsert
-func rule169(ruleNo int, p *Parser) interface{} {
+func ruleUpsertOnConflictLpSortlistRpWhereOptDoNothingUpsert(ruleNo int, p *Parser) interface{} {
 	target := getOrderByList(getRHS(p, ruleNo, 4))
 	names, exprs := conflictTargetColumns(target)
 	oc := &sql.OnConflictClause{
@@ -520,7 +520,7 @@ func rule169(ruleNo int, p *Parser) interface{} {
 }
 
 // Rule 170: upsert ::= ON CONFLICT DO NOTHING returning
-func rule170(ruleNo int, p *Parser) interface{} {
+func ruleUpsertOnConflictDoNothingReturning(ruleNo int, p *Parser) interface{} {
 	return &upsertVal{
 		onConflict: &sql.OnConflictClause{
 			Action: sql.ConflictDoNothing,
@@ -531,7 +531,7 @@ func rule170(ruleNo int, p *Parser) interface{} {
 }
 
 // Rule 171: upsert ::= ON CONFLICT DO UPDATE SET setlist where_opt returning
-func rule171(ruleNo int, p *Parser) interface{} {
+func ruleUpsertOnConflictDoUpdateSetSetlistWhereOptReturning(ruleNo int, p *Parser) interface{} {
 	return &upsertVal{
 		onConflict: &sql.OnConflictClause{
 			Action:      sql.ConflictDoUpdate,
@@ -544,7 +544,7 @@ func rule171(ruleNo int, p *Parser) interface{} {
 }
 
 // Rule 172: returning ::= RETURNING selcollist
-func rule172(ruleNo int, p *Parser) interface{} {
+func ruleReturningReturningSelcollist(ruleNo int, p *Parser) interface{} {
 	return getSelectColumns(getRHS(p, ruleNo, 2))
 
 }
@@ -556,13 +556,13 @@ func rule173(ruleNo int, p *Parser) interface{} {
 }
 
 // Rule 174: insert_cmd ::= REPLACE
-func rule174(ruleNo int, p *Parser) interface{} {
+func ruleInsertCmdReplace(ruleNo int, p *Parser) interface{} {
 	return "REPLACE"
 
 }
 
 // Rule 175: idlist_opt ::=
-func rule175(ruleNo int, p *Parser) interface{} {
+func ruleIdlistOpt(ruleNo int, p *Parser) interface{} {
 	return ([]string)(nil)
 
 }
@@ -573,26 +573,26 @@ func rule176(ruleNo int, p *Parser) interface{} {
 }
 
 // Rule 177: idlist ::= idlist COMMA nm
-func rule177(ruleNo int, p *Parser) interface{} {
+func ruleIdlistIdlistCommaNm(ruleNo int, p *Parser) interface{} {
 	acc := getStringList(getRHS(p, ruleNo, 1))
 	return append(acc, getString(getRHS(p, ruleNo, 3)))
 
 }
 
 // Rule 178: idlist ::= nm
-func rule178(ruleNo int, p *Parser) interface{} {
+func ruleIdlistNm(ruleNo int, p *Parser) interface{} {
 	return []string{getString(getRHS(p, ruleNo, 1))}
 
 }
 
 // Rule 179: expr ::= LP expr RP
-func rule179(ruleNo int, p *Parser) interface{} {
+func ruleExprLpExprRp(ruleNo int, p *Parser) interface{} {
 	return getExpr(getRHS(p, ruleNo, 2))
 
 }
 
 // Rule 180: expr ::= ID|INDEXED|JOIN_KW (column reference)
-func rule180(ruleNo int, p *Parser) interface{} {
+func ruleExprIdIndexedJoinKwColumnReference(ruleNo int, p *Parser) interface{} {
 	if tok, ok := getRHS(p, ruleNo, 1).(sql.Token); ok {
 		// Keep the Quoted flag on all double-quoted identifiers (including
 		// the empty "") so resolution can apply SQLite's DQS rules: with
@@ -609,7 +609,7 @@ func rule180(ruleNo int, p *Parser) interface{} {
 }
 
 // Rule 181: expr ::= nm DOT nm (schema.table)
-func rule181(ruleNo int, p *Parser) interface{} {
+func ruleExprNmDotNmSchemaTable(ruleNo int, p *Parser) interface{} {
 	schema := getString(getRHS(p, ruleNo, 1))
 	col := getString(getRHS(p, ruleNo, 3))
 	return &sql.ColumnRef{Table: schema, Name: col}
@@ -617,7 +617,7 @@ func rule181(ruleNo int, p *Parser) interface{} {
 }
 
 // Rule 182: expr ::= nm DOT nm DOT nm (schema.table.column)
-func rule182(ruleNo int, p *Parser) interface{} {
+func ruleExprNmDotNmDotNmSchemaTableColumn(ruleNo int, p *Parser) interface{} {
 	schema := getString(getRHS(p, ruleNo, 1))
 	table := getString(getRHS(p, ruleNo, 3))
 	col := getString(getRHS(p, ruleNo, 5))
@@ -626,7 +626,7 @@ func rule182(ruleNo int, p *Parser) interface{} {
 }
 
 // Rule 183: term ::= NULL|FLOAT|BLOB
-func rule183(ruleNo int, p *Parser) interface{} {
+func ruleTermNullFloatBlob(ruleNo int, p *Parser) interface{} {
 	if tok, ok := getRHS(p, ruleNo, 1).(sql.Token); ok {
 		if strings.EqualFold(tok.Value, "NULL") {
 			return &sql.NullLit{}

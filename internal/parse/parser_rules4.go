@@ -17,7 +17,7 @@ func rule282(ruleNo int, p *Parser) interface{} {
 }
 
 // Rule 283: cmd ::= DROP TRIGGER ifexists fullname
-func rule283(ruleNo int, p *Parser) interface{} {
+func ruleCmdDropTriggerIfexistsFullname(ruleNo int, p *Parser) interface{} {
 	ifExists := getBool(getRHS(p, ruleNo, 3))
 	name := getString(getRHS(p, ruleNo, 4))
 	return &sql.DropTriggerStmt{Name: name, IfExists: ifExists}
@@ -25,7 +25,7 @@ func rule283(ruleNo int, p *Parser) interface{} {
 }
 
 // Rule 284: cmd ::= ATTACH database_kw_opt expr AS expr key_opt
-func rule284(ruleNo int, p *Parser) interface{} {
+func ruleCmdAttachDatabaseKwOptExprAsExprKeyOpt(ruleNo int, p *Parser) interface{} {
 	pathExpr := getExpr(getRHS(p, ruleNo, 3))
 	schemaExpr := getExpr(getRHS(p, ruleNo, 5))
 	path := ""
@@ -49,7 +49,7 @@ func rule284(ruleNo int, p *Parser) interface{} {
 // the DETACH argument as a scalar expression (DETACH 1+2 detaches "3");
 // a multi-column row value in the argument is "row value misused". The
 // raw expr is kept in SchemaExpr so execDetach can evaluate it.
-func rule285(ruleNo int, p *Parser) interface{} {
+func ruleCmdDetachDatabaseKwOptExpr(ruleNo int, p *Parser) interface{} {
 	schema := ""
 	rhs := getRHS(p, ruleNo, 3)
 	switch v := rhs.(type) {
@@ -72,7 +72,7 @@ func rule285(ruleNo int, p *Parser) interface{} {
 }
 
 // Rule 288: cmd ::= REINDEX
-func rule288(ruleNo int, p *Parser) interface{} {
+func ruleCmdReindex(ruleNo int, p *Parser) interface{} {
 	return &sql.ReindexStmt{}
 
 }
@@ -80,7 +80,7 @@ func rule288(ruleNo int, p *Parser) interface{} {
 // Rule 289: cmd ::= REINDEX nm dbnm — REINDEX with an optional schema
 // qualifier (dbnm) over the object name (nm), built "nm.dbnm" (schema
 // dot object; "REINDEX main.t1" targets t1 in main).
-func rule289(ruleNo int, p *Parser) interface{} {
+func ruleCmdReindexNmDbnmReindexWithAnOptionalSchema(ruleNo int, p *Parser) interface{} {
 	nm := getString(getRHS(p, ruleNo, 2))
 	dbnm := getString(getRHS(p, ruleNo, 3))
 	name := nm
@@ -92,7 +92,7 @@ func rule289(ruleNo int, p *Parser) interface{} {
 }
 
 // Rule 290: cmd ::= ANALYZE
-func rule290(ruleNo int, p *Parser) interface{} {
+func ruleCmdAnalyze(ruleNo int, p *Parser) interface{} {
 	return &sql.AnalyzeStmt{}
 
 }
@@ -103,7 +103,7 @@ func rule290(ruleNo int, p *Parser) interface{} {
 // dotted name, e.g. "main" in "ANALYZE main.t1") and dbnm is the
 // SECOND (the table/index part, "t1"). Build "schema.table" so
 // execAnalyze's dot-splitting resolves the table in its schema.
-func rule291(ruleNo int, p *Parser) interface{} {
+func ruleCmdAnalyzeNmDbnm(ruleNo int, p *Parser) interface{} {
 	nm := getString(getRHS(p, ruleNo, 2))
 	dbnm := getString(getRHS(p, ruleNo, 3))
 	name := nm
@@ -115,7 +115,7 @@ func rule291(ruleNo int, p *Parser) interface{} {
 }
 
 // Rule 292: cmd ::= ALTER TABLE fullname RENAME TO nm
-func rule292(ruleNo int, p *Parser) interface{} {
+func ruleCmdAlterTableFullnameRenameToNm(ruleNo int, p *Parser) interface{} {
 	return &sql.AlterTableStmt{
 		Table:   getString(getRHS(p, ruleNo, 3)),
 		Action:  "RENAME",
@@ -127,7 +127,7 @@ func rule292(ruleNo int, p *Parser) interface{} {
 // Rule 293: cmd ::= alter_add carglist
 // ALTER TABLE ... ADD COLUMN: combine the column name/type from alter_add
 // with the constraints from carglist into a full ColumnDef.
-func rule293(ruleNo int, p *Parser) interface{} {
+func ruleCmdAlterAddCarglist(ruleNo int, p *Parser) interface{} {
 	ai := getAlterAddInfo(getRHS(p, ruleNo, 1))
 	cols := getColumnList(getRHS(p, ruleNo, 2))
 	cd := sql.ColumnDef{Name: ai.name, Type: ai.typ}
@@ -143,7 +143,7 @@ func rule293(ruleNo int, p *Parser) interface{} {
 }
 
 // Rule 294: alter_add ::= ALTER TABLE fullname ADD kwcolumn_opt nm typetoken
-func rule294(ruleNo int, p *Parser) interface{} {
+func ruleAlterAddAlterTableFullnameAddKwcolumnOptNmTypetoken(ruleNo int, p *Parser) interface{} {
 	return &alterAddInfo{
 		table: getString(getRHS(p, ruleNo, 3)),
 		name:  getString(getRHS(p, ruleNo, 6)),
@@ -153,7 +153,7 @@ func rule294(ruleNo int, p *Parser) interface{} {
 }
 
 // Rule 295: cmd ::= ALTER TABLE fullname DROP kwcolumn_opt nm
-func rule295(ruleNo int, p *Parser) interface{} {
+func ruleCmdAlterTableFullnameDropKwcolumnOptNm(ruleNo int, p *Parser) interface{} {
 	return &sql.AlterTableStmt{
 		Table:  getString(getRHS(p, ruleNo, 3)),
 		Action: "DROP",
@@ -163,7 +163,7 @@ func rule295(ruleNo int, p *Parser) interface{} {
 }
 
 // Rule 296: cmd ::= ALTER TABLE fullname RENAME kwcolumn_opt nm TO nm
-func rule296(ruleNo int, p *Parser) interface{} {
+func ruleCmdAlterTableFullnameRenameKwcolumnOptNmToNm(ruleNo int, p *Parser) interface{} {
 	return &sql.AlterTableStmt{
 		Table:   getString(getRHS(p, ruleNo, 3)),
 		Action:  "RENAME",
@@ -205,7 +205,7 @@ func rule299(ruleNo int, p *Parser) interface{} {
 }
 
 // Rule 300: cmd ::= ALTER TABLE fullname ADD CONSTRAINT nm CHECK LP expr RP onconf
-func rule300(ruleNo int, p *Parser) interface{} {
+func ruleCmdAlterTableFullnameAddConstraintNmCheckLpExprRpOnconf(ruleNo int, p *Parser) interface{} {
 	return &sql.AlterTableStmt{
 		Table:  getString(getRHS(p, ruleNo, 3)),
 		Action: "ADD",
@@ -218,7 +218,7 @@ func rule300(ruleNo int, p *Parser) interface{} {
 }
 
 // Rule 301: cmd ::= ALTER TABLE fullname ADD CHECK LP expr RP onconf
-func rule301(ruleNo int, p *Parser) interface{} {
+func ruleCmdAlterTableFullnameAddCheckLpExprRpOnconf(ruleNo int, p *Parser) interface{} {
 	return &sql.AlterTableStmt{
 		Table:  getString(getRHS(p, ruleNo, 3)),
 		Action: "ADD",
@@ -231,13 +231,13 @@ func rule301(ruleNo int, p *Parser) interface{} {
 }
 
 // Rule 302: cmd ::= create_vtab
-func rule302(ruleNo int, p *Parser) interface{} {
+func ruleCmdCreateVtab(ruleNo int, p *Parser) interface{} {
 	return getRHS(p, ruleNo, 1)
 
 }
 
 // Rule 303: cmd ::= create_vtab LP vtabarglist RP
-func rule303(ruleNo int, p *Parser) interface{} {
+func ruleCmdCreateVtabLpVtabarglistRp(ruleNo int, p *Parser) interface{} {
 	vt, _ := getRHS(p, ruleNo, 1).(*sql.CreateVirtualTableStmt)
 	if vt != nil {
 		vt.Args = getStringList(getRHS(p, ruleNo, 3))
@@ -247,7 +247,7 @@ func rule303(ruleNo int, p *Parser) interface{} {
 }
 
 // Rule 304: create_vtab ::= createkw VIRTUAL TABLE ifnotexists nm dbnm USING nm
-func rule304(ruleNo int, p *Parser) interface{} {
+func ruleCreateVtabCreatekwVirtualTableIfnotexistsNmDbnmUsingNm(ruleNo int, p *Parser) interface{} {
 	name := getString(getRHS(p, ruleNo, 5))
 	dbnm := getString(getRHS(p, ruleNo, 6)) // optional schema-qualified part
 	if dbnm != "" {
@@ -268,7 +268,7 @@ func rule305(ruleNo int, p *Parser) interface{} {
 }
 
 // Rule 306: token ::= ID (a single virtual-table argument token)
-func rule306(ruleNo int, p *Parser) interface{} {
+func ruleTokenIdASingleVirtualTableArgumentToken(ruleNo int, p *Parser) interface{} {
 	return getString(getRHS(p, ruleNo, 1))
 
 }
@@ -276,14 +276,14 @@ func rule306(ruleNo int, p *Parser) interface{} {
 // Rule 309: with ::= WITH wqlist
 // The wqlist value is []sql.CTEDef; propagate it as the with value so
 // INSERT (rule 164) can attach the CTEs.
-func rule309(ruleNo int, p *Parser) interface{} {
+func ruleWithWithWqlist(ruleNo int, p *Parser) interface{} {
 	return getCTEDefs(getRHS(p, ruleNo, 2))
 
 }
 
 // Rule 310: with ::= WITH RECURSIVE wqlist
 // Mark every CTE as recursive (WITH RECURSIVE applies to the whole list).
-func rule310(ruleNo int, p *Parser) interface{} {
+func ruleWithWithRecursiveWqlist(ruleNo int, p *Parser) interface{} {
 	defs := getCTEDefs(getRHS(p, ruleNo, 3))
 	for i := range defs {
 		defs[i].Recursive = true
@@ -295,13 +295,13 @@ func rule310(ruleNo int, p *Parser) interface{} {
 // Rule 311: wqas ::= AS
 // The materialization hint (MATERIALIZED / NOT MATERIALIZED) is not
 // modeled; pass through a marker value.
-func rule311(ruleNo int, p *Parser) interface{} {
+func ruleWqasAs(ruleNo int, p *Parser) interface{} {
 	return true
 
 }
 
 // Rule 314: wqitem ::= withnm eidlist_opt wqas LP select RP
-func rule314(ruleNo int, p *Parser) interface{} {
+func ruleWqitemWithnmEidlistOptWqasLpSelectRp(ruleNo int, p *Parser) interface{} {
 	name := getString(getRHS(p, ruleNo, 1))
 	cols := getStringList(getRHS(p, ruleNo, 2))
 	sel := getSelectStmt(getRHS(p, ruleNo, 5))
@@ -310,13 +310,13 @@ func rule314(ruleNo int, p *Parser) interface{} {
 }
 
 // Rule 315: withnm ::= nm
-func rule315(ruleNo int, p *Parser) interface{} {
+func ruleWithnmNm(ruleNo int, p *Parser) interface{} {
 	return getRHS(p, ruleNo, 1)
 
 }
 
 // Rule 316: wqlist ::= wqitem
-func rule316(ruleNo int, p *Parser) interface{} {
+func ruleWqlistWqitem(ruleNo int, p *Parser) interface{} {
 	if d, ok := getRHS(p, ruleNo, 1).(sql.CTEDef); ok {
 		return []sql.CTEDef{d}
 	}
@@ -334,7 +334,7 @@ func rule317(ruleNo int, p *Parser) interface{} {
 }
 
 // Rule 318: windowdefn_list ::= windowdefn_list COMMA windowdefn
-func rule318(ruleNo int, p *Parser) interface{} {
+func ruleWindowdefnListWindowdefnListCommaWindowdefn(ruleNo int, p *Parser) interface{} {
 	// The LALR tables reduce a single windowdefn to a *sql.WindowDef here
 	// (rule 410's list shape is not used); accept both the list and the
 	// single-definition shapes.
@@ -353,7 +353,7 @@ func rule318(ruleNo int, p *Parser) interface{} {
 }
 
 // Rule 319: windowdefn ::= nm AS LP window RP
-func rule319(ruleNo int, p *Parser) interface{} {
+func ruleWindowdefnNmAsLpWindowRp(ruleNo int, p *Parser) interface{} {
 	name := getString(getRHS(p, ruleNo, 1))
 	inner := getWindowDef(getRHS(p, ruleNo, 4))
 	if inner != nil {
@@ -371,7 +371,7 @@ func rule319(ruleNo int, p *Parser) interface{} {
 }
 
 // Rule 320: window ::= PARTITION BY nexprlist orderby_opt frame_opt
-func rule320(ruleNo int, p *Parser) interface{} {
+func ruleWindowPartitionByNexprlistOrderbyOptFrameOpt(ruleNo int, p *Parser) interface{} {
 	return &sql.WindowDef{
 		Partitions: getExprList(getRHS(p, ruleNo, 3)),
 		OrderBy:    getOrderByList(getRHS(p, ruleNo, 4)),
@@ -382,7 +382,7 @@ func rule320(ruleNo int, p *Parser) interface{} {
 }
 
 // Rule 321: window ::= nm PARTITION BY nexprlist orderby_opt frame_opt
-func rule321(ruleNo int, p *Parser) interface{} {
+func ruleWindowNmPartitionByNexprlistOrderbyOptFrameOpt(ruleNo int, p *Parser) interface{} {
 	return &sql.WindowDef{
 		BaseName:   getString(getRHS(p, ruleNo, 1)),
 		Partitions: getExprList(getRHS(p, ruleNo, 4)),
@@ -394,7 +394,7 @@ func rule321(ruleNo int, p *Parser) interface{} {
 }
 
 // Rule 322: window ::= ORDER BY sortlist frame_opt
-func rule322(ruleNo int, p *Parser) interface{} {
+func ruleWindowOrderBySortlistFrameOpt(ruleNo int, p *Parser) interface{} {
 	return &sql.WindowDef{
 		OrderBy:   getOrderByList(getRHS(p, ruleNo, 3)),
 		FrameSpec: getFrameOptSpec(getRHS(p, ruleNo, 4)),
@@ -404,7 +404,7 @@ func rule322(ruleNo int, p *Parser) interface{} {
 }
 
 // Rule 323: window ::= nm ORDER BY sortlist frame_opt
-func rule323(ruleNo int, p *Parser) interface{} {
+func ruleWindowNmOrderBySortlistFrameOpt(ruleNo int, p *Parser) interface{} {
 	return &sql.WindowDef{
 		BaseName:  getString(getRHS(p, ruleNo, 1)),
 		OrderBy:   getOrderByList(getRHS(p, ruleNo, 4)),
@@ -426,13 +426,13 @@ func rule324(ruleNo int, p *Parser) interface{} {
 }
 
 // Rule 325: frame_opt ::=
-func rule325(ruleNo int, p *Parser) interface{} {
+func ruleFrameOpt(ruleNo int, p *Parser) interface{} {
 	return ""
 
 }
 
 // Rule 326: frame_opt ::= range_or_rows frame_bound_s frame_exclude_opt
-func rule326(ruleNo int, p *Parser) interface{} {
+func ruleFrameOptRangeOrRowsFrameBoundSFrameExcludeOpt(ruleNo int, p *Parser) interface{} {
 	bound := getFrameBound(getRHS(p, ruleNo, 2))
 	if bound == nil {
 		return frameSpecFromParts(
@@ -454,7 +454,7 @@ func rule326(ruleNo int, p *Parser) interface{} {
 }
 
 // Rule 327: frame_opt ::= range_or_rows BETWEEN frame_bound_s AND frame_bound_e frame_exclude_opt
-func rule327(ruleNo int, p *Parser) interface{} {
+func ruleFrameOptRangeOrRowsBetweenFrameBoundSAndFrameBoundEFrameExcludeOpt(ruleNo int, p *Parser) interface{} {
 	spec := frameSpecFromParts(
 		getString(getRHS(p, ruleNo, 1)),
 		"BETWEEN",
@@ -480,7 +480,7 @@ func rule327(ruleNo int, p *Parser) interface{} {
 }
 
 // Rule 328: range_or_rows ::= RANGE|ROWS|GROUPS
-func rule328(ruleNo int, p *Parser) interface{} {
+func ruleRangeOrRowsRangeRowsGroups(ruleNo int, p *Parser) interface{} {
 	// SQLite's grammar selects the frame type by TOKEN TYPE (TK_ROWS etc.),
 	// which is case-insensitive; normalize the keyword text so downstream
 	// switch statements see the canonical uppercase form.
@@ -489,19 +489,19 @@ func rule328(ruleNo int, p *Parser) interface{} {
 }
 
 // Rule 329: frame_bound_s ::= frame_bound
-func rule329(ruleNo int, p *Parser) interface{} {
+func ruleFrameBoundSFrameBound(ruleNo int, p *Parser) interface{} {
 	return getFrameBound(getRHS(p, ruleNo, 1))
 
 }
 
 // Rule 330: frame_bound_s ::= UNBOUNDED PRECEDING
-func rule330(ruleNo int, p *Parser) interface{} {
+func ruleFrameBoundSUnboundedPreceding(ruleNo int, p *Parser) interface{} {
 	return &sql.FrameBound{Kind: "UNBOUNDED PRECEDING"}
 
 }
 
 // Rule 331: frame_bound_e ::= frame_bound
-func rule331(ruleNo int, p *Parser) interface{} {
+func ruleFrameBoundEFrameBound(ruleNo int, p *Parser) interface{} {
 	return getFrameBound(getRHS(p, ruleNo, 1))
 
 }
@@ -512,7 +512,7 @@ func rule332(ruleNo int, p *Parser) interface{} {
 }
 
 // Rule 333: frame_bound ::= expr PRECEDING|FOLLOWING
-func rule333(ruleNo int, p *Parser) interface{} {
+func ruleFrameBoundExprPrecedingFollowing(ruleNo int, p *Parser) interface{} {
 	expr := getExpr(getRHS(p, ruleNo, 1))
 	// PRECEDING/FOLLOWING are keyword tokens (case-insensitive in SQLite's
 	// grammar); normalize the direction text to the canonical form.
@@ -522,19 +522,19 @@ func rule333(ruleNo int, p *Parser) interface{} {
 }
 
 // Rule 334: frame_bound ::= CURRENT ROW
-func rule334(ruleNo int, p *Parser) interface{} {
+func ruleFrameBoundCurrentRow(ruleNo int, p *Parser) interface{} {
 	return &sql.FrameBound{Kind: "CURRENT ROW"}
 
 }
 
 // Rule 335: frame_exclude_opt ::=
-func rule335(ruleNo int, p *Parser) interface{} {
+func ruleFrameExcludeOpt(ruleNo int, p *Parser) interface{} {
 	return ""
 
 }
 
 // Rule 336: frame_exclude_opt ::= EXCLUDE frame_exclude
-func rule336(ruleNo int, p *Parser) interface{} {
+func ruleFrameExcludeOptExcludeFrameExclude(ruleNo int, p *Parser) interface{} {
 	// Return the bare exclude value; the caller adds the "EXCLUDE " prefix
 	// when building the frame spec text.
 	return getString(getRHS(p, ruleNo, 2))
@@ -542,19 +542,19 @@ func rule336(ruleNo int, p *Parser) interface{} {
 }
 
 // Rule 337: frame_exclude ::= NO OTHERS
-func rule337(ruleNo int, p *Parser) interface{} {
+func ruleFrameExcludeNoOthers(ruleNo int, p *Parser) interface{} {
 	return "NO OTHERS"
 
 }
 
 // Rule 338: frame_exclude ::= CURRENT ROW
-func rule338(ruleNo int, p *Parser) interface{} {
+func ruleFrameExcludeCurrentRow(ruleNo int, p *Parser) interface{} {
 	return "CURRENT ROW"
 
 }
 
 // Rule 339: frame_exclude ::= GROUP|TIES
-func rule339(ruleNo int, p *Parser) interface{} {
+func ruleFrameExcludeGroupTies(ruleNo int, p *Parser) interface{} {
 	// Keyword tokens are case-insensitive; normalize (see rule 328).
 	return strings.ToUpper(getString(getRHS(p, ruleNo, 1)))
 
@@ -575,7 +575,7 @@ func rule340(ruleNo int, p *Parser) interface{} {
 }
 
 // Rule 341: filter_over ::= filter_clause over_clause
-func rule341(ruleNo int, p *Parser) interface{} {
+func ruleFilterOverFilterClauseOverClause(ruleNo int, p *Parser) interface{} {
 	return &windowFilter{
 		filter: getExpr(getRHS(p, ruleNo, 1)),
 		over:   getWindowDef(getRHS(p, ruleNo, 2)),
@@ -584,7 +584,7 @@ func rule341(ruleNo int, p *Parser) interface{} {
 }
 
 // Rule 342: filter_over ::= over_clause
-func rule342(ruleNo int, p *Parser) interface{} {
+func ruleFilterOverOverClause(ruleNo int, p *Parser) interface{} {
 	return &windowFilter{
 		over: getWindowDef(getRHS(p, ruleNo, 1)),
 	}
@@ -592,7 +592,7 @@ func rule342(ruleNo int, p *Parser) interface{} {
 }
 
 // Rule 343: filter_over ::= filter_clause
-func rule343(ruleNo int, p *Parser) interface{} {
+func ruleFilterOverFilterClause(ruleNo int, p *Parser) interface{} {
 	return &windowFilter{
 		filter: getExpr(getRHS(p, ruleNo, 1)),
 	}
@@ -600,7 +600,7 @@ func rule343(ruleNo int, p *Parser) interface{} {
 }
 
 // Rule 344: over_clause ::= OVER LP window RP
-func rule344(ruleNo int, p *Parser) interface{} {
+func ruleOverClauseOverLpWindowRp(ruleNo int, p *Parser) interface{} {
 	// The LALR tables fold the empty window (OVER ()) into
 	// "OVER LP frame_opt RP": rh3 is then a frame-spec string
 	// rather than a *sql.WindowDef (rule 411 never reduces for the
@@ -616,31 +616,31 @@ func rule344(ruleNo int, p *Parser) interface{} {
 }
 
 // Rule 345: over_clause ::= OVER nm
-func rule345(ruleNo int, p *Parser) interface{} {
+func ruleOverClauseOverNm(ruleNo int, p *Parser) interface{} {
 	return &sql.WindowDef{Name: getString(getRHS(p, ruleNo, 2))}
 
 }
 
 // Rule 346: filter_clause ::= FILTER LP WHERE expr RP
-func rule346(ruleNo int, p *Parser) interface{} {
+func ruleFilterClauseFilterLpWhereExprRp(ruleNo int, p *Parser) interface{} {
 	return getExpr(getRHS(p, ruleNo, 4))
 
 }
 
 // Rule 348: input ::= cmdlist
-func rule348(ruleNo int, p *Parser) interface{} {
+func ruleInputCmdlist(ruleNo int, p *Parser) interface{} {
 	return nil
 
 }
 
 // Rule 349: cmdlist ::= cmdlist ecmd
-func rule349(ruleNo int, p *Parser) interface{} {
+func ruleCmdlistCmdlistEcmd(ruleNo int, p *Parser) interface{} {
 	return getRHS(p, ruleNo, 1)
 
 }
 
 // Rule 350: cmdlist ::= ecmd
-func rule350(ruleNo int, p *Parser) interface{} {
+func ruleCmdlistEcmd(ruleNo int, p *Parser) interface{} {
 	return getRHS(p, ruleNo, 1)
 
 }
@@ -651,13 +651,13 @@ func rule351(ruleNo int, p *Parser) interface{} {
 }
 
 // Rule 352: ecmd ::= cmdx SEMI
-func rule352(ruleNo int, p *Parser) interface{} {
+func ruleEcmdCmdxSemi(ruleNo int, p *Parser) interface{} {
 	return getRHS(p, ruleNo, 1)
 
 }
 
 // Rule 353: ecmd ::= explain cmdx SEMI (EXPLAIN)
-func rule353(ruleNo int, p *Parser) interface{} {
+func ruleEcmdExplainCmdxSemiExplain(ruleNo int, p *Parser) interface{} {
 	queryPlan := false
 	if b, ok := getRHS(p, ruleNo, 1).(bool); ok {
 		queryPlan = b
@@ -670,19 +670,19 @@ func rule353(ruleNo int, p *Parser) interface{} {
 }
 
 // Rule 354: trans_opt ::=
-func rule354(ruleNo int, p *Parser) interface{} {
+func ruleTransOpt(ruleNo int, p *Parser) interface{} {
 	return nil
 
 }
 
 // Rule 355: trans_opt ::= TRANSACTION
-func rule355(ruleNo int, p *Parser) interface{} {
+func ruleTransOptTransaction(ruleNo int, p *Parser) interface{} {
 	return nil
 
 }
 
 // Rule 359: cmd ::= create_table create_table_args
-func rule359(ruleNo int, p *Parser) interface{} {
+func ruleCmdCreateTableCreateTableArgs(ruleNo int, p *Parser) interface{} {
 	ct, _ := getRHS(p, ruleNo, 1).(*sql.CreateTableStmt)
 	args := getRHS(p, ruleNo, 2)
 	if ct != nil {
@@ -706,13 +706,13 @@ func rule359(ruleNo int, p *Parser) interface{} {
 }
 
 // Rule 360: table_option_set ::= table_option
-func rule360(ruleNo int, p *Parser) interface{} {
+func ruleTableOptionSetTableOption(ruleNo int, p *Parser) interface{} {
 	return getRHS(p, ruleNo, 1)
 
 }
 
 // Rule 361: columnlist ::= columnlist COMMA columnname carglist
-func rule361(ruleNo int, p *Parser) interface{} {
+func ruleColumnlistColumnlistCommaColumnnameCarglist(ruleNo int, p *Parser) interface{} {
 	acc := getColumnList(getRHS(p, ruleNo, 1))
 	col := getColumnDef(getRHS(p, ruleNo, 3))
 	mergeColumnConstraints(&col, getColumnList(getRHS(p, ruleNo, 4)))
@@ -728,7 +728,7 @@ func rule362(ruleNo int, p *Parser) interface{} {
 }
 
 // Rule 363: nm ::= ID|INDEXED|JOIN_KW
-func rule363(ruleNo int, p *Parser) interface{} {
+func ruleNmIdIndexedJoinKw(ruleNo int, p *Parser) interface{} {
 	if tok, ok := getRHS(p, ruleNo, 1).(sql.Token); ok {
 		return tok.Value
 	}
@@ -737,7 +737,7 @@ func rule363(ruleNo int, p *Parser) interface{} {
 }
 
 // Rule 364: nm ::= STRING
-func rule364(ruleNo int, p *Parser) interface{} {
+func ruleNmString(ruleNo int, p *Parser) interface{} {
 	if tok, ok := getRHS(p, ruleNo, 1).(sql.Token); ok {
 		return tok.Value
 	}
@@ -746,13 +746,13 @@ func rule364(ruleNo int, p *Parser) interface{} {
 }
 
 // Rule 365: typetoken ::= typename
-func rule365(ruleNo int, p *Parser) interface{} {
+func ruleTypetokenTypename(ruleNo int, p *Parser) interface{} {
 	return getString(getRHS(p, ruleNo, 1))
 
 }
 
 // Rule 366: typename ::= ID|STRING
-func rule366(ruleNo int, p *Parser) interface{} {
+func ruleTypenameIdString(ruleNo int, p *Parser) interface{} {
 	if tok, ok := getRHS(p, ruleNo, 1).(sql.Token); ok {
 		return tok.Value
 	}
@@ -761,7 +761,7 @@ func rule366(ruleNo int, p *Parser) interface{} {
 }
 
 // Rule 369: carglist ::= carglist ccons
-func rule369(ruleNo int, p *Parser) interface{} {
+func ruleCarglistCarglistCcons(ruleNo int, p *Parser) interface{} {
 	acc := getColumnList(getRHS(p, ruleNo, 1))
 	if c, ok := getRHS(p, ruleNo, 2).(sql.ColumnDef); ok {
 		acc = append(acc, c)
@@ -771,31 +771,31 @@ func rule369(ruleNo int, p *Parser) interface{} {
 }
 
 // Rule 370: carglist ::=
-func rule370(ruleNo int, p *Parser) interface{} {
+func ruleCarglist(ruleNo int, p *Parser) interface{} {
 	return nil
 
 }
 
 // Rule 371: ccons ::= AS generated
-func rule371(ruleNo int, p *Parser) interface{} {
+func ruleCconsAsGenerated(ruleNo int, p *Parser) interface{} {
 	return sql.ColumnDef{Generated: getExpr(getRHS(p, ruleNo, 2))}
 
 }
 
 // Rule 372: ccons ::= GENERATED ALWAYS AS generated
-func rule372(ruleNo int, p *Parser) interface{} {
+func ruleCconsGeneratedAlwaysAsGenerated(ruleNo int, p *Parser) interface{} {
 	return sql.ColumnDef{Generated: getExpr(getRHS(p, ruleNo, 4))}
 
 }
 
 // Rule 373: ccons ::= AS generated
-func rule373(ruleNo int, p *Parser) interface{} {
+func ruleCconsAsGeneratedN373(ruleNo int, p *Parser) interface{} {
 	return sql.ColumnDef{Generated: getExpr(getRHS(p, ruleNo, 2))}
 
 }
 
 // Rule 374: conslist_opt ::= COMMA conslist
-func rule374(ruleNo int, p *Parser) interface{} {
+func ruleConslistOptCommaConslist(ruleNo int, p *Parser) interface{} {
 	return getConstraintSlice(getRHS(p, ruleNo, 2))
 
 }
@@ -816,31 +816,31 @@ func rule375(ruleNo int, p *Parser) interface{} {
 }
 
 // Rule 376: conslist ::= tcons
-func rule376(ruleNo int, p *Parser) interface{} {
+func ruleConslistTcons(ruleNo int, p *Parser) interface{} {
 	return getConstraintSlice(getRHS(p, ruleNo, 1))
 
 }
 
 // Rule 377: tconscomma ::= (empty)
-func rule377(ruleNo int, p *Parser) interface{} {
+func ruleTconscommaEmpty(ruleNo int, p *Parser) interface{} {
 	return nil
 
 }
 
 // Rule 379: resolvel ::= ROLLBACK|ABORT|FAIL
-func rule379(ruleNo int, p *Parser) interface{} {
+func ruleResolvelRollbackAbortFail(ruleNo int, p *Parser) interface{} {
 	return getString(getRHS(p, ruleNo, 1))
 
 }
 
 // Rule 380: selectnowith ::= oneselect (already handled, but keep for pass-through)
-func rule380(ruleNo int, p *Parser) interface{} {
+func ruleSelectnowithOneselectAlreadyHandledButKeepForPassThrough(ruleNo int, p *Parser) interface{} {
 	return nil
 
 }
 
 // Rule 381: oneselect ::= values
-func rule381(ruleNo int, p *Parser) interface{} {
+func ruleOneselectValues(ruleNo int, p *Parser) interface{} {
 	sel := getSelectStmt(getRHS(p, ruleNo, 1))
 	if sel != nil {
 		sel.ValuesChain = true
@@ -850,7 +850,7 @@ func rule381(ruleNo int, p *Parser) interface{} {
 }
 
 // Rule 383: as ::= ID|STRING
-func rule383(ruleNo int, p *Parser) interface{} {
+func ruleAsIdString(ruleNo int, p *Parser) interface{} {
 	if tok, ok := getRHS(p, ruleNo, 1).(sql.Token); ok {
 		return tok.Value
 	}
@@ -864,7 +864,7 @@ func rule385(ruleNo int, p *Parser) interface{} {
 }
 
 // Rule 386: expr ::= term
-func rule386(ruleNo int, p *Parser) interface{} {
+func ruleExprTerm(ruleNo int, p *Parser) interface{} {
 	return getRHS(p, ruleNo, 1)
 
 	// Rule 387: likeop ::= LIKE_KW|MATCH
@@ -891,7 +891,7 @@ func rule389(ruleNo int, p *Parser) interface{} {
 }
 
 // Rule 395: plus_num ::= INTEGER|FLOAT
-func rule395(ruleNo int, p *Parser) interface{} {
+func rulePlusNumIntegerFloat(ruleNo int, p *Parser) interface{} {
 	if tok, ok := getRHS(p, ruleNo, 1).(sql.Token); ok {
 		return &sql.NumericLit{Value: tok.Value}
 	}
@@ -900,13 +900,13 @@ func rule395(ruleNo int, p *Parser) interface{} {
 }
 
 // Rule 403: vtabarglist ::= vtabarg
-func rule403(ruleNo int, p *Parser) interface{} {
+func ruleVtabarglistVtabarg(ruleNo int, p *Parser) interface{} {
 	return []string{getString(getRHS(p, ruleNo, 1))}
 
 }
 
 // Rule 404: vtabarglist ::= vtabarglist COMMA vtabarg
-func rule404(ruleNo int, p *Parser) interface{} {
+func ruleVtabarglistVtabarglistCommaVtabarg(ruleNo int, p *Parser) interface{} {
 	head := getStringList(getRHS(p, ruleNo, 1))
 	arg := getString(getRHS(p, ruleNo, 3))
 	return append(head, arg)
@@ -914,19 +914,19 @@ func rule404(ruleNo int, p *Parser) interface{} {
 }
 
 // Rule 405: vtabarg ::= vtabarg token
-func rule405(ruleNo int, p *Parser) interface{} {
+func ruleVtabargVtabargToken(ruleNo int, p *Parser) interface{} {
 	return strings.TrimSpace(getString(getRHS(p, ruleNo, 1)) + " " + getString(getRHS(p, ruleNo, 2)))
 
 }
 
 // Rule 409: with ::=
-func rule409(ruleNo int, p *Parser) interface{} {
+func ruleWith(ruleNo int, p *Parser) interface{} {
 	return nil
 
 }
 
 // Rule 410: windowdefn_list ::= windowdefn
-func rule410(ruleNo int, p *Parser) interface{} {
+func ruleWindowdefnListWindowdefn(ruleNo int, p *Parser) interface{} {
 	wd := getWindowDef(getRHS(p, ruleNo, 1))
 	if wd != nil {
 		return []sql.WindowDef{*wd}
