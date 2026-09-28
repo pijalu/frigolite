@@ -36,10 +36,10 @@ func (e *SelectEngine) planSingleTable(t queryTable, s *sql.SelectStmt) (string,
 		// optimization: "SCAN <t> USING [COVERING] INDEX <idx>".
 		return e.indexScanDetail(t, loop, s), loop
 	case loopIPK:
-		// INTEGER PRIMARY KEY / rowid equality is a direct table-btree seek:
-		// SQLite renders "SEARCH <t> USING INTEGER PRIMARY KEY (rowid=?)"
-		// (intpkey-1.12.2 "WHERE a==4" over t1(a INTEGER PRIMARY KEY)).
-		return e.ipkSearchDetail(t.real, t.display, s.From.As, s.Where), loop
+		// INTEGER PRIMARY KEY / rowid seek (equality or literal range):
+		// whereScanLoop stored the rendered node (same analysis the seek
+		// executor runs), so plan and execution share one decision.
+		return loop.conditions, loop
 	}
 	// Covering index: for COUNT(col) on an indexed column, use the best covering index
 	if plan, ok := e.countIndexPlan(t, s); ok {
