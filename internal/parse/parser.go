@@ -291,8 +291,10 @@ func (r *parseReducer) collect(ruleNo int, p *Parser, result interface{}) {
 // incrementally: the parseable prefix runs and its error takes precedence).
 // schemaMode relaxes eidlist COLLATE/sortorder checks (see Parser.SchemaMode).
 func runLALRParse(input string, schemaMode bool, parenSpans []parenRewriteSpan, origLen int) ([]sql.Stmt, error) {
-	tables := GetParseTables()
-	parser := NewParser(tables)
+	parser := getPooledParser()
+	// The pool's reset() clears every per-parse field (stack, errors, mode),
+	// so a recycled parser cannot leak state across statements.
+	defer putPooledParser(parser)
 	parser.SchemaMode = schemaMode
 	reducer := &parseReducer{input: input, parenSpans: parenSpans}
 	parser.OnReduce(reducer.reduce)

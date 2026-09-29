@@ -6,7 +6,10 @@
 // It provides the shift/reduce infrastructure used by the generated SQL parser.
 package parse
 
-import "fmt"
+import (
+	"fmt"
+	"sync"
+)
 
 // ParserAction represents an action code from the parse tables.
 type ParserAction int32
@@ -87,13 +90,62 @@ type Parser struct {
 
 // NewParser creates a new parser instance with the given tables.
 func NewParser(tables *ParseTables) *Parser {
-	p := &Parser{
-		tables: tables,
-		stack:  make([]ParseState, 0, 100),
-		pos:    -1,
-	}
-	p.push(ParseState{StateNo: 0, Major: 0})
+	p := &Parser{}
+	p.reset(tables)
 	return p
+}
+
+// parserStackInitCap is the parser stack's initial capacity. Most statements
+// stay under it; pooled parsers keep whatever peak capacity they reached, so
+// a repeated deep statement does not re-grow the stack every parse.
+const parserStackInitCap = 100
+
+// reset returns the parser to a pristine state for a fresh parse over the
+// given tables (nil keeps the current tables). Stack slots are zeroed so a
+// pooled parser does not retain AST garbage from the previous statement.
+func (p *Parser) reset(tables *ParseTables) {
+	if tables != nil {
+		p.tables = tables
+	}
+	if p.stack == nil {
+		p.stack = make([]ParseState, 0, parserStackInitCap)
+	}
+	for i := range p.stack {
+		p.stack[i] = ParseState{}
+	}
+	p.stack = p.stack[:0]
+	p.pos = -1
+	p.trace = false
+	p.action = nil
+	p.SemanticErr = nil
+	p.AppendFromErr = nil
+	p.SchemaMode = false
+	p.pendingDMLAlias = ""
+	p.push(ParseState{StateNo: 0, Major: 0})
+}
+
+// parserPool recycles Parser instances across statements. A fresh parser
+// costs a ~3.2KB stack allocation per statement; pooling removes it from the
+// per-statement budget (reset() guarantees no state leaks between parses).
+var parserPool = sync.Pool{
+	New: func() interface{} {
+		return NewParser(GetParseTables())
+	},
+}
+
+// getPooledParser returns a parser reset for a fresh parse.
+func getPooledParser() *Parser {
+	if p, ok := parserPool.Get().(*Parser); ok {
+		p.reset(nil)
+		return p
+	}
+	return parserPool.New().(*Parser)
+}
+
+// putPooledParser clears the parser's per-parse state and returns it to the
+// pool for the next statement.
+func putPooledParser(p *Parser) {
+	parserPool.Put(p)
 }
 
 // SetTrace enables or disables tracing output.

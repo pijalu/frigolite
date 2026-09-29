@@ -786,8 +786,19 @@ var yyFallback = []int{
 	0, 0, 0, 0, 0, 0, 0,
 }
 
+// sqlParseTables is the process-wide LALR(1) parse-table set. The tables are
+// immutable after init (the engine only reads them), so every parser instance
+// shares one copy instead of rebuilding the wrapper struct per parse.
+var sqlParseTables = newParseTables()
+
 // GetParseTables returns the LALR(1) parse tables for the SQL grammar.
 func GetParseTables() *ParseTables {
+	return sqlParseTables
+}
+
+// newParseTables wires the generated tables into the engine's ParseTables
+// view. Called once at init; the result is shared read-only.
+func newParseTables() *ParseTables {
 	return &ParseTables{
 		Action:         yyAction,
 		Lookahead:      yyLookahead,
