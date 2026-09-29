@@ -1502,3 +1502,40 @@ Resumed a dead predecessor mid-tranche on P9.PERF hot-path work (base 5807a9c1e,
 - **Harness flake:** TestSQLiteSuite/crashM can fail with "attempt to write
   a readonly database" when a leftover test2.db from an overlapping suite
   run sits in the package dir; passes 3/3 in isolation after cleanup.
+
+## PERF.GC-rowmap — execquery row-output alloc cuts (fleet/perf-gc-rowmap, 2026-09-29)
+
+- **A per-row map build cannot beat Go's swiss-map small-map floor.**
+  StructRowToMap's ~350B/row (hmap + one group ≤8 entries) is irreducible
+  while the aggregate/JOIN consumers take []RowMap; the win is everything
+  AROUND the map: StructRowToMap can SHARE the row's freshly decoded values
+  and freshly built affinity wrappers (fillStructRow* REPLACES slot contents,
+  never mutates in place, and no code writes ColumnValue fields) — deep-copy
+  only []byte payloads, through the CollatedValue/ColumnValue chain.
+- **`make(map, N)` with N > 8 is a per-row PESSIMIZATION.** buildRowMap
+  pre-sized len(colDefs)+4 (9 for a 5-col table): the swiss-map small
+  representation holds one group only up to 8 entries; a hint above 8 forces
+  the full-table structure EVERY row (+30% update-scan bytes). Pre-size
+  len(colDefs)+1 and stay ≤8.
+- **Skipping the per-row output-row build for aggregate statements needs TWO
+  guard fixes, not one.** scanConsumedByAggPass (GROUP BY / aggregates /
+  correlated-agg / window — a strict subset of execSelectPostScan's dispatch)
+  leaves rows empty with maps populated; then (a) sortScanRowsIndexOrder's
+  old `len(rows)<2 || len(maps)!=len(rows)` guard silently DECLINED, losing
+  index-key order for order-sensitive aggregates (group_concat), and (b)
+  permuteScanResults indexed rows[from] out of range. Rowsless map
+  permutations are a first-class state: sort maps alone, permute rows only
+  when len matches.
+- **Scratch buffers shared across eval boundaries need a DEPTH-INDEXED pool,
+  not one buffer.** evalAggCallArgs / computeGroupByKeyValues can re-enter
+  through subqueries or eval() UDFs inside arguments; slot = nesting depth,
+  grow on demand, and CLONE on retention (partitionByGroupKey keeps the key
+  values for new groups). A single buffer corrupts the outer level's
+  args[i] after the nested call returns.
+- **The remaining UPDATE/DELETE alloc mass sits outside execquery**: the DML
+  scan calls storage.DecodeRecord (~26%) + btree cell decode (~17%) +
+  pager statement-journal copies (~15%) per visited row, and the retained
+  RowMap + per-column affinity wrappers are the DML contract. In-scope
+  ceiling measured: −2.4% B/stmt on update-scan; the 25% loop target needs
+  the storage/pager/btree layers (or an execdml interface change), both out
+  of the tranche's scope.
