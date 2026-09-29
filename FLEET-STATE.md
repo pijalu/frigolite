@@ -785,3 +785,12 @@ Second optimization round complete on main bf66d87fb:
 - Plateau + next tranches documented in the report: value-ordered index
   / typed-row (scan floor), prepare/bind API (statement floor), GROUP BY
   feed discipline (untouched 8-10x).
+
+## PERF-GC (2026-09-29, START) — full re-profile; Go/GC-specific optimization round
+
+Objective: every phase still below sqlite3 (point 9.7x, insert 12.4x,
+scan 7.2x, update 19.6x, delete 25.2x, group ~9x) gets a complete fresh
+CPU+memory profile; bottlenecks fixed with Go-specific patterns
+(sync.Pool reuse, boxing elimination, map->slice, escape analysis,
+alloc-size reduction) to cut GC impact. Measure per step; suites +
+census at end.
