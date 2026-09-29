@@ -744,3 +744,14 @@ eval-engine item, P9.PERF). CPU util 1.6-2.5x wall -> 1.2-1.4x.
   conflict compare (pre-existing NOCASE-UNIQUE under-enforcement on
   UPDATE path); rowid-vs-text whitespace affinity gap (pre-existing);
   rtree churn flake; P7 remainder (split-cell pooling, index-def cache).
+
+## PERF-PUSH (2026-09-29, START) — P7 continuation: close residual gaps vs sqlite3
+
+Objective: push optimization toward sqlite3 parity (speed/memory/CPU).
+Residuals on main fe55eec09: update 17.4x, insert 11.6x, point 8.7x,
+delete 23.9x, scan 39x, group 8.2x (ops/s vs sqlite3 3.54 literal).
+Plan: (1) fresh per-phase CPU+alloc profiles; (2) fleet branches:
+pipeline hot-path (parse/exec/statement overhead — gates update, point,
+insert, delete) + scan-eval throughput (biggest gap); (3) coordinator
+quick wins (ruleHandlers array dispatch); (4) measure each merge with
+/tmp/perf harness; suites + census at end.
