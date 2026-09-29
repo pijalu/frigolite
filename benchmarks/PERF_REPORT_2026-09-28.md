@@ -282,3 +282,86 @@ per-phase heap fell from 18–122 MB to 2–39 MB. The GC-coordination profiles
   census and fixed: P1's first gate skipped the row write (not just the
   uniqueness scan) in the OR FAIL path — check-6.5/6.6 — restored plus
   native guard `TestUpdateOrFailKeepsPriorRows` (`768eae135`).
+
+---
+
+# PERF-PUSH — 2026-09-29: closing the residual gaps (P7 continuation)
+
+Second optimization round on top of the P1–P6 execution, targeting the
+remaining differences with sqlite3 (speed, memory, CPU). Two fleet
+branches: `fleet/perf7-scan` (row-loop throughput) and
+`fleet/perf7-pipeline` (per-statement overhead), plus coordinator quick
+wins and two correctness fixes the final census caught.
+
+## Results (same harness; 100k-row table unless noted)
+
+| Phase | P1–P6 state | after PERF-PUSH | vs original baseline | vs sqlite3 literal |
+|---|---|---|---|---|
+| INSERT ×100k (1 txn) | ~52k ops/s @50k | 103,012 ops/s | 4.8× | 12.4× |
+| SELECT point | 100,857 ops/s @50k | 90,417 ops/s @100k | 471× | 9.7× |
+| SELECT scan (rows/s) | 1,450,031 | **7,444,584** | 5.1× | 39× → **7.2×** |
+| UPDATE ×20k | 65 ops/s | 50,683 ops/s | 780× | 19.6× |
+| DELETE ×5k | 133 ops/s | 50,472 ops/s | 379× | 25.2× |
+| CPU utilization | 1.6–2.5× wall | **1.14–1.36×** | — | sqlite3 ≈ 1.0× |
+| Peak per-phase heap | 18–122 MB | **2.8–85 MB** | — | sqlite3 6–20 MB |
+
+## What landed
+
+- **Aggregate feed (OP_AggStep parity)** (`fleet/perf7-scan`,
+  `bc6aa7a43`): bare COUNT/SUM/AVG/TOTAL over plain column refs steps the
+  aggregators directly from the scan loop's phase-1 decode — no per-row
+  RowMap, no output-row materialization, no phase-2 refill; ~15 guards
+  fall back to the generic path for every complex shape. Range-loop
+  buffer reuse + WHERE BETWEEN fast eval. Plain scanner shares the feed.
+  Probe: SCAN-AGG 1.60M → 12.0M rows/s (7.5×), RANGE-AGG 2.52M → 10.5M
+  (4.2×), 83-query parity sweep byte-identical, 77 testgen suites green.
+- **Statement pipeline** (`fleet/perf7-pipeline`, `38aaa3a86`): the
+  template cache never served SELECT/UPDATE/DELETE (the old cloner
+  handled only INSERT tuples) — COW template substitution now covers all
+  three with strict bail-outs; parser sync.Pool + reset; allocation-free
+  preprocess gates (ASCII-fold, content-empty scan replacing
+  stripSQLComments copies); zero-alloc keyword classification;
+  normalizeSQL copy-on-write; fingerprint-validated execdml index-def
+  cache + content-keyed constraint/coldef memos (invalidation tests for
+  CREATE/DROP/ALTER mid-stream). Probe: insert 15.62 → 9.81µs/stmt
+  (1.59×, allocs −36%), select 1.21×, update 1.21×, delete 1.23×.
+- **Parser array dispatch** (`f504f8b1f`): per-reduce map lookup →
+  init-built array (−5%/statement).
+
+## Correctness fixes caught by the final census
+
+1. **COW FuncCall clone dropped `Over`** — any window function whose
+   argument substituted lost its window context: `ntile('zbc') OVER
+   (ORDER BY a)` reported "misuse of window function" instead of
+   "argument of ntile must be a positive integer" (window1/window6).
+2. **normalizeSQL integer overflow wrap** — `fastParseInt64` wrapped
+   2^64 to 0, so two DIFFERENT literals shared one template key and
+   value: `tointeger(toreal(18446744073709551616))` served a
+   `toreal(0)` template and returned 0 instead of NULL (func4-5.29).
+   Overflowing integers now extract as float64; the substitution kind
+   gate refuses them and the statement full-parses.
+
+Both pinned by `TestTemplateCloneOverflowLiteral`; fixed in
+`bf66d87fb`. Lesson recorded: the pipeline agent's 23-suite validation
+set did not include the window1/window6/func4 canaries — only the census
+did. Post-merge census remains mandatory.
+
+## Where the remaining gaps live (plateau analysis)
+
+- **scan 7.2×**: post-fix profile shows ~25% app work (btree cursor ops,
+  int64 decode boxing at the cursor `Step` interface, the IPK wrapper
+  that preserves WHERE affinity semantics); the rest is GC/kernel floor.
+  Further movement needs the value-ordered-index / typed-row tranche.
+- **point/insert/update/delete 9.7–25×**: parse+plan+exec plumbing per
+  statement is now ~5–17µs vs sqlite3's ~1–2µs C pipeline. The template
+  cache handles repeated shapes; the residual is execquery statement
+  validation machinery and per-call work in the public Exec/Query path.
+  Matching sqlite3 here means a prepare/bind public API (P7's standing
+  item) or a C-level rewrite of the exec loop — both beyond scoped
+  engine fixes.
+- **GROUP BY** unchanged (8–10×): not covered by the aggregate feed's
+  guard set (grouped rows take the generic path); candidate for the same
+  feed discipline in a future round.
+- **Memory/CPU**: per-phase heap fell to 2.8–85MB and CPU/wall to
+  1.14–1.36× (sqlite3: 1.0×) — the GC-coordination profiles that
+  dominated the original report are gone from all fixed paths.

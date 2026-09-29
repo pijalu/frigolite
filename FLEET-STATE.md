@@ -755,3 +755,33 @@ pipeline hot-path (parse/exec/statement overhead — gates update, point,
 insert, delete) + scan-eval throughput (biggest gap); (3) coordinator
 quick wins (ruleHandlers array dispatch); (4) measure each merge with
 /tmp/perf harness; suites + census at end.
+
+## PERF-PUSH (END, 2026-09-29) — residual gaps closed; scan 39x -> 7.2x
+
+Second optimization round complete on main bf66d87fb:
+- fleet/perf7-scan merged bc6aa7a43: aggregate feed (OP_AggStep parity,
+  bare COUNT/SUM/AVG/TOTAL fast path + guards, generic fallback),
+  range-loop buffer reuse, WHERE BETWEEN fast eval. SCAN-AGG probe
+  1.60M -> 12.0M rows/s (7.5x); benchmark scan phase 1.45M -> 7.44M rows/s.
+- fleet/perf7-pipeline merged 38aaa3a86: COW template substitution now
+  covers SELECT/UPDATE/DELETE (was INSERT-only — every non-INSERT
+  statement re-parsed), parser sync.Pool, allocation-free preprocess
+  gates, zero-alloc keyword classification, index-def/constraint caches
+  with fingerprint invalidation (tests included). insert 1.59x, select
+  1.21x, update 1.21x, delete 1.23x per statement.
+- f504f8b1f: parser reduce dispatch array (-5%/stmt).
+- TWO correctness bugs caught by the final census, fixed bf66d87fb:
+  COW FuncCall clone dropped Over (window1/window6 ntile misuse error);
+  fastParseInt64 overflow wrap made 2^64 share a template with literal 0
+  (func4-5.29 tointeger(toreal(2^64)) returned 0 not NULL). Both pinned
+  by TestTemplateCloneOverflowLiteral. Agent validation sets keep
+  missing canary suites — census after every merge stays mandatory.
+- Final census: 1072 pass + savepoint2 (contention flake, passes serial
+  13.8s) + 290 skip = effective 1073/0/290, audit exit 0.
+- Final benchmark (100k rows): insert 103k ops/s (12.4x), point 90.4k
+  (9.7x), scan 7.44M rows/s (7.2x, was 39x), update 50.7k (19.6x),
+  delete 50.5k (25.2x), file autocommit 1.46x FASTER than sqlite3. CPU
+  util 1.14-1.36x wall; per-phase heap 2.8-85MB.
+- Plateau + next tranches documented in the report: value-ordered index
+  / typed-row (scan floor), prepare/bind API (statement floor), GROUP BY
+  feed discipline (untouched 8-10x).
