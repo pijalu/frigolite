@@ -32,7 +32,9 @@ func (e *SelectEngine) partitionByGroupKey(groupBy []sql.Expr, rowMaps []RowMap)
 		}
 		if _, exists := groups[key]; !exists {
 			keyOrder = append(keyOrder, key)
-			keyVals[key] = vals
+			// vals is the key computation's scratch buffer (reused for the
+			// next row): clone it for the group's retention.
+			keyVals[key] = append([]interface{}{}, vals...)
 		}
 		groups[key] = append(groups[key], row)
 	}

@@ -293,6 +293,11 @@ type SelectEngine struct {
 	// carry no state between uses — every slot is rewritten per call.
 	aggArgScratch     [][]interface{}
 	aggArgScratchNest int
+	// groupKeyBufs mirrors aggArgScratch for GROUP BY key computation
+	// (computeGroupByKeyValues); partitionByGroupKey clones the values it
+	// retains for new groups.
+	groupKeyBufs    []groupKeyBufs
+	groupKeyBufNest int
 	// windowGroupOutputs, when non-nil, holds the GROUP BY output column names
 	// during the window pass over group rows. Window arguments that match an
 	// output column (e.g. sum(sum(b)) OVER ... where the inner sum(b) is the

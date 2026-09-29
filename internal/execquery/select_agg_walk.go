@@ -522,21 +522,45 @@ func matchGroupByExpr(groupBy []sql.Expr, col sql.Expr) int {
 	return -1
 }
 
+// groupKeyBufs holds one nesting level's reusable GROUP BY key buffers.
+type groupKeyBufs struct {
+	parts  []string
+	values []interface{}
+	colls  []string
+}
+
 // computeGroupByKeyValues evaluates each GROUP BY expression for a row,
 // returning a serialized string key, the raw evaluated values (used to sort
 // the output groups, matching SQLite's key-order GROUP BY output), and the
 // per-term collations (used to merge keys equal under a term's collation).
 // The key honors the expression's collation so values equal under that
 // collation (e.g. 'abc'/'aBC' under NOCASE) group together.
+//
+// parts/values/colls come from a depth-indexed scratch pool (a nested
+// aggregate evaluation inside a GROUP BY expression takes the next pool
+// slot); every slot is rewritten per row, and partitionByGroupKey clones
+// values when it retains them for a new group, so the buffers carry no
+// state between rows.
 func (e *SelectEngine) computeGroupByKeyValues(groupBy []sql.Expr, row Row) (string, []interface{}, []string) {
-	parts := make([]string, len(groupBy))
-	values := make([]interface{}, len(groupBy))
-	colls := make([]string, len(groupBy))
+	slot := e.groupKeyBufNest
+	e.groupKeyBufNest++
+	for len(e.groupKeyBufs) <= slot {
+		e.groupKeyBufs = append(e.groupKeyBufs, groupKeyBufs{})
+	}
+	b := &e.groupKeyBufs[slot]
+	defer func() { e.groupKeyBufNest-- }()
+	if cap(b.parts) < len(groupBy) {
+		b.parts = make([]string, len(groupBy))
+		b.values = make([]interface{}, len(groupBy))
+		b.colls = make([]string, len(groupBy))
+	}
+	parts, values, colls := b.parts[:len(groupBy)], b.values[:len(groupBy)], b.colls[:len(groupBy)]
 	for i, expr := range groupBy {
 		v, err := e.ctx.EvalExpr(expr, row)
 		if err != nil || v == nil {
 			parts[i] = "\x00"
 			values[i] = nil
+			colls[i] = ""
 		} else {
 			coll := groupByExprCollation(v)
 			uv := unwrapGroupByValue(v)
@@ -571,9 +595,27 @@ func unwrapGroupByValue(v interface{}) interface{} {
 // collationGroupKey serializes a GROUP BY value into a key that groups values
 // equal under the expression's collation. For the built-in case-folding
 // collations this folds the text; BINARY and unknown collations keep the raw
-// value (so the key stays lossless).
+// value (so the key stays lossless). The scalar cases avoid the fmt walk —
+// this runs per GROUP BY term per row.
 func collationGroupKey(v interface{}, coll string) string {
-	s := fmt.Sprintf("%v", v)
+	var s string
+	switch t := v.(type) {
+	case string:
+		s = t
+	case int64:
+		s = strconv.FormatInt(t, 10)
+	case float64:
+		// fmt's %v for float64 is strconv 'g' with the shortest representation.
+		s = strconv.FormatFloat(t, 'g', -1, 64)
+	case bool:
+		if t {
+			s = "true"
+		} else {
+			s = "false"
+		}
+	default:
+		s = fmt.Sprintf("%v", v)
+	}
 	switch strings.ToUpper(coll) {
 	case "NOCASE":
 		return strings.ToLower(s)
