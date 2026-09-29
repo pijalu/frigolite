@@ -324,19 +324,7 @@ func rewriteStmtOrderLimit(input string) (string, []stmtOrderLimit, bool) {
 	if !ok {
 		return input, nil, false
 	}
-	spans := splitTopLevelStatements(toks)
-
-	// Find the statement-level ORDER BY/LIMIT clause of each top-level
-	// UPDATE/DELETE statement (with or without RETURNING).
-	var clauseStarts []int // token index where the clause begins, per statement
-	for _, sp := range spans {
-		if !(isTopLevelStmt(toks, sp, "UPDATE") || isTopLevelStmt(toks, sp, "DELETE")) {
-			continue
-		}
-		if start, ok := findStatementOrderLimit(toks, sp); ok {
-			clauseStarts = append(clauseStarts, start)
-		}
-	}
+	clauseStarts := stmtOrderLimitStarts(toks, splitTopLevelStatements(toks))
 	if len(clauseStarts) == 0 {
 		return input, nil, false
 	}
@@ -367,6 +355,22 @@ func rewriteStmtOrderLimit(input string) (string, []stmtOrderLimit, bool) {
 		result = append(result, s.clause)
 	}
 	return applyStmtSplices(input, splices), result, true
+}
+
+// stmtOrderLimitStarts finds the token index of the statement-level ORDER
+// BY/LIMIT clause of each top-level UPDATE/DELETE statement (with or without
+// RETURNING).
+func stmtOrderLimitStarts(toks []sql.Token, spans []stmtSpan) []int {
+	var clauseStarts []int // token index where the clause begins, per statement
+	for _, sp := range spans {
+		if !(isTopLevelStmt(toks, sp, "UPDATE") || isTopLevelStmt(toks, sp, "DELETE")) {
+			continue
+		}
+		if start, ok := findStatementOrderLimit(toks, sp); ok {
+			clauseStarts = append(clauseStarts, start)
+		}
+	}
+	return clauseStarts
 }
 
 // stmtSplice records a byte range of the input to remove and the clause it

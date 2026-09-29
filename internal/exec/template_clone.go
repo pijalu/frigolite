@@ -19,7 +19,7 @@ import (
 // canonical spelling of its normalized value, a value/count mismatch —
 // aborts the clone (ok=false) and the caller falls back to a full parse, so
 // a substituted AST is always identical to a fresh parse of the statement
-// text.
+// text. (Statement-level walkers live in template_clone_stmt.go.)
 
 // cloneStmtsValues substitutes values into every statement of a cached
 // template. It returns (nil, false) when the template cannot serve the
@@ -82,6 +82,9 @@ type exprClone struct {
 // or a fresh copy when one did — literal nodes are always fresh so the
 // template's NumericLit value cache is never shared across statements.
 func (c *exprClone) expr(e sql.Expr) (_ sql.Expr, ok bool) {
+	if e == nil {
+		return nil, false
+	}
 	switch v := e.(type) {
 	case *sql.NumericLit:
 		return c.numeric(v)
@@ -89,48 +92,57 @@ func (c *exprClone) expr(e sql.Expr) (_ sql.Expr, ok bool) {
 		return c.anyLiteral(v.Value)
 	case *sql.NullLit, *sql.ColumnRef, *sql.ParameterExpr:
 		return e, true
-	case *sql.ParenExpr:
-		inner, ok := c.expr(v.Expr)
-		if !ok {
-			return nil, false
-		}
-		if inner == v.Expr {
-			return e, true
-		}
-		return &sql.ParenExpr{Expr: inner}, true
-	case *sql.UnaryOp:
-		operand, ok := c.expr(v.Operand)
-		if !ok {
-			return nil, false
-		}
-		if operand == v.Operand {
-			return e, true
-		}
-		return &sql.UnaryOp{Operand: operand, Operator: v.Operator}, true
+	case *sql.FuncCall:
+		return c.funcCall(v)
+	case *sql.CaseExpr:
+		return c.caseExpr(v)
+	case *sql.BinaryOp, *sql.UnaryOp, *sql.ParenExpr, *sql.Between, *sql.InList, *sql.RowValue, *sql.CastExpr:
+		return c.exprOperator(e)
+	case *sql.IsNull, *sql.IsNotNull, *sql.IsDistinctFrom, *sql.IsNotDistinctFrom, *sql.IsTrue, *sql.IsFalse:
+		return c.exprPredicate(e)
+	case *sql.Subquery, *sql.ExistsExpr:
+		return c.exprNested(e)
+	case *sql.BlobLit, *sql.RaiseExpr:
+		// Blob literals are not reconstructible from the normalized string
+		// value (hex decode is ambiguous with text); RAISE belongs to
+		// trigger programs. Both refuse the template.
+		return nil, false
+	}
+	// Unknown expression kind: refuse the clone (a full parse keeps the
+	// result identical).
+	return nil, false
+}
+
+// exprOperator dispatches operator-shaped expressions.
+func (c *exprClone) exprOperator(e sql.Expr) (sql.Expr, bool) {
+	switch v := e.(type) {
 	case *sql.BinaryOp:
-		left, ok := c.expr(v.Left)
-		if !ok {
-			return nil, false
-		}
-		right, ok := c.expr(v.Right)
-		if !ok {
-			return nil, false
-		}
-		if left == v.Left && right == v.Right {
-			return e, true
-		}
-		return &sql.BinaryOp{
-			Left: left, Right: right, Operator: v.Operator,
-			Escape: v.Escape, HasEscape: v.HasEscape, LikeRange: v.LikeRange,
-		}, true
+		return c.binaryOp(v)
+	case *sql.UnaryOp:
+		return c.unaryOp(v)
+	case *sql.ParenExpr:
+		return c.cloneUnary(v.Expr, func(o sql.Expr) sql.Expr { return &sql.ParenExpr{Expr: o} })
+	case *sql.Between:
+		return c.between(v)
+	case *sql.InList:
+		return c.inList(v)
+	case *sql.RowValue:
+		return c.rowValue(v)
+	case *sql.CastExpr:
+		return c.cloneUnary(v.Operand, func(o sql.Expr) sql.Expr {
+			return &sql.CastExpr{Operand: o, AsType: v.AsType}
+		})
+	}
+	return nil, false
+}
+
+// exprPredicate dispatches IS / DISTINCT FROM / truth-value expressions.
+func (c *exprClone) exprPredicate(e sql.Expr) (sql.Expr, bool) {
+	switch v := e.(type) {
 	case *sql.IsNull:
-		return c.cloneUnary(v.Operand, func(o sql.Expr) sql.Expr {
-			return &sql.IsNull{Operand: o}
-		})
+		return c.cloneUnary(v.Operand, func(o sql.Expr) sql.Expr { return &sql.IsNull{Operand: o} })
 	case *sql.IsNotNull:
-		return c.cloneUnary(v.Operand, func(o sql.Expr) sql.Expr {
-			return &sql.IsNotNull{Operand: o}
-		})
+		return c.cloneUnary(v.Operand, func(o sql.Expr) sql.Expr { return &sql.IsNotNull{Operand: o} })
 	case *sql.IsDistinctFrom:
 		return c.cloneBinary(v.Left, v.Right, func(l, r sql.Expr) sql.Expr {
 			return &sql.IsDistinctFrom{Left: l, Right: r}
@@ -147,53 +159,13 @@ func (c *exprClone) expr(e sql.Expr) (_ sql.Expr, ok bool) {
 		return c.cloneUnaryFlag(v.Operand, v.Negated, func(o sql.Expr, neg bool) sql.Expr {
 			return &sql.IsFalse{Operand: o, Negated: neg}
 		})
-	case *sql.Between:
-		operand, ok := c.expr(v.Operand)
-		if !ok {
-			return nil, false
-		}
-		low, ok := c.expr(v.Low)
-		if !ok {
-			return nil, false
-		}
-		high, ok := c.expr(v.High)
-		if !ok {
-			return nil, false
-		}
-		if operand == v.Operand && low == v.Low && high == v.High {
-			return e, true
-		}
-		return &sql.Between{Operand: operand, Low: low, High: high, Negated: v.Negated}, true
-	case *sql.InList:
-		operand, ok := c.expr(v.Operand)
-		if !ok {
-			return nil, false
-		}
-		list, changed, ok := c.exprList(v.List)
-		if !ok {
-			return nil, false
-		}
-		if !changed && operand == v.Operand {
-			return e, true
-		}
-		return &sql.InList{Operand: operand, List: list, Negated: v.Negated}, true
-	case *sql.RowValue:
-		values, changed, ok := c.exprList(v.Values)
-		if !ok {
-			return nil, false
-		}
-		if !changed {
-			return e, true
-		}
-		return &sql.RowValue{Values: values}, true
-	case *sql.FuncCall:
-		return c.funcCall(v)
-	case *sql.CastExpr:
-		return c.cloneUnary(v.Operand, func(o sql.Expr) sql.Expr {
-			return &sql.CastExpr{Operand: o, AsType: v.AsType}
-		})
-	case *sql.CaseExpr:
-		return c.caseExpr(v)
+	}
+	return nil, false
+}
+
+// exprNested dispatches expression-wrapped subqueries.
+func (c *exprClone) exprNested(e sql.Expr) (sql.Expr, bool) {
+	switch v := e.(type) {
 	case *sql.Subquery:
 		cloned, _, ok := c.selectStmt(v.Select)
 		if !ok {
@@ -206,15 +178,88 @@ func (c *exprClone) expr(e sql.Expr) (_ sql.Expr, ok bool) {
 			return nil, false
 		}
 		return &sql.ExistsExpr{Select: cloned, Negated: v.Negated}, true
-	case *sql.BlobLit, *sql.RaiseExpr:
-		// Blob literals are not reconstructible from the normalized string
-		// value (hex decode is ambiguous with text); RAISE belongs to
-		// trigger programs. Both refuse the template.
+	}
+	return nil, false
+}
+
+// binaryOp substitutes a binary operator, preserving the LIKE-optimization
+// metadata the planner may attach.
+func (c *exprClone) binaryOp(v *sql.BinaryOp) (sql.Expr, bool) {
+	left, ok := c.expr(v.Left)
+	if !ok {
 		return nil, false
 	}
-	// Unknown expression kind: refuse the clone (a full parse keeps the
-	// result identical).
-	return nil, false
+	right, ok := c.expr(v.Right)
+	if !ok {
+		return nil, false
+	}
+	if left == v.Left && right == v.Right {
+		return v, true
+	}
+	return &sql.BinaryOp{
+		Left: left, Right: right, Operator: v.Operator,
+		Escape: v.Escape, HasEscape: v.HasEscape, LikeRange: v.LikeRange,
+	}, true
+}
+
+// unaryOp substitutes a unary operator.
+func (c *exprClone) unaryOp(v *sql.UnaryOp) (sql.Expr, bool) {
+	operand, ok := c.expr(v.Operand)
+	if !ok {
+		return nil, false
+	}
+	if operand == v.Operand {
+		return v, true
+	}
+	return &sql.UnaryOp{Operand: operand, Operator: v.Operator}, true
+}
+
+// between substitutes a BETWEEN expression.
+func (c *exprClone) between(v *sql.Between) (sql.Expr, bool) {
+	operand, ok := c.expr(v.Operand)
+	if !ok {
+		return nil, false
+	}
+	low, ok := c.expr(v.Low)
+	if !ok {
+		return nil, false
+	}
+	high, ok := c.expr(v.High)
+	if !ok {
+		return nil, false
+	}
+	if operand == v.Operand && low == v.Low && high == v.High {
+		return v, true
+	}
+	return &sql.Between{Operand: operand, Low: low, High: high, Negated: v.Negated}, true
+}
+
+// inList substitutes an IN (list) expression.
+func (c *exprClone) inList(v *sql.InList) (sql.Expr, bool) {
+	operand, ok := c.expr(v.Operand)
+	if !ok {
+		return nil, false
+	}
+	list, changed, ok := c.exprList(v.List)
+	if !ok {
+		return nil, false
+	}
+	if !changed && operand == v.Operand {
+		return v, true
+	}
+	return &sql.InList{Operand: operand, List: list, Negated: v.Negated}, true
+}
+
+// rowValue substitutes a row-value tuple.
+func (c *exprClone) rowValue(v *sql.RowValue) (sql.Expr, bool) {
+	values, changed, ok := c.exprList(v.Values)
+	if !ok {
+		return nil, false
+	}
+	if !changed {
+		return v, true
+	}
+	return &sql.RowValue{Values: values}, true
 }
 
 // anyLiteral substitutes a literal slot by cached-value type: the fresh node
@@ -282,9 +327,6 @@ func (c *exprClone) cloneUnary(operand sql.Expr, build func(sql.Expr) sql.Expr) 
 	o, ok := c.expr(operand)
 	if !ok {
 		return nil, false
-	}
-	if o == operand {
-		return build(o), true
 	}
 	return build(o), true
 }
@@ -375,24 +417,9 @@ func (c *exprClone) caseExpr(v *sql.CaseExpr) (sql.Expr, bool) {
 			return nil, false
 		}
 	}
-	whens := v.Whens
-	whensChanged := false
-	if len(v.Whens) > 0 {
-		whens = make([]sql.WhenClause, len(v.Whens))
-		for i, w := range v.Whens {
-			when, wok := c.expr(w.When)
-			if !wok {
-				return nil, false
-			}
-			then, tok := c.expr(w.Then)
-			if !tok {
-				return nil, false
-			}
-			whens[i] = sql.WhenClause{When: when, Then: then}
-			if when != w.When || then != w.Then {
-				whensChanged = true
-			}
-		}
+	whens, whensChanged, ok := c.caseWhens(v.Whens)
+	if !ok {
+		return nil, false
 	}
 	els := v.Else
 	if els != nil {
@@ -406,6 +433,35 @@ func (c *exprClone) caseExpr(v *sql.CaseExpr) (sql.Expr, bool) {
 		return v, true
 	}
 	return &sql.CaseExpr{Operand: operand, Whens: whens, Else: els}, true
+}
+
+// caseWhens substitutes a CASE expression's WHEN arms.
+func (c *exprClone) caseWhens(whens []sql.WhenClause) (_ []sql.WhenClause, changed, ok bool) {
+	var out []sql.WhenClause
+	for i, w := range whens {
+		when, wok := c.expr(w.When)
+		if !wok {
+			return nil, false, false
+		}
+		then, tok := c.expr(w.Then)
+		if !tok {
+			return nil, false, false
+		}
+		if when != w.When || then != w.Then {
+			changed = true
+			if out == nil {
+				out = make([]sql.WhenClause, len(whens))
+				copy(out, whens)
+			}
+		}
+		if out != nil {
+			out[i] = sql.WhenClause{When: when, Then: then}
+		}
+	}
+	if !changed {
+		return whens, false, true
+	}
+	return out, true, true
 }
 
 // orderBy substitutes ORDER BY / PARTITION BY term lists.
@@ -429,390 +485,6 @@ func (c *exprClone) orderBy(terms []sql.OrderByTerm) (_ []sql.OrderByTerm, chang
 		return terms, false, true
 	}
 	return out, true, true
-}
-
-// selectStmt substitutes a (possibly nested) SELECT. It returns the shared
-// statement when nothing under it changed.
-//
-// The field walk order MUST match the statement's source order (WITH first,
-// then select list, FROM, WHERE, GROUP BY, HAVING, WINDOW, ORDER BY, LIMIT,
-// OFFSET, compound tail): normalized values are consumed in text order, so a
-// walk that visits fields out of order would substitute the wrong values
-// into matching-shaped statements (the value COUNT would still line up and
-// nothing would bail).
-func (c *exprClone) selectStmt(sel *sql.SelectStmt) (*sql.SelectStmt, bool, bool) {
-	if sel == nil {
-		return nil, false, true
-	}
-	ctes, cteChanged, ok := c.ctes(sel.CTEs)
-	if !ok {
-		return nil, false, false
-	}
-	cols, colsChanged, ok := c.selectColumns(sel.Columns)
-	if !ok {
-		return nil, false, false
-	}
-	from, fromChanged, ok := c.tableRef(sel.From)
-	if !ok {
-		return nil, false, false
-	}
-	joins, joinsChanged, ok := c.joins(sel.Joins)
-	if !ok {
-		return nil, false, false
-	}
-	where, whereChanged, ok := c.exprField(sel.Where)
-	if !ok {
-		return nil, false, false
-	}
-	groupBy, gbChanged, ok := c.exprList(sel.GroupBy)
-	if !ok {
-		return nil, false, false
-	}
-	having, havingChanged, ok := c.exprField(sel.Having)
-	if !ok {
-		return nil, false, false
-	}
-	windows, winChanged, ok := c.windows(sel.Windows)
-	if !ok {
-		return nil, false, false
-	}
-	orderBy, obChanged, ok := c.orderBy(sel.OrderBy)
-	if !ok {
-		return nil, false, false
-	}
-	limit, limitChanged, ok := c.exprField(sel.Limit)
-	if !ok {
-		return nil, false, false
-	}
-	offset, offsetChanged, ok := c.exprField(sel.Offset)
-	if !ok {
-		return nil, false, false
-	}
-	var union *sql.SelectStmt
-	unionChanged := false
-	if sel.Union != nil {
-		union, unionChanged, ok = c.selectStmt(sel.Union)
-		if !ok {
-			return nil, false, false
-		}
-	}
-	if !cteChanged && !colsChanged && !fromChanged && !joinsChanged && !whereChanged &&
-		!gbChanged && !havingChanged && !winChanged && !obChanged && !limitChanged &&
-		!offsetChanged && !unionChanged {
-		return sel, false, true
-	}
-	out := *sel
-	out.CTEs = ctes
-	out.Columns = cols
-	out.From = from
-	out.Joins = joins
-	out.Where = where
-	out.GroupBy = groupBy
-	out.Having = having
-	out.Windows = windows
-	out.OrderBy = orderBy
-	out.Limit = limit
-	out.Offset = offset
-	out.Union = union
-	return &out, true, true
-}
-
-// exprField substitutes an optional expression field, reporting change.
-func (c *exprClone) exprField(e sql.Expr) (sql.Expr, bool, bool) {
-	if e == nil {
-		return nil, false, true
-	}
-	cloned, ok := c.expr(e)
-	if !ok {
-		return nil, false, false
-	}
-	return cloned, cloned != e, true
-}
-
-// selectColumns substitutes the SELECT list.
-func (c *exprClone) selectColumns(cols []sql.SelectColumn) (_ []sql.SelectColumn, changed, ok bool) {
-	var out []sql.SelectColumn
-	for i, col := range cols {
-		cloned, cok := c.expr(col.Expr)
-		if !cok {
-			return nil, false, false
-		}
-		if cloned != col.Expr {
-			changed = true
-			if out == nil {
-				out = make([]sql.SelectColumn, len(cols))
-				copy(out, cols)
-			}
-			out[i].Expr = cloned
-		}
-	}
-	if !changed {
-		return cols, false, true
-	}
-	return out, true, true
-}
-
-// tableRef substitutes a FROM term (subquery or table-valued args).
-func (c *exprClone) tableRef(ref sql.TableRef) (sql.TableRef, bool, bool) {
-	changed := false
-	if ref.Subquery != nil {
-		sub, subChanged, ok := c.selectStmt(ref.Subquery)
-		if !ok {
-			return ref, false, false
-		}
-		if subChanged {
-			ref.Subquery = sub
-			changed = true
-		}
-	}
-	if len(ref.Args) > 0 {
-		args, argsChanged, ok := c.exprList(ref.Args)
-		if !ok {
-			return ref, false, false
-		}
-		if argsChanged {
-			ref.Args = args
-			changed = true
-		}
-	}
-	return ref, changed, true
-}
-
-// joins substitutes JOIN ON conditions and joined FROM terms.
-func (c *exprClone) joins(joins []sql.JoinClause) (_ []sql.JoinClause, changed, ok bool) {
-	var out []sql.JoinClause
-	for i, j := range joins {
-		on, onChanged, onOK := c.exprField(j.On)
-		if !onOK {
-			return nil, false, false
-		}
-		tbl, tblChanged, tblOK := c.tableRef(j.Table)
-		if !tblOK {
-			return nil, false, false
-		}
-		if onChanged || tblChanged {
-			changed = true
-			if out == nil {
-				out = make([]sql.JoinClause, len(joins))
-				copy(out, joins)
-			}
-			out[i].On = on
-			out[i].Table = tbl
-		}
-	}
-	if !changed {
-		return joins, false, true
-	}
-	return out, true, true
-}
-
-// ctes substitutes WITH-clause bodies.
-func (c *exprClone) ctes(defs []sql.CTEDef) (_ []sql.CTEDef, changed, ok bool) {
-	var out []sql.CTEDef
-	for i, def := range defs {
-		sel, selChanged, selOK := c.selectStmt(def.Select)
-		if !selOK {
-			return nil, false, false
-		}
-		if selChanged {
-			changed = true
-			if out == nil {
-				out = make([]sql.CTEDef, len(defs))
-				copy(out, defs)
-			}
-			out[i].Select = sel
-		}
-	}
-	if !changed {
-		return defs, false, true
-	}
-	return out, true, true
-}
-
-// windows substitutes WINDOW definitions.
-func (c *exprClone) windows(defs []sql.WindowDef) (_ []sql.WindowDef, changed, ok bool) {
-	var out []sql.WindowDef
-	for i, def := range defs {
-		partitions, pChanged, pok := c.exprList(def.Partitions)
-		if !pok {
-			return nil, false, false
-		}
-		orderBy, oChanged, ook := c.orderBy(def.OrderBy)
-		if !ook {
-			return nil, false, false
-		}
-		if pChanged || oChanged {
-			changed = true
-			if out == nil {
-				out = make([]sql.WindowDef, len(defs))
-				copy(out, defs)
-			}
-			out[i].Partitions = partitions
-			out[i].OrderBy = orderBy
-		}
-	}
-	if !changed {
-		return defs, false, true
-	}
-	return out, true, true
-}
-
-// cloneSelectCOW substitutes a top-level SELECT template statement.
-func cloneSelectCOW(s *sql.SelectStmt, values []interface{}, idx *int) (sql.Stmt, bool) {
-	c := &exprClone{values: values, idx: idx}
-	cloned, _, ok := c.selectStmt(s)
-	if !ok {
-		return nil, false
-	}
-	return cloned, true
-}
-
-// cloneUpdateCOW substitutes a top-level UPDATE template statement. Field
-// order matches source order: WITH first, then SET, FROM, WHERE,
-// ORDER BY, LIMIT, OFFSET, RETURNING.
-func cloneUpdateCOW(s *sql.UpdateStmt, values []interface{}, idx *int) (sql.Stmt, bool) {
-	c := &exprClone{values: values, idx: idx}
-	out := *s
-	changed := false
-
-	ctes, cteChanged, ok := c.ctes(s.CTEs)
-	if !ok {
-		return nil, false
-	}
-	if cteChanged {
-		out.CTEs = ctes
-		changed = true
-	}
-	assignments, aChanged, ok := c.assignments(s.Assignments)
-	if !ok {
-		return nil, false
-	}
-	if aChanged {
-		out.Assignments = assignments
-		changed = true
-	}
-	from, fromChanged, ok := c.tableRef(s.From)
-	if !ok {
-		return nil, false
-	}
-	if fromChanged {
-		out.From = from
-		changed = true
-	}
-	fromJoins, fjChanged, ok := c.joins(s.FromJoins)
-	if !ok {
-		return nil, false
-	}
-	if fjChanged {
-		out.FromJoins = fromJoins
-		changed = true
-	}
-	where, wChanged, ok := c.exprField(s.Where)
-	if !ok {
-		return nil, false
-	}
-	if wChanged {
-		out.Where = where
-		changed = true
-	}
-	orderBy, obChanged, ok := c.orderBy(s.OrderBy)
-	if !ok {
-		return nil, false
-	}
-	if obChanged {
-		out.OrderBy = orderBy
-		changed = true
-	}
-	limit, lChanged, ok := c.exprField(s.Limit)
-	if !ok {
-		return nil, false
-	}
-	if lChanged {
-		out.Limit = limit
-		changed = true
-	}
-	offset, oChanged, ok := c.exprField(s.Offset)
-	if !ok {
-		return nil, false
-	}
-	if oChanged {
-		out.Offset = offset
-		changed = true
-	}
-	returning, retChanged, ok := c.returning(s.Returning)
-	if !ok {
-		return nil, false
-	}
-	if retChanged {
-		out.Returning = returning
-		changed = true
-	}
-	if !changed {
-		return s, true
-	}
-	return &out, true
-}
-
-// cloneDeleteCOW substitutes a top-level DELETE template statement. Field
-// order matches source order: WITH first, then WHERE, ORDER BY, LIMIT,
-// OFFSET, RETURNING.
-func cloneDeleteCOW(s *sql.DeleteStmt, values []interface{}, idx *int) (sql.Stmt, bool) {
-	c := &exprClone{values: values, idx: idx}
-	out := *s
-	changed := false
-
-	ctes, cteChanged, ok := c.ctes(s.CTEs)
-	if !ok {
-		return nil, false
-	}
-	if cteChanged {
-		out.CTEs = ctes
-		changed = true
-	}
-	where, wChanged, ok := c.exprField(s.Where)
-	if !ok {
-		return nil, false
-	}
-	if wChanged {
-		out.Where = where
-		changed = true
-	}
-	orderBy, obChanged, ok := c.orderBy(s.OrderBy)
-	if !ok {
-		return nil, false
-	}
-	if obChanged {
-		out.OrderBy = orderBy
-		changed = true
-	}
-	limit, lChanged, ok := c.exprField(s.Limit)
-	if !ok {
-		return nil, false
-	}
-	if lChanged {
-		out.Limit = limit
-		changed = true
-	}
-	offset, oChanged, ok := c.exprField(s.Offset)
-	if !ok {
-		return nil, false
-	}
-	if oChanged {
-		out.Offset = offset
-		changed = true
-	}
-	returning, retChanged, ok := c.returning(s.Returning)
-	if !ok {
-		return nil, false
-	}
-	if retChanged {
-		out.Returning = returning
-		changed = true
-	}
-	if !changed {
-		return s, true
-	}
-	return &out, true
 }
 
 // returning substitutes a RETURNING clause (a single SelectColumn).

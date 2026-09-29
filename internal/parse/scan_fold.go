@@ -90,33 +90,66 @@ func isEmptySQLSegment(seg string) bool {
 // TrimSpace(stripSQLComments(...)) check therefore treated as empty) behaves
 // identically; any other non-ASCII rune counts as content.
 func isEmptySQLSegmentSkip(seg string, whenOnlyWS func(byte) bool) bool {
-	for i := 0; i < len(seg); {
-		c := seg[i]
-		switch {
-		case c == ' ' || c == '\t' || c == '\n' || c == '\r' || c == '\f' || c == '\v':
-			i++
-		case whenOnlyWS != nil && whenOnlyWS(c):
-			i++
-		case c >= 0x80:
-			r, size := utf8.DecodeRuneInString(seg[i:])
-			if !unicode.IsSpace(r) {
-				return false
-			}
-			i += size
-		case c == '-' && i+1 < len(seg) && seg[i+1] == '-':
-			i = skipLineComment(seg, i)
-			if i < len(seg) {
-				i++ // consume the terminating newline
-			}
-		case c == '/' && i+1 < len(seg) && seg[i+1] == '*':
-			// Matches stripSQLComments: an unterminated block comment
-			// consumes to end (note the emptiness scan intentionally does
-			// NOT apply the tokenizer's "/* at EOF is an operator" rule —
-			// stripSQLComments never sees it either).
-			i = skipBlockComment(seg, i)
-		default:
+	i := 0
+	for i < len(seg) {
+		next, ok := skipSegmentFiller(seg, i, whenOnlyWS)
+		if !ok {
 			return false
 		}
+		i = next
 	}
 	return true
+}
+
+// skipSegmentFiller consumes the whitespace/comment filler starting at i,
+// returning the next index and whether the position was filler. Non-ASCII
+// whitespace (which strings.TrimSpace strips, mirroring the historical
+// emptiness check) counts as filler; any other rune is content.
+func skipSegmentFiller(seg string, i int, whenOnlyWS func(byte) bool) (int, bool) {
+	c := seg[i]
+	if isASCIIWS(c) {
+		return i + 1, true
+	}
+	if whenOnlyWS != nil && whenOnlyWS(c) {
+		return i + 1, true
+	}
+	if c >= 0x80 {
+		r, size := utf8.DecodeRuneInString(seg[i:])
+		if !unicode.IsSpace(r) {
+			return i, false
+		}
+		return i + size, true
+	}
+	if next, ok := skipSegmentComment(seg, i); ok {
+		return next, true
+	}
+	return i, false
+}
+
+// skipSegmentComment consumes a "--" or "/*" comment starting at i, returning
+// the next index and whether a comment was consumed.
+func skipSegmentComment(seg string, i int) (int, bool) {
+	if c := seg[i]; c == '-' && i+1 < len(seg) && seg[i+1] == '-' {
+		next := skipLineComment(seg, i)
+		if next < len(seg) {
+			next++ // consume the terminating newline
+		}
+		return next, true
+	}
+	// Matches stripSQLComments: an unterminated block comment consumes to
+	// end (the emptiness scan intentionally does NOT apply the tokenizer's
+	// "/* at EOF is an operator" rule — stripSQLComments never sees it).
+	if seg[i] == '/' && i+1 < len(seg) && seg[i+1] == '*' {
+		return skipBlockComment(seg, i), true
+	}
+	return i, false
+}
+
+// isASCIIWS reports whether c is ASCII whitespace.
+func isASCIIWS(c byte) bool {
+	switch c {
+	case ' ', '\t', '\n', '\r', '\f', '\v':
+		return true
+	}
+	return false
 }

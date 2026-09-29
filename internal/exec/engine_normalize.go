@@ -5,6 +5,38 @@ import (
 	"strings"
 )
 
+// identContTable classifies bytes that continue an identifier or parameter
+// token: identifier characters plus the parameter sigils (\$, :, @, #) whose
+// names admit digits.
+var identContTable = func() [256]bool {
+	var t [256]bool
+	for c := 'a'; c <= 'z'; c++ {
+		t[c] = true
+	}
+	for c := 'A'; c <= 'Z'; c++ {
+		t[c] = true
+	}
+	for c := '0'; c <= '9'; c++ {
+		t[c] = true
+	}
+	t['_'] = true
+	t['$'] = true
+	t[':'] = true
+	t['@'] = true
+	t['#'] = true
+	for c := 0x80; c < 256; c++ {
+		t[c] = true
+	}
+	return t
+}()
+
+// continuesIdentToken reports whether the byte at i continues an identifier
+// or parameter token: the previous byte is an identifier character or one of
+// the parameter sigils (\$, :, @, #, whose names admit digits).
+func continuesIdentToken(s string, i int) bool {
+	return i > 0 && identContTable[s[i-1]]
+}
+
 // normalizeSQL replaces all numeric and string literals in a SQL string with '?'.
 // Returns the normalized string and the extracted literal values.
 // This is a fast pre-parse scan — it does NOT use the full parser.
@@ -14,62 +46,29 @@ import (
 // statement caches compare the normalized text with the input for identity.
 //
 // Bytes that continue an identifier or parameter token (digits after a
-// letter, as in "t1" or "u2", or after the parameter sigils $ : @ #) are NOT
-// literal starts: treating them as literals would merge unrelated statements
-// into one template-cache key with phantom values, and the substitution walk
+// letter, as in "t1" or "u2", or after a parameter sigil) are NOT literal
+// starts: treating them as literals would merge unrelated statements into
+// one template-cache key with phantom values, and the substitution walk
 // would then refuse every such statement (forcing a full parse).
 func normalizeSQL(s string) (norm string, values []interface{}) {
 	var buf []byte // allocated on the first substitution
 	last := 0
 	i := 0
 	for i < len(s) {
-		ch := s[i]
-		switch {
-		case ch == '\'':
-			// String literal: '...'
-			next, str, ok := scanStringLiteral(s, i)
-			if buf == nil {
-				buf = make([]byte, 0, len(s))
-				values = make([]interface{}, 0, 4)
-			}
-			buf = append(buf, s[last:i]...)
-			buf = append(buf, '?')
-			if ok {
-				values = append(values, str)
-			}
-			i = next
-			last = i
-		case ch >= '0' && ch <= '9' && !continuesIdentToken(s, i):
-			// Numeric literal (decimal integer or float starting with a digit)
-			var val interface{}
-			var next int
-			next, val = scanNumericLiteral(s, i)
-			if buf == nil {
-				buf = make([]byte, 0, len(s))
-				values = make([]interface{}, 0, 4)
-			}
-			buf = append(buf, s[last:i]...)
-			buf = append(buf, '?')
-			values = append(values, val)
-			i = next
-			last = i
-		case ch == '.' && !continuesIdentToken(s, i):
-			// Numeric literal starting with dot (e.g., .5)
-			var v float64
-			var next int
-			next, v = scanDotNumeric(s, i)
-			if buf == nil {
-				buf = make([]byte, 0, len(s))
-				values = make([]interface{}, 0, 4)
-			}
-			buf = append(buf, s[last:i]...)
-			buf = append(buf, '?')
-			values = append(values, v)
-			i = next
-			last = i
-		default:
+		next, val, ok := nextLiteral(s, i)
+		if !ok {
 			i++
+			continue
 		}
+		if buf == nil {
+			buf = make([]byte, 0, len(s))
+			values = make([]interface{}, 0, 4)
+		}
+		buf = append(buf, s[last:i]...)
+		buf = append(buf, '?')
+		values = append(values, val)
+		i = next
+		last = i
 	}
 	if buf == nil {
 		return s, nil
@@ -78,17 +77,24 @@ func normalizeSQL(s string) (norm string, values []interface{}) {
 	return string(buf), values
 }
 
-// continuesIdentToken reports whether the byte at i continues an identifier
-// or parameter token: the previous byte is an identifier character or one of
-// the parameter sigils ($ : @ #, whose names admit digits).
-func continuesIdentToken(s string, i int) bool {
-	if i == 0 {
-		return false
+// nextLiteral scans the literal starting at i (if any), returning the index
+// just past it, its value, and whether a literal starts at i.
+func nextLiteral(s string, i int) (next int, val interface{}, ok bool) {
+	switch c := s[i]; {
+	case c == '\'':
+		j, str, found := scanStringLiteral(s, i)
+		if !found {
+			return j, nil, false
+		}
+		return j, str, true
+	case c >= '0' && c <= '9' && !continuesIdentToken(s, i):
+		j, v := scanNumericLiteral(s, i)
+		return j, v, true
+	case c == '.' && !continuesIdentToken(s, i):
+		j, v := scanDotNumeric(s, i)
+		return j, v, true
 	}
-	c := s[i-1]
-	return (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') ||
-		(c >= '0' && c <= '9') || c == '_' || c == '$' || c == ':' ||
-		c == '@' || c == '#' || c >= 0x80
+	return i, nil, false
 }
 
 // scanStringLiteral scans a single-quoted string literal beginning at index i

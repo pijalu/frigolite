@@ -883,28 +883,6 @@ func restoreParenSetSpans(stmtText string, stmtStart int, spans []parenRewriteSp
 // subqueries (whose own RawSQL is empty; their text is located within the
 // enclosing statement's raw SQL).
 
-// copyQuoted copies a quoted string from s starting at i (s[i] is the quote)
-// into b, honoring backslash escapes. Returns the index after the closing
-// quote (or len(s) if unterminated).
-func copyQuoted(b *strings.Builder, s string, i int) int {
-	q := s[i]
-	b.WriteByte(s[i])
-	i++
-	for i < len(s) && s[i] != q {
-		if s[i] == '\\' && i+1 < len(s) {
-			b.WriteByte(s[i])
-			i++
-		}
-		b.WriteByte(s[i])
-		i++
-	}
-	if i < len(s) {
-		b.WriteByte(s[i])
-		i++
-	}
-	return i
-}
-
 // skipLineComment returns the index after a -- comment (i points at '-').
 func skipLineComment(s string, i int) int {
 	i += 2
@@ -921,29 +899,6 @@ func skipBlockComment(s string, i int) int {
 		i++
 	}
 	return i + 2
-}
-
-func stripSQLComments(s string) string {
-	var b strings.Builder
-	i := 0
-	n := len(s)
-	for i < n {
-		if s[i] == '\'' || s[i] == '"' {
-			i = copyQuoted(&b, s, i)
-			continue
-		}
-		if i+1 < n && s[i] == '-' && s[i+1] == '-' {
-			i = skipLineComment(s, i)
-			continue
-		}
-		if i+1 < n && s[i] == '/' && s[i+1] == '*' {
-			i = skipBlockComment(s, i)
-			continue
-		}
-		b.WriteByte(s[i])
-		i++
-	}
-	return b.String()
 }
 
 // createTableArgs is the semantic value of the create_table_args nonterminal

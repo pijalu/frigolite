@@ -404,11 +404,3 @@ var keywordToCodeMap = map[string]int{
 	"WITH":          TK_WITH,
 	"WITHOUT":       TK_WITHOUT,
 }
-
-// keywordToCode maps an uppercase SQL keyword string to its TK_* code.
-func keywordToCode(kw string) int {
-	if code, ok := keywordToCodeMap[kw]; ok {
-		return code
-	}
-	return TK_ID // fallback: unknown keywords treated as identifiers
-}

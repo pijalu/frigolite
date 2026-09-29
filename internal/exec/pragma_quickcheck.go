@@ -1,7 +1,6 @@
 package exec
 
 import (
-	"os"
 	"encoding/binary"
 	"fmt"
 	"github.com/pijalu/frigolite/internal/btree"
@@ -14,6 +13,7 @@ import (
 	"github.com/pijalu/frigolite/internal/storage"
 	"github.com/pijalu/frigolite/internal/util"
 	"github.com/pijalu/frigolite/internal/vtab"
+	"os"
 	"strconv"
 	"strings"
 )

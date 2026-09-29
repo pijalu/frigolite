@@ -19,37 +19,45 @@ func updateDeleteLimitError(input string) string {
 		return ""
 	}
 	for _, stmt := range splitRawStatements(input) {
-		head := stmt
-		// Strip a WITH ... header (CTEs may contain subqueries with their
-		// own ORDER BY).
-		if hasPrefixFoldASCII(strings.TrimSpace(head), "WITH") {
-			if idx := topLevelKeyword(head, []string{"DELETE", "UPDATE"}); idx >= 0 {
-				head = head[idx:]
-			} else {
-				continue
-			}
+		if msg := stmtOrderLimitError(stmt); msg != "" {
+			return msg
 		}
-		kind := ""
-		trimmed := strings.TrimSpace(head)
-		if hasPrefixFoldASCII(trimmed, "DELETE") {
-			kind = "DELETE"
-		} else if hasPrefixFoldASCII(trimmed, "UPDATE") {
-			kind = "UPDATE"
-		} else {
-			continue
-		}
-		// Is there a top-level ORDER BY after the statement's main body, and
-		// does a top-level LIMIT follow it?
-		orderIdx := topLevelOrderBy(head)
-		if orderIdx < 0 {
-			continue
-		}
-		if topLevelLimitAfter(head, orderIdx) {
-			continue
-		}
-		return "ORDER BY without LIMIT on " + kind
 	}
 	return ""
+}
+
+// stmtOrderLimitError reports the prepare-time error for one statement, or ""
+// when the statement is fine or not a DELETE/UPDATE.
+func stmtOrderLimitError(stmt string) string {
+	head := strings.TrimSpace(stmt)
+	// Strip a WITH ... header (CTEs may contain subqueries with their own
+	// ORDER BY).
+	if hasPrefixFoldASCII(head, "WITH") {
+		if idx := topLevelKeyword(head, []string{"DELETE", "UPDATE"}); idx >= 0 {
+			head = head[idx:]
+		} else {
+			return ""
+		}
+	}
+	kind := ""
+	trimmed := strings.TrimSpace(head)
+	if hasPrefixFoldASCII(trimmed, "DELETE") {
+		kind = "DELETE"
+	} else if hasPrefixFoldASCII(trimmed, "UPDATE") {
+		kind = "UPDATE"
+	} else {
+		return ""
+	}
+	// Is there a top-level ORDER BY after the statement's main body, and
+	// does a top-level LIMIT follow it?
+	orderIdx := topLevelOrderBy(head)
+	if orderIdx < 0 {
+		return ""
+	}
+	if topLevelLimitAfter(head, orderIdx) {
+		return ""
+	}
+	return "ORDER BY without LIMIT on " + kind
 }
 
 // rawSplitState tracks the string/bracket/comment lexer state of the
