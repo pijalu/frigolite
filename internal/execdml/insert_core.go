@@ -426,7 +426,7 @@ func violatedConstraintName(err error) string {
 // the row is written. The boolean return means "write the row".
 func (e *DMLExecutor) resolveReplaceConflict(tableEntry *schema.Entry, colDefs []sql.ColumnDef, values []interface{}, nextRowID int64, err error) (*Result, bool) {
 	replacedCol := violatedConstraintName(err)
-	if res, skip := e.replaceSecondaryConflictResult(tableEntry, colDefs, buildColumnIndex(colDefs), values, replacedCol); res != nil || skip {
+	if res, skip := e.replaceSecondaryConflictResult(tableEntry, colDefs, e.columnIndexFor(colDefs), values, replacedCol); res != nil || skip {
 		// skip mirrors the IGNORE path: drop the row without writing it.
 		return res, false
 	}
@@ -549,7 +549,7 @@ func (e *DMLExecutor) insertRow(pg *pager.Pager, tableEntry *schema.Entry, colDe
 	// values. WITHOUT ROWID tables report rowid 0 (SQLite uses the key
 	// columns instead); rowid tables report the assigned rowid.
 	rowID := nextRowID
-	if hasWithoutRowidKeyword(strings.ToUpper(tableEntry.SQL)) {
+	if tableIsWithoutRowid(tableEntry.SQL) {
 		rowID = 0
 	}
 	if res := e.ctx.FirePreupdate(PreupdateEvent{
@@ -557,7 +557,7 @@ func (e *DMLExecutor) insertRow(pg *pager.Pager, tableEntry *schema.Entry, colDe
 		DB:    e.schemaNameForPager(pg),
 		Table: tableEntry.Name,
 		RowID: rowID, RowID2: rowID,
-		RowidTable: !hasWithoutRowidKeyword(strings.ToUpper(tableEntry.SQL)),
+		RowidTable: !tableIsWithoutRowid(tableEntry.SQL),
 		Old:        nil,
 		New:        append([]interface{}(nil), values...),
 	}); res != nil {
@@ -623,7 +623,7 @@ func (e *DMLExecutor) checkConstraints(tableEntry *schema.Entry, colDefs []sql.C
 	defer func() { e.currentDMLTable = prevDML }()
 
 	row := buildRowMapFromValues(values, colDefs, rowID)
-	withoutRowid := hasWithoutRowidKeyword(strings.ToUpper(tableEntry.SQL))
+	withoutRowid := tableIsWithoutRowid(tableEntry.SQL)
 
 	if err := e.checkColumnConstraints(tableEntry, colDefs, values, row, withoutRowid); err != nil {
 		return err
@@ -664,7 +664,7 @@ func (e *DMLExecutor) maintainIndexesOnInsert(tableEntry *schema.Entry, colDefs 
 	if len(defs) == 0 {
 		return nil
 	}
-	colIndex := buildColumnIndex(colDefs)
+	colIndex := e.columnIndexFor(colDefs)
 	row := buildRowMapFromValues(values, colDefs, rowID)
 	for _, def := range defs {
 		// Evaluate the partial predicate in a pure context: SQLite evaluates
@@ -704,7 +704,7 @@ func (e *DMLExecutor) maintainIndexesOnInsert(tableEntry *schema.Entry, colDefs 
 // (excludeCell). Returns a SQLite-style error on conflict. NULL values never
 // conflict.
 func (e *DMLExecutor) checkUniqueIndexExcluding(tableEntry *schema.Entry, colDefs []sql.ColumnDef, values []interface{}, def uniqueIndexDef, excludeCell func(rc *storage.Record, cl *storage.Cell) bool) error {
-	colIndex := buildColumnIndex(colDefs)
+	colIndex := e.columnIndexFor(colDefs)
 	// The new row must itself satisfy the partial-index predicate to be in
 	// the index; otherwise it cannot conflict via this index.
 	row := buildRowMapFromValues(values, colDefs, 0)
@@ -753,7 +753,7 @@ func (e *DMLExecutor) checkUniqueIndexExcluding(tableEntry *schema.Entry, colDef
 // (replaceRowID), firing BEFORE and AFTER DELETE triggers for each deleted row
 // (SQLite REPLACE semantics).
 func (e *DMLExecutor) replaceDeleteConflicts(pg *pager.Pager, tableEntry *schema.Entry, colDefs []sql.ColumnDef, values []interface{}, replaceRowID int64) *Result {
-	colIndex := buildColumnIndex(colDefs)
+	colIndex := e.columnIndexFor(colDefs)
 	// Collect ALL currently-conflicting rows BEFORE firing any triggers.
 	// Rows inserted by triggers during the deletes are NOT re-deleted; if
 	// they conflict with the new row, the subsequent INSERT reports the
@@ -806,7 +806,7 @@ func (e *DMLExecutor) execInsertOnConflict(pg *pager.Pager, tableEntry *schema.E
 	// Fire BEFORE INSERT triggers for the attempted row (SQLite fires them
 	// for an UPSERT row before conflict resolution; a RAISE(IGNORE) skips
 	// the row). The rowid is computed first so triggers see new.rowid.
-	withoutRowid := hasWithoutRowidKeyword(strings.ToUpper(tableEntry.SQL))
+	withoutRowid := tableIsWithoutRowid(tableEntry.SQL)
 	nextRowID, rerr := e.pkRowID(tableEntry.Name, colDefs, values, tableEntry.RootPage, withoutRowid)
 	if rerr != nil {
 		return &Result{Error: rerr}
@@ -817,7 +817,7 @@ func (e *DMLExecutor) execInsertOnConflict(pg *pager.Pager, tableEntry *schema.E
 
 	// Try to find existing conflicting rows (via UNIQUE columns, composite
 	// constraints, and UNIQUE indexes).
-	colIndex := buildColumnIndex(colDefs)
+	colIndex := e.columnIndexFor(colDefs)
 	hits := e.findOnConflictRow(tableEntry, colDefs, colIndex, values)
 
 	if len(hits) == 0 {
@@ -883,7 +883,7 @@ func (e *DMLExecutor) insertUpsertRow(pg *pager.Pager, tableEntry *schema.Entry,
 // pkRowIDOrZero returns the PK-derived rowid for a row, or 0 when none can be
 // derived (REPLACE conflict deletion needs it to remove the conflicting rows).
 func (e *DMLExecutor) pkRowIDOrZero(tableEntry *schema.Entry, colDefs []sql.ColumnDef, values []interface{}) int64 {
-	withoutRowid := hasWithoutRowidKeyword(strings.ToUpper(tableEntry.SQL))
+	withoutRowid := tableIsWithoutRowid(tableEntry.SQL)
 	rid, err := e.pkRowID(tableEntry.Name, colDefs, values, tableEntry.RootPage, withoutRowid)
 	if err != nil {
 		return 0

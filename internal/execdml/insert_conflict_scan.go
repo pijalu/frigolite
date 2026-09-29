@@ -610,7 +610,7 @@ func (e *DMLExecutor) selectRowUpsert(tableEntry *schema.Entry, colDefs []sql.Co
 	if res := e.validateUpsertExpressions(tableEntry.Name, s.Alias, s.OnConflict); res != nil {
 		return false, nil, res, true
 	}
-	colIndex := buildColumnIndex(colDefs)
+	colIndex := e.columnIndexFor(colDefs)
 	hits := e.findOnConflictRow(tableEntry, colDefs, colIndex, values)
 	if len(hits) == 0 {
 		return false, nil, nil, false
@@ -664,7 +664,7 @@ func (e *DMLExecutor) insertSelectReplaceRowID(tableEntry *schema.Entry, colDefs
 	if !isReplace {
 		return 0, nil
 	}
-	rr, err := e.pkRowID(tableEntry.Name, colDefs, values, tableEntry.RootPage, hasWithoutRowidKeyword(strings.ToUpper(tableEntry.SQL)))
+	rr, err := e.pkRowID(tableEntry.Name, colDefs, values, tableEntry.RootPage, tableIsWithoutRowid(tableEntry.SQL))
 	if err != nil {
 		return 0, &Result{Error: err}
 	}

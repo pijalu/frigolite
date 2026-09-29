@@ -277,7 +277,7 @@ func (e *DMLExecutor) withoutRowidPKIdx(tableName, createSQL string, colDefs []s
 		}
 	}
 	if len(pkIdx) == 0 {
-		pkIdx = e.pkIdxFromConstraints(tableName, createSQL, buildColumnIndex(colDefs))
+		pkIdx = e.pkIdxFromConstraints(tableName, createSQL, e.columnIndexFor(colDefs))
 	}
 	return pkIdx
 }
@@ -364,7 +364,7 @@ func (e *DMLExecutor) validateDeleteTargetExprs(s *sql.DeleteStmt, tableEntry *s
 		qualifiers = append(qualifiers, s.Alias)
 	}
 	colDefs := e.ctx.ParseColumnDefs(s.Table, tableEntry.SQL)
-	return e.validateDMLExprs(qualifiers, colDefs, !hasWithoutRowidKeyword(strings.ToUpper(tableEntry.SQL)), []sql.Expr{s.Where})
+	return e.validateDMLExprs(qualifiers, colDefs, !tableIsWithoutRowid(tableEntry.SQL), []sql.Expr{s.Where})
 }
 
 // trueRowidKey is the reserved RowMap key carrying the row's TRUE btree
@@ -543,7 +543,7 @@ func (e *DMLExecutor) execDeleteBulk(tableEntry *schema.Entry, dbCtx *DatabaseCo
 	// iterates the WITHOUT ROWID table btree in PK order (the preupdate
 	// hook and DELETE triggers observe that order, hook2.test 2.2.2), so
 	// sort the deleted rows by their PRIMARY KEY values.
-	if hasWithoutRowidKeyword(strings.ToUpper(tableEntry.SQL)) {
+	if tableIsWithoutRowid(tableEntry.SQL) {
 		sort.SliceStable(deletedRows, func(i, j int) bool {
 			return e.withoutRowidLess(deletedRows[i], deletedRows[j], tableEntry.Name, tableEntry.SQL, colDefs)
 		})
@@ -684,7 +684,7 @@ func (e *DMLExecutor) fireDeletePreupdate(tableEntry *schema.Entry, dbCtx *Datab
 	rowID, _ := rowTrueRowID(row)
 	oldVals := e.rowMapColumnValues(row, colDefs)
 	delRowID := rowID
-	if hasWithoutRowidKeyword(strings.ToUpper(tableEntry.SQL)) {
+	if tableIsWithoutRowid(tableEntry.SQL) {
 		delRowID = 0
 	}
 	return e.ctx.FirePreupdate(PreupdateEvent{
@@ -692,7 +692,7 @@ func (e *DMLExecutor) fireDeletePreupdate(tableEntry *schema.Entry, dbCtx *Datab
 		DB:    e.schemaNameForPager(dbCtx.Pager),
 		Table: tableEntry.Name,
 		RowID: delRowID, RowID2: delRowID,
-		RowidTable: !hasWithoutRowidKeyword(strings.ToUpper(tableEntry.SQL)),
+		RowidTable: !tableIsWithoutRowid(tableEntry.SQL),
 		Old:        oldVals,
 		New:        nil,
 	})

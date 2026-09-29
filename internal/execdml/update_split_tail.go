@@ -259,7 +259,7 @@ func (e *DMLExecutor) seekUpdateChanges(tableName string, rootPage uint32, colDe
 	}
 	tree := e.dmlTableBTree(tableName, rootPage)
 	defer tree.Close() // seek tree is function-local
-	colIndex := buildColumnIndex(colDefs)
+	colIndex := e.columnIndexFor(colDefs)
 	var changes []updateChange
 	var rowMaps []RowMap
 	for _, rowID := range rowIDs {

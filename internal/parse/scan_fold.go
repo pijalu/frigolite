@@ -9,44 +9,14 @@ package parse
 import (
 	"unicode"
 	"unicode/utf8"
+
+	"github.com/pijalu/frigolite/internal/util"
 )
 
-// asciiLower folds an ASCII byte to lower case; bytes >= 0x80 are returned
-// unchanged (the callers only fold ASCII keywords).
-func asciiLower(c byte) byte {
-	if c >= 'A' && c <= 'Z' {
-		return c + ('a' - 'A')
-	}
-	return c
-}
-
 // indexFoldASCII returns the index of the first occurrence of sub in s under
-// ASCII case folding, or -1. Bytes >= 0x80 compare literally.
+// ASCII case folding, or -1. Delegates to the shared util implementation.
 func indexFoldASCII(s, sub string) int {
-	n := len(sub)
-	if n == 0 {
-		return 0
-	}
-	if n > len(s) {
-		return -1
-	}
-	c0 := asciiLower(sub[0])
-	for i := 0; i+n <= len(s); i++ {
-		if asciiLower(s[i]) != c0 {
-			continue
-		}
-		match := true
-		for j := 1; j < n; j++ {
-			if asciiLower(s[i+j]) != asciiLower(sub[j]) {
-				match = false
-				break
-			}
-		}
-		if match {
-			return i
-		}
-	}
-	return -1
+	return util.IndexFoldASCII(s, sub)
 }
 
 // containsFoldASCII reports whether s contains sub under ASCII case folding.
@@ -61,15 +31,7 @@ func containsFoldASCII(s, sub string) bool {
 // uppercase ASCII prefix (Go's ToUpper maps no non-ASCII byte to a byte
 // spelling these keywords).
 func hasPrefixFoldASCII(s, prefix string) bool {
-	if len(s) < len(prefix) {
-		return false
-	}
-	for i := 0; i < len(prefix); i++ {
-		if asciiLower(s[i]) != asciiLower(prefix[i]) {
-			return false
-		}
-	}
-	return true
+	return util.HasPrefixFoldASCII(s, prefix)
 }
 
 // isEmptySQLSegment reports whether seg is only whitespace and/or comments

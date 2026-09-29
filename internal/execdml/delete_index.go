@@ -21,7 +21,7 @@ func (e *DMLExecutor) maintainIndexesOnDelete(tableEntry *schema.Entry, colDefs 
 	if len(defs) == 0 {
 		return nil
 	}
-	colIndex := buildColumnIndex(colDefs)
+	colIndex := e.columnIndexFor(colDefs)
 	for _, row := range deletedRows {
 		rowID, _ := util.UnwrapColumnValue(row["rowid"]).(int64)
 		// The deleted row's stored values (decoded from the table cell)

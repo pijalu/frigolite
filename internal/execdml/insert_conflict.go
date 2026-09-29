@@ -182,14 +182,14 @@ func mustBeIntRowid(v interface{}) (int64, bool) {
 // replaceRowIDAndDelete computes the REPLACE rowid and deletes conflicting
 // rows, returning the rowid, whether it is set, and any failure result.
 func (e *DMLExecutor) replaceRowIDAndDelete(dbCtx *DatabaseContext, tableEntry *schema.Entry, colDefs []sql.ColumnDef, values []interface{}, explicitRowID *int64, s *sql.InsertStmt) (int64, bool, *Result) {
-	rr, err := e.pkRowID(tableEntry.Name, colDefs, values, tableEntry.RootPage, hasWithoutRowidKeyword(strings.ToUpper(tableEntry.SQL)))
+	rr, err := e.pkRowID(tableEntry.Name, colDefs, values, tableEntry.RootPage, tableIsWithoutRowid(tableEntry.SQL))
 	if err != nil {
 		return 0, false, &Result{Error: err}
 	}
 	// An explicit rowid in the INSERT list sets the new row's rowid;
 	// use it for conflict detection (a REPLACE of a specific rowid must
 	// delete the existing row at that rowid).
-	if explicitRowID != nil && !hasWithoutRowidKeyword(strings.ToUpper(tableEntry.SQL)) {
+	if explicitRowID != nil && !tableIsWithoutRowid(tableEntry.SQL) {
 		rr = *explicitRowID
 	}
 	if res := e.replaceDeleteConflicts(dbCtx.Pager, tableEntry, colDefs, values, rr); res.Error != nil {
@@ -306,7 +306,7 @@ func (e *DMLExecutor) checkUniqueConstraints(tableEntry *schema.Entry, colDefs [
 // DO UPDATE, where the updated row already exists and must not conflict with
 // itself).
 func (e *DMLExecutor) checkUniqueConstraintsExcluding(tableEntry *schema.Entry, colDefs []sql.ColumnDef, values []interface{}, excludeRowID int64, haveExclude bool) error {
-	colIndex := buildColumnIndex(colDefs)
+	colIndex := e.columnIndexFor(colDefs)
 	if err := e.bareUniqueConflictError(tableEntry, colDefs, colIndex, values, excludeRowID, haveExclude); err != nil {
 		return err
 	}
@@ -359,7 +359,7 @@ func (e *DMLExecutor) bareUniqueConflictError(tableEntry *schema.Entry, colDefs 
 // vals is the found row's declared-order values (conflict scans remap WR
 // records before returning).
 func (e *DMLExecutor) foundRowIsExcluded(tableEntry *schema.Entry, colDefs []sql.ColumnDef, values, vals []interface{}, rowID, excludeRowID int64) bool {
-	if !hasWithoutRowidKeyword(strings.ToUpper(tableEntry.SQL)) {
+	if !tableIsWithoutRowid(tableEntry.SQL) {
 		return rowID == excludeRowID
 	}
 	pkIdx := WRPKIndices(tableEntry.SQL, colDefs)
@@ -389,7 +389,7 @@ func (e *DMLExecutor) conflictRowExcluder(tableEntry *schema.Entry, colDefs []sq
 	if !haveExclude {
 		return func(*storage.Record, *storage.Cell) bool { return false }
 	}
-	if !hasWithoutRowidKeyword(strings.ToUpper(tableEntry.SQL)) {
+	if !tableIsWithoutRowid(tableEntry.SQL) {
 		return func(_ *storage.Record, cell *storage.Cell) bool { return cell.RowID == excludeRowID }
 	}
 	order := WithoutRowidStorageOrder(tableEntry.SQL, colDefs)
@@ -706,7 +706,7 @@ func (e *DMLExecutor) execInsertSelectConflict(s *sql.InsertStmt, tableEntry *sc
 // deleteReplaceConflict removes the row conflicting with the new values
 // (column-level ON CONFLICT REPLACE).
 func (e *DMLExecutor) deleteReplaceConflict(tableEntry *schema.Entry, colDefs []sql.ColumnDef, values []interface{}, origErr error) *Result {
-	colIndex := buildColumnIndex(colDefs)
+	colIndex := e.columnIndexFor(colDefs)
 	conflictRowID, conflictVals, _, found := e.findRowByUniqueCols(tableEntry.Name, tableEntry.RootPage, colDefs, colIndex, values, tableEntry.SQL)
 	if !found {
 		return &Result{Error: origErr}

@@ -27,7 +27,7 @@ import (
 // WRPKIndices directly).
 func (e *DMLExecutor) updateConstrainedDefs(tableEntry *schema.Entry, colDefs []sql.ColumnDef) []uniqueIndexDef {
 	defs := e.uniqueIndexColumns(tableEntry.Name)
-	if !hasWithoutRowidKeyword(strings.ToUpper(tableEntry.SQL)) {
+	if !tableIsWithoutRowid(tableEntry.SQL) {
 		return defs
 	}
 	pkIdx := WRPKIndices(tableEntry.SQL, colDefs)

@@ -15,6 +15,8 @@ import (
 	"github.com/pijalu/frigolite/internal/sql"
 	"github.com/pijalu/frigolite/internal/storage"
 	"github.com/pijalu/frigolite/internal/vtab"
+
+	"github.com/pijalu/frigolite/internal/util"
 )
 
 // --- DROP VIEW ---
@@ -390,7 +392,7 @@ func normalizeSQLText(s string) string {
 // INSERT/SELECT/DELETE route to FTS storage instead of treating the table as
 // storageless (which would make writes no-ops and RETURNING project NULLs).
 func (e *DDLExecutor) ensureFTSForTable(entry *schema.Entry) {
-	if entry == nil || !strings.HasPrefix(strings.ToUpper(entry.SQL), "CREATE VIRTUAL TABLE") {
+	if entry == nil || !util.HasPrefixFoldASCII(entry.SQL, "CREATE VIRTUAL TABLE") {
 		return
 	}
 	// fts5 tables rehydrate through their module (xConnect parity).

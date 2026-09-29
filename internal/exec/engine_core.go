@@ -12,6 +12,8 @@ import (
 	"github.com/pijalu/frigolite/internal/schema"
 	"github.com/pijalu/frigolite/internal/sql"
 	"github.com/pijalu/frigolite/internal/storage"
+
+	"github.com/pijalu/frigolite/internal/util"
 )
 
 // cloneStmtsWithValues clones the cached statement list and substitutes new
@@ -207,8 +209,7 @@ func (e *Engine) externalSchemaChanged(ctx *DatabaseContext) bool {
 	if ctx == nil || ctx.Schema == nil || ctx.Pager == nil {
 		return false
 	}
-	upper := strings.ToUpper(ctx.Name)
-	if upper == "TEMP" || upper == "TEMPORARY" {
+	if strings.EqualFold(ctx.Name, "TEMP") || strings.EqualFold(ctx.Name, "TEMPORARY") {
 		return false
 	}
 	ctx.Schema.CheckExternalMod()
@@ -241,7 +242,7 @@ func (e *Engine) findTable(name string) (*schema.Entry, *DatabaseContext, error)
 // isVtabSchemaEntry reports whether a schema entry creates a virtual table
 // (build.c IsVirtual).
 func isVtabSchemaEntry(entry *schema.Entry) bool {
-	return entry != nil && strings.HasPrefix(strings.ToUpper(entry.SQL), "CREATE VIRTUAL TABLE")
+	return entry != nil && util.HasPrefixFoldASCII(entry.SQL, "CREATE VIRTUAL TABLE")
 }
 
 // noVtabNoSuchTable renders the resolution failure for a virtual table hidden

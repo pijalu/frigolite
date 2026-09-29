@@ -296,7 +296,7 @@ type conflictKeyer struct {
 }
 
 func newConflictKeyer(tableEntry *schema.Entry, colDefs []sql.ColumnDef) conflictKeyer {
-	wr := hasWithoutRowidKeyword(strings.ToUpper(tableEntry.SQL))
+	wr := tableIsWithoutRowid(tableEntry.SQL)
 	var pk []int
 	if wr {
 		pk = WRPKIndices(tableEntry.SQL, colDefs)
@@ -339,7 +339,7 @@ func conflictSeenKey(tableEntry *schema.Entry, colDefs []sql.ColumnDef, rowID in
 // replaceConflictAtRowID returns the row at replaceRowID when it is a not-yet-
 // seen conflict for a REPLACE insert.
 func (e *DMLExecutor) replaceConflictAtRowID(pg *pager.Pager, tableEntry *schema.Entry, replaceRowID int64, seen map[string]bool) (int64, []interface{}, bool) {
-	if hasWithoutRowidKeyword(strings.ToUpper(tableEntry.SQL)) {
+	if tableIsWithoutRowid(tableEntry.SQL) {
 		return 0, nil, false
 	}
 	tree := e.ctx.TableBTreePg(pg, tableEntry.Name, tableEntry.RootPage, true)

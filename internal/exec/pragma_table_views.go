@@ -9,7 +9,8 @@ import (
 	"github.com/pijalu/frigolite/internal/util"
 	"github.com/pijalu/frigolite/internal/value"
 	"strings"
-)
+
+	"github.com/pijalu/frigolite/internal/execdml")
 
 // materializeForeignKeyListWithRow builds the rows of pragma_foreign_key_list
 // (table-valued PRAGMA foreign_key_list) with a row context for
@@ -233,7 +234,7 @@ func (e *Engine) tableListRow(entry *schema.Entry, filterName string) []interfac
 	}
 	colDefs := e.parseColumnDefs(entry.Name, entry.SQL)
 	wr := int64(0)
-	if hasWithoutRowidKeyword(strings.ToUpper(entry.SQL)) {
+	if execdml.TableIsWithoutRowid(entry.SQL) {
 		wr = 1
 	}
 	strict := int64(0)

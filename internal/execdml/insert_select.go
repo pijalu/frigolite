@@ -13,7 +13,7 @@ import (
 )
 
 func (e *DMLExecutor) insertSelectWrittenRow(tableEntry *schema.Entry, colDefs []sql.ColumnDef, values []interface{}, rowID int64, s *sql.InsertStmt) (*Result, []interface{}) {
-	withoutRowid := hasWithoutRowidKeyword(strings.ToUpper(tableEntry.SQL))
+	withoutRowid := tableIsWithoutRowid(tableEntry.SQL)
 	stored := values
 	if withoutRowid {
 		// WITHOUT ROWID rows live in an index btree in PK-first storage
@@ -69,7 +69,7 @@ func (e *DMLExecutor) insertSelectWrittenRow(tableEntry *schema.Entry, colDefs [
 // values (WITHOUT ROWID tables report the synthetic rowid 0 — SQLite uses
 // the key columns instead).
 func (e *DMLExecutor) fireInsertPreupdate(tableEntry *schema.Entry, rowID int64, values []interface{}) *Result {
-	wr := hasWithoutRowidKeyword(strings.ToUpper(tableEntry.SQL))
+	wr := tableIsWithoutRowid(tableEntry.SQL)
 	puRowID := rowID
 	if wr {
 		puRowID = 0
@@ -133,7 +133,7 @@ func (e *DMLExecutor) resolveInsertRowID(tableEntry *schema.Entry, colDefs []sql
 	var rowID int64
 	ipkWasNil := false
 	ipkIndex := -1
-	withoutRowid := hasWithoutRowidKeyword(strings.ToUpper(tableEntry.SQL))
+	withoutRowid := tableIsWithoutRowid(tableEntry.SQL)
 	if hasExplicitRowID {
 		rowID = explicitRowID
 	} else if isReplace {

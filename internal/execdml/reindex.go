@@ -53,7 +53,7 @@ func autoindexOrdinal(indexName string) int {
 // creation order under the DDL's slot rules (see autoindexSlotLists).
 func autoindexCandidateLists(tableEntry *schema.Entry, e *DMLExecutor, colDefs []sql.ColumnDef) [][]string {
 	cands := collectAutoindexConstraintCandidates(tableEntry, e, colDefs)
-	return autoindexSlotLists(cands, hasWithoutRowidKeyword(strings.ToUpper(tableEntry.SQL)), colDefs)
+	return autoindexSlotLists(cands, tableIsWithoutRowid(tableEntry.SQL), colDefs)
 }
 
 // autoindexConstraint is one PK/UNIQUE constraint in table-creation order.
@@ -185,7 +185,7 @@ func (e *DMLExecutor) RebuildIndex(ctx *DatabaseContext, tableEntry *schema.Entr
 		return 0, err
 	}
 
-	colIndex := buildColumnIndex(colDefs)
+	colIndex := e.columnIndexFor(colDefs)
 	count := 0
 	var scanErr error
 	e.scanTableForMatch(tableEntry, func(rec *storage.Record, cell *storage.Cell) bool {

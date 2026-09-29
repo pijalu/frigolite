@@ -2,7 +2,6 @@ package execdml
 
 import (
 	"fmt"
-	"strings"
 
 	"github.com/pijalu/frigolite/internal/btree"
 	"github.com/pijalu/frigolite/internal/execexpr"
@@ -19,7 +18,7 @@ func (e *DMLExecutor) prepareInsertRowValues(tableEntry *schema.Entry, colDefs [
 	// value, use that value as the rowid (the column IS the rowid). Otherwise
 	// auto-assign the next available rowid. REPLACE passes a rowid computed
 	// before its conflict deletes (SQLite keeps it through the retry).
-	nextRowID, err := e.pkRowID(tableEntry.Name, colDefs, values, tableEntry.RootPage, hasWithoutRowidKeyword(strings.ToUpper(tableEntry.SQL)))
+	nextRowID, err := e.pkRowID(tableEntry.Name, colDefs, values, tableEntry.RootPage, tableIsWithoutRowid(tableEntry.SQL))
 	if err != nil {
 		return 0, &Result{Error: err}
 	}
@@ -31,7 +30,7 @@ func (e *DMLExecutor) prepareInsertRowValues(tableEntry *schema.Entry, colDefs [
 	// If INTEGER PRIMARY KEY column value is nil, set it to the auto-assigned rowid.
 	// SQLite behavior: inserting NULL into an INTEGER PRIMARY KEY column causes
 	// the column to contain the auto-generated rowid.
-	withoutRowid := hasWithoutRowidKeyword(strings.ToUpper(tableEntry.SQL))
+	withoutRowid := tableIsWithoutRowid(tableEntry.SQL)
 	isStrict := isStrictTable(tableEntry.SQL)
 	ipkWasNil, ipkIndex := e.fillIPKRowID(colDefs, values, nextRowID, withoutRowid, isStrict)
 
@@ -246,7 +245,7 @@ func unwrapCollationWrappers(values []interface{}) {
 // writeTableRow encodes and inserts a table row, returning the tree (for
 // index-failure cleanup) and any write result.
 func (e *DMLExecutor) writeTableRow(pg *pager.Pager, tableEntry *schema.Entry, colDefs []sql.ColumnDef, values []interface{}, nextRowID int64) (*btree.BTree, *Result) {
-	withoutRowid := hasWithoutRowidKeyword(strings.ToUpper(tableEntry.SQL))
+	withoutRowid := tableIsWithoutRowid(tableEntry.SQL)
 	stored := values
 	if withoutRowid {
 		// WITHOUT ROWID rows live in an index btree in PK-first storage

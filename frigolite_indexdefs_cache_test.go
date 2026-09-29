@@ -161,3 +161,59 @@ func TestIndexDefsCacheInvalidationOnRename(t *testing.T) {
 		t.Fatalf("indexed lookup after RENAME: %v, want [[8]]", r.Rows)
 	}
 }
+
+// TestColumnIndexCacheInvalidation pins the DDL guard on the DML executor's
+// memoized column index (columnIndexFor): a schema fingerprint change
+// (ALTER TABLE ADD COLUMN / DROP COLUMN / DROP+CREATE) must rebuild the
+// index, or statements after the DDL resolve columns against the stale
+// layout.
+func TestColumnIndexCacheInvalidation(t *testing.T) {
+	db, err := frigolite.Open(":memory:")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer db.Close()
+	must := func(sql string) {
+		if r := db.Exec(sql); r.Error != nil {
+			t.Fatalf("%s: %v", sql, r.Error)
+		}
+	}
+	must("CREATE TABLE t(k INTEGER PRIMARY KEY, a TEXT)")
+	must("INSERT INTO t VALUES(1,'x')")
+	// warm the memo
+	for i := 0; i < 5; i++ {
+		must("UPDATE t SET a='y' WHERE k=1")
+	}
+	// DDL: add a column — the memo must invalidate (fingerprint change).
+	must("ALTER TABLE t ADD COLUMN b TEXT DEFAULT 'new'")
+	must("INSERT INTO t(k,a,b) VALUES(2,'z','zz')")
+	r := db.Query("SELECT k, a, b FROM t ORDER BY k")
+	if r.Error != nil {
+		t.Fatal(r.Error)
+	}
+	if len(r.Rows) != 2 {
+		t.Fatalf("rows: %v", r.Rows)
+	}
+	if r.Rows[1][2] != "zz" {
+		t.Fatalf("post-DDL insert column b: %v", r.Rows[1])
+	}
+	// DROP COLUMN changes the layout too.
+	must("ALTER TABLE t DROP COLUMN b")
+	r = db.Query("SELECT k, a FROM t ORDER BY k")
+	if r.Error != nil {
+		t.Fatal(r.Error)
+	}
+	if len(r.Rows) != 2 || len(r.Rows[0]) != 2 {
+		t.Fatalf("post-drop rows: %v", r.Rows)
+	}
+	// Drop and recreate with a swapped layout; old UPDATEs must still work.
+	must("DROP TABLE t")
+	must("CREATE TABLE t(a TEXT, k INTEGER PRIMARY KEY)")
+	must("INSERT INTO t VALUES('q',9)")
+	must("UPDATE t SET a='r' WHERE k=9")
+	if r := db.Query("SELECT a FROM t WHERE k=9"); r.Error != nil {
+		t.Fatal(r.Error)
+	} else if r.Rows[0][0] != "r" {
+		t.Fatalf("recreated table update: %v", r.Rows)
+	}
+}

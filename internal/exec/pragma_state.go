@@ -11,6 +11,8 @@ import (
 	"github.com/pijalu/frigolite/internal/pager"
 	"github.com/pijalu/frigolite/internal/schema"
 	"github.com/pijalu/frigolite/internal/sql"
+
+	"github.com/pijalu/frigolite/internal/execdml"
 )
 
 // Compile-time probe: Engine satisfies the execpragma.EngineState capability
@@ -770,7 +772,7 @@ func declaredColumnMetadata(ctx *DatabaseContext, colDefs []sql.ColumnDef, colum
 // INTEGER PRIMARY KEY AUTOINCREMENT column reports autoincrement=1 for its
 // rowid alias (colmeta.test 101/102).
 func rowidColumnMetadata(entry *schema.Entry, ctx *DatabaseContext, colDefs []sql.ColumnDef, table, column string) (*ColumnMetadata, error) {
-	if hasWithoutRowidKeyword(strings.ToUpper(entry.SQL)) {
+	if execdml.TableIsWithoutRowid(entry.SQL) {
 		return nil, fmt.Errorf("no such table column: %s.%s", table, column)
 	}
 	autoIncr := false

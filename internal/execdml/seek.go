@@ -55,14 +55,14 @@ func (e *DMLExecutor) planDMLSeek(tableEntry *schema.Entry, colDefs []sql.Column
 	// WITHOUT ROWID tables are iterated in PRIMARY KEY order (trigger/preupdate
 	// order); candidate narrowing through an ordinary index would reorder the
 	// collection. Keep the keyed scan there.
-	if hasWithoutRowidKeyword(strings.ToUpper(tableEntry.SQL)) {
+	if tableIsWithoutRowid(tableEntry.SQL) {
 		return nil
 	}
 	outerCols := make(map[string]bool, len(colDefs))
 	for _, cd := range colDefs {
 		outerCols[cd.Name] = true
 	}
-	colIndex := buildColumnIndex(colDefs)
+	colIndex := e.columnIndexFor(colDefs)
 	rowidTable := !execquery.RowHasRowIDColumn(colDefs)
 	for _, conj := range splitAndTerms(where) {
 		col, val, aff, ok := e.extractEquality(conj, outerCols)

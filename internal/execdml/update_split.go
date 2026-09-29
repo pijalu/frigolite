@@ -175,7 +175,7 @@ func (e *DMLExecutor) validateUpdateExprResolution(s *sql.UpdateStmt, tableEntry
 	if s.Alias != "" {
 		qualifiers = append(qualifiers, s.Alias)
 	}
-	return e.validateDMLExprs(qualifiers, colDefs, !hasWithoutRowidKeyword(strings.ToUpper(tableEntry.SQL)), updateTargetExprs(s))
+	return e.validateDMLExprs(qualifiers, colDefs, !tableIsWithoutRowid(tableEntry.SQL), updateTargetExprs(s))
 }
 
 // routeUpdateFTS sends virtual-table updates to the FTS engines: fts5
@@ -235,7 +235,7 @@ func (e *DMLExecutor) runUpdatePipeline(s *sql.UpdateStmt, tableEntry *schema.En
 		return res
 	}
 
-	colIndex := buildColumnIndex(colDefs)
+	colIndex := e.columnIndexFor(colDefs)
 
 	// When the table has triggers, defer SET evaluation to the apply loop so
 	// the changes() counter and user functions observe SQLite's row-by-row
@@ -333,7 +333,7 @@ func (e *DMLExecutor) pushUpdateSetColumns(s *sql.UpdateStmt) func() {
 // "no such column: X" even when no row matches the WHERE clause
 // (update.test 9.1).
 func (e *DMLExecutor) prepareUpdate(s *sql.UpdateStmt, tableEntry *schema.Entry, colDefs []sql.ColumnDef) *Result {
-	colIndex := buildColumnIndex(colDefs)
+	colIndex := e.columnIndexFor(colDefs)
 	hasRowidColumn := execquery.RowHasRowIDColumn(colDefs)
 	for _, a := range s.Assignments {
 		if _, ok := colIndex[strings.ToLower(a.Column)]; ok {
@@ -416,7 +416,7 @@ func (e *DMLExecutor) preCheckUpdate(s *sql.UpdateStmt, tableEntry *schema.Entry
 	// fire the changes() user-function ordering before the apply loop (the
 	// per-row interleaving only matters for the trigger path, which defers).
 	if e.updateHasConstraints(colDefs) {
-		colIndex := buildColumnIndex(colDefs)
+		colIndex := e.columnIndexFor(colDefs)
 		for i := range changes {
 			if err := e.materializeChangeValues(&changes[i], s, colIndex, colDefs); err != nil {
 				return nil, &Result{Error: err}
@@ -437,7 +437,7 @@ func (e *DMLExecutor) resolveUpdateNotNullConflicts(s *sql.UpdateStmt, tableEntr
 	if !hasNotNullOrCheckConstraint(colDefs) && len(e.ctx.TableConstraints(tableEntry.Name, tableEntry.SQL)) == 0 {
 		return changes, &Result{}
 	}
-	withoutRowid := hasWithoutRowidKeyword(strings.ToUpper(tableEntry.SQL))
+	withoutRowid := tableIsWithoutRowid(tableEntry.SQL)
 	var pkCols map[int]bool
 	if withoutRowid {
 		pkCols = e.primaryKeyColIndices(tableEntry.Name, tableEntry.SQL, colDefs)
@@ -567,7 +567,7 @@ func (e *DMLExecutor) updateHasConstraints(colDefs []sql.ColumnDef) bool {
 // (before the rows are written).
 func (e *DMLExecutor) evalUpdateReturning(s *sql.UpdateStmt, changes []updateChange, colDefs []sql.ColumnDef, tableName string) ([][]interface{}, error) {
 	var returningRows [][]interface{}
-	colIndex := buildColumnIndex(colDefs)
+	colIndex := e.columnIndexFor(colDefs)
 	for i := range changes {
 		if err := e.materializeChangeValues(&changes[i], s, colIndex, colDefs); err != nil {
 			return nil, err
@@ -589,7 +589,7 @@ func (e *DMLExecutor) checkUpdateForeignKeys(s *sql.UpdateStmt, tableEntry *sche
 	if !e.ctx.ForeignKeys() {
 		return &Result{}
 	}
-	colIndex := buildColumnIndex(colDefs)
+	colIndex := e.columnIndexFor(colDefs)
 	for i := range changes {
 		ch := &changes[i]
 		if err := e.materializeChangeValues(ch, s, colIndex, colDefs); err != nil {
@@ -669,7 +669,7 @@ func (e *DMLExecutor) runUpdateFail(tableName string, tableEntry *schema.Entry, 
 	if len(changes) == 0 {
 		return &Result{}
 	}
-	colIndex := buildColumnIndex(colDefs)
+	colIndex := e.columnIndexFor(colDefs)
 	uniqueCols := uniqueColsForTable(colDefs)
 	idxColsList := e.updateConstrainedDefs(tableEntry, colDefs)
 	wrOrder := e.ctx.WRStorageOrder(tableEntry.SQL, colDefs)

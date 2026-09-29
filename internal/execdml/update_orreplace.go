@@ -3,7 +3,6 @@ package execdml
 import (
 	"fmt"
 	"sort"
-	"strings"
 
 	"github.com/pijalu/frigolite/internal/btree"
 	"github.com/pijalu/frigolite/internal/pager"
@@ -105,7 +104,7 @@ func (e *DMLExecutor) deleteConflictRows(tree *btree.BTree, tableEntry *schema.E
 	// WITHOUT ROWID tables: delete conflict rows in PRIMARY KEY order (the
 	// order SQLite scans its keyed table btree; hook2.test 2.3.5 observes
 	// the preupdate DELETE order).
-	if hasWithoutRowidKeyword(strings.ToUpper(tableEntry.SQL)) {
+	if tableIsWithoutRowid(tableEntry.SQL) {
 		sort.SliceStable(conflicts, func(i, j int) bool {
 			return e.withoutRowidLessVals(conflicts[i].values, conflicts[j].values, tableEntry.Name, tableEntry.SQL, colDefs)
 		})
@@ -182,7 +181,7 @@ func (e *DMLExecutor) updateRowInPlace(tree *btree.BTree, tableEntry *schema.Ent
 	// WITHOUT ROWID rows have no rowid: the OLD-PK delete below is the
 	// existence check (a vanished row deletes nothing and the re-insert
 	// surfaces any anomaly), so the rowid probe runs for rowid tables only.
-	withoutRowidKw := hasWithoutRowidKeyword(strings.ToUpper(tableEntry.SQL))
+	withoutRowidKw := tableIsWithoutRowid(tableEntry.SQL)
 	if !withoutRowidKw && !e.rowIDExists(tableEntry.Name, tableEntry.RootPage, c.rowID) {
 		e.ctx.RollbackPagerStatement(e.ctx.Pager(), stmt)
 		e.ctx.InvalidateRowIDCache(e.dmlPager(tableEntry.Name), tableEntry.RootPage)

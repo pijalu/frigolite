@@ -316,7 +316,7 @@ func (e *Engine) analyzeOneTable(entry *schema.Entry) *Result {
 	if nIdx > 0 && !allPartial {
 		return &Result{}
 	}
-	if hasWithoutRowidKeyword(strings.ToUpper(entry.SQL)) {
+	if execdml.TableIsWithoutRowid(entry.SQL) {
 		return &Result{}
 	}
 	return e.insertTableScanStat(entry, nRow)
@@ -326,7 +326,7 @@ func (e *Engine) analyzeOneTable(entry *schema.Entry) *Result {
 // PRIMARY KEY, which SQLite treats as an index named after the table (e.g.
 // "t1 t1 {4 2 1}").
 func (e *Engine) analyzeWithoutRowidPK(entry *schema.Entry, nRow int64) *Result {
-	if !hasWithoutRowidKeyword(strings.ToUpper(entry.SQL)) {
+	if !execdml.TableIsWithoutRowid(entry.SQL) {
 		return &Result{}
 	}
 	colDefs := e.parseColumnDefs(entry.Name, entry.SQL)
@@ -347,7 +347,7 @@ func (e *Engine) analyzeWithoutRowidPK(entry *schema.Entry, nRow int64) *Result 
 // (PK columns come first in the stored record). Rowid tables are the
 // identity mapping.
 func (e *Engine) storageSlotsFor(tableEntry *schema.Entry, colIdx []int) []int {
-	if !hasWithoutRowidKeyword(strings.ToUpper(tableEntry.SQL)) {
+	if !execdml.TableIsWithoutRowid(tableEntry.SQL) {
 		return colIdx
 	}
 	colDefs := e.parseColumnDefs(tableEntry.Name, tableEntry.SQL)
@@ -677,7 +677,7 @@ func (e *Engine) scanPartialIndexStats(tableEntry *schema.Entry, colIdx []int, c
 // table (PK columns come first in the stored record), or nil for a rowid
 // table whose records are already in declared order.
 func (e *Engine) wrRecordOrder(tableEntry *schema.Entry, colDefs []sql.ColumnDef) []int {
-	if !hasWithoutRowidKeyword(strings.ToUpper(tableEntry.SQL)) {
+	if !execdml.TableIsWithoutRowid(tableEntry.SQL) {
 		return nil
 	}
 	return execdml.WithoutRowidStorageOrder(tableEntry.SQL, colDefs)

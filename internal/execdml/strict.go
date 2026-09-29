@@ -179,8 +179,12 @@ func stripCTASSelect(createSQL string) string {
 
 // isStrictTable returns true if the table's CREATE SQL specifies STRICT.
 func isStrictTable(createSQL string) bool {
-	upper := strings.ToUpper(createSQL)
-	return hasStrictKeyword(upper)
+	sql := stripCTASSelect(createSQL)
+	idx := strings.LastIndexByte(sql, ')')
+	if idx < 0 {
+		return false
+	}
+	return util.ContainsFoldASCII(sql[idx:], "STRICT")
 }
 
 // hasStrictKeyword checks if "STRICT" appears as a standalone keyword in the
@@ -196,7 +200,8 @@ func hasStrictKeyword(upperSQL string) bool {
 }
 
 // hasWithoutRowidKeyword checks if "WITHOUT ROWID" appears after the closing
-// parenthesis in the CREATE TABLE SQL.
+// parenthesis in the CREATE TABLE SQL. Takes pre-uppercased text; new call
+// sites should use tableIsWithoutRowid (no allocation).
 func hasWithoutRowidKeyword(upperSQL string) bool {
 	sql := stripCTASSelect(upperSQL)
 	idx := strings.LastIndex(sql, ")")
@@ -205,4 +210,23 @@ func hasWithoutRowidKeyword(upperSQL string) bool {
 	}
 	tail := sql[idx:]
 	return strings.Contains(tail, "WITHOUT")
+}
+
+// tableIsWithoutRowid reports whether the table's CREATE SQL carries the
+// WITHOUT ROWID table option. Zero allocations on the hot DML path: the
+// historical gate was tableIsWithoutRowid(entry.SQL),
+// which copied the whole CREATE statement on every INSERT/UPDATE/DELETE.
+func tableIsWithoutRowid(createSQL string) bool {
+	sql := stripCTASSelect(createSQL)
+	idx := strings.LastIndexByte(sql, ')')
+	if idx < 0 {
+		return false
+	}
+	return util.ContainsFoldASCII(sql[idx:], "WITHOUT")
+}
+
+// TableIsWithoutRowid is the exported form of tableIsWithoutRowid for
+// packages that resolve table SQL outside execdml (pragma_analyze).
+func TableIsWithoutRowid(createSQL string) bool {
+	return tableIsWithoutRowid(createSQL)
 }

@@ -163,23 +163,33 @@ func (t *BTree) splitLeafMulti(pg *pager.Page, page *storage.BTreePage, parentPg
 // page takes the longest prefix that fits. Every page holds at least one cell
 // (a single cell whose local payload is oversized goes alone — prepareCell
 // caps the local payload so this is defensive).
+//
+// The fit test runs per cell against a RUNNING byte total (leafCellsFit's
+// only variable inputs are Σ len(cellData) and the cell count), so no probe
+// copy of the current partition is built — the naive per-cell
+// append+cellDatas probe allocated O(n²) splitEntry copies per split and
+// dominated the insert-phase allocation profile.
 func partitionSplitCells(cells []splitEntry, coff, usableSize int) ([][]splitEntry, error) {
 	var partitions [][]splitEntry
 	cur := []splitEntry{}
+	curBytes := 0 // Σ len(c.cellData) for cur
 	flush := func() {
 		if len(cur) > 0 {
 			partitions = append(partitions, cur)
 			cur = nil
+			curBytes = 0
 		}
 	}
 	for _, c := range cells {
+		sz := len(c.cellData)
 		if len(cur) > 0 {
-			probe := append(append([]splitEntry{}, cur...), c)
-			if !leafCellsFit(cellDatas(probe), coff, usableSize) {
+			// leafCellsFit(cur+[c]) inlined: contentEnd - total >= ptrEnd.
+			if usableSize-curBytes-sz < coff+storage.CellPointerOffset+(len(cur)+1)*2+2 {
 				flush()
 			}
 		}
 		cur = append(cur, c)
+		curBytes += sz
 	}
 	flush()
 	if len(partitions) == 0 {
@@ -381,27 +391,6 @@ func writeLeafHalf(pg *pager.Page, coff int, half []splitEntry, usableSize int) 
 	binary.BigEndian.PutUint16(pg.Data[coff+5:coff+7], uint16(end))
 	pg.Data[coff+7] = 0 // fragmented free bytes
 	return nil
-}
-
-// cellDatas extracts the encoded cell byte slices from a split entry list.
-func cellDatas(cells []splitEntry) [][]byte {
-	out := make([][]byte, len(cells))
-	for i, c := range cells {
-		out[i] = c.cellData
-	}
-	return out
-}
-
-// leafCellsFit reports whether the given cell byte slices fit in a leaf page
-// with the given content offset, leaving room for the cell pointer array.
-func leafCellsFit(cells [][]byte, coff, usableSize int) bool {
-	total := 0
-	for _, d := range cells {
-		total += len(d)
-	}
-	ptrEnd := coff + storage.CellPointerOffset + len(cells)*2 + 2
-	contentEnd := usableSize // cells pack from the usable end (no page-end trailer)
-	return contentEnd-total >= ptrEnd
 }
 
 // findInsertPositionTable returns the index of the first table-leaf cell with

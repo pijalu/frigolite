@@ -480,7 +480,7 @@ func (e *Engine) quickCheckTable(te *schema.Entry, dbCtx *DatabaseContext, emit 
 		// t1(b UNIQUE, a INT PRIMARY KEY) the on-disk record [1, NULL] (a=1,
 		// b=NULL) would be read as b=1, a=NULL and falsely report
 		// "NULL value in t1.a" (upsert1-600/610). Rowid tables need no remap.
-		if hasWithoutRowidKeyword(strings.ToUpper(te.SQL)) {
+		if execdml.TableIsWithoutRowid(te.SQL) {
 			e.selectEngine.RemapWRRecordToDeclared(rec, te.SQL, colDefs)
 		}
 		row := buildRowMapFromValues(rec.Values, colDefs, cell.RowID)
@@ -868,7 +868,7 @@ func rowidTableOf(ctx *DatabaseContext, tblName string) bool {
 	if err != nil || te == nil {
 		return false
 	}
-	return !hasWithoutRowidKeyword(strings.ToUpper(te.SQL))
+	return !execdml.TableIsWithoutRowid(te.SQL)
 }
 
 // indexColumnTermCount counts the top-level comma-separated terms inside

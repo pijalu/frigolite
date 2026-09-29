@@ -159,7 +159,7 @@ func (e *DMLExecutor) indexDefsIn(ctx *DatabaseContext, tableName string) []inde
 	// columns (sqlite_autoindex_* entries store no SQL; their columns come
 	// from the table's PRIMARY KEY / UNIQUE constraints).
 	tableEntry, _ := ctx.Schema.FindTable(tableName)
-	isWR := tableEntry != nil && hasWithoutRowidKeyword(strings.ToUpper(tableEntry.SQL))
+	isWR := tableEntry != nil && tableIsWithoutRowid(tableEntry.SQL)
 	var colDefs []sql.ColumnDef
 	for _, ent := range entries {
 		if !strings.EqualFold(ent.TblName, tableName) {
@@ -226,7 +226,7 @@ func plainIndexDef(ctx *DatabaseContext, ent *schema.Entry) (def indexDef, ok bo
 // findRowByIndexCols finds a row that matches the given values on every column
 // of the named UNIQUE index. Returns its rowid, values, and true if found.
 func (e *DMLExecutor) findRowByIndexCols(tableEntry *schema.Entry, colDefs []sql.ColumnDef, values []interface{}, def uniqueIndexDef) (int64, []interface{}, bool) {
-	colIndex := buildColumnIndex(colDefs)
+	colIndex := e.columnIndexFor(colDefs)
 	// The new row must itself satisfy the partial-index predicate.
 	row := buildRowMapFromValues(values, colDefs, 0)
 	if inIndex, _ := e.evalIndexWhere(def.Where, row); !inIndex {

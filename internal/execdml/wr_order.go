@@ -242,7 +242,7 @@ func ReorderToDeclared(stored []interface{}, order []int) []interface{} {
 // otherwise. Central choke point for DML read/delete paths so every caller
 // addresses WR rows by PK order (SQLite's index-btree layout).
 func (e *DMLExecutor) wrTableBTree(pg *pager.Pager, tableEntry *schema.Entry, colDefs []sql.ColumnDef) *btree.BTree {
-	withoutRowid := hasWithoutRowidKeyword(strings.ToUpper(tableEntry.SQL))
+	withoutRowid := tableIsWithoutRowid(tableEntry.SQL)
 	tree := e.ctx.TableBTreePg(pg, tableEntry.Name, tableEntry.RootPage, !withoutRowid)
 	if withoutRowid {
 		if order := WithoutRowidStorageOrder(tableEntry.SQL, colDefs); len(order) == len(colDefs) {
@@ -363,7 +363,7 @@ func (e *DMLExecutor) deleteRowCells(tableEntry *schema.Entry, colDefs []sql.Col
 // tables; rowid set membership (rowIDs, or the singleRowIDs list) for
 // ordinary tables. Returns the number of cells deleted.
 func (e *DMLExecutor) deleteRowsByIdentity(tableEntry *schema.Entry, colDefs []sql.ColumnDef, rowIDs map[int64]bool, declaredRowValues [][]interface{}, singleRowIDs []int64) (int64, error) {
-	withoutRowid := hasWithoutRowidKeyword(strings.ToUpper(tableEntry.SQL))
+	withoutRowid := tableIsWithoutRowid(tableEntry.SQL)
 	tree := e.wrTableBTree(e.dmlPager(tableEntry.Name), tableEntry, colDefs)
 	if withoutRowid {
 		order := WithoutRowidStorageOrder(tableEntry.SQL, colDefs)

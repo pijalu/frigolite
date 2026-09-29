@@ -81,7 +81,7 @@ func (e *DMLExecutor) applyPerRowUpdateChange(c updateChange, tableEntry *schema
 // current table state (excluding the row being updated), returning the
 // violated constraint's error or nil.
 func (e *DMLExecutor) perRowConflictError(c updateChange, tableEntry *schema.Entry, colDefs []sql.ColumnDef) error {
-	colIndexLocal := buildColumnIndex(colDefs)
+	colIndexLocal := e.columnIndexFor(colDefs)
 	uniqueCols := uniqueColsForTable(colDefs)
 	idxColsList := e.updateConstrainedDefs(tableEntry, colDefs)
 	wrOrder := e.ctx.WRStorageOrder(tableEntry.SQL, colDefs)

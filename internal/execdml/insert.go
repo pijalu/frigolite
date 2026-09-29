@@ -98,7 +98,7 @@ func (e *DMLExecutor) hasTriggersForTable(tableName string) bool {
 // separately by the column-level check.
 func (e *DMLExecutor) compositeUniqueGroups(tableName, createSQL string, colDefs []sql.ColumnDef) [][]int {
 	constraints := e.ctx.TableConstraints(tableName, createSQL)
-	colIndex := buildColumnIndex(colDefs)
+	colIndex := e.columnIndexFor(colDefs)
 	var groups [][]int
 	for _, tc := range constraints {
 		switch tc.Type {
@@ -427,7 +427,7 @@ func upsertWhereRowMap(dmlName string, noAlias bool, tableName string, colDefs [
 // corrupts the btree (upsert1/2/4/5 DO UPDATE "database disk image is
 // malformed").
 func (e *DMLExecutor) writeUpdatedRow(tableEntry *schema.Entry, colDefs []sql.ColumnDef, updated []interface{}, existingRowID int64, existingValues []interface{}) *Result {
-	withoutRowid := tableEntry != nil && hasWithoutRowidKeyword(strings.ToUpper(tableEntry.SQL))
+	withoutRowid := tableEntry != nil && tableIsWithoutRowid(tableEntry.SQL)
 	dmlPg := e.dmlPager(tableEntry.Name)
 
 	record, cell, tree, res := e.upsertRewriteRow(tableEntry, colDefs, updated, existingRowID, existingValues, withoutRowid, dmlPg)

@@ -3,7 +3,6 @@ package execdml
 
 import (
 	"fmt"
-	"strings"
 
 	"github.com/pijalu/frigolite/internal/btree"
 	"github.com/pijalu/frigolite/internal/execexpr"
@@ -14,7 +13,7 @@ import (
 
 // --- UPDATE constraint checks ---
 func (e *DMLExecutor) checkUpdateConflicts(tableEntry *schema.Entry, colDefs []sql.ColumnDef, changes []updateChange) *Result {
-	colIndex := buildColumnIndex(colDefs)
+	colIndex := e.columnIndexFor(colDefs)
 	uniqueCols := uniqueColsForTable(colDefs)
 	idxColsList := e.updateConstrainedDefs(tableEntry, colDefs)
 	wrOrder := e.ctx.WRStorageOrder(tableEntry.SQL, colDefs)
@@ -225,7 +224,7 @@ func (e *DMLExecutor) checkUpdateConstraints(tableEntry *schema.Entry, colDefs [
 	if !hasNotNullOrCheckConstraint(colDefs) && len(e.ctx.TableConstraints(tableEntry.Name, tableEntry.SQL)) == 0 {
 		return &Result{}
 	}
-	withoutRowid := hasWithoutRowidKeyword(strings.ToUpper(tableEntry.SQL))
+	withoutRowid := tableIsWithoutRowid(tableEntry.SQL)
 	var pkCols map[int]bool
 	if withoutRowid {
 		pkCols = e.primaryKeyColIndices(tableEntry.Name, tableEntry.SQL, colDefs)

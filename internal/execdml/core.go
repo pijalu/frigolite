@@ -29,7 +29,11 @@ func isSQLiteSequenceName(name string) bool {
 // previously carried on itself (currentDMLTable, currentDMLCtx,
 // updateSetColumns).
 type DMLExecutor struct {
-	ctx DMLContext
+	ciFingerprint uint64
+	ciDefs        *sql.ColumnDef
+	ciLen         int
+	ciCache       map[string]int
+	ctx           DMLContext
 
 	// Statement-family executors composing this engine. They share this
 	// DMLExecutor so inter-statement calls resolve through promoted methods.

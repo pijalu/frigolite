@@ -35,6 +35,32 @@ type updateChange struct {
 	rowMap RowMap
 }
 
+// schemaFingerprint is the DDL-invalidation token for per-executor caches:
+// the main schema manager's cookie/epoch fingerprint (same token the
+// index-def cache validates against).
+func (e *DMLExecutor) schemaFingerprint() uint64 {
+	if sm := e.ctx.Schema(); sm != nil {
+		return sm.SchemaFingerprint()
+	}
+	return 0
+}
+
+// columnIndexFor returns the column index for colDefs, memoized per DML
+// executor and guarded by the schema fingerprint (DDL invalidates it). The
+// hot paths build this identical map several times per statement.
+func (e *DMLExecutor) columnIndexFor(colDefs []sql.ColumnDef) map[string]int {
+	if len(colDefs) == 0 {
+		return buildColumnIndex(colDefs)
+	}
+	fp := e.schemaFingerprint()
+	if e.ciCache != nil && e.ciFingerprint == fp && e.ciDefs == &colDefs[0] && e.ciLen == len(colDefs) {
+		return e.ciCache
+	}
+	m := buildColumnIndex(colDefs)
+	e.ciFingerprint, e.ciDefs, e.ciLen, e.ciCache = fp, &colDefs[0], len(colDefs), m
+	return m
+}
+
 func buildColumnIndex(colDefs []sql.ColumnDef) map[string]int {
 	colIndex := make(map[string]int)
 	for i, cd := range colDefs {
@@ -115,7 +141,7 @@ func splitColumnDefs(body string) []string {
 // constraints (honoring integer column positions).
 func (e *DMLExecutor) primaryKeyColIndices(tableName, createSQL string, colDefs []sql.ColumnDef) map[int]bool {
 	idx := make(map[int]bool)
-	colIndex := buildColumnIndex(colDefs)
+	colIndex := e.columnIndexFor(colDefs)
 	for i, cd := range colDefs {
 		if cd.PrimaryKey {
 			idx[i] = true
@@ -294,7 +320,7 @@ func (e *DMLExecutor) deleteUpdateIndexEntriesFor(tableEntry *schema.Entry, colD
 	// touches every index; see maintainedUpdateIndexes).
 	defsByName := make(map[string]indexDef)
 	changeTargets := make(map[string]map[int64][]interface{}, len(changes)) // defName -> rowid -> key values
-	colIndex := buildColumnIndex(colDefs)
+	colIndex := e.columnIndexFor(colDefs)
 	for _, c := range changes {
 		if err := e.collectUpdateIndexDeleteTarget(tableEntry, colDefs, colIndex, c, defsByName, changeTargets); err != nil {
 			return err
@@ -399,7 +425,7 @@ func (e *DMLExecutor) maintainedUpdateIndexes(tableEntry *schema.Entry, colDefs 
 	if len(maintained) == 0 {
 		return nil, nil
 	}
-	return maintained, buildColumnIndex(colDefs)
+	return maintained, e.columnIndexFor(colDefs)
 }
 
 // valuesIdenticalForIndex reports whether a column's old and new values are
@@ -567,7 +593,7 @@ func (e *DMLExecutor) updateApplyTree(tableName string, rootPage uint32, wrEntry
 // a WITHOUT ROWID table's delete phase; wrEntry is nil for rowid tables.
 func (e *DMLExecutor) wrSnapshotOldKeys(tableName string, changes []updateChange) ([][]interface{}, *schema.Entry) {
 	te, _, ferr := e.ctx.FindTable(tableName)
-	if ferr != nil || te == nil || !hasWithoutRowidKeyword(strings.ToUpper(te.SQL)) {
+	if ferr != nil || te == nil || !tableIsWithoutRowid(te.SQL) {
 		return nil, nil
 	}
 	wrColDefs := e.ctx.ParseColumnDefs(tableName, te.SQL)
@@ -687,7 +713,7 @@ func (e *DMLExecutor) fireUpdatePreupdate(tableName string, c updateChange) *Res
 	if err != nil {
 		return nil
 	}
-	rowidTable := !hasWithoutRowidKeyword(strings.ToUpper(entry.SQL))
+	rowidTable := !tableIsWithoutRowid(entry.SQL)
 	rowID := c.rowID
 	if !rowidTable {
 		rowID = 0
@@ -711,7 +737,7 @@ func (e *DMLExecutor) fireUpdatePreupdate(tableName string, c updateChange) *Res
 // report rowid 0 (SQLite uses the key columns instead).
 func (e *DMLExecutor) fireConflictDeletePreupdate(tableEntry *schema.Entry, rowID int64, oldValues []interface{}) *Result {
 	tableName := tableEntry.Name
-	wr := hasWithoutRowidKeyword(strings.ToUpper(tableEntry.SQL))
+	wr := tableIsWithoutRowid(tableEntry.SQL)
 	delRowID := rowID
 	if wr {
 		delRowID = 0

@@ -18,7 +18,7 @@ func (e *DMLExecutor) applyUpdateWithTriggers(tableEntry *schema.Entry, colDefs 
 	if len(changes) == 0 {
 		return &Result{}
 	}
-	colIndex := buildColumnIndex(colDefs)
+	colIndex := e.columnIndexFor(colDefs)
 	uniqueCols := uniqueColsForTable(colDefs)
 	idxColsList := e.updateConstrainedDefs(tableEntry, colDefs)
 	rootPage := tableEntry.RootPage
@@ -358,7 +358,7 @@ func (e *DMLExecutor) writeUpdateCell(tree *btree.BTree, tableName string, rootP
 			return &Result{Error: err}
 		}
 	}
-	withoutRowid := tableEntry != nil && hasWithoutRowidKeyword(strings.ToUpper(tableEntry.SQL))
+	withoutRowid := tableEntry != nil && tableIsWithoutRowid(tableEntry.SQL)
 	// sqlite3BtreeInsert's loc==0 fast path (src/btree.c:9596-9614): a
 	// same-rowid UPDATE whose new cell is the same byte size as the stored
 	// one overwrites the old cell's bytes IN PLACE — the cell pointer array,
@@ -518,7 +518,7 @@ func (e *DMLExecutor) bumpUpdateRowIDCache(tableName string, rootPage uint32, ol
 func (e *DMLExecutor) fireUpdateWritePreupdate(tableName string, ch updateChange, finalValues []interface{}) *Result {
 	if entry, _, err := e.ctx.FindTable(tableName); err == nil {
 		rowID := ch.rowID
-		wr := hasWithoutRowidKeyword(strings.ToUpper(entry.SQL))
+		wr := tableIsWithoutRowid(entry.SQL)
 		if wr {
 			rowID = 0
 		}
@@ -555,7 +555,7 @@ func (e *DMLExecutor) mergeTriggerModifiedRow(tableName string, rootPage uint32,
 	var current []interface{}
 	var found bool
 	if tableEntry, _, ferr := e.ctx.FindTable(tableName); ferr == nil && tableEntry != nil &&
-		hasWithoutRowidKeyword(strings.ToUpper(tableEntry.SQL)) {
+		tableIsWithoutRowid(tableEntry.SQL) {
 		// WITHOUT ROWID rows share the synthetic rowid 0 and are stored
 		// PK-first: match by OLD PK key and decode to declared order so the
 		// SET overlay below (and writeUpdateCell's declared→storage reorder)
@@ -659,7 +659,7 @@ func (e *DMLExecutor) applyUpdateIgnore(tableEntry *schema.Entry, colDefs []sql.
 	if len(changes) == 0 {
 		return &Result{}
 	}
-	colIndex := buildColumnIndex(colDefs)
+	colIndex := e.columnIndexFor(colDefs)
 	uniqueCols := uniqueColsForTable(colDefs)
 	idxColsList := e.updateConstrainedDefs(tableEntry, colDefs)
 	rootPage := tableEntry.RootPage
@@ -775,7 +775,7 @@ func (e *DMLExecutor) skipIgnoreChange(tableEntry *schema.Entry, colDefs []sql.C
 // lets later changes see earlier applied rows, so conflicts between updated
 // rows are resolved too (e.g. UPDATE OR REPLACE SET x=1 on two NULL rows).
 func (e *DMLExecutor) applyUpdateReplace(tableEntry *schema.Entry, colDefs []sql.ColumnDef, changes []updateChange) *Result {
-	colIndex := buildColumnIndex(colDefs)
+	colIndex := e.columnIndexFor(colDefs)
 	uniqueCols := uniqueColsForTable(colDefs)
 	idxColsList := e.updateConstrainedDefs(tableEntry, colDefs)
 	tree := e.dmlTableBTree(tableEntry.Name, tableEntry.RootPage)

@@ -9,6 +9,8 @@ import (
 	"github.com/pijalu/frigolite/internal/storage"
 	"strconv"
 	"strings"
+
+	"github.com/pijalu/frigolite/internal/execdml"
 )
 
 func (e *Engine) execPragmaLockStatus() *Result {
@@ -101,7 +103,7 @@ func (e *Engine) execPragmaIndexList(arg string) *Result {
 	}
 
 	// Implicit autoindexes for WITHOUT ROWID tables, in reverse creation order.
-	if hasWithoutRowidKeyword(strings.ToUpper(tableEntry.SQL)) {
+	if execdml.TableIsWithoutRowid(tableEntry.SQL) {
 		defs := e.withoutRowidAutoindexes(tableEntry.Name, tableEntry)
 		for i := len(defs) - 1; i >= 0; i-- {
 			rows = append(rows, []interface{}{int64(seq), defs[i].name, int64(1), defs[i].origin, int64(0)})
@@ -251,7 +253,7 @@ func (e *Engine) indexInfoColumns(arg string, xinfo bool) []indexPragmaColumn {
 		return e.indexColumnsFromSQL(idxEntry.SQL, ctx, tableEntry, colDefs)
 	}
 	// 2. WITHOUT ROWID table name: implicit PRIMARY KEY index.
-	if tableEntry, _, terr := e.findTable(arg); terr == nil && hasWithoutRowidKeyword(strings.ToUpper(tableEntry.SQL)) {
+	if tableEntry, _, terr := e.findTable(arg); terr == nil && execdml.TableIsWithoutRowid(tableEntry.SQL) {
 		colDefs := e.parseColumnDefs(tableEntry.Name, tableEntry.SQL)
 		return e.withoutRowidPKColumns(arg, tableEntry, colDefs, xinfo)
 	}
@@ -300,7 +302,7 @@ func (e *Engine) indexColumnsFromSQL(sqlStr string, ctx *DatabaseContext, tableE
 	for i, ic := range ci.Columns {
 		out = append(out, indexColumnFromItem(ic, i, colDefs, colIndex, explicitColls))
 	}
-	if tableEntry != nil && !hasWithoutRowidKeyword(strings.ToUpper(tableEntry.SQL)) {
+	if tableEntry != nil && !execdml.TableIsWithoutRowid(tableEntry.SQL) {
 		// Rowid tables store a trailing rowid in every index record.
 		out = append(out, indexPragmaColumn{Cid: -1, Key: 0, Rowid: true})
 	}
