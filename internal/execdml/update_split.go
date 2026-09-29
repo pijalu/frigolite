@@ -679,14 +679,18 @@ func (e *DMLExecutor) runUpdateFail(tableName string, tableEntry *schema.Entry, 
 		c := changes[i]
 		// Change-detection gate (see checkUpdateConflicts): nothing
 		// constrained moved, so no other row can conflict with this change.
-		if e.updateConstraintUnchanged(c, colDefs, colIndex, uniqueCols, idxColsList) {
-			continue
-		}
-		if res := e.checkEarlierChanges(changes, i, c, colDefs, colIndex, uniqueCols, idxColsList, tableEntry.Name); res.Error != nil {
-			return res
-		}
-		if res := e.checkLiveTableConflictsWR(tree, changes[:i], c, colDefs, colIndex, uniqueCols, idxColsList, tableEntry, wrOrder); res.Error != nil {
-			return res
+		// This skips ONLY the conflict scans — the FK check and the row
+		// write below must still run (check-6.5/6.6: UPDATE OR FAIL on a
+		// table without unique constraints still writes every row until
+		// the failing one).
+		skipConflictScan := e.updateConstraintUnchanged(c, colDefs, colIndex, uniqueCols, idxColsList)
+		if !skipConflictScan {
+			if res := e.checkEarlierChanges(changes, i, c, colDefs, colIndex, uniqueCols, idxColsList, tableEntry.Name); res.Error != nil {
+				return res
+			}
+			if res := e.checkLiveTableConflictsWR(tree, changes[:i], c, colDefs, colIndex, uniqueCols, idxColsList, tableEntry, wrOrder); res.Error != nil {
+				return res
+			}
 		}
 		// FOREIGN KEY parent action for this row, before the write (a
 		// mid-statement FK error with OR FAIL keeps the rows written so far).
