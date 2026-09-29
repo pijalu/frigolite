@@ -689,3 +689,21 @@ gates; end: full benchmark rerun + census + report update.
   pkgs + btree race subset green.
 - Remaining in flight: fleet/perf-p5-delete-journal (riskiest — pager
   before-image journaling).
+
+## PERF-FIX (during 3) — P5 merged; failure triage (2026-09-29)
+
+- P5 merged CLEAN (27 files, no conflicts): pager statement journal
+  (pagerstmt.go, sub-journal port) — first-modification before-image
+  capture at the markDirtyLocked choke point, nested scope splicing,
+  whole-state scopes kept for BEGIN/SAVEPOINT/memdb/FTS-index. DELETE
+  plan: absent-rowid seek = empty candidates, sparse (<=64) deletes seek
+  via DeleteCellByRowID. no-match DELETE 15.6ms -> 8.5us (~1000x); agent
+  ran FULL testgen corpus (1363 dirs) exit=0 zero FAIL.
+- Merged-main full-suite triage (all pre-existing, evidence in
+  /tmp per-state sampling): TestRtreeStressChurn flaky at ALL states
+  (base 4/60, P24 3/60, P6 5/60, P5 2/60 — map-iteration delete order
+  hits a latent rtree-module row-loss; NOT introduced by PERF work;
+  FOLLOW-UP filed). TestP8IncrVacuum3OracleSequence: documented
+  randomblob flake. TestWindowCGroupConcatBlobUTF16: passes isolated at
+  base+main — full-suite ordering artifact. TestSQLiteSuite: adjudicated
+  legacy drift (standing).
