@@ -2,6 +2,7 @@ package exec
 
 import (
 	"strconv"
+	"strings"
 
 	"github.com/pijalu/frigolite/internal/sql"
 )
@@ -265,7 +266,9 @@ func (c *exprClone) rowValue(v *sql.RowValue) (sql.Expr, bool) {
 // anyLiteral substitutes a literal slot by cached-value type: the fresh node
 // kind follows the value (a template slot first seen with a quoted literal
 // may serve a numeric statement sharing the normalized shape, and vice
-// versa), matching what a fresh parse of the statement text produces.
+// versa), matching what a fresh parse of the statement text produces. Float
+// values refuse the substitution — a quoted slot has no numeric text to
+// verify the canonical spelling against (5.0 must not degrade to 5).
 func (c *exprClone) anyLiteral(original string) (sql.Expr, bool) {
 	val, ok := c.next()
 	if !ok {
@@ -276,28 +279,35 @@ func (c *exprClone) anyLiteral(original string) (sql.Expr, bool) {
 		return &sql.StringLit{Value: n}, true
 	case int64:
 		return &sql.NumericLit{Value: int64Text(n)}, true
-	case float64:
-		return &sql.NumericLit{Value: floatText(n)}, true
 	}
 	return nil, false
 }
 
-// numeric substitutes a numeric literal slot. The node's cached text must be
-// the canonical spelling of the normalized value; this guards hex literals
-// ("0x1F" normalizes to the value 0), underscore separators, and other
-// spellings whose text diverges from what the substitution would write.
+// numeric substitutes a numeric literal slot. SQLite distinguishes integer
+// from REAL literals (typeof/quote expose it), so a slot only serves values
+// of the same kind: an integer-shaped slot's text must have no '.'/'e' and a
+// float-shaped slot's text must be the canonical spelling of the value
+// (guards hex "0x1F", which normalizes to the value 0, and "1.50" vs "1.5").
 func (c *exprClone) numeric(v *sql.NumericLit) (sql.Expr, bool) {
 	val, ok := c.next()
 	if !ok {
 		return nil, false
 	}
+	slotIsFloat := strings.ContainsAny(v.Value, ".eE")
 	switch n := val.(type) {
 	case int64:
+		if slotIsFloat {
+			return nil, false
+		}
 		return c.numericValue(int64Text(n), v.Value)
 	case float64:
+		if !slotIsFloat {
+			return nil, false
+		}
 		return c.numericValue(floatText(n), v.Value)
 	case string:
-		// The slot is spelled with a quoted literal this time.
+		// The slot is spelled with a quoted literal this time; the fresh
+		// parse of that text carries a StringLit.
 		return &sql.StringLit{Value: n}, true
 	}
 	return nil, false

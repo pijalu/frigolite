@@ -270,6 +270,60 @@ func TestTemplateCloneSourceOrderSubstitution(t *testing.T) {
 	}
 }
 
+// TestTemplateCloneNumericKindPreservation pins integer/REAL distinction
+// through the template path: SQLite distinguishes 5 from 5.0 (typeof/quote
+// expose it), so an integer-shaped slot must never serve a float value whose
+// canonical spelling coincides, and vice versa (p4 quote(0)/quote(0.0)
+// regressed here).
+func TestTemplateCloneNumericKindPreservation(t *testing.T) {
+	db, err := frigolite.Open(":memory:")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer db.Close()
+	quote := func(lit string) string {
+		t.Helper()
+		r := db.Query("SELECT quote(" + lit + ")")
+		if r.Error != nil {
+			t.Fatalf("quote(%s): %v", lit, r.Error)
+		}
+		return r.Rows[0][0].(string)
+	}
+	typ := func(lit string) string {
+		t.Helper()
+		r := db.Query("SELECT typeof(" + lit + ")")
+		if r.Error != nil {
+			t.Fatalf("typeof(%s): %v", lit, r.Error)
+		}
+		return r.Rows[0][0].(string)
+	}
+	// Prime the shared normalized shape with each kind, then query the other.
+	if got := quote("0"); got != "0" {
+		t.Fatalf("quote(0) = %q", got)
+	}
+	if got := quote("0.0"); got != "0.0" {
+		t.Fatalf("quote(0.0) = %q, want 0.0", got)
+	}
+	if got := quote("5"); got != "5" {
+		t.Fatalf("quote(5) = %q", got)
+	}
+	if got := quote("5.0"); got != "5.0" {
+		t.Fatalf("quote(5.0) = %q, want 5.0", got)
+	}
+	if got := quote("1e2"); got != "100.0" {
+		t.Fatalf("quote(1e2) = %q, want 100.0", got)
+	}
+	if got := typ("0.0"); got != "real" {
+		t.Fatalf("typeof(0.0) = %q, want real", got)
+	}
+	if got := typ("0"); got != "integer" {
+		t.Fatalf("typeof(0) = %q, want integer", got)
+	}
+	if got := typ("1e2"); got != "real" {
+		t.Fatalf("typeof(1e2) = %q, want real", got)
+	}
+}
+
 // TestTemplateCloneMultiStatement covers a multi-statement string whose
 // literals substitute across statements in order.
 func TestTemplateCloneMultiStatement(t *testing.T) {
