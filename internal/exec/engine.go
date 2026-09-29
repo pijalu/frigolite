@@ -402,16 +402,47 @@ func (s *engineSettings) ClearDbPragmaSettings(schemaUpper string) {
 // tableCaches groups the per-table and statement caches that previously lived
 // as individual fields on the Engine.
 type tableCaches struct {
-	colCache       map[string][]sql.ColumnDef       // cached column definitions (tableName -> colDefs)
-	tcCache        map[string][]sql.TableConstraint // cached table-level constraints
-	stmtCache      map[string][]sql.Stmt            // prepared statement cache (sqlText -> parsed stmts)
-	tableRootPages map[tableRootKey]uint32          // tracked root pages (updated after splits)
-	tableCache     map[string]*cachedTableEntry     // cached table entry lookups
-	nextRowIDCache map[rowidCacheKey]int64          // cached next rowid per (pager, root page)
-	autoIncSeq     map[rowidCacheKey]int64          // AUTOINCREMENT sequence: largest rowid ever used per (pager, root page)
-	templateCache  map[string]*sqlTemplateEntry     // normalized SQL → cached AST template
-	uniqueIdxCache map[string][]uniqueIndexDef      // cached unique-index definitions per table name
-	viewDefCache   map[string][]sql.ColumnDef       // cached view column definitions (viewName -> colDefs)
+	colCache map[string][]sql.ColumnDef       // cached column definitions (tableName -> colDefs)
+	tcCache  map[string][]sql.TableConstraint // cached table-level constraints
+	// tcMemo / colMemo are single-entry memos over (table name, CREATE SQL
+	// text), self-validating by content: identical name and SQL text imply
+	// identical parse results, so they need no DDL invalidation hooks and
+	// keep the per-statement hot path off the map and its string key.
+	tcMemo         schemaMemo[[]sql.TableConstraint]
+	colMemo        schemaMemo[[]sql.ColumnDef]
+	stmtCache      map[string][]sql.Stmt        // prepared statement cache (sqlText -> parsed stmts)
+	tableRootPages map[tableRootKey]uint32      // tracked root pages (updated after splits)
+	tableCache     map[string]*cachedTableEntry // cached table entry lookups
+	nextRowIDCache map[rowidCacheKey]int64      // cached next rowid per (pager, root page)
+	autoIncSeq     map[rowidCacheKey]int64      // AUTOINCREMENT sequence: largest rowid ever used per (pager, root page)
+	templateCache  map[string]*sqlTemplateEntry // normalized SQL → cached AST template
+	uniqueIdxCache map[string][]uniqueIndexDef  // cached unique-index definitions per table name
+	viewDefCache   map[string][]sql.ColumnDef   // cached view column definitions (viewName -> colDefs)
+}
+
+// schemaMemo is a single-entry content-keyed memo over (name, SQL text).
+type schemaMemo[V any] struct {
+	valid     bool
+	table     string
+	createSQL string
+	value     V
+}
+
+// get returns the memoized value for (table, createSQL), if it matches.
+func (m *schemaMemo[V]) get(table, createSQL string) (V, bool) {
+	if m.valid && m.table == table && m.createSQL == createSQL {
+		return m.value, true
+	}
+	var zero V
+	return zero, false
+}
+
+// put records a memo entry.
+func (m *schemaMemo[V]) put(table, createSQL string, value V) {
+	m.valid = true
+	m.table = table
+	m.createSQL = createSQL
+	m.value = value
 }
 
 // txState groups transaction state (BEGIN/COMMIT/ROLLBACK/SAVEPOINT).

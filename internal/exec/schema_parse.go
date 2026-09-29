@@ -18,11 +18,15 @@ import (
 // changes the SQL (e.g. ALTER TABLE RENAME COLUMN rewriting a FOREIGN KEY
 // clause) does not serve stale constraints.
 func (e *Engine) tableConstraints(tableName, createSQL string) []sql.TableConstraint {
+	if cached, ok := e.caches.tcMemo.get(tableName, createSQL); ok {
+		return cached
+	}
 	if e.caches.tcCache == nil {
 		e.caches.tcCache = make(map[string][]sql.TableConstraint)
 	}
 	cacheKey := tableName + "\x00" + createSQL
 	if cached, ok := e.caches.tcCache[cacheKey]; ok {
+		e.caches.tcMemo.put(tableName, createSQL, cached)
 		return cached
 	}
 	stmts, perr := parse.ParseSQLSchema(createSQL)
@@ -34,14 +38,19 @@ func (e *Engine) tableConstraints(tableName, createSQL string) []sql.TableConstr
 		return nil
 	}
 	e.caches.tcCache[cacheKey] = ct.Constraints
+	e.caches.tcMemo.put(tableName, createSQL, ct.Constraints)
 	return ct.Constraints
 }
 
 func (e *Engine) parseColumnDefs(tableName, createSQL string) []sql.ColumnDef {
 	// Check cache first. Keyed by table name + SQL so tables with the same
 	// short name in different schemas (main.t1 vs aux.t1) do not collide.
+	if cached, ok := e.caches.colMemo.get(tableName, createSQL); ok {
+		return cached
+	}
 	cacheKey := tableName + "\x00" + createSQL
 	if cached, ok := e.caches.colCache[cacheKey]; ok {
+		e.caches.colMemo.put(tableName, createSQL, cached)
 		return cached
 	}
 	// Fall back to re-parsing (schema-reload mode: accepts COLLATE/ASC-DESC
@@ -52,7 +61,7 @@ func (e *Engine) parseColumnDefs(tableName, createSQL string) []sql.ColumnDef {
 	}
 	ct, ok := stmts[0].(*sql.CreateTableStmt)
 	if ok && ct != nil && len(ct.Columns) > 0 {
-		return e.createTableColumnDefs(cacheKey, ct.Columns)
+		return e.createTableColumnDefs(tableName, createSQL, cacheKey, ct.Columns)
 	}
 	// CREATE VIRTUAL TABLE t1 USING module(a, b, c): the module arguments are
 	// the virtual table's column names. FTS tables report their real column
@@ -64,7 +73,7 @@ func (e *Engine) parseColumnDefs(tableName, createSQL string) []sql.ColumnDef {
 // createTableColumnDefs caches a parsed table's column definitions, trimming
 // generation keywords the go-lemon grammar accumulated into a generated
 // column's type name (e.g. "int generated always" → "int").
-func (e *Engine) createTableColumnDefs(cacheKey string, cols []sql.ColumnDef) []sql.ColumnDef {
+func (e *Engine) createTableColumnDefs(tableName, createSQL, cacheKey string, cols []sql.ColumnDef) []sql.ColumnDef {
 	for i := range cols {
 		cd := &cols[i]
 		if cd.Generated != nil {
@@ -73,6 +82,7 @@ func (e *Engine) createTableColumnDefs(cacheKey string, cols []sql.ColumnDef) []
 	}
 	// Cache for future use
 	e.caches.colCache[cacheKey] = cols
+	e.caches.colMemo.put(tableName, createSQL, cols)
 	return cols
 }
 
