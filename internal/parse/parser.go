@@ -38,10 +38,19 @@ func preprocessInput(input string) (*parsePreprocess, error) {
 	// statement stream.
 	input = collapseEmptyStatements(input)
 	// Normalize generated-column storage syntax unsupported by legacy tables.
-	input = strings.ReplaceAll(input, "GENERATED ALWAYS", "")
-	input = strings.ReplaceAll(input, "generated always", "")
-	input = strings.ReplaceAll(input, ") VIRTUAL", ")")
-	input = strings.ReplaceAll(input, ") STORED", ")")
+	// The fold-scan gates keep the no-match case a single scan (the pipeline
+	// runs once per statement; ReplaceAll alone would copy on a match only,
+	// but the gate skips even the scan when the keyword family is absent).
+	if containsFoldASCII(input, "GENERATED ALWAYS") {
+		input = strings.ReplaceAll(input, "GENERATED ALWAYS", "")
+		input = strings.ReplaceAll(input, "generated always", "")
+	}
+	if containsFoldASCII(input, ") VIRTUAL") {
+		input = strings.ReplaceAll(input, ") VIRTUAL", ")")
+	}
+	if containsFoldASCII(input, ") STORED") {
+		input = strings.ReplaceAll(input, ") STORED", ")")
+	}
 
 	// The LALR tables are generated from SQLite's grammar, which accepts
 	// UPDATE ... ORDER BY ... LIMIT and DELETE ... ORDER BY ... LIMIT (SQLite
@@ -105,18 +114,14 @@ func emptyInputResult(input string, savepointStmts []sql.Stmt) (stmts []sql.Stmt
 	if trimmed == "" {
 		return savepointStmts, true
 	}
-	if strings.TrimSpace(stripSQLComments(trimmed)) == "" {
+	if isEmptySQLSegment(trimmed) {
 		return savepointStmts, true
 	}
 	// The rebuilt input may be only SAVEPOINT comment placeholders plus the
 	// ";" separators (e.g. "/* __SAVEPOINT__ */;/* __SAVEPOINT__ */");
 	// strip comments AND semicolons to detect that case.
-	if len(savepointStmts) > 0 {
-		noComments := strings.TrimSpace(stripSQLComments(trimmed))
-		noComments = strings.ReplaceAll(noComments, ";", "")
-		if strings.TrimSpace(noComments) == "" {
-			return savepointStmts, true
-		}
+	if len(savepointStmts) > 0 && isEmptySQLSegmentSkip(trimmed, func(c byte) bool { return c == ';' }) {
+		return savepointStmts, true
 	}
 	return nil, false
 }
@@ -169,9 +174,7 @@ func parseSQLMode(input string, schemaMode bool) ([]sql.Stmt, error) {
 	// returning).
 	if stmts, done := emptyInputResult(pre.input, pre.savepointStmts); done {
 		return stmts, nil
-	}
-
-	// The LALR grammar handles RETURNING clauses (SQLite 3.35+ syntax) with
+	} // The LALR grammar handles RETURNING clauses (SQLite 3.35+ syntax) with
 	// full projection fidelity: INSERT/UPDATE/DELETE RETURNING populates the
 	// AST's Returning/HasReturning fields (multi-expression RETURNING folds
 	// into a RowValue). No RD fallback is needed for RETURNING.

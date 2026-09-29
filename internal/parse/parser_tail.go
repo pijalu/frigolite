@@ -15,6 +15,14 @@ import (
 )
 
 func hasSavepointStatements(input string) bool {
+	// Cheap superset gate first: no SAVEPOINT/RELEASE/ROLLBACK text anywhere
+	// means no savepoint statement can be found, and the per-statement check
+	// below copies text (savepointOp uppercases each statement).
+	if !containsFoldASCII(input, "SAVEPOINT") &&
+		!containsFoldASCII(input, "RELEASE") &&
+		!containsFoldASCII(input, "ROLLBACK") {
+		return false
+	}
 	for _, stmtText := range splitSQLStatements(input) {
 		if _, ok := parseSavepointStatement(stmtText); ok {
 			return true
@@ -114,7 +122,7 @@ func collapseEmptyStatements(input string) string {
 	for i < len(input) {
 		if input[i] == ';' && s.depth == 0 {
 			seg := input[start:i]
-			if strings.TrimSpace(stripSQLComments(seg)) == "" {
+			if isEmptySQLSegment(seg) {
 				// Empty statement (whitespace and/or comments only, e.g. a
 				// SAVEPOINT placeholder): drop it and its semicolon.
 				dropped = true
@@ -130,7 +138,7 @@ func collapseEmptyStatements(input string) string {
 	}
 	if start < len(input) {
 		seg := input[start:]
-		if strings.TrimSpace(stripSQLComments(seg)) == "" {
+		if isEmptySQLSegment(seg) {
 			dropped = true
 		} else {
 			b.WriteString(seg)
@@ -152,7 +160,7 @@ func collapseEmptyStatements(input string) string {
 // statement, scanning only the top-level WHEN..BEGIN span so comparison
 // operators inside trigger bodies are untouched.
 func rewriteTriggerWhenParenthesize(input string) string {
-	if !strings.Contains(strings.ToUpper(input), "WHEN") {
+	if !containsFoldASCII(input, "WHEN") {
 		return input
 	}
 	var b strings.Builder
@@ -325,29 +333,31 @@ func eqScanStep(span string, i, depth int) (int, int) {
 // savepointOp parses the leading SAVEPOINT / RELEASE / ROLLBACK TO keyword
 // from a statement, returning the operation and the remaining text. ok=false
 // when the text is not a savepoint statement.
+//
+// The keyword checks fold ASCII case in place instead of uppercasing the
+// statement (this runs per statement inside the parse preprocessor).
 func savepointOp(text string) (op, rest string, ok bool) {
-	upper := strings.ToUpper(text)
 	switch {
-	case strings.HasPrefix(upper, "SAVEPOINT"):
+	case hasPrefixFoldASCII(text, "SAVEPOINT"):
 		return "SAVEPOINT", strings.TrimSpace(text[len("SAVEPOINT"):]), true
-	case strings.HasPrefix(upper, "RELEASE"):
+	case hasPrefixFoldASCII(text, "RELEASE"):
 		rest := strings.TrimSpace(text[len("RELEASE"):])
 		// RELEASE [SAVEPOINT] name
-		if strings.HasPrefix(strings.ToUpper(rest), "SAVEPOINT") {
+		if hasPrefixFoldASCII(rest, "SAVEPOINT") {
 			rest = strings.TrimSpace(rest[len("SAVEPOINT"):])
 		}
 		return "RELEASE", rest, true
-	case strings.HasPrefix(upper, "ROLLBACK"):
+	case hasPrefixFoldASCII(text, "ROLLBACK"):
 		rest := strings.TrimSpace(text[len("ROLLBACK"):])
 		// ROLLBACK [TRANSACTION] TO [SAVEPOINT] name
-		if strings.HasPrefix(strings.ToUpper(rest), "TRANSACTION") {
+		if hasPrefixFoldASCII(rest, "TRANSACTION") {
 			rest = strings.TrimSpace(rest[len("TRANSACTION"):])
 		}
-		if !strings.HasPrefix(strings.ToUpper(rest), "TO") {
+		if !hasPrefixFoldASCII(rest, "TO") {
 			return "", "", false
 		}
 		rest = strings.TrimSpace(rest[2:])
-		if strings.HasPrefix(strings.ToUpper(rest), "SAVEPOINT") {
+		if hasPrefixFoldASCII(rest, "SAVEPOINT") {
 			rest = strings.TrimSpace(rest[len("SAVEPOINT"):])
 		}
 		return "ROLLBACK", rest, true

@@ -11,23 +11,29 @@ import "strings"
 // only the statement's own ORDER/LIMIT tokens count. Returns "" when the
 // statement is fine or is not a DELETE/UPDATE.
 func updateDeleteLimitError(input string) string {
+	// The error can only fire on a statement carrying a top-level ORDER BY.
+	// Gate the (copying) statement split on one allocation-free scan; the
+	// per-statement prefix checks fold ASCII case in place (the historical
+	// ToUpper copies allocated a full statement per parse).
+	if !containsFoldASCII(input, "ORDER") {
+		return ""
+	}
 	for _, stmt := range splitRawStatements(input) {
 		head := stmt
 		// Strip a WITH ... header (CTEs may contain subqueries with their
 		// own ORDER BY).
-		u := strings.ToUpper(strings.TrimSpace(head))
-		if strings.HasPrefix(u, "WITH") {
+		if hasPrefixFoldASCII(strings.TrimSpace(head), "WITH") {
 			if idx := topLevelKeyword(head, []string{"DELETE", "UPDATE"}); idx >= 0 {
 				head = head[idx:]
-				u = strings.ToUpper(strings.TrimSpace(head))
 			} else {
 				continue
 			}
 		}
 		kind := ""
-		if strings.HasPrefix(u, "DELETE") {
+		trimmed := strings.TrimSpace(head)
+		if hasPrefixFoldASCII(trimmed, "DELETE") {
 			kind = "DELETE"
-		} else if strings.HasPrefix(u, "UPDATE") {
+		} else if hasPrefixFoldASCII(trimmed, "UPDATE") {
 			kind = "UPDATE"
 		} else {
 			continue

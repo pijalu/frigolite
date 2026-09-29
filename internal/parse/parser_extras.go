@@ -314,6 +314,12 @@ type stmtOrderLimit struct {
 // ORDER BY/LIMIT inside subqueries (e.g. SET x=(SELECT ... ORDER BY ... LIMIT
 // 1)) is not mistaken for the statement-level clause.
 func rewriteStmtOrderLimit(input string) (string, []stmtOrderLimit, bool) {
+	// Only top-level UPDATE/DELETE statements are rewritten; skip the token
+	// walk entirely when neither keyword appears anywhere in the input (the
+	// tokenize below allocates per statement).
+	if !containsFoldASCII(input, "UPDATE") && !containsFoldASCII(input, "DELETE") {
+		return input, nil, false
+	}
 	toks, ok := tokenizeInput(input)
 	if !ok {
 		return input, nil, false

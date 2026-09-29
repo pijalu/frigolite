@@ -146,7 +146,7 @@ func rewriteOneParenSet(sb *strings.Builder, input string, toks []sql.Token, sp 
 // the rewrite leaves the statement unchanged so the engine reports the arity
 // mismatch at parse time (it fails to parse, and the caller surfaces it).
 func rewriteParenSet(input string) (string, []parenRewriteSpan, error) {
-	if !strings.Contains(strings.ToUpper(input), "SET") || !strings.Contains(input, "(") {
+	if !containsFoldASCII(input, "SET") || !strings.Contains(input, "(") {
 		return input, nil, nil
 	}
 	toks, ok := tokenizeInput(input)
