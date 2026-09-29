@@ -381,11 +381,27 @@ var ruleHandlers = map[int]ruleHandler{
 // ruleHandler implements the action for a single grammar rule.
 type ruleHandler func(ruleNo int, p *Parser) interface{}
 
+// ruleDispatch is ruleHandlers in array form, built once at init: the
+// parser reduces hundreds of times per statement and the hot path cannot
+// afford a map lookup per reduce. The map above stays the readable,
+// OCP-friendly source of truth (rid* keys); this slice is derived from it.
+var ruleDispatch = func() []ruleHandler {
+	d := make([]ruleHandler, len(yyRuleInfoNRhs))
+	for no, h := range ruleHandlers {
+		if no >= 0 && no < len(d) {
+			d[no] = h
+		}
+	}
+	return d
+}()
+
 // handleRule implements the action code for each grammar rule.
 // Returns the semantic value for the LHS symbol.
 func handleRule(ruleNo int, p *Parser, lookahead int, lookaheadToken interface{}) interface{} {
-	if h, ok := ruleHandlers[ruleNo]; ok {
-		return h(ruleNo, p)
+	if ruleNo >= 0 && ruleNo < len(ruleDispatch) {
+		if h := ruleDispatch[ruleNo]; h != nil {
+			return h(ruleNo, p)
+		}
 	}
 	return handleRuleFallback(ruleNo, p)
 }
