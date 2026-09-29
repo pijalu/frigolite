@@ -182,6 +182,21 @@ func TestAggFeedValueDynamics(t *testing.T) {
 		// exact-int overflow promotes to the compensated double sum
 		{"SELECT SUM(c) FROM tf WHERE id BETWEEN 3 AND 4",
 			"SUM(c) ;; int64:-8589934592;"},
+		// no-WHERE plain-scan aggregates over the IPK alias: the scan's
+		// affinity plan performs the stored-NULL → rowid fill even in feed
+		// mode (TestP1InsertOrIgnore caught this class)
+		{"SELECT SUM(id), COUNT(*) FROM t",
+			"SUM(id)|COUNT(*) ;; int64:20100,int64:200;"},
+		{"SELECT SUM(id), AVG(id), COUNT(id), TOTAL(id) FROM t",
+			"SUM(id)|AVG(id)|COUNT(id)|TOTAL(id) ;; int64:20100,float64:100.5,int64:200,float64:20100;"},
+		{"SELECT COUNT(id) FROM t",
+			"COUNT(id) ;; int64:200;"},
+		{"SELECT SUM(rowid), COUNT(rowid) FROM t",
+			"SUM(rowid)|COUNT(rowid) ;; int64:20100,int64:200;"},
+		{"SELECT sum(a), SUM(d) FROM tshort",
+			"sum(a)|SUM(d) ;; int64:6,int64:126;"},
+		{"SELECT SUM(a) FROM tshort WHERE a >= 2",
+			"SUM(a) ;; int64:5;"},
 	} {
 		if got := aggFeedQuery(t, db, tc.sql); got != tc.want {
 			t.Errorf("%s\n  got  %s\n  want %s", tc.sql, got, tc.want)

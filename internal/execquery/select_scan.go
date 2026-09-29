@@ -577,11 +577,14 @@ func newScanState(e *SelectEngine, s *sql.SelectStmt, colDefs []sql.ColumnDef, n
 	if !hasJoins && whereExpr != nil {
 		whereExpr = e.likeOptimizedScanWhere(s, colDefs, whereExpr)
 	}
-	// Feed mode wraps only WHERE-referenced columns: the WHERE evaluation
-	// consumes the wrappers, the feed steps raw values.
+	// Feed mode wraps only WHERE-referenced columns (the WHERE evaluation
+	// consumes the wrappers; the feed steps raw values) PLUS the INTEGER
+	// PRIMARY KEY rowid-alias columns: the affinity plan performs their
+	// stored-NULL → rowid substitution, which is a value fill, not a
+	// comparison wrapper — dropping it would feed NULL to the aggregates.
 	wrapCols := affinityCols
 	if feed != nil {
-		wrapCols = e.whereReferencedAffinityCols(s.Where)
+		wrapCols = e.aggFeedWrapCols(s.Where, colDefs)
 	}
 	return &scanState{
 		e:                      e,

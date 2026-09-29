@@ -447,6 +447,25 @@ func (e *SelectEngine) whereReferencedAffinityCols(where sql.Expr) map[string]bo
 	return a.cols
 }
 
+// aggFeedWrapCols is the scan's feed-mode wrapping set: the WHERE-referenced
+// columns plus the INTEGER PRIMARY KEY rowid-alias columns. The alias fill is
+// a VALUE substitution (the record stores NULL for the alias; readers
+// substitute the rowid — btree.c IPK semantics), and the scan's affinity plan
+// is what performs it on the full-decode (no-WHERE) path, so the alias columns
+// must stay in the plan even though nothing wraps them for comparison.
+func (e *SelectEngine) aggFeedWrapCols(where sql.Expr, colDefs []sql.ColumnDef) map[string]bool {
+	cols := e.whereReferencedAffinityCols(where)
+	if cols == nil {
+		cols = make(map[string]bool)
+	}
+	for i := range colDefs {
+		if isIPKRowidAliasCol(colDefs[i]) {
+			cols[colDefs[i].Name] = true
+		}
+	}
+	return cols
+}
+
 // run iterates the seeked range, emitting every row that passes the full
 // WHERE. ok=false falls back to the scan (a read or evaluation anomaly the
 // scan re-evaluates and surfaces identically).
