@@ -141,7 +141,17 @@ func scanNumericLiteral(sql string, i int) (int, interface{}) {
 		v, _ := strconv.ParseFloat(numStr, 64)
 		return i, v
 	}
-	return i, fastParseInt64(numStr)
+	if v, ok := fastParseInt64(numStr); ok {
+		return i, v
+	}
+	// Overflow (e.g. 2^64): keep the value as float64. Substitution into an
+	// integer-shaped slot then refuses (numeric's kind gate) and the
+	// statement full-parses — two distinct overflowing literals must never
+	// share one template substitution (func4-5.29: tointeger(toreal(
+	// 18446744073709551616)) would otherwise serve a toreal(0) template,
+	// because the wrapped value equals literal 0's).
+	v, _ := strconv.ParseFloat(numStr, 64)
+	return i, v
 }
 
 // advanceNumeric consumes one character of a numeric literal, returning the
@@ -188,12 +198,17 @@ func scanDotNumeric(sql string, i int) (int, float64) {
 
 // fastParseInt64 parses a non-negative decimal integer string without sign.
 // Faster than strconv.ParseInt for the common case of simple digits.
-func fastParseInt64(s string) int64 {
+// ok=false reports overflow (the returned value is meaningless).
+func fastParseInt64(s string) (int64, bool) {
 	n := int64(0)
 	for _, c := range []byte(s) {
-		n = n*10 + int64(c-'0')
+		d := int64(c - '0')
+		if n > (1<<63-1-d)/10 {
+			return 0, false
+		}
+		n = n*10 + d
 	}
-	return n
+	return n, true
 }
 
 // containsDoubleQuote checks if a string contains SQL escaped quotes (”).

@@ -347,3 +347,63 @@ func TestTemplateCloneMultiStatement(t *testing.T) {
 		t.Fatalf("batch-deleted rows remain: %v", got)
 	}
 }
+
+// TestTemplateCloneOverflowLiteral pins two template-cache hazards around
+// integer literals that exceed int64 (func4-5.29, window1 ntile):
+//   - an overflowing literal (2^64) must not share a template substitution
+//     with a smaller literal whose wrapped value it equals (fastParseInt64
+//     used to wrap 18446744073709551616 to 0, so tointeger(toreal(2^64))
+//     served a toreal(0) template and returned 0 instead of NULL);
+//   - a window function whose argument substitutes must keep its OVER
+//     clause (the COW FuncCall clone used to drop it, so
+//     ntile('zbc') OVER (ORDER BY a) reported "misuse of window function").
+func TestTemplateCloneOverflowLiteral(t *testing.T) {
+	db, err := frigolite.Open(":memory:")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer db.Close()
+	must := func(sql string) {
+		if r := db.Exec(sql); r.Error != nil {
+			t.Fatalf("%s: %v", sql, r.Error)
+		}
+	}
+	must("CREATE TABLE t2(a INTEGER)")
+	must("INSERT INTO t2 VALUES(1),(2),(3)")
+	queries := []struct {
+		sql  string
+		want string // flatten() of Rows: "{}" = NULL
+	}{
+		{"SELECT tointeger(toreal(18446744073709551616))", "{}"},
+		{"SELECT tointeger(toreal(18446744073709551615))", "{}"},
+		{"SELECT tointeger(toreal(0))", "[0]"},
+		{"SELECT tointeger(toreal(18446744073709551616))", "{}"},
+		{"SELECT ntile('zbc') OVER (ORDER BY a) FROM t2", "ntile-arg"},
+	}
+	for _, q := range queries {
+		r := db.Query(q.sql)
+		if q.want == "ntile-arg" {
+			// The OVER clause must survive substitution: the error is about
+			// the ARGUMENT (sqlite3: "argument of ntile must be a positive
+			// integer"), never "misuse of window function" (a dropped OVER).
+			if r.Error == nil || !strings.Contains(r.Error.Error(), "argument of ntile must be a positive integer") {
+				t.Fatalf("%s: expected ntile argument error, got %v / %v", q.sql, r.Error, r.Rows)
+			}
+			continue
+		}
+		if r.Error != nil {
+			t.Fatalf("%s: %v", q.sql, r.Error)
+		}
+		var got string
+		if len(r.Rows) == 1 && len(r.Rows[0]) == 1 {
+			if v, ok := r.Rows[0][0].(int64); ok {
+				got = "[" + fmt.Sprint(v) + "]"
+			} else if r.Rows[0][0] == nil {
+				got = "{}"
+			}
+		}
+		if got != q.want {
+			t.Fatalf("%s = %s, want %s", q.sql, got, q.want)
+		}
+	}
+}

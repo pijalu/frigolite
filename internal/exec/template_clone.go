@@ -414,6 +414,7 @@ func (c *exprClone) funcCall(v *sql.FuncCall) (sql.Expr, bool) {
 		Distinct: v.Distinct,
 		OrderBy:  orderBy,
 		Filter:   filter,
+		Over:     v.Over, // window context must survive substitution (window1: ntile('zbc') OVER ...)
 	}, true
 }
 
