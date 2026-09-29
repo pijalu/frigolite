@@ -1,6 +1,10 @@
 package sql
 
-import "strings"
+import (
+	"strings"
+
+	"github.com/pijalu/frigolite/internal/util"
+)
 
 // TokenType represents the type of a SQL token.
 type TokenType int
@@ -720,12 +724,13 @@ func (t *Tokenizer) readIdent() Token {
 		return t.readHexBlobLiteral(pos, word)
 	}
 
-	upper := strings.ToUpper(word)
-	if _, ok := keywords[upper]; ok {
-		// Store the ORIGINAL word (not uppercased) as the Value so that
-		// keywords used as identifiers (e.g. CREATE TABLE savepoint(...))
-		// preserve their original case, matching SQLite.
-		t.last = Token{Type: TokenKeyword, Value: word, Pos: pos}
+	// Classify via the ASCII-fold keyword lookup (allocation-free for the
+	// common lowercase spelling; see util.LookupUpperASCII). The ORIGINAL
+	// word (not uppercased) stays the Value so keywords used as identifiers
+	// (e.g. CREATE TABLE savepoint(...)) preserve their original case,
+	// matching SQLite.
+	if tokType, ok := util.LookupUpperASCII(keywords, word); ok {
+		t.last = Token{Type: tokType, Value: word, Pos: pos}
 	} else {
 		t.last = Token{Type: TokenIdentifier, Value: word, Pos: pos}
 	}

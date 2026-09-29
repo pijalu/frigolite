@@ -7,7 +7,11 @@
 
 package parse
 
-import "strings"
+import (
+	"strings"
+
+	"github.com/pijalu/frigolite/internal/util"
+)
 
 // TK_* token codes from SQLite's parse.c.
 const (
@@ -230,7 +234,12 @@ var tokenTypeToCode = map[int]int{
 
 func tokenCode(tokenType int, tokenValue string) int {
 	if tokenType == 6 { // TokenKeyword
-		return keywordToCode(strings.ToUpper(tokenValue))
+		// ASCII-fold keyword classification (allocation-free for lowercase
+		// spellings — this runs once per keyword token per parse).
+		if code, ok := util.LookupUpperASCII(keywordToCodeMap, tokenValue); ok {
+			return code
+		}
+		return TK_ID // fallback: unknown keywords treated as identifiers
 	}
 	if tokenType == 4 { // TokenNumber
 		if strings.ContainsAny(tokenValue, ".eE") {
