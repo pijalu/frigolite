@@ -1393,3 +1393,59 @@ Resumed a dead predecessor mid-tranche on P9.PERF hot-path work (base 5807a9c1e,
   (triggerB/joinH/trigger2/tkt2820/tkt3334/8_3_names identical base vs head)
   and `FRIGOLITE_TEST=<file>` pattern runs fail at base too — compare failing
   SETS, never single verdicts.
+
+## PERF.P7-scan — simple-aggregate feed + range-loop buffer reuse (fleet/perf7-scan, 2026-09-29)
+
+- **The aggregate row feed, not the loop, was the scan-throughput disease.**
+  `SelectNeedsRowMaps` returns true for any aggregate query, so the
+  range-seek/scan loops materialized a RowMap (~250B: hmap+bucket+cloned
+  wrappers) plus a full output row for EVERY input row only to feed
+  `agg.Step(evalAggCallArgs(...))` — and evalAggregates discards the rows.
+  The fix (OP_AggStep parity): compile a statement-LOCAL `simpleAggFeed`
+  (bare COUNT/SUM/AVG/TOTAL over a plain column ref or COUNT(*)) and step it
+  from the loop's phase-1 decoded values; no rows, no maps, no refill, no
+  per-row output rows. 15.4→2.6 allocs/row, 639→94B/row, range scan 2.5M→
+  10.5M rows/s; plain-scan aggregates 1.6M→12M (7-8x).
+- **The feed must be a LOCAL, not engine state.** First version parked the
+  feed on SelectEngine (saved/restored like outerRows); a WHERE subquery
+  executing another SELECT (e.g. `id BETWEEN 5 AND (SELECT MAX(id)...)`)
+  ran its own execRealTableSelect, whose postscan CONSUMED the outer
+  statement's feed (finishSimpleAggFeed is unconditional) — the outer query
+  then returned empty-input values. Fix: pass the feed explicitly through
+  selectRowidSeekRows/selectRowidRangeRows/TableScanner.ScanTable and finish
+  it in execRealTableSelect; nested statements can neither see nor consume it.
+- **The scan's IPK alias fill hides inside the affinity plan.**
+  `fillStructRowFromTypes` performs the INTEGER PRIMARY KEY stored-NULL →
+  rowid substitution via `affinityPlan.apply` — restricting the plan to
+  WHERE-referenced columns (feed-mode raw-value optimization) silently
+  dropped the alias fill on the no-WHERE (full-decode) path:
+  `SELECT SUM(id) FROM t` stepped NULL. Feed-mode wrap columns must UNION
+  the IPK alias columns (a VALUE fill, not a comparison wrapper). The
+  range/eq seek paths are immune (fillSeekRowPhaseOne owns an independent
+  ipkIdx loop). Caught by TestP1InsertOrIgnore, not by my own sweep —
+  extend sweeps with no-WHERE IPK-aggregate shapes.
+- **COUNT(*) parses as a ONE-ARG call** whose argument is the star
+  ColumnRef (evaluated to the non-nil "*" marker); a feed keyed on
+  "zero args = COUNT(*)" never fires. Treat `len(Args)==1 && arg is
+  ColumnRef{Name:"*"}` as countStar.
+- **WHERE fast paths: BETWEEN and AND chains mirror fastEvalComparison's
+  discipline** (fastEvalBetween = operand >= low AND operand <= high via
+  compareColumnToLiteral; fastEvalAndChain requires EVERY leaf to take a
+  fast path, else the whole tree evaluates generically). Fast leaves are
+  non-NULL definitive booleans, so 3-valued AND is exact. NumericLit
+  caches are populated on first generic eval, so literal reads hit from
+  row 2 of the same statement.
+- **reverse_unordered_selects must disable the feed**: a compensated
+  (Kahan-Babuška-Neumaier) float sum is order-sensitive in the last ulp,
+  and the generic path feeds reversed rows. Same reasoning excluded
+  index-scan-order reorders and GROUP BY's covering-index reorder.
+- **Fresh-worktree fixture triage (recurring)**: `internal/fts`
+  (ftsconformance), `internal/pager` (walconformance), `internal/recover`,
+  and the `tools/orafixture`-dependent fixture-reference tests all fail on
+  a fresh worktree with missing GITIGNORED fixtures; `rsync -a` (NOT
+  --ignore-existing — stale 0-byte locals block it) from the main checkout
+  fixes them. TestP8IncrVacuum3OracleSequence flakes ~1/5 runs isolated on
+  BASE at the same rate as the branch (pre-existing state dependence).
+- **The 1002-file JSON harness is red at base with a 382-file failing
+  set**; regression triage = diff the failing FILE SET branch-vs-base
+  (`grep -E '^    --- FAIL: TestSQLiteSuite/'`), not verdicts.
