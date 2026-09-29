@@ -58,7 +58,12 @@ func rowMapIsHiddenSystemTable(rowMap RowMap) bool {
 
 // buildRowMap builds a column-name-to-value map from a record.
 func (e *SelectEngine) buildRowMap(rec *storage.Record, colDefs []sql.ColumnDef, rowID int64) RowMap {
-	row := make(RowMap)
+	// Pre-size for the declared columns (plus room for the "rowid" alias).
+	// The hint must stay <= 8: Go's swiss-map small representation holds one
+	// group only up to that count, and a larger hint forces the full-table
+	// structure on every row (a per-row regression, not a saving). The
+	// remaining aliases (_rowid_/oid) map to existing keys' storage.
+	row := make(RowMap, len(colDefs)+1)
 	// Record values map to the NON-dropped columns in order. A dropped column
 	// (ALTER TABLE DROP COLUMN) has no on-disk slot: a VIRTUAL generated
 	// column was never stored (the record skips it), and a STORED/plain
@@ -69,9 +74,23 @@ func (e *SelectEngine) buildRowMap(rec *storage.Record, colDefs []sql.ColumnDef,
 			continue
 		}
 		if ci < len(rec.Values) {
-			// Wrap all column values with their affinity/collation so comparison
-			// logic correctly applies SQLite affinity and column collation rules.
-			row[cd.Name] = wrapAffinityCollated(cd, rec.Values[ci])
+			if v := rec.Values[ci]; v == nil && isIPKRowidAliasCol(cd) {
+				// SQLite writes NULL into the record for an INTEGER PRIMARY
+				// KEY rowid-alias column; the value is the rowid (btree.c
+				// record decoding: the alias column has no storage of its
+				// own). Substitute it at read time regardless of whether the
+				// query references the column.
+				row[cd.Name] = &util.ColumnValue{Value: rowID, Affinity: 'I'}
+			} else {
+				// Wrap all column values with their affinity/collation so
+				// comparison logic correctly applies SQLite affinity and
+				// column collation rules.
+				row[cd.Name] = wrapAffinityCollated(cd, v)
+			}
+		} else if isIPKRowidAliasCol(cd) {
+			// The alias column has no slot in this (pre-ALTER) record; the
+			// rowid substitution still applies (before DEFAULT handling).
+			row[cd.Name] = &util.ColumnValue{Value: rowID, Affinity: 'I'}
 		}
 		ci++
 	}
@@ -79,16 +98,6 @@ func (e *SelectEngine) buildRowMap(rec *storage.Record, colDefs []sql.ColumnDef,
 		row[fmt.Sprintf("c%d", i)] = rec.Values[i]
 	}
 	installRowidAliases(row, colDefs, rowID)
-	// SQLite writes NULL into the record for an INTEGER PRIMARY KEY rowid
-	// alias column; the value is the rowid. Substitute it at read time
-	// regardless of whether the query references the column (btree.c
-	// record decoding: the alias column has no storage of its own).
-	for i := range colDefs {
-		cd := &colDefs[i]
-		if isIPKRowidAliasCol(*cd) && util.UnwrapColumnValue(row[cd.Name]) == nil {
-			row[cd.Name] = &util.ColumnValue{Value: rowID, Affinity: 'I'}
-		}
-	}
 	// Rows written before ALTER TABLE ADD COLUMN have fewer record values
 	// than column definitions; apply the added column's DEFAULT at read time
 	// (with column affinity), matching SQLite semantics.

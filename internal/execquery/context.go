@@ -246,23 +246,23 @@ type SelectEngine struct {
 
 	// Query-state fields extracted from Engine (SOLID-14): correlated
 	// subquery resolution, CTE scopes, alias resolution, view expansion.
-	outerRow          Row                      // outer query row for correlated subquery resolution
-	outerRowStack     []Row                    // stack of enclosing outer rows for multi-level correlation
-	outerRows         []RowMap                 // all outer rows for correlated aggregate evaluation
-	aliasStack        []map[string]sql.Expr    // output-column alias maps from enclosing SELECTs (innermost last)
+	outerRow      Row                   // outer query row for correlated subquery resolution
+	outerRowStack []Row                 // stack of enclosing outer rows for multi-level correlation
+	outerRows     []RowMap              // all outer rows for correlated aggregate evaluation
+	aliasStack    []map[string]sql.Expr // output-column alias maps from enclosing SELECTs (innermost last)
 	// obCollationResolver resolves a column reference's schema-declared
 	// collation while an ORDER BY sort runs (set by sortRowsWithMaps from
 	// the SELECT's FROM clause; nil outside sorting).
 	obCollationResolver func(sql.ColumnRef) string
-	cteScopes         [][]sql.CTEDef           // CTE scopes from enclosing statements (innermost last)
-	resolvingCTEs     map[*sql.SelectStmt]bool // CTE bodies currently being resolved (circular reference detection); keyed by the CTE body AST so a same-named inner WITH shadow is a different CTE
-	currentScanTable  string                   // table name being scanned (for qualified column resolution)
-	resolvingViews    map[string]bool          // tracks views currently being resolved (circular reference detection)
-	viewRefCounts     map[string]int           // FROM-term references per view within one statement (select.c Table.nTabRef, 0xffff cap)
-	viewRefDepth      int                      // >0 while a top-level SELECT using view reference counting is executing
-	schemaPin         *DatabaseContext         // view-body name resolution pin
-	expandingTempView bool                     // expanding a TEMP-schema view body
-	expandingView     bool                     // expanding any view body
+	cteScopes           [][]sql.CTEDef           // CTE scopes from enclosing statements (innermost last)
+	resolvingCTEs       map[*sql.SelectStmt]bool // CTE bodies currently being resolved (circular reference detection); keyed by the CTE body AST so a same-named inner WITH shadow is a different CTE
+	currentScanTable    string                   // table name being scanned (for qualified column resolution)
+	resolvingViews      map[string]bool          // tracks views currently being resolved (circular reference detection)
+	viewRefCounts       map[string]int           // FROM-term references per view within one statement (select.c Table.nTabRef, 0xffff cap)
+	viewRefDepth        int                      // >0 while a top-level SELECT using view reference counting is executing
+	schemaPin           *DatabaseContext         // view-body name resolution pin
+	expandingTempView   bool                     // expanding a TEMP-schema view body
+	expandingView       bool                     // expanding any view body
 	// derivedScope is set while executing the body of a parenthesized JOIN
 	// group / derived table (parse.y "LP seltablist RP" → SF_NestedFrom).
 	// Those subqueries are non-lateral: expressions inside — including TVF
@@ -281,11 +281,18 @@ type SelectEngine struct {
 	// evaluating over. Nested aggregate functions (e.g. round(avg(x),2))
 	// resolve through it instead of evaluating per-row.
 	aggRowMaps []RowMap
-// aggPendingErr captures an aggregate Step failure (e.g. zipfile's
-// "out of memory") raised while the aggregate was evaluated inside a
-// wrapping scalar expression, whose plumbing may not thread the error.
-// The enclosing SELECT finalization promotes it to the statement error.
-aggPendingErr error
+	// aggPendingErr captures an aggregate Step failure (e.g. zipfile's
+	// "out of memory") raised while the aggregate was evaluated inside a
+	// wrapping scalar expression, whose plumbing may not thread the error.
+	// The enclosing SELECT finalization promotes it to the statement error.
+	aggPendingErr error
+	// aggArgScratch is a depth-indexed pool of reusable aggregate-argument
+	// buffers (evalAggCallArgs): one slot per nesting level so a nested
+	// aggregate evaluation (subquery / eval() UDF inside an aggregate
+	// argument) never clobbers an enclosing level's in-flight args. Buffers
+	// carry no state between uses — every slot is rewritten per call.
+	aggArgScratch     [][]interface{}
+	aggArgScratchNest int
 	// windowGroupOutputs, when non-nil, holds the GROUP BY output column names
 	// during the window pass over group rows. Window arguments that match an
 	// output column (e.g. sum(sum(b)) OVER ... where the inner sum(b) is the

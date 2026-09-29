@@ -121,14 +121,22 @@ func binaryRefRowidCol(bin *sql.BinaryOp, tableName string, colDefs []sql.Column
 // (NULLs first), with rowid-ascending ties preserved by the stable sort. The
 // sort keys come from the scan's row maps (the output rows may be a
 // projection, e.g. "SELECT rowid, *" prepends the rowid), so it no-ops when
-// maps are absent.
+// maps are absent. Rows and maps are permuted in lockstep; when the scan
+// produced no output rows (aggregate-consumed statements skip the per-row
+// build) the maps alone are sorted — order-sensitive aggregate consumers
+// (group_concat, min/max ties) observe the map order.
 func (e *SelectEngine) sortScanRowsIndexOrder(rows [][]interface{}, maps []RowMap, tableName, idxName string) {
 	idxCols := e.indexColumns(idxName)
-	if len(idxCols) == 0 || len(rows) < 2 || len(maps) != len(rows) {
+	if len(idxCols) == 0 || len(maps) < 2 {
+		return
+	}
+	// Mismatched non-empty rows (e.g. a star projection without maps) cannot
+	// be permuted consistently with the maps: decline.
+	if len(rows) != len(maps) && len(rows) != 0 {
 		return
 	}
 	colls := e.indexColumnCollations(tableName, idxName, idxCols)
-	perm := make([]int, len(rows))
+	perm := make([]int, len(maps))
 	for i := range perm {
 		perm[i] = i
 	}

@@ -36,14 +36,6 @@ func (e *SelectEngine) selectHasWindowFuncs(columns []sql.SelectColumn) bool {
 	return false
 }
 
-// exprHasWindowFunc reports whether an expression tree contains a window
-// function call.
-func (e *SelectEngine) exprHasWindowFunc(expr sql.Expr) bool {
-	var found []*sql.FuncCall
-	e.collectWindowFuncs(expr, &found)
-	return len(found) > 0
-}
-
 // collectWindowChildren returns an expression node's child expressions in the
 // window-collector traversal order: FuncCall nodes contribute their args,
 // aggregate ORDER BY terms and FILTER clause; the composite node kinds follow

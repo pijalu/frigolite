@@ -23,8 +23,25 @@ import (
 // aggregate arguments to TK_AGG_COLUMN, which the fts5 aux overload rewrite
 // does not match), so aux calls inside aggregate arguments fail with the
 // placeholder error.
+//
+// The argument slice is a depth-indexed scratch buffer: aggregate steps
+// consume the args without retaining the slice, so one buffer per nesting
+// level serves the whole statement (a nested aggregate evaluation — a
+// subquery or eval() UDF inside an argument — takes the next pool slot).
+// Every slot is rewritten per call, so buffers carry no state between uses.
 func (e *SelectEngine) evalAggCallArgs(fn *sql.FuncCall, row RowMap) []interface{} {
-	args := make([]interface{}, len(fn.Args))
+	slot := e.aggArgScratchNest
+	e.aggArgScratchNest++
+	for len(e.aggArgScratch) <= slot {
+		e.aggArgScratch = append(e.aggArgScratch, nil)
+	}
+	buf := e.aggArgScratch[slot]
+	if cap(buf) < len(fn.Args) {
+		buf = make([]interface{}, len(fn.Args))
+	}
+	args := buf[:len(fn.Args)]
+	e.aggArgScratch[slot] = args
+	defer func() { e.aggArgScratchNest-- }()
 	for i, arg := range fn.Args {
 		restore := e.ctx.EnterAuxAggArg()
 		v, err := e.ctx.EvalExpr(arg, row)

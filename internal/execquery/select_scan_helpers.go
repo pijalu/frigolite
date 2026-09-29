@@ -57,14 +57,14 @@ func SelectNeedsRowMaps(e *SelectEngine, s *sql.SelectStmt, tableName string) bo
 	return s.Where != nil && exprHasSubquery(s.Where)
 }
 
-// parseRecordSerialTypes parses a b-tree record payload header, returning the
-// serial types and the byte offset where the data section begins. The header
-// size must lie within the payload (vdbe.c OP_Column's op_column_corrupt
-// check) — a header extending past the fetched bytes is a corrupt record and
-// must error, not spin appending serial types.
-func parseRecordSerialTypes(payload []byte) ([]uint64, int, error) {
-	var stackSerialTypes [16]uint64
-	serialTypes := stackSerialTypes[:0]
+// parseRecordSerialTypesInto parses a b-tree record payload header, appending
+// the serial types to the caller-owned buffer and returning it (grown in
+// place) plus the byte offset where the data section begins. The header size
+// must lie within the payload (vdbe.c OP_Column's op_column_corrupt check) —
+// a header extending past the fetched bytes is a corrupt record and must
+// error, not spin appending serial types. The result is consumed within the
+// row's decode; no callee retains it, so one buffer serves a whole scan.
+func parseRecordSerialTypesInto(payload []byte, serialTypes []uint64) ([]uint64, int, error) {
 	pos := 0
 	hdrSize, n := util.GetVarint(payload[pos:])
 	pos += n
@@ -417,18 +417,51 @@ func (e *SelectEngine) applyColumnDefaults(values []interface{}, colDefs []sql.C
 	}
 }
 
-// StructRowToMap converts a StructRow to a RowMap, deep-copying mutable
-// values (ColumnValue wrappers, []byte) so the map does not share the
-// reused StructRow value slots that the next decoded row overwrites.
+// StructRowToMap converts a StructRow to a RowMap. The map must not observe
+// later overwrites of the StructRow's reused value slots: the slot INTERFACE
+// for this row is copied into the map, so the next fillStructRow* (which
+// REPLACES slot contents, never mutating them in place) leaves the map
+// holding this row's values. Fresh affinity wrappers (wrapPrecomputed) and
+// freshly decoded values are exclusive to this row and shared as-is; only a
+// []byte payload is deep-copied, so a consumer writing through the map's
+// blob cannot corrupt other references to the same buffer.
 func StructRowToMap(sr *StructRow) RowMap {
 	m := make(RowMap, len(sr.Index)+1)
 	m["rowid"] = &util.ColumnValue{Value: sr.RowID, Affinity: 'I'}
 	for name, idx := range sr.Index {
 		if idx < len(sr.Values) {
-			m[name] = cloneRowValue(sr.Values[idx])
+			m[name] = rowMapValue(sr.Values[idx])
 		}
 	}
 	return m
+}
+
+// rowMapValue prepares a StructRow slot value for retention in a RowMap:
+// immutable payloads (int64, float64, string, nil) and fresh wrapper pointers
+// are shared; []byte payloads are copied (through any wrapper chain).
+func rowMapValue(v interface{}) interface{} {
+	switch t := v.(type) {
+	case *util.ColumnValue:
+		if _, isBlob := t.Value.([]byte); isBlob {
+			return cloneRowValue(t)
+		}
+		return v
+	case *CollatedValue:
+		if cv, ok := t.Value.(*util.ColumnValue); ok {
+			if _, isBlob := cv.Value.([]byte); isBlob {
+				cp := *t
+				cp.Value = cloneRowValue(cv)
+				return &cp
+			}
+		}
+		return v
+	case []byte:
+		b := make([]byte, len(t))
+		copy(b, t)
+		return b
+	default:
+		return v
+	}
 }
 
 // cloneRowValue deep-copies a mutable value so RowMaps do not share the
@@ -461,3 +494,21 @@ func cloneRowValue(v interface{}) interface{} {
 // joined row map. It returns the table's column name+value pairs in column
 // order, resolving each value via the qualified key (alias.col) first, then
 // the short key (col) when the qualified key is absent.
+
+// scanConsumedByAggPass reports whether execSelectPostScan rebuilds the
+// statement's output from the scanned row maps (aggregate / GROUP BY /
+// correlated-aggregate / window passes) instead of using the per-row rows the
+// scan built. When true, appendRowOutput skips the per-row output-row build —
+// for a 100k-row GROUP BY that work was pure discard (the aggregate passes
+// evaluate output expressions per group from the maps). The gate must stay a
+// subset of execSelectPostScan's aggregate dispatch so the plain path (which
+// does consume the scanned rows) is never taken with rows missing.
+func scanConsumedByAggPass(e *SelectEngine, s *sql.SelectStmt) bool {
+	if len(s.GroupBy) > 0 {
+		return true
+	}
+	if e.hasAggregates(s.Columns) || e.hasSubqueryWithCorrelatedAgg(s.Columns) {
+		return true
+	}
+	return e.selectHasWindowFuncs(s.Columns)
+}

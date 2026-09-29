@@ -348,6 +348,9 @@ type rangeSeekRow struct {
 
 	srow   *StructRow
 	values []interface{}
+	// serialTypes is the iterator's reusable record-header type buffer
+	// (parseRecordSerialTypesInto); consumed within each row's decode.
+	serialTypes []uint64
 
 	rows [][]interface{}
 	maps []RowMap
@@ -526,7 +529,9 @@ func (it *rangeSeekRow) step(payload []byte, rowID int64) (done, ok bool) {
 // substitution). All slots are cleared first, so a record shorter than the
 // declared width leaves the tail slots nil exactly like a fresh buffer.
 func (it *rangeSeekRow) decodePhaseOne(payload []byte, rowID int64) bool {
-	serialTypes, dataStart, err := parseRecordSerialTypes(payload)
+	var err error
+	var dataStart int
+	it.serialTypes, dataStart, err = parseRecordSerialTypesInto(payload, it.serialTypes[:0])
 	if err != nil {
 		return false
 	}
@@ -534,8 +539,8 @@ func (it *rangeSeekRow) decodePhaseOne(payload []byte, rowID int64) bool {
 	for i := range values {
 		values[i] = nil
 	}
-	storage.DecodeRecordValuesFromTypes(payload, dataStart, values, serialTypes, it.whereIdx)
-	it.e.fillSeekRowPhaseOne(values, len(serialTypes), it.srow, it.colDefs, rowID, it.affWrapIdx, it.ipkIdx)
+	storage.DecodeRecordValuesFromTypes(payload, dataStart, values, it.serialTypes, it.whereIdx)
+	it.e.fillSeekRowPhaseOne(values, len(it.serialTypes), it.srow, it.colDefs, rowID, it.affWrapIdx, it.ipkIdx)
 	return true
 }
 
@@ -544,12 +549,14 @@ func (it *rangeSeekRow) decodePhaseOne(payload []byte, rowID int64) bool {
 // re-applying defaults and the rowid-alias substitution the second decode
 // re-read as stored NULL. ok=false marks a corrupt record (scan fallback).
 func (it *rangeSeekRow) refill(srow *StructRow, payload []byte) bool {
-	serialTypes, dataStart, err := parseRecordSerialTypes(payload)
+	var err error
+	var dataStart int
+	it.serialTypes, dataStart, err = parseRecordSerialTypesInto(payload, it.serialTypes[:0])
 	if err != nil {
 		return false
 	}
-	storage.DecodeRecordValuesFromTypes(payload, dataStart, srow.Values, serialTypes, it.restIdx)
-	it.e.applyColumnDefaults(srow.Values, it.colDefs, len(serialTypes))
+	storage.DecodeRecordValuesFromTypes(payload, dataStart, srow.Values, it.serialTypes, it.restIdx)
+	it.e.applyColumnDefaults(srow.Values, it.colDefs, len(it.serialTypes))
 	for _, i := range it.ipkIdx {
 		if srow.Values[i] == nil {
 			srow.Values[i] = wrapAffinityCollated(it.colDefs[i], srow.RowID)

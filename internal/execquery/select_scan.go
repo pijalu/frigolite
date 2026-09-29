@@ -537,6 +537,13 @@ type scanState struct {
 	// rows step it (phase-1 decoded values only) and no output rows or row
 	// maps are materialized; execSelectPostScan builds the aggregate result.
 	feed *simpleAggFeed
+	// aggConsumesRows marks statements whose output is rebuilt from the
+	// scanned row maps by the aggregate / GROUP BY / window passes, so a
+	// per-row output row built during the scan would be discarded work.
+	aggConsumesRows bool
+	// serialTypesBuf is the scan's reusable record-header type buffer
+	// (parseRecordSerialTypesInto), reused across all rows of the scan.
+	serialTypesBuf []uint64
 	// output accumulators
 	outValues    []interface{}
 	outRowStarts []int
@@ -603,6 +610,7 @@ func newScanState(e *SelectEngine, s *sql.SelectStmt, colDefs []sql.ColumnDef, n
 		activeColCount:         activeColCount,
 		needMaps:               needMaps,
 		feed:                   feed,
+		aggConsumesRows:        scanConsumedByAggPass(e, s),
 		// Pre-allocate a flat slice for SELECT * to avoid per-row make() calls.
 		outValues:    make([]interface{}, 0, 1024*activeColCount),
 		outRowStarts: make([]int, 0, 1024),
@@ -614,16 +622,18 @@ func newScanState(e *SelectEngine, s *sql.SelectStmt, colDefs []sql.ColumnDef, n
 // path when the row fails WHERE early (remaining columns are not decoded); the
 // caller must advance the cursor and continue in that case.
 func (st *scanState) decodeAndFilterRow(cursor *btree.Cursor, payload []byte, rowID int64) (passesWhere, filtered bool, err error) {
-	// Parse header ONCE per row — parseRecordSerialTypes uses a stack buffer to
-	// avoid the heap allocation of ParseRecordHeader (saves ~40% of total alloc bytes).
-	serialTypes, dataStart, err := parseRecordSerialTypes(payload)
+	// Parse header ONCE per row into the scan's reusable type buffer — the
+	// types are consumed within this row's decode (fill + WHERE + refill),
+	// never retained, so one buffer serves the whole scan.
+	var dataStart int
+	st.serialTypesBuf, dataStart, err = parseRecordSerialTypesInto(payload, st.serialTypesBuf[:0])
 	if err != nil {
 		return false, false, err
 	}
 	if st.useLazyDecode {
-		return st.decodeRowLazy(cursor, payload, dataStart, rowID, serialTypes)
+		return st.decodeRowLazy(cursor, payload, dataStart, rowID, st.serialTypesBuf)
 	}
-	return st.decodeRowFull(cursor, payload, dataStart, rowID, serialTypes)
+	return st.decodeRowFull(cursor, payload, dataStart, rowID, st.serialTypesBuf)
 }
 
 // decodeRowLazy is the two-phase lazy decode: decode only WHERE-referenced
@@ -676,9 +686,11 @@ func (st *scanState) evalRowWhere(cursor *btree.Cursor) (bool, error) {
 // expressions against a row missing the joined tables' columns.
 func (st *scanState) appendRowOutput() error {
 	if st.isSelectStar {
-		st.outRowStarts = append(st.outRowStarts, len(st.outValues))
-		st.outValues = appendScanStarValues(st.outValues, st.colDefs, st.reuseSRow.Values, st.affinityCols != nil)
-	} else if !st.hasJoins {
+		if !st.aggConsumesRows {
+			st.outRowStarts = append(st.outRowStarts, len(st.outValues))
+			st.outValues = appendScanStarValues(st.outValues, st.colDefs, st.reuseSRow.Values, st.affinityCols != nil)
+		}
+	} else if !st.hasJoins && !st.aggConsumesRows {
 		row, err := st.e.buildOutputRow(st.s.Columns, st.colDefs, st.reuseSRow)
 		if err != nil {
 			return err
