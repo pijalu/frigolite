@@ -286,6 +286,12 @@ func (e *DDLExecutor) echoVTabSource(name string) (string, bool) {
 	if err != nil {
 		return "", false
 	}
+	// Plain tables (the overwhelmingly common probe during DML) have no
+	// USING clause: short-circuit before parseVTabSQL, which signals
+	// "not a vtab" by allocating a formatted error.
+	if !strings.Contains(strings.ToUpper(entry.SQL), " USING ") {
+		return "", false
+	}
 	moduleName, args, perr := parseVTabSQL(entry.SQL)
 	if perr != nil || !strings.EqualFold(moduleName, "echo") || len(args) == 0 {
 		return "", false
