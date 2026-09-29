@@ -166,14 +166,20 @@ func (e *SelectEngine) indexColumnCollations(tableName, idxName string, idxCols 
 }
 
 // permuteScanResults applies a row permutation to the scan's output rows and
-// row maps in lockstep.
+// row maps in lockstep. When the scan produced no output rows (aggregate-
+// consumed statements skip the per-row build) only the maps are permuted.
 func (e *SelectEngine) permuteScanResults(rows [][]interface{}, maps []RowMap, perm []int) {
-	sortedRows := make([][]interface{}, len(rows))
 	sortedMaps := make([]RowMap, len(maps))
 	for i, from := range perm {
-		sortedRows[i] = rows[from]
 		sortedMaps[i] = maps[from]
 	}
-	copy(rows, sortedRows)
 	copy(maps, sortedMaps)
+	if len(rows) != len(perm) {
+		return
+	}
+	sortedRows := make([][]interface{}, len(rows))
+	for i, from := range perm {
+		sortedRows[i] = rows[from]
+	}
+	copy(rows, sortedRows)
 }
