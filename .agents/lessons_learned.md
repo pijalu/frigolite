@@ -1449,3 +1449,56 @@ Resumed a dead predecessor mid-tranche on P9.PERF hot-path work (base 5807a9c1e,
 - **The 1002-file JSON harness is red at base with a 382-file failing
   set**; regression triage = diff the failing FILE SET branch-vs-base
   (`grep -E '^    --- FAIL: TestSQLiteSuite/'`), not verdicts.
+
+## PERF.P7-pipeline — per-statement prepare pipeline (2026-09-29)
+
+- **The template cache never served SELECT/UPDATE/DELETE.** `cloneStmtsWithValues`
+  substituted INSERT VALUES tuples only and errored "template cache: unused
+  values" for any other shape, so every point SELECT with a varying literal
+  re-ran the full lex+parse pipeline (~40% of its per-statement cost). The
+  fix pattern generalizes: a copy-on-write cloner that shares every node
+  except the statement root and the literal ancestor chain, refuses the
+  clone (falling back to a full parse) on ANY doubt — unknown node kind,
+  non-canonical literal text ("0x1F" normalizes to value 0), value/count
+  mismatch — so a substituted AST is provably identical to a fresh parse.
+- **The valIdx count check was the only thing keeping the old INSERT-only
+  template cache correct.** normalizeSQL treated digits inside identifiers
+  ("t1") as literals, merging unrelated statements into one normalized key
+  with a phantom value; the count mismatch then forced a full parse (correct
+  results by accident, zero cache benefit). normalizeSQL now classifies
+  identifier/parameter continuations (digit after letter or after $ : @ #)
+  via a 256-byte table; literal-free input returns unchanged (no copy).
+- **Substitution must walk fields in SOURCE order** (WITH first, then select
+  list, FROM, WHERE, ... ). Normalized values are consumed in text order; a
+  field-order walk that visits the select list before the WITH body silently
+  swaps values between matching-shaped statements (json501 caught it — the
+  value COUNT still matched, so nothing bailed). Any new walker must mirror
+  the grammar's textual order.
+- **NewParser allocated a fresh ~3.2KB parser stack per statement (25.7% of
+  INSERT-phase alloc_space) and GetParseTables rebuilt its wrapper struct per
+  call.** A sync.Pool + Parser.reset() (zeroing stack slots so pooled parsers
+  retain no AST garbage) and one init-built table set removed both. Pool +
+  reset is the reusable pattern for per-statement engine objects.
+- **Per-keyword strings.ToUpper ran twice per keyword token** (lexer keyword
+  classification + parse.tokenCode). `util.LookupUpperASCII` uppercases into
+  a stack buffer and keys the map with `m[string(buf)]` (compiler elides the
+  allocation); non-ASCII words keep Unicode ToUpper semantics.
+- **Derived-cache invalidation by schema fingerprint beats invalidation
+  hooks.** `schema.Manager.SchemaFingerprint()` (header cookie folded with a
+  mutation epoch; InvalidateCache bumps the epoch too) lets execdml cache
+  index-maintenance def lists per (database, table) with airtight DDL
+  sensitivity and zero call-site hooks. Content-keyed single-entry memos
+  ((table, CREATE SQL text) → parse result) are self-validating the same way
+  — no hooks needed, and they kept the hot path off a string-concat cache key.
+- **ASTs are de-facto immutable during execution** (the exact-text stmtCache
+  always re-executed one parsed AST; execquery/execdml mutators clone first).
+  Verified by grepping for writes into statement/expr fields before shipping
+  COW sharing — do this check again before sharing any NEW node type.
+- **Probe hygiene:** sibling fleet agents share /tmp — a sibling overwrote
+  /tmp/perf7probe mid-run. Use task-unique probe directories. Interleave
+  baseline/branch binaries in one session for honest µs numbers (run-to-run
+  machine noise was ±30%); allocs/stmt and B/stmt from MemStats are stable
+  and profile-guided.
+- **Harness flake:** TestSQLiteSuite/crashM can fail with "attempt to write
+  a readonly database" when a leftover test2.db from an overlapping suite
+  run sits in the package dir; passes 3/3 in isolation after cleanup.
