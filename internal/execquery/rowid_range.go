@@ -323,18 +323,31 @@ func rowidSeekConstraints(a *rowidSeekAnalysis) string {
 }
 
 // rangeSeekRow is the per-iteration state of the range seek loop: the
-// prepared decode plan plus the accumulated output.
+// prepared decode plan plus the accumulated output. The decode buffer and
+// StructRow are allocated once and reused across steps (the scan's
+// reuseSRow discipline): every consumer either copies the values it keeps
+// (output rows, row maps, aggregate steps) or evaluates them before the next
+// row decodes.
 type rangeSeekRow struct {
 	e        *SelectEngine
 	s        *sql.SelectStmt
 	cursor   *btree.Cursor
 	colDefs  []sql.ColumnDef
-	affinity map[string]bool
 	colIndex map[string]int
 	whereIdx map[int]bool
 	restIdx  map[int]bool
 	ipkIdx   []int
 	needMaps bool
+	// affWrapIdx lists the column indices the affinity wrapping loop covers
+	// (precomputed from the affinity map; replaces a per-row ToLower walk).
+	affWrapIdx []int
+	// feed, when non-nil, is the statement's simple-aggregate feed: passing
+	// rows step it instead of decoding the remaining columns and
+	// materializing output rows / row maps.
+	feed *simpleAggFeed
+
+	srow   *StructRow
+	values []interface{}
 
 	rows [][]interface{}
 	maps []RowMap
@@ -362,20 +375,35 @@ func (e *SelectEngine) selectRowidRangeRows(s *sql.SelectStmt, tree *btree.BTree
 			return nil, nil, false
 		}
 	}
+	// Feed mode produces no rows or row maps: the statement's aggregate
+	// result is built from the feed after the loop.
+	feed := e.simpleAggFeed
+	if feed != nil {
+		needMaps = false
+	}
 	affinityCols := e.scanTableAffinityCols(s, colDefs, needMaps)
 	colIndex := buildSeekColIndex(colDefs)
 	whereIdx, restIdx := scanLazyDecodeIndices(colDefs, colIndex, affinityCols)
+	// Feed mode reads raw values for the aggregate steps: wrap only the
+	// WHERE-referenced columns (their wrappers feed the WHERE evaluation).
+	wrapCols := affinityCols
+	if feed != nil {
+		wrapCols = e.whereReferencedAffinityCols(s.Where)
+	}
 	it := &rangeSeekRow{
-		e:        e,
-		s:        s,
-		cursor:   cursor,
-		colDefs:  colDefs,
-		affinity: affinityCols,
-		colIndex: colIndex,
-		whereIdx: whereIdx,
-		restIdx:  restIdx,
-		ipkIdx:   ipkAliasIndices(colDefs),
-		needMaps: needMaps,
+		e:          e,
+		s:          s,
+		cursor:     cursor,
+		colDefs:    colDefs,
+		colIndex:   colIndex,
+		whereIdx:   whereIdx,
+		restIdx:    restIdx,
+		ipkIdx:     ipkAliasIndices(colDefs),
+		needMaps:   needMaps,
+		affWrapIdx: affinityWrapIndices(colDefs, wrapCols),
+		feed:       feed,
+		values:     make([]interface{}, len(colDefs)),
+		srow:       &StructRow{Index: colIndex},
 	}
 	if !it.run(a) {
 		return nil, nil, false
@@ -388,6 +416,36 @@ func (e *SelectEngine) selectRowidRangeRows(s *sql.SelectStmt, tree *btree.BTree
 		reverseRowMaps(it.maps)
 	}
 	return it.rows, it.maps, true
+}
+
+// affinityWrapIndices lists the column indices whose values receive the
+// affinity/collation wrapper (seekStructRowPhaseOne's per-column
+// strings.ToLower(colDefs[i].Name) walk, hoisted out of the row loop).
+func affinityWrapIndices(colDefs []sql.ColumnDef, affinityCols map[string]bool) []int {
+	if affinityCols == nil {
+		return nil
+	}
+	var idx []int
+	for i := range colDefs {
+		if affinityCols[strings.ToLower(colDefs[i].Name)] {
+			idx = append(idx, i)
+		}
+	}
+	return idx
+}
+
+// whereReferencedAffinityCols collects the affinity set restricted to the
+// WHERE clause's references (the same collector semantics the full scan
+// affinity walk applies to s.Where, including subquery bodies). Feed mode
+// wraps only these: the WHERE evaluation consumes the wrappers, the feed
+// steps raw values.
+func (e *SelectEngine) whereReferencedAffinityCols(where sql.Expr) map[string]bool {
+	a := &affinityCollector{cols: make(map[string]bool)}
+	a.collectExprRefs(where)
+	if !a.seen {
+		return nil
+	}
+	return a.cols
 }
 
 // run iterates the seeked range, emitting every row that passes the full
@@ -410,20 +468,31 @@ func (it *rangeSeekRow) run(a *rowidSeekAnalysis) bool {
 	return true
 }
 
-// step processes the current row: phase-1 decode, WHERE re-check, phase-2
-// refill of the passing row, output. done=true reports iteration finished
-// cleanly (Next ran past the last entry). ok=false falls back to the scan.
+// step processes the current row: phase-1 decode, WHERE re-check, then either
+// a simple-aggregate step (feed mode — no row materialization) or the
+// phase-2 refill of the passing row plus its output. done=true reports
+// iteration finished cleanly (Next ran past the last entry). ok=false falls
+// back to the scan.
 func (it *rangeSeekRow) step(payload []byte, rowID int64) (done, ok bool) {
-	srow, ok := it.decodePhaseOne(payload, rowID)
-	if !ok {
+	if !it.decodePhaseOne(payload, rowID) {
 		return false, false
 	}
-	pass, err := it.e.RowPassesWhere(it.s.Where, srow, it.cursor)
+	pass, err := it.e.RowPassesWhere(it.s.Where, it.srow, it.cursor)
 	if err != nil {
 		return false, false // the scan fallback re-evaluates and surfaces it
 	}
-	if pass && (!it.refill(srow, payload) || !it.emit(srow)) {
-		return false, false
+	if pass {
+		switch {
+		case it.feed != nil:
+			// The feed reads only phase-1-decoded columns (every statement
+			// reference is in the WHERE-referenced index set); no refill, no
+			// output rows or row maps.
+			if err := it.feed.step(it.srow.Values, rowID); err != nil {
+				return false, false // the scan fallback re-evaluates and surfaces it
+			}
+		case !it.refill(it.srow, payload) || !it.emit(it.srow):
+			return false, false
+		}
 	}
 	more, err := it.cursor.Next()
 	if err != nil {
@@ -433,19 +502,23 @@ func (it *rangeSeekRow) step(payload []byte, rowID int64) (done, ok bool) {
 }
 
 // decodePhaseOne decodes one table-leaf cell's WHERE-referenced columns into
-// a phase-1 seek-path StructRow (the scan's fillStructRowFromTypes pipeline:
+// the REUSED phase-1 StructRow (the scan's fillStructRowFromTypes pipeline:
 // dropped-column re-alignment, ALTER TABLE ADD COLUMN defaults, affinity
 // wrappers on the decoded columns, INTEGER PRIMARY KEY rowid-alias
-// substitution).
-func (it *rangeSeekRow) decodePhaseOne(payload []byte, rowID int64) (*StructRow, bool) {
+// substitution). All slots are cleared first, so a record shorter than the
+// declared width leaves the tail slots nil exactly like a fresh buffer.
+func (it *rangeSeekRow) decodePhaseOne(payload []byte, rowID int64) bool {
 	serialTypes, dataStart, err := parseRecordSerialTypes(payload)
 	if err != nil {
-		return nil, false
+		return false
 	}
-	values := make([]interface{}, len(it.colDefs))
+	values := it.values
+	for i := range values {
+		values[i] = nil
+	}
 	storage.DecodeRecordValuesFromTypes(payload, dataStart, values, serialTypes, it.whereIdx)
-	srow := it.e.seekStructRowPhaseOne(values, len(serialTypes), it.colDefs, rowID, it.affinity, it.colIndex, it.ipkIdx)
-	return srow, true
+	it.e.fillSeekRowPhaseOne(values, len(serialTypes), it.srow, it.colDefs, rowID, it.affWrapIdx, it.ipkIdx)
+	return true
 }
 
 // refill decodes the remaining (not WHERE-referenced) columns of a row that

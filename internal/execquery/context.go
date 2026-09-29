@@ -286,6 +286,13 @@ type SelectEngine struct {
 	// wrapping scalar expression, whose plumbing may not thread the error.
 	// The enclosing SELECT finalization promotes it to the statement error.
 	aggPendingErr error
+	// simpleAggFeed, when non-nil, holds the statement-scoped simple-aggregate
+	// feed compiled by execRealTableSelect (OP_AggStep parity): the row loops
+	// (rowid seek/range/scan) step it per surviving row instead of
+	// materializing rows and row maps, and execSelectPostScan consumes it to
+	// build the single aggregate output row. Saved/restored like outerRows so
+	// a nested statement never sees (or clears) an enclosing statement's feed.
+	simpleAggFeed *simpleAggFeed
 	// windowGroupOutputs, when non-nil, holds the GROUP BY output column names
 	// during the window pass over group rows. Window arguments that match an
 	// output column (e.g. sum(sum(b)) OVER ... where the inner sum(b) is the

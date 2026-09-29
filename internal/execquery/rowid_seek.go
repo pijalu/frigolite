@@ -50,6 +50,14 @@ func (e *SelectEngine) selectRowidSeekRows(s *sql.SelectStmt, tableEntry *schema
 	if !pass {
 		return [][]interface{}{}, nil, true
 	}
+	// Feed mode: step the single candidate row; the result comes from the
+	// feed in execSelectPostScan.
+	if e.simpleAggFeed != nil {
+		if err := e.simpleAggFeed.step(srow.Values, srow.RowID); err != nil {
+			return nil, nil, false // the scan fallback re-evaluates and surfaces it
+		}
+		return nil, nil, true
+	}
 	return e.seekRowOutput(s, colDefs, srow, true, needMaps)
 }
 
@@ -118,14 +126,25 @@ func (e *SelectEngine) seekStructRowPhaseOne(values []interface{}, valueCount in
 		copy(padded, values)
 		values = padded
 	}
+	srow := &StructRow{Index: colIndex}
+	e.fillSeekRowPhaseOne(values, valueCount, srow, colDefs, rowID, affinityWrapIndices(colDefs, affinityCols), ipkIdx)
+	return srow
+}
+
+// fillSeekRowPhaseOne applies seekStructRowPhaseOne's pipeline IN PLACE to a
+// reused StructRow and decode buffer (the range loop allocates neither per
+// row): dropped-column re-alignment, added-column defaults, the precomputed
+// affinity wrap indices' wrappers (skipping stored NULLs exactly like the
+// scan's affinityPlan.apply), and the INTEGER PRIMARY KEY rowid-alias
+// substitution.
+func (e *SelectEngine) fillSeekRowPhaseOne(values []interface{}, valueCount int, srow *StructRow, colDefs []sql.ColumnDef, rowID int64, affWrapIdx []int, ipkIdx []int) {
 	shiftDroppedColumns(values, colDefs)
 	e.applyColumnDefaults(values, colDefs, valueCount)
-	srow := &StructRow{Values: values, Index: colIndex, RowID: rowID}
-	if affinityCols != nil {
-		for i := range colDefs {
-			if affinityCols[strings.ToLower(colDefs[i].Name)] && values[i] != nil {
-				srow.Values[i] = wrapValueForRowMap(values[i], colDefs[i])
-			}
+	srow.Values = values
+	srow.RowID = rowID
+	for _, i := range affWrapIdx {
+		if values[i] != nil {
+			srow.Values[i] = wrapValueForRowMap(values[i], colDefs[i])
 		}
 	}
 	for _, i := range ipkIdx {
@@ -133,7 +152,6 @@ func (e *SelectEngine) seekStructRowPhaseOne(values []interface{}, valueCount in
 			srow.Values[i] = wrapAffinityCollated(colDefs[i], rowID)
 		}
 	}
-	return srow
 }
 
 // selectRowidSeekPlan runs the eligibility checks and extracts the shared

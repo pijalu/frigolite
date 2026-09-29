@@ -61,9 +61,13 @@ func (e *SelectEngine) prepareScanOutputs(s *sql.SelectStmt, tableEntry *schema.
 	return needMaps, withoutRowidPKCols
 }
 
-// execSelectPostScan processes scanned rows: outer-row aggregates, correlated
-// aggregates, joins, regular aggregates, and result construction + finalization.
+// execSelectPostScan processes scanned rows: the simple-aggregate feed (when
+// the row loop stepped one), outer-row aggregates, correlated aggregates,
+// joins, regular aggregates, and result construction + finalization.
 func (e *SelectEngine) execSelectPostScan(s *sql.SelectStmt, allRows [][]interface{}, allRowMaps []RowMap, colDefs []sql.ColumnDef) *Result {
+	if result := e.finishSimpleAggFeed(s, colDefs); result != nil {
+		return result
+	}
 	if len(e.outerRows) > 0 && e.hasAggregates(s.Columns) {
 		if result := e.execSelectOuterAgg(s, allRowMaps, colDefs); result != nil {
 			return result
@@ -233,6 +237,16 @@ func (e *SelectEngine) execRealTableSelect(s *sql.SelectStmt) *Result {
 		return result
 	} else {
 		colDefs = cd
+	}
+	// Simple-aggregate feed (OP_AggStep parity): a bare COUNT/SUM/AVG/TOTAL
+	// select over one real rowid table accumulates straight from the row
+	// loop's decoded values. The feed is statement-scoped and restored on
+	// return so a nested statement never sees (or consumes) it;
+	// execSelectPostScan builds the result from it.
+	if feed := e.compileSimpleAggFeed(s, tableEntry, colDefs); feed != nil {
+		prevFeed := e.simpleAggFeed
+		e.simpleAggFeed = feed
+		defer func() { e.simpleAggFeed = prevFeed }()
 	}
 	tree := e.ctx.TableBTreePg(dbCtx.Pager, tableEntry.Name, tableEntry.RootPage, true)
 	cursor, err := tree.OpenCursor()

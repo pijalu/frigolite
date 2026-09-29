@@ -5,6 +5,7 @@ import (
 	"strings"
 
 	"github.com/pijalu/frigolite/internal/btree"
+	"github.com/pijalu/frigolite/internal/execexpr"
 	"github.com/pijalu/frigolite/internal/sql"
 	"github.com/pijalu/frigolite/internal/storage"
 	"github.com/pijalu/frigolite/internal/util"
@@ -146,11 +147,88 @@ func (e *SelectEngine) rowPassesWhere(where sql.Expr, row Row, cursor *btree.Cur
 			return result, nil
 		}
 	}
+	// Fast path: BETWEEN with a column operand and literal bounds — the same
+	// column-to-literal comparison discipline as fastEvalComparison (scalar
+	// BETWEEN is operand >= low AND operand <= high; a NULL operand or bound
+	// falls through to the general evaluator's three-valued logic).
+	if bt, ok := where.(*sql.Between); ok && row != nil {
+		if result, ok := e.fastEvalBetween(bt, row); ok {
+			return result, nil
+		}
+	}
+	// Fast path: AND chains whose every leaf is a simple comparison or a
+	// literal-bounded BETWEEN (the WHERE-driven range shape: col >= lo AND
+	// col < hi). Any leaf falling through evaluates the whole tree generically
+	// (fast leaves are non-NULL definitive booleans, so the AND is exact).
+	if bop, ok := where.(*sql.BinaryOp); ok && bop.Operator == "AND" && row != nil {
+		if result, ok := e.fastEvalAndChain(bop, row); ok {
+			return result, nil
+		}
+	}
 	match, err := e.ctx.EvalBool(where, row)
 	if err != nil {
 		return false, err
 	}
 	return match, nil
+}
+
+// fastEvalAndChain evaluates an AND of ANDs whose leaves are all fast
+// comparisons or BETWEENs. ok=false reports a leaf the fast paths decline.
+func (e *SelectEngine) fastEvalAndChain(bop *sql.BinaryOp, row Row) (bool, bool) {
+	left, ok := e.fastEvalWhereLeaf(bop.Left, row)
+	if !ok {
+		return false, false
+	}
+	right, ok := e.fastEvalWhereLeaf(bop.Right, row)
+	if !ok {
+		return false, false
+	}
+	return left && right, true
+}
+
+// fastEvalWhereLeaf evaluates one AND-chain leaf: a nested AND chain or a
+// fast comparison/BETWEEN.
+func (e *SelectEngine) fastEvalWhereLeaf(expr sql.Expr, row Row) (bool, bool) {
+	switch v := expr.(type) {
+	case *sql.BinaryOp:
+		if v.Operator == "AND" {
+			return e.fastEvalAndChain(v, row)
+		}
+		return e.fastEvalComparison(v, row)
+	case *sql.Between:
+		return e.fastEvalBetween(v, row)
+	}
+	return false, false
+}
+
+// fastEvalBetween attempts to evaluate a BETWEEN whose operand is a plain
+// column reference and whose bounds are literals without the general
+// expression evaluator. Returns (result, true) on the fast path, or
+// (false, false) to fall through (non-column operand, NULL operand, or a
+// bound the literal fast path cannot evaluate).
+func (e *SelectEngine) fastEvalBetween(bt *sql.Between, row Row) (bool, bool) {
+	ref, ok := bt.Operand.(*sql.ColumnRef)
+	if !ok {
+		return false, false
+	}
+	colVal, exists := fastEvalColRef(ref, row)
+	if !exists || execexpr.IsSQLNull(colVal) {
+		return false, false // let the slow path apply NULL semantics
+	}
+	low, ok := e.evalLiteralFast(bt.Low)
+	if !ok || low == nil {
+		return false, false
+	}
+	high, ok := e.evalLiteralFast(bt.High)
+	if !ok || high == nil {
+		return false, false
+	}
+	inRange := e.compareColumnToLiteral(">=", colVal, low, false) &&
+		e.compareColumnToLiteral("<=", colVal, high, false)
+	if bt.Negated {
+		return !inRange, true
+	}
+	return inRange, true
 }
 
 // fastEvalColRef resolves a column reference against a row for the fast

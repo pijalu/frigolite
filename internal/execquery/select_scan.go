@@ -481,7 +481,13 @@ func (st *scanState) processRow(cursor *btree.Cursor, payload []byte, rowID int6
 		return advanceCursor(cursor)
 	}
 	if st.hasJoins || passesWhere {
-		if err := st.appendRowOutput(); err != nil {
+		if st.feed != nil {
+			// Simple-aggregate feed: step from the decoded values; no output
+			// rows or row maps (execSelectPostScan builds the result).
+			if err := st.feed.step(st.reuseSRow.Values, rowID); err != nil {
+				return false, err
+			}
+		} else if err := st.appendRowOutput(); err != nil {
 			return false, err
 		}
 	}
@@ -527,6 +533,10 @@ type scanState struct {
 	isSelectStar           bool
 	activeColCount         int
 	needMaps               bool
+	// feed, when non-nil, is the statement's simple-aggregate feed: surviving
+	// rows step it (phase-1 decoded values only) and no output rows or row
+	// maps are materialized; execSelectPostScan builds the aggregate result.
+	feed *simpleAggFeed
 	// output accumulators
 	outValues    []interface{}
 	outRowStarts []int
@@ -539,6 +549,12 @@ type scanState struct {
 // avoid per-row allocation.
 func newScanState(e *SelectEngine, s *sql.SelectStmt, colDefs []sql.ColumnDef, needMaps bool) *scanState {
 	hasJoins := len(s.Joins) > 0
+	feed := e.simpleAggFeed
+	if feed != nil {
+		// Feed mode materializes no rows or row maps: the map-driven
+		// all-columns affinity fallback can never apply.
+		needMaps = false
+	}
 	affinityCols := e.scanTableAffinityCols(s, colDefs, needMaps)
 	// Build shared column index for StructRow lookups (avoids per-row map allocation).
 	colIndex := make(map[string]int, len(colDefs))
@@ -562,6 +578,12 @@ func newScanState(e *SelectEngine, s *sql.SelectStmt, colDefs []sql.ColumnDef, n
 	if !hasJoins && whereExpr != nil {
 		whereExpr = e.likeOptimizedScanWhere(s, colDefs, whereExpr)
 	}
+	// Feed mode wraps only WHERE-referenced columns: the WHERE evaluation
+	// consumes the wrappers, the feed steps raw values.
+	wrapCols := affinityCols
+	if feed != nil {
+		wrapCols = e.whereReferencedAffinityCols(s.Where)
+	}
 	return &scanState{
 		e:                      e,
 		s:                      s,
@@ -569,7 +591,7 @@ func newScanState(e *SelectEngine, s *sql.SelectStmt, colDefs []sql.ColumnDef, n
 		hasJoins:               hasJoins,
 		whereExpr:              whereExpr,
 		affinityCols:           affinityCols,
-		affPlan:                newAffinityPlan(colDefs, affinityCols),
+		affPlan:                newAffinityPlan(colDefs, wrapCols),
 		ipkFillIdx:             ipkAliasIndices(colDefs),
 		reuseSRow:              &StructRow{Values: make([]interface{}, len(colDefs)), Index: colIndex},
 		useLazyDecode:          useLazyDecode,
@@ -578,6 +600,7 @@ func newScanState(e *SelectEngine, s *sql.SelectStmt, colDefs []sql.ColumnDef, n
 		isSelectStar:           isSelectStarQuery(s, hasJoins),
 		activeColCount:         activeColCount,
 		needMaps:               needMaps,
+		feed:                   e.simpleAggFeed,
 		// Pre-allocate a flat slice for SELECT * to avoid per-row make() calls.
 		outValues:    make([]interface{}, 0, 1024*activeColCount),
 		outRowStarts: make([]int, 0, 1024),
@@ -613,6 +636,11 @@ func (st *scanState) decodeRowLazy(cursor *btree.Cursor, payload []byte, dataSta
 	}
 	if !passesWhere {
 		return false, true, nil // filtered — skip decoding remaining columns
+	}
+	// Feed mode consumes only the phase-1-decoded columns (every statement
+	// reference is in the WHERE-referenced index set): skip the refill.
+	if st.feed != nil {
+		return true, false, nil
 	}
 	st.e.fillStructRowRemainingFromTypes(st.reuseSRow, payload, dataStart, st.colDefs, serialTypes, st.remainingDecodeIndices, st.ipkFillIdx)
 	return true, false, nil
