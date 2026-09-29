@@ -24,14 +24,14 @@ import (
 // equality or range seek. handled=false falls back to the full scan: any
 // gate miss, seek anomaly, or evaluation error (the scan re-evaluates and
 // surfaces it identically).
-func (e *SelectEngine) selectRowidSeekRows(s *sql.SelectStmt, tableEntry *schema.Entry, colDefs []sql.ColumnDef, tree *btree.BTree) (allRows [][]interface{}, allRowMaps []RowMap, handled bool) {
+func (e *SelectEngine) selectRowidSeekRows(s *sql.SelectStmt, tableEntry *schema.Entry, colDefs []sql.ColumnDef, tree *btree.BTree, feed *simpleAggFeed) (allRows [][]interface{}, allRowMaps []RowMap, handled bool) {
 	a := e.selectRowidSeekPlan(s, tableEntry, colDefs)
 	if a == nil || !a.planned {
 		return nil, nil, false
 	}
 	needMaps := SelectNeedsRowMaps(e, s, tableEntry.Name)
 	if !a.eq {
-		return e.selectRowidRangeRows(s, tree, colDefs, a, needMaps)
+		return e.selectRowidRangeRows(s, tree, colDefs, a, needMaps, feed)
 	}
 	if !a.eqMatch {
 		return [][]interface{}{}, nil, true
@@ -51,9 +51,9 @@ func (e *SelectEngine) selectRowidSeekRows(s *sql.SelectStmt, tableEntry *schema
 		return [][]interface{}{}, nil, true
 	}
 	// Feed mode: step the single candidate row; the result comes from the
-	// feed in execSelectPostScan.
-	if e.simpleAggFeed != nil {
-		if err := e.simpleAggFeed.step(srow.Values, srow.RowID); err != nil {
+	// statement's feed (finishSimpleAggFeed in execRealTableSelect).
+	if feed != nil {
+		if err := feed.step(srow.Values, srow.RowID); err != nil {
 			return nil, nil, false // the scan fallback re-evaluates and surfaces it
 		}
 		return nil, nil, true

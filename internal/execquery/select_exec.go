@@ -17,9 +17,11 @@ import (
 
 // execSelectScanPhase runs the table scan, WITHOUT ROWID PK ordering, and
 // system-table filtering, returning the scanned rows, row maps, and any error.
-func (e *SelectEngine) execSelectScanPhase(s *sql.SelectStmt, cursor *btree.Cursor, colDefs []sql.ColumnDef, tableEntry *schema.Entry) ([][]interface{}, []RowMap, error) {
+// feed is the statement's simple-aggregate feed (nil when the statement keeps
+// the generic aggregate path).
+func (e *SelectEngine) execSelectScanPhase(s *sql.SelectStmt, cursor *btree.Cursor, colDefs []sql.ColumnDef, tableEntry *schema.Entry, feed *simpleAggFeed) ([][]interface{}, []RowMap, error) {
 	needMaps, withoutRowidPKCols := e.prepareScanOutputs(s, tableEntry, colDefs)
-	allRows, allRowMaps, err := e.scanTableRowsWithSQL(cursor, s, colDefs, needMaps, tableEntry.SQL)
+	allRows, allRowMaps, err := e.scanTableRowsWithSQL(cursor, s, colDefs, needMaps, tableEntry.SQL, feed)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -61,13 +63,9 @@ func (e *SelectEngine) prepareScanOutputs(s *sql.SelectStmt, tableEntry *schema.
 	return needMaps, withoutRowidPKCols
 }
 
-// execSelectPostScan processes scanned rows: the simple-aggregate feed (when
-// the row loop stepped one), outer-row aggregates, correlated aggregates,
-// joins, regular aggregates, and result construction + finalization.
+// execSelectPostScan processes scanned rows: outer-row aggregates, correlated
+// aggregates, joins, regular aggregates, and result construction + finalization.
 func (e *SelectEngine) execSelectPostScan(s *sql.SelectStmt, allRows [][]interface{}, allRowMaps []RowMap, colDefs []sql.ColumnDef) *Result {
-	if result := e.finishSimpleAggFeed(s, colDefs); result != nil {
-		return result
-	}
 	if len(e.outerRows) > 0 && e.hasAggregates(s.Columns) {
 		if result := e.execSelectOuterAgg(s, allRowMaps, colDefs); result != nil {
 			return result
@@ -240,14 +238,11 @@ func (e *SelectEngine) execRealTableSelect(s *sql.SelectStmt) *Result {
 	}
 	// Simple-aggregate feed (OP_AggStep parity): a bare COUNT/SUM/AVG/TOTAL
 	// select over one real rowid table accumulates straight from the row
-	// loop's decoded values. The feed is statement-scoped and restored on
-	// return so a nested statement never sees (or consumes) it;
-	// execSelectPostScan builds the result from it.
-	if feed := e.compileSimpleAggFeed(s, tableEntry, colDefs); feed != nil {
-		prevFeed := e.simpleAggFeed
-		e.simpleAggFeed = feed
-		defer func() { e.simpleAggFeed = prevFeed }()
-	}
+	// loop's decoded values. The feed stays a statement-LOCAL value handed to
+	// the seek/scan loops and consumed by finishSimpleAggFeed below — never
+	// engine state, so a nested statement (a WHERE subquery) can neither step
+	// nor consume an enclosing statement's feed.
+	feed := e.compileSimpleAggFeed(s, tableEntry, colDefs)
 	tree := e.ctx.TableBTreePg(dbCtx.Pager, tableEntry.Name, tableEntry.RootPage, true)
 	cursor, err := tree.OpenCursor()
 	if err != nil {
@@ -261,12 +256,18 @@ func (e *SelectEngine) execRealTableSelect(s *sql.SelectStmt) *Result {
 	defer func() { e.currentScanTable = prevScanTable }()
 	// Point-lookup short circuit (src/where.c SEARCH rowid=?): a WHERE that
 	// pins the rowid to a literal reads the single candidate row by seek.
-	if rows, rowMaps, handled := e.selectRowidSeekRows(s, tableEntry, colDefs, tree); handled {
+	if rows, rowMaps, handled := e.selectRowidSeekRows(s, tableEntry, colDefs, tree, feed); handled {
+		if feed != nil {
+			return e.finishSimpleAggFeed(s, feed, colDefs)
+		}
 		return e.execSelectPostScan(s, rows, rowMaps, colDefs)
 	}
-	allRows, allRowMaps, scanErr := e.scan.ScanTable(s, tableEntry, colDefs, cursor)
+	allRows, allRowMaps, scanErr := e.scan.ScanTable(s, tableEntry, colDefs, cursor, feed)
 	if scanErr != nil {
 		return &Result{Error: scanErr}
+	}
+	if feed != nil {
+		return e.finishSimpleAggFeed(s, feed, colDefs)
 	}
 	return e.execSelectPostScan(s, allRows, allRowMaps, colDefs)
 }

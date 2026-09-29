@@ -203,9 +203,11 @@ func (f *simpleAggFeed) step(values []interface{}, rowID int64) error {
 			}
 			continue
 		}
-		raw := values[c.slot]
+		var raw interface{}
 		if c.slot == feedRowidSlot {
 			raw = rowID
+		} else {
+			raw = values[c.slot]
 		}
 		scratch[0] = unwrapCollatedValue(util.UnwrapColumnValue(raw))
 		if err := c.agg.Step(scratch[:1]); err != nil {
@@ -219,13 +221,8 @@ func (f *simpleAggFeed) step(values []interface{}, rowID int64) error {
 // building the single aggregate output row through the registry Final calls
 // and the shared finalize path. A zero-row input lands here too: each Final
 // returns the same empty-input value the generic path's emptyAggValue yields
-// (COUNT 0, TOTAL 0.0, SUM/AVG NULL). Returns nil when no feed is active.
-func (e *SelectEngine) finishSimpleAggFeed(s *sql.SelectStmt, colDefs []sql.ColumnDef) *Result {
-	if e.simpleAggFeed == nil {
-		return nil
-	}
-	feed := e.simpleAggFeed
-	e.simpleAggFeed = nil
+// (COUNT 0, TOTAL 0.0, SUM/AVG NULL).
+func (e *SelectEngine) finishSimpleAggFeed(s *sql.SelectStmt, feed *simpleAggFeed, colDefs []sql.ColumnDef) *Result {
 	columns := e.buildColumnNames(s.Columns, colDefs, s)
 	outRow := make([]interface{}, len(feed.calls))
 	for i := range feed.calls {

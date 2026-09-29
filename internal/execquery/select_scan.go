@@ -416,9 +416,9 @@ func distinctIndexOrder(e *SelectEngine, entry *schema.Entry, tableEntry *schema
 // scanTableRowsWithSQL scans with the table's CREATE SQL so WITHOUT ROWID
 // index-leaf records (PK-first) can be remapped to declared order. Empty
 // createSQL disables the remap (legacy callers without schema context).
-func (e *SelectEngine) scanTableRowsWithSQL(cursor *btree.Cursor, s *sql.SelectStmt, colDefs []sql.ColumnDef, needMaps bool, createSQL string) ([][]interface{}, []RowMap, error) {
+func (e *SelectEngine) scanTableRowsWithSQL(cursor *btree.Cursor, s *sql.SelectStmt, colDefs []sql.ColumnDef, needMaps bool, createSQL string, feed *simpleAggFeed) ([][]interface{}, []RowMap, error) {
 
-	st := newScanState(e, s, colDefs, needMaps)
+	st := newScanState(e, s, colDefs, needMaps, feed)
 	// WITHOUT ROWID tables live in an index btree; the root is an index-leaf
 	// (0x0a) while small, and an interior index page (0x02) once the table
 	// exceeds one leaf. Both store PK-first records.
@@ -547,9 +547,8 @@ type scanState struct {
 // newScanState builds the scan configuration and reusable buffers for a table
 // scan. The StructRow and flat output buffers are reused across all rows to
 // avoid per-row allocation.
-func newScanState(e *SelectEngine, s *sql.SelectStmt, colDefs []sql.ColumnDef, needMaps bool) *scanState {
+func newScanState(e *SelectEngine, s *sql.SelectStmt, colDefs []sql.ColumnDef, needMaps bool, feed *simpleAggFeed) *scanState {
 	hasJoins := len(s.Joins) > 0
-	feed := e.simpleAggFeed
 	if feed != nil {
 		// Feed mode materializes no rows or row maps: the map-driven
 		// all-columns affinity fallback can never apply.
@@ -600,7 +599,7 @@ func newScanState(e *SelectEngine, s *sql.SelectStmt, colDefs []sql.ColumnDef, n
 		isSelectStar:           isSelectStarQuery(s, hasJoins),
 		activeColCount:         activeColCount,
 		needMaps:               needMaps,
-		feed:                   e.simpleAggFeed,
+		feed:                   feed,
 		// Pre-allocate a flat slice for SELECT * to avoid per-row make() calls.
 		outValues:    make([]interface{}, 0, 1024*activeColCount),
 		outRowStarts: make([]int, 0, 1024),

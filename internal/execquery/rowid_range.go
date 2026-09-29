@@ -360,7 +360,7 @@ type rangeSeekRow struct {
 // columns, phase 2 refills the rest for rows that pass. handled=false falls
 // back to the full scan (seek or evaluation anomaly); the returned rows are
 // exactly the scan's.
-func (e *SelectEngine) selectRowidRangeRows(s *sql.SelectStmt, tree *btree.BTree, colDefs []sql.ColumnDef, a *rowidSeekAnalysis, needMaps bool) ([][]interface{}, []RowMap, bool) {
+func (e *SelectEngine) selectRowidRangeRows(s *sql.SelectStmt, tree *btree.BTree, colDefs []sql.ColumnDef, a *rowidSeekAnalysis, needMaps bool, feed *simpleAggFeed) ([][]interface{}, []RowMap, bool) {
 	if a.empty {
 		return [][]interface{}{}, nil, true
 	}
@@ -377,7 +377,6 @@ func (e *SelectEngine) selectRowidRangeRows(s *sql.SelectStmt, tree *btree.BTree
 	}
 	// Feed mode produces no rows or row maps: the statement's aggregate
 	// result is built from the feed after the loop.
-	feed := e.simpleAggFeed
 	if feed != nil {
 		needMaps = false
 	}

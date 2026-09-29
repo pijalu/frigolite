@@ -64,9 +64,10 @@ func (v *SelectValidator) ValidateExprs(s *sql.SelectStmt) error {
 // ScanTable scans a base table's rows (fast StructRow path) returning the
 // flat rows, the per-row maps, and an error. colDefs must be the resolved
 // column definitions for the table; tableEntry the schema entry; cursor the
-// open B-tree cursor positioned for the scan.
-func (t *TableScanner) ScanTable(s *sql.SelectStmt, tableEntry *schema.Entry, colDefs []sql.ColumnDef, cursor *btree.Cursor) ([][]interface{}, []RowMap, error) {
-	return t.engine.execSelectScanPhase(s, cursor, colDefs, tableEntry)
+// open B-tree cursor positioned for the scan; feed the statement's
+// simple-aggregate feed (nil for the generic path).
+func (t *TableScanner) ScanTable(s *sql.SelectStmt, tableEntry *schema.Entry, colDefs []sql.ColumnDef, cursor *btree.Cursor, feed *simpleAggFeed) ([][]interface{}, []RowMap, error) {
+	return t.engine.execSelectScanPhase(s, cursor, colDefs, tableEntry, feed)
 }
 
 // --- QueryPlanner public surface (SOLID-08) ---
