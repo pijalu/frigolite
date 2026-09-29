@@ -141,27 +141,10 @@ func (e *SelectEngine) rowPassesWhere(where sql.Expr, row Row, cursor *btree.Cur
 	if where == nil {
 		return true, nil
 	}
-	// Fast path: simple comparison ColumnRef OP Literal
-	if bop, ok := where.(*sql.BinaryOp); ok && row != nil {
-		if result, ok := e.fastEvalComparison(bop, row); ok {
-			return result, nil
-		}
-	}
-	// Fast path: BETWEEN with a column operand and literal bounds — the same
-	// column-to-literal comparison discipline as fastEvalComparison (scalar
-	// BETWEEN is operand >= low AND operand <= high; a NULL operand or bound
-	// falls through to the general evaluator's three-valued logic).
-	if bt, ok := where.(*sql.Between); ok && row != nil {
-		if result, ok := e.fastEvalBetween(bt, row); ok {
-			return result, nil
-		}
-	}
-	// Fast path: AND chains whose every leaf is a simple comparison or a
-	// literal-bounded BETWEEN (the WHERE-driven range shape: col >= lo AND
-	// col < hi). Any leaf falling through evaluates the whole tree generically
-	// (fast leaves are non-NULL definitive booleans, so the AND is exact).
-	if bop, ok := where.(*sql.BinaryOp); ok && bop.Operator == "AND" && row != nil {
-		if result, ok := e.fastEvalAndChain(bop, row); ok {
+	// Fast paths: simple comparison / literal-bounded BETWEEN / AND chains
+	// thereof (see fastEvalWhere). A fall-through evaluates generically.
+	if row != nil {
+		if result, ok := e.fastEvalWhere(where, row); ok {
 			return result, nil
 		}
 	}
@@ -170,6 +153,24 @@ func (e *SelectEngine) rowPassesWhere(where sql.Expr, row Row, cursor *btree.Cur
 		return false, err
 	}
 	return match, nil
+}
+
+// fastEvalWhere attempts the row-loop WHERE fast paths without the general
+// expression evaluator: a simple comparison (ColumnRef OP Literal), a
+// BETWEEN with a column operand and literal bounds, or an AND chain whose
+// every leaf is one of those. ok=false falls through to the general
+// evaluator (the fast paths are strict subsets of its semantics).
+func (e *SelectEngine) fastEvalWhere(where sql.Expr, row Row) (bool, bool) {
+	switch v := where.(type) {
+	case *sql.BinaryOp:
+		if v.Operator == "AND" {
+			return e.fastEvalAndChain(v, row)
+		}
+		return e.fastEvalComparison(v, row)
+	case *sql.Between:
+		return e.fastEvalBetween(v, row)
+	}
+	return false, false
 }
 
 // fastEvalAndChain evaluates an AND of ANDs whose leaves are all fast

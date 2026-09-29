@@ -51,68 +51,90 @@ type aggFeedCall struct {
 // compileSimpleAggFeed extracts the simple-aggregate feed for a real-table
 // SELECT, or nil when the statement keeps the generic aggregate path.
 func (e *SelectEngine) compileSimpleAggFeed(s *sql.SelectStmt, tableEntry *schema.Entry, colDefs []sql.ColumnDef) *simpleAggFeed {
-	if s == nil || tableEntry == nil || len(s.Columns) == 0 {
-		return nil
-	}
-	// Single real rowid table only; no compound chain (the feed produces the
-	// single collapsed row and leaves compound merging to finalizeSelectResult
-	// via the generic path's contract).
-	if s.Union != nil || s.From.Subquery != nil || s.From.Name == "" || len(s.Joins) > 0 {
-		return nil
-	}
-	if len(s.GroupBy) > 0 || s.Having != nil || s.Distinct {
-		return nil
-	}
-	if IsSchemaTable(tableEntry.Name) {
-		return nil
-	}
-	// WITHOUT ROWID tables remap PK-first records inside the scan (wrOrder);
-	// the feed reads declared-order slots from the rowid-table pipeline only.
-	if e.ctx.HasWithoutRowidKeyword(strings.ToUpper(tableEntry.SQL)) {
-		return nil
-	}
-	// reverse_unordered_selects feeds the generic path its rows in reverse; a
-	// compensated float sum is order-sensitive in the last ulp, so the feed
-	// only runs when the reversal would not apply.
-	if e.ctx.ReverseUnordered() && len(s.OrderBy) == 0 && e.selectDepth == 1 {
-		return nil
-	}
-	// A WHERE-driven index scan reorders surviving rows into index key order
-	// after the scan; the feed has no rows to reorder.
-	if e.indexScanOrderIndex(s) != "" {
-		return nil
-	}
-	// Correlated outer contexts route aggregates to the outer rows
-	// (execSelectOuterAgg / execSelectCorrelatedAgg run first).
-	if e.outerRow != nil || len(e.outerRows) > 0 {
-		return nil
-	}
-	if e.hasSubqueryWithCorrelatedAgg(s.Columns) || e.selectHasWindowFuncs(s.Columns) {
+	if s == nil || tableEntry == nil || len(s.Columns) == 0 || !e.aggFeedStatementEligible(s, tableEntry) {
 		return nil
 	}
 	feed := &simpleAggFeed{}
 	for _, col := range s.Columns {
-		fn, ok := col.Expr.(*sql.FuncCall)
-		if !ok {
-			return nil
-		}
-		reg, found := e.ctx.Functions().Find(fn.Name)
-		if !found || reg.Type != function.TypeAggregate {
-			return nil
-		}
-		if fn.Distinct || fn.Filter != nil || len(fn.OrderBy) > 0 {
-			return nil
-		}
-		if nested := e.findAggNestedAggregates(fn); nested != "" {
-			return nil
-		}
-		call, ok := compileAggFeedCall(fn, reg, s, colDefs)
+		call, ok := e.compileAggFeedColumn(col, s, colDefs)
 		if !ok {
 			return nil
 		}
 		feed.calls = append(feed.calls, call)
 	}
 	return feed
+}
+
+// aggFeedStatementEligible reports the statement-level guards: one real
+// rowid table, no GROUP BY/HAVING/DISTINCT/window/correlated-agg context,
+// and no scan-order effect the feed cannot reproduce. Every false branch
+// names the semantic hazard it excludes.
+func (e *SelectEngine) aggFeedStatementEligible(s *sql.SelectStmt, tableEntry *schema.Entry) bool {
+	return aggFeedSingleRowidTable(e, s, tableEntry) && e.aggFeedEvaluationEligible(s)
+}
+
+// aggFeedSingleRowidTable reports the FROM-shape guards: the feed steps one
+// plain rowid table's rows (no compound chain, joins, FROM subquery, schema
+// table, or WITHOUT ROWID storage).
+func aggFeedSingleRowidTable(e *SelectEngine, s *sql.SelectStmt, tableEntry *schema.Entry) bool {
+	// The feed produces the single collapsed row and leaves compound merging
+	// to finalizeSelectResult via the generic path's contract.
+	if s.Union != nil || s.From.Subquery != nil || s.From.Name == "" || len(s.Joins) > 0 {
+		return false
+	}
+	if len(s.GroupBy) > 0 || s.Having != nil || s.Distinct {
+		return false
+	}
+	if IsSchemaTable(tableEntry.Name) {
+		return false
+	}
+	// WITHOUT ROWID tables remap PK-first records inside the scan (wrOrder);
+	// the feed reads declared-order slots from the rowid-table pipeline only.
+	return !e.ctx.HasWithoutRowidKeyword(strings.ToUpper(tableEntry.SQL))
+}
+
+// aggFeedEvaluationEligible reports the evaluation-context guards: the
+// generic path must not reorder or reroute the feed's row stream.
+func (e *SelectEngine) aggFeedEvaluationEligible(s *sql.SelectStmt) bool {
+	// reverse_unordered_selects feeds the generic path its rows in reverse; a
+	// compensated float sum is order-sensitive in the last ulp, so the feed
+	// only runs when the reversal would not apply.
+	if e.ctx.ReverseUnordered() && len(s.OrderBy) == 0 && e.selectDepth == 1 {
+		return false
+	}
+	// A WHERE-driven index scan reorders surviving rows into index key order
+	// after the scan; the feed has no rows to reorder.
+	if e.indexScanOrderIndex(s) != "" {
+		return false
+	}
+	// Correlated outer contexts route aggregates to the outer rows
+	// (execSelectOuterAgg / execSelectCorrelatedAgg run first).
+	if e.outerRow != nil || len(e.outerRows) > 0 {
+		return false
+	}
+	return !e.hasSubqueryWithCorrelatedAgg(s.Columns) && !e.selectHasWindowFuncs(s.Columns)
+}
+
+// compileAggFeedColumn compiles one output column into a feed call. The
+// column must be an aggregate registry call with no DISTINCT, FILTER, or
+// ORDER BY and no nested aggregate (all of which evaluate through dedicated
+// generic paths).
+func (e *SelectEngine) compileAggFeedColumn(col sql.SelectColumn, s *sql.SelectStmt, colDefs []sql.ColumnDef) (aggFeedCall, bool) {
+	fn, ok := col.Expr.(*sql.FuncCall)
+	if !ok {
+		return aggFeedCall{}, false
+	}
+	reg, found := e.ctx.Functions().Find(fn.Name)
+	if !found || reg.Type != function.TypeAggregate {
+		return aggFeedCall{}, false
+	}
+	if fn.Distinct || fn.Filter != nil || len(fn.OrderBy) > 0 {
+		return aggFeedCall{}, false
+	}
+	if nested := e.findAggNestedAggregates(fn); nested != "" {
+		return aggFeedCall{}, false
+	}
+	return compileAggFeedCall(fn, reg, s, colDefs)
 }
 
 // compileAggFeedCall compiles one aggregate output column. Only the
@@ -126,24 +148,7 @@ func (e *SelectEngine) compileSimpleAggFeed(s *sql.SelectStmt, tableEntry *schem
 func compileAggFeedCall(fn *sql.FuncCall, reg *function.Func, s *sql.SelectStmt, colDefs []sql.ColumnDef) (aggFeedCall, bool) {
 	switch strings.ToUpper(fn.Name) {
 	case "COUNT":
-		switch {
-		case len(fn.Args) == 0:
-			return aggFeedCall{agg: reg.AggregateFn(), countStar: true}, true
-		case len(fn.Args) == 1:
-			// COUNT(*) parses as a single star argument (the expression
-			// evaluator produces the non-nil "*" marker for it, so the
-			// generic counter counts every row); the feed steps it as a
-			// no-argument row count.
-			if ref, ok := unwrapParenExpr(fn.Args[0]).(*sql.ColumnRef); ok && ref.Name == "*" {
-				if ref.Table != "" && !strings.EqualFold(ref.Table, s.From.Name) &&
-					(s.From.As == "" || !strings.EqualFold(ref.Table, s.From.As)) {
-					return aggFeedCall{}, false
-				}
-				return aggFeedCall{agg: reg.AggregateFn(), countStar: true}, true
-			}
-		default:
-			return aggFeedCall{}, false
-		}
+		return compileAggFeedCount(fn, reg, s, colDefs)
 	case "SUM", "AVG", "TOTAL":
 		if len(fn.Args) != 1 {
 			return aggFeedCall{}, false
@@ -151,12 +156,39 @@ func compileAggFeedCall(fn *sql.FuncCall, reg *function.Func, s *sql.SelectStmt,
 	default:
 		return aggFeedCall{}, false
 	}
-	ref, ok := unwrapParenExpr(fn.Args[0]).(*sql.ColumnRef)
+	return aggFeedColumnArg(fn.Args[0], reg, s, colDefs)
+}
+
+// compileAggFeedCount compiles COUNT: no argument (COUNT(*)) or one column
+// reference. COUNT(*) parses as a single star argument (the expression
+// evaluator produces the non-nil "*" marker for it, so the generic counter
+// counts every row); the feed steps it as a no-argument row count.
+func compileAggFeedCount(fn *sql.FuncCall, reg *function.Func, s *sql.SelectStmt, colDefs []sql.ColumnDef) (aggFeedCall, bool) {
+	switch {
+	case len(fn.Args) == 0:
+		return aggFeedCall{agg: reg.AggregateFn(), countStar: true}, true
+	case len(fn.Args) == 1:
+		if ref, ok := unwrapParenExpr(fn.Args[0]).(*sql.ColumnRef); ok && ref.Name == "*" {
+			if ref.Table != "" && !aggFeedQualifierMatches(ref.Table, s) {
+				return aggFeedCall{}, false
+			}
+			return aggFeedCall{agg: reg.AggregateFn(), countStar: true}, true
+		}
+		return aggFeedColumnArg(fn.Args[0], reg, s, colDefs)
+	default:
+		return aggFeedCall{}, false
+	}
+}
+
+// aggFeedColumnArg compiles one aggregate argument: a plain column reference
+// designating the rowid pseudo-column (no declared column shadows it) or a
+// stored declared column of the scanned table.
+func aggFeedColumnArg(arg sql.Expr, reg *function.Func, s *sql.SelectStmt, colDefs []sql.ColumnDef) (aggFeedCall, bool) {
+	ref, ok := unwrapParenExpr(arg).(*sql.ColumnRef)
 	if !ok || ref.Name == "*" {
 		return aggFeedCall{}, false
 	}
-	if ref.Table != "" && !strings.EqualFold(ref.Table, s.From.Name) &&
-		(s.From.As == "" || !strings.EqualFold(ref.Table, s.From.As)) {
+	if ref.Table != "" && !aggFeedQualifierMatches(ref.Table, s) {
 		return aggFeedCall{}, false
 	}
 	if IsRowIDName(ref.Name) {
@@ -170,6 +202,13 @@ func compileAggFeedCall(fn *sql.FuncCall, reg *function.Func, s *sql.SelectStmt,
 		return aggFeedCall{}, false
 	}
 	return aggFeedCall{agg: reg.AggregateFn(), slot: slot}, true
+}
+
+// aggFeedQualifierMatches reports whether a reference's qualifier names the
+// scanned FROM table or its alias.
+func aggFeedQualifierMatches(table string, s *sql.SelectStmt) bool {
+	return strings.EqualFold(table, s.From.Name) ||
+		(s.From.As != "" && strings.EqualFold(table, s.From.As))
 }
 
 // aggFeedArgSlot resolves an unqualified column reference to its colDefs
