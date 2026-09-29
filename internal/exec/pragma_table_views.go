@@ -10,7 +10,8 @@ import (
 	"github.com/pijalu/frigolite/internal/value"
 	"strings"
 
-	"github.com/pijalu/frigolite/internal/execdml")
+	"github.com/pijalu/frigolite/internal/execdml"
+)
 
 // materializeForeignKeyListWithRow builds the rows of pragma_foreign_key_list
 // (table-valued PRAGMA foreign_key_list) with a row context for

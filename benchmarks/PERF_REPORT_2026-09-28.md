@@ -365,3 +365,59 @@ did. Post-merge census remains mandatory.
 - **Memory/CPU**: per-phase heap fell to 2.8–85MB and CPU/wall to
   1.14–1.36× (sqlite3: 1.0×) — the GC-coordination profiles that
   dominated the original report are gone from all fixed paths.
+
+---
+
+# PERF-GC — 2026-09-29: complete re-profile + Go/GC-pattern round
+
+Objective: every phase still below sqlite3 got a complete fresh CPU+memory
+profile; bottlenecks fixed with Go-specific patterns to cut GC impact.
+
+## Profile findings (all six phases, 100k rows)
+
+Runtime/GC coordination is now the dominant CPU cost in every phase (app
+work 25–66% of samples). The allocation profile collapsed to a handful of
+repeating allocators across phases:
+
+| allocator | share | fix |
+|---|---|---|
+| btree.partitionSplitCells (+cellDatas/readCellsForSplit) | 25–43% | running-total fit test (was O(n²) probe copy per cell); helpers removed |
+| strings.ToUpper per-statement gates (WITHOUT ROWID ×52 sites, FTS/vtab prefixes, temp checks) | 8–19% | util.IndexFoldASCII/ContainsFoldASCII/HasPrefixFoldASCII (zero-alloc ASCII fold); tableIsWithoutRowid; isStrictTable de-allocated |
+| execdml.buildColumnIndex | 3.5–9% | DMLExecutor.columnIndexFor memo, schema-fingerprint guarded (DDL invalidation pinned by TestColumnIndexCacheInvalidation) |
+| per-row output maps (StructRowToMap/appendRowOutput/parseRecordSerialTypes) | 32–40% cum (group/update/delete) | fleet/perf-gc-rowmap: output-row skip under agg/group passes, shared slot values, pre-sized maps, reusable type buffers, allocation-free window scan, scratch pools (see below) |
+
+## Results after the round (100k rows)
+
+| Phase | before round | after | vs original baseline | vs sqlite3 |
+|---|---|---|---|---|
+| INSERT | 103–113k ops/s | **142–184k ops/s** | 5.9× | 12.4× → **6.9–8.8×** |
+| SELECT point | 100.9k ops/s | **128–130k ops/s** | 660× | 9.7× → **6.8×** |
+| SELECT scan | 7.44M rows/s | 7.45–7.56M rows/s | 5.2× | **7.0×** |
+| UPDATE | 50.7k ops/s | **74–75k ops/s** | 1138× | 19.6× → **13.4×** |
+| DELETE | 50.5k ops/s | **65–66k ops/s** | 490× | 25.2× → **19.5×** |
+| CPU util | 1.14–1.36× wall | **1.11–1.40×** | — | — |
+
+Agent tranche `fleet/perf-gc-rowmap` (merged `1baf26b14`): GROUP BY probe
+allocs −57% and 2.1–2.4× ops/s, scan SELECT allocs −51%; 154/154 mandated
+testgen packages green; 7,820-line parity battery byte-identical; found
+and fixed a rowsless-permutation panic en route (aggorderby).
+
+## Remaining floors (exact frames, for the next round)
+
+- **scan 7.0×**: btree cursor ops + int64 decode boxing at the cursor
+  Step interface + the IPK wrapper (WHERE affinity semantics) — needs the
+  value-ordered-index/typed-row tranche.
+- **update/delete 13–19×**: storage.DecodeRecord ~26% + btree cell decode
+  ~17% + pager statement journal ~15% of remaining bytes, plus the
+  retained-RowMap + per-column affinity-wrapper DML contracts; journal
+  before-image pooling (copyPageBytesLocked) deferred as
+  rollback-correctness-sensitive.
+- **GROUP BY ~9 ops/s**: the group-key machinery is the floor —
+  partitionByGroupKey 13.5% + equivalentGroupKey 10.3% +
+  groupKeyValuesEqual 8.7% of group-phase CPU (the serializer is typed
+  and stable; the linear equivalent-group scan and per-row key EvalExpr
+  are the next targets: typed map keys or a single-group fast path).
+- **point 6.8× / insert 6.9–8.8×**: exec plumbing + parse pipeline;
+  prepare/bind public API remains the structural answer.
+
+Census after the round: **1073 pass / 0 fail / 290 skip, audit exit 0.**

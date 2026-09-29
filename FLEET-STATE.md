@@ -794,3 +794,24 @@ CPU+memory profile; bottlenecks fixed with Go-specific patterns
 (sync.Pool reuse, boxing elimination, map->slice, escape analysis,
 alloc-size reduction) to cut GC impact. Measure per step; suites +
 census at end.
+
+## PERF-GC (END, 2026-09-29) — full re-profile + GC-pattern round complete
+
+All six phases re-profiled (CPU+alloc): runtime/GC coordination dominates
+every phase; fixed the repeating allocators:
+- partitionSplitCells O(n^2) probe -> running-total fit (INSERT best run
+  184k ops/s);
+- 52x ToUpper-per-statement WITHOUT ROWID gates + FTS/vtab prefix gates ->
+  util fold helpers (tableIsWithoutRowid etc.);
+- buildColumnIndex memoized per schema fingerprint
+  (TestColumnIndexCacheInvalidation);
+- fleet/perf-gc-rowmap merged 1baf26b14: row-output diet (GROUP BY probe
+  -57% allocs, 2.1-2.4x; scan SELECT -51% allocs); 154/154 suites.
+Benchmark: insert 142-184k ops/s, point 128-130k, scan 7.5M rows/s,
+update 74-75k, delete 65-66k; CPU/wall 1.11-1.40x. Census 1073/0/290
+audit exit 0.
+Remaining floors with exact frames documented in the report PERF-GC
+section: group-key machinery (equivalentGroupKey linear scan), storage
+decode + journal copies (update/delete), value-ordered-index tranche
+(scan), prepare/bind API (point/insert). Follow-up: journal before-image
+pooling deferred (rollback-correctness risk vs 4-5%).
