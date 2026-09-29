@@ -201,9 +201,28 @@ func (e *Engine) InvalidateTableCaches() {
 	e.invalidateTableCaches()
 }
 
-// RestorePager restores a pager snapshot and invalidates all schema caches.
-func (e *Engine) RestorePager(pg *pager.Pager, snap *pager.PagerState) {
-	e.restorePager(pg, snap)
+// BeginPagerStatement opens a statement rollback scope on pg (pager.c
+// sub-journal at statement begin): the scope captures the before-image of
+// every page the statement first modifies, so rolling it back restores only
+// what the statement actually wrote.
+func (e *Engine) BeginPagerStatement(pg *pager.Pager) *pager.StmtJournal {
+	return pg.BeginStatement()
+}
+
+// RollbackPagerStatement replays a failed statement's before-image journal
+// on pg and invalidates the schema caches a page-level rollback stales (the
+// counterpart of restorePager for the statement-journal path: page 1 may
+// roll back while the schema managers' in-memory caches describe the
+// aborted statement's schema state).
+func (e *Engine) RollbackPagerStatement(pg *pager.Pager, j *pager.StmtJournal) {
+	if pg == nil || j == nil {
+		return
+	}
+	pg.RollbackStatement(j)
+	e.invalidateTableCaches()
+	for _, dbCtx := range e.dbList {
+		dbCtx.Schema.InvalidateCache()
+	}
 }
 
 // EchoVTabSource resolves the source table of an echo virtual table.

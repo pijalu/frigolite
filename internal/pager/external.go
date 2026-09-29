@@ -233,7 +233,7 @@ func (p *Pager) SetLargestRootPage(v uint32) {
 		return
 	}
 	binary.BigEndian.PutUint32(p.header[52:56], v)
-	p.dirty[1] = true
+	p.markDirtyLocked(1)
 	if pg, ok := p.pages[1]; ok && pg != nil && len(pg.Data) >= HeaderSize {
 		copy(pg.Data[:HeaderSize], p.header)
 	}
@@ -266,7 +266,7 @@ func (p *Pager) DecrementFreelistCount(n uint32) {
 		n = cur
 	}
 	binary.BigEndian.PutUint32(h[36:40], cur-n)
-	p.dirty[1] = true
+	p.markDirtyLocked(1)
 }
 
 // currentHeader returns the 100-byte database header: the cached copy when
@@ -365,7 +365,7 @@ func (p *Pager) WritePtrmap(pgno uint32, parentType byte, parentPgno uint32) err
 		return err
 	}
 	p.mu.Lock()
-	p.dirty[ptrmapPg] = true
+	p.markDirtyLocked(ptrmapPg)
 	p.mu.Unlock()
 	return nil
 }
@@ -406,7 +406,7 @@ func (p *Pager) ZeroFreelistChain() {
 	binary.BigEndian.PutUint32(p.header[32:36], 0)
 	binary.BigEndian.PutUint32(p.header[36:40], 0)
 	p.invalidateFreelistSetLocked()
-	p.dirty[1] = true
+	p.markDirtyLocked(1)
 	if pg, ok := p.pages[1]; ok && pg != nil {
 		copy(pg.Data[:HeaderSize], p.header)
 	}
@@ -423,6 +423,6 @@ func MarkPageDirtyForVacuum(p *Pager, pgno uint32) {
 		return
 	}
 	p.mu.Lock()
-	p.dirty[pgno] = true
+	p.markDirtyLocked(pgno)
 	p.mu.Unlock()
 }

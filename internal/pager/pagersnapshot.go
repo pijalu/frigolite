@@ -1,9 +1,17 @@
-// Package pager — statement-level state snapshot/restore.
+// Package pager — whole-state snapshot/restore.
 //
-// PagerState is a deep snapshot of the pager's in-memory pages and header,
-// used for statement-level rollback (e.g. a failed REPLACE that fired
-// triggers): Snapshot captures, Restore reinstates (pager.c pager_rollback
-// via the journal playback path).
+// PagerState is a deep snapshot of the pager's in-memory pages and header:
+// Snapshot captures, Restore reinstates (pager.c pager_rollback via the
+// journal playback path). Snapshot/Restore is reserved for WHOLE-STATE
+// scopes — the BEGIN/ROLLBACK transaction pair and SAVEPOINT/ROLLBACK TO
+// (internal/exec/transaction.go) and the shared-memdb isolation swap
+// (internal/exec/select_delegate.go) — where the rollback must reach across
+// many statements and a full image is the contract.
+//
+// Per-STATEMENT rollback does NOT go through Snapshot: it uses the
+// statement journal (pagerstmt.go — pager.c sub-journal), which captures
+// before-images lazily at first page write and costs O(1) per statement
+// instead of O(database).
 package pager
 
 // Snapshot captures the pager's current in-memory pages and header so they
@@ -56,6 +64,16 @@ func (p *Pager) Restore(s *PagerState) {
 	}
 	p.mu.Lock()
 	defer p.mu.Unlock()
+	// A whole-state restore (transaction ROLLBACK, savepoint ROLLBACK TO,
+	// memdb isolation swap) supersedes every open statement scope: their
+	// journals describe pre-restore page states that no longer exist, and a
+	// later EndStatement/RollbackStatement on a stale token must be a no-op
+	// (a nested ROLLBACK via eval()/trigger undoes the enclosing statement's
+	// writes wholesale — trigger2-6.1h/6.2h contract).
+	for cur := p.stmtTop; cur != nil; cur = cur.parent {
+		cur.done = true
+	}
+	p.stmtTop = nil
 	// ROLLBACK ends the write transaction: drop the WRITER shm lock
 	// (sqlite3WalEndWriteTransaction parity; a savepoint rollback that still
 	// leaves dirty pages re-acquires it at the next write).
@@ -79,6 +97,11 @@ func (p *Pager) Restore(s *PagerState) {
 		p.pages[n] = cp
 	}
 	p.dirty = make(map[uint32]bool, len(s.dirty))
+	// Restored dirty pages carry earlier-statements' uncommitted writes whose
+	// only statement-start image is the restored bytes themselves: drop the
+	// dirty stamps so future statement scopes treat them as begin-dirty and
+	// capture their before-images from memory.
+	p.dirtyMark = make(map[uint32]uint64)
 	for n := range s.dirty {
 		p.dirty[n] = true
 	}

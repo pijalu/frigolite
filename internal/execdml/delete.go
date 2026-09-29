@@ -498,8 +498,17 @@ func (e *DMLExecutor) seekDeleteRows(tree *btree.BTree, s *sql.DeleteStmt, table
 			return nil, false
 		}
 		row, found, err := e.fetchSeekRow(tree, tableEntry.Name, tableEntry.RootPage, tableEntry.SQL, colDefs, rowID)
-		if err != nil || !found {
-			return nil, false
+		if err != nil {
+			return nil, false // the scan fallback re-evaluates and surfaces it
+		}
+		if !found {
+			// The pinned rowid has no row: a no-match point DELETE ("DELETE
+			// FROM t WHERE id=<absent>") or a stale index candidate. The
+			// equality conjunct pins the candidate set exactly, so the
+			// candidate contributes nothing — falling back to the full scan
+			// here degraded every no-match point DELETE to O(table)
+			// (PERF_REPORT 3.4).
+			continue
 		}
 		match, err := e.rowMatchesWhere(s.Where, row)
 		if err != nil {
@@ -517,14 +526,17 @@ func (e *DMLExecutor) seekDeleteRows(tree *btree.BTree, s *sql.DeleteStmt, table
 // AFTER triggers (delete.c:807-872). The engine mirrors this per-row order so
 // BEFORE/AFTER trigger side effects interleave as SQLite's do.
 func (e *DMLExecutor) execDeleteBulk(tableEntry *schema.Entry, dbCtx *DatabaseContext, tree *btree.BTree, colDefs []sql.ColumnDef, deletedRows []RowMap) *Result {
-	// Snapshot for the FK-failure rollback below. Skip it for the FTS flush's
-	// internal shadow-table deletes: they are part of the enclosing statement's
-	// rollback scope, and copying the whole pager per deleted %_segdir row made
-	// the automerge's segment cleanup O(n^2) (deleteFTSSegdirIdx was ~20% of
-	// the fts4merge4 profile; fts4merge4 2.2.x).
-	var snap *pager.PagerState
+	// Statement journal for the FK-failure rollback below (pager.c
+	// sub-journal: before-images captured lazily at first page write, so a
+	// statement that matches no rows — or deletes without an FK error — pays
+	// O(1) here instead of the O(database) deep copy a PagerState snapshot
+	// took). Skip it for the FTS flush's internal shadow-table deletes: they
+	// are part of the enclosing statement's rollback scope (deleteFTSSegdirIdx
+	// was ~20% of the fts4merge4 profile).
+	var stmt *pager.StmtJournal
 	if !e.ctx.InFTSFlush() {
-		snap = dbCtx.Pager.Snapshot()
+		stmt = dbCtx.Pager.BeginStatement()
+		defer dbCtx.Pager.EndStatement(stmt)
 	}
 	// WITHOUT ROWID tables store rows keyed by a synthetic rowid, so the
 	// btree scan returns insertion order, not PRIMARY KEY order. SQLite
@@ -546,7 +558,7 @@ func (e *DMLExecutor) execDeleteBulk(tableEntry *schema.Entry, dbCtx *DatabaseCo
 		// 4KB blob rows) take ~40s; fts4merge4's between-scenario DELETE).
 		deleted, rowsToKeep, res = e.deleteBulkNoTriggers(tableEntry, dbCtx, colDefs, deletedRows)
 	} else {
-		deleted, rowsToKeep, res = e.deleteBulkWithTriggers(tableEntry, dbCtx, colDefs, snap, deletedRows)
+		deleted, rowsToKeep, res = e.deleteBulkWithTriggers(tableEntry, dbCtx, colDefs, stmt, deletedRows)
 	}
 	if res != nil {
 		return res
@@ -560,7 +572,7 @@ func (e *DMLExecutor) execDeleteBulk(tableEntry *schema.Entry, dbCtx *DatabaseCo
 	if e.ctx.ForeignKeys() && !e.hasTriggersForTable(tableEntry.Name) {
 		for _, row := range rowsToKeep {
 			if res := e.ctx.FkParentDelete(tableEntry, colDefs, row); res.Error != nil {
-				e.ctx.RestorePager(dbCtx.Pager, snap)
+				e.ctx.RollbackPagerStatement(dbCtx.Pager, stmt)
 				e.ctx.InvalidateRowIDCache(e.dmlPager(tableEntry.Name), tableEntry.RootPage)
 				return res
 			}
@@ -584,15 +596,21 @@ func (e *DMLExecutor) deleteBulkNoTriggers(tableEntry *schema.Entry, dbCtx *Data
 		declaredRows = append(declaredRows, e.rowMapColumnValues(row, colDefs))
 	}
 	// WITHOUT ROWID rows are PK-keyed index cells sharing synthetic
-	// RowID 0: match OLD PK keys, not rowids.
-	if _, err := e.deleteRowsByIdentity(tableEntry, colDefs, rowIDs, declaredRows, nil); err != nil {
-		return 0, nil, &Result{Error: err}
-	}
-	// Remove the deleted rows' index entries (SQLite OP_Delete deletes
-	// from every index; stale entries pin overflow pages and stall
-	// auto-vacuum truncation).
-	if err := e.maintainIndexesOnDelete(tableEntry, colDefs, deletedRows); err != nil {
-		return 0, nil, &Result{Error: err}
+	// RowID 0: match OLD PK keys, not rowids. With no matching rows there is
+	// nothing to delete — skip the b-tree pass entirely (DeleteCellsWhere
+	// sweeps every leaf; running it for a no-match DELETE made the statement
+	// O(table) even when the seek plan had already pinned an empty candidate
+	// set, PERF_REPORT 3.4).
+	if len(deletedRows) > 0 {
+		if _, err := e.deleteRowsByIdentity(tableEntry, colDefs, rowIDs, declaredRows, nil); err != nil {
+			return 0, nil, &Result{Error: err}
+		}
+		// Remove the deleted rows' index entries (SQLite OP_Delete deletes
+		// from every index; stale entries pin overflow pages and stall
+		// auto-vacuum truncation).
+		if err := e.maintainIndexesOnDelete(tableEntry, colDefs, deletedRows); err != nil {
+			return 0, nil, &Result{Error: err}
+		}
 	}
 	for _, row := range deletedRows {
 		if res := e.fireDeletePreupdate(tableEntry, dbCtx, colDefs, row); res != nil {
@@ -608,7 +626,7 @@ func (e *DMLExecutor) deleteBulkNoTriggers(tableEntry *schema.Entry, dbCtx *Data
 // BEFORE triggers, the row delete, the preupdate hook, FK actions (RESTRICT
 // must fire before AFTER triggers can repair the children, e_fkey-42.5) and
 // the AFTER triggers per row.
-func (e *DMLExecutor) deleteBulkWithTriggers(tableEntry *schema.Entry, dbCtx *DatabaseContext, colDefs []sql.ColumnDef, snap *pager.PagerState, deletedRows []RowMap) (int64, []RowMap, *Result) {
+func (e *DMLExecutor) deleteBulkWithTriggers(tableEntry *schema.Entry, dbCtx *DatabaseContext, colDefs []sql.ColumnDef, stmt *pager.StmtJournal, deletedRows []RowMap) (int64, []RowMap, *Result) {
 	deleted := int64(0)
 	rowsToKeep := make([]RowMap, 0, len(deletedRows))
 	for _, row := range deletedRows {
@@ -631,7 +649,7 @@ func (e *DMLExecutor) deleteBulkWithTriggers(tableEntry *schema.Entry, dbCtx *Da
 		}
 		deleted++
 		rowsToKeep = append(rowsToKeep, row)
-		if res := e.finishBulkTriggerRow(tableEntry, dbCtx, colDefs, snap, row); res != nil {
+		if res := e.finishBulkTriggerRow(tableEntry, dbCtx, colDefs, stmt, row); res != nil {
 			return 0, nil, res
 		}
 	}
@@ -645,10 +663,10 @@ func (e *DMLExecutor) deleteBulkWithTriggers(tableEntry *schema.Entry, dbCtx *Da
 // RESTRICT error. On an FK failure the statement rolls back to the snapshot.
 // Only a non-nil Error aborts the caller: fireTriggers legitimately returns a
 // non-nil Result with a nil Error on success.
-func (e *DMLExecutor) finishBulkTriggerRow(tableEntry *schema.Entry, dbCtx *DatabaseContext, colDefs []sql.ColumnDef, snap *pager.PagerState, row RowMap) *Result {
+func (e *DMLExecutor) finishBulkTriggerRow(tableEntry *schema.Entry, dbCtx *DatabaseContext, colDefs []sql.ColumnDef, stmt *pager.StmtJournal, row RowMap) *Result {
 	if e.ctx.ForeignKeys() {
 		if res := e.ctx.FkParentDelete(tableEntry, colDefs, row); res.Error != nil {
-			e.ctx.RestorePager(dbCtx.Pager, snap)
+			e.ctx.RollbackPagerStatement(dbCtx.Pager, stmt)
 			e.ctx.InvalidateRowIDCache(e.dmlPager(tableEntry.Name), tableEntry.RootPage)
 			return res
 		}

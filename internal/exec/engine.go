@@ -652,23 +652,6 @@ func (e *Engine) invalidateTableCaches() {
 	e.caches.viewDefCache = make(map[string][]sql.ColumnDef)
 }
 
-// restorePager restores a pager snapshot and invalidates all schema caches.
-// A pager Restore rolls back page 1 (the schema btree), but the schema
-// managers' in-memory caches are NOT automatically invalidated — a stale cache
-// can describe a schema that no longer matches the restored btree, causing
-// "table X already exists" / missing tables. Call this instead of raw
-// Pager.Restore everywhere a statement-level rollback happens.
-func (e *Engine) restorePager(pg *pager.Pager, snap *pager.PagerState) {
-	if pg == nil || snap == nil {
-		return
-	}
-	pg.Restore(snap)
-	e.invalidateTableCaches()
-	for _, dbCtx := range e.dbList {
-		dbCtx.Schema.InvalidateCache()
-	}
-}
-
 func (e *Engine) tableBTree(tableName string, schemaRoot uint32, isTable bool) *btree.BTree {
 	t := btree.NewBTree(e.tablePager(tableName), e.rootPage(tableName, schemaRoot), isTable)
 	e.trackStatementBTree(t)

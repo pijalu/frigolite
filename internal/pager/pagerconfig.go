@@ -55,7 +55,7 @@ func (p *Pager) SetPageSize(ps uint32) {
 			binary.BigEndian.PutUint16(newData[coff+5:coff+7], uint16(ps))
 			newData[coff+7] = 0
 		}
-		p.dirty[1] = true
+		p.markDirtyLocked(1)
 	}
 }
 
@@ -99,7 +99,7 @@ func (p *Pager) ResetToEmpty(pageSize uint32) {
 	pg.Data[coff] = storage.PageTypeLeafTable
 	binary.BigEndian.PutUint16(pg.Data[coff+5:coff+7], uint16(pageSize-p.reserved))
 	p.pages[1] = pg
-	p.dirty[1] = true
+	p.markDirtyLocked(1)
 	if p.file != nil {
 		end := int64(pageSize)
 		if err := p.file.Truncate(end); err == nil {
@@ -163,14 +163,14 @@ func (p *Pager) SetAutoVacuum(on bool) {
 	}
 	if binary.BigEndian.Uint32(p.header[52:56]) == 0 {
 		binary.BigEndian.PutUint32(p.header[52:56], 1)
-		p.dirty[1] = true
+		p.markDirtyLocked(1)
 		if pg, ok := p.pages[1]; ok && pg != nil && len(pg.Data) >= HeaderSize {
 			copy(pg.Data[:HeaderSize], p.header)
 		}
 	}
 	if binary.BigEndian.Uint32(p.header[64:68]) != 0 {
 		binary.BigEndian.PutUint32(p.header[64:68], 0)
-		p.dirty[1] = true
+		p.markDirtyLocked(1)
 		if pg, ok := p.pages[1]; ok && pg != nil && len(pg.Data) >= HeaderSize {
 			copy(pg.Data[:HeaderSize], p.header)
 		}
@@ -296,7 +296,7 @@ func (p *Pager) ApplyReservedBytes(n uint32) {
 	p.requestedReserve = 0
 	if len(p.header) >= 21 {
 		p.header[20] = byte(n)
-		p.dirty[1] = true
+		p.markDirtyLocked(1)
 		if pg, ok := p.pages[1]; ok && pg != nil && len(pg.Data) >= HeaderSize {
 			copy(pg.Data[:HeaderSize], p.header)
 			// zeroPage parity: an EMPTY page 1 schema leaf must anchor its

@@ -48,7 +48,7 @@ func (p *Pager) Deserialize(img []byte, maxSize int64, readOnly bool) error {
 	defer p.mu.Unlock()
 	if len(img) == 0 {
 		p.pages = make(map[uint32]*Page)
-		p.dirty = make(map[uint32]bool)
+		p.clearDirtySetLocked()
 		p.numPages = 0
 		p.headerCorrupt = false
 		p.readOnly = readOnly
@@ -73,7 +73,7 @@ func (p *Pager) Deserialize(img []byte, maxSize int64, readOnly bool) error {
 	copy(hdr, img[:HeaderSize])
 	if _, perr := storage.ParseHeader(hdr); perr != nil {
 		p.pages = make(map[uint32]*Page)
-		p.dirty = make(map[uint32]bool)
+		p.clearDirtySetLocked()
 		p.numPages = n
 		p.header = append([]byte(nil), hdr...)
 		p.headerCorrupt = true
@@ -89,7 +89,7 @@ func (p *Pager) Deserialize(img []byte, maxSize int64, readOnly bool) error {
 		pg := &Page{PageNum: pgno, Data: append([]byte(nil), src...)}
 		p.pages[pgno] = pg
 	}
-	p.dirty = make(map[uint32]bool)
+	p.clearDirtySetLocked()
 	p.numPages = n
 	p.header = append([]byte(nil), hdr...)
 	if len(hdr) > 20 {
