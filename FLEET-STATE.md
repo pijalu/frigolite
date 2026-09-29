@@ -707,3 +707,40 @@ gates; end: full benchmark rerun + census + report update.
   randomblob flake. TestWindowCGroupConcatBlobUTF16: passes isolated at
   base+main — full-suite ordering artifact. TestSQLiteSuite: adjudicated
   legacy drift (standing).
+
+## PERF-FIX (END, 2026-09-29) — P1-P7 executed; census 1073/0/290
+
+Complete fix plan of benchmarks/PERF_REPORT_2026-09-28.md landed on main.
+Benchmark after (vs sqlite3 3.54 literal): update 877x faster than before
+(65 -> 57,004 ops/s; 17.4x residual gap), point select 525x (192 ->
+100,857 ops/s; 8.7x), delete 401x (133 -> 53,313 ops/s; 23.9x), insert
+5.2x (21,281 -> 109,974 ops/s; 11.6x); scan/group unchanged (standing
+eval-engine item, P9.PERF). CPU util 1.6-2.5x wall -> 1.2-1.4x.
+
+- Merges: P3 65746ffe6 (coordinator), P1 5bf40a8d0, P24 9e1c80a3c,
+  P6 90695ffe0, P5 02bff7cbc (all fleet branches pushed).
+- P7: landed echoVTabSource short-circuit 1d4317e02; remaining tranche
+  documented with alloc-profile evidence (btree split-cell pooling,
+  schema-level index-def cache; prepare/reuse API NOT the lever — parse
+  is us-level, AST template cache exists).
+- REGRESSION FOUND+FIXED: P1's runUpdateFail gate skipped the row WRITE
+  (not just the uniqueness scans) when no constrained column changed ->
+  UPDATE OR FAIL applied nothing on unconstrained tables (check-6.5/6.6).
+  Fixed 768eae135 + native guard TestUpdateOrFailKeepsPriorRows. Lesson:
+  the agent's 50-suite validation set missed check/; only the census
+  caught it — post-merge census is mandatory for every fleet branch.
+- Census: 8-worker pool produces ~15 contention flakes on long suites
+  (fts4merge4, avtrans, fts3b, corrupt, intarray, limit, tkt_d11...); ALL
+  pass serially and got FASTER with the fixes (fts4merge4 601s base ->
+  427s main; avtrans 81s -> 76s). Authoritative census command:
+  `go run ./tools/status --audit --concurrency 2 --timeout 25m` ->
+  1073 pass / 0 fail / 290 skip (== pre-PERF baseline).
+- Pre-existing flakes documented, NOT ours: TestRtreeStressChurn
+  (map-order delete churn, ~5% both sides), TestP8IncrVacuum3
+  (randomblob), TestWindowC (suite-order artifact), TestSQLiteSuite
+  (legacy drift, adjudicated).
+- Follow-ups filed: value-ordered index tranche (enables true index
+  probes for changed-constrained UPDATEs); collation-aware UPDATE
+  conflict compare (pre-existing NOCASE-UNIQUE under-enforcement on
+  UPDATE path); rowid-vs-text whitespace affinity gap (pre-existing);
+  rtree churn flake; P7 remainder (split-cell pooling, index-def cache).

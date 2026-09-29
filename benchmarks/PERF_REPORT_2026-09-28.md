@@ -176,3 +176,109 @@ protocol).
 - Apple's libsqlite3 3.54 build was used, not a from-source build; ratios at
   this magnitude are insensitive to that delta.
 - Single connection, no WAL, no concurrent readers — CRUD microbench scope.
+
+---
+
+# Fix Execution — 2026-09-29 rerun
+
+All plan items P1–P6 landed and P7's first measured slice; every fix landed
+with pure-Go probe evidence, targeted testgen suites, and the quality gates.
+Merged to main via the fleet worktree protocol (branches
+`fleet/perf-p1-update-gate`, `fleet/perf-p24-rowid-seek`,
+`fleet/perf-p5-delete-journal`, `fleet/perf-p6-cursor-lifecycle`; P3 direct).
+
+## Results after fixes (same harness, same sizes where comparable)
+
+| Phase | before | after | speedup | vs sqlite3 literal |
+|---|---|---|---|---|
+| INSERT ×50k (1 txn) | 21,281 ops/s | 109,974 ops/s | **5.2×** | 60× → **11.6×** gap |
+| SELECT point `WHERE id=?` | 192 ops/s | 100,857 ops/s | **525×** | 4,426× → **8.7×** |
+| SELECT scan (rows/s) | 1,450,031 | 1,363,121 | parity | 36× → 39× (standing eval-engine gap) |
+| SELECT GROUP BY | 14 passes/s | 15 | parity | 8.7× → 8.2× (standing) |
+| UPDATE ×20k (1 txn) | 65 ops/s | 57,004 ops/s | **877×** | 15,152× → **17.4×** |
+| DELETE ×1k (1 txn) | 133 ops/s | 53,313 ops/s | **401×** | 9,295× → **23.9×** |
+| INSERT autocommit (file) | 9,108 ops/s | 9,290 | parity | fsync-bound both sides |
+
+CPU utilization dropped from 1.6–2.5× wall to **1.2–1.4×** per phase; peak
+per-phase heap fell from 18–122 MB to 2–39 MB. The GC-coordination profiles
+(kevent/cond_wait 60–95% of CPU) are gone from the fixed paths.
+
+## What landed
+
+- **P1** (`320eac0ac`, `d073d2fca`): UPDATE uniqueness checks now skip when
+  no constrained column's value changed (same comparators as the scan;
+  re-keyed rows keep full checks; BEFORE-trigger paths excluded by
+  design). Probe: 5.72ms → 79µs per single-row UPDATE @20k (73×), 14.15ms →
+  159µs @50k (89×). Bonus fix found by parity probes: WITHOUT ROWID
+  table-level PKs were not enforced by UPDATE at all — now synthesized from
+  WRPKIndices, oracle-exact error text. Deferred with justification: the
+  unique-index probe for changed constrained columns — today's index seek
+  is an exhaustive leaf walk (byte-ordered storage), so it buys no
+  asymptote until the value-ordered-index tranche.
+- **P2+P4** (`bef1da784`, `372edf8cf`): IPK-alias equality seek (5.35ms →
+  8–20µs @50k) and rowid range seek — BETWEEN/`<`/`>`/`<=`/`>=` with
+  literal bounds, alias spellings included; EXPLAIN QUERY PLAN now renders
+  from the same analysis the executor runs (28-shape battery, 0 diffs vs
+  the sqlite3 CLI). Along the way: SeekToRowID now maintains the cursor
+  path stack (iteration after a seek previously replayed rows), the IPK
+  alias NULL-in-record/fill-from-rowid contract is honored by the seek
+  row-source, `reverse_unordered_selects` reverses the range walk, and the
+  range loop uses the scan's lazy two-phase decode. Pre-existing gap
+  documented, not touched: rowid-vs-text eval ignores whitespace (diverges
+  on the SCAN path too).
+- **P5** (7 commits, tip `ac6fd7e14`): pager statement journal
+  (`internal/pager/pagerstmt.go`, pager.c sub-journal port) — O(1) begin,
+  first-modification before-image capture at the `markDirtyLocked` choke
+  point, nested-scope splicing, whole-state snapshots kept only for
+  BEGIN/SAVEPOINT/memdb/FTS-index scopes. DELETE additionally plans
+  absent-rowid seeks as empty candidate sets and sparse (≤64) deletes seek
+  via DeleteCellByRowID. No-match DELETE 15.6ms → **8.5µs (~1000×)**;
+  matching single-row DELETE 4.4ms → 167µs. The agent ran the full testgen
+  corpus (1363 packages) with zero failures before push.
+- **P6** (`20f7fb424`..`3512267bf`): deterministic cursor lifecycle —
+  `BTree.Close()` ownership model, statement-funnel release (`Engine.Exec`
+  defer with nested-Exec segment marks so enclosing scan cursors survive
+  inner trigger/eval DML — the misc8-1.6 contract stays green), and the
+  `saveAllCursors` fast-path; finalizer kept as safety net. Insert
+  allocation fell from 94→254KB/op (quadratic) to **~10KB/op flat**; the
+  insert slope is linear (105k ops/s flat at 20k/40k/60k).
+- **P3** (`65746ffe6`): `rowIDExists` seeks instead of scanning (REPLACE
+  3.14 → 2.59ms/op @20k; the residual is allocation churn, see P7).
+- **P7 (first slice)** (`1d4317e02`): short-circuit `echoVTabSource`
+  before `parseVTabSQL` for plain tables — every DML statement probed the
+  schema entry and paid a formatted-error allocation for the "not a vtab"
+  answer. Remaining P7 tranche, scoped with alloc profiles: btree
+  split-cell repacking (`partitionSplitCells` 33% + `MakeNoZero` 19% of
+  insert-phase bytes) wants page-cell pooling; index defs re-parse per
+  statement (`indexDefsIn` → `FindTable`, ~1KB/stmt) wants a schema-level
+  cache; a prepare/reuse API is NOT the lever (parse is µs-level and an
+  AST template cache already exists) — the standing eval-engine row
+  throughput (scan 36–39×, GROUP BY 8×) remains the biggest residual and
+  belongs to P9.PERF.
+
+## Verification
+
+- Probes per fix (numbers above), all pure-Go driving Open/Exec/Query.
+- Targeted suites per fix: P1 50 suites (conflict/upsert/without_rowid/
+  update/fkey/trigger/altertab families); P2+P4 all where*/eqp*/rowid*/
+  select*/join*/index*/limit* matches; P5 the FULL 1363-package testgen
+  corpus (exit 0, zero FAIL) plus journal/savepoint/fkey/trigger/vacuum/
+  wal/integ risk dirs; P6 ~80 packages including misc8, trigger*, fkey*,
+  vacuum*, fts4merge{,2,3,5}, plus a -race subset of btree.
+- Merged-main full non-testgen suite: every failure triaged pre-existing
+  (TestSQLiteSuite legacy drift; P8IncrVacuum3 randomblob flake;
+  TestRtreeStressChurn a pre-existing map-order-dependent rtree churn
+  flake, 4/60 at base vs 2/60 after — follow-up filed;
+  TestWindowCGroupConcatBlobUTF16 passes isolated at base and after —
+  full-suite ordering artifact).
+- Census + SOLID + quality gates re-run at merge completion (see
+  FLEET-STATE): **census 1073 pass / 0 fail / 290 skip — identical counts
+  to the pre-PERF baseline.** Method note: the default 8-worker census
+  pool flags ~15 long wall-clock suites (fts4merge4, avtrans, fts3b, …)
+  as contention flakes; all of them pass serially and got FASTER with the
+  fixes (fts4merge4: 601s at base → 543s after P24 → 440s after P6 → 427s
+  after P5), so the authoritative post-merge census runs at
+  `--concurrency 2 --timeout 25m`. One real regression WAS caught by the
+  census and fixed: P1's first gate skipped the row write (not just the
+  uniqueness scan) in the OR FAIL path — check-6.5/6.6 — restored plus
+  native guard `TestUpdateOrFailKeepsPriorRows` (`768eae135`).
