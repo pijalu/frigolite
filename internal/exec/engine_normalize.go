@@ -9,42 +9,86 @@ import (
 // Returns the normalized string and the extracted literal values.
 // This is a fast pre-parse scan — it does NOT use the full parser.
 // Only handles simple quoted strings and decimal integers/floats.
-func normalizeSQL(sql string) (norm string, values []interface{}) {
-	var buf strings.Builder
-	buf.Grow(len(sql))
-	values = make([]interface{}, 0, 16)
+//
+// Literal-free input is returned unchanged (no copy): the template and
+// statement caches compare the normalized text with the input for identity.
+//
+// Bytes that continue an identifier or parameter token (digits after a
+// letter, as in "t1" or "u2", or after the parameter sigils $ : @ #) are NOT
+// literal starts: treating them as literals would merge unrelated statements
+// into one template-cache key with phantom values, and the substitution walk
+// would then refuse every such statement (forcing a full parse).
+func normalizeSQL(s string) (norm string, values []interface{}) {
+	var buf []byte // allocated on the first substitution
+	last := 0
 	i := 0
-	for i < len(sql) {
-		ch := sql[i]
+	for i < len(s) {
+		ch := s[i]
 		switch {
 		case ch == '\'':
 			// String literal: '...'
-			buf.WriteByte('?')
-			var s string
-			var ok bool
-			i, s, ok = scanStringLiteral(sql, i)
-			if ok {
-				values = append(values, s)
+			next, str, ok := scanStringLiteral(s, i)
+			if buf == nil {
+				buf = make([]byte, 0, len(s))
+				values = make([]interface{}, 0, 4)
 			}
-		case ch >= '0' && ch <= '9':
-			// Numeric literal (decimal integer or float starting with digit)
-			buf.WriteByte('?')
+			buf = append(buf, s[last:i]...)
+			buf = append(buf, '?')
+			if ok {
+				values = append(values, str)
+			}
+			i = next
+			last = i
+		case ch >= '0' && ch <= '9' && !continuesIdentToken(s, i):
+			// Numeric literal (decimal integer or float starting with a digit)
 			var val interface{}
-			i, val = scanNumericLiteral(sql, i)
+			var next int
+			next, val = scanNumericLiteral(s, i)
+			if buf == nil {
+				buf = make([]byte, 0, len(s))
+				values = make([]interface{}, 0, 4)
+			}
+			buf = append(buf, s[last:i]...)
+			buf = append(buf, '?')
 			values = append(values, val)
-		case ch == '.':
+			i = next
+			last = i
+		case ch == '.' && !continuesIdentToken(s, i):
 			// Numeric literal starting with dot (e.g., .5)
-			buf.WriteByte('?')
 			var v float64
-			i, v = scanDotNumeric(sql, i)
+			var next int
+			next, v = scanDotNumeric(s, i)
+			if buf == nil {
+				buf = make([]byte, 0, len(s))
+				values = make([]interface{}, 0, 4)
+			}
+			buf = append(buf, s[last:i]...)
+			buf = append(buf, '?')
 			values = append(values, v)
+			i = next
+			last = i
 		default:
-			buf.WriteByte(ch)
 			i++
 		}
 	}
-	norm = buf.String()
-	return
+	if buf == nil {
+		return s, nil
+	}
+	buf = append(buf, s[last:]...)
+	return string(buf), values
+}
+
+// continuesIdentToken reports whether the byte at i continues an identifier
+// or parameter token: the previous byte is an identifier character or one of
+// the parameter sigils ($ : @ #, whose names admit digits).
+func continuesIdentToken(s string, i int) bool {
+	if i == 0 {
+		return false
+	}
+	c := s[i-1]
+	return (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') ||
+		(c >= '0' && c <= '9') || c == '_' || c == '$' || c == ':' ||
+		c == '@' || c == '#' || c >= 0x80
 }
 
 // scanStringLiteral scans a single-quoted string literal beginning at index i

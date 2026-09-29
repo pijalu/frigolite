@@ -69,6 +69,26 @@ type DMLExecutor struct {
 	// write the echo module's xUpdate performed, so it reports through the
 	// module's error prefix (test8.c echoError, "echo-vtab-error: %s").
 	echoWriteDepth int
+
+	// indexDefsCache caches per-(database, table) index maintenance-def
+	// lists (see allTableIndexes). Entries are validated against the owning
+	// schema manager's fingerprint on every lookup, so any DDL rebuilds the
+	// affected list airtight — no explicit invalidation hooks.
+	indexDefsCache map[indexDefCacheKey]cachedIndexDefs
+}
+
+// indexDefCacheKey identifies a cached index-maintenance-def list: the owning
+// database context plus the lowercased table name.
+type indexDefCacheKey struct {
+	ctx   *DatabaseContext
+	table string
+}
+
+// cachedIndexDefs is one allTableIndexes cache entry: the schema fingerprint
+// it was built at plus the def list (treated as read-only).
+type cachedIndexDefs struct {
+	fp   uint64
+	defs []indexDef
 }
 
 // wrapEchoWriteError applies the echo module's error prefix to a failed

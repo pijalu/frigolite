@@ -15,28 +15,12 @@ import (
 )
 
 // cloneStmtsWithValues clones the cached statement list and substitutes new
-// literal values. This avoids re-parsing structurally identical SQL.
-// Currently handles InsertStmt values; other types are returned as-is.
-func cloneStmtsWithValues(stmts []sql.Stmt, values []interface{}) ([]sql.Stmt, error) {
-	result := make([]sql.Stmt, len(stmts))
-	valIdx := 0
-	for i, stmt := range stmts {
-		switch s := stmt.(type) {
-		case *sql.InsertStmt:
-			clone, err := cloneInsertStmt(s, values, &valIdx)
-			if err != nil {
-				return nil, err
-			}
-			result[i] = clone
-		default:
-			// For non-InsertStmt types, return the original (they don't need value substitution)
-			result[i] = stmt
-		}
-	}
-	if valIdx != len(values) {
-		return nil, fmt.Errorf("template cache: unused values (%d remaining)", len(values)-valIdx)
-	}
-	return result, nil
+// literal values, copy-on-write (see template_clone.go). It returns ok=false
+// when the template cannot serve the values (unknown statement or expression
+// kind, value/count mismatch, non-canonical literal text); the caller then
+// falls back to a full parse, which keeps results identical.
+func cloneStmtsWithValues(stmts []sql.Stmt, values []interface{}) ([]sql.Stmt, bool) {
+	return cloneStmtsValues(stmts, values)
 }
 
 // cloneInsertStmt clones an InsertStmt, substituting cached literal values into
@@ -155,10 +139,10 @@ func (e *Engine) tryTemplateCache(sqlStr, normSQL string, values []interface{}) 
 	if !ok {
 		return nil, false
 	}
-	// Template cache hit — clone AST with new values. If the clone fails
-	// (e.g. wrong value count), fall through to re-parse.
-	cloned, err := cloneStmtsWithValues(cached.ast, values)
-	if err != nil {
+	// Template cache hit — clone AST with new values. If the clone refuses
+	// (unknown shape or value mismatch), fall through to re-parse.
+	cloned, ok := cloneStmtsWithValues(cached.ast, values)
+	if !ok {
 		return nil, false
 	}
 	// Also cache by exact SQL for future exact matches

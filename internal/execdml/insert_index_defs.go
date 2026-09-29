@@ -107,12 +107,44 @@ func autoindexConstraintColumns(tableEntry *schema.Entry, e *DMLExecutor) []stri
 // allTableIndexes returns every index defined on the given table (unique and
 // non-unique alike), with their key expressions, partial predicates, and root
 // pages. This drives index maintenance on INSERT.
+//
+// The per-(database, table) list is cached and validated against the owning
+// schema manager's fingerprint on every call: any DDL — CREATE/DROP INDEX,
+// CREATE/DROP/ALTER TABLE, REINDEX root-page updates, writable_schema edits,
+// a ROLLBACK of DDL, or another connection's commit — moves the fingerprint
+// and the list rebuilds fresh. Cached slices are read-only by convention;
+// callers iterate and copy, never mutate.
 func (e *DMLExecutor) allTableIndexes(tableName string) []indexDef {
 	var result []indexDef
 	for _, ctx := range e.ctx.Databases() {
-		result = append(result, e.indexDefsIn(ctx, tableName)...)
+		result = append(result, e.indexDefsInCached(ctx, tableName)...)
 	}
 	return result
+}
+
+// maxIndexDefsCacheEntries bounds the per-(db, table) cache; the working set
+// is the schema's table count, so exceeding this only resets the map.
+const maxIndexDefsCacheEntries = 1024
+
+// indexDefsInCached serves indexDefsIn from the fingerprint-validated cache.
+func (e *DMLExecutor) indexDefsInCached(ctx *DatabaseContext, tableName string) []indexDef {
+	if ctx == nil || ctx.Schema == nil {
+		return e.indexDefsIn(ctx, tableName)
+	}
+	key := indexDefCacheKey{ctx: ctx, table: strings.ToLower(tableName)}
+	fp := ctx.Schema.SchemaFingerprint()
+	if cached, ok := e.indexDefsCache[key]; ok && cached.fp == fp {
+		return cached.defs
+	}
+	defs := e.indexDefsIn(ctx, tableName)
+	if len(e.indexDefsCache) >= maxIndexDefsCacheEntries {
+		e.indexDefsCache = make(map[indexDefCacheKey]cachedIndexDefs)
+	}
+	if e.indexDefsCache == nil {
+		e.indexDefsCache = make(map[indexDefCacheKey]cachedIndexDefs)
+	}
+	e.indexDefsCache[key] = cachedIndexDefs{fp: fp, defs: defs}
+	return defs
 }
 
 // indexDefsIn returns the indexes for a table defined in one database

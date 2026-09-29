@@ -232,9 +232,24 @@ func (m *Manager) Init() error {
 // call re-reads the sqlite_schema btree. Used after direct edits to
 // sqlite_schema (PRAGMA writable_schema=ON), which SQLite treats as a schema
 // change: subsequent table lookups must see the updated rootpages/SQL.
+// The mutation epoch advances too, so derived caches keyed on
+// SchemaFingerprint rebuild as well (writable_schema edits and DDL
+// rollbacks move the fingerprint without moving the header cookie).
 func (m *Manager) InvalidateCache() {
 	m.cookieCacheValid = false
 	m.cookieCacheAll = nil
+	m.mutationEpoch++
+}
+
+// SchemaFingerprint returns a version stamp of the schema content: the
+// header schema cookie (offset 40) folded with the manager's local mutation
+// epoch. Every schema mutation moves the fingerprint — AddEntry/Remove
+// (cookie + epoch), root-page updates, writable_schema edits and DDL
+// transaction rollbacks (epoch via InvalidateCache), and external
+// connections' commits (cache drop) — so derived caches keyed on it rebuild
+// without explicit invalidation hooks.
+func (m *Manager) SchemaFingerprint() uint64 {
+	return m.cacheKey()
 }
 
 // AddEntry adds a new entry to the schema.
