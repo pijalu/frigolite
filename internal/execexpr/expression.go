@@ -45,14 +45,12 @@ func (ev *Evaluator) evalExpr(expr sql.Expr, row Row) (interface{}, error) {
 		// the projection sites.
 		return ev.evalRowValueExpr(v, row)
 	case *sql.BinaryOp:
-		// Binary operators dispatch directly here instead of falling through
-		// to evalComplexExpr's second type switch: they are the most frequent
-		// node shape on every per-row expression walk (WHERE terms, SELECT
-		// expressions, GROUP BY keys). evalComplexExpr keeps the same case
-		// for callers that enter through it.
+		// Binary operators — the most frequent node shape on every per-row
+		// expression walk (WHERE terms, SELECT expressions, GROUP BY keys) —
+		// dispatch directly instead of falling through to evalComplexExpr's
+		// second type switch. evalComplexExpr keeps the same case for callers
+		// that enter through it (and handles UnaryOp and every other shape).
 		return ev.evalBinaryOp(v, row)
-	case *sql.UnaryOp:
-		return ev.evalUnaryOp(v, row)
 	default:
 		return ev.evalComplexExpr(expr, row)
 	}
