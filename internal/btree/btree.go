@@ -113,6 +113,13 @@ type BTree struct {
 	// saveAllCursors O(total cursors ever opened) per mutation.
 	cursors []*Cursor
 	closed  bool
+
+	// cellScratch recycles the encoded bytes of the cell currently being
+	// inserted (btree_insert.go). A BTree is built per statement over the
+	// shared (pager, rootPage) and used single-threaded, so the buffer needs
+	// no synchronization; the split path drops it whenever its bytes must
+	// stay stable across page rewrites.
+	cellScratch []byte
 }
 
 // NewBTree creates a new BTree instance.
