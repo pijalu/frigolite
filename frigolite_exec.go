@@ -59,9 +59,32 @@ func (db *DB) RecoverSQL(ignoreFreelist bool) (string, error) {
 	return recover.RecoverSQL(db.pager, recover.Options{IgnoreFreelist: ignoreFreelist})
 }
 
+// statementTexts returns the per-statement raw texts for the trace hooks
+// (splitSQLStatements), short-circuiting the common single-statement form:
+// when the batch contains no semicolon byte at all there is nothing to split
+// (a string/blob literal containing one goes through the full tokenizer), and
+// splitSQLStatements would return exactly [sqlStr] — its EOF branch appends
+// the untrimmed tail verbatim. A nil return tells stmtTextAt to use the batch
+// text itself, skipping the tokenizer walk on every plain single-statement
+// Exec/Query call.
+func statementTexts(sqlStr string) []string {
+	if strings.IndexByte(sqlStr, ';') < 0 {
+		return nil
+	}
+	return splitSQLStatements(sqlStr)
+}
+
 // stmtTextAt returns the raw source text for statement si, or "" when the
-// prepared statement list is longer than the split texts.
-func stmtTextAt(texts []string, si int) string {
+// prepared statement list is longer than the split texts. texts == nil means
+// the batch had no semicolon anywhere, so the whole batch text is statement
+// 0's text (and a multi-statement batch always split, so no later si exists).
+func stmtTextAt(sqlStr string, texts []string, si int) string {
+	if texts == nil {
+		if si == 0 {
+			return sqlStr
+		}
+		return ""
+	}
 	if si < len(texts) {
 		return texts[si]
 	}
@@ -104,7 +127,7 @@ func (db *DB) Exec(sqlStr string) *Result {
 		return &Result{Error: err}
 	}
 
-	texts := splitSQLStatements(sqlStr)
+	texts := statementTexts(sqlStr)
 	// The whole-batch BEGIN EXCLUSIVE check is a property of the batch TEXT,
 	// not of any single statement: compute it once (a per-statement
 	// EqualFold over the whole batch made multi-statement batches O(n^2) in
@@ -112,7 +135,7 @@ func (db *DB) Exec(sqlStr string) *Result {
 	wholeBatchBeginExclusive := strings.EqualFold(strings.TrimSpace(strings.TrimSuffix(sqlStr, ";")), "BEGIN EXCLUSIVE")
 	var lastResult *exec.Result
 	for si, stmt := range stmts {
-		res := db.execPrepared(stmt, stmtTextAt(texts, si))
+		res := db.execPrepared(stmt, stmtTextAt(sqlStr, texts, si))
 		if res.Error != nil {
 			db.engine.SetLastErr(res.Error.Error(), db.errorCode(res.Error))
 			return execResult(res)
@@ -167,9 +190,10 @@ func (db *DB) Query(sqlStr string) *Result {
 
 	var allRows [][]interface{}
 	var allColumns []string
-	texts := splitSQLStatements(sqlStr)
+	texts := statementTexts(sqlStr)
+	multi := len(stmts) > 1
 	for si, stmt := range stmts {
-		res := db.execPrepared(stmt, stmtTextAt(texts, si))
+		res := db.execPrepared(stmt, stmtTextAt(sqlStr, texts, si))
 		if res.Error != nil {
 			db.engine.SetLastErr(res.Error.Error(), db.errorCode(res.Error))
 			r := execResult(res)
@@ -177,8 +201,25 @@ func (db *DB) Query(sqlStr string) *Result {
 			return r
 		}
 		expandResultZeroBlobs(res)
-		allRows = append(allRows, res.Rows...)
-		if allColumns == nil {
+		if multi {
+			allRows = append(allRows, res.Rows...)
+			if allColumns == nil {
+				allColumns = res.Columns
+			}
+		} else {
+			// Single statement: the engine's rows and columns leave as the
+			// result verbatim (exec.Result.Rows is freshly allocated per
+			// engine call and never retained, and the Exec path already
+			// hands er.Rows to the caller the same way) — copying the row
+			// headers through append would allocate a redundant backing
+			// array on every query. The append-based path yields a nil Rows
+			// for a zero-row result (append to nil adds nothing), so keep
+			// that exact nil/empty distinction.
+			if len(res.Rows) == 0 {
+				allRows = nil
+			} else {
+				allRows = res.Rows
+			}
 			allColumns = res.Columns
 		}
 		if res.LastInsertRowID > 0 {
