@@ -143,7 +143,7 @@ func TestPoolStressTriggerNestedWrite(t *testing.T) {
 	if got := stressQueryInt(t, c, "SELECT count(*) FROM t1 WHERE a < 100"); got != 70 {
 		t.Fatalf("post-delete scan count = %d, want 70", got)
 	}
-	if got := stressQueryInt(t, c, "SELECT sum(a) FROM t1"); got != int64(99*100/2 - 30*29/2) {
+	if got := stressQueryInt(t, c, "SELECT sum(a) FROM t1"); got != int64(99*100/2-30*29/2) {
 		t.Fatalf("post-delete sum = %d", got)
 	}
 	// Mid-scan nested write (eval() shape): an UPDATE scans t2 while its own
