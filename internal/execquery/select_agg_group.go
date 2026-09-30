@@ -6,6 +6,9 @@ import (
 
 	"github.com/pijalu/frigolite/internal/sql"
 	"github.com/pijalu/frigolite/internal/util"
+
+	"bytes"
+	"strconv"
 )
 
 // GROUP BY key partitioning (split from select_agg.go for file-size
@@ -26,8 +29,23 @@ func (e *SelectEngine) partitionByGroupKey(groupBy []sql.Expr, rowMaps []RowMap)
 			// their serialized keys differ (collate5-4.2: '1' and '1.0'
 			// under a COLLATE NUMERIC column — the sorter compares with the
 			// per-term collation, so the textual keys need not match).
-			if merged := e.equivalentGroupKey(keyOrder, keyVals, vals, colls); merged != "" {
-				key = merged
+			// Without any collated term the scan cannot merge: the key
+			// serializer is %v-faithful for every value type, so a textual
+			// miss already proves the values differ. Skipping the linear
+			// scan keeps uncollated GROUP BY at one map lookup per row
+			// (a 1000-group key otherwise cost O(groups) compares per new
+			// key and ~12% of the group-phase profile).
+			collated := false
+			for _, c := range colls {
+				if c != "" {
+					collated = true
+					break
+				}
+			}
+			if collated {
+				if merged := e.equivalentGroupKey(keyOrder, keyVals, vals, colls); merged != "" {
+					key = merged
+				}
 			}
 		}
 		if _, exists := groups[key]; !exists {
@@ -56,6 +74,9 @@ func (e *SelectEngine) equivalentGroupKey(keyOrder []string, keyVals map[string]
 // groupKeyValuesEqual reports whether vals compare equal to existing under
 // the per-term collations. A collated term compares via the collation; an
 // uncollated term must match textually (its serialized key is exact).
+// The uncollated comparison is typed with a %v-spelling fallback: the
+// historical fmt.Sprintf("%v") pair per value per row dominated the
+// group-phase CPU profile and allocated on every comparison.
 func (e *SelectEngine) groupKeyValuesEqual(existing, vals []interface{}, colls []string) bool {
 	if len(existing) != len(vals) {
 		return false
@@ -68,7 +89,7 @@ func (e *SelectEngine) groupKeyValuesEqual(existing, vals []interface{}, colls [
 		uv := util.UnwrapColumnValue(vals[i])
 		ev := util.UnwrapColumnValue(existing[i])
 		if coll == "" {
-			if fmt.Sprintf("%v", uv) != fmt.Sprintf("%v", ev) {
+			if !groupKeyScalarEqual(uv, ev) {
 				return false
 			}
 			continue
@@ -78,4 +99,40 @@ func (e *SelectEngine) groupKeyValuesEqual(existing, vals []interface{}, colls [
 		}
 	}
 	return true
+}
+
+// groupKeyScalarEqual reports whether two unwrapped scalars compare equal
+// under fmt's %v spelling — the semantics the serialized group keys are
+// built on (int64(5) and float64(5.0) share the spelling "5" and must group
+// together; 5.5 does not). Same-type pairs compare directly; mixed pairs
+// fall back to the spelling strings.
+func groupKeyScalarEqual(a, b interface{}) bool {
+	switch av := a.(type) {
+	case nil:
+		return b == nil
+	case int64:
+		switch bv := b.(type) {
+		case int64:
+			return av == bv
+		case float64:
+			return strconv.FormatInt(av, 10) == strconv.FormatFloat(bv, 'g', -1, 64)
+		}
+	case float64:
+		switch bv := b.(type) {
+		case float64:
+			return av == bv
+		case int64:
+			return strconv.FormatFloat(av, 'g', -1, 64) == strconv.FormatInt(bv, 10)
+		}
+	case string:
+		bs, ok := b.(string)
+		return ok && av == bs
+	case bool:
+		bb, ok := b.(bool)
+		return ok && av == bb
+	case []byte:
+		bb, ok := b.([]byte)
+		return ok && bytes.Equal(av, bb)
+	}
+	return fmt.Sprintf("%v", a) == fmt.Sprintf("%v", b)
 }

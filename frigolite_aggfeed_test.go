@@ -252,3 +252,35 @@ func TestAggFeedFallbackShapes(t *testing.T) {
 		}
 	}
 }
+
+// TestGroupByTypedKeyEquality pins the group-key equality semantics the
+// typed fast path preserves (groupKeyScalarEqual): values whose fmt %v
+// spellings match share a group — int64(5) and float64(5.0) group together
+// (sqlite3 oracle: one group, count 2), 5.5 and 6 stay separate. Guards
+// the groupKeyValuesEqual Sprintf-removal perf fix.
+func TestGroupByTypedKeyEquality(t *testing.T) {
+	db, err := Open(":memory:")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer db.Close()
+	if r := db.Exec("CREATE TABLE t(v); INSERT INTO t VALUES(5),(5.0),(5.5),(6)"); r.Error != nil {
+		t.Fatal(r.Error)
+	}
+	r := db.Query("SELECT v, count(*) FROM t GROUP BY v ORDER BY v")
+	if r.Error != nil {
+		t.Fatal(r.Error)
+	}
+	want := []struct {
+		v     interface{}
+		count int64
+	}{{int64(5), 2}, {float64(5.5), 1}, {int64(6), 1}}
+	if len(r.Rows) != len(want) {
+		t.Fatalf("groups: %v", r.Rows)
+	}
+	for i, row := range r.Rows {
+		if row[1] != want[i].count {
+			t.Fatalf("group %v: count %v, want %d", row[0], row[1], want[i].count)
+		}
+	}
+}

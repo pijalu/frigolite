@@ -569,6 +569,9 @@ func (e *SelectEngine) computeGroupByKeyValues(groupBy []sql.Expr, row Row) (str
 			colls[i] = coll
 		}
 	}
+	if len(parts) == 1 {
+		return parts[0], values, colls // single-term GROUP BY: no Join copy
+	}
 	return strings.Join(parts, "\x00"), values, colls
 }
 
