@@ -815,3 +815,13 @@ section: group-key machinery (equivalentGroupKey linear scan), storage
 decode + journal copies (update/delete), value-ordered-index tranche
 (scan), prepare/bind API (point/insert). Follow-up: journal before-image
 pooling deferred (rollback-correctness risk vs 4-5%).
+
+## PERF-GC2 (2026-09-30, START) — apply the proposed floor optimizations
+
+Round: (1) GROUP BY group-key fast path (typed compare replacing the
+fmt.Sprintf("%v") per-value-per-row equality + single-term key fast
+path) — coordinator; (2) update/delete decode+journal diet
+(storage.DecodeRecord 26% + btree cell decode 17% + journal 15% of
+remaining bytes) — fleet agent with fresh profiles; (3) scan/prepare-bind
+tranches stay documented follow-ups (value-ordered index, public API).
+Measure per step; suites + census at end.
