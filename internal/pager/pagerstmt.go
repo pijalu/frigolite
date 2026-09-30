@@ -246,33 +246,7 @@ func (p *Pager) RollbackStatement(j *StmtJournal) {
 	}
 	j.done = true
 	p.unlinkStmtLocked(j)
-	// Replay the before-images (pager.c pagerPlayback over the statement
-	// journal). Each entry is independent, so map order is irrelevant.
-	// Memory images are restored by ADOPTING the captured buffer as the
-	// restored page's data: the entry (its only remaining reference) dies
-	// with this scope, so ownership transfers cleanly and no copy is needed.
-	// The evicted page object's bytes are NOT returned to the pool — their
-	// lifetime is ambiguous (handles taken from ReadPage before the
-	// statement may outlive the scope) — GC reclaims them.
-	for pgno, e := range j.entries {
-		switch e.kind {
-		case stmtEntMemory:
-			if cap(e.data) >= int(p.pageSize) && len(e.data) >= int(p.pageSize) {
-				p.pages[pgno] = &Page{PageNum: pgno, Data: e.data[:p.pageSize]}
-			} else {
-				// Capture always stores exactly page-size images; this is
-				// the defensive fallback for any shape that slipped past
-				// the invariant.
-				p.pages[pgno] = &Page{PageNum: pgno, Data: append([]byte(nil), e.data...)}
-			}
-			p.dirty[pgno] = true
-		case stmtEntFromFile, stmtEntAbsent:
-			// from-file images restore by eviction (the disk/WAL still holds
-			// the statement-start image); allocated pages never had one.
-			delete(p.pages, pgno)
-			delete(p.dirty, pgno)
-		}
-	}
+	p.replayStmtEntriesLocked(j)
 	// Drop cache pages above the restored count: allocations the statement
 	// made (and any bookkeeping pages created after its begin) are undone by
 	// the page-count restore, mirroring Restore's eviction of unknown pages.
@@ -306,6 +280,37 @@ func (p *Pager) RollbackStatement(j *StmtJournal) {
 			p.header = append([]byte(nil), j.header...)
 		}
 		p.fileSize = j.fileSize
+	}
+}
+
+// replayStmtEntriesLocked replays a failed statement's before-images
+// (pager.c pagerPlayback over the statement journal). Each entry is
+// independent, so map order is irrelevant. Memory images are restored by
+// ADOPTING the captured buffer as the restored page's data: the entry (its
+// only remaining reference) dies with this scope, so ownership transfers
+// cleanly and no copy is needed. The evicted page object's bytes are NOT
+// returned to the pool — their lifetime is ambiguous (handles taken from
+// ReadPage before the statement may outlive the scope) — GC reclaims them.
+// Caller holds p.mu.
+func (p *Pager) replayStmtEntriesLocked(j *StmtJournal) {
+	for pgno, e := range j.entries {
+		switch e.kind {
+		case stmtEntMemory:
+			if cap(e.data) >= int(p.pageSize) && len(e.data) >= int(p.pageSize) {
+				p.pages[pgno] = &Page{PageNum: pgno, Data: e.data[:p.pageSize]}
+			} else {
+				// Capture always stores exactly page-size images; this is
+				// the defensive fallback for any shape that slipped past
+				// the invariant.
+				p.pages[pgno] = &Page{PageNum: pgno, Data: append([]byte(nil), e.data...)}
+			}
+			p.dirty[pgno] = true
+		case stmtEntFromFile, stmtEntAbsent:
+			// from-file images restore by eviction (the disk/WAL still holds
+			// the statement-start image); allocated pages never had one.
+			delete(p.pages, pgno)
+			delete(p.dirty, pgno)
+		}
 	}
 }
 

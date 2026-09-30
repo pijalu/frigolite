@@ -233,47 +233,68 @@ func (c *Cursor) descendToFirstLeaf() error {
 			c.endOfBTree = true
 			return err
 		}
-		coff := contentOffset(pg.PageNum)
-		page, err := storage.ParsePageInto(pg.Data, int(c.tx.pageSize), coff, &sp)
+		page, err := storage.ParsePageInto(pg.Data, int(c.tx.pageSize), contentOffset(pg.PageNum), &sp)
 		if err != nil {
 			c.endOfBTree = true
 			return err
 		}
-		if page.PageType != storage.PageTypeInteriorTable && page.PageType != storage.PageTypeInteriorIndex {
+		if !pageIsInterior(page.PageType) {
 			// Leaf page — done; keep the parsed header so the caller's
 			// first read skips the re-read+re-parse.
 			c.cellIdx = 0
 			c.endOfBTree = false
-			if c.currentPg == nil || c.currentPg.PageNum != pg.PageNum {
-				leafCopy := *page
-				c.currentPage = &leafCopy
-				c.currentPg = pg
-			}
+			c.cacheLandingLeaf(pg, page)
 			return nil
 		}
-		// Interior page — descend to first child (child index 0)
-		c.path = append(c.path, cursorPathEntry{pageNum: pg.PageNum, childIdx: 0})
-		if page.CellCount > 0 {
-			// CellPointer adds 8 to the offset parameter. For interior pages
-			// (cellPtrOffset=12), pass coff+4 to get coff+12.
-			cellOff := int(storage.CellPointer(pg.Data, coff+cellPtrOffset(page.PageType)-8, 0, int(c.tx.pageSize)))
-			c.pageNum = binary.BigEndian.Uint32(pg.Data[cellOff : cellOff+4])
-		} else if page.RightmostPtr != 0 {
-			// Empty interior page with a rightmost-child: descend to it.
-			// An empty interior page with RightmostPtr == 0 is a fully
-			// empty btree (root collapse after DELETE all freed every
-			// leaf); the cursor should report EOF rather than try to
-			// read page 0, which pager.ReadPage rejects with
-			// "database disk image is malformed" (see
-			// clearEmptyRootRightmost + DELETE-all reproducer in
-			// internal/exec/btree_vacuum_corruption_test.go).
-			c.pageNum = page.RightmostPtr
-		} else {
+		child, ok := c.stepDownLeftmost(pg, page)
+		if !ok {
 			// Empty interior page with no children: EOF.
 			c.endOfBTree = true
 			return nil
 		}
+		c.path = append(c.path, cursorPathEntry{pageNum: pg.PageNum, childIdx: 0})
+		c.pageNum = child
 	}
+}
+
+// pageIsInterior reports whether a page type is an interior (index or table)
+// page.
+func pageIsInterior(t byte) bool {
+	return t == storage.PageTypeInteriorTable || t == storage.PageTypeInteriorIndex
+}
+
+// cacheLandingLeaf keeps a descent's landing leaf parsed on the cursor so
+// the first cachePage after the descent skips the re-read+re-parse (the
+// save/restore paths clear the cache when the position is invalidated, so a
+// cached leaf cannot go stale).
+func (c *Cursor) cacheLandingLeaf(pg *pager.Page, page *storage.BTreePage) {
+	if c.currentPg != nil && c.currentPg.PageNum == pg.PageNum {
+		return
+	}
+	leafCopy := *page
+	c.currentPage = &leafCopy
+	c.currentPg = pg
+}
+
+// stepDownLeftmost returns an interior page's first child (child index 0),
+// reporting false for an empty interior page with no children. An empty
+// interior page with RightmostPtr == 0 is a fully empty btree (root collapse
+// after DELETE all freed every leaf); the cursor should report EOF rather
+// than try to read page 0, which pager.ReadPage rejects with
+// "database disk image is malformed" (see clearEmptyRootRightmost +
+// DELETE-all reproducer in internal/exec/btree_vacuum_corruption_test.go).
+func (c *Cursor) stepDownLeftmost(pg *pager.Page, page *storage.BTreePage) (uint32, bool) {
+	if page.CellCount > 0 {
+		// CellPointer adds 8 to the offset parameter. For interior pages
+		// (cellPtrOffset=12), pass coff+4 to get coff+12.
+		coff := contentOffset(pg.PageNum)
+		cellOff := int(storage.CellPointer(pg.Data, coff+cellPtrOffset(page.PageType)-8, 0, int(c.tx.pageSize)))
+		return binary.BigEndian.Uint32(pg.Data[cellOff : cellOff+4]), true
+	}
+	if page.RightmostPtr != 0 {
+		return page.RightmostPtr, true
+	}
+	return 0, false
 }
 
 // navigateToNextChild advances the cursor to the next leaf in sequence.
@@ -333,33 +354,25 @@ func (c *Cursor) descendToFirstLeafFromCurrent() {
 			c.endOfBTree = true
 			return
 		}
-		coff := contentOffset(pg.PageNum)
-		page, err := storage.ParsePageInto(pg.Data, int(c.tx.pageSize), coff, &sp)
+		page, err := storage.ParsePageInto(pg.Data, int(c.tx.pageSize), contentOffset(pg.PageNum), &sp)
 		if err != nil {
 			c.endOfBTree = true
 			return
 		}
-		if page.PageType != storage.PageTypeInteriorTable && page.PageType != storage.PageTypeInteriorIndex {
+		if !pageIsInterior(page.PageType) {
 			// Leaf — cache the parsed header for the next read.
-			if c.currentPg == nil || c.currentPg.PageNum != pg.PageNum {
-				leafCopy := *page
-				c.currentPage = &leafCopy
-				c.currentPg = pg
-			}
-			return // leaf
+			c.cacheLandingLeaf(pg, page)
+			return
 		}
 		// Interior — descend to first child
-		c.path = append(c.path, cursorPathEntry{pageNum: pg.PageNum, childIdx: 0})
-		if page.CellCount > 0 {
-			cellOff := int(storage.CellPointer(pg.Data, coff+cellPtrOffset(page.PageType)-8, 0, int(c.tx.pageSize)))
-			c.pageNum = binary.BigEndian.Uint32(pg.Data[cellOff : cellOff+4])
-		} else if page.RightmostPtr != 0 {
-			c.pageNum = page.RightmostPtr
-		} else {
+		child, ok := c.stepDownLeftmost(pg, page)
+		if !ok {
 			// Empty interior page with no children: EOF.
 			c.endOfBTree = true
 			return
 		}
+		c.path = append(c.path, cursorPathEntry{pageNum: pg.PageNum, childIdx: 0})
+		c.pageNum = child
 	}
 }
 

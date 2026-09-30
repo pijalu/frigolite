@@ -313,58 +313,71 @@ func EncodeCell(c *Cell) []byte {
 func CellWireLen(c *Cell) int {
 	switch c.Type {
 	case CellTableLeaf:
-		plen := c.PayloadLen
-		if plen == 0 {
-			plen = len(c.Payload)
-		}
-		local := c.LocalLen
-		if local == 0 {
-			local = plen
-		}
-		n := util.VarintLen(uint64(plen)) + util.VarintLen(uint64(c.RowID)) + local
-		if local < plen {
-			n += 4
-		}
-		if n < 4 {
-			n = 4
-		}
-		return n
+		return tableLeafWireLen(c)
 	case CellTableInterior:
 		return 4 + util.VarintLen(uint64(c.RowID))
 	case CellIndexLeaf:
-		plen := c.PayloadLen
-		if plen == 0 {
-			plen = len(c.Payload)
-		}
-		local := c.LocalLen
-		if local == 0 {
-			local = plen
-		}
-		n := util.VarintLen(uint64(plen)) + local
-		if local < plen {
-			n += 4
-		}
-		if n < 4 {
-			n = 4
-		}
-		return n
+		return leafWireLen(c, localOrFull(c))
 	case CellIndexInterior:
-		plen := c.PayloadLen
-		if plen == 0 {
-			plen = len(c.Payload)
-		}
-		local := c.LocalLen
-		if local == 0 || local > plen {
-			local = plen
-		}
-		n := 4 + util.VarintLen(uint64(plen)) + local
-		if local < plen {
-			n += 4
-		}
-		return n
+		return indexInteriorWireLen(c)
 	default:
 		return 0
 	}
+}
+
+// cellPlen resolves a cell's wire payload length (PayloadLen, or the payload
+// slice length for in-memory cells).
+func cellPlen(c *Cell) int {
+	if c.PayloadLen == 0 {
+		return len(c.Payload)
+	}
+	return c.PayloadLen
+}
+
+// localOrFull resolves the local-payload length for leaf cells (LocalLen, or
+// the whole payload when unset).
+func localOrFull(c *Cell) int {
+	if c.LocalLen == 0 {
+		return cellPlen(c)
+	}
+	return c.LocalLen
+}
+
+// leafWireLen sizes a leaf cell: header varints + local payload + overflow
+// pointer, padded to the 4-byte leaf minimum.
+func leafWireLen(c *Cell, local int) int {
+	plen := cellPlen(c)
+	n := util.VarintLen(uint64(plen)) + local
+	if c.Type == CellTableLeaf {
+		n += util.VarintLen(uint64(c.RowID))
+	}
+	if local < plen {
+		n += 4
+	}
+	if n < 4 {
+		n = 4
+	}
+	return n
+}
+
+func tableLeafWireLen(c *Cell) int {
+	return leafWireLen(c, localOrFull(c))
+}
+
+// indexInteriorWireLen sizes a divider cell: child pointer + payload-length
+// varint + local payload + overflow head. A divider's LocalLen is trusted
+// only when it does not exceed the payload (encodeIndexInteriorCell's clamp).
+func indexInteriorWireLen(c *Cell) int {
+	plen := cellPlen(c)
+	local := c.LocalLen
+	if local == 0 || local > plen {
+		local = plen
+	}
+	n := 4 + util.VarintLen(uint64(plen)) + local
+	if local < plen {
+		n += 4
+	}
+	return n
 }
 
 // EncodeCellInto writes c's encoded bytes into buf (len(buf) must be at
@@ -380,7 +393,7 @@ func EncodeCellInto(c *Cell, buf []byte) int {
 	return n
 }
 
-// AppendEncodedCell appends c's encoded bytes to dst (cellWireLen bytes,
+// AppendEncodedCell appends c's encoded bytes to dst (CellWireLen bytes,
 // byte-identical to EncodeCell) and returns the extended slice. Callers
 // building many encoded cells should append into one growing buffer and
 // slice out each cell — one backing array instead of one allocation per
@@ -409,60 +422,56 @@ func AppendEncodedCell(dst []byte, c *Cell) []byte {
 func writeCellInto(c *Cell, buf []byte) {
 	switch c.Type {
 	case CellTableLeaf:
-		plen := c.PayloadLen
-		if plen == 0 {
-			plen = len(c.Payload)
-		}
-		local := c.LocalLen
-		if local == 0 {
-			local = plen
-		}
-		pos := util.PutVarint(buf, uint64(plen))
-		pos += util.PutVarint(buf[pos:], uint64(c.RowID))
-		copy(buf[pos:], c.Payload[:local])
-		pos += local
-		if local < plen {
+		pos := writeLeafHeaderAndPayload(c, buf)
+		if localOrFull(c) < cellPlen(c) {
 			binary.BigEndian.PutUint32(buf[pos:], c.Overflow)
 			pos += 4
 		}
-		zeroByteTail(buf[pos:]) // leaf pad bytes are zeros, as make() gave
+		zeroByteTail(buf[pos:])
 	case CellTableInterior:
 		binary.BigEndian.PutUint32(buf[0:4], c.LeftPtr)
 		util.PutVarint(buf[4:], uint64(c.RowID))
 	case CellIndexLeaf:
-		plen := c.PayloadLen
-		if plen == 0 {
-			plen = len(c.Payload)
-		}
-		local := c.LocalLen
-		if local == 0 {
-			local = plen
-		}
-		pos := util.PutVarint(buf, uint64(plen))
-		copy(buf[pos:], c.Payload[:local])
-		pos += local
-		if local < plen {
+		pos := writeLeafHeaderAndPayload(c, buf)
+		if localOrFull(c) < cellPlen(c) {
 			binary.BigEndian.PutUint32(buf[pos:], c.Overflow)
 			pos += 4
 		}
 		zeroByteTail(buf[pos:])
 	case CellIndexInterior:
-		plen := c.PayloadLen
-		if plen == 0 {
-			plen = len(c.Payload)
-		}
-		local := c.LocalLen
-		if local == 0 || local > plen {
-			local = plen
-		}
-		binary.BigEndian.PutUint32(buf[0:4], c.LeftPtr)
-		pos := 4
-		pos += util.PutVarint(buf[pos:], uint64(plen))
-		copy(buf[pos:], c.Payload[:local])
-		pos += local
-		if local < plen {
-			binary.BigEndian.PutUint32(buf[pos:], c.Overflow)
-		}
+		writeIndexInteriorInto(c, buf)
+	}
+}
+
+// writeLeafHeaderAndPayload writes the leaf cell's varint header (payload
+// length, plus the rowid for table leaves) and the local payload bytes,
+// returning the write position. Callers append the overflow pointer when the
+// payload spills and zero the pad tail.
+func writeLeafHeaderAndPayload(c *Cell, buf []byte) int {
+	pos := util.PutVarint(buf, uint64(cellPlen(c)))
+	if c.Type == CellTableLeaf {
+		pos += util.PutVarint(buf[pos:], uint64(c.RowID))
+	}
+	local := localOrFull(c)
+	copy(buf[pos:], c.Payload[:local])
+	return pos + local
+}
+
+// writeIndexInteriorInto writes a divider cell: child pointer, payload
+// length, local payload, overflow head.
+func writeIndexInteriorInto(c *Cell, buf []byte) {
+	plen := cellPlen(c)
+	local := c.LocalLen
+	if local == 0 || local > plen {
+		local = plen
+	}
+	binary.BigEndian.PutUint32(buf[0:4], c.LeftPtr)
+	pos := 4
+	pos += util.PutVarint(buf[pos:], uint64(plen))
+	copy(buf[pos:], c.Payload[:local])
+	pos += local
+	if local < plen {
+		binary.BigEndian.PutUint32(buf[pos:], c.Overflow)
 	}
 }
 

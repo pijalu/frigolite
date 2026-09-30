@@ -139,7 +139,7 @@ func (t *BTree) decodeIndexLeafCells(pg *pager.Page, coff int, page *storage.BTr
 		decoded[i] = *c
 		start := len(arena)
 		arena = storage.AppendEncodedCell(arena, c)
-		encoded = append(encoded, arena[start:len(arena)])
+		encoded = append(encoded, arena[start:])
 	}
 	return encoded, decoded, nil
 }
@@ -255,12 +255,12 @@ func (t *BTree) decodeAllLeafCells(pg *pager.Page, coff int, page *storage.BTree
 			}
 			start := len(arena)
 			arena = append(arena, raw[:end]...)
-			encoded = append(encoded, arena[start:len(arena)])
+			encoded = append(encoded, arena[start:])
 			continue
 		}
 		start := len(arena)
 		arena = storage.AppendEncodedCell(arena, &decoded[i])
-		encoded = append(encoded, arena[start:len(arena)])
+		encoded = append(encoded, arena[start:])
 	}
 	return encoded, decoded, failed, nil
 }
@@ -411,7 +411,7 @@ func (t *BTree) compactLeafAfterDelete(pg *pager.Page, page *storage.BTreePage, 
 		}
 		start := len(arena)
 		arena = storage.AppendEncodedCell(arena, &sc)
-		cells[i] = arena[start:len(arena)]
+		cells[i] = arena[start:]
 	}
 	// Rewrite cells contiguously: the first cell (index 0) ends at
 	// usableSize (cells grow downward — defragmentPage packs from
