@@ -421,3 +421,34 @@ and fixed a rowsless-permutation panic en route (aggorderby).
   prepare/bind public API remains the structural answer.
 
 Census after the round: **1073 pass / 0 fail / 290 skip, audit exit 0.**
+
+---
+
+# Final comparison table — 2026-09-30 (both engines re-run back-to-back)
+
+Same machine, same harness, matched op counts (scan 3M rows, update 50k,
+delete 30k, insert 100k, point 20k, 30 group passes). sqlite3 3.54 via cgo
+in two modes; "literal" (prepare-per-call) is the apples-to-apples mode for
+frigolite's Exec/Query API. CPU = user+sys / wall; RSS = process peak so
+far (ru.Maxrss), monotone across phases.
+
+| Workload | frigolite | sqlite3 literal | gap | sqlite3 prepared | gap (prep) |
+|---|---|---|---|---|---|
+| INSERT ×100k, 1 txn | 157,749 ops/s | 1,245,141 ops/s | 7.9× | 3,149,896 ops/s | 20.0× |
+| SELECT point `WHERE id=?` | 114,637 ops/s | 825,622 ops/s | 7.2× | 2,717,173 ops/s | 23.7× |
+| SELECT scan (rows/s) | 7,252,293 | 52,149,614 | 7.2× | 53,682,668 | 7.4× |
+| SELECT GROUP BY (passes) | 9 | 123 | 13.8× | 120 | 13.6× |
+| UPDATE ×50k, 1 txn | 73,923 ops/s | 954,268 ops/s | 12.9× | 3,591,427 ops/s | 48.6× |
+| DELETE ×30k, 1 txn | 59,270 ops/s | 1,233,730 ops/s | 20.8× | 3,689,734 ops/s | 62.3× |
+| INSERT autocommit, file | 8,352 ops/s | — | — | 4,908 ops/s | **1.7× faster** (fsync-semantics caveat) |
+
+| Metric | frigolite | sqlite3 |
+|---|---|---|
+| CPU utilization (user+sys / wall) | 1.03–1.77× | ≈1.0× |
+| Peak RSS (process, end of run) | 157 MB | 22 MB |
+
+Progress since the first report (2026-09-28 baselines): INSERT 21.3k →
+157.7k ops/s (7.4×), point SELECT 192 → 114.6k ops/s (597×), scan
+1.45M → 7.25M rows/s (5.0×), UPDATE 65 → 73.9k ops/s (1137×), DELETE 133
+→ 59.3k ops/s (446×). Gaps closed from 60×/4,426×/36×/15,152×/9,295× to
+7.9×/7.2×/7.2×/12.9×/20.8× (literal mode).
