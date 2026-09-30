@@ -51,18 +51,36 @@ func continuesIdentToken(s string, i int) bool {
 // one template-cache key with phantom values, and the substitution walk
 // would then refuse every such statement (forcing a full parse).
 func normalizeSQL(s string) (norm string, values []interface{}) {
-	var buf []byte // allocated on the first substitution
+	buf, values, _ := normalizeSQLScratch(s, nil, nil)
+	return string(buf), values
+}
+
+// normalizeSQLScratch is normalizeSQL reusing the caller's byte and value
+// buffers (the engine's per-statement scratch: the substitution buffer alone
+// is one SQL-text-sized allocation per statement otherwise). It returns the
+// substituted text, the values, and the (possibly grown) scratch buffers for
+// the next statement. Callers must not retain the returned values slice past
+// the statement — it is the recycled scratch.
+func normalizeSQLScratch(s string, buf []byte, values []interface{}) (norm string, outValues []interface{}, outBuf []byte) {
 	last := 0
 	i := 0
+	started := false
 	for i < len(s) {
 		next, val, ok := nextLiteral(s, i)
 		if !ok {
 			i++
 			continue
 		}
-		if buf == nil {
-			buf = make([]byte, 0, len(s))
-			values = make([]interface{}, 0, 4)
+		if !started {
+			started = true
+			if buf == nil {
+				buf = make([]byte, 0, len(s))
+			}
+			if values == nil {
+				values = make([]interface{}, 0, 4)
+			} else {
+				values = values[:0]
+			}
 		}
 		buf = append(buf, s[last:i]...)
 		buf = append(buf, '?')
@@ -70,11 +88,11 @@ func normalizeSQL(s string) (norm string, values []interface{}) {
 		i = next
 		last = i
 	}
-	if buf == nil {
-		return s, nil
+	if !started {
+		return s, nil, buf
 	}
 	buf = append(buf, s[last:]...)
-	return string(buf), values
+	return string(buf), values, buf
 }
 
 // nextLiteral scans the literal starting at i (if any), returning the index
@@ -201,8 +219,8 @@ func scanDotNumeric(sql string, i int) (int, float64) {
 // ok=false reports overflow (the returned value is meaningless).
 func fastParseInt64(s string) (int64, bool) {
 	n := int64(0)
-	for _, c := range []byte(s) {
-		d := int64(c - '0')
+	for i := 0; i < len(s); i++ {
+		d := int64(s[i] - '0')
 		if n > (1<<63-1-d)/10 {
 			return 0, false
 		}

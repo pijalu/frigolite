@@ -63,7 +63,7 @@ func (e *Engine) DestSchemaInUse(name string) bool {
 	if e.tx.inTransaction {
 		return true
 	}
-	key := lockKey(ctx, e.connID)
+	key := e.dbLockKey(ctx)
 	return key != "" && lockreg.Global.ReadTxByConn(key, e.connID)
 }
 
@@ -100,13 +100,47 @@ func lockKey(ctx *DatabaseContext, connID int64) string {
 	return ctx.FilePath
 }
 
+// dbLockKeyEnt is the memoized lockKey for one database context. lockKey's
+// output is constant per (connection, context) except for the file path,
+// which SetMainFilePath can assign after the context is registered — the
+// entry stores the path it was computed from and recomputes when it drifts.
+type dbLockKeyEnt struct {
+	key      string
+	filePath string
+	isMemory bool
+}
+
+// dbLockKey returns the registry key for a database context, memoizing
+// lockKey's per-context work (the in-memory key's fmt.Sprintf): every
+// statement resolves its target database's lock key two or three times
+// (CrossConnLockError's access check, the WAL-mode lookup, the commit and
+// rollback key sets), which dominated the fixed per-statement allocation
+// budget on in-memory databases.
+func (e *Engine) dbLockKey(ctx *DatabaseContext) string {
+	if ctx == nil {
+		return ""
+	}
+	if ent, ok := e.lockKeyCache[ctx]; ok && ent.filePath == ctx.FilePath && ent.isMemory == ctx.IsMemory {
+		return ent.key
+	}
+	key := lockKey(ctx, e.connID)
+	if key == "" {
+		return ""
+	}
+	if e.lockKeyCache == nil {
+		e.lockKeyCache = make(map[*DatabaseContext]dbLockKeyEnt)
+	}
+	e.lockKeyCache[ctx] = dbLockKeyEnt{key: key, filePath: ctx.FilePath, isMemory: ctx.IsMemory}
+	return key
+}
+
 // allLockKeys returns the registry keys for every database attached to the
 // engine (main, temp, and attached).
 func (e *Engine) allLockKeys() []string {
 	seen := make(map[string]bool)
 	var keys []string
 	for _, ctx := range e.dbList {
-		k := lockKey(ctx, e.connID)
+		k := e.dbLockKey(ctx)
 		if k != "" && !seen[k] {
 			seen[k] = true
 			keys = append(keys, k)
@@ -149,7 +183,7 @@ func (e *Engine) ReleaseExclusive() {
 // The schema name is case-insensitive.
 func (e *Engine) LockKeyForDB(name string) string {
 	ctx := e.GetDB(name)
-	return lockKey(ctx, e.connID)
+	return e.dbLockKey(ctx)
 }
 
 // stmtLockKey returns the registry key of the database file a statement
@@ -176,7 +210,7 @@ func (e *Engine) stmtLockKey(stmt sql.Stmt, schemaName string, write bool) strin
 	}
 	if tableName != "" {
 		if _, ctx, err := e.findTable(tableName); err == nil && ctx != nil {
-			return lockKey(ctx, e.connID)
+			return e.dbLockKey(ctx)
 		}
 	}
 	return e.LockKeyForDB(schemaName)
@@ -290,7 +324,7 @@ func (e *Engine) markStmtReadDb(key string) {
 		if isTempDbName(ctx.Name) {
 			continue
 		}
-		if lockKey(ctx, e.connID) != key {
+		if e.dbLockKey(ctx) != key {
 			continue
 		}
 		if e.tx.readDbs == nil {
@@ -316,7 +350,7 @@ func (e *Engine) stmtWritePager(stmt sql.Stmt, schemaName string) (*pager.Pager,
 		return e.pager, nil
 	}
 	for _, dbc := range e.dbList {
-		if dbc != nil && dbc.Pager != nil && lockKey(dbc, e.connID) == key {
+		if dbc != nil && dbc.Pager != nil && e.dbLockKey(dbc) == key {
 			return dbc.Pager, dbc
 		}
 	}
@@ -698,7 +732,7 @@ func (e *Engine) commitDirtyKeys() (keys []string, walMode bool) {
 		if ctx == nil || ctx.Pager == nil || !ctx.Pager.HasDirtyPages() {
 			continue
 		}
-		if k := lockKey(ctx, e.connID); k != "" {
+		if k := e.dbLockKey(ctx); k != "" {
 			keys = append(keys, k)
 		}
 		walMode = walMode || ctx.Pager.WALMode()
@@ -805,7 +839,7 @@ func (e *Engine) BackupLocked(name string) bool {
 	if ctx == nil {
 		return false
 	}
-	k := lockKey(ctx, e.connID)
+	k := e.dbLockKey(ctx)
 	return k != "" && lockreg.Global.HasBackupLock(k)
 }
 
@@ -816,7 +850,7 @@ func (e *Engine) AddBackupLock(name string) {
 	if ctx == nil {
 		return
 	}
-	if k := lockKey(ctx, e.connID); k != "" {
+	if k := e.dbLockKey(ctx); k != "" {
 		lockreg.Global.AddBackupLock(k)
 	}
 }
@@ -828,7 +862,7 @@ func (e *Engine) RemoveBackupLock(name string) {
 	if ctx == nil {
 		return
 	}
-	if k := lockKey(ctx, e.connID); k != "" {
+	if k := e.dbLockKey(ctx); k != "" {
 		lockreg.Global.RemoveBackupLock(k)
 	}
 }

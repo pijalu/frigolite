@@ -339,6 +339,16 @@ type Engine struct {
 	// tracked only while it is positive (trees built outside any statement
 	// keep the historical finalizer-only lifecycle).
 	stmtBtreeDepth int
+	// lockKeyCache memoizes the cross-connection lock registry key per
+	// database context (Engine.dbLockKey): the key is constant per context
+	// except for a late file-path assignment, which the entry guards on.
+	// Entries are evicted when the context is detached.
+	lockKeyCache map[*DatabaseContext]dbLockKeyEnt
+	// normBuf / normValues are Prepare's substitution scratch (the normalized
+	// SQL text buffer and the extracted literal values), recycled across
+	// statements. Neither outlives a Prepare call.
+	normBuf    []byte
+	normValues []interface{}
 }
 
 // engineSettings groups the PRAGMA/config flags and limits that previously
