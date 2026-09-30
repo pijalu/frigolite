@@ -6,6 +6,59 @@
 > followed by the current T33 session sections. Consult the archive for
 > closed-goal specifics (also in plan/goals/*.md and portplan/NA_EVIDENCE.md).
 
+## PERF.PARITY-wrap — BTree wrapper/cursor pooling + statement-path scratch (fleet/perf-parity-wrappers, 2026-09-29)
+
+- **Pooling is safe exactly where the P6 lifecycle discipline holds.** BTree
+  wrappers and cursors are poolable because Close is TERMINAL: the statement
+  funnel closes wrappers at Exec end, and every function-local site uses
+  `defer tree.Close()` with no post-Close use. The pool lives in the btree
+  package (sync.Pool for wrappers, per-wrapper cursorFree list); Reset
+  reinitializes every field and KEEPS buffers (cursors slice, cursorFree,
+  path stack, page-header scratch) so a reused wrapper costs zero
+  allocations. Watch the GC subtlety: sync.Pool pools survive until GC, and
+  a pooled wrapper's backing arrays are GC-traced past slice len — released
+  cursors must be reset (refs cleared) before the wrapper is Put.
+- **The pooling change FOUND a latent registry leak**: BTree.schemaCursor
+  opens a schema-keyed cursor on a user-tree wrapper while rootPage is
+  temporarily 1; Close recomputed the registry key from the CURRENT
+  rootPage, so those cursors were unregistered from the WRONG key and stayed
+  in the registry forever. Harmless while wrappers were single-use (owner's
+  pager stayed valid; the leaked scan cursor was at EOF and filtered), but
+  pooling turns every latent use-after-reset into live corruption (double
+  registration; save of a cursor whose owner was reset). Fix: unregister by
+  the cursor's captured regKey (btree.c removes a cursor from the BtShared
+  list it was OPENED on). Rule: registry membership keys must be captured at
+  registration, never recomputed at teardown.
+- **Debugging pooled-object corruption: instrument the CONTRACT, not the
+  data.** Two asserts found it immediately: (1) registerTreeCursor rejects a
+  cursor already present under the same key (double registration), (2)
+  saveAllCursors rejects cursors whose tx.pager is nil (dead owner). Panic
+  messages must carry the pointer + regKey + owner state. CAUTION: panicking
+  while holding cursorRegMu deadlocks the recovered-panic traceback (mutex
+  left locked) — copy what you need, unlock, then panic.
+- **Per-statement scratch buffers MUST be truncated on reuse, not just the
+  value slice.** The first normalizeSQLScratch reset `values` but not the
+  byte buffer: every statement appended onto the previous text and
+  string(buf) copied megabytes (2.8MB/stmt after 200k statements, 20-60x
+  slowdown that looked like a planner fallback). Symptom signature: ns/op and
+  B/op explode TOGETHER while allocs/op barely move; pprof -list points
+  straight at the `string(buf)` line.
+- **The full-suite "new failure" triage must compare ISOLATED runs, and the
+  10-minute package timeout truncates -v output WITHOUT printing FAIL lines
+  for in-flight files** — a base-vs-head set diff can falsely show head-only
+  failures (here: where8/9/A, which fail identically at base in isolation).
+  Interleaved per-file A/B (same file, both worktrees, N rounds) is the
+  cheap decisive instrument.
+- **Statement-path fixed-overhead budget after this tranche** (INSERT loop,
+  per stmt): cloneInsertStmt+Value ~5.7 fresh AST nodes (required by the COW
+  contract — literals must never be shared), nextLiteral/scan boxing ~2.5
+  ([]interface{} API), splitSQLStatements ~1.3 (root-package tokenizer),
+  execResult 1 (public Result). The remaining ~90 allocs/stmt on INSERT and
+  ~125 on SELECT are execquery compile/validate + execdml row collection +
+  storage/pager — sibling tranches' territory; the 30%-of-total target
+  requires their reductions stacked on this one.
+
+
 ## PERF.P5 — statement journal replaces per-statement pager snapshots (2026-09-28)
 
 - **The 9.4ms no-match DELETE was TWO O(database) costs stacked, not one.**

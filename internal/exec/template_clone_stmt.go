@@ -25,9 +25,8 @@ type selectParts struct {
 	union   *sql.SelectStmt
 }
 
-// cloneSelectCOW substitutes a top-level SELECT template statement.
-func cloneSelectCOW(s *sql.SelectStmt, values []interface{}, idx *int) (sql.Stmt, bool) {
-	c := &exprClone{values: values, idx: idx}
+// selectCOW substitutes a top-level SELECT template statement.
+func (c *exprClone) selectCOW(s *sql.SelectStmt) (sql.Stmt, bool) {
 	cloned, _, ok := c.selectStmt(s)
 	if !ok {
 		return nil, false
@@ -307,8 +306,7 @@ type updateParts struct {
 }
 
 // cloneUpdateCOW substitutes a top-level UPDATE template statement.
-func cloneUpdateCOW(s *sql.UpdateStmt, values []interface{}, idx *int) (sql.Stmt, bool) {
-	c := &exprClone{values: values, idx: idx}
+func (c *exprClone) updateCOW(s *sql.UpdateStmt) (sql.Stmt, bool) {
 	var p updateParts
 	headChanged, ok := c.updateHead(s, &p)
 	if !ok {
@@ -394,8 +392,7 @@ type deleteParts struct {
 }
 
 // cloneDeleteCOW substitutes a top-level DELETE template statement.
-func cloneDeleteCOW(s *sql.DeleteStmt, values []interface{}, idx *int) (sql.Stmt, bool) {
-	c := &exprClone{values: values, idx: idx}
+func (c *exprClone) deleteCOW(s *sql.DeleteStmt) (sql.Stmt, bool) {
 	var p deleteParts
 	changed, ok := c.deleteWalk(s, &p)
 	if !ok {

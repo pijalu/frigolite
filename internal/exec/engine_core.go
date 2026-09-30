@@ -111,8 +111,11 @@ func (e *Engine) Prepare(sqlStr string) ([]sql.Stmt, error) {
 		e.caches.stmtCache = make(map[string][]sql.Stmt)
 	}
 
-	// Check template cache — normalize SQL and see if we've seen this structure
-	normSQL, values := normalizeSQL(sqlStr)
+	// Check template cache — normalize SQL and see if we've seen this structure.
+	// The substitution buffer and value slice are the engine's per-statement
+	// scratch (recycled across statements; neither outlives the Prepare call).
+	normSQL, values, normBuf := normalizeSQLScratch(sqlStr, e.normBuf, e.normValues)
+	e.normBuf, e.normValues = normBuf, values
 	if stmts, ok := e.tryTemplateCache(sqlStr, normSQL, values); ok {
 		return stmts, nil
 	}

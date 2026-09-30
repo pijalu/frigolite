@@ -27,45 +27,46 @@ import (
 // values and a re-parse is required instead.
 func cloneStmtsValues(stmts []sql.Stmt, values []interface{}) ([]sql.Stmt, bool) {
 	out := make([]sql.Stmt, len(stmts))
-	idx := 0
+	c := exprClone{values: values}
 	for i, stmt := range stmts {
-		cloned, ok := cloneStmtValues(stmt, values, &idx)
+		cloned, ok := c.stmt(stmt)
 		if !ok {
 			return nil, false
 		}
 		out[i] = cloned
 	}
-	if idx != len(values) {
+	if c.idx != len(values) {
 		return nil, false
 	}
 	return out, true
 }
 
-// cloneStmtValues substitutes values into one template statement. Only the
-// statement families the template cache stores are handled; anything else
-// refuses the clone (a full parse keeps results identical).
-func cloneStmtValues(stmt sql.Stmt, values []interface{}, idx *int) (sql.Stmt, bool) {
+// stmt substitutes values into one template statement. Only the statement
+// families the template cache stores are handled; anything else refuses the
+// clone (a full parse keeps results identical).
+func (c *exprClone) stmt(stmt sql.Stmt) (sql.Stmt, bool) {
 	switch s := stmt.(type) {
 	case *sql.InsertStmt:
-		return cloneInsertStmtForTemplate(s, values, idx)
+		return c.insertStmt(s)
 	case *sql.SelectStmt:
-		return cloneSelectCOW(s, values, idx)
+		return c.selectCOW(s)
 	case *sql.UpdateStmt:
-		return cloneUpdateCOW(s, values, idx)
+		return c.updateCOW(s)
 	case *sql.DeleteStmt:
-		return cloneDeleteCOW(s, values, idx)
+		return c.deleteCOW(s)
 	}
 	return nil, false
 }
 
-// cloneInsertStmtForTemplate adapts the INSERT clone to the shared contract:
-// cloneInsertStmt consumes tuple values and reports leftovers through the
-// shared index, so a count mismatch surfaces in cloneStmtsValues.
-func cloneInsertStmtForTemplate(s *sql.InsertStmt, values []interface{}, idx *int) (sql.Stmt, bool) {
-	saved := *idx
-	cloned, err := cloneInsertStmt(s, values, idx)
+// insertStmt adapts the INSERT clone to the shared contract: the INSERT
+// clone consumes tuple values through the shared index, so a count mismatch
+// surfaces in cloneStmtsValues. The walker state carries the index itself,
+// so a refused INSERT leaves the index untouched for the caller's rollback.
+func (c *exprClone) insertStmt(s *sql.InsertStmt) (sql.Stmt, bool) {
+	saved := c.idx
+	cloned, err := cloneInsertStmt(s, c.values, &c.idx)
 	if err != nil {
-		*idx = saved
+		c.idx = saved
 		return nil, false
 	}
 	return cloned, true
@@ -74,7 +75,7 @@ func cloneInsertStmtForTemplate(s *sql.InsertStmt, values []interface{}, idx *in
 // exprClone is the copy-on-write substitution state for one statement.
 type exprClone struct {
 	values []interface{}
-	idx    *int
+	idx    int
 }
 
 // expr substitutes cached values below e, returning the substituted
@@ -324,11 +325,11 @@ func (c *exprClone) numericValue(canonical, original string) (sql.Expr, bool) {
 
 // next consumes the next cached value.
 func (c *exprClone) next() (interface{}, bool) {
-	if *c.idx >= len(c.values) {
+	if c.idx >= len(c.values) {
 		return nil, false
 	}
-	val := c.values[*c.idx]
-	*c.idx++
+	val := c.values[c.idx]
+	c.idx++
 	return val, true
 }
 

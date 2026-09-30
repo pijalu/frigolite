@@ -31,12 +31,19 @@ func (e *Engine) AppendDBList(ctx *DatabaseContext) {
 // RemoveDBListIndex removes the database context at index i from the
 // attach-order list.
 func (e *Engine) RemoveDBListIndex(i int) {
+	ctx := e.dbList[i]
 	e.dbList = append(e.dbList[:i], e.dbList[i+1:]...)
+	// Drop the detached context's memoized lock key so the cache never
+	// retains detached contexts.
+	if ctx != nil && e.lockKeyCache != nil {
+		delete(e.lockKeyCache, ctx)
+	}
 }
 
 // ResetDBList resets the attach-order list to contain only main.
 func (e *Engine) ResetDBList() {
 	e.dbList = []*DatabaseContext{e.mainDB}
+	e.lockKeyCache = nil
 }
 
 // OpenTempBtree marks the temp btree open (see openTempBtree).

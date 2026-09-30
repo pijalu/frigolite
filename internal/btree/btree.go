@@ -44,6 +44,12 @@ type Cursor struct {
 	savedKey   []byte
 	skipNext   int8
 
+	// pageScratch is the reusable parsed-header buffer cacheLandingLeaf and
+	// cachePage decode into (btree_pool.go): one allocation per cursor
+	// lifetime instead of one per page visit. currentPage points at it while
+	// a page is cached.
+	pageScratch *storage.BTreePage
+
 	// released is set when the owning BTree wrapper is closed (statement
 	// teardown). Use of a released cursor is an ownership bug upstream: its
 	// pages may already belong to other rows — reads report an error instead
@@ -72,7 +78,7 @@ func (c *Cursor) cachePage() error {
 	if err != nil {
 		return err
 	}
-	page, err := storage.ParsePage(pg.Data, int(c.tx.pageSize), contentOffset(pg.PageNum))
+	page, err := storage.ParsePageInto(pg.Data, int(c.tx.pageSize), contentOffset(pg.PageNum), c.landingScratch())
 	if err != nil {
 		return err
 	}
@@ -108,21 +114,22 @@ type BTree struct {
 	// the registry only ever shrank via the runtime finalizer, which made
 	// saveAllCursors O(total cursors ever opened) per mutation.
 	cursors []*Cursor
-	closed  bool
+	// cursorFree holds cursors released by Close, recycled by the next
+	// OpenCursor (btree_pool.go). Kept across wrapper reuse.
+	cursorFree []*Cursor
+	closed     bool
 }
 
 // NewBTree creates a new BTree instance.
 func NewBTree(pg *pager.Pager, rootPage uint32, isTable bool) *BTree {
-	return &BTree{
-		pager:      pg,
-		rootPage:   rootPage,
-		pageSize:   pg.PageSize(),
-		usableSize: pg.UsableSize(),
-		isTable:    isTable,
-		// A statement's wrapper opens a handful of cursors at most; the
-		// pre-sized slice absorbs them without per-OpenCursor growth.
-		cursors: make([]*Cursor, 0, 4),
+	// Wrappers are pooled (btree_pool.go): Close returns them here, and a
+	// statement teardown closes every wrapper it created, so the steady
+	// state recycles objects instead of allocating.
+	t, _ := btreePool.Get().(*BTree)
+	if t == nil {
+		t = new(BTree)
 	}
+	return t.initFrom(pg, rootPage, isTable, false)
 }
 
 // SetKeyCompare installs a custom index-payload comparator (used for
@@ -144,14 +151,11 @@ func (t *BTree) compareKey(a, b []byte) int {
 // btree allocations bypass the freelist so the schema btree's pages
 // don't take slots from the user-rootpage range (P8.INCRVACUUM.phase9).
 func NewSchemaBTree(pg *pager.Pager) *BTree {
-	return &BTree{
-		pager:      pg,
-		rootPage:   1,
-		pageSize:   pg.PageSize(),
-		usableSize: pg.UsableSize(),
-		isTable:    true,
-		isSchema:   true,
+	t, _ := btreePool.Get().(*BTree)
+	if t == nil {
+		t = new(BTree)
 	}
+	return t.initFrom(pg, 1, true, true)
 }
 
 // allocPage allocates a page for the btree, bypassing the freelist if
@@ -196,17 +200,13 @@ func (t *BTree) OpenCursor() (*Cursor, error) {
 	if t.closed {
 		return nil, fmt.Errorf("btree: cursor opened on closed tree")
 	}
-	c := &Cursor{
-		tx:      t,
-		pageNum: t.rootPage,
-		cellIdx: 0,
-		// B-trees are shallower than 4 levels in practice; pre-sizing the
-		// path stack keeps every descent's appends allocation-free (SeekToRowID
-		// clears the slice, not the capacity, so seeks reuse it too).
-		path: make([]cursorPathEntry, 0, 4),
-	}
+	c := t.acquireCursor()
 	// Descend from root to the leftmost leaf, building the path stack
 	if err := c.descendToFirstLeaf(); err != nil {
+		// The cursor was never registered (that happens below on success);
+		// recycle it instead of leaking it to the collector.
+		c.resetFor(t)
+		t.cursorFree = append(t.cursorFree, c)
 		return nil, err
 	}
 	// Register for cross-statement invalidation: a nested statement's write
@@ -271,8 +271,9 @@ func (c *Cursor) cacheLandingLeaf(pg *pager.Page, page *storage.BTreePage) {
 	if c.currentPg != nil && c.currentPg.PageNum == pg.PageNum {
 		return
 	}
-	leafCopy := *page
-	c.currentPage = &leafCopy
+	scratch := c.landingScratch()
+	*scratch = *page
+	c.currentPage = scratch
 	c.currentPg = pg
 }
 
