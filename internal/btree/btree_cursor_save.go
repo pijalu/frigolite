@@ -354,7 +354,7 @@ func (c *Cursor) readTreePage(pageNum uint32) (*pager.Page, *storage.BTreePage, 
 		c.endOfBTree = true
 		return nil, nil, err
 	}
-	page, err := storage.ParsePage(pg.Data, int(c.tx.pageSize), contentOffset(pg.PageNum))
+	page, err := pg.ParsedBTree(int(c.tx.pageSize), contentOffset(pg.PageNum))
 	if err != nil {
 		c.endOfBTree = true
 		return nil, nil, err

@@ -64,6 +64,10 @@ type cursorPathEntry struct {
 
 // cachePage caches the parsed page for the current pageNum.
 // If the pageNum has changed since last call, re-reads and re-parses.
+// The parse goes through the pager's memo (Page.ParsedBTree): a page already
+// parsed by an earlier cursor/statement of the same byte generation is served
+// without re-parsing; any page modified in between re-parses (the memo
+// re-validates the header bytes on every access).
 func (c *Cursor) cachePage() error {
 	if c.currentPg != nil && c.currentPg.PageNum == c.pageNum {
 		return nil // cache hit
@@ -72,7 +76,7 @@ func (c *Cursor) cachePage() error {
 	if err != nil {
 		return err
 	}
-	page, err := storage.ParsePage(pg.Data, int(c.tx.pageSize), contentOffset(pg.PageNum))
+	page, err := pg.ParsedBTree(int(c.tx.pageSize), contentOffset(pg.PageNum))
 	if err != nil {
 		return err
 	}
@@ -311,7 +315,7 @@ func (c *Cursor) navigateToNextChild() {
 			return
 		}
 		coff := contentOffset(pg.PageNum)
-		page, err := storage.ParsePage(pg.Data, int(c.tx.pageSize), coff)
+		page, err := pg.ParsedBTree(int(c.tx.pageSize), coff)
 		if err != nil {
 			c.endOfBTree = true
 			return
@@ -433,7 +437,7 @@ func (t *BTree) lastRowIDFrom(pageNum uint32, depth int) (int64, error) {
 		return 0, err
 	}
 	coff := contentOffset(pg.PageNum)
-	page, err := storage.ParsePage(pg.Data, int(t.pageSize), coff)
+	page, err := pg.ParsedBTree(int(t.pageSize), coff)
 	if err != nil {
 		return 0, err
 	}
@@ -601,7 +605,7 @@ func (c *Cursor) seekKeyInPage(pageNum uint32, key []byte) (bool, error) {
 	if err != nil {
 		return false, err
 	}
-	page, err := storage.ParsePage(pg.Data, int(c.tx.pageSize), contentOffset(pg.PageNum))
+	page, err := pg.ParsedBTree(int(c.tx.pageSize), contentOffset(pg.PageNum))
 	if err != nil {
 		return false, err
 	}

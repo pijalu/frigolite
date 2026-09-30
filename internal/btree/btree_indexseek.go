@@ -119,7 +119,7 @@ func (t *BTree) walkIndexLeaves(pageNum uint32, depth int, path []cursorPathEntr
 		return false, err
 	}
 	coff := contentOffset(pg.PageNum)
-	page, err := storage.ParsePage(pg.Data, int(t.pageSize), coff)
+	page, err := pg.ParsedBTree(int(t.pageSize), coff)
 	if err != nil {
 		return false, err
 	}

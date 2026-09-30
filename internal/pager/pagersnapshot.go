@@ -100,8 +100,11 @@ func (p *Pager) Restore(s *PagerState) {
 	// Restored dirty pages carry earlier-statements' uncommitted writes whose
 	// only statement-start image is the restored bytes themselves: drop the
 	// dirty stamps so future statement scopes treat them as begin-dirty and
-	// capture their before-images from memory.
-	p.dirtyMark = make(map[uint32]uint64)
+	// capture their before-images from memory. A missing stamp reads as 0,
+	// which beginDirtyStamp (>= 0) never exceeds — identical semantics to the
+	// empty map this replaced, without keeping markDirtyLocked off its fast
+	// path (it requires a nil dirtyMark).
+	p.dirtyMark = nil
 	for n := range s.dirty {
 		p.dirty[n] = true
 	}
