@@ -176,7 +176,12 @@ func compareSameClassFast(op string, cmp int) interface{} {
 
 // fastSameClassCompare evaluates the six comparison operators when both
 // operands are bare values of the SAME storage class (int64, float64, or
-// string). A bare operand carries no ColumnValue affinity and no
+// string). The operator gate first: dispatchComparisonValues is entered for
+// EVERY value-level operator (LIKE, GLOB, ||, ...) and its generic switch
+// filters them, so the fast path must apply the same filter before its
+// default arm would misread any non-comparison operator as ">=".
+//
+// A bare operand carries no ColumnValue affinity and no
 // CollatedValue marker (the type assertions reject wrappers), so:
 //
 //   - typesMatchForEquality passes unconditionally (neither side has TEXT
@@ -191,6 +196,11 @@ func compareSameClassFast(op string, cmp int) interface{} {
 // other shape (mixed classes, wrappers, NULL, TextCarriers), which falls
 // back to the generic comparison walk.
 func fastSameClassCompare(op string, left, right interface{}) (interface{}, bool) {
+	switch op {
+	case "=", "<>", "!=", "<", ">", "<=", ">=":
+	default:
+		return nil, false
+	}
 	switch l := left.(type) {
 	case int64:
 		if r, ok := right.(int64); ok {
