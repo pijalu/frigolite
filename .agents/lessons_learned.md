@@ -1539,3 +1539,49 @@ Resumed a dead predecessor mid-tranche on P9.PERF hot-path work (base 5807a9c1e,
   ceiling measured: −2.4% B/stmt on update-scan; the 25% loop target needs
   the storage/pager/btree layers (or an execdml interface change), both out
   of the tranche's scope.
+
+## PERF.GC2-decode (fleet/perf-gc2-decode, 2026-09-29) — update/delete decode-path alloc cuts
+
+- **Statement-journal before-image pooling is safe only with the entry as the
+  sole owner.** Get at capture (copyPageBytesLocked), Put only where the entry
+  is DROPPED (EndStatement: parent already has the pgno / no parent / parent
+  done; entry splice = ownership move, never Put), and rollback ADOPTS the
+  captured buffer as the restored page's Data (ownership transfer, no copy);
+  the evicted page object's bytes are never Pooled (ambiguous lifetime —
+  ReadPage handles may outlive the scope). The once-only close (done flag)
+  makes double-Put impossible. Do NOT pool *StmtJournal objects or their
+  entries maps: the documented double-restore contract (a DML-level rollback
+  followed by the engine-level rollback of the same scope) relies on object
+  identity surviving both closes — a recycled scope object would let the late
+  close kill an unrelated newer scope. Pinned by
+  TestStmtJournalPool{RollbackExactness,NestedSpliceKeepsOldest,
+  BufferNotShared} (note: uniform-byte pattern checks must use pages ≥2 —
+  WritePage refreshes DB header fields inside page 1's bytes).
+- **MemProfileRate=1 delta-heap profiling LIES on huge processes**: the
+  runtime profile bucket set churns and cumulative totals DECREASE between
+  dumps (observed 17.9M → 15.4M "cumulative" samples). MemStats Mallocs/TotalAlloc
+  deltas per op are the deterministic ground truth; use default-rate pprof
+  deltas only for site attribution, never for totals.
+- **Cursor leaf-cache at descent is safe because save/restore clears it**:
+  saveCursorPosition and restoreIfNeeded both clearPageCache, so caching the
+  landing leaf (descendToFirstLeaf / descendToFirstLeafFromCurrent) cannot go
+  stale across nested-statement writes. Escape analysis keeps the interior
+  ParsePageInto scratch on the stack — verify with pprof -list that the
+  intended lines show zero allocs.
+- **DeleteCellByRowID's parent hint**: the seek's path stack names the leaf's
+  parent; a verified hint (findLeafIndexInParent must confirm the leaf is
+  still reachable from it NOW) spares the O(database) findParentByWalk per
+  emptied leaf. To stay byte-compatible with the walk on crafted images, the
+  hint path must replicate the walk's refusals: any-tree-root leaves and
+  collectSchemaRoots failures route back to the walk (which answers
+  "page is a root" / not-found → no rebalance).
+- **The UPDATE grow-text shape (SET d = d || x, delete+reinsert per row) is
+  O(N²) from execdml's full-table DeleteCellsWhere sweep per changed row** —
+  658k allocs/stmt at base on a 100k table; the btree decode cuts dropped it
+  7x but the sweep itself is execdml scope. In-place (same-size) updates skip
+  DecodeRecord almost entirely — the mission profile's "DecodeRecord 26%"
+  mass lives in the delete+reinsert shape, not the in-place one.
+- **Registry empty-list retention**: unregisterTreeCursor keeping the emptied
+  slice in cursorRegistry (spare capacity) kills the per-statement regrow;
+  saveAllCursors treats empty lists as no-op. Static finalizer needs the key
+  ON the cursor (c.regKey) — a capturing closure allocated per OpenCursor.
