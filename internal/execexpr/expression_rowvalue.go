@@ -267,6 +267,31 @@ func (ev *Evaluator) evalBinaryOp(v *sql.BinaryOp, row Row) (interface{}, error)
 		return val, err
 	}
 
+	// Arithmetic hot path (+ - * / %): evaluate both operands and compute
+	// directly when both are bare numerics. The generic preamble stages this
+	// skips are provably no-ops for bare numeric operands:
+	//   - resolveRowValueSubqueries only rewrites row-value/subquery operands
+	//     (its []interface{} type asserts fail on int64/float64);
+	//   - the NULL check cannot fire (a bare numeric is never SQL NULL);
+	//   - evalBinaryOpDispatched's LikeRange/LIKE/IS arms are unreachable for
+	//     these operators.
+	// Anything else (wrappers, text, NULL, row values) takes the unchanged
+	// generic path below, which stays the semantic authority.
+	if arithFastOps(v.Operator) {
+		left, err := ev.evalExprWithCollation(v.Left, row)
+		if err != nil {
+			return nil, err
+		}
+		right, err := ev.evalExprWithCollation(v.Right, row)
+		if err != nil {
+			return nil, err
+		}
+		if res, ok := fastNumericBinary(v.Operator, left, right); ok {
+			return res, nil
+		}
+		return ev.evalBinaryOpResolved(v, row, left, right)
+	}
+
 	left, err := ev.evalExprWithCollation(v.Left, row)
 	if err != nil {
 		return nil, err
@@ -275,11 +300,18 @@ func (ev *Evaluator) evalBinaryOp(v *sql.BinaryOp, row Row) (interface{}, error)
 	if err != nil {
 		return nil, err
 	}
+	return ev.evalBinaryOpResolved(v, row, left, right)
+}
 
+// evalBinaryOpResolved continues binary-operator evaluation once both operands
+// are evaluated: row-value/subquery resolution, the NULL pre-check, and the
+// dispatched arms.
+func (ev *Evaluator) evalBinaryOpResolved(v *sql.BinaryOp, row Row, left, right interface{}) (interface{}, error) {
 	// Row-value vs subquery: (a,b,c) OP (SELECT x,y,z ...). The subquery's
 	// result row forms the row value; evalExpr above returned only its first
 	// column, so re-evaluate the subquery in full when the other side is a
 	// row value.
+	var err error
 	var doneVal interface{}
 	doneVal, left, right, err = ev.resolveRowValueSubqueries(v, row, left, right)
 	if err != nil {
@@ -316,6 +348,15 @@ func (ev *Evaluator) evalBinaryOpDispatched(v *sql.BinaryOp, left, right interfa
 	}
 	if v.Operator == "IS" || v.Operator == "IS NOT" {
 		return ev.evalBinaryOpIs(v.Operator, left, right)
+	}
+	// Typed fast path: arithmetic over two bare numeric operands (no
+	// affinity/collation wrapper, non-NULL — evalBinaryOp's NULL check
+	// already ran) skips the generic dispatch walk (row-value asserts,
+	// collation extraction, the three operator dispatches, the arithmetic
+	// map lookup) and computes directly. Anything else falls through to the
+	// generic path, which stays the semantic authority.
+	if res, ok := fastNumericBinary(v.Operator, left, right); ok {
+		return res, nil
 	}
 	return ev.evalBinaryOpValues(v.Operator, left, right)
 }
@@ -566,6 +607,15 @@ func (ev *Evaluator) evalBinaryOpValues(op string, left, right interface{}) (int
 // string is a compile-time constant per AST node, so a per-row map hash was
 // pure overhead on the WHERE hot path.
 func (ev *Evaluator) dispatchComparisonValues(op string, left, right interface{}) (interface{}, bool) {
+	// Typed fast path: two bare operands of the same storage class compare
+	// directly (no wrapper → no affinity, no collation marker; the
+	// typesMatchForEquality TEXT-affinity rule cannot fire). Mirrors the
+	// generic path result-for-result, including NaN's three-way behavior.
+	// Anything else (mixed classes, wrappers, NULL) takes the generic walk
+	// below.
+	if res, ok := fastSameClassCompare(op, left, right); ok {
+		return res, true
+	}
 	switch op {
 	case "=":
 		return ev.evalEqualityOp(left, right), true

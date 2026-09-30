@@ -1623,3 +1623,41 @@ Resumed a dead predecessor mid-tranche on P9.PERF hot-path work (base 5807a9c1e,
   alternating A/B) and expect ±5% noise on 7µs ops. pprof
   `-sample_index=alloc_objects` with root-frame grep gives the cleanest
   root-layer alloc delta (405,713 → 107,677 over 200k calls, -73%).
+## PERF.PARITY-expr — expression-evaluator fast paths (2026-10-01)
+
+- **Fast paths must re-verify EVERY operand-class assumption at their own
+  call site, not inherit the generic path's invariants.** The arithmetic
+  fast path initially accepted "at least one float64 operand" and discarded
+  `toFloat`'s ok flag — but it runs BEFORE `evalArithmeticOp`'s unwrap, so a
+  ColumnValue-wrapped operand reached the arithmetic as 0 (`toFloat` of a
+  wrapper is (0,false)): a REAL column op REAL literal returned the literal,
+  and whereL's `c2/0.1` filter silently dropped its row. The generic path's
+  "operands are unwrapped" invariant holds only AFTER `evalArithmeticOp`
+  unwraps. Fix: assert BOTH sides bare (int64/float64 2x2 ladder), fall back
+  otherwise. Testgen whereL caught it; a hand-rolled parity sweep had missed
+  the (column op float-literal) class — sweep shapes must cover each operand
+  wrapper-ness COMBINation per operator, not just each operator.
+- **Dispatch fast paths entered from shared dispatchers must re-gate the
+  operator.** `dispatchComparisonValues` is entered for every value-level
+  operator; its generic switch is what routes LIKE/||/MATCH onward. An
+  unfast-gated comparison fast path answered `x LIKE 'p%'` via its `>=`
+  default arm ('XYZ' LIKE 'A%' → 1). Any default arm inside a fast helper is
+  a lie unless the caller's routing is provably exclusive.
+- **Fleet shared-infrastructure flakes**: `frigolite_fts4merge_pin_test.go`
+  and several conformance tests use FIXED paths (`/tmp/fts4merge_pin.db`,
+  gitignored `tools/orafixture`, `*-backup.db` fixtures) — concurrent fleet
+  agents running the full suite collide ("attempt to write a readonly
+  database") or hit missing fixtures. schema5/8_3_names harness failures
+  ("no such table") reproduce on a pristine origin/main worktree (converter
+  lost the CREATE setup) — always A/B against a baseline worktree before
+  treating a suite failure as a regression. Wall-clock benchmarks are
+  meaningless under 10+ sibling go-test processes: measure CPU time per op
+  (getrusage RUSAGE_SELF) and take minima of interleaved A/B rounds; pprof
+  shares are ±2-3% noisy run-to-run.
+- **Group-phase CPU decomposition** (`SELECT k, COUNT(*), SUM(c) FROM g
+  GROUP BY k`): execexpr's ~45% share of the group phase is ~90% row-map
+  column lookup (evalColumnRef → RowMap.Get string hashing) — the row
+  abstraction itself, not expression logic. Arithmetic/comparison fast paths
+  cannot fire there; only a node-level column-resolution cache (needs a
+  cross-package hook into execquery's StructRow schema identity) or keeping
+  rows position-based end-to-end can move it further.

@@ -44,6 +44,13 @@ func (ev *Evaluator) evalExpr(expr sql.Expr, row Row) (interface{}, error) {
 		// SELECT list projects its first element; that unwrapping happens at
 		// the projection sites.
 		return ev.evalRowValueExpr(v, row)
+	case *sql.BinaryOp:
+		// Binary operators — the most frequent node shape on every per-row
+		// expression walk (WHERE terms, SELECT expressions, GROUP BY keys) —
+		// dispatch directly instead of falling through to evalComplexExpr's
+		// second type switch. evalComplexExpr keeps the same case for callers
+		// that enter through it (and handles UnaryOp and every other shape).
+		return ev.evalBinaryOp(v, row)
 	default:
 		return ev.evalComplexExpr(expr, row)
 	}
@@ -554,7 +561,17 @@ func (ev *Evaluator) evalColumnRef(v *sql.ColumnRef, row Row) (interface{}, erro
 	if v.Table != "" {
 		return ev.evalQualifiedColumnRef(v, row)
 	}
-	// Unqualified: check short name
+	// Unqualified hot path: the row hit is rowLookupUnqualified's FIRST
+	// probe (expression_eval.go), so answer it here and skip two call
+	// frames per evaluated column — the dominant per-row expression cost of
+	// every scan. On a miss the full resolution (rowid aliases, outer rows,
+	// keyword/alias, strict/DQS fallbacks) runs unchanged through
+	// evalUnqualifiedColumnRef.
+	if row != nil {
+		if val, ok := row.Get(v.Name); ok {
+			return val, nil
+		}
+	}
 	return ev.evalUnqualifiedColumnRef(v, row)
 }
 
