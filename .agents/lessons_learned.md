@@ -1585,3 +1585,41 @@ Resumed a dead predecessor mid-tranche on P9.PERF hot-path work (base 5807a9c1e,
   slice in cursorRegistry (spare capacity) kills the per-statement regrow;
   saveAllCursors treats empty lists as no-op. Static finalizer needs the key
   ON the cursor (c.regKey) — a capturing closure allocated per OpenCursor.
+
+## PERF.PARITY-api — root public-API layer per-call overhead (2026-09-29)
+
+- **The root layer's own per-call cost is tiny against the engine; profile it
+  isolated before optimizing.** pprof `-show_from`/`-peek` over a
+  /tmp replace-module probe (not `go test -bench` inside the repo) showed the
+  root package contributes 2-3 allocs and ~300ns per Exec/Query call vs the
+  engine's 80-130 allocs / 7-9µs. The two real root costs per call: (1)
+  splitSQLStatements re-tokenized the whole SQL text on EVERY Exec/Query just
+  to produce trace-hook texts; (2) Query append-copied the engine's row
+  headers into a fresh backing array even for single statements.
+- **Zero-semicolon fast path is byte-exact**: `strings.IndexByte(sql, ';') < 0`
+  implies splitSQLStatements returns exactly `[sql]` (its EOF branch appends
+  the untrimmed tail verbatim; the semicolon branch TrimLefts), so a nil
+  texts slice + "use sql for statement 0" in stmtTextAt is trace-text
+  identical. Any ';' byte anywhere (string/blob literal) falls back to the
+  full tokenizer. ~260ns + 1 alloc/call saved.
+- **Handing exec.Result.Rows to the caller verbatim is contract-safe**:
+  execquery allocates Rows fresh per call (`make([][]interface{}, n)`) and
+  never retains them; the Exec path ALREADY passed er.Rows through via
+  execResult. Preserve the nil/empty distinction: `append(nil, empty...)`
+  stays nil, so the single-statement branch must map len==0 → nil
+  (execquery returns non-nil empties from `make(..., 0)`).
+- **gocognit gate bites small changes**: folding two if-chains into
+  (*DB).Query pushed it to 19 (limit 15) — extract a helper
+  (foldQueryResult) rather than argue the gate.
+- **Fleet-agent test hygiene**: root-suite tests use FIXED /tmp paths
+  (e.g. /tmp/fts4merge_pin.db) and the harness flakily fails random subtests
+  ("table t1 already exists") when sibling agents run suites concurrently —
+  pre-existing on pristine origin/main, failing at DIFFERENT subtests per
+  run. Validate failure SETS against a baseline worktree run, not greenness;
+  re-run flakes serially on a quiet machine before believing them.
+- **Benchmark measurement honesty**: fixed-iteration (-benchtime Nx) ns/op at
+  200k iters is GC-dominated (~9µs for a 286ns MemStats-loop op); report
+  MemStats mallocs/bytes per call + 0.5s-benchtime medians (count>=6,
+  alternating A/B) and expect ±5% noise on 7µs ops. pprof
+  `-sample_index=alloc_objects` with root-frame grep gives the cleanest
+  root-layer alloc delta (405,713 → 107,677 over 200k calls, -73%).
