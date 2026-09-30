@@ -166,13 +166,13 @@ func (e *DMLExecutor) primaryKeyColIndices(tableName, createSQL string, colDefs 
 
 // sortUpdateChanges sorts updateChange entries by the ORDER BY expressions
 // evaluated against each row's original values.
-func (e *DMLExecutor) sortUpdateChanges(changes []updateChange, rowMaps []RowMap, orderBy []sql.OrderByTerm) {
+func (e *DMLExecutor) sortUpdateChanges(changes []updateChange, rowMaps []Row, orderBy []sql.OrderByTerm) {
 	if len(changes) <= 1 {
 		return
 	}
 	type pair struct {
 		ch  updateChange
-		row RowMap
+		row Row
 	}
 	pairs := make([]pair, len(changes))
 	for i := range changes {
@@ -335,23 +335,50 @@ func (e *DMLExecutor) deleteUpdateIndexEntriesFor(tableEntry *schema.Entry, colD
 	return nil
 }
 
+// indexDefNeedsRowMaps reports whether one index definition's maintenance
+// needs a name-keyed row map: a partial index's WHERE predicate evaluates
+// against the row, and an expression/qualified key (or a rowid alias, which
+// maps to the negative pseudo-slot) evaluates its expression against the
+// row. Plain declared-column keys read the positional values directly.
+func indexDefNeedsRowMaps(def indexDef, colIndex map[string]int) bool {
+	if def.Where != "" {
+		return true
+	}
+	for _, cn := range def.Cols {
+		if strings.ContainsAny(cn, "(.") {
+			return true
+		}
+		if idx, ok := colIndex[strings.ToLower(cn)]; !ok || idx < 0 {
+			return true
+		}
+	}
+	return false
+}
+
 // collectUpdateIndexDeleteTarget adds one change's OLD row entry to the
 // delete targets of every index the change touches (registered in defsByName
-// so the batched deletions below can resolve the index definitions).
+// so the batched deletions below can resolve the index definitions). The OLD
+// row's name-keyed map is built lazily — only when a touched definition's
+// predicate or keys evaluate against a row.
 func (e *DMLExecutor) collectUpdateIndexDeleteTarget(tableEntry *schema.Entry, colDefs []sql.ColumnDef, colIndex map[string]int, c updateChange, defsByName map[string]indexDef, changeTargets map[string]map[int64][]interface{}) error {
 	defs, _ := e.maintainedUpdateIndexes(tableEntry, colDefs, c, updateWriteRowID(c))
 	if len(defs) == 0 {
 		return nil
 	}
-	oldRow := buildRowMapFromValues(c.oldValues, colDefs, c.rowID)
+	var oldRow RowMap
 	for _, def := range defs {
 		defsByName[def.Name] = def
+		if indexDefNeedsRowMaps(def, colIndex) && oldRow == nil {
+			oldRow = buildRowMapFromValues(c.oldValues, colDefs, c.rowID)
+		}
 		if inIndex, werr := e.indexRowIncluded(def, oldRow); werr != nil {
 			return werr
 		} else if !inIndex {
 			continue
 		}
-		oldValues := e.rowMapColumnValues(oldRow, colDefs)
+		// The raw values with the rowid-alias substitution — exactly what
+		// rowMapColumnValues extracted from the name-keyed map.
+		oldValues := ipkRowidSubstituted(c.oldValues, colDefs, c.rowID)
 		indexValues, kerr := e.indexKeyValuesForRow(def, colDefs, colIndex, oldValues, oldRow)
 		if kerr != nil {
 			return kerr
@@ -381,14 +408,18 @@ func (e *DMLExecutor) writeUpdateIndexEntriesFor(tableEntry *schema.Entry, colDe
 	if len(defs) == 0 {
 		return nil
 	}
-	newRow := buildRowMapFromValues(newValues, colDefs, writeRowID)
+	var newRow RowMap
 	for _, def := range defs {
+		if indexDefNeedsRowMaps(def, colIndex) && newRow == nil {
+			newRow = buildRowMapFromValues(newValues, colDefs, writeRowID)
+		}
 		if inIndex, werr := e.indexRowIncluded(def, newRow); werr != nil {
 			return werr
 		} else if !inIndex {
 			continue
 		}
-		indexValues, kerr := e.indexKeyValuesForRow(def, colDefs, colIndex, newValues, newRow)
+		subValues := ipkRowidSubstituted(newValues, colDefs, writeRowID)
+		indexValues, kerr := e.indexKeyValuesForRow(def, colDefs, colIndex, subValues, newRow)
 		if kerr != nil {
 			return kerr
 		}
@@ -397,6 +428,32 @@ func (e *DMLExecutor) writeUpdateIndexEntriesFor(tableEntry *schema.Entry, colDe
 		}
 	}
 	return nil
+}
+
+// ipkRowidSubstituted returns values with the rowid-alias substitution the
+// name-keyed map build applies: a stored NULL in an INTEGER PRIMARY KEY
+// rowid-alias column reads back as rowID. The values are copied only when a
+// substitution actually applies (index maintenance only reads the result;
+// the change's own slices are never mutated).
+func ipkRowidSubstituted(values []interface{}, colDefs []sql.ColumnDef, rowID int64) []interface{} {
+	sub := false
+	for i := range colDefs {
+		if i < len(values) && values[i] == nil && isIPKRowidAliasCol(colDefs[i]) {
+			sub = true
+			break
+		}
+	}
+	if !sub {
+		return values
+	}
+	out := make([]interface{}, len(values))
+	copy(out, values)
+	for i := range colDefs {
+		if i < len(out) && out[i] == nil && isIPKRowidAliasCol(colDefs[i]) {
+			out[i] = rowID
+		}
+	}
+	return out
 }
 
 // maintainedUpdateIndexes returns the indexes a change touches plus the
@@ -836,16 +893,39 @@ func uniqueColValuesMatch(a, b []interface{}, colDefs []sql.ColumnDef, rowIDa, r
 	return util.CompareValues(av, bv) == 0
 }
 
+// uniqueIndexDefNeedsRowMaps reports whether one UNIQUE index definition's
+// conflict check needs a name-keyed row map: a partial index's WHERE
+// predicate evaluates against the row, and an expression/qualified key (or a
+// rowid alias, which maps to the negative pseudo-slot) evaluates its
+// expression against the row. Plain declared-column keys read the positional
+// values directly.
+func uniqueIndexDefNeedsRowMaps(def uniqueIndexDef, colIndex map[string]int) bool {
+	if def.Where != "" {
+		return true
+	}
+	for _, cn := range def.Cols {
+		if strings.ContainsAny(cn, "(.") {
+			return true
+		}
+		if idx, ok := colIndex[strings.ToLower(cn)]; !ok || idx < 0 {
+			return true
+		}
+	}
+	return false
+}
+
 // indexDefsMatch reports whether two value sets agree on the indexed columns
-// of any UNIQUE index (full and partial).
+// of any UNIQUE index (full and partial). The per-definition row maps are
+// built lazily — only definitions whose predicate or keys evaluate against a
+// row ever materialize one.
 func indexDefsMatch(e *DMLExecutor, a, b []interface{}, colDefs []sql.ColumnDef, colIndex map[string]int, idxColsList []uniqueIndexDef, aRowID, bRowID int64) bool {
 	for _, def := range idxColsList {
-		nrow := buildRowMapFromValues(b, colDefs, bRowID)
-		if inIndex, _ := e.evalIndexWhere(def.Where, nrow); !inIndex {
-			continue
+		var nrow, orow RowMap
+		if uniqueIndexDefNeedsRowMaps(def, colIndex) {
+			nrow = buildRowMapFromValues(b, colDefs, bRowID)
+			orow = buildRowMapFromValues(a, colDefs, aRowID)
 		}
-		orow := buildRowMapFromValues(a, colDefs, aRowID)
-		if inIndex, _ := e.evalIndexWhere(def.Where, orow); !inIndex {
+		if inIndex, _ := e.evalIndexWhere(def.Where, nrow); !inIndex {
 			continue
 		}
 		match := true

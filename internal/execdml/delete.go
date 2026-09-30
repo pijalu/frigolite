@@ -138,7 +138,7 @@ func (e *DMLExecutor) execDeleteInner(s *sql.DeleteStmt) *Result {
 // with "database disk image is malformed" (fts3cov 16.2; fts3.c fts3Column
 // reads the content row for every output column). Engine-internal shadow
 // writes are exempt.
-func (e *DMLExecutor) recordDeletedContentDocs(tableEntry *schema.Entry, deletedRows []RowMap) {
+func (e *DMLExecutor) recordDeletedContentDocs(tableEntry *schema.Entry, deletedRows []*dmlRow) {
 	if internalShadowWrite || !strings.HasSuffix(strings.ToLower(tableEntry.Name), "_content") {
 		return
 	}
@@ -148,9 +148,7 @@ func (e *DMLExecutor) recordDeletedContentDocs(tableEntry *schema.Entry, deleted
 		return
 	}
 	for _, rm := range deletedRows {
-		if rid, ok := rowTrueRowID(rm); ok {
-			ft.RecordCorruptContentDocID(rid)
-		}
+		ft.RecordCorruptContentDocID(rm.rowID)
 	}
 }
 
@@ -161,12 +159,12 @@ func (e *DMLExecutor) recordDeletedContentDocs(tableEntry *schema.Entry, deleted
 // (SQLite R-07548-13422: "the order in which rows are deleted is arbitrary
 // and is not influenced by the ORDER BY clause. In practice, rows are always
 // deleted in rowid order.") so trigger logging (OLD.a order) matches SQLite.
-func (e *DMLExecutor) applyDeleteOrderLimit(s *sql.DeleteStmt, deletedRows []RowMap) ([]RowMap, *Result) {
+func (e *DMLExecutor) applyDeleteOrderLimit(s *sql.DeleteStmt, deletedRows []*dmlRow) ([]*dmlRow, *Result) {
 	if len(s.OrderBy) > 0 {
-		e.sortDeleteRows(deletedRows, s.OrderBy)
+		e.sortDMLRowsByOrderBy(deletedRows, s.OrderBy)
 	}
 	if s.Limit != nil {
-		rows, err := e.limitDeleteRows(deletedRows, s)
+		rows, err := e.limitDMLRows(deletedRows, s)
 		if err != nil {
 			return nil, &Result{Error: err}
 		}
@@ -174,12 +172,63 @@ func (e *DMLExecutor) applyDeleteOrderLimit(s *sql.DeleteStmt, deletedRows []Row
 	}
 	if len(s.OrderBy) > 0 {
 		sort.SliceStable(deletedRows, func(i, j int) bool {
-			ri, _ := rowTrueRowID(deletedRows[i])
-			rj, _ := rowTrueRowID(deletedRows[j])
-			return ri < rj
+			return deletedRows[i].rowID < deletedRows[j].rowID
 		})
 	}
 	return deletedRows, nil
+}
+
+// sortDMLRowsByOrderBy sorts collected rows by the ORDER BY expressions
+// evaluated against each row's values (DELETE ... ORDER BY ... LIMIT). The
+// expressions see the row's affinity/collation-wrapped values exactly as
+// sortDeleteRows' map evaluation did; the lazily materialized maps stay
+// cached on the rows for the later trigger/FK/index consumers.
+func (e *DMLExecutor) sortDMLRowsByOrderBy(rows []*dmlRow, orderBy []sql.OrderByTerm) {
+	if len(rows) <= 1 {
+		return
+	}
+	sort.SliceStable(rows, func(i, j int) bool {
+		for _, ob := range orderBy {
+			left, _ := e.ctx.EvalExpr(ob.Expr, rows[i].rowMap(e))
+			right, _ := e.ctx.EvalExpr(ob.Expr, rows[j].rowMap(e))
+			cmp := e.ctx.CompareOrderByValues(left, right, ob)
+			if cmp < 0 {
+				return true
+			} else if cmp > 0 {
+				return false
+			}
+		}
+		return false
+	})
+}
+
+// limitDMLRows applies DELETE ... LIMIT n [OFFSET m] to the collected row
+// list, keeping the first n entries after skipping m (limitDeleteRows'
+// semantics over positional rows).
+func (e *DMLExecutor) limitDMLRows(rows []*dmlRow, s *sql.DeleteStmt) ([]*dmlRow, error) {
+	limit, err := e.evalConstInt(s.Limit)
+	if err != nil {
+		return rows, err
+	}
+	if limit < 0 {
+		return rows, nil
+	}
+	offset := int64(0)
+	if s.Offset != nil {
+		if v, err := e.evalConstInt(s.Offset); err != nil {
+			return rows, err
+		} else if v > 0 {
+			offset = v
+		}
+	}
+	if offset >= int64(len(rows)) {
+		return nil, nil
+	}
+	end := offset + limit
+	if end > int64(len(rows)) {
+		end = int64(len(rows))
+	}
+	return rows[offset:end], nil
 }
 
 // unwrapDMLValue peels the row-map value wrappers down to the raw scalar:
@@ -237,6 +286,27 @@ func (e *DMLExecutor) withoutRowidLess(a, b RowMap, tableName, createSQL string,
 			continue
 		}
 		c := e.ctx.CompareValuesCollate(unwrapDMLValue(av), unwrapDMLValue(bv), colDefs[idx].Collate)
+		if c != 0 {
+			return c < 0
+		}
+	}
+	return false
+}
+
+// withoutRowidLessDML is withoutRowidLess over positionally collected rows:
+// the raw declared-order snapshots hold the exact values the collected map
+// exposed (unwrapDMLValue over the map's wrapped values), so the PK-column
+// comparison is identical.
+func (e *DMLExecutor) withoutRowidLessDML(a, b *dmlRow, tableName, createSQL string, colDefs []sql.ColumnDef) bool {
+	pkIdx := e.withoutRowidPKIdx(tableName, createSQL, colDefs)
+	if len(pkIdx) == 0 {
+		return false
+	}
+	for _, idx := range pkIdx {
+		if idx >= len(colDefs) || idx >= len(a.values) || idx >= len(b.values) {
+			continue
+		}
+		c := e.ctx.CompareValuesCollate(unwrapDMLValue(a.values[idx]), unwrapDMLValue(b.values[idx]), colDefs[idx].Collate)
 		if c != 0 {
 			return c < 0
 		}
@@ -385,20 +455,55 @@ func rowTrueRowID(row RowMap) (int64, bool) {
 	return id, ok
 }
 
+// dmlRow is one collected DML row in positional form: the raw declared-order
+// value snapshot (dropped-column re-alignment, added-column DEFAULTs and the
+// INTEGER PRIMARY KEY rowid-alias substitution applied as raw values) plus
+// the row's TRUE btree rowid. A name-keyed RowMap is materialized lazily (at
+// most once per row) at the consumers whose contract demands name-keyed
+// access: trigger OLD/NEW rows, RETURNING projection, FK parent actions and
+// partial-index predicates.
+type dmlRow struct {
+	plan       *execquery.DMLRowPlan
+	values     []interface{} // raw declared-order snapshot
+	valueCount int           // stored record's value count (pre-ALTER short records)
+	rowID      int64         // true btree rowid
+	m          RowMap        // lazily materialized name-keyed map
+}
+
+// rowMap materializes (and caches) the row's name-keyed map. Keys and values
+// mirror the collected BuildRowMap the scan built before positional
+// collection; the reserved trueRowidKey carries the TRUE btree rowid
+// (rowTrueRowID reads it) exactly as the collect-time map did.
+func (r *dmlRow) rowMap(e *DMLExecutor) RowMap {
+	if r.m == nil {
+		r.m = e.ctx.RowMapFromDeclared(r.plan, r.values, r.valueCount, r.rowID)
+		r.m[trueRowidKey] = r.rowID
+	}
+	return r.m
+}
+
 // collectDeleteRows scans a table b-tree and returns the rows matching the
 // DELETE's WHERE clause (in rowid order), for trigger firing and RETURNING.
 // WITHOUT ROWID tables store PK-first index cells, so each decoded record is
-// remapped to declared order before the WHERE row map is built.
+// remapped to declared order before the WHERE row is evaluated.
+//
+// Rows are collected positionally (the SELECT scan's StructRow model): the
+// WHERE clause evaluates against one reused StructRow whose referenced
+// columns carry affinity/collation wrappers, and the matched rows are
+// retained as raw value snapshots — a name-keyed RowMap is built lazily only
+// when a consumer's contract demands one.
 //
 // A point-lookup WHERE (rowid = <const> or col = <const> on an index's
 // leading column) collects candidates through seeks instead of a full scan
 // (see seek.go); the full WHERE is still evaluated per candidate row, so the
 // returned row set is identical to the scan's.
-func (e *DMLExecutor) collectDeleteRows(tree *btree.BTree, s *sql.DeleteStmt, tableEntry *schema.Entry, colDefs []sql.ColumnDef) ([]RowMap, error) {
+func (e *DMLExecutor) collectDeleteRows(tree *btree.BTree, s *sql.DeleteStmt, tableEntry *schema.Entry, colDefs []sql.ColumnDef) ([]*dmlRow, error) {
 	if rows, ok := e.seekDeleteRows(tree, s, tableEntry, colDefs); ok {
 		return rows, nil
 	}
-	var deletedRows []RowMap
+	var deletedRows []*dmlRow
+	plan := e.ctx.NewDMLRowPlan(colDefs, []sql.Expr{s.Where}, s.OrderBy)
+	srow := plan.NewRow()
 	cursor, err := tree.OpenCursor()
 	if err != nil {
 		return nil, err
@@ -411,7 +516,7 @@ func (e *DMLExecutor) collectDeleteRows(tree *btree.BTree, s *sql.DeleteStmt, ta
 		if cell == nil {
 			break
 		}
-		row, stop, err := e.decodeDeleteScanRow(cursor, cell, s, tableEntry, colDefs)
+		row, stop, err := e.decodeDeleteScanRow(plan, srow, cell, s, tableEntry, colDefs)
 		if err != nil {
 			return deletedRows, err
 		}
@@ -452,36 +557,40 @@ func (e *DMLExecutor) nextScanCell(cursor *btree.Cursor) (*storage.Cell, error) 
 	return cell, nil
 }
 
-// decodeDeleteScanRow decodes the cell at the cursor into a WHERE-ready row map
+// decodeDeleteScanRow decodes the cell at the cursor into a WHERE-ready row
 // (remapping WITHOUT ROWID records to declared order and recording the true
 // btree rowid — a declared rowid-named column shadows the "rowid" name for
-// expression resolution, so the delete machinery reads it from the reserved
-// key, see trueRowidKey) and evaluates the DELETE's WHERE clause. stop reports
+// expression resolution, so the delete machinery reads it from the row's
+// true-rowid field) and evaluates the DELETE's WHERE clause. stop reports
 // the scan must break (a record decode failure); row is non-nil when the row
 // matched; err is a WHERE evaluation error that aborts the scan.
-func (e *DMLExecutor) decodeDeleteScanRow(cursor *btree.Cursor, cell *storage.Cell, s *sql.DeleteStmt, tableEntry *schema.Entry, colDefs []sql.ColumnDef) (RowMap, bool, error) {
+func (e *DMLExecutor) decodeDeleteScanRow(plan *execquery.DMLRowPlan, srow *execquery.StructRow, cell *storage.Cell, s *sql.DeleteStmt, tableEntry *schema.Entry, colDefs []sql.ColumnDef) (*dmlRow, bool, error) {
 	rec, err := storage.DecodeRecord(cell.Payload)
 	if err != nil {
 		return nil, true, nil
 	}
 	e.ctx.RemapWRRecordToDeclared(rec, tableEntry.SQL, colDefs)
-	row := e.ctx.BuildRowMap(rec, colDefs, cell.RowID)
-	row[trueRowidKey] = cell.RowID
-	match, err := e.rowMatchesWhere(s.Where, row)
+	e.ctx.FillDMLRow(plan, srow, rec.Values, len(rec.Values), cell.RowID)
+	match, err := e.rowMatchesWhere(s.Where, srow)
 	if err != nil {
 		return nil, false, err
 	}
 	if !match {
 		return nil, false, nil
 	}
-	return row, false, nil
+	return &dmlRow{
+		plan:       plan,
+		values:     e.ctx.DMLRowSnapshot(plan, rec.Values, len(rec.Values), cell.RowID),
+		valueCount: len(rec.Values),
+		rowID:      cell.RowID,
+	}, false, nil
 }
 
 // seekDeleteRows collects DELETE candidate rows through a point-lookup plan:
 // rowid = <const> seeks the table b-tree directly, col = <const> reads the
 // driving index and seeks each candidate rowid. ok=false falls back to the
 // full scan (no plan, or a candidate lookup/evaluation anomaly).
-func (e *DMLExecutor) seekDeleteRows(tree *btree.BTree, s *sql.DeleteStmt, tableEntry *schema.Entry, colDefs []sql.ColumnDef) ([]RowMap, bool) {
+func (e *DMLExecutor) seekDeleteRows(tree *btree.BTree, s *sql.DeleteStmt, tableEntry *schema.Entry, colDefs []sql.ColumnDef) ([]*dmlRow, bool) {
 	plan := e.planDMLSeek(tableEntry, colDefs, s.Where, tableEntry.Name, e.currentDMLCtx)
 	if plan == nil {
 		return nil, false
@@ -490,14 +599,16 @@ func (e *DMLExecutor) seekDeleteRows(tree *btree.BTree, s *sql.DeleteStmt, table
 	if !ok {
 		return nil, false
 	}
-	var deletedRows []RowMap
+	rowPlan := e.ctx.NewDMLRowPlan(colDefs, []sql.Expr{s.Where}, s.OrderBy)
+	srow := rowPlan.NewRow()
+	var deletedRows []*dmlRow
 	for _, rowID := range rowIDs {
 		// SQLITE_TEST interrupt countdown: one op per row examined
 		// (src/vdbe.c per-opcode decrement of sqlite3_interrupt_count).
 		if err := e.ctx.CheckProgress(); err != nil {
 			return nil, false
 		}
-		row, found, err := e.fetchSeekRow(tree, tableEntry.Name, tableEntry.RootPage, tableEntry.SQL, colDefs, rowID)
+		values, realRowID, found, err := e.fetchSeekRowValues(tree, tableEntry.Name, tableEntry.RootPage, tableEntry.SQL, colDefs, rowID)
 		if err != nil {
 			return nil, false // the scan fallback re-evaluates and surfaces it
 		}
@@ -510,12 +621,18 @@ func (e *DMLExecutor) seekDeleteRows(tree *btree.BTree, s *sql.DeleteStmt, table
 			// (PERF_REPORT 3.4).
 			continue
 		}
-		match, err := e.rowMatchesWhere(s.Where, row)
+		e.ctx.FillDMLRow(rowPlan, srow, values, len(values), realRowID)
+		match, err := e.rowMatchesWhere(s.Where, srow)
 		if err != nil {
 			return nil, false // the scan fallback re-evaluates and surfaces it
 		}
 		if match {
-			deletedRows = append(deletedRows, row)
+			deletedRows = append(deletedRows, &dmlRow{
+				plan:       rowPlan,
+				values:     e.ctx.DMLRowSnapshot(rowPlan, values, len(values), realRowID),
+				valueCount: len(values),
+				rowID:      realRowID,
+			})
 		}
 	}
 	return deletedRows, true
@@ -525,7 +642,7 @@ func (e *DMLExecutor) seekDeleteRows(tree *btree.BTree, s *sql.DeleteStmt, table
 // (GenRowDel) processes each row as: fire BEFORE triggers, delete the row, fire
 // AFTER triggers (delete.c:807-872). The engine mirrors this per-row order so
 // BEFORE/AFTER trigger side effects interleave as SQLite's do.
-func (e *DMLExecutor) execDeleteBulk(tableEntry *schema.Entry, dbCtx *DatabaseContext, tree *btree.BTree, colDefs []sql.ColumnDef, deletedRows []RowMap) *Result {
+func (e *DMLExecutor) execDeleteBulk(tableEntry *schema.Entry, dbCtx *DatabaseContext, tree *btree.BTree, colDefs []sql.ColumnDef, deletedRows []*dmlRow) *Result {
 	// Statement journal for the FK-failure rollback below (pager.c
 	// sub-journal: before-images captured lazily at first page write, so a
 	// statement that matches no rows — or deletes without an FK error — pays
@@ -545,11 +662,11 @@ func (e *DMLExecutor) execDeleteBulk(tableEntry *schema.Entry, dbCtx *DatabaseCo
 	// sort the deleted rows by their PRIMARY KEY values.
 	if tableIsWithoutRowid(tableEntry.SQL) {
 		sort.SliceStable(deletedRows, func(i, j int) bool {
-			return e.withoutRowidLess(deletedRows[i], deletedRows[j], tableEntry.Name, tableEntry.SQL, colDefs)
+			return e.withoutRowidLessDML(deletedRows[i], deletedRows[j], tableEntry.Name, tableEntry.SQL, colDefs)
 		})
 	}
 	var deleted int64
-	var rowsToKeep []RowMap
+	var rowsToKeep []*dmlRow
 	var res *Result
 	if !e.hasTriggersForTable(tableEntry.Name) {
 		// No delete triggers: batch the btree delete into ONE pass (the
@@ -571,7 +688,7 @@ func (e *DMLExecutor) execDeleteBulk(tableEntry *schema.Entry, dbCtx *DatabaseCo
 	// On a RESTRICT/NO ACTION error the whole statement is rolled back.
 	if e.ctx.ForeignKeys() && !e.hasTriggersForTable(tableEntry.Name) {
 		for _, row := range rowsToKeep {
-			if res := e.ctx.FkParentDelete(tableEntry, colDefs, row); res.Error != nil {
+			if res := e.ctx.FkParentDelete(tableEntry, colDefs, row.rowMap(e)); res.Error != nil {
 				e.ctx.RollbackPagerStatement(dbCtx.Pager, stmt)
 				e.ctx.InvalidateRowIDCache(e.dmlPager(tableEntry.Name), tableEntry.RootPage)
 				return res
@@ -584,16 +701,18 @@ func (e *DMLExecutor) execDeleteBulk(tableEntry *schema.Entry, dbCtx *DatabaseCo
 // deleteBulkNoTriggers batch-deletes the matching rows in one pass, firing
 // the preupdate hook per row, and returns the delete count plus the rows
 // that survived (all of them, minus RAISE(IGNORE)-style skips).
-func (e *DMLExecutor) deleteBulkNoTriggers(tableEntry *schema.Entry, dbCtx *DatabaseContext, colDefs []sql.ColumnDef, deletedRows []RowMap) (int64, []RowMap, *Result) {
+func (e *DMLExecutor) deleteBulkNoTriggers(tableEntry *schema.Entry, dbCtx *DatabaseContext, colDefs []sql.ColumnDef, deletedRows []*dmlRow) (int64, []*dmlRow, *Result) {
 	deleted := int64(0)
-	rowsToKeep := make([]RowMap, 0, len(deletedRows))
+	rowsToKeep := make([]*dmlRow, 0, len(deletedRows))
 	declaredRows := make([][]interface{}, 0, len(deletedRows))
 	rowIDs := make(map[int64]bool, len(deletedRows))
 	for _, row := range deletedRows {
-		if rowID, ok := rowTrueRowID(row); ok {
-			rowIDs[rowID] = true
-		}
-		declaredRows = append(declaredRows, e.rowMapColumnValues(row, colDefs))
+		rowIDs[row.rowID] = true
+		// The raw positional snapshot holds exactly the values
+		// rowMapColumnValues extracted from the collected map (the unwrap of
+		// its affinity-wrapped values), so the delete-identity keys and the
+		// preupdate values are identical.
+		declaredRows = append(declaredRows, row.values)
 	}
 	// WITHOUT ROWID rows are PK-keyed index cells sharing synthetic
 	// RowID 0: match OLD PK keys, not rowids. With no matching rows there is
@@ -626,21 +745,25 @@ func (e *DMLExecutor) deleteBulkNoTriggers(tableEntry *schema.Entry, dbCtx *Data
 // BEFORE triggers, the row delete, the preupdate hook, FK actions (RESTRICT
 // must fire before AFTER triggers can repair the children, e_fkey-42.5) and
 // the AFTER triggers per row.
-func (e *DMLExecutor) deleteBulkWithTriggers(tableEntry *schema.Entry, dbCtx *DatabaseContext, colDefs []sql.ColumnDef, stmt *pager.StmtJournal, deletedRows []RowMap) (int64, []RowMap, *Result) {
+func (e *DMLExecutor) deleteBulkWithTriggers(tableEntry *schema.Entry, dbCtx *DatabaseContext, colDefs []sql.ColumnDef, stmt *pager.StmtJournal, deletedRows []*dmlRow) (int64, []*dmlRow, *Result) {
 	deleted := int64(0)
-	rowsToKeep := make([]RowMap, 0, len(deletedRows))
+	rowsToKeep := make([]*dmlRow, 0, len(deletedRows))
 	for _, row := range deletedRows {
-		rowID, _ := rowTrueRowID(row)
-		if trigResult := e.fireBeforeDeleteTriggers(tableEntry.Name, execquery.UnwrapRowMap(row)); trigResult.Error != nil {
+		rowID := row.rowID
+		// One name-keyed map per row serves every consumer that demands
+		// name-keyed access (triggers, FK, index maintenance); it carries the
+		// same entries with the same wrapped values as the collected map did.
+		rowMap := row.rowMap(e)
+		if trigResult := e.fireBeforeDeleteTriggers(tableEntry.Name, execquery.UnwrapRowMap(rowMap)); trigResult.Error != nil {
 			if trigResult.Error == errRaiseIgnore {
 				continue
 			}
 			return 0, nil, trigResult
 		}
-		if _, err := e.deleteRowCells(tableEntry, colDefs, rowID, e.rowMapColumnValues(row, colDefs)); err != nil {
+		if _, err := e.deleteRowCells(tableEntry, colDefs, rowID, row.values); err != nil {
 			return 0, nil, &Result{Error: err}
 		}
-		if err := e.maintainIndexesOnDelete(tableEntry, colDefs, []RowMap{row}); err != nil {
+		if err := e.maintainIndexesOnDelete(tableEntry, colDefs, []*dmlRow{row}); err != nil {
 			return 0, nil, &Result{Error: err}
 		}
 		// Fire the preupdate hook with the deleted row's values.
@@ -649,7 +772,7 @@ func (e *DMLExecutor) deleteBulkWithTriggers(tableEntry *schema.Entry, dbCtx *Da
 		}
 		deleted++
 		rowsToKeep = append(rowsToKeep, row)
-		if res := e.finishBulkTriggerRow(tableEntry, dbCtx, colDefs, stmt, row); res != nil {
+		if res := e.finishBulkTriggerRow(tableEntry, dbCtx, colDefs, stmt, rowMap); res != nil {
 			return 0, nil, res
 		}
 	}
@@ -679,10 +802,11 @@ func (e *DMLExecutor) finishBulkTriggerRow(tableEntry *schema.Entry, dbCtx *Data
 
 // fireDeletePreupdate fires the preupdate hook with a deleted row's values
 // (WITHOUT ROWID tables report the synthetic rowid 0 — SQLite uses the key
-// columns instead).
-func (e *DMLExecutor) fireDeletePreupdate(tableEntry *schema.Entry, dbCtx *DatabaseContext, colDefs []sql.ColumnDef, row RowMap) *Result {
-	rowID, _ := rowTrueRowID(row)
-	oldVals := e.rowMapColumnValues(row, colDefs)
+// columns instead). The positional snapshot holds exactly the values
+// rowMapColumnValues extracted from the collected map.
+func (e *DMLExecutor) fireDeletePreupdate(tableEntry *schema.Entry, dbCtx *DatabaseContext, colDefs []sql.ColumnDef, row *dmlRow) *Result {
+	rowID := row.rowID
+	oldVals := row.values
 	delRowID := rowID
 	if tableIsWithoutRowid(tableEntry.SQL) {
 		delRowID = 0
@@ -700,29 +824,30 @@ func (e *DMLExecutor) fireDeletePreupdate(tableEntry *schema.Entry, dbCtx *Datab
 
 // execDeleteReturning executes a DELETE ... RETURNING one row at a time so
 // RETURNING subqueries observe the table with the current row removed.
-func (e *DMLExecutor) execDeleteReturning(s *sql.DeleteStmt, tableEntry *schema.Entry, tree *btree.BTree, colDefs []sql.ColumnDef, deletedRows []RowMap) *Result {
+func (e *DMLExecutor) execDeleteReturning(s *sql.DeleteStmt, tableEntry *schema.Entry, tree *btree.BTree, colDefs []sql.ColumnDef, deletedRows []*dmlRow) *Result {
 	var returningRows [][]interface{}
 	for _, row := range deletedRows {
-		rowID, _ := rowTrueRowID(row)
-		if trigResult := e.fireBeforeDeleteTriggers(tableEntry.Name, execquery.UnwrapRowMap(row)); trigResult.Error != nil {
+		rowID := row.rowID
+		rowMap := row.rowMap(e)
+		if trigResult := e.fireBeforeDeleteTriggers(tableEntry.Name, execquery.UnwrapRowMap(rowMap)); trigResult.Error != nil {
 			if trigResult.Error == errRaiseIgnore {
 				continue
 			}
 			return trigResult
 		}
-		if _, err := e.deleteRowCells(tableEntry, colDefs, rowID, e.rowMapColumnValues(row, colDefs)); err != nil {
+		if _, err := e.deleteRowCells(tableEntry, colDefs, rowID, row.values); err != nil {
 			return &Result{Error: err}
 		}
-		if err := e.maintainIndexesOnDelete(tableEntry, colDefs, []RowMap{row}); err != nil {
+		if err := e.maintainIndexesOnDelete(tableEntry, colDefs, []*dmlRow{row}); err != nil {
 			return &Result{Error: err}
 		}
 		e.ctx.InvalidateRowIDCache(e.dmlPager(tableEntry.Name), tableEntry.RootPage)
-		values, err := e.evalReturningStrict(s.Returning, row, colDefs, tableEntry.Name)
+		values, err := e.evalReturningStrict(s.Returning, rowMap, colDefs, tableEntry.Name)
 		if err != nil {
 			return &Result{Error: err}
 		}
 		returningRows = append(returningRows, values)
-		if trigResult := e.fireAfterDeleteTriggers(tableEntry.Name, execquery.UnwrapRowMap(row)); trigResult.Error != nil {
+		if trigResult := e.fireAfterDeleteTriggers(tableEntry.Name, execquery.UnwrapRowMap(rowMap)); trigResult.Error != nil {
 			return trigResult
 		}
 	}

@@ -377,7 +377,7 @@ func (e *DMLExecutor) deleteReplaceConflictRow(tree *btree.BTree, tableEntry *sc
 	}
 	// Remove the conflicting row's index entries (REPLACE deletes the old
 	// row; its index entries must go with it).
-	if err := e.maintainIndexesOnDelete(tableEntry, colDefs, []RowMap{oldRow}); err != nil {
+	if err := e.maintainIndexesOnDeleteRowMaps(tableEntry, colDefs, []RowMap{oldRow}); err != nil {
 		return &Result{Error: err}
 	}
 	e.ctx.InvalidateRowIDCache(e.dmlPager(tableEntry.Name), tableEntry.RootPage)

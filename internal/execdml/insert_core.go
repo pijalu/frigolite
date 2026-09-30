@@ -622,7 +622,13 @@ func (e *DMLExecutor) checkConstraints(tableEntry *schema.Entry, colDefs []sql.C
 	e.currentDMLTable = tableEntry.Name
 	defer func() { e.currentDMLTable = prevDML }()
 
-	row := buildRowMapFromValues(values, colDefs, rowID)
+	// The name-keyed row is read only by CHECK expressions (NOT NULL checks
+	// read the positional values): build it only when the table declares a
+	// column-level or table-level CHECK.
+	var row RowMap
+	if e.tableHasCheckConstraint(tableEntry, colDefs) {
+		row = buildRowMapFromValues(values, colDefs, rowID)
+	}
 	withoutRowid := tableIsWithoutRowid(tableEntry.SQL)
 
 	if err := e.checkColumnConstraints(tableEntry, colDefs, values, row, withoutRowid); err != nil {
@@ -635,6 +641,22 @@ func (e *DMLExecutor) checkConstraints(tableEntry *schema.Entry, colDefs []sql.C
 	}
 
 	return e.checkTableLevelCheckConstraints(tableEntry, colDefs, row)
+}
+
+// tableHasCheckConstraint reports whether the table declares a column-level
+// CHECK or a table-level CHECK constraint (both cached lookups).
+func (e *DMLExecutor) tableHasCheckConstraint(tableEntry *schema.Entry, colDefs []sql.ColumnDef) bool {
+	for i := range colDefs {
+		if colDefs[i].Check != nil {
+			return true
+		}
+	}
+	for _, tc := range e.ctx.TableConstraints(tableEntry.Name, tableEntry.SQL) {
+		if tc.Type == sql.ConstraintCheck && tc.Expr != nil {
+			return true
+		}
+	}
+	return false
 }
 
 // hasInsertConstraints reports whether the table imposes any constraints at

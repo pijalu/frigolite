@@ -673,6 +673,7 @@ func (e *DMLExecutor) runUpdateFail(tableName string, tableEntry *schema.Entry, 
 	uniqueCols := uniqueColsForTable(colDefs)
 	idxColsList := e.updateConstrainedDefs(tableEntry, colDefs)
 	wrOrder := e.ctx.WRStorageOrder(tableEntry.SQL, colDefs)
+	needRowMaps := dmlConstraintRowMapsNeeded(colIndex, idxColsList)
 	tree := e.dmlTableBTree(tableName, tableEntry.RootPage)
 	defer tree.Close() // conflict/write tree is function-local
 	for i := range changes {
@@ -683,7 +684,7 @@ func (e *DMLExecutor) runUpdateFail(tableName string, tableEntry *schema.Entry, 
 		// write below must still run (check-6.5/6.6: UPDATE OR FAIL on a
 		// table without unique constraints still writes every row until
 		// the failing one).
-		skipConflictScan := e.updateConstraintUnchanged(c, colDefs, colIndex, uniqueCols, idxColsList)
+		skipConflictScan := e.updateConstraintUnchanged(c, colDefs, colIndex, uniqueCols, idxColsList, needRowMaps)
 		if !skipConflictScan {
 			if res := e.checkEarlierChanges(changes, i, c, colDefs, colIndex, uniqueCols, idxColsList, tableEntry.Name); res.Error != nil {
 				return res

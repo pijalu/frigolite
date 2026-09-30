@@ -30,6 +30,10 @@ func (e *DMLExecutor) checkUpdateConflicts(tableEntry *schema.Entry, colDefs []s
 		return &Result{}
 	}
 
+	// Resolved once per statement: whether the change-detection gate needs
+	// name-keyed row maps (partial-index predicates / expression keys).
+	needRowMaps := dmlConstraintRowMapsNeeded(colIndex, idxColsList)
+
 	tree := e.dmlTableBTree(tableEntry.Name, tableEntry.RootPage)
 	defer tree.Close() // conflict-scan tree is function-local
 	for i := range changes {
@@ -39,7 +43,7 @@ func (e *DMLExecutor) checkUpdateConflicts(tableEntry *schema.Entry, colDefs []s
 		// old values already coexisted with every other row, so neither the
 		// pairwise nor the live-table scan can find a conflict (update.c
 		// checks only constrained columns the statement changes).
-		if e.updateConstraintUnchanged(c, colDefs, colIndex, uniqueCols, idxColsList) {
+		if e.updateConstraintUnchanged(c, colDefs, colIndex, uniqueCols, idxColsList, needRowMaps) {
 			continue
 		}
 		if res := e.checkEarlierChanges(changes, i, c, colDefs, colIndex, uniqueCols, idxColsList, tableEntry.Name); res.Error != nil {

@@ -71,6 +71,19 @@ func wrPKSynthIndexName(tableName string) string {
 	return "pk:" + tableName
 }
 
+// dmlConstraintRowMapsNeeded reports whether any UNIQUE index definition in
+// idxColsList needs a name-keyed row map during the change-detection gate
+// (uniqueIndexDefNeedsRowMaps). When the result is false the per-change gate
+// builds no row maps (a per-statement O(changes × 2) map saving).
+func dmlConstraintRowMapsNeeded(colIndex map[string]int, idxColsList []uniqueIndexDef) bool {
+	for _, def := range idxColsList {
+		if uniqueIndexDefNeedsRowMaps(def, colIndex) {
+			return true
+		}
+	}
+	return false
+}
+
 // updateConstraintUnchanged reports whether a change's NEW values agree with
 // its OLD values on every constrained slot — each UNIQUE/PRIMARY KEY column,
 // and every UNIQUE index's key columns with unchanged partial-index
@@ -79,8 +92,10 @@ func wrPKSynthIndexName(tableName string) string {
 // with every other change's old values, so both the pairwise and the
 // live-table conflict scans are skippable for that change (the value-level
 // form of update.c emitting constraint checks only for columns the statement
-// changes).
-func (e *DMLExecutor) updateConstraintUnchanged(c updateChange, colDefs []sql.ColumnDef, colIndex map[string]int, uniqueCols []int, idxColsList []uniqueIndexDef) bool {
+// changes). needRowMaps precomputes whether any definition's check reads a
+// name-keyed row map (dmlConstraintRowMapsNeeded); when false, no maps are
+// built for the change.
+func (e *DMLExecutor) updateConstraintUnchanged(c updateChange, colDefs []sql.ColumnDef, colIndex map[string]int, uniqueCols []int, idxColsList []uniqueIndexDef, needRowMaps bool) bool {
 	if len(uniqueCols) == 0 && len(idxColsList) == 0 {
 		return true
 	}
@@ -90,8 +105,11 @@ func (e *DMLExecutor) updateConstraintUnchanged(c updateChange, colDefs []sql.Co
 	if c.newRowID != nil && *c.newRowID != c.rowID {
 		return false
 	}
-	oldRow := buildRowMapFromValues(c.oldValues, colDefs, c.rowID)
-	newRow := buildRowMapFromValues(c.values, colDefs, c.rowID)
+	var oldRow, newRow RowMap
+	if needRowMaps {
+		oldRow = buildRowMapFromValues(c.oldValues, colDefs, c.rowID)
+		newRow = buildRowMapFromValues(c.values, colDefs, c.rowID)
+	}
 	for _, idx := range uniqueCols {
 		if !uniqueColValuesMatch(c.oldValues, c.values, colDefs, c.rowID, c.rowID, idx) {
 			return false

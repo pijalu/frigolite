@@ -4,6 +4,7 @@ import (
 	"strings"
 
 	"github.com/pijalu/frigolite/internal/btree"
+	"github.com/pijalu/frigolite/internal/execquery"
 	"github.com/pijalu/frigolite/internal/pager"
 	"github.com/pijalu/frigolite/internal/schema"
 	"github.com/pijalu/frigolite/internal/sql"
@@ -74,6 +75,34 @@ func (e *Engine) buildRowMap(rec *storage.Record, colDefs []sql.ColumnDef, rowID
 // write reorder). No-op for rowid tables or identity layouts.
 func (e *Engine) RemapWRRecordToDeclared(rec *storage.Record, createSQL string, colDefs []sql.ColumnDef) {
 	e.selectEngine.RemapWRRecordToDeclared(rec, createSQL, colDefs)
+}
+
+// NewDMLRowPlan builds the per-statement positional row plan for DML row
+// collection (execquery DMLRowPlan): the referenced-column affinity plan plus
+// the shared name→slot index, so the UPDATE/DELETE scan loops evaluate
+// WHERE/SET/ORDER BY over reused StructRows instead of per-row RowMaps.
+func (e *Engine) NewDMLRowPlan(colDefs []sql.ColumnDef, exprs []sql.Expr, orderBy []sql.OrderByTerm) *execquery.DMLRowPlan {
+	return e.selectEngine.NewDMLRowPlan(colDefs, exprs, orderBy)
+}
+
+// FillDMLRow fills a reused positional StructRow from one decoded record for
+// WHERE/SET/ORDER BY evaluation (buildRowMap's expression-eval semantics).
+func (e *Engine) FillDMLRow(p *execquery.DMLRowPlan, sr *execquery.StructRow, values []interface{}, valueCount int, rowID int64) {
+	e.selectEngine.FillDMLRow(p, sr, values, valueCount, rowID)
+}
+
+// DMLRowSnapshot returns the raw declared-order value slice retained for one
+// collected DML row (dropped-column re-alignment, added-column DEFAULTs, and
+// the rowid-alias substitution as raw values).
+func (e *Engine) DMLRowSnapshot(p *execquery.DMLRowPlan, values []interface{}, valueCount int, rowID int64) []interface{} {
+	return e.selectEngine.DMLRowSnapshot(p, values, valueCount, rowID)
+}
+
+// RowMapFromDeclared materializes the name-keyed RowMap for one collected
+// positional row at the point a consumer's contract demands name-keyed
+// access (trigger OLD/NEW rows, RETURNING, FK actions, partial indexes).
+func (e *Engine) RowMapFromDeclared(p *execquery.DMLRowPlan, values []interface{}, valueCount int, rowID int64) RowMap {
+	return e.selectEngine.RowMapFromDeclared(p, values, valueCount, rowID)
 }
 
 // WRStorageOrder exposes the WITHOUT ROWID PK-first storage layout (nil for

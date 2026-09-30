@@ -16,7 +16,30 @@ import (
 // pages and integrity_check flags the freed-page references. Partial-index
 // predicates and expression keys are evaluated in a pure context, matching
 // the insert-side semantics (OP_PureFunc).
-func (e *DMLExecutor) maintainIndexesOnDelete(tableEntry *schema.Entry, colDefs []sql.ColumnDef, deletedRows []RowMap) error {
+func (e *DMLExecutor) maintainIndexesOnDelete(tableEntry *schema.Entry, colDefs []sql.ColumnDef, deletedRows []*dmlRow) error {
+	defs := e.allTableIndexes(tableEntry.Name)
+	if len(defs) == 0 {
+		return nil
+	}
+	colIndex := e.columnIndexFor(colDefs)
+	for _, row := range deletedRows {
+		// The deleted row's stored values (decoded from the table cell)
+		// reproduce the exact index payload that maintainIndexesOnInsert
+		// wrote for this rowid. The name-keyed map is materialized lazily —
+		// only indexed tables pay for it — for the partial-index predicate
+		// and expression-key consumers.
+		rowMap := row.rowMap(e)
+		if err := e.deleteRowFromIndexes(defs, colDefs, colIndex, rowMap, row.values, row.rowID); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// maintainIndexesOnDeleteRowMaps is maintainIndexesOnDelete for callers that
+// already hold name-keyed row maps (the REPLACE conflict path, whose
+// conflict row was built from its recorded values).
+func (e *DMLExecutor) maintainIndexesOnDeleteRowMaps(tableEntry *schema.Entry, colDefs []sql.ColumnDef, deletedRows []RowMap) error {
 	defs := e.allTableIndexes(tableEntry.Name)
 	if len(defs) == 0 {
 		return nil
@@ -24,9 +47,6 @@ func (e *DMLExecutor) maintainIndexesOnDelete(tableEntry *schema.Entry, colDefs 
 	colIndex := e.columnIndexFor(colDefs)
 	for _, row := range deletedRows {
 		rowID, _ := util.UnwrapColumnValue(row["rowid"]).(int64)
-		// The deleted row's stored values (decoded from the table cell)
-		// reproduce the exact index payload that maintainIndexesOnInsert
-		// wrote for this rowid.
 		values := e.rowMapColumnValues(row, colDefs)
 		if err := e.deleteRowFromIndexes(defs, colDefs, colIndex, row, values, rowID); err != nil {
 			return err

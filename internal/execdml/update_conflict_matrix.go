@@ -87,7 +87,7 @@ func (e *DMLExecutor) perRowConflictError(c updateChange, tableEntry *schema.Ent
 	wrOrder := e.ctx.WRStorageOrder(tableEntry.SQL, colDefs)
 	// Change-detection gate (see checkUpdateConflicts): nothing constrained
 	// moved, so no other row can conflict with this change.
-	if e.updateConstraintUnchanged(c, colDefs, colIndexLocal, uniqueCols, idxColsList) {
+	if e.updateConstraintUnchanged(c, colDefs, colIndexLocal, uniqueCols, idxColsList, dmlConstraintRowMapsNeeded(colIndexLocal, idxColsList)) {
 		return nil
 	}
 	tree := e.dmlTableBTree(tableEntry.Name, tableEntry.RootPage)

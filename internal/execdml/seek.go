@@ -333,31 +333,31 @@ func sortInt64Ascending(v []int64) {
 	sort.Slice(v, func(i, j int) bool { return v[i] < v[j] })
 }
 
-// fetchSeekRow reads one candidate row by rowid through a direct b-tree seek.
-// Returns (nil, false, nil) when the rowid is absent, and a non-nil error
-// when the tree read fails (caller falls back to the scan).
-func (e *DMLExecutor) fetchSeekRow(tree *btree.BTree, tableName string, rootPage uint32, createSQL string, colDefs []sql.ColumnDef, rowID int64) (RowMap, bool, error) {
+// fetchSeekRowValues reads one candidate row by rowid through a direct
+// b-tree seek, returning its declared-order decoded values (WITHOUT ROWID
+// records remapped) and the TRUE btree rowid. found=false with a nil error
+// means the rowid is absent; a non-nil error makes the caller fall back to
+// the scan.
+func (e *DMLExecutor) fetchSeekRowValues(tree *btree.BTree, tableName string, rootPage uint32, createSQL string, colDefs []sql.ColumnDef, rowID int64) (values []interface{}, realRowID int64, found bool, err error) {
 	cursor, err := tree.OpenCursor()
 	if err != nil {
-		return nil, false, err
+		return nil, 0, false, err
 	}
-	found, err := cursor.SeekToRowID(rowID)
+	found, err = cursor.SeekToRowID(rowID)
 	if err != nil {
-		return nil, false, err
+		return nil, 0, false, err
 	}
 	if !found {
-		return nil, false, nil
+		return nil, 0, false, nil
 	}
 	payload, realRowID, err := cursor.ReadCellData()
 	if err != nil {
-		return nil, false, err
+		return nil, 0, false, err
 	}
 	rec, err := storage.DecodeRecord(payload)
 	if err != nil || rec == nil {
-		return nil, false, nil
+		return nil, 0, false, nil
 	}
 	e.ctx.RemapWRRecordToDeclared(rec, createSQL, colDefs)
-	row := e.ctx.BuildRowMap(rec, colDefs, realRowID)
-	row[trueRowidKey] = realRowID
-	return row, true, nil
+	return rec.Values, realRowID, true, nil
 }

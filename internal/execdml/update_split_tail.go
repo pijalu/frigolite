@@ -210,9 +210,19 @@ func updateScanName(s *sql.UpdateStmt, tableName string) string {
 
 // scanUpdateChanges walks the target table's btree once, evaluating the
 // WHERE per row and building the matching changes.
-func (e *DMLExecutor) scanUpdateChanges(cursor *btree.Cursor, createSQL string, colIndex map[string]int, colDefs []sql.ColumnDef, s *sql.UpdateStmt, deferSetEval bool) ([]updateChange, []RowMap, error) {
+//
+// Rows are collected positionally (the SELECT scan's StructRow model): the
+// WHERE/SET/ORDER BY expressions evaluate against one reused StructRow whose
+// referenced columns carry affinity/collation wrappers, and a per-row RowMap
+// is materialized only when a consumer's contract demands name-keyed access
+// (deferred SET re-evaluation on trigger tables, ORDER BY/LIMIT survivor
+// selection, UPDATE ... FROM joins) — see updateRetainRowMaps.
+func (e *DMLExecutor) scanUpdateChanges(cursor *btree.Cursor, createSQL string, colIndex map[string]int, colDefs []sql.ColumnDef, s *sql.UpdateStmt, deferSetEval bool) ([]updateChange, []Row, error) {
 	var changes []updateChange
-	var rowMaps []RowMap
+	var rowMaps []Row
+	plan := e.newUpdateRowPlan(colDefs, s)
+	srow := plan.NewRow()
+	retainMaps := updateRetainRowMaps(s, deferSetEval)
 	for {
 		// SQLITE_TEST interrupt countdown: one op per row examined
 		// (src/vdbe.c per-opcode decrement of sqlite3_interrupt_count).
@@ -229,7 +239,7 @@ func (e *DMLExecutor) scanUpdateChanges(cursor *btree.Cursor, createSQL string, 
 		}
 		e.ctx.RemapWRRecordToDeclared(rec, createSQL, colDefs)
 
-		row := e.ctx.BuildRowMap(rec, colDefs, cell.RowID)
+		row := e.updateEvalRow(plan, srow, rec, colDefs, cell.RowID, retainMaps)
 		ch, matchRow, matched, err := e.matchUpdateRow(s, cell, rec, colIndex, colDefs, row, deferSetEval)
 		if err != nil {
 			return nil, nil, err
@@ -248,11 +258,45 @@ func (e *DMLExecutor) scanUpdateChanges(cursor *btree.Cursor, createSQL string, 
 	return changes, rowMaps, nil
 }
 
+// newUpdateRowPlan builds the collect loop's positional row plan: every
+// expression it evaluates per row (SET value expressions + WHERE) plus the
+// ORDER BY terms, so the reused row wraps exactly the referenced columns.
+func (e *DMLExecutor) newUpdateRowPlan(colDefs []sql.ColumnDef, s *sql.UpdateStmt) *execquery.DMLRowPlan {
+	exprs := make([]sql.Expr, 0, len(s.Assignments)+1)
+	for _, a := range s.Assignments {
+		exprs = append(exprs, a.Value)
+	}
+	exprs = append(exprs, s.Where)
+	return e.ctx.NewDMLRowPlan(colDefs, exprs, s.OrderBy)
+}
+
+// updateRetainRowMaps reports whether the collect loop must materialize the
+// exact per-row RowMap (instead of evaluating against the reused positional
+// StructRow): the deferred SET path retains it for per-row re-evaluation,
+// ORDER BY/LIMIT sort survivor rows by expression, and UPDATE ... FROM joins
+// merged row maps.
+func updateRetainRowMaps(s *sql.UpdateStmt, deferSetEval bool) bool {
+	return deferSetEval || len(s.OrderBy) > 0 || s.Limit != nil ||
+		s.From.Name != "" || s.From.Subquery != nil
+}
+
+// updateEvalRow returns the row the collect loop evaluates WHERE/SET against:
+// a reused positional StructRow normally; the exact per-row RowMap when a
+// consumer retains it (see updateRetainRowMaps).
+func (e *DMLExecutor) updateEvalRow(plan *execquery.DMLRowPlan, srow *execquery.StructRow, rec *storage.Record, colDefs []sql.ColumnDef, rowID int64, retainMaps bool) Row {
+	if retainMaps {
+		return e.ctx.BuildRowMap(rec, colDefs, rowID)
+	}
+	e.ctx.FillDMLRow(plan, srow, rec.Values, len(rec.Values), rowID)
+	return srow
+}
+
 // seekUpdateChanges collects UPDATE changes through a point-lookup plan,
 // mirroring the scan loop's per-row work (decode, remap, WHERE evaluation,
 // change building) over the candidate rows only. ok=false falls back to the
-// full scan (no plan, or a candidate lookup/evaluation anomaly).
-func (e *DMLExecutor) seekUpdateChanges(tableName string, rootPage uint32, colDefs []sql.ColumnDef, s *sql.UpdateStmt, deferSetEval bool, scanName string) ([]updateChange, []RowMap, bool) {
+// full scan (no plan, or a candidate lookup/evaluation anomaly). Rows are
+// collected positionally like scanUpdateChanges.
+func (e *DMLExecutor) seekUpdateChanges(tableName string, rootPage uint32, colDefs []sql.ColumnDef, s *sql.UpdateStmt, deferSetEval bool, scanName string) ([]updateChange, []Row, bool) {
 	tableEntry, rowIDs, ok := e.planUpdateSeek(tableName, rootPage, colDefs, s, scanName)
 	if !ok {
 		return nil, nil, false
@@ -261,7 +305,10 @@ func (e *DMLExecutor) seekUpdateChanges(tableName string, rootPage uint32, colDe
 	defer tree.Close() // seek tree is function-local
 	colIndex := e.columnIndexFor(colDefs)
 	var changes []updateChange
-	var rowMaps []RowMap
+	var rowMaps []Row
+	plan := e.newUpdateRowPlan(colDefs, s)
+	srow := plan.NewRow()
+	retainMaps := updateRetainRowMaps(s, deferSetEval)
 	for _, rowID := range rowIDs {
 		// SQLITE_TEST interrupt countdown: one op per row examined
 		// (src/vdbe.c per-opcode decrement of sqlite3_interrupt_count).
@@ -275,7 +322,7 @@ func (e *DMLExecutor) seekUpdateChanges(tableName string, rootPage uint32, colDe
 		if cell == nil {
 			continue // the rowid has no cell (deleted before this visit)
 		}
-		row := e.ctx.BuildRowMap(rec, colDefs, cell.RowID)
+		row := e.updateEvalRow(plan, srow, rec, colDefs, cell.RowID, retainMaps)
 		ch, matchRow, matched, err := e.matchUpdateRow(s, cell, rec, colIndex, colDefs, row, deferSetEval)
 		if err != nil {
 			return nil, nil, false // the scan fallback re-evaluates and surfaces it
@@ -337,13 +384,13 @@ func (e *DMLExecutor) seekUpdateCandidateRow(tree *btree.BTree, rowID int64, tab
 // applyUpdateOrderLimit applies UPDATE ... ORDER BY ... LIMIT: sort a copy of
 // the changes by ORDER BY (evaluated on the rows' original values), keep only
 // the LIMIT window, then restore the natural rowid order for the survivors.
-func (e *DMLExecutor) applyUpdateOrderLimit(changes []updateChange, rowMaps []RowMap, s *sql.UpdateStmt) []updateChange {
+func (e *DMLExecutor) applyUpdateOrderLimit(changes []updateChange, rowMaps []Row, s *sql.UpdateStmt) []updateChange {
 	if len(s.OrderBy) == 0 && s.Limit == nil {
 		return changes
 	}
 	sorted := make([]updateChange, len(changes))
 	copy(sorted, changes)
-	sortedRows := make([]RowMap, len(rowMaps))
+	sortedRows := make([]Row, len(rowMaps))
 	copy(sortedRows, rowMaps)
 	if len(s.OrderBy) > 0 {
 		e.sortUpdateChanges(sorted, sortedRows, s.OrderBy)
@@ -375,10 +422,17 @@ func (e *DMLExecutor) applyUpdateOrderLimit(changes []updateChange, rowMaps []Ro
 // matchUpdateRow evaluates the WHERE clause for one target row and, if it
 // matches, builds the change. For UPDATE ... FROM the WHERE/SET evaluate
 // against the joined row (the target is updated once per matching join row,
-// using the first match's SET values).
-func (e *DMLExecutor) matchUpdateRow(s *sql.UpdateStmt, cell *storage.Cell, rec *storage.Record, colIndex map[string]int, colDefs []sql.ColumnDef, row RowMap, deferSetEval bool) (*updateChange, RowMap, bool, error) {
+// using the first match's SET values). row is the collect loop's evaluation
+// row: a reused positional StructRow on the plain path, the exact per-row
+// RowMap when a consumer retains it (updateRetainRowMaps — the FROM path
+// always receives a RowMap).
+func (e *DMLExecutor) matchUpdateRow(s *sql.UpdateStmt, cell *storage.Cell, rec *storage.Record, colIndex map[string]int, colDefs []sql.ColumnDef, row Row, deferSetEval bool) (*updateChange, Row, bool, error) {
 	if s.From.Name != "" {
-		return e.matchUpdateFromRow(s, cell, rec, colIndex, colDefs, row, deferSetEval)
+		rm, ok := row.(RowMap)
+		if !ok {
+			return nil, nil, false, fmt.Errorf("exec: UPDATE FROM row must be a row map")
+		}
+		return e.matchUpdateFromRow(s, cell, rec, colIndex, colDefs, rm, deferSetEval)
 	}
 	match, err := e.rowMatchesWhere(s.Where, row)
 	if err != nil {

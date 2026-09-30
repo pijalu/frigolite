@@ -106,6 +106,14 @@ type DMLContext interface {
 	ValidateCompoundWidths(s *sql.SelectStmt) error
 	ExecSelectView(viewEntry *schema.Entry) *Result
 	BuildRowMap(rec *storage.Record, colDefs []sql.ColumnDef, rowID int64) RowMap
+	// Positional DML row collection (execquery DMLRowPlan): the per-statement
+	// plan that lets the UPDATE/DELETE scan loops evaluate WHERE/SET/ORDER BY
+	// against reused StructRows instead of building a RowMap per row, plus
+	// the raw snapshot and lazy map-materialization helpers.
+	NewDMLRowPlan(colDefs []sql.ColumnDef, exprs []sql.Expr, orderBy []sql.OrderByTerm) *execquery.DMLRowPlan
+	FillDMLRow(p *execquery.DMLRowPlan, sr *execquery.StructRow, values []interface{}, valueCount int, rowID int64)
+	DMLRowSnapshot(p *execquery.DMLRowPlan, values []interface{}, valueCount int, rowID int64) []interface{}
+	RowMapFromDeclared(p *execquery.DMLRowPlan, values []interface{}, valueCount int, rowID int64) RowMap
 	RemapWRRecordToDeclared(rec *storage.Record, createSQL string, colDefs []sql.ColumnDef)
 	WRStorageOrder(createSQL string, colDefs []sql.ColumnDef) []int
 	BuildColumnNames(columns []sql.SelectColumn, colDefs []sql.ColumnDef, sel *sql.SelectStmt) []string

@@ -733,6 +733,18 @@ func (e *DMLExecutor) deleteReplaceConflict(tableEntry *schema.Entry, colDefs []
 // once b is filled. The slice may need to grow when an INSERT...SELECT maps
 // fewer columns than the table has (the trailing generated columns are nil).
 func (e *DMLExecutor) computeGeneratedValues(colDefs []sql.ColumnDef, values []interface{}) error {
+	// Tables without generated columns: nothing to compute (the loop below
+	// would run one no-op pass that builds a per-row name-keyed map).
+	hasGenerated := false
+	for i := range colDefs {
+		if colDefs[i].Generated != nil {
+			hasGenerated = true
+			break
+		}
+	}
+	if !hasGenerated {
+		return nil
+	}
 	for pass := 0; pass < len(colDefs); pass++ {
 		progress := false
 		rowMap := generatedRowMap(colDefs, values)
