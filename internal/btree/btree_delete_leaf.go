@@ -121,18 +121,25 @@ func (t *BTree) deleteIndexEntryFromLeafBatch(leafNum uint32, targets [][]byte) 
 }
 
 // decodeIndexLeafCells decodes and re-encodes every index cell of a leaf,
-// preparing the byte-for-byte copies used by the rewrite pass.
+// preparing the byte-for-byte copies used by the rewrite pass. The encoded
+// bytes share one arena buffer (one backing array per leaf instead of one
+// allocation per cell); they are consumed by finishLeafDelete within the
+// same statement, so the arena's lifetime matches its use.
 func (t *BTree) decodeIndexLeafCells(pg *pager.Page, coff int, page *storage.BTreePage) ([][]byte, []storage.Cell, error) {
-	encoded := make([][]byte, 0, int(page.CellCount))
-	decoded := make([]storage.Cell, int(page.CellCount))
-	for i := 0; i < int(page.CellCount); i++ {
+	n := int(page.CellCount)
+	encoded := make([][]byte, 0, n)
+	decoded := make([]storage.Cell, n)
+	var arena []byte
+	for i := 0; i < n; i++ {
 		p := storage.CellPointer(pg.Data, coff, i, int(t.pageSize))
 		c, derr := storage.DecodeCell(pg.Data, int(p), storage.CellIndexLeaf, int(t.usableSize))
 		if derr != nil {
 			return nil, nil, derr
 		}
 		decoded[i] = *c
-		encoded = append(encoded, storage.EncodeCell(c))
+		start := len(arena)
+		arena = storage.AppendEncodedCell(arena, c)
+		encoded = append(encoded, arena[start:len(arena)])
 	}
 	return encoded, decoded, nil
 }
@@ -185,17 +192,25 @@ func (t *BTree) deleteAllMatchingFromLeaf(leafNum uint32, fn func(cell *storage.
 	}
 	cellType := leafCellType(page.PageType)
 	// Decode every cell once.
-	encoded, decoded, err := t.decodeAllLeafCells(pg, coff, page, cellType)
+	encoded, decoded, failed, err := t.decodeAllLeafCells(pg, coff, page, cellType)
 	if err != nil {
 		return 0, err
 	}
 	// Keep the survivors, preserving order. Also collect the deleted cell
-	// indices so their overflow-page chains can be freed.
+	// indices so their overflow-page chains can be freed. The predicate runs
+	// on the cells decoded above (a cell that failed to decode never
+	// matches — the same rule the per-cell re-decode applied), and sees the
+	// LOCAL payload only: every DeleteCellsWhere caller (DELETE/UPDATE/FK
+	// rowid matching) predicates on cell.RowID, which lives in the cell
+	// header. Reading the full overflow chain here made a bulk delete of
+	// large-blob rows (e.g. DELETE FROM %_segments with 4KB blocks) read
+	// every blob once per candidate cell, O(n × blob) — the
+	// between-scenario DELETE in fts4merge4 took ~40s.
 	var keep []int
 	deleted := int64(0)
 	var deletedIdx []int
 	for i := 0; i < len(encoded); i++ {
-		if t.cellMatches(pg, page, i, fn) {
+		if !failed[i] && fn(&decoded[i]) {
 			deleted++
 			deletedIdx = append(deletedIdx, i)
 			continue
@@ -215,27 +230,39 @@ func (t *BTree) deleteAllMatchingFromLeaf(leafNum uint32, fn func(cell *storage.
 // clearDatabasePage treats such cells as "drop without decoding" — the bytes
 // are preserved so the page stays valid for subsequent reads. We mirror that
 // by encoding the raw bytes (re-validated on read).
-func (t *BTree) decodeAllLeafCells(pg *pager.Page, coff int, page *storage.BTreePage, cellType storage.CellType) ([][]byte, []storage.Cell, error) {
-	encoded := make([][]byte, 0, int(page.CellCount))
-	decoded := make([]storage.Cell, int(page.CellCount))
-	for i := 0; i < int(page.CellCount); i++ {
+//
+// The returned failed[i] flags mark cells whose decode failed: their decoded
+// entry is zeroed and their encoded bytes are the raw page bytes, so
+// consumers must not match on them. Cells are decoded in place into
+// decoded[i] (no per-cell Cell allocation) and the encoded bytes share one
+// arena buffer; both are consumed by finishLeafDelete within the same
+// statement.
+func (t *BTree) decodeAllLeafCells(pg *pager.Page, coff int, page *storage.BTreePage, cellType storage.CellType) ([][]byte, []storage.Cell, []bool, error) {
+	n := int(page.CellCount)
+	encoded := make([][]byte, 0, n)
+	decoded := make([]storage.Cell, n)
+	failed := make([]bool, n)
+	var arena []byte
+	for i := 0; i < n; i++ {
 		p := storage.CellPointer(pg.Data, coff, i, int(t.pageSize))
-		c, derr := storage.DecodeCell(pg.Data, int(p), cellType, int(t.usableSize))
-		if derr != nil {
+		if derr := storage.DecodeCellInto(pg.Data, int(p), cellType, int(t.usableSize), &decoded[i]); derr != nil {
+			failed[i] = true
 			raw := pg.Data[int(p):]
 			// Bound the raw slice so we don't read past the page.
 			end := len(raw)
 			if end > int(t.usableSize)-int(p) {
 				end = int(t.usableSize) - int(p)
 			}
-			encoded = append(encoded, append([]byte(nil), raw[:end]...))
-			decoded[i] = storage.Cell{Type: cellType, RowID: 0, PayloadLen: 0, LocalLen: 0}
+			start := len(arena)
+			arena = append(arena, raw[:end]...)
+			encoded = append(encoded, arena[start:len(arena)])
 			continue
 		}
-		decoded[i] = *c
-		encoded = append(encoded, storage.EncodeCell(c))
+		start := len(arena)
+		arena = storage.AppendEncodedCell(arena, &decoded[i])
+		encoded = append(encoded, arena[start:len(arena)])
 	}
-	return encoded, decoded, nil
+	return encoded, decoded, failed, nil
 }
 
 // finishLeafDelete completes a leaf-cell deletion: it frees the deleted
@@ -319,7 +346,8 @@ func (t *BTree) deleteCellOnPage(pg *pager.Page, page *storage.BTreePage, cellId
 	cellType := leafCellType(page.PageType)
 	ptrBase := coff + storage.CellPointerOffset
 	delOff := int(storage.CellPointer(pg.Data, coff, cellIdx, int(t.pageSize)))
-	if delCell, derr := storage.DecodeCell(pg.Data, delOff, cellType, int(t.usableSize)); derr == nil && delCell.Overflow != 0 {
+	var delCell storage.Cell
+	if derr := storage.DecodeCellInto(pg.Data, delOff, cellType, int(t.usableSize), &delCell); derr == nil && delCell.Overflow != 0 {
 		if err := t.freeOverflowChain(delCell.Overflow); err != nil {
 			return err
 		}
@@ -366,17 +394,24 @@ func (t *BTree) deleteCellOnPage(pg *pager.Page, page *storage.BTreePage, cellId
 // no fragmented free space after compaction.
 func (t *BTree) compactLeafAfterDelete(pg *pager.Page, page *storage.BTreePage, coff int) error {
 	cellType := leafCellType(page.PageType)
+	// Decode each cell and append its byte-for-byte encoding to one arena
+	// buffer (one backing array per compaction instead of one allocation per
+	// cell). Encoding into the arena goes through the shared wire writer, so
+	// the bytes match EncodeCell exactly.
+	var arena []byte
 	cells := make([][]byte, int(page.CellCount))
+	var sc storage.Cell
 	for i := 0; i < int(page.CellCount); i++ {
 		p := int(storage.CellPointer(pg.Data, coff, i, int(t.pageSize)))
 		// Read the cell's encoded length: for table cells the payload
 		// length varint precedes the rowid; the encoded length is the
 		// number of bytes the cell occupies on the page.
-		c, err := storage.DecodeCell(pg.Data, p, cellType, int(t.usableSize))
-		if err != nil {
+		if err := storage.DecodeCellInto(pg.Data, p, cellType, int(t.usableSize), &sc); err != nil {
 			return err
 		}
-		cells[i] = storage.EncodeCell(c)
+		start := len(arena)
+		arena = storage.AppendEncodedCell(arena, &sc)
+		cells[i] = arena[start:len(arena)]
 	}
 	// Rewrite cells contiguously: the first cell (index 0) ends at
 	// usableSize (cells grow downward — defragmentPage packs from
@@ -395,21 +430,4 @@ func (t *BTree) compactLeafAfterDelete(pg *pager.Page, page *storage.BTreePage, 
 	// After compaction there is no fragmented free space.
 	pg.Data[coff+7] = 0
 	return nil
-}
-
-func (t *BTree) cellMatches(pg *pager.Page, page *storage.BTreePage, idx int, fn func(cell *storage.Cell) bool) bool {
-	coff := contentOffset(pg.PageNum)
-	cellOff := int(storage.CellPointer(pg.Data, coff, idx, int(t.pageSize)))
-	cellType := leafCellType(page.PageType)
-	cell, err := storage.DecodeCell(pg.Data, cellOff, cellType, int(t.usableSize))
-	if err != nil {
-		return false
-	}
-	// Decode only the cell's local portion — every DeleteCellsWhere caller
-	// (DELETE/UPDATE/FK rowid matching) predicates on cell.RowID, which lives
-	// in the cell header. Reading the full overflow chain here made a bulk
-	// delete of large-blob rows (e.g. DELETE FROM %_segments with 4KB blocks)
-	// read every blob once per candidate cell, O(n × blob) — the
-	// between-scenario DELETE in fts4merge4 took ~40s.
-	return fn(cell)
 }

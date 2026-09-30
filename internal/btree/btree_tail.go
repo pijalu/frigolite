@@ -250,16 +250,87 @@ func (t *BTree) DeleteCellByRowID(rowID int64) (int64, error) {
 		return 0, nil
 	}
 	leaf := c.pageNum
+	// The seek's path stack names the leaf's parent (its last interior
+	// level); after the delete it feeds the rebalance lookup, sparing the
+	// O(pages) whole-database parent walk per emptied leaf. The hint is
+	// verified against the live tree before use and falls back to the walk.
+	hintParent := uint32(0)
+	if len(c.path) > 0 {
+		hintParent = c.path[len(c.path)-1].pageNum
+	}
 	n, err := t.deleteAllMatchingFromLeaf(leaf, func(cell *storage.Cell) bool {
 		return cell.RowID == rowID
 	})
 	if err != nil || n == 0 {
 		return n, err
 	}
-	if err := t.maybeRebalanceAfterDelete(leaf); err != nil {
+	if err := t.maybeRebalanceAfterDeleteHinted(leaf, hintParent); err != nil {
 		return n, err
 	}
 	return n, nil
+}
+
+// maybeRebalanceAfterDeleteHinted is maybeRebalanceAfterDelete with a
+// candidate parent page for the emptied leaf (the seek path's last interior
+// level). The hint is only a shortcut to the same lookup: it is accepted
+// only when the leaf is still reachable from that exact parent right now
+// (findLeafIndexInParent verifies), and every miss — stale hint, freed
+// parent, root-level leaf — falls through to the unchanged
+// findParentByWalk logic.
+func (t *BTree) maybeRebalanceAfterDeleteHinted(leafNum, hintParent uint32) error {
+	if hintParent == 0 || hintParent == leafNum {
+		return t.maybeRebalanceAfterDelete(leafNum)
+	}
+	leafPg, err := t.pager.ReadPage(leafNum)
+	if err != nil {
+		return err
+	}
+	leafCo := contentOffset(leafNum)
+	leafPage, err := storage.ParsePage(leafPg.Data, int(t.pageSize), leafCo)
+	if err != nil {
+		return err
+	}
+	if leafPage.CellCount != 0 {
+		return nil
+	}
+	if leafPage.PageType == storage.PageTypeLeafIndex {
+		// An emptied INDEX leaf stays in place — see
+		// maybeRebalanceAfterDelete.
+		return nil
+	}
+	// Match findParentByWalk's refusal exactly: a page that is the ROOT of
+	// any tree is never rebalanced through a parent (the walk answers
+	// "page is a root" and maybeRebalanceAfterDelete no-ops). Routing back
+	// through the walk on that case — and when the schema roots cannot be
+	// enumerated, which the walk treats as "not found" — keeps the hinted
+	// path byte-for-byte aligned with it.
+	roots, rerr := t.collectSchemaRoots()
+	if rerr != nil {
+		return t.maybeRebalanceAfterDelete(leafNum)
+	}
+	for _, r := range roots {
+		if r == leafNum {
+			return t.maybeRebalanceAfterDelete(leafNum)
+		}
+	}
+	parentPg, err := t.pager.ReadPage(hintParent)
+	if err != nil {
+		// The hinted parent is gone: fall back to the walk.
+		return t.maybeRebalanceAfterDelete(leafNum)
+	}
+	iParentIdx, err := t.findLeafIndexInParent(parentPg, leafNum)
+	if err != nil {
+		// The leaf is not reachable from the hint (stale path): fall back.
+		return t.maybeRebalanceAfterDelete(leafNum)
+	}
+	ctx := &balanceNonrootContext{
+		parent:     parentPg,
+		iParentIdx: iParentIdx,
+		page:       leafPg,
+		isRoot:     hintParent == t.rootPage,
+	}
+	_, err = t.balanceNonroot(ctx)
+	return err
 }
 
 // findLeafIndexInParent returns the cell-pointer index of leaf in

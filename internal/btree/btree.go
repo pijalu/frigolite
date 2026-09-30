@@ -49,6 +49,11 @@ type Cursor struct {
 	// pages may already belong to other rows — reads report an error instead
 	// of silently returning stale data.
 	released bool
+
+	// regKey is the cross-statement invalidation registry key this cursor is
+	// registered under (set by registerTreeCursor; read by the static
+	// finalizer).
+	regKey cursorTreeKey
 }
 
 // cursorPathEntry records one level of the traversal path.
@@ -114,6 +119,9 @@ func NewBTree(pg *pager.Pager, rootPage uint32, isTable bool) *BTree {
 		pageSize:   pg.PageSize(),
 		usableSize: pg.UsableSize(),
 		isTable:    isTable,
+		// A statement's wrapper opens a handful of cursors at most; the
+		// pre-sized slice absorbs them without per-OpenCursor growth.
+		cursors: make([]*Cursor, 0, 4),
 	}
 }
 
@@ -192,6 +200,10 @@ func (t *BTree) OpenCursor() (*Cursor, error) {
 		tx:      t,
 		pageNum: t.rootPage,
 		cellIdx: 0,
+		// B-trees are shallower than 4 levels in practice; pre-sizing the
+		// path stack keeps every descent's appends allocation-free (SeekToRowID
+		// clears the slice, not the capacity, so seeks reuse it too).
+		path: make([]cursorPathEntry, 0, 4),
 	}
 	// Descend from root to the leftmost leaf, building the path stack
 	if err := c.descendToFirstLeaf(); err != nil {
@@ -208,7 +220,13 @@ func (t *BTree) OpenCursor() (*Cursor, error) {
 
 // descendToFirstLeaf navigates from the current page to the leftmost leaf,
 // pushing interior pages onto the path stack. Used during OpenCursor.
+// Interior headers parse into a stack scratch (no per-level allocation) and
+// the landing leaf's parsed header is cached on the cursor — the first
+// cachePage after the descent would otherwise re-read and re-parse the very
+// page the descent just walked (the save/restore paths clear the cache when
+// the position is invalidated, so a cached leaf cannot go stale).
 func (c *Cursor) descendToFirstLeaf() error {
+	var sp storage.BTreePage
 	for {
 		pg, err := c.tx.pager.ReadPage(c.pageNum)
 		if err != nil {
@@ -216,15 +234,21 @@ func (c *Cursor) descendToFirstLeaf() error {
 			return err
 		}
 		coff := contentOffset(pg.PageNum)
-		page, err := storage.ParsePage(pg.Data, int(c.tx.pageSize), coff)
+		page, err := storage.ParsePageInto(pg.Data, int(c.tx.pageSize), coff, &sp)
 		if err != nil {
 			c.endOfBTree = true
 			return err
 		}
 		if page.PageType != storage.PageTypeInteriorTable && page.PageType != storage.PageTypeInteriorIndex {
-			// Leaf page — done
+			// Leaf page — done; keep the parsed header so the caller's
+			// first read skips the re-read+re-parse.
 			c.cellIdx = 0
 			c.endOfBTree = false
+			if c.currentPg == nil || c.currentPg.PageNum != pg.PageNum {
+				leafCopy := *page
+				c.currentPage = &leafCopy
+				c.currentPg = pg
+			}
 			return nil
 		}
 		// Interior page — descend to first child (child index 0)
@@ -298,8 +322,11 @@ func (c *Cursor) navigateToNextChild() {
 
 // descendToFirstLeafFromCurrent descends from the current page to the leftmost
 // leaf, pushing interior pages onto the path stack. The current page may be
-// a leaf or interior.
+// a leaf or interior. Like descendToFirstLeaf, interior headers parse into a
+// stack scratch and the landing leaf's parsed header is cached (clearPageCache
+// ran just before this walk; the cache it leaves behind is fresh).
 func (c *Cursor) descendToFirstLeafFromCurrent() {
+	var sp storage.BTreePage
 	for {
 		pg, err := c.tx.pager.ReadPage(c.pageNum)
 		if err != nil {
@@ -307,12 +334,18 @@ func (c *Cursor) descendToFirstLeafFromCurrent() {
 			return
 		}
 		coff := contentOffset(pg.PageNum)
-		page, err := storage.ParsePage(pg.Data, int(c.tx.pageSize), coff)
+		page, err := storage.ParsePageInto(pg.Data, int(c.tx.pageSize), coff, &sp)
 		if err != nil {
 			c.endOfBTree = true
 			return
 		}
 		if page.PageType != storage.PageTypeInteriorTable && page.PageType != storage.PageTypeInteriorIndex {
+			// Leaf — cache the parsed header for the next read.
+			if c.currentPg == nil || c.currentPg.PageNum != pg.PageNum {
+				leafCopy := *page
+				c.currentPage = &leafCopy
+				c.currentPg = pg
+			}
 			return // leaf
 		}
 		// Interior — descend to first child
@@ -572,13 +605,13 @@ func (c *Cursor) seekKeyInPage(pageNum uint32, key []byte) (bool, error) {
 
 func (c *Cursor) seekInLeafIndex(pg *pager.Page, page *storage.BTreePage, key []byte) (bool, error) {
 	lo, hi := 0, int(page.CellCount)-1
+	var sc storage.Cell
 	for lo <= hi {
 		mid := (lo + hi) / 2
-		cell, err := storage.DecodeCell(pg.Data, int(storage.CellPointer(pg.Data, contentOffset(pg.PageNum), mid, int(c.tx.pageSize))), storage.CellIndexLeaf, int(c.tx.usableSize))
-		if err != nil {
+		if err := storage.DecodeCellInto(pg.Data, int(storage.CellPointer(pg.Data, contentOffset(pg.PageNum), mid, int(c.tx.pageSize))), storage.CellIndexLeaf, int(c.tx.usableSize), &sc); err != nil {
 			return false, err
 		}
-		cmp := c.tx.compareKey(cell.Payload, key)
+		cmp := c.tx.compareKey(sc.Payload, key)
 		switch {
 		case cmp < 0:
 			lo = mid + 1
@@ -607,22 +640,22 @@ func (c *Cursor) seekInInteriorIndex(pg *pager.Page, page *storage.BTreePage, ke
 	lo, hi := 0, int(page.CellCount)-1
 	childPage := page.RightmostPtr
 
+	var sc storage.Cell
 	for lo <= hi {
 		mid := (lo + hi) / 2
 		cellOff := int(storage.CellPointer(pg.Data, contentOffset(pg.PageNum)+cellPtrOffset(page.PageType)-8, mid, int(c.tx.pageSize)))
-		cell, err := storage.DecodeCell(pg.Data, cellOff, storage.CellIndexInterior, int(c.tx.usableSize))
-		if err != nil {
+		if err := storage.DecodeCellInto(pg.Data, cellOff, storage.CellIndexInterior, int(c.tx.usableSize), &sc); err != nil {
 			return false, err
 		}
 		// Reassemble spilled dividers before comparing.
-		full, oerr := c.tx.readOverflow(cell)
+		full, oerr := c.tx.readOverflow(&sc)
 		if oerr != nil {
 			return false, oerr
 		}
 		if c.tx.compareKey(full.Payload, key) <= 0 {
 			lo = mid + 1
 		} else {
-			childPage = cell.LeftPtr
+			childPage = sc.LeftPtr
 			hi = mid - 1
 		}
 	}

@@ -80,8 +80,13 @@ func DecodeRecord(data []byte) (*Record, error) {
 		return nil, fmt.Errorf("database disk image is malformed")
 	}
 
-	// Decode serial type codes
-	var serialTypes []uint64
+	// Decode serial type codes. Serial-type varints are at least one byte
+	// each, so hdrEnd-pos bounds the type count; a stack buffer serves the
+	// common (<=16 column) records without touching the heap. append
+	// reallocates onto the heap beyond the bound — the parse is identical,
+	// only the scratch storage differs.
+	var stackSerialTypes [16]uint64
+	serialTypes := stackSerialTypes[:0]
 	for pos < hdrEnd {
 		st, n := util.GetVarint(data[pos:])
 		if n == 0 {

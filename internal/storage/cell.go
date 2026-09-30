@@ -111,17 +111,36 @@ func DecodeCell(pageData []byte, offset int, cellType CellType, pageSize int) (*
 	if offset < 0 || offset >= len(pageData) {
 		return nil, fmt.Errorf("storage: cell offset %d outside page of %d bytes", offset, len(pageData))
 	}
+	var c Cell
+	if err := DecodeCellInto(pageData, offset, cellType, pageSize, &c); err != nil {
+		return nil, err
+	}
+	return &c, nil
+}
+
+// DecodeCellInto decodes a b-tree cell into the caller-provided Cell (decode
+// without the per-cell heap allocation, for hot read paths). The Cell's
+// Payload is a view into pageData, exactly like DecodeCell's — callers that
+// outlive the page bytes must copy. On error the target is left partially
+// written and must not be used (DecodeCell discards it; reusable scratch
+// must reset before the next decode, which DecodeCellInto does itself via
+// the leading *c = Cell{Type: cellType} assignment).
+func DecodeCellInto(pageData []byte, offset int, cellType CellType, pageSize int, c *Cell) error {
+	if offset < 0 || offset >= len(pageData) {
+		return fmt.Errorf("storage: cell offset %d outside page of %d bytes", offset, len(pageData))
+	}
+	*c = Cell{Type: cellType}
 	switch cellType {
 	case CellTableLeaf:
-		return decodeTableLeafCell(pageData, offset, pageSize)
+		return decodeTableLeafCellInto(pageData, offset, pageSize, c)
 	case CellTableInterior:
-		return decodeTableInteriorCell(pageData, offset)
+		return decodeTableInteriorCellInto(pageData, offset, c)
 	case CellIndexLeaf:
-		return decodeIndexLeafCell(pageData, offset, pageSize)
+		return decodeIndexLeafCellInto(pageData, offset, pageSize, c)
 	case CellIndexInterior:
-		return decodeIndexInteriorCell(pageData, offset, pageSize)
+		return decodeIndexInteriorCellInto(pageData, offset, pageSize, c)
 	default:
-		return nil, fmt.Errorf("storage: unknown cell type: %d", cellType)
+		return fmt.Errorf("storage: unknown cell type: %d", cellType)
 	}
 }
 
@@ -137,8 +156,8 @@ func TableLeafCellSizeAt(pageData []byte, offset int, pageSize int) (int, error)
 	if offset < 0 || offset >= len(pageData) {
 		return 0, fmt.Errorf("storage: cell offset %d outside page of %d bytes", offset, len(pageData))
 	}
-	c, err := decodeTableLeafCell(pageData, offset, pageSize)
-	if err != nil {
+	var c Cell
+	if err := decodeTableLeafCellInto(pageData, offset, pageSize, &c); err != nil {
 		return 0, err
 	}
 	// Cell bytes: payload-length varint + rowid varint + local payload +
@@ -157,8 +176,8 @@ func TableLeafCellSizeAt(pageData []byte, offset int, pageSize int) (int, error)
 	return sz, nil
 }
 
-func decodeTableLeafCell(data []byte, off int, pageSize int) (*Cell, error) {
-	c := &Cell{Type: CellTableLeaf}
+func decodeTableLeafCellInto(data []byte, off int, pageSize int, c *Cell) error {
+	c.Type = CellTableLeaf
 	pos := off
 
 	// Payload length (varint)
@@ -181,33 +200,33 @@ func decodeTableLeafCell(data []byte, off int, pageSize int) (*Cell, error) {
 		// (SQLite rejects "cell offset out of range" when pc+sz exceeds the
 		// usable size; fts3corrupt4 21.1: t1_content cell 23 has an
 		// out-of-range offset).
-		return nil, fmt.Errorf("database disk image is malformed")
+		return fmt.Errorf("database disk image is malformed")
 	}
 	c.Payload = data[pos : pos+local]
 	pos += local
 	if c.LocalLen < c.PayloadLen {
 		if pos+4 > len(data) {
-			return nil, fmt.Errorf("storage: truncated table leaf cell (overflow pointer missing)")
+			return fmt.Errorf("storage: truncated table leaf cell (overflow pointer missing)")
 		}
 		c.Overflow = binary.BigEndian.Uint32(data[pos : pos+4])
 	}
 
-	return c, nil
+	return nil
 }
 
-func decodeTableInteriorCell(data []byte, off int) (*Cell, error) {
-	c := &Cell{Type: CellTableInterior}
+func decodeTableInteriorCellInto(data []byte, off int, c *Cell) error {
+	c.Type = CellTableInterior
 	if off+4 > len(data) {
-		return nil, fmt.Errorf("database disk image is malformed")
+		return fmt.Errorf("database disk image is malformed")
 	}
 	c.LeftPtr = binary.BigEndian.Uint32(data[off : off+4])
 	rowid, _ := util.GetVarint(data[off+4:])
 	c.RowID = int64(rowid)
-	return c, nil
+	return nil
 }
 
-func decodeIndexLeafCell(data []byte, off int, pageSize int) (*Cell, error) {
-	c := &Cell{Type: CellIndexLeaf}
+func decodeIndexLeafCellInto(data []byte, off int, pageSize int, c *Cell) error {
+	c.Type = CellIndexLeaf
 	pos := off
 
 	plen, n := util.GetVarint(data[pos:])
@@ -223,23 +242,23 @@ func decodeIndexLeafCell(data []byte, off int, pageSize int) (*Cell, error) {
 	pos += local
 	if c.LocalLen < c.PayloadLen {
 		if pos+4 > len(data) {
-			return nil, fmt.Errorf("storage: truncated index leaf cell (overflow pointer missing)")
+			return fmt.Errorf("storage: truncated index leaf cell (overflow pointer missing)")
 		}
 		c.Overflow = binary.BigEndian.Uint32(data[pos : pos+4])
 	}
 
-	return c, nil
+	return nil
 }
 
-// decodeIndexInteriorCell decodes an index-interior (divider) cell: a
+// decodeIndexInteriorCellInto decodes an index-interior (divider) cell: a
 // 4-byte left-child pointer, the payload-length varint, the LOCAL payload
 // following the index-page payload formula, and — when the payload spills —
 // a trailing 4-byte overflow-chain head (btree.c btreeParseCellPtr cell type
 // 2: interior index cells spill exactly like index leaf cells).
-func decodeIndexInteriorCell(data []byte, off, pageSize int) (*Cell, error) {
-	c := &Cell{Type: CellIndexInterior}
+func decodeIndexInteriorCellInto(data []byte, off, pageSize int, c *Cell) error {
+	c.Type = CellIndexInterior
 	if off+4 > len(data) {
-		return nil, fmt.Errorf("database disk image is malformed")
+		return fmt.Errorf("database disk image is malformed")
 	}
 	c.LeftPtr = binary.BigEndian.Uint32(data[off : off+4])
 	pos := off + 4
@@ -247,104 +266,40 @@ func decodeIndexInteriorCell(data []byte, off, pageSize int) (*Cell, error) {
 	pos += n
 	c.PayloadLen = int(plen)
 	if c.PayloadLen < 0 {
-		return nil, fmt.Errorf("database disk image is malformed")
+		return fmt.Errorf("database disk image is malformed")
 	}
 	local := LocalPayloadSize(c.PayloadLen, pageSize, CellIndexInterior)
 	if pos+local > len(data) {
-		return nil, fmt.Errorf("database disk image is malformed")
+		return fmt.Errorf("database disk image is malformed")
 	}
 	c.LocalLen = local
 	c.Payload = data[pos : pos+local]
 	pos += local
 	if local < c.PayloadLen {
 		if pos+4 > len(data) {
-			return nil, fmt.Errorf("storage: truncated index interior cell (overflow pointer missing)")
+			return fmt.Errorf("storage: truncated index interior cell (overflow pointer missing)")
 		}
 		c.Overflow = binary.BigEndian.Uint32(data[pos : pos+4])
 	}
-	return c, nil
+	return nil
 }
 
 // EncodeCell encodes a cell into a byte slice.
 func EncodeCell(c *Cell) []byte {
-	switch c.Type {
-	case CellTableLeaf:
-		return encodeTableLeafCell(c)
-	case CellTableInterior:
-		return encodeTableInteriorCell(c)
-	case CellIndexLeaf:
-		return encodeIndexLeafCell(c)
-	case CellIndexInterior:
-		return encodeIndexInteriorCell(c)
-	default:
+	n := CellWireLen(c)
+	if n == 0 {
 		return nil
 	}
-}
-
-func encodeTableLeafCell(c *Cell) []byte {
-	plen := c.PayloadLen
-	if plen == 0 {
-		plen = len(c.Payload)
-	}
-	local := c.LocalLen
-	if local == 0 {
-		local = plen
-	}
-	plenLen := util.VarintLen(uint64(plen))
-	rowidLen := util.VarintLen(uint64(c.RowID))
-	// The cell stores the full payload length in the header, the local
-	// payload portion, then a 4-byte overflow pointer when the payload
-	// spills to overflow pages.
-	totalLen := plenLen + rowidLen + local
-	if local < plen {
-		totalLen += 4
-	}
-	buf := make([]byte, totalLen)
-	pos := 0
-	pos += util.PutVarint(buf[pos:], uint64(plen))
-	pos += util.PutVarint(buf[pos:], uint64(c.RowID))
-	copy(buf[pos:], c.Payload[:local])
-	pos += local
-	if local < plen {
-		binary.BigEndian.PutUint32(buf[pos:], c.Overflow)
-	}
-	return padLeafCell(buf)
-}
-
-func encodeTableInteriorCell(c *Cell) []byte {
-	rowidLen := util.VarintLen(uint64(c.RowID))
-	buf := make([]byte, 4+rowidLen)
-	binary.BigEndian.PutUint32(buf[0:4], c.LeftPtr)
-	util.PutVarint(buf[4:], uint64(c.RowID))
+	buf := make([]byte, n)
+	writeCellInto(c, buf)
 	return buf
 }
 
-func encodeIndexLeafCell(c *Cell) []byte {
-	plen := c.PayloadLen
-	if plen == 0 {
-		plen = len(c.Payload)
-	}
-	local := c.LocalLen
-	if local == 0 {
-		local = plen
-	}
-	plenLen := util.VarintLen(uint64(plen))
-	totalLen := plenLen + local
-	if local < plen {
-		totalLen += 4
-	}
-	buf := make([]byte, totalLen)
-	pos := 0
-	pos += util.PutVarint(buf[pos:], uint64(plen))
-	copy(buf[pos:], c.Payload[:local])
-	pos += local
-	if local < plen {
-		binary.BigEndian.PutUint32(buf[pos:], c.Overflow)
-	}
-	return padLeafCell(buf)
-}
-
-// padLeafCell enforces SQLite's minimum on-page cell size for leaf cells
+// CellWireLen returns the exact encoded byte length of c, including the
+// leaf pad-to-4 rule. Unknown cell types report 0 (EncodeCell returns nil
+// for them).
+//
+// The pad rule is SQLite's minimum on-page cell size for leaf cells
 // (btree.c cellSizePtrTableLeaf / cellSizePtrIdxLeaf: "if( nSize<4 ) nSize =
 // 4", mirrored in btreeParseCellPtr's nSize). A fully-local leaf cell whose
 // varint header + payload is smaller than 4 bytes — e.g. an all-NULL
@@ -355,41 +310,167 @@ func encodeIndexLeafCell(c *Cell) []byte {
 // such a cell would sit at usableSize-3 and read back as corrupt after the
 // next root split. Interior cells always exceed 4 bytes (4-byte child
 // pointer + at least one varint), so they are never padded.
-func padLeafCell(buf []byte) []byte {
-	if len(buf) >= 4 {
-		return buf
+func CellWireLen(c *Cell) int {
+	switch c.Type {
+	case CellTableLeaf:
+		plen := c.PayloadLen
+		if plen == 0 {
+			plen = len(c.Payload)
+		}
+		local := c.LocalLen
+		if local == 0 {
+			local = plen
+		}
+		n := util.VarintLen(uint64(plen)) + util.VarintLen(uint64(c.RowID)) + local
+		if local < plen {
+			n += 4
+		}
+		if n < 4 {
+			n = 4
+		}
+		return n
+	case CellTableInterior:
+		return 4 + util.VarintLen(uint64(c.RowID))
+	case CellIndexLeaf:
+		plen := c.PayloadLen
+		if plen == 0 {
+			plen = len(c.Payload)
+		}
+		local := c.LocalLen
+		if local == 0 {
+			local = plen
+		}
+		n := util.VarintLen(uint64(plen)) + local
+		if local < plen {
+			n += 4
+		}
+		if n < 4 {
+			n = 4
+		}
+		return n
+	case CellIndexInterior:
+		plen := c.PayloadLen
+		if plen == 0 {
+			plen = len(c.Payload)
+		}
+		local := c.LocalLen
+		if local == 0 || local > plen {
+			local = plen
+		}
+		n := 4 + util.VarintLen(uint64(plen)) + local
+		if local < plen {
+			n += 4
+		}
+		return n
+	default:
+		return 0
 	}
-	padded := make([]byte, 4)
-	copy(padded, buf)
-	return padded
 }
 
-// encodeIndexInteriorCell encodes an index-interior (divider) cell: when the
-// cell carries LocalLen/Overflow (a prepared spilled divider), the local
-// payload portion and the 4-byte overflow-chain head are written; otherwise
-// the whole payload is inlined (it fits the index-page local maximum).
-func encodeIndexInteriorCell(c *Cell) []byte {
-	plen := c.PayloadLen
-	if plen == 0 {
-		plen = len(c.Payload)
+// EncodeCellInto writes c's encoded bytes into buf (len(buf) must be at
+// least CellWireLen(c)) and returns the number of bytes written. The output
+// is byte-identical to EncodeCell. Unwritten pad bytes are zeroed so reused
+// buffers re-encode identically to a fresh allocation.
+func EncodeCellInto(c *Cell, buf []byte) int {
+	n := CellWireLen(c)
+	if n == 0 || len(buf) < n {
+		return 0
 	}
-	local := c.LocalLen
-	if local == 0 || local > plen {
-		local = plen
+	writeCellInto(c, buf[:n])
+	return n
+}
+
+// AppendEncodedCell appends c's encoded bytes to dst (cellWireLen bytes,
+// byte-identical to EncodeCell) and returns the extended slice. Callers
+// building many encoded cells should append into one growing buffer and
+// slice out each cell — one backing array instead of one allocation per
+// cell.
+func AppendEncodedCell(dst []byte, c *Cell) []byte {
+	n := CellWireLen(c)
+	if n == 0 {
+		return dst
 	}
-	plenLen := util.VarintLen(uint64(plen))
-	totalLen := 4 + plenLen + local
-	if local < plen {
-		totalLen += 4
+	start := len(dst)
+	need := start + n
+	if cap(dst) >= need {
+		dst = dst[:need]
+	} else {
+		grown := make([]byte, need, 2*need)
+		copy(grown, dst)
+		dst = grown
 	}
-	buf := make([]byte, totalLen)
-	binary.BigEndian.PutUint32(buf[0:4], c.LeftPtr)
-	pos := 4
-	pos += util.PutVarint(buf[pos:], uint64(plen))
-	copy(buf[pos:], c.Payload[:local])
-	pos += local
-	if local < plen {
-		binary.BigEndian.PutUint32(buf[pos:], c.Overflow)
+	writeCellInto(c, dst[start:need])
+	return dst
+}
+
+// writeCellInto writes c's encoded form into buf (exactly CellWireLen(c)
+// bytes). This is the single wire-format writer; every encode*Cell helper
+// delegates here so the encodings cannot drift.
+func writeCellInto(c *Cell, buf []byte) {
+	switch c.Type {
+	case CellTableLeaf:
+		plen := c.PayloadLen
+		if plen == 0 {
+			plen = len(c.Payload)
+		}
+		local := c.LocalLen
+		if local == 0 {
+			local = plen
+		}
+		pos := util.PutVarint(buf, uint64(plen))
+		pos += util.PutVarint(buf[pos:], uint64(c.RowID))
+		copy(buf[pos:], c.Payload[:local])
+		pos += local
+		if local < plen {
+			binary.BigEndian.PutUint32(buf[pos:], c.Overflow)
+			pos += 4
+		}
+		zeroByteTail(buf[pos:]) // leaf pad bytes are zeros, as make() gave
+	case CellTableInterior:
+		binary.BigEndian.PutUint32(buf[0:4], c.LeftPtr)
+		util.PutVarint(buf[4:], uint64(c.RowID))
+	case CellIndexLeaf:
+		plen := c.PayloadLen
+		if plen == 0 {
+			plen = len(c.Payload)
+		}
+		local := c.LocalLen
+		if local == 0 {
+			local = plen
+		}
+		pos := util.PutVarint(buf, uint64(plen))
+		copy(buf[pos:], c.Payload[:local])
+		pos += local
+		if local < plen {
+			binary.BigEndian.PutUint32(buf[pos:], c.Overflow)
+			pos += 4
+		}
+		zeroByteTail(buf[pos:])
+	case CellIndexInterior:
+		plen := c.PayloadLen
+		if plen == 0 {
+			plen = len(c.Payload)
+		}
+		local := c.LocalLen
+		if local == 0 || local > plen {
+			local = plen
+		}
+		binary.BigEndian.PutUint32(buf[0:4], c.LeftPtr)
+		pos := 4
+		pos += util.PutVarint(buf[pos:], uint64(plen))
+		copy(buf[pos:], c.Payload[:local])
+		pos += local
+		if local < plen {
+			binary.BigEndian.PutUint32(buf[pos:], c.Overflow)
+		}
 	}
-	return buf
+}
+
+// zeroByteTail zeroes buf — the never-written pad tail of a leaf cell
+// encoded into a reused buffer (padLeafCell handed out make()-zeroed bytes;
+// an arena/append buffer may hold recycled bytes there instead).
+func zeroByteTail(buf []byte) {
+	for i := range buf {
+		buf[i] = 0
+	}
 }

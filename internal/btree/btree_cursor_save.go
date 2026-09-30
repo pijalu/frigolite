@@ -60,13 +60,19 @@ var (
 // entry is removed deterministically by BTree.Close (statement teardown,
 // btree.c sqlite3VdbeFrameDelete/closeCursorsInFrame); a finalizer stays as
 // the safety net for wrappers that are never closed (out-of-statement use).
+// The key rides on the cursor so the finalizer can be a static function —
+// a per-registration closure would allocate on every OpenCursor.
 func registerTreeCursor(key cursorTreeKey, c *Cursor) {
+	c.regKey = key
 	cursorRegMu.Lock()
 	defer cursorRegMu.Unlock()
 	cursorRegistry[key] = append(cursorRegistry[key], c)
-	runtime.SetFinalizer(c, func(cc *Cursor) {
-		unregisterTreeCursor(key, cc)
-	})
+	runtime.SetFinalizer(c, cursorRegistryFinalizer)
+}
+
+// cursorRegistryFinalizer is registerTreeCursor's static finalizer.
+func cursorRegistryFinalizer(cc *Cursor) {
+	unregisterTreeCursor(cc.regKey, cc)
 }
 
 // unregisterTreeCursor removes a cursor from its tree's invalidation list.
@@ -77,7 +83,10 @@ func unregisterTreeCursor(key cursorTreeKey, c *Cursor) {
 }
 
 // removeRegisteredCursor is unregisterTreeCursor without the lock (the caller
-// already holds cursorRegMu).
+// already holds cursorRegMu). An emptied list stays in the map (with spare
+// capacity): statements rebuild their cursors on the same (pager, rootPage)
+// key over and over, and re-growing the slice from nil per statement was a
+// measurable per-OpenCursor allocation.
 func removeRegisteredCursor(key cursorTreeKey, c *Cursor) {
 	list := cursorRegistry[key]
 	for i, cc := range list {
@@ -86,11 +95,7 @@ func removeRegisteredCursor(key cursorTreeKey, c *Cursor) {
 			break
 		}
 	}
-	if len(list) == 0 {
-		delete(cursorRegistry, key)
-	} else {
-		cursorRegistry[key] = list
-	}
+	cursorRegistry[key] = list
 }
 
 // Close releases the wrapper's cursors deterministically at statement
@@ -260,15 +265,18 @@ func (c *Cursor) restoreIfNeeded() error {
 // seekTableLeafWithPath is SeekToRowID with the cursor path stack maintained
 // (btree.c sqlite3BtreeTableMoveto): interior levels push
 // {pageNum, childIdx} entries so navigateToNextChild can continue the scan
-// into the following leaves after the restore.
+// into the following leaves after the restore. Page headers parse into a
+// stack scratch — the parsed page only feeds the read-only
+// seekInLeafTable/routeInteriorTable helpers and never outlives the level.
 func (c *Cursor) seekTableLeafWithPath(pageNum uint32, rowID int64) (bool, error) {
+	var sp storage.BTreePage
 	for {
 		pg, err := c.tx.pager.ReadPage(pageNum)
 		if err != nil {
 			c.endOfBTree = true
 			return false, err
 		}
-		page, err := storage.ParsePage(pg.Data, int(c.tx.pageSize), contentOffset(pg.PageNum))
+		page, err := storage.ParsePageInto(pg.Data, int(c.tx.pageSize), contentOffset(pg.PageNum), &sp)
 		if err != nil {
 			c.endOfBTree = true
 			return false, err

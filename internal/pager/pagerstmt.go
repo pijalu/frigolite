@@ -37,10 +37,10 @@
 package pager
 
 import (
+	"sync"
+
 	"github.com/pijalu/frigolite/internal/quota"
 )
-
-import ()
 
 // stmtEntryKind classifies a statement-journal before-image.
 type stmtEntryKind uint8
@@ -68,6 +68,46 @@ const (
 type stmtEntry struct {
 	kind stmtEntryKind
 	data []byte
+}
+
+// stmtImagePool recycles before-image page buffers (one page-size []byte per
+// captured page). Lifetime discipline — the reason this is safe:
+//
+//   - A buffer is acquired ONLY in copyPageBytesLocked, written in full, and
+//     from then on referenced exclusively by its stmtEntry (never aliased
+//     into the page cache: rollback RESTORES by adopting the buffer as the
+//     restored page's Data, transferring ownership, or by eviction — a
+//     pooled buffer never becomes a page's bytes through a copy that leaves
+//     the original shared).
+//   - A buffer is returned to the pool ONLY at the point its entry is
+//     dropped: EndStatement discards it (the parent already holds an older
+//     image for the page, or there is no parent to splice into), or — never
+//     — after a rollback (adopted buffers belong to the restored page).
+//   - Every scope closes exactly once (the done flag makes the second of
+//     EndStatement/RollbackStatement a no-op), so each buffer is Put at most
+//     once, and no caller observes an entry after its scope closed.
+//
+// sync.Pool drops buffers at GC: worst case the recycling silently stops.
+var stmtImagePool sync.Pool
+
+// stmtImageBuf returns a page-size buffer for a before-image (pooled when
+// one of the right size is available). Caller holds p.mu.
+func (p *Pager) stmtImageBuf() []byte {
+	if bp, ok := stmtImagePool.Get().(*[]byte); ok && bp != nil && cap(*bp) >= int(p.pageSize) {
+		return (*bp)[:p.pageSize]
+	}
+	return make([]byte, p.pageSize)
+}
+
+// putStmtImageBuf returns a dead before-image buffer to the pool. Buffers of
+// the wrong capacity (a pager whose page size changed) are dropped. Caller
+// holds p.mu.
+func (p *Pager) putStmtImageBuf(b []byte) {
+	if cap(b) != int(p.pageSize) {
+		return
+	}
+	b = b[:cap(b)]
+	stmtImagePool.Put(&b)
 }
 
 // StmtJournal is a statement-scoped rollback scope handed out by
@@ -140,7 +180,9 @@ func (p *Pager) BeginStatement() *StmtJournal {
 // the transaction journal at statement COMMIT so the outer scope's rollback
 // stays able to undo the page), and the scope's own bookkeeping is dropped.
 // A scope opened at the outermost level simply discards its entries: the
-// pages it wrote stay dirty for the flush/commit path.
+// pages it wrote stay dirty for the flush/commit path. Discarded memory
+// images go back to the buffer pool; spliced entries move (the parent owns
+// them now).
 func (p *Pager) EndStatement(j *StmtJournal) {
 	if j == nil {
 		return
@@ -160,8 +202,25 @@ func (p *Pager) EndStatement(j *StmtJournal) {
 		for pgno, e := range j.entries {
 			if _, ok := j.parent.entries[pgno]; !ok {
 				j.parent.entries[pgno] = e
+				continue
 			}
+			// The parent keeps its older image; this one is dead.
+			p.dropStmtEntry(e)
 		}
+		return
+	}
+	// No parent to splice into (outermost scope, or the parent already
+	// closed): every entry dies here.
+	for _, e := range j.entries {
+		p.dropStmtEntry(e)
+	}
+}
+
+// dropStmtEntry releases a dead statement-journal entry: memory before-images
+// return their buffers to the pool. Caller holds p.mu.
+func (p *Pager) dropStmtEntry(e stmtEntry) {
+	if e.kind == stmtEntMemory {
+		p.putStmtImageBuf(e.data)
 	}
 }
 
@@ -189,10 +248,23 @@ func (p *Pager) RollbackStatement(j *StmtJournal) {
 	p.unlinkStmtLocked(j)
 	// Replay the before-images (pager.c pagerPlayback over the statement
 	// journal). Each entry is independent, so map order is irrelevant.
+	// Memory images are restored by ADOPTING the captured buffer as the
+	// restored page's data: the entry (its only remaining reference) dies
+	// with this scope, so ownership transfers cleanly and no copy is needed.
+	// The evicted page object's bytes are NOT returned to the pool — their
+	// lifetime is ambiguous (handles taken from ReadPage before the
+	// statement may outlive the scope) — GC reclaims them.
 	for pgno, e := range j.entries {
 		switch e.kind {
 		case stmtEntMemory:
-			p.pages[pgno] = &Page{PageNum: pgno, Data: append([]byte(nil), e.data...)}
+			if cap(e.data) >= int(p.pageSize) && len(e.data) >= int(p.pageSize) {
+				p.pages[pgno] = &Page{PageNum: pgno, Data: e.data[:p.pageSize]}
+			} else {
+				// Capture always stores exactly page-size images; this is
+				// the defensive fallback for any shape that slipped past
+				// the invariant.
+				p.pages[pgno] = &Page{PageNum: pgno, Data: append([]byte(nil), e.data...)}
+			}
 			p.dirty[pgno] = true
 		case stmtEntFromFile, stmtEntAbsent:
 			// from-file images restore by eviction (the disk/WAL still holds
@@ -281,12 +353,19 @@ func (p *Pager) stmtCaptureEntryLocked(pgno uint32, top *StmtJournal) stmtEntry 
 }
 
 // copyPageBytesLocked snapshots a cached page's bytes (zeroed when the page
-// is not cached — a fresh allocation's content). Caller holds p.mu.
+// is not cached — a fresh allocation's content) into a pooled before-image
+// buffer. Caller holds p.mu.
 func (p *Pager) copyPageBytesLocked(pgno uint32) []byte {
+	buf := p.stmtImageBuf()
 	if pg, ok := p.pages[pgno]; ok && pg != nil {
-		return append([]byte(nil), pg.Data...)
+		n := copy(buf, pg.Data)
+		if n < len(buf) {
+			clear(buf[n:]) // short page data: the tail is the zeroed fresh page
+		}
+		return buf
 	}
-	return make([]byte, p.pageSize)
+	clear(buf)
+	return buf
 }
 
 // stmtReadTouch captures the before-image of a page being handed out by the

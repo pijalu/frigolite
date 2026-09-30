@@ -178,7 +178,25 @@ func ParsePage(pageData []byte, pageSize int, contentOffset int) (*BTreePage, er
 	if len(header) < 8 {
 		return nil, fmt.Errorf("storage: page data too short: %d", len(pageData))
 	}
-	p := &BTreePage{
+	p := &BTreePage{} // escapes via return: one heap header per call
+	return parsePageInto(header, pageData, pageSize, contentOffset, p)
+}
+
+// ParsePageInto parses a b-tree page header into the caller-provided
+// BTreePage (no per-call allocation when the target does not escape — hot
+// transient walks pass a stack local). Returns the same pointer for
+// call-site convenience. The parse and every validation are identical to
+// ParsePage.
+func ParsePageInto(pageData []byte, pageSize int, contentOffset int, p *BTreePage) (*BTreePage, error) {
+	header := pageData[contentOffset:]
+	if len(header) < 8 {
+		return nil, fmt.Errorf("storage: page data too short: %d", len(pageData))
+	}
+	return parsePageInto(header, pageData, pageSize, contentOffset, p)
+}
+
+func parsePageInto(header []byte, pageData []byte, pageSize int, contentOffset int, p *BTreePage) (*BTreePage, error) {
+	*p = BTreePage{
 		PageType:    header[0],
 		FirstFree:   binary.BigEndian.Uint16(header[1:3]),
 		CellCount:   binary.BigEndian.Uint16(header[3:5]),
