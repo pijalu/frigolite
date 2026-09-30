@@ -75,6 +75,8 @@ func normalizeSQLScratch(s string, buf []byte, values []interface{}) (norm strin
 			started = true
 			if buf == nil {
 				buf = make([]byte, 0, len(s))
+			} else {
+				buf = buf[:0]
 			}
 			if values == nil {
 				values = make([]interface{}, 0, 4)
