@@ -170,6 +170,30 @@ func (db *DB) Exec(sqlStr string) *Result {
 	return result
 }
 
+// foldQueryResult folds one executed statement's result into Query's batch
+// accumulator. A multi-statement batch concatenates row headers and keeps the
+// first non-nil Columns (the append-based historical semantics); a
+// single-statement batch hands the engine's rows and columns to the caller
+// verbatim — exec.Result.Rows is freshly allocated per engine call and never
+// retained, and the Exec path already passes er.Rows through unchanged, so
+// caller ownership is unchanged and the redundant per-query backing-array
+// copy disappears. The append path yields a nil Rows for a zero-row result
+// (append to nil adds nothing), so the single-statement branch keeps that
+// exact nil/empty distinction.
+func foldQueryResult(allRows [][]interface{}, allColumns []string, res *exec.Result, multi bool) ([][]interface{}, []string) {
+	if !multi {
+		if len(res.Rows) == 0 {
+			return nil, res.Columns
+		}
+		return res.Rows, res.Columns
+	}
+	allRows = append(allRows, res.Rows...)
+	if allColumns == nil {
+		allColumns = res.Columns
+	}
+	return allRows, allColumns
+}
+
 // Query executes a SQL query and returns rows.
 // Multiple semicolon-separated statements are all executed and their results
 // concatenated, matching SQLite's behavior for multi-statement queries.
@@ -201,27 +225,7 @@ func (db *DB) Query(sqlStr string) *Result {
 			return r
 		}
 		expandResultZeroBlobs(res)
-		if multi {
-			allRows = append(allRows, res.Rows...)
-			if allColumns == nil {
-				allColumns = res.Columns
-			}
-		} else {
-			// Single statement: the engine's rows and columns leave as the
-			// result verbatim (exec.Result.Rows is freshly allocated per
-			// engine call and never retained, and the Exec path already
-			// hands er.Rows to the caller the same way) — copying the row
-			// headers through append would allocate a redundant backing
-			// array on every query. The append-based path yields a nil Rows
-			// for a zero-row result (append to nil adds nothing), so keep
-			// that exact nil/empty distinction.
-			if len(res.Rows) == 0 {
-				allRows = nil
-			} else {
-				allRows = res.Rows
-			}
-			allColumns = res.Columns
-		}
+		allRows, allColumns = foldQueryResult(allRows, allColumns, res, multi)
 		if res.LastInsertRowID > 0 {
 			db.lastRowID = res.LastInsertRowID
 		}
