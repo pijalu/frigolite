@@ -563,7 +563,17 @@ func (ev *Evaluator) evalColumnRef(v *sql.ColumnRef, row Row) (interface{}, erro
 	if v.Table != "" {
 		return ev.evalQualifiedColumnRef(v, row)
 	}
-	// Unqualified: check short name
+	// Unqualified hot path: the row hit is rowLookupUnqualified's FIRST
+	// probe (expression_eval.go), so answer it here and skip two call
+	// frames per evaluated column — the dominant per-row expression cost of
+	// every scan. On a miss the full resolution (rowid aliases, outer rows,
+	// keyword/alias, strict/DQS fallbacks) runs unchanged through
+	// evalUnqualifiedColumnRef.
+	if row != nil {
+		if val, ok := row.Get(v.Name); ok {
+			return val, nil
+		}
+	}
 	return ev.evalUnqualifiedColumnRef(v, row)
 }
 
