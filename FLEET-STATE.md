@@ -846,3 +846,13 @@ Measure per step; suites + census at end.
 - Remaining tranches unchanged: value-ordered index (scan), prepare/bind
   API (point/insert), group-key EvalExpr (largest remaining group frame),
   exec plumbing + DML row contracts (update/delete).
+
+## PERF-PARITY (2026-09-30, START) — push toward sqlite3 performance parity
+
+Objective: bring frigolite within the same performance level as sqlite3,
+using the go-perf skill methodology (benchmark -> profile -> fix top
+frame -> re-benchmark, per phase). Gaps on main 71bf20f5a: insert 7.0x,
+point 6.4x, scan 6.0x, group 4.4x, update 12.7x, delete 18.9x.
+Plan: fresh 6-phase CPU+alloc campaign; parallel fleet tranches
+(per-statement pipeline; scan/decode throughput); coordinator fixes on
+identified frames; iterate merges + re-profile; suites + census at end.
