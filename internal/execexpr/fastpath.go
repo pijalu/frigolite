@@ -28,11 +28,14 @@ func arithFastOps(op string) bool {
 	return false
 }
 
-// fastNumericBinary evaluates + - * / % when both operands are bare numeric
+// fastNumericBinary evaluates + - * / % when BOTH operands are bare numeric
 // values (int64/float64, no ColumnValue/CollatedValue wrapper — a wrapper
 // fails the type assertions — and non-NULL, since evalBinaryOp's NULL check
 // already ran and a bare numeric is never SQL NULL). Returns ok=false for
-// any other operand shape, which falls back to evalBinaryOpValues.
+// any other operand shape, which falls back to evalBinaryOpValues. The both-
+// sides requirement is load-bearing: this runs BEFORE the generic path's
+// evalArithmeticOp unwrap, so a wrapper on either side must not reach the
+// arithmetic (toFloat of a wrapper is 0, not the operand).
 //
 // The int64 paths mirror addValues/subValues (addInt64/subInt64) and
 // mulValues/divValues/modValues' integer branches; the paths with at least
@@ -43,20 +46,23 @@ func fastNumericBinary(op string, left, right interface{}) (interface{}, bool) {
 	if !arithFastOps(op) {
 		return nil, false
 	}
-	if l, lok := left.(int64); lok {
-		if r, rok := right.(int64); rok {
+	switch l := left.(type) {
+	case int64:
+		switch r := right.(type) {
+		case int64:
 			return fastIntArith(op, l, r), true
+		case float64:
+			return fastFloatArith(op, float64(l), r), true
+		}
+	case float64:
+		switch r := right.(type) {
+		case int64:
+			return fastFloatArith(op, l, float64(r)), true
+		case float64:
+			return fastFloatArith(op, l, r), true
 		}
 	}
-	_, lfOK := left.(float64)
-	_, rfOK := right.(float64)
-	if !lfOK && !rfOK {
-		return nil, false
-	}
-	// Both operands are bare numerics here, so toFloat always succeeds.
-	af, _ := toFloat(left)
-	bf, _ := toFloat(right)
-	return fastFloatArith(op, af, bf), true
+	return nil, false
 }
 
 // fastIntArith evaluates one arithmetic operator over two bare int64
