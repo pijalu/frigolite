@@ -529,6 +529,47 @@ type groupKeyBufs struct {
 	colls  []string
 }
 
+// groupByKeywordName reports whether a bare identifier is one of the keyword
+// names evalColumnRef resolves as literals BEFORE the row lookup (TRUE, FALSE,
+// CURRENT_TIME, CURRENT_DATE, CURRENT_TIMESTAMP). Such terms must take the
+// generic evaluation path even when a column of the same name exists.
+func groupByKeywordName(name string) bool {
+	switch len(name) {
+	case 4: // TRUE
+		return strings.EqualFold(name, "TRUE")
+	case 5: // FALSE
+		return strings.EqualFold(name, "FALSE")
+	case 12: // CURRENT_TIME, CURRENT_DATE
+		return strings.EqualFold(name, "CURRENT_TIME") || strings.EqualFold(name, "CURRENT_DATE")
+	case 17: // CURRENT_TIMESTAMP
+		return strings.EqualFold(name, "CURRENT_TIMESTAMP")
+	}
+	return false
+}
+
+// groupByFastRef reports whether expr is a plain unqualified column reference
+// whose value EvalExpr returns unchanged from the row: evalExpr peels
+// ParenExpr wrappers and evalColumnRef resolves an unqualified reference to
+// row.Get's value as its first resolution step, so a hit means the fast path
+// and the generic path would produce the identical (value, collation) pair
+// after the unwrap. Returns nil when the term needs generic evaluation
+// (qualified refs, "*", keyword names, and every non-reference expression).
+func groupByFastRef(expr sql.Expr) (*sql.ColumnRef, bool) {
+	for {
+		switch v := expr.(type) {
+		case *sql.ParenExpr:
+			expr = v.Expr
+		case *sql.ColumnRef:
+			if v.Table != "" || v.Name == "*" || groupByKeywordName(v.Name) {
+				return nil, false
+			}
+			return v, true
+		default:
+			return nil, false
+		}
+	}
+}
+
 // computeGroupByKeyValues evaluates each GROUP BY expression for a row,
 // returning a serialized string key, the raw evaluated values (used to sort
 // the output groups, matching SQLite's key-order GROUP BY output), and the
@@ -556,6 +597,27 @@ func (e *SelectEngine) computeGroupByKeyValues(groupBy []sql.Expr, row Row) (str
 	}
 	parts, values, colls := b.parts[:len(groupBy)], b.values[:len(groupBy)], b.colls[:len(groupBy)]
 	for i, expr := range groupBy {
+		// Fast path: a plain unqualified column reference reads the row value
+		// directly (the generic path's first resolution step is the same
+		// lookup and returns the value unchanged). A miss falls through to
+		// EvalExpr so alias, DQS, keyword-column, and outer-row resolution
+		// keep their exact behavior.
+		if ref, fast := groupByFastRef(expr); fast {
+			if v, hit := row.Get(ref.Name); hit {
+				if v == nil {
+					parts[i] = "\x00"
+					values[i] = nil
+					colls[i] = ""
+					continue
+				}
+				coll := groupByExprCollation(v)
+				uv := unwrapGroupByValue(v)
+				parts[i] = collationGroupKey(uv, coll)
+				values[i] = uv
+				colls[i] = coll
+				continue
+			}
+		}
 		v, err := e.ctx.EvalExpr(expr, row)
 		if err != nil || v == nil {
 			parts[i] = "\x00"

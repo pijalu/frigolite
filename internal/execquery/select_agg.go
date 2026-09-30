@@ -43,6 +43,19 @@ func (e *SelectEngine) evalAggCallArgs(fn *sql.FuncCall, row RowMap) []interface
 	e.aggArgScratch[slot] = args
 	defer func() { e.aggArgScratchNest-- }()
 	for i, arg := range fn.Args {
+		// Fast path: a plain unqualified column reference evaluates to the
+		// row value itself (evalExpr → evalColumnRef's first resolution step
+		// is this lookup and returns the value unchanged), so unwrap it
+		// exactly like the generic result below. The aux marker is skipped:
+		// a bare column can never dispatch an fts5 aux overload (that gate
+		// only fires for function calls). A miss takes the generic path so
+		// alias/DQS/keyword-column/outer-row resolution is unchanged.
+		if ref, fast := groupByFastRef(arg); fast {
+			if v, hit := row.Get(ref.Name); hit {
+				args[i] = unwrapCollatedValue(util.UnwrapColumnValue(v))
+				continue
+			}
+		}
 		restore := e.ctx.EnterAuxAggArg()
 		v, err := e.ctx.EvalExpr(arg, row)
 		restore()
