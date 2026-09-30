@@ -144,6 +144,16 @@ func evalConcat(left, right interface{}) (interface{}, error) {
 	if isRtreeGeometry(lv) || isRtreeGeometry(rv) {
 		return nil, fmt.Errorf("SQL logic error")
 	}
+	// Typed fast path: two plain TEXT/INTEGER operands concatenate directly
+	// (fastConcatOperand renders exactly what ConcatValues' renderConcatValue
+	// produces for these classes, after the same ColumnValue unwrap). Every
+	// other shape — REAL's %!.15g rendering, blobs, zeroblobs — takes the
+	// generic ConcatValues below.
+	if ls, ok := fastConcatOperand(lv); ok {
+		if rs, ok := fastConcatOperand(rv); ok {
+			return ls + rs, nil
+		}
+	}
 	result, err := ConcatValues(lv, rv)
 	if err != nil {
 		return nil, err
@@ -235,7 +245,12 @@ func (ev *Evaluator) evalUnaryOp(v *sql.UnaryOp, row Row) (interface{}, error) {
 		// column (+bb >= aa with bb BINARY compares BINARY, not the right
 		// side's NOCASE). ColumnValue's Affinity is cleared; the wrapper
 		// stays so isColumnValue/compareValuesWithCollate resolve collation.
+		// A wrapper that carries no affinity already IS the stripped form:
+		// reuse it instead of allocating an identical copy per row.
 		if cv, ok := operand.(*util.ColumnValue); ok {
+			if cv.Affinity == 0 {
+				return operand, nil
+			}
 			return &util.ColumnValue{Value: cv.Value, Affinity: 0}, nil
 		}
 		return operand, nil

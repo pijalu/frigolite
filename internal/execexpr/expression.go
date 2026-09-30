@@ -44,6 +44,15 @@ func (ev *Evaluator) evalExpr(expr sql.Expr, row Row) (interface{}, error) {
 		// SELECT list projects its first element; that unwrapping happens at
 		// the projection sites.
 		return ev.evalRowValueExpr(v, row)
+	case *sql.BinaryOp:
+		// Binary operators dispatch directly here instead of falling through
+		// to evalComplexExpr's second type switch: they are the most frequent
+		// node shape on every per-row expression walk (WHERE terms, SELECT
+		// expressions, GROUP BY keys). evalComplexExpr keeps the same case
+		// for callers that enter through it.
+		return ev.evalBinaryOp(v, row)
+	case *sql.UnaryOp:
+		return ev.evalUnaryOp(v, row)
 	default:
 		return ev.evalComplexExpr(expr, row)
 	}

@@ -317,6 +317,15 @@ func (ev *Evaluator) evalBinaryOpDispatched(v *sql.BinaryOp, left, right interfa
 	if v.Operator == "IS" || v.Operator == "IS NOT" {
 		return ev.evalBinaryOpIs(v.Operator, left, right)
 	}
+	// Typed fast path: arithmetic over two bare numeric operands (no
+	// affinity/collation wrapper, non-NULL — evalBinaryOp's NULL check
+	// already ran) skips the generic dispatch walk (row-value asserts,
+	// collation extraction, the three operator dispatches, the arithmetic
+	// map lookup) and computes directly. Anything else falls through to the
+	// generic path, which stays the semantic authority.
+	if res, ok := fastNumericBinary(v.Operator, left, right); ok {
+		return res, nil
+	}
 	return ev.evalBinaryOpValues(v.Operator, left, right)
 }
 
@@ -566,6 +575,15 @@ func (ev *Evaluator) evalBinaryOpValues(op string, left, right interface{}) (int
 // string is a compile-time constant per AST node, so a per-row map hash was
 // pure overhead on the WHERE hot path.
 func (ev *Evaluator) dispatchComparisonValues(op string, left, right interface{}) (interface{}, bool) {
+	// Typed fast path: two bare operands of the same storage class compare
+	// directly (no wrapper → no affinity, no collation marker; the
+	// typesMatchForEquality TEXT-affinity rule cannot fire). Mirrors the
+	// generic path result-for-result, including NaN's three-way behavior.
+	// Anything else (mixed classes, wrappers, NULL) takes the generic walk
+	// below.
+	if res, ok := fastSameClassCompare(op, left, right); ok {
+		return res, true
+	}
 	switch op {
 	case "=":
 		return ev.evalEqualityOp(left, right), true
