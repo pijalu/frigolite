@@ -392,7 +392,9 @@ func (e *SelectEngine) buildNoAggGroupRow(s *sql.SelectStmt, colDefs []sql.Colum
 // aggregates: GROUP BY expressions emit the group's key value, star columns are
 // expanded, and other columns are evaluated as aggregate expressions.
 func (e *SelectEngine) buildGroupByAggRow(s *sql.SelectStmt, colDefs []sql.ColumnDef, groupBy []sql.Expr, groupVals []interface{}, groupRows []RowMap) ([]interface{}, error) {
-	var outRow []interface{}
+	// Capacity covers the common shape (one output cell per SELECT column, no
+	// star expansion); append grows past it for SELECT *.
+	outRow := make([]interface{}, 0, len(s.Columns)+len(groupVals))
 	for _, col := range s.Columns {
 		if gi := matchGroupByExpr(groupBy, col.Expr); gi >= 0 && gi < len(groupVals) {
 			outRow = append(outRow, groupVals[gi])
@@ -727,6 +729,9 @@ func (e *SelectEngine) evalAggregatesGroupBy(s *sql.SelectStmt, rowMaps []RowMap
 	}
 	groups, keyVals, keyOrder := e.partitionByGroupKey(groupBy, rowMaps)
 	e.sortGroupKeys(keyOrder, keyVals)
+	// The min/max bare-column source is a property of the statement, not the
+	// group: resolve it once instead of walking the columns per group.
+	mm := e.lastMinMaxAggregateFor(s)
 
 	columns := e.buildColumnNames(s.Columns, colDefs, s)
 	var outRows [][]interface{}
@@ -735,7 +740,7 @@ func (e *SelectEngine) evalAggregatesGroupBy(s *sql.SelectStmt, rowMaps []RowMap
 
 	for _, key := range keyOrder {
 		groupRows := groups[key]
-		groupRows = e.reorderRowsForMinMax(s, groupRows)
+		groupRows = e.reorderRowsForMinMaxSource(mm, groupRows)
 		outRow, first, keep, err := e.evalGroupRow(s, colDefs, groupBy, keyVals[key], groupRows)
 		if err != nil {
 			return &Result{Error: err}

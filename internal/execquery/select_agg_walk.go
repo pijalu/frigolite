@@ -282,17 +282,20 @@ func minMaxBeats(name string, val, bestVal interface{}) bool {
 	return (name == "MIN" && cmp < 0) || (name == "MAX" && cmp > 0)
 }
 
-// reorderRowsForMinMax moves the row that produced the last min/max aggregate
-// to the front of rowMaps so bare columns in an aggregate query evaluate from
-// the correct source row. The min/max aggregate is searched in the SELECT
-// columns and the HAVING clause (a bare output column paired with
-// "HAVING max(x) ..." takes the row that produced the max, matching SQLite).
-// Returns the reordered slice (a copy is not made unless reordering is needed).
-func (e *SelectEngine) reorderRowsForMinMax(s *sql.SelectStmt, rowMaps []RowMap) []RowMap {
+// lastMinMaxAggregateFor resolves the statement's bare-column source aggregate
+// (the last min/max in the SELECT columns, else the HAVING clause), or nil.
+func (e *SelectEngine) lastMinMaxAggregateFor(s *sql.SelectStmt) *minMaxAggregate {
 	mm := e.lastMinMaxAggregate(s.Columns)
 	if mm == nil && s.Having != nil {
 		mm = lastMinMaxInExpr(s.Having, e.ctx.Functions())
 	}
+	return mm
+}
+
+// reorderRowsForMinMaxSource is reorderRowsForMinMax with the statement's
+// min/max aggregate pre-resolved (per-group callers hoist the resolution out
+// of their loop).
+func (e *SelectEngine) reorderRowsForMinMaxSource(mm *minMaxAggregate, rowMaps []RowMap) []RowMap {
 	if mm == nil || len(rowMaps) <= 1 {
 		return rowMaps
 	}
@@ -304,6 +307,16 @@ func (e *SelectEngine) reorderRowsForMinMax(s *sql.SelectStmt, rowMaps []RowMap)
 	copy(rows, rowMaps)
 	rows[0], rows[idx] = rows[idx], rows[0]
 	return rows
+}
+
+// reorderRowsForMinMax moves the row that produced the last min/max aggregate
+// to the front of rowMaps so bare columns in an aggregate query evaluate from
+// the correct source row. The min/max aggregate is searched in the SELECT
+// columns and the HAVING clause (a bare output column paired with
+// "HAVING max(x) ..." takes the row that produced the max, matching SQLite).
+// Returns the reordered slice (a copy is not made unless reordering is needed).
+func (e *SelectEngine) reorderRowsForMinMax(s *sql.SelectStmt, rowMaps []RowMap) []RowMap {
+	return e.reorderRowsForMinMaxSource(e.lastMinMaxAggregateFor(s), rowMaps)
 }
 
 // aggregateName returns the name of the first aggregate function found in the

@@ -24,7 +24,8 @@ func (e *SelectEngine) partitionByGroupKey(groupBy []sql.Expr, rowMaps []RowMap)
 	var keyOrder []string
 	for _, row := range rowMaps {
 		key, vals, colls := e.computeGroupByKeyValues(groupBy, row)
-		if _, exists := groups[key]; !exists {
+		group, exists := groups[key]
+		if !exists {
 			// Values equal under a term's collation share a group even when
 			// their serialized keys differ (collate5-4.2: '1' and '1.0'
 			// under a COLLATE NUMERIC column — the sorter compares with the
@@ -45,16 +46,17 @@ func (e *SelectEngine) partitionByGroupKey(groupBy []sql.Expr, rowMaps []RowMap)
 			if collated {
 				if merged := e.equivalentGroupKey(keyOrder, keyVals, vals, colls); merged != "" {
 					key = merged
+					group, exists = groups[key]
 				}
 			}
+			if !exists {
+				keyOrder = append(keyOrder, key)
+				// vals is the key computation's scratch buffer (reused for the
+				// next row): clone it for the group's retention.
+				keyVals[key] = append([]interface{}{}, vals...)
+			}
 		}
-		if _, exists := groups[key]; !exists {
-			keyOrder = append(keyOrder, key)
-			// vals is the key computation's scratch buffer (reused for the
-			// next row): clone it for the group's retention.
-			keyVals[key] = append([]interface{}{}, vals...)
-		}
-		groups[key] = append(groups[key], row)
+		groups[key] = append(group, row)
 	}
 	return groups, keyVals, keyOrder
 }
