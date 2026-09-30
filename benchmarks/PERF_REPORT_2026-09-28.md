@@ -452,3 +452,52 @@ Progress since the first report (2026-09-28 baselines): INSERT 21.3k →
 1.45M → 7.25M rows/s (5.0×), UPDATE 65 → 73.9k ops/s (1137×), DELETE 133
 → 59.3k ops/s (446×). Gaps closed from 60×/4,426×/36×/15,152×/9,295× to
 7.9×/7.2×/7.2×/12.9×/20.8× (literal mode).
+
+---
+
+# PERF-GC2 — 2026-09-30: floor optimizations applied (group-key + decode diet)
+
+Applying the floors documented in the PERF-GC section.
+
+## What landed
+
+- **GROUP BY group-key fast path** (`aaf0891e9`, coordinator): the
+  equivalent-key merge linear scan + per-value `fmt.Sprintf("%v")`
+  comparisons (~500k Sprintf pairs per pass on a 1000-group/100k-row
+  GROUP BY) replaced with typed scalar equality (`groupKeyScalarEqual`,
+  %v-spelling semantics preserved — int64(5) groups with float64(5.0),
+  oracle-verified and pinned) + the scan now runs only when a GROUP BY
+  term carries a collation (the serializer is %v-faithful, so an
+  uncollated textual miss can never merge) + single-term keys skip the
+  Join. **Group phase 106ms → 34.5ms per pass (9 → 29 ops/s, 3.2×).**
+- **storage/btree/pager decode diet** (`fleet/perf-gc2-decode`, merged
+  `63137985c`): DecodeRecord serial-type scratch on a stack buffer;
+  `DecodeCellInto`/`ParsePageInto` caller-provided targets; btree decodes
+  in place into pre-allocated slices with one-arena encode (was 2
+  allocs/cell); DELETE predicates on already-decoded cells (no second
+  decode); `DeleteCellByRowID` passes a verified parent hint to the
+  rebalance lookup (O(database) walk only on miss); statement-journal
+  before-image buffers pooled with ownership-transfer rollback (3
+  lifetime tests; StmtJournal objects deliberately NOT pooled —
+  documented double-restore identity contract). **DELETE-by-rowid −29%
+  allocs/−46% bytes/+15% ops/s; grow-shape UPDATE (delete+reinsert)
+  −86% allocs/+52% ops/s; in-place UPDATE −8.8% allocs.** 98 testgen
+  packages green including all 27 corrupt canaries.
+
+## Full-phase results after PERF-GC2 (100k rows)
+
+| Phase | ops/s | vs sqlite3 literal | vs original 2026-09-28 baseline |
+|---|---|---|---|
+| INSERT ×100k | 177,875 | 7.0× | 8.3× faster |
+| SELECT point | 128,112 | 6.4× | 667× faster |
+| SELECT scan | **8,850,230 rows/s** | **6.0×** | 6.1× faster |
+| SELECT GROUP BY | **28 passes/s** | 4.4× | **3.1× faster** |
+| UPDATE ×20k | 75,135 | 12.7× | 1156× faster |
+| DELETE ×5k | 65,124 | 18.9× | 490× faster |
+
+Census after the round: **1073 pass / 0 fail / 290 skip, audit exit 0**
+(zero flakes). Every remaining gap has a documented structural owner:
+scan 6× (value-ordered-index/typed-row tranche), update/delete 13–19×
+(exec plumbing + retained-RowMap DML contracts), point/insert 6–7×
+(prepare/bind public API), group 4.4× (group-key EvalExpr per row —
+now the single largest frame in the group profile).

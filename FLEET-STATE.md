@@ -825,3 +825,24 @@ path) — coordinator; (2) update/delete decode+journal diet
 remaining bytes) — fleet agent with fresh profiles; (3) scan/prepare-bind
 tranches stay documented follow-ups (value-ordered index, public API).
 Measure per step; suites + census at end.
+
+## PERF-GC2 (END, 2026-09-30) — group-key + decode floors applied
+
+- Group-key fast path aaf0891e9 (coordinator): typed scalar equality
+  (groupKeyScalarEqual, %v semantics, oracle-pinned
+  TestGroupByTypedKeyEquality) + collation-gated equivalent-scan skip +
+  single-term key fast path. GROUP BY phase 9 -> 29 ops/s (3.2x).
+- fleet/perf-gc2-decode merged 63137985c: DecodeRecord stack scratch +
+  DecodeCellInto/ParsePageInto targets + one-wire EncodeCell; btree
+  in-place decode/arena encode/verified rebalance parent hint (O(db)
+  walk only on miss); journal before-image pool with ownership-transfer
+  rollback (3 lifetime tests; StmtJournal objects NOT pooled —
+  documented identity contract). DELETE -29% allocs/+15% ops/s;
+  grow-shape UPDATE -86% allocs/+52% ops/s. 98 testgen pkgs incl. all
+  27 corrupt canaries green.
+- Full bench: scan 8.85M rows/s (+19%), group 28 ops/s, insert 178k,
+  point 128k, update 75k, delete 65k. Census 1073/0/290 zero flakes,
+  audit exit 0.
+- Remaining tranches unchanged: value-ordered index (scan), prepare/bind
+  API (point/insert), group-key EvalExpr (largest remaining group frame),
+  exec plumbing + DML row contracts (update/delete).
