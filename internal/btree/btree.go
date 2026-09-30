@@ -543,8 +543,24 @@ func (c *Cursor) SeekToRowID(rowID int64) (bool, error) {
 	if err := c.checkOpen(); err != nil {
 		return false, err
 	}
+	c.clearSavedSeek()
 	c.path = c.path[:0]
 	return c.seekTableLeafWithPath(c.tx.rootPage, rowID)
+}
+
+// clearSavedSeek drops any pending saved-position state. An explicit seek
+// supersedes a cross-write position save (saveAllCursors →
+// cursorRequireSeek): without this reset, a re-seek to a NEW key followed
+// by a read restored the STALE saved key (restoreCursorPosition jumped back
+// to savedKey/savedRowID, skipNext biased the next step). The seek itself
+// establishes a fresh position from the root, so the pending save is void.
+func (c *Cursor) clearSavedSeek() {
+	c.savedRowID = 0
+	c.savedKey = nil
+	c.skipNext = 0
+	if c.state == cursorRequireSeek {
+		c.state = cursorValid
+	}
 }
 
 // AtEnd reports whether the cursor has run off the end of the b-tree (a
@@ -593,6 +609,7 @@ func (c *Cursor) SeekToKey(key []byte) (bool, error) {
 	if err := c.checkOpen(); err != nil {
 		return false, err
 	}
+	c.clearSavedSeek()
 	return c.seekKeyInPage(c.tx.rootPage, key)
 }
 

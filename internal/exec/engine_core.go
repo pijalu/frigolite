@@ -59,6 +59,11 @@ func cloneInsertStmt(s *sql.InsertStmt, values []interface{}, valIdx *int) (*sql
 
 // cloneInsertValue substitutes a cached literal value for a NumericLit/StringLit
 // expression, advancing valIdx. Other expressions are returned unchanged.
+// The substitute literal is rebuilt FROM THE VALUE'S KIND so the statement's
+// stored type is the one the user wrote: the historical FormatFloat-only
+// rendering coerced an integral REAL literal to INTEGER through the template
+// cache (INSERT ... VALUES(8.0) repeated persisted typeof=integer; the first,
+// uncached execution stored real — oracle: real|8.0).
 func cloneInsertValue(expr sql.Expr, values []interface{}, valIdx *int) (sql.Expr, error) {
 	switch expr.(type) {
 	case *sql.NumericLit, *sql.StringLit:
@@ -75,7 +80,11 @@ func cloneInsertValue(expr sql.Expr, values []interface{}, valIdx *int) (sql.Exp
 	case int64:
 		return &sql.NumericLit{Value: strconv.FormatInt(v, 10)}, nil
 	case float64:
-		return &sql.NumericLit{Value: strconv.FormatFloat(v, 'g', -1, 64)}, nil
+		s := strconv.FormatFloat(v, 'g', -1, 64)
+		if !strings.ContainsAny(s, ".eE") {
+			s += ".0" // 'g' drops the decimal point: keep the REAL kind
+		}
+		return &sql.NumericLit{Value: s}, nil
 	case string:
 		return &sql.StringLit{Value: v}, nil
 	}

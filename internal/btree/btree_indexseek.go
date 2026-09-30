@@ -67,6 +67,10 @@ func (t *BTree) IndexKeyRowIDs(probe *UnpackedIndexKey) ([]int64, error) {
 // Next(), re-comparing entries (matches may be interleaved with non-matches
 // until the storage order is value order).
 func (c *Cursor) SeekIndexKey(probe *UnpackedIndexKey) (bool, error) {
+	if err := c.checkOpen(); err != nil {
+		return false, err
+	}
+	c.clearSavedSeek()
 	if err := validIndexProbe(probe); err != nil {
 		return false, err
 	}

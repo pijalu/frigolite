@@ -407,3 +407,51 @@ func TestTemplateCloneOverflowLiteral(t *testing.T) {
 		}
 	}
 }
+
+// TestTemplateNumericKindParity pins the review-audit P1 fix: an INSERT
+// template substitution must rebuild the literal FROM THE VALUE'S KIND.
+// The historical FormatFloat('g') rendering dropped the decimal point, so
+// a repeated INSERT ... VALUES(8.0) served through the template cache
+// persisted typeof=integer (oracle: real). Same class: 8.5 stays real,
+// integers stay integer.
+func TestTemplateNumericKindParity(t *testing.T) {
+	db, err := frigolite.Open(":memory:")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer db.Close()
+	must := func(sql string) {
+		if r := db.Exec(sql); r.Error != nil {
+			t.Fatalf("%s: %v", sql, r.Error)
+		}
+	}
+	must("CREATE TABLE t(a)")
+	must("INSERT INTO t VALUES(5)")    // seeds the template slot (integer)
+	must("INSERT INTO t VALUES(8.0)")  // same shape, REAL value
+	must("INSERT INTO t VALUES(8.0)")  // template hit path
+	must("INSERT INTO t VALUES(8.5)")  // REAL with fraction
+	r := db.Query("SELECT typeof(a), a FROM t ORDER BY rowid")
+	if r.Error != nil {
+		t.Fatal(r.Error)
+	}
+	want := []struct {
+		typeof string
+		val    interface{}
+	}{{"integer", int64(5)}, {"real", float64(8)}, {"real", float64(8)}, {"real", float64(8.5)}}
+	if len(r.Rows) != len(want) {
+		t.Fatalf("rows: %v", r.Rows)
+	}
+	for i, row := range r.Rows {
+		if row[0] != want[i].typeof {
+			t.Fatalf("row %d typeof=%v, want %s (full row %v)", i, row[0], want[i].typeof, row)
+		}
+	}
+	switch v := r.Rows[1][1].(type) {
+	case float64:
+		if v != 8.0 {
+			t.Fatalf("row 1 value %v, want 8.0", v)
+		}
+	default:
+		t.Fatalf("row 1 value type %T, want float64", r.Rows[1][1])
+	}
+}
