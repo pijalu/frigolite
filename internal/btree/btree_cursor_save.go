@@ -120,12 +120,16 @@ func (t *BTree) Close() {
 	owned := t.cursors
 	t.cursors = t.cursors[:0]
 	if len(owned) > 0 {
-		key := cursorTreeKey{pg: t.pager, root: t.rootPage}
 		cursorRegMu.Lock()
 		for _, c := range owned {
 			c.released = true
 			runtime.SetFinalizer(c, nil)
-			removeRegisteredCursor(key, c)
+			// Unregister under the key the cursor was REGISTERED under,
+			// not the wrapper's current (pager, rootPage): schemaCursor
+			// opens a schema-keyed cursor on a user-tree wrapper while its
+			// rootPage is temporarily 1, so the wrapper's rootPage at Close
+			// time can differ from a cursor's registration key.
+			removeRegisteredCursor(c.regKey, c)
 		}
 		cursorRegMu.Unlock()
 	}
