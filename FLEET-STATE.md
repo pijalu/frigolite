@@ -936,3 +936,18 @@ dispatched with full forensic traces to derive the exact folding rule
 and implement a correct gate. Tranche A (columnar scan) + Tranche B
 (update/delete pipeline) dispatch pending this resolution (they consume
 the same per-statement fast path).
+
+## PERF-STRUCT (during) — tplgate merged a55419000
+
+Same-kind template gate LANDED: root cause = parser rule 216 folds unary
+minus into the literal ONLY for decimal 2^63 (and hex) spellings — three
+AST shapes (folded-INTEGER, UnaryOp-INTEGER, UnaryOp-REAL) share one
+normalize key f(-?). Correct gate: refuse folded slots (text starts '-'),
+hex slots ('x'/'X' — hex digits include 'E' defeating the naive exponent
+check), exact-2^63 doubles, non-finite floats, kind crossings; allow
+int64→digit-only slot (FormatInt) and float64→'./e' slot (FormatFloat
+g,-1,64 + .0 restore). point 1.55x, update 1.54x (probe), func4 green,
+76/76 suites, 18 gate pins. Fold rule is load-bearing: parser rule 216
+changes must extend the gate.
+In flight: fleet/perf-struct-scan (columnar read), fleet/perf-struct-dml
+(single-pass DML). Benchmark pair after each merges.
