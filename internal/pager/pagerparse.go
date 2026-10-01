@@ -36,6 +36,17 @@ type pageParseMemo struct {
 	coff     int
 }
 
+// snapshotContentStart re-derives CellContent from a snapshot with
+// storage.ParsePage's 64KiB wrap normalization (a 0 field on a 65536-byte
+// page parses as the unwrapped full-page content start).
+func snapshotContentStart(b []byte, pageSize int) int {
+	cc := int(binary.BigEndian.Uint16(b[5:7]))
+	if cc == 0 && pageSize == 65536 {
+		return 65536
+	}
+	return cc
+}
+
 // parsedMatchesSnapshot re-derives the parsed header fields from hdrSnap and
 // reports whether they still match. storage.ParsePage is a pure function of
 // the snapshotted span, so a mismatch means the shared parsed struct was
@@ -48,27 +59,21 @@ type pageParseMemo struct {
 // the slice-bounds shape the memo tranche was blamed for.
 func (m *pageParseMemo) parsedMatchesSnapshot() bool {
 	b := m.hdrSnap
-	if len(b) < 8 ||
-		m.parsed.PageType != b[0] ||
-		m.parsed.FirstFree != binary.BigEndian.Uint16(b[1:3]) ||
-		m.parsed.CellCount != binary.BigEndian.Uint16(b[3:5]) ||
-		m.parsed.FragFree != b[7] {
+	switch {
+	case len(b) < 8:
 		return false
-	}
-	cc := int(binary.BigEndian.Uint16(b[5:7]))
-	if cc == 0 && m.pageSize == 65536 {
-		// storage.ParsePage normalizes the wrapped 64KiB content start.
-		cc = 65536
-	}
-	if m.parsed.CellContent != cc {
+	case m.parsed.PageType != b[0],
+		m.parsed.FirstFree != binary.BigEndian.Uint16(b[1:3]),
+		m.parsed.CellCount != binary.BigEndian.Uint16(b[3:5]),
+		m.parsed.FragFree != b[7],
+		m.parsed.CellContent != snapshotContentStart(b, m.pageSize):
 		return false
+	case m.parsed.PageType == storage.PageTypeInteriorIndex,
+		m.parsed.PageType == storage.PageTypeInteriorTable:
+		return len(b) >= 12 && m.parsed.RightmostPtr == binary.BigEndian.Uint32(b[8:12])
+	default:
+		return true
 	}
-	if m.parsed.PageType == storage.PageTypeInteriorIndex || m.parsed.PageType == storage.PageTypeInteriorTable {
-		if len(b) < 12 || m.parsed.RightmostPtr != binary.BigEndian.Uint32(b[8:12]) {
-			return false
-		}
-	}
-	return true
 }
 
 // ParsedBTree returns the page's parsed b-tree header for pageSize and
