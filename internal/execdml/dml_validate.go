@@ -39,6 +39,25 @@ func buildDMLColumnLookup(colDefs []sql.ColumnDef, hasRowid bool) map[string]boo
 	return lookup
 }
 
+// dmlColumnLookup returns the case-insensitive target-column lookup,
+// memoized per DML executor and guarded by the schema fingerprint (the
+// lookup is a pure function of the column defs, so DDL invalidates it). The
+// prepare-time validation of every UPDATE/DELETE builds this identical map
+// once per statement; wide tables paid the full rebuild each time.
+func (e *DMLExecutor) dmlColumnLookup(colDefs []sql.ColumnDef, hasRowid bool) map[string]bool {
+	if len(colDefs) == 0 {
+		return buildDMLColumnLookup(colDefs, hasRowid)
+	}
+	fp := e.schemaFingerprint()
+	if e.lookupCache != nil && e.lookupFingerprint == fp && e.lookupDefs == &colDefs[0] &&
+		e.lookupLen == len(colDefs) && e.lookupHasRowid == hasRowid {
+		return e.lookupCache
+	}
+	m := buildDMLColumnLookup(colDefs, hasRowid)
+	e.lookupFingerprint, e.lookupDefs, e.lookupLen, e.lookupHasRowid, e.lookupCache = fp, &colDefs[0], len(colDefs), hasRowid, m
+	return m
+}
+
 // validateDMLExprs resolves every bare column reference and function name in
 // the given expressions against the target table, mirroring resolve.c:
 //   - an unknown column errors "no such column: NAME";
@@ -51,7 +70,7 @@ func buildDMLColumnLookup(colDefs []sql.ColumnDef, hasRowid bool) map[string]boo
 // leaves, so subquery bodies are not descended into — they resolve against
 // their own scope.
 func (e *DMLExecutor) validateDMLExprs(qualifiers []string, colDefs []sql.ColumnDef, hasRowid bool, exprs []sql.Expr) *Result {
-	lookup := buildDMLColumnLookup(colDefs, hasRowid)
+	lookup := e.dmlColumnLookup(colDefs, hasRowid)
 	for _, ex := range exprs {
 		if ex == nil {
 			continue

@@ -68,6 +68,21 @@ type DMLExecutor struct {
 	// counter (see lastInsertedFTSRowID).
 	lastFTSDocRowID int64
 
+	// encBuf is the DML write path's reusable record-encoding buffer
+	// (appendEncodedRecord). The btree write paths copy payload bytes into
+	// pages synchronously and never retain the slice, so one buffer serves
+	// every statement of this connection.
+	encBuf []byte
+
+	// lookupCache memoizes the prepare-time DML column lookup
+	// (dmlColumnLookup) under the schema fingerprint, the same guard pattern
+	// as ciCache above.
+	lookupFingerprint uint64
+	lookupDefs        *sql.ColumnDef
+	lookupLen         int
+	lookupHasRowid    bool
+	lookupCache       map[string]bool
+
 	// echoWriteDepth counts in-flight echo write-through statements. A
 	// non-zero depth marks every statement error as coming from the source
 	// write the echo module's xUpdate performed, so it reports through the

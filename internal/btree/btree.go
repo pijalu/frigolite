@@ -140,6 +140,12 @@ type BTree struct {
 	// no synchronization; the split path drops it whenever its bytes must
 	// stay stable across page rewrites.
 	cellScratch []byte
+
+	// delArena stages the surviving cells' raw bytes during the single-cell
+	// delete fast path (btree_delete_one.go): source and destination ranges
+	// overlap on a fragmented page, so the bytes must move through a copy.
+	// Per-statement like cellScratch, and dropped with it on reset.
+	delArena []byte
 }
 
 // NewBTree creates a new BTree instance.

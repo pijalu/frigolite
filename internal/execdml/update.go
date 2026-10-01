@@ -316,6 +316,12 @@ func (e *DMLExecutor) deleteUpdateIndexEntriesFor(tableEntry *schema.Entry, colD
 	if len(changes) == 0 {
 		return nil
 	}
+	// A table with no indexes maintains nothing: skip the batch maps the
+	// collect loop below builds (every point UPDATE/DELETE on an unindexed
+	// table paid two maps per statement for nothing).
+	if len(e.allTableIndexes(tableEntry.Name)) == 0 {
+		return nil
+	}
 	// Union of touched indexes across changes, per index name (a rowid re-key
 	// touches every index; see maintainedUpdateIndexes).
 	defsByName := make(map[string]indexDef)

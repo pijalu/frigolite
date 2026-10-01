@@ -258,7 +258,25 @@ func (t *BTree) DeleteCellByRowID(rowID int64) (int64, error) {
 	if len(c.path) > 0 {
 		hintParent = c.path[len(c.path)-1].pageNum
 	}
-	n, err := t.deleteAllMatchingFromLeaf(leaf, func(cell *storage.Cell) bool {
+	// Single-cell fast path: one known cell on a table leaf is removed with a
+	// raw-span repack instead of a decode/re-encode of every cell on the page
+	// (btree_delete_one.go). Any anomaly declines and the generic predicate
+	// delete below runs, so behavior — including on corrupt images and
+	// duplicate-rowid leaves — stays identical to it.
+	handled, n, ferr := t.deleteSingleTableRowID(leaf, c.cellIdx, rowID)
+	if ferr != nil {
+		return n, ferr
+	}
+	if handled {
+		if n == 0 {
+			return n, nil
+		}
+		if err := t.maybeRebalanceAfterDeleteHinted(leaf, hintParent); err != nil {
+			return n, err
+		}
+		return n, nil
+	}
+	n, err = t.deleteAllMatchingFromLeaf(leaf, func(cell *storage.Cell) bool {
 		return cell.RowID == rowID
 	})
 	if err != nil || n == 0 {

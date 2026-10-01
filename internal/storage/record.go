@@ -243,6 +243,13 @@ func decodeBigEndianInt(serialType uint64, data []byte) interface{} {
 
 // EncodeRecord encodes a record from a slice of Go values.
 func EncodeRecord(values []interface{}) ([]byte, error) {
+	return AppendEncodeRecord(nil, values)
+}
+
+// AppendEncodeRecord appends the record encoding of values to buf (which may
+// be a caller's reusable buffer) and returns the extended slice. The encoding
+// is byte-identical to EncodeRecord's.
+func AppendEncodeRecord(buf []byte, values []interface{}) ([]byte, error) {
 	// Optimized: avoid per-value byte slice allocations by computing sizes
 	// first, then writing directly into a single output buffer.
 
@@ -303,8 +310,14 @@ blobsizeDone:
 
 	// Build the record
 
-	buf := make([]byte, hdrSize+totalDataLen)
-	pos := 0
+	start := len(buf)
+	grow := hdrSize + totalDataLen
+	if cap(buf)-start >= grow {
+		buf = buf[:start+grow]
+	} else {
+		buf = append(buf, make([]byte, grow)...)
+	}
+	pos := start
 
 	// Header size varint
 	pos += util.PutVarint(buf[pos:], uint64(hdrSize))

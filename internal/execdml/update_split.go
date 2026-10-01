@@ -235,6 +235,14 @@ func (e *DMLExecutor) runUpdatePipeline(s *sql.UpdateStmt, tableEntry *schema.En
 		return res
 	}
 
+	// Rowid-pinned single-row fast path ("UPDATE t SET c=c+1 WHERE id=?"):
+	// one seek, one encode, one write. Only the exact plain point shape;
+	// anything else runs the generic pipeline below.
+	if res, handled := e.applyPointUpdate(s, tableEntry, colDefs); handled {
+		e.invalidateSchemaIfNeeded(tableEntry.Name)
+		return res
+	}
+
 	colIndex := e.columnIndexFor(colDefs)
 
 	// When the table has triggers, defer SET evaluation to the apply loop so
