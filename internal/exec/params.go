@@ -40,12 +40,12 @@ func (p *paramAssigner) assignBare() {
 
 // assignNumbered binds a numbered variable token ("?4" or ":123", num being
 // its digit run) to slot N, raising the total when N exceeds it; duplicates
-// reuse the existing slot. Out-of-range N is a prepare error with resolve.c's
-// message text.
-func (p *paramAssigner) assignNumbered(token, num string) error {
+// reuse the existing slot. It returns the assigned slot N. Out-of-range N is
+// a prepare error with resolve.c's message text.
+func (p *paramAssigner) assignNumbered(token, num string) (int, error) {
 	n, err := strconv.Atoi(num)
 	if err != nil || n < 1 || n > MaxVariableNumber {
-		return fmt.Errorf("variable number must be between ?1 and ?%d", MaxVariableNumber)
+		return 0, fmt.Errorf("variable number must be between ?1 and ?%d", MaxVariableNumber)
 	}
 	p.grow(n)
 	if n > p.next {
@@ -54,7 +54,7 @@ func (p *paramAssigner) assignNumbered(token, num string) error {
 	if p.names[n-1] == "" {
 		p.names[n-1] = token // keeps its original token text as the name
 	}
-	return nil
+	return n, nil
 }
 
 // assignNamed dedups named parameters on case-folded full token text (:abc and
@@ -106,7 +106,7 @@ func CollectParameterNames(sqlText string) ([]string, error) {
 			tok.Value[0] == ':' && len(tok.Value) > 1 && isDigitByte(tok.Value[1])
 		switch {
 		case numbered:
-			err = p.assignNumbered(tok.Value, strings.TrimLeft(tok.Value[1:], ":?"))
+			_, err = p.assignNumbered(tok.Value, strings.TrimLeft(tok.Value[1:], ":?"))
 		case tok.Value[0] == '?':
 			p.assignBare()
 		default:

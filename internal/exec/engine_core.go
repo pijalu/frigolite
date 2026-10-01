@@ -25,11 +25,15 @@ func cloneStmtsWithValues(stmts []sql.Stmt, values []interface{}) ([]sql.Stmt, b
 	return cloneStmtsValues(stmts, values)
 }
 
-// cloneInsertStmt clones an InsertStmt, substituting cached literal values into
-// its VALUES tuples. valIdx is advanced as values are consumed.
-func cloneInsertStmt(s *sql.InsertStmt, values []interface{}, valIdx *int) (*sql.InsertStmt, error) {
+// insertStmtValues clones an InsertStmt for the shared walker state: template
+// mode consumes normalized literal values through c.idx; bind mode substitutes
+// sql.ParameterExpr markers (statement literals are kept verbatim). Every
+// statement field is carried over so a substituted AST stays identical to a
+// fresh parse (the historical clone dropped Alias/CTEs/OrFail).
+func (c *exprClone) insertStmtValues(s *sql.InsertStmt) (*sql.InsertStmt, error) {
 	clone := &sql.InsertStmt{
 		Table:        s.Table,
+		Alias:        s.Alias,
 		Columns:      s.Columns,
 		Values:       make([][]sql.Expr, len(s.Values)),
 		OnConflict:   s.OnConflict,
@@ -37,13 +41,15 @@ func cloneInsertStmt(s *sql.InsertStmt, values []interface{}, valIdx *int) (*sql
 		HasReturning: s.HasReturning,
 		IsReplace:    s.IsReplace,
 		OrIgnore:     s.OrIgnore,
+		OrFail:       s.OrFail,
 		OrConflict:   s.OrConflict,
+		RawSQL:       s.RawSQL,
 	}
 	// Clone values tuples
 	for vi, tuple := range s.Values {
 		clone.Values[vi] = make([]sql.Expr, len(tuple))
 		for vj, expr := range tuple {
-			cloned, err := cloneInsertValue(expr, values, valIdx)
+			cloned, err := c.insertValue(expr)
 			if err != nil {
 				return nil, err
 			}
@@ -52,30 +58,103 @@ func cloneInsertStmt(s *sql.InsertStmt, values []interface{}, valIdx *int) (*sql
 	}
 	// Clone Select for INSERT ... SELECT
 	if s.Select != nil {
-		clone.Select = s.Select
+		sel, _, ok := c.selectStmt(s.Select)
+		if !ok {
+			return nil, fmt.Errorf("template clone: INSERT-SELECT refused")
+		}
+		clone.Select = sel
+	}
+	// Clone WITH-clause bodies
+	ctes, cteChanged, ok := c.ctes(s.CTEs)
+	if !ok {
+		return nil, fmt.Errorf("template clone: WITH clause refused")
+	}
+	if cteChanged {
+		clone.CTEs = ctes
+	} else {
+		clone.CTEs = s.CTEs
+	}
+	// Clone ON CONFLICT (upsert) expressions
+	conflict, conflictChanged, ok := c.conflictClause(s.OnConflict)
+	if !ok {
+		return nil, fmt.Errorf("template clone: ON CONFLICT refused")
+	}
+	if conflictChanged {
+		clone.OnConflict = conflict
 	}
 	return clone, nil
 }
 
-// cloneInsertValue substitutes a cached literal value for a NumericLit/StringLit
-// expression, advancing valIdx. Other expressions are returned unchanged.
-// The substitute literal is rebuilt FROM THE VALUE'S KIND so the statement's
-// stored type is the one the user wrote: the historical FormatFloat-only
-// rendering coerced an integral REAL literal to INTEGER through the template
-// cache (INSERT ... VALUES(8.0) repeated persisted typeof=integer; the first,
-// uncached execution stored real — oracle: real|8.0).
-func cloneInsertValue(expr sql.Expr, values []interface{}, valIdx *int) (sql.Expr, error) {
+// conflictClause substitutes an ON CONFLICT (upsert) clause chain, returning
+// the (possibly shared) clause and whether anything changed under it.
+func (c *exprClone) conflictClause(oc *sql.OnConflictClause) (*sql.OnConflictClause, bool, bool) {
+	if oc == nil {
+		return nil, false, true
+	}
+	targetWhere, twChanged, ok := c.exprField(oc.TargetWhere)
+	if !ok {
+		return nil, false, false
+	}
+	assignments, aChanged, ok := c.assignments(oc.Assignments)
+	if !ok {
+		return nil, false, false
+	}
+	where, wChanged, ok := c.exprField(oc.Where)
+	if !ok {
+		return nil, false, false
+	}
+	next, nextChanged, ok := c.conflictClause(oc.Next)
+	if !ok {
+		return nil, false, false
+	}
+	if !twChanged && !aChanged && !wChanged && !nextChanged {
+		return oc, false, true
+	}
+	return &sql.OnConflictClause{
+		ConflictColumn: oc.ConflictColumn,
+		TargetExpr:     oc.TargetExpr,
+		TargetWhere:    targetWhere,
+		Action:         oc.Action,
+		Assignments:    assignments,
+		Where:          where,
+		Next:           next,
+	}, true, true
+}
+
+// insertValue substitutes a cached literal value for a NumericLit/StringLit
+// expression (template mode), or a bound value for a sql.ParameterExpr marker
+// (bind mode), advancing walker state as values are consumed. Other
+// expressions are returned unchanged. The substitute literal is rebuilt FROM
+// THE VALUE'S KIND so the statement's stored type is the one the user wrote:
+// the historical FormatFloat-only rendering coerced an integral REAL literal
+// to INTEGER through the template cache (INSERT ... VALUES(8.0) repeated
+// persisted typeof=integer; the first, uncached execution stored real —
+// oracle: real|8.0).
+func (c *exprClone) insertValue(expr sql.Expr) (sql.Expr, error) {
+	if c.bind != nil {
+		switch e := expr.(type) {
+		case *sql.ParameterExpr:
+			cloned, ok := c.bindParam(e)
+			if !ok {
+				return nil, fmt.Errorf("bind: parameter substitution refused")
+			}
+			return cloned, nil
+		default:
+			// Statement literal or expression — immutable text, keep original
+			return expr, nil
+		}
+	}
 	switch expr.(type) {
 	case *sql.NumericLit, *sql.StringLit:
 	default:
 		// Non-value expression — keep original
 		return expr, nil
 	}
-	if *valIdx >= len(values) {
-		return nil, fmt.Errorf("template cache: not enough values (need %d, have %d)", len(values), *valIdx+1)
+	if c.idx >= len(c.values) {
+		return nil, fmt.Errorf("template cache: not enough values (need %d, have %d)", len(c.values), c.idx+1)
 	}
-	val := values[*valIdx]
-	*valIdx++
+	val := c.values[c.idx]
+	c.idx++
 	switch v := val.(type) {
 	case int64:
 		return &sql.NumericLit{Value: strconv.FormatInt(v, 10)}, nil
