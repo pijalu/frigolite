@@ -951,3 +951,15 @@ g,-1,64 + .0 restore). point 1.55x, update 1.54x (probe), func4 green,
 changes must extend the gate.
 In flight: fleet/perf-struct-scan (columnar read), fleet/perf-struct-dml
 (single-pass DML). Benchmark pair after each merges.
+
+## PERF-STRUCT (during 2) — struct-scan merged 8afc20df9
+
+Columnar read path (DecodeRecordColumn/Columns: serial-type walk to the
+target column, OP_Column parity) wired into agg feed + bare projection.
+Bare single-col scan 2x (7.0M), COUNT(*) +168% (12.5M), SUM +90-103%,
+allocs/row -73..-85% on wide fixtures; 188/188 testgen incl. all corrupt
+canaries; 18-shape parity byte-identical. Combined with tplgate, full
+bench: update 106k ops/s (+42%), delete 104k (+60%), group 49 (+75%),
+point 144k, insert 198k. Gaps: insert 6.3x, point 5.8x, scan 6.3x,
+group 2.5x, update 7.0x, delete 11.9x.
+In flight: fleet/perf-struct-dml (single-pass UPDATE/DELETE pipeline).
