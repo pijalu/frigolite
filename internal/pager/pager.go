@@ -14,6 +14,7 @@ import (
 	"encoding/binary"
 	"os"
 	"sync"
+	"sync/atomic"
 	"time"
 
 	"github.com/pijalu/frigolite/internal/quota"
@@ -192,6 +193,12 @@ type Pager struct {
 type Page struct {
 	Data    []byte
 	PageNum uint32
+	// parseMemo memoizes the storage.ParsePage result of the current byte
+	// generation (see pagerparse.go). The memo re-validates the page bytes on
+	// every access, so writes/dirties/restores need no explicit invalidation;
+	// atomic so concurrent cursor touches of one page cannot race the memo
+	// metadata.
+	parseMemo atomic.Pointer[pageParseMemo]
 }
 
 // PagerState is a deep snapshot of a pager's in-memory state, used for

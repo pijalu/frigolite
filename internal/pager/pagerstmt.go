@@ -445,7 +445,20 @@ func (p *Pager) markDirtyLocked(pgno uint32) {
 
 // clearDirtySetLocked resets the dirty set at commit/rollback boundaries,
 // dropping the per-page dirty stamps with it.
+//
+// The dirty map is reused in place (small sets: clear() keeps the buckets)
+// and the dirty-stamp map is dropped entirely — it is nil outside
+// transactions, which is what markDirtyLocked's fast path requires. Both
+// maps were freshly allocated per boundary before, which made two map
+// allocations the pager's per-statement floor on read-mostly workloads
+// (every autocommit SELECT ends in a flush).
 func (p *Pager) clearDirtySetLocked() {
-	p.dirty = make(map[uint32]bool)
-	p.dirtyMark = make(map[uint32]uint64)
+	if len(p.dirty) > 1024 {
+		// A huge transaction's bucket array would otherwise be retained by
+		// the reused map; trade it in instead.
+		p.dirty = make(map[uint32]bool)
+	} else {
+		clear(p.dirty)
+	}
+	p.dirtyMark = nil
 }

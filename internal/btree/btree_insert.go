@@ -91,7 +91,13 @@ func (t *BTree) insertLeafPage(pg *pager.Page, page *storage.BTreePage, parentPg
 	if err := t.prepareCell(newCell, pg.PageNum); err != nil {
 		return nil, err
 	}
-	cellData := storage.EncodeCell(newCell)
+	// The encoded bytes land in the BTree's reusable scratch when possible
+	// (byte-identical to storage.EncodeCell — EncodeCellInto delegates to the
+	// same wire writer). The in-place insert path consumes the bytes inside
+	// this call, so the scratch pays off there; the split path may keep the
+	// bytes alive across page rewrites, so it severs the scratch instead of
+	// recycling it (see splitFullLeaf return below).
+	cellData := t.encodeCellScratch(newCell)
 
 	// Table b-trees REPLACE a cell with the same rowid (SQLite btree.c
 	// sqlite3BtreeInsert, loc==0: dropCell runs BEFORE insertCellFast, so the
@@ -107,14 +113,47 @@ func (t *BTree) insertLeafPage(pg *pager.Page, page *storage.BTreePage, parentPg
 	}
 
 	if leafHasRoom(pg, page, cellData, coff, t.usableSize) {
-		// There is room — insert directly.
+		// There is room — insert directly. The bytes are copied into the
+		// page above (writeLeafCell), so the scratch buffer is recyclable.
 		if err := t.writeLeafCell(pg, page, newCell, cellData, coff); err != nil {
 			return nil, err
 		}
+		t.recycleCellScratch(cellData)
 		return nil, nil
 	}
 
+	// Split path: the encoded bytes flow into the redistribution machinery
+	// while the page is rewritten, so the buffer must stay stable for the
+	// whole call — drop it from the BTree instead of recycling (one fresh
+	// buffer per split instead of one per insert).
+	t.cellScratch = nil
 	return t.splitFullLeaf(pg, page, parentPgno, newCell, cellData)
+}
+
+// encodeCellScratch encodes c into the BTree's reusable scratch buffer —
+// byte-identical to storage.EncodeCell, without the per-insert allocation.
+// Callers that keep the returned bytes beyond the current insert call must
+// sever the scratch (severCellScratch) so the next insert cannot overwrite
+// them.
+func (t *BTree) encodeCellScratch(c *storage.Cell) []byte {
+	n := storage.CellWireLen(c)
+	if n == 0 {
+		return nil
+	}
+	if cap(t.cellScratch) >= n {
+		buf := t.cellScratch[:n]
+		storage.EncodeCellInto(c, buf)
+		return buf
+	}
+	buf := make([]byte, n)
+	storage.EncodeCellInto(c, buf)
+	return buf
+}
+
+// recycleCellScratch returns the (no-longer-referenced) encoded bytes to the
+// BTree's scratch buffer. Only for bytes consumed within the current insert.
+func (t *BTree) recycleCellScratch(cellData []byte) {
+	t.cellScratch = cellData[:0]
 }
 
 // dropTableLeafDuplicateRowid deletes an existing table-leaf cell with the

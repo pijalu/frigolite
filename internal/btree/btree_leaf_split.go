@@ -299,15 +299,27 @@ type leafSplitResult struct {
 // readCellsForSplit decodes the existing cells on a leaf page plus the new
 // cell into a unified split-entry list, ready for redistribution.
 func (t *BTree) readCellsForSplit(pg *pager.Page, page *storage.BTreePage, coff int, cellType storage.CellType, newCell *storage.Cell, newCellData []byte) ([]splitEntry, error) {
-	var cells []splitEntry
+	// Cell structs and their encoded bytes land in two batched buffers (one
+	// backing array, one growing arena) instead of two allocations per cell:
+	// a splitting page holds hundreds of cells, so this is the difference
+	// between 2 allocations per SPLIT and 2 per CELL. The bytes are
+	// byte-identical to storage.EncodeCell (AppendEncodedCell delegates to
+	// the same wire writer). Cell payloads remain views into pg.Data exactly
+	// as storage.DecodeCell returned them.
+	cells := make([]splitEntry, 0, int(page.CellCount)+1)
+	cellArena := make([]storage.Cell, 0, int(page.CellCount)+1)
+	var arena []byte
 	for i := uint16(0); i < page.CellCount; i++ {
 		cellOff := int(storage.CellPointer(pg.Data, coff, int(i), int(t.pageSize)))
-		c, err := storage.DecodeCell(pg.Data, cellOff, cellType, int(t.usableSize))
-		if err != nil {
+		cellArena = append(cellArena, storage.Cell{Type: cellType})
+		c := &cellArena[len(cellArena)-1]
+		if err := storage.DecodeCellInto(pg.Data, cellOff, cellType, int(t.usableSize), c); err != nil {
 			return nil, err
 		}
 
-		e := splitEntry{c, storage.EncodeCell(c), nil}
+		start := len(arena)
+		arena = storage.AppendEncodedCell(arena, c)
+		e := splitEntry{c, arena[start:], nil}
 		if !t.isTable {
 			full, err := t.readOverflow(c)
 			if err != nil {
