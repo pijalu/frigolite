@@ -6,6 +6,36 @@
 > followed by the current T33 session sections. Consult the archive for
 > closed-goal specifics (also in plan/goals/*.md and portplan/NA_EVIDENCE.md).
 
+## PERF.PARITY-poolfix — finalizers + pooled cursors (fleet/perf-parity-poolfix, 2026-10-01)
+
+- **NEVER SetFinalizer per registration on a pooled/recycled object.** The
+  wrapper-pooling tranche set a registry finalizer on every OpenCursor and
+  cleared it on every Close; on recycled cursors that set/clear pair races
+  the GC sweep cycle (a special can outlive its object through the pool drop
+  at poolCleanup) → fatal "runtime.SetFinalizer: finalizer already set" on
+  the next registration (2 of 4 full-suite runs) and, via a late-queued
+  finalizer unregistering a live cursor, SIGSEGV in Pager.ReadPage (1 of 4).
+  Fix: install the safety-net finalizer EXACTLY ONCE at allocation
+  (newCursor); registration only records regKey; Close/resetFor zero regKey
+  so a queued finalizer unregisters nothing. SetFinalizer must appear in
+  exactly one place per pooled type, at construction.
+- **A Close that resets cursors must re-mark them released AFTER the reset.**
+  releaseCursors→resetFor cleared the `released` flag immediately, so the
+  "use of a closed cursor errors" contract (checkOpen/restoreIfNeeded) was
+  dead code on the hot path and a closed-owner read silently served a stale
+  page cache. Order: unregister → reset into free list → re-mark released;
+  acquisition (acquireCursor→resetFor) is the only place the marker clears.
+- **Reproduce crashes in the FULL suite before theorizing.** All four
+  pre-fix runs crashed differently (2x SetFinalizer fatal, 1x SIGSEGV,
+  different files each run); isolated files never crash — the bug needs the
+  global sync.Pool + GC churn only a 1002-file parallel run produces.
+  Contract probes (panic on double registration / live-wrapper re-handout,
+  pool-history maps) ran clean while the process died elsewhere — probes
+  that assert YOUR invariant can all pass while the RUNTIME's
+  (finalizer-special liveness) invariant is the broken one; when your
+  probes are clean but the crash persists, suspect an interaction with the
+  runtime, not your own bookkeeping.
+
 ## PERF.PARITY-wrap — BTree wrapper/cursor pooling + statement-path scratch (fleet/perf-parity-wrappers, 2026-09-29)
 
 - **Pooling is safe exactly where the P6 lifecycle discipline holds.** BTree

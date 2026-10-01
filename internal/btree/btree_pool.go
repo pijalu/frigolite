@@ -32,6 +32,7 @@ var btreePool = sync.Pool{
 
 // initFrom initializes a (fresh or recycled) wrapper over the given tree.
 func (t *BTree) initFrom(pg *pager.Pager, rootPage uint32, isTable, isSchema bool) *BTree {
+	probeInit(t, pg)
 	t.pager = pg
 	t.rootPage = rootPage
 	t.pageSize = pg.PageSize()
@@ -66,6 +67,7 @@ func (t *BTree) releaseCursors(owned []*Cursor) {
 // pool (the pooled object must not retain the last tenant's tree identity or
 // pager references; cursorFree keeps only reset cursors).
 func (t *BTree) resetForPool() {
+	probePool(t)
 	t.pager = nil
 	t.rootPage = 0
 	t.pageSize = 0

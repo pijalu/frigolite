@@ -15,6 +15,9 @@ import (
 // Uses a recursive insert with proper split propagation for multi-level trees.
 // When a page splits, the split key and new sibling propagate up to the parent.
 func (t *BTree) InsertCell(newCell *storage.Cell) error {
+	if t.pager == nil {
+		panic("btree probe: InsertCell on wrapper without pager\n" + ProbeWrapperState(t) + "\nat:\n" + probeStack(2))
+	}
 	// Splits and defragmentation move cells: save the positions of cursors
 	// open on this tree from enclosing statements (btree.c saveAllCursors,
 	// reached on the insert path through sqlite3BtreeInsert).
