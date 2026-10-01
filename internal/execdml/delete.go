@@ -739,15 +739,27 @@ func (e *DMLExecutor) execDeleteBulk(tableEntry *schema.Entry, dbCtx *DatabaseCo
 func (e *DMLExecutor) deleteBulkNoTriggers(tableEntry *schema.Entry, dbCtx *DatabaseContext, colDefs []sql.ColumnDef, deletedRows []*dmlRow) (int64, []*dmlRow, *Result) {
 	deleted := int64(0)
 	rowsToKeep := make([]*dmlRow, 0, len(deletedRows))
-	declaredRows := make([][]interface{}, 0, len(deletedRows))
-	rowIDs := make(map[int64]bool, len(deletedRows))
-	for _, row := range deletedRows {
-		rowIDs[row.rowID] = true
-		// The raw positional snapshot holds exactly the values
-		// rowMapColumnValues extracted from the collected map (the unwrap of
-		// its affinity-wrapped values), so the delete-identity keys and the
-		// preupdate values are identical.
-		declaredRows = append(declaredRows, row.values)
+	// Each identity path consumes only its own key material: the WITHOUT
+	// ROWID path matches OLD-PK keys from the declared values, the rowid path
+	// matches rowid set membership — so build only the one in use (a point
+	// DELETE on a rowid table paid a per-statement map and slice for nothing).
+	withoutRowid := tableIsWithoutRowid(tableEntry.SQL)
+	var declaredRows [][]interface{}
+	var rowIDs map[int64]bool
+	if withoutRowid {
+		declaredRows = make([][]interface{}, 0, len(deletedRows))
+		for _, row := range deletedRows {
+			// The raw positional snapshot holds exactly the values
+			// rowMapColumnValues extracted from the collected map (the unwrap of
+			// its affinity-wrapped values), so the delete-identity keys and the
+			// preupdate values are identical.
+			declaredRows = append(declaredRows, row.values)
+		}
+	} else {
+		rowIDs = make(map[int64]bool, len(deletedRows))
+		for _, row := range deletedRows {
+			rowIDs[row.rowID] = true
+		}
 	}
 	// WITHOUT ROWID rows are PK-keyed index cells sharing synthetic
 	// RowID 0: match OLD PK keys, not rowids. With no matching rows there is
