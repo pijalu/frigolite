@@ -35,37 +35,46 @@ func (e *SelectEngine) handleSelectAggregates(s *sql.SelectStmt, rowMaps []RowMa
 	if rows == nil && len(rowMaps) > 0 {
 		rows = rowMapRows(rowMaps)
 	}
-	if hasAggs {
+	if !hasAggs {
 		if len(s.GroupBy) > 0 {
-			// When a covering index exists for every column the aggregate
-			// GROUP BY query references, SQLite scans via that index, so the
-			// rows arrive in index key order. group_concat() (and other
-			// order-sensitive aggregates) then accumulate in that order —
-			// e.g. SELECT group_concat(one) FROM b1 GROUP BY (one>4) over a
-			// PK on one emits 1,2,3,4 not the insertion order 1,4,3,2
-			// (e_select-4.9.2). Reorder the scanned rows to match.
-			if idxCols := e.coveringIndexForAggregate(s); len(idxCols) > 0 && len(rows) > 1 {
-				if aggRows != nil {
-					reorderRowsByIndex(aggRows, idxCols)
-				} else {
-					reorderMapsByIndex(rowMaps, idxCols)
-				}
-			}
-			result := e.evalAggregatesGroupBy(s, rows, colDefs)
-			if result != nil {
-				return result
-			}
-		} else {
-			result := e.aggs.EvalAggregates(s, rows, colDefs)
-			if result != nil {
-				return result
-			}
+			// GROUP BY without aggregates: group rows, build output rows using buildOutputRow
+			return e.evalGroupByNoAggs(s, rows, colDefs)
 		}
-	} else if len(s.GroupBy) > 0 {
-		// GROUP BY without aggregates: group rows, build output rows using buildOutputRow
-		return e.evalGroupByNoAggs(s, rows, colDefs)
+		return nil
+	}
+	if len(s.GroupBy) > 0 {
+		e.reorderAggRowsByCoveringIndex(s, rows, rowMaps, aggRows != nil)
+		result := e.evalAggregatesGroupBy(s, rows, colDefs)
+		if result != nil {
+			return result
+		}
+		return nil
+	}
+	result := e.aggs.EvalAggregates(s, rows, colDefs)
+	if result != nil {
+		return result
 	}
 	return nil
+}
+
+// reorderAggRowsByCoveringIndex applies the covering-index GROUP BY reorder
+// (see handleSelectAggregates) to whichever row form the scan produced.
+func (e *SelectEngine) reorderAggRowsByCoveringIndex(s *sql.SelectStmt, rows []Row, rowMaps []RowMap, positional bool) {
+	// When a covering index exists for every column the aggregate GROUP BY
+	// query references, SQLite scans via that index, so the rows arrive in
+	// index key order. group_concat() (and other order-sensitive aggregates)
+	// then accumulate in that order — e.g. SELECT group_concat(one) FROM b1
+	// GROUP BY (one>4) over a PK on one emits 1,2,3,4 not the insertion order
+	// 1,4,3,2 (e_select-4.9.2). Reorder the scanned rows to match.
+	idxCols := e.coveringIndexForAggregate(s)
+	if len(idxCols) == 0 || len(rows) <= 1 {
+		return
+	}
+	if positional {
+		reorderRowsByIndex(rows, idxCols)
+		return
+	}
+	reorderMapsByIndex(rowMaps, idxCols)
 }
 
 // reorderRowsByIndex sorts positional rows into the given index column order
