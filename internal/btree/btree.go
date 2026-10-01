@@ -131,9 +131,8 @@ type BTree struct {
 	// them all from the cross-statement invalidation registry; without it
 	// the registry only ever shrank via the runtime finalizer, which made
 	// saveAllCursors O(total cursors ever opened) per mutation.
-	cursors  []*Cursor
-	closed   bool
-	closedBy string // TEMP probe: stack of the Close that set closed (cleared at initFrom)
+	cursors []*Cursor
+	closed  bool
 
 	// cellScratch recycles the encoded bytes of the cell currently being
 	// inserted (btree_insert.go). A BTree is built per statement over the

@@ -147,17 +147,18 @@ func registeredCursorCount(key cursorTreeKey) int {
 
 // TestCursorRecycleRegistrationContract pins the pooling + registration
 // contract that the fleet/perf-parity-wrappers tranche broke (fleet/
-// perf-parity-poolfix): a wrapper is closed and pooled at the end of every
-// statement-shaped unit and RE-ACQUIRED for the next one, recycling its
-// cursor free list — and every recycled cursor is REGISTERED AGAIN on the
-// next OpenCursor. Registration must never touch runtime.SetFinalizer:
+// perf-parity-poolfix): cursors are pooled and recycled across statements —
+// a wrapper is closed at the end of every statement-shaped unit and the next
+// one recycles its CURSORS (wrappers themselves are not recycled — see
+// btree_pool.go) — and every recycled cursor is REGISTERED AGAIN on the next
+// OpenCursor. Registration must never touch runtime.SetFinalizer:
 // setting/clearing a finalizer per registration on a recycled object races
 // the GC sweep cycle (a special can outlive its object through the pool drop
 // at poolCleanup), which crashed 2 of 4 full-suite runs with the fatal
 // "runtime.SetFinalizer: finalizer already set" and — through a late-queued
 // finalizer unregistering a live cursor — a SIGSEGV in a concurrent scan.
 //
-// The loop interleaves GC with wrapper recycling to maximize exposure of any
+// The loop interleaves GC with cursor recycling to maximize exposure of any
 // finalizer/special desync; a violation either fatals the process (the old
 // bug) or corrupts the registry (a stale entry keeps a dead cursor in
 // saveAllCursors' walk). Both are caught: the process survives, and the

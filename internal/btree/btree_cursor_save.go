@@ -58,7 +58,7 @@ var (
 // registerTreeCursor adds a cursor to its tree's invalidation list. The list
 // entry is removed deterministically by BTree.Close (statement teardown,
 // btree.c sqlite3VdbeFrameDelete/closeCursorsInFrame); a cursor finalizer
-// (set once at allocation, btree_pool.go newCursor) stays as the safety net
+// (set once at allocation, btree_pool.go acquireCursor) stays as the safety net
 // for wrappers that are never closed (out-of-statement use).
 //
 // Registration itself must NOT call SetFinalizer: cursors are pooled and
@@ -81,7 +81,7 @@ func registerTreeCursor(key cursorTreeKey, c *Cursor) {
 }
 
 // cursorRegistryFinalizer is the cursor's allocation-time finalizer (set once
-// in newCursor, never re-set or cleared). It unregisters the cursor from the
+// in acquireCursor, never re-set or cleared). It unregisters the cursor from the
 // invalidation registry under the key of its CURRENT registration; a zero
 // key (the cursor was recycled, closed, or never registered since reset)
 // unregisters nothing, so a finalizer queued while the cursor sat in a
@@ -136,7 +136,6 @@ func (t *BTree) Close() {
 		return
 	}
 	t.closed = true
-	probeClose(t)
 	owned := t.cursors
 	t.cursors = t.cursors[:0]
 	if len(owned) > 0 {
@@ -149,7 +148,7 @@ func (t *BTree) Close() {
 			// time can differ from a cursor's registration key.
 			removeRegisteredCursor(c.regKey, c)
 			// Zero the key BEFORE the cursor is recycled: the allocation-time
-			// finalizer (newCursor) reads regKey at run time, so a finalizer
+			// finalizer (acquireCursor) reads regKey at run time, so a finalizer
 			// queued against this cursor must find no live registration once
 			// Close has run.
 			c.regKey = cursorTreeKey{}

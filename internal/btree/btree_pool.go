@@ -30,9 +30,9 @@ import (
 // therefore dead weight; the global cursorPool replaces it.
 
 // cursorPool recycles cursors across statements and wrappers. A recycled
-// cursor's registry finalizer (set ONCE at allocation — here and in
-// newCursor) is never re-set or cleared: re-registration only records regKey,
-// and a finalizer queued against a dropped pool batch finds regKey == 0 and
+// cursor's registry finalizer is installed once at allocation (acquireCursor)
+// and never re-set or cleared: re-registration only records regKey, and a
+// finalizer queued against a dropped pool batch finds regKey == 0 and
 // unregisters nothing. SetFinalizer on a recycled object is exactly what is
 // forbidden — see btree_cursor_save.go.
 var cursorPool = sync.Pool{
@@ -45,25 +45,17 @@ var cursorPool = sync.Pool{
 	},
 }
 
-// initFrom initializes a (fresh) wrapper over the given tree.
+// initFrom initializes a fresh wrapper over the given tree.
 func (t *BTree) initFrom(pg *pager.Pager, rootPage uint32, isTable, isSchema bool) *BTree {
-	probeInit(t, pg)
 	t.pager = pg
 	t.rootPage = rootPage
 	t.pageSize = pg.PageSize()
 	t.usableSize = pg.UsableSize()
 	t.isTable = isTable
-	// SetKeyCompare installs a per-tree comparator right after construction;
-	// the wrapper is fresh, but a defensive clear keeps the invariant local.
-	t.keyCompare = nil
 	t.isSchema = isSchema
-	t.closed = false
-	t.closedBy = ""
-	if t.cursors == nil {
-		// A statement's wrapper opens a handful of cursors at most; the
-		// pre-sized slice absorbs them without per-OpenCursor growth.
-		t.cursors = make([]*Cursor, 0, 4)
-	}
+	// A statement's wrapper opens a handful of cursors at most; the pre-sized
+	// slice absorbs them without per-OpenCursor growth.
+	t.cursors = make([]*Cursor, 0, 4)
 	return t
 }
 
@@ -79,36 +71,27 @@ func (t *BTree) releaseCursors(owned []*Cursor) {
 
 // acquireCursor returns a reset cursor for a fresh OpenCursor, reusing one
 // from the global cursor pool when available.
+//
+// The pooled cursor's registry safety-net finalizer was installed EXACTLY
+// ONCE at allocation and is never re-set or cleared (btree_cursor_save.go):
+// re-registration only records regKey, and a finalizer queued against a
+// dropped pool batch finds regKey == 0 and unregisters nothing. Per-call
+// SetFinalizer on a recycled object is exactly what is forbidden — it races
+// the GC sweep cycle and fatally throws "runtime.SetFinalizer: finalizer
+// already set" when a stale special survives object reuse.
 func (t *BTree) acquireCursor() *Cursor {
 	c, _ := cursorPool.Get().(*Cursor)
 	if c == nil {
-		c = &Cursor{}
+		c = &Cursor{
+			// B-trees are shallower than 4 levels in practice; pre-sizing the
+			// path stack keeps every descent's appends allocation-free
+			// (SeekToRowID clears the slice, not the capacity, so seeks reuse
+			// it too).
+			path: make([]cursorPathEntry, 0, 4),
+		}
+		runtime.SetFinalizer(c, cursorRegistryFinalizer)
 	}
 	c.resetFor(t)
-	return c
-}
-
-// newCursor builds a bare cursor over t (fresh allocation path).
-//
-// The registry safety-net finalizer is installed EXACTLY ONCE here, at
-// allocation, and never re-set or cleared (btree_cursor_save.go): the cursor
-// is pooled and recycled across statements, and per-registration SetFinalizer
-// calls on a recycled object race the GC sweep cycle (a special can outlive
-// its object through the pool drop at poolCleanup — the fatal "runtime.
-// SetFinalizer: finalizer already set" on the next registration). The
-// finalizer reads c.regKey at run time; resetFor and Close zero the key, so
-// it unregisters nothing once the cursor left its registered life.
-func (t *BTree) newCursor() *Cursor {
-	c := &Cursor{
-		tx:      t,
-		pageNum: t.rootPage,
-		cellIdx: 0,
-		// B-trees are shallower than 4 levels in practice; pre-sizing the
-		// path stack keeps every descent's appends allocation-free (SeekToRowID
-		// clears the slice, not the capacity, so seeks reuse it too).
-		path: make([]cursorPathEntry, 0, 4),
-	}
-	runtime.SetFinalizer(c, cursorRegistryFinalizer)
 	return c
 }
 
@@ -142,7 +125,6 @@ func (c *Cursor) resetFor(t *BTree) {
 // guards against. It stays closed until a NewBTree reset re-arms a FRESH
 // wrapper. Kept name for the call sites' wording.
 func (t *BTree) resetForPool() {
-	probePool(t)
 	t.pager = nil
 	t.rootPage = 0
 	t.pageSize = 0

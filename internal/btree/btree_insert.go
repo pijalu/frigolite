@@ -15,8 +15,11 @@ import (
 // Uses a recursive insert with proper split propagation for multi-level trees.
 // When a page splits, the split key and new sibling propagate up to the parent.
 func (t *BTree) InsertCell(newCell *storage.Cell) error {
-	if t.pager == nil {
-		panic("btree probe: InsertCell on wrapper without pager\n" + ProbeWrapperState(t) + "\nat:\n" + probeStack(2))
+	if t.pager == nil || t.closed {
+		// The wrapper was closed while a caller still held it — an upstream
+		// ownership bug (a statement must never outlive its wrapper). Fail
+		// the write instead of dereferencing the reset wrapper.
+		return errCursorOwnerClosed
 	}
 	// Splits and defragmentation move cells: save the positions of cursors
 	// open on this tree from enclosing statements (btree.c saveAllCursors,

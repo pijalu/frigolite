@@ -81,7 +81,7 @@ func mustExecRepro(t *testing.T, c *DB, sql string) {
 // TestPoolReproNestedScanGCChurn drives the full nested-statement shape under
 // GC churn: an enclosing scan holds a cursor on t1 while eval()/trigger
 // nested statements open the SAME table through the statement funnel, and
-// every statement end pools its wrappers back. Pooled objects are dropped at
+// every statement end recycles its cursors. Pooled objects are dropped at
 // GC cycle boundaries — exactly where the per-registration finalizer scheme
 // desynced from the runtime (the "finalizer already set" fatal and the
 // late-finalizer registry corruption behind the Pager.ReadPage SIGSEGV).
