@@ -101,6 +101,38 @@
 
 ## PERF.PARITY-rows — positional DML row collection (2026-10-01)
 
+- **Point-loop allocs/op is binary-layout sensitive in BOTH engines; only
+  same-main-file, same-build-batch A/B pairs are valid.** The base engine's
+  point-UPDATE loop measured 175.6 or 324.1 allocs/op for the SAME commit
+  depending on the probe main.go (binary layout shifts inlining/pool luck);
+  GC-off does NOT remove it. Protocol: write ONE probe main, copy it to both
+  replace-module dirs, build both in the same batch, alternate rounds, and
+  distrust any delta smaller than the base engine's cross-build spread. The
+  scan loops (allocs/stmt in the tens of thousands) are immune to this.
+- **Full-suite (1002 files, one binary) failure SETS are parallelism/order
+  dependent here — 4/22/35/669 "failing cases" for the same code.** The
+  reliable regression instrument is the per-file isolation sweep
+  (FRIGOLITE_TEST=<file> per JSON, xargs -P8, both worktrees, diff): base and
+  head both 604 PASS / 409 FAIL, zero differences. Also: fts4merge4 needs
+  -timeout 30m when anything else runs concurrently (default 10m truncates
+  under contention; passes in ~360s idle on both trees).
+- **The per-statement positional plan needs an amortization cutoff versus
+  MAIN, not versus the branch.** Seek paths with <=2 (UPDATE) / <=4 (DELETE)
+  candidates keep the map collect; measured cutoff=0 regression: point UPDATE
+  324 -> 290 allocs/op, DELETE 131 -> 141. Re-measure the cutoff after every
+  sibling tranche that touches pooling.
+- **DELETE's two identity paths need only their own key material** (WRO:
+  OLD-PK keys from declared values; rowid: rowid set membership) — building
+  both per statement is waste. Preupdate Old/New slices must stay defensive
+  copies: FirePreupdate applies column affinity IN PLACE unconditionally
+  (event state is observable via exported accessors without any hook), so
+  aliasing a change's values slices would corrupt the write path.
+- **GROUP BY follow-up (measured, not done)**: partitionByGroupKey/evalAggregatesGroupBy
+  retain `[]RowMap` per group; the GROUP-BY phase profile is StructRowToMap 58% flat +
+  wrapPrecomputed 15% + appendRowOutput 8% (66% of phase allocs). Conversion requires
+  threading a positional row type through aggRowMaps/outerRows/window passes/
+  aggSteppingRows/evalHaving (~15 files in execquery's aggregate machinery) — too
+  invasive for a zero-behavior-change tranche; needs its own goal.
 - **The DML collect mass was per-row `BuildRowMap` (execdml) + `updateConstraintUnchanged`'s
   TWO `buildRowMapFromValues` per change + `computeGeneratedValues`' pass-map, NOT the
   SELECT scan's `StructRowToMap`** (that one is the GROUP-BY phase, a follow-up). A
@@ -140,12 +172,6 @@
 - **Benchmarks lie under parallel load** (confirmed again): baseline UPDATE-by-rowid
   read 6.1k ops/s under contention vs 12.5k idle — a phantom "2.1x speedup". Run the
   final A/B strictly sequentially on an idle machine, base and new back to back.
-- **GROUP BY follow-up (measured, not done)**: partitionByGroupKey/evalAggregatesGroupBy
-  retain `[]RowMap` per group; the GROUP-BY phase profile is StructRowToMap 58% flat +
-  wrapPrecomputed 15% + appendRowOutput 8% (66% of phase allocs). Conversion requires
-  threading a positional row type through aggRowMaps/outerRows/window passes/
-  aggSteppingRows/evalHaving (~15 files in execquery's aggregate machinery) — too
-  invasive for a zero-behavior-change tranche; needs its own goal.
 
 ## PERF.P5 — statement journal replaces per-statement pager snapshots (2026-09-28)
 
