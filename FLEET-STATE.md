@@ -875,3 +875,16 @@ Full bench on main: insert 191k ops/s (6.6x), point 136k (6.1x), scan
 this round; 13.6x), file autocommit 1.9x FASTER than sqlite3.
 In flight: fleet/perf-parity-posrows (resume agent adjudicating
 predecessor WIP — positional DML row collection).
+
+## PERF-PARITY (during 2) — validation sweep: 1 real regression found
+
+fleet/validate-parity agent: build/vet/staticcheck clean; 266/266 testgen
+sweep PASS; contract probes (kind gate, typed group keys, misc8, ntile,
+seek-state) ALL PASS. ONE real regression: P1 use-after-pool SIGSEGV —
+pooled BTree wrapper Closed/reset while an enclosing statement's scan
+cursor still uses it (nested statement re-registers a shared wrapper;
+inner release frees outer-owned wrapper). 4/4 full-suite crashes on main;
+pre-tranche 0/2. fleet/perf-parity-poolfix dispatched (ownership-aware
+registration). Environmental: 8 conformance tests need gitignored
+fixtures (pass after copy); harness isolation-mode failures pre-existing.
+Census/final close-out GATED on poolfix landing + 3x clean full-suite.
