@@ -135,6 +135,7 @@ func (t *BTree) Close() {
 		return
 	}
 	t.closed = true
+	probeClose(t)
 	owned := t.cursors
 	t.cursors = t.cursors[:0]
 	if len(owned) > 0 {

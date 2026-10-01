@@ -19,7 +19,6 @@ import (
 var (
 	probeMu   sync.Mutex
 	probeLive = map[*BTree]string{}
-	probeHist = map[*BTree]string{}
 )
 
 func probeStack(skip int) string {
@@ -43,6 +42,7 @@ func probeInit(t *BTree, pg *pager.Pager) {
 	if pg == nil {
 		panic("btree probe: wrapper armed with NIL pager at:\n" + probeStack(2))
 	}
+	t.closedBy = ""
 	probeMu.Lock()
 	if _, live := probeLive[t]; live {
 		prev := probeLive[t]
@@ -58,12 +58,17 @@ func probePool(t *BTree) {
 	probeMu.Lock()
 	if _, live := probeLive[t]; live {
 		delete(probeLive, t)
-		probeHist[t] = probeStack(2)
 		probeMu.Unlock()
 		return
 	}
 	probeMu.Unlock()
-	panic(fmt.Sprintf("btree probe: POOLING NON-LIVE WRAPPER %p\n--- last pooled:\n%s--- now:\n%s", t, probeHist[t], probeStack(2)))
+	panic(fmt.Sprintf("btree probe: POOLING NON-LIVE WRAPPER %p\n--- closed by:\n%s--- now:\n%s", t, t.closedBy, probeStack(2)))
+}
+
+// probeClose marks WHO closed the wrapper (taint-free: stored on the object,
+// never in a pointer-keyed map that heap address reuse could stale).
+func probeClose(t *BTree) {
+	t.closedBy = probeStack(2)
 }
 
 // ProbeWrapperState renders a wrapper's probe history.
@@ -71,11 +76,11 @@ func ProbeWrapperState(t *BTree) string {
 	probeMu.Lock()
 	defer probeMu.Unlock()
 	s := fmt.Sprintf("wrapper %p closed=%v", t, t.closed)
+	if t.closedBy != "" {
+		s += "\n--- closed by:\n" + t.closedBy
+	}
 	if prev, ok := probeLive[t]; ok {
 		s += "\n--- live at:\n" + prev
-	}
-	if prev, ok := probeHist[t]; ok {
-		s += "\n--- last pooled at:\n" + prev
 	}
 	return s
 }

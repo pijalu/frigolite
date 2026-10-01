@@ -136,6 +136,7 @@ type BTree struct {
 	// OpenCursor (btree_pool.go). Kept across wrapper reuse.
 	cursorFree []*Cursor
 	closed     bool
+	closedBy   string // TEMP probe: stack of the Close that set closed (cleared at initFrom)
 
 	// cellScratch recycles the encoded bytes of the cell currently being
 	// inserted (btree_insert.go). A BTree is built per statement over the
