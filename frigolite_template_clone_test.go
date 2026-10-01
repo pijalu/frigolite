@@ -455,3 +455,81 @@ func TestTemplateNumericKindParity(t *testing.T) {
 		t.Fatalf("row 1 value type %T, want float64", r.Rows[1][1])
 	}
 }
+
+// TestTemplateVaryingLiteralsSubstitute pins the same-kind substitution
+// semantics of the template cache's numeric gate: varying INTEGER and REAL
+// literal values across same-shape statements must be served from the
+// template (executed value = the current statement's own literal) while
+// kind stays exact (integer stays integer, real stays real, 8.0 never
+// degrades to integer), and hex-spelled slots must not poison plain
+// decimal statements.
+func TestTemplateVaryingLiteralsSubstitute(t *testing.T) {
+	db, err := frigolite.Open(":memory:")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer db.Close()
+	must := func(sql string) {
+		if r := db.Exec(sql); r.Error != nil {
+			t.Fatalf("%s: %v", sql, r.Error)
+		}
+	}
+	must("CREATE TABLE t(a)")
+	// Interleave same-shape INSERTs with different integer and real values
+	// plus a hex literal: every row must carry the executed statement's own
+	// value and kind.
+	stmts := []struct {
+		sql    string
+		kind   string
+		value  float64
+	}{
+		{"INSERT INTO t VALUES(5)", "integer", 5},
+		{"INSERT INTO t VALUES(7)", "integer", 7},
+		{"INSERT INTO t VALUES(8.0)", "real", 8},
+		{"INSERT INTO t VALUES(9.5)", "real", 9.5},
+		{"INSERT INTO t VALUES(1000000)", "integer", 1000000},
+		{"INSERT INTO t VALUES(0.25)", "real", 0.25},
+	}
+	for _, s := range stmts {
+		must(s.sql)
+	}
+	r := db.Query("SELECT typeof(a), a FROM t ORDER BY rowid")
+	if r.Error != nil {
+		t.Fatal(r.Error)
+	}
+	if len(r.Rows) != len(stmts) {
+		t.Fatalf("rows: %v", r.Rows)
+	}
+	for i, row := range r.Rows {
+		if row[0] != stmts[i].kind {
+			t.Fatalf("row %d typeof=%v, want %s", i, row[0], stmts[i].kind)
+		}
+		var v float64
+		switch n := row[1].(type) {
+		case int64:
+			v = float64(n)
+		case float64:
+			v = n
+		default:
+			t.Fatalf("row %d value type %T", i, row[1])
+		}
+		if v != stmts[i].value {
+			t.Fatalf("row %d value %v, want %v", i, row[1], stmts[i].value)
+		}
+	}
+	// Hex literal: its own statement executes 31; the plain-decimal template
+	// must not serve it a 0 (the extraction of "0x1F" is lossy).
+	must("CREATE TABLE h(v)")
+	must("INSERT INTO h VALUES(5)")
+	if r := db.Query("SELECT v FROM h WHERE v=0x1F"); r.Error != nil {
+		t.Fatal(r.Error)
+	} else if len(r.Rows) != 0 {
+		t.Fatalf("hex literal executed as %v, want no match for 31 vs stored 5", r.Rows)
+	}
+	must("INSERT INTO h VALUES(0x1F)")
+	if r := db.Query("SELECT v FROM h"); r.Error != nil {
+		t.Fatal(r.Error)
+	} else if len(r.Rows) != 2 || r.Rows[1][0] != int64(31) {
+		t.Fatalf("hex insert value: %v", r.Rows)
+	}
+}
