@@ -533,6 +533,11 @@ type scanState struct {
 	isSelectStar           bool
 	activeColCount         int
 	needMaps               bool
+	// bareOutIdx, when non-nil, lists the StructRow slot of every output
+	// column of an all-bare-refs SELECT ("SELECT a, b FROM t"): the output
+	// row is built by peeling the reused StructRow's slots directly,
+	// skipping the per-column EvalExpr dispatch (appendRowOutput).
+	bareOutIdx []int
 	// feed, when non-nil, is the statement's simple-aggregate feed: surviving
 	// rows step it (phase-1 decoded values only) and no output rows or row
 	// maps are materialized; execSelectPostScan builds the aggregate result.
@@ -568,6 +573,7 @@ func newScanState(e *SelectEngine, s *sql.SelectStmt, colDefs []sql.ColumnDef, n
 		colIndex[cd.Name] = i
 	}
 	activeColCount := countActiveColumns(colDefs)
+	isSelectStar := isSelectStarQuery(s, hasJoins)
 	// Lazy decode only decodes WHERE-referenced columns first. But if the WHERE
 	// contains subqueries (EXISTS, scalar), the subquery may reference any column
 	// of the outer row, so we must decode all columns upfront.
@@ -606,7 +612,8 @@ func newScanState(e *SelectEngine, s *sql.SelectStmt, colDefs []sql.ColumnDef, n
 		useLazyDecode:          useLazyDecode,
 		whereDecodeIndices:     whereDecodeIndices,
 		remainingDecodeIndices: remainingDecodeIndices,
-		isSelectStar:           isSelectStarQuery(s, hasJoins),
+		isSelectStar:           isSelectStar,
+		bareOutIdx:             bareOutputSlots(s, colDefs),
 		activeColCount:         activeColCount,
 		needMaps:               needMaps,
 		feed:                   feed,
@@ -690,6 +697,17 @@ func (st *scanState) appendRowOutput() error {
 			st.outRowStarts = append(st.outRowStarts, len(st.outValues))
 			st.outValues = appendScanStarValues(st.outValues, st.colDefs, st.reuseSRow.Values, st.affinityCols != nil)
 		}
+	} else if st.bareOutIdx != nil && !st.hasJoins && !st.aggConsumesRows {
+		// All-bare-refs SELECT: peel the reused StructRow's slots directly
+		// (evalColumnRef's in-row hit returns the same slot value, and both
+		// appendOutputExpr and the unwrap here peel the identical wrapper
+		// chain — the fast row is byte-identical to buildOutputRow's).
+		values := st.reuseSRow.Values
+		row := make([]interface{}, len(st.bareOutIdx))
+		for i, slot := range st.bareOutIdx {
+			row[i] = unwrapCollatedValue(util.UnwrapColumnValue(values[slot]))
+		}
+		st.nonStarRows = append(st.nonStarRows, row)
 	} else if !st.hasJoins && !st.aggConsumesRows {
 		row, err := st.e.buildOutputRow(st.s.Columns, st.colDefs, st.reuseSRow)
 		if err != nil {
@@ -701,6 +719,49 @@ func (st *scanState) appendRowOutput() error {
 		st.allRowMaps = append(st.allRowMaps, StructRowToMap(st.reuseSRow))
 	}
 	return nil
+}
+
+// bareOutputSlots lists the reused StructRow slot of every output column of
+// an all-bare-refs SELECT, or nil when the fast output path does not apply.
+// A column disqualifies the whole statement when it is not a plain
+// unqualified, non-star, non-keyword column reference resolving to a
+// non-generated stored slot (exact or case-variant), or when the statement
+// declares any SELECT alias — an alias can shadow a later output column of
+// the same name and change evalColumnRef's resolution order.
+func bareOutputSlots(s *sql.SelectStmt, colDefs []sql.ColumnDef) []int {
+	if len(s.Columns) == 0 || len(selectAliasMap(s)) > 0 {
+		return nil
+	}
+	slots := make([]int, 0, len(s.Columns))
+	for _, col := range s.Columns {
+		ref, ok := unwrapParenExpr(col.Expr).(*sql.ColumnRef)
+		if !ok || ref.Name == "*" || ref.Table != "" || groupByKeywordName(ref.Name) {
+			return nil
+		}
+		slot := -1
+		for i := range colDefs {
+			if colDefs[i].Name == ref.Name && colDefs[i].Generated == nil && !colDefs[i].Dropped {
+				slot = i
+				break
+			}
+		}
+		if slot < 0 {
+			// Case-variant reference: evalColumnRef falls back to a
+			// case-insensitive index scan, so the resolved slot evaluates
+			// identically.
+			for i := range colDefs {
+				if strings.EqualFold(colDefs[i].Name, ref.Name) && colDefs[i].Generated == nil && !colDefs[i].Dropped {
+					slot = i
+					break
+				}
+			}
+		}
+		if slot < 0 {
+			return nil
+		}
+		slots = append(slots, slot)
+	}
+	return slots
 }
 
 // buildResultRows assembles the final row slice: SELECT * rows from the flat
@@ -764,9 +825,18 @@ func (e *SelectEngine) scanTableAffinityCols(s *sql.SelectStmt, colDefs []sql.Co
 	// Collect column references from the WHERE clause.
 	a.collectExprRefs(s.Where)
 	// Also collect from SELECT columns: expressions like "xt==+xi" need the
-	// affinity of xt even when xt is not referenced in WHERE/ORDER BY.
+	// affinity of xt even when xt is not referenced in WHERE/ORDER BY. A bare
+	// output column reference (SELECT c) is exempt: every output builder peels
+	// the wrappers off its slot value, so the wrapper never reaches a
+	// comparison — skipping it saves one allocation per row on the
+	// full-scan shapes. The declared-collation exception keeps the
+	// CollatedValue marker alive for consumers that read the marker off the
+	// row value (the GROUP BY key computation groups 'abc'/'aBC' together
+	// through a NOCASE column's declared collation).
 	for _, col := range s.Columns {
-		a.collectExpr(col.Expr)
+		if !skipBareSelectRef(col.Expr, colDefs) {
+			a.collectExpr(col.Expr)
+		}
 	}
 	for _, ob := range s.OrderBy {
 		a.collectExpr(ob.Expr)
@@ -792,6 +862,33 @@ func (e *SelectEngine) scanTableAffinityCols(s *sql.SelectStmt, colDefs []sql.Co
 type affinityCollector struct {
 	cols map[string]bool
 	seen bool // true once any column was collected
+}
+
+// skipBareSelectRef reports whether a SELECT output column's affinity
+// collection can be skipped: the expression is a bare, unqualified, non-star,
+// non-keyword column reference resolving (case-insensitively) to a column
+// with no non-BINARY declared collation. Only that shape's wrapper never
+// reaches a comparison — every output builder peels the wrappers off its slot
+// value — so collecting it costs a per-row wrapper allocation for nothing.
+// All other expressions keep the historical collect-everything behavior.
+func skipBareSelectRef(expr sql.Expr, colDefs []sql.ColumnDef) bool {
+	ref, ok := unwrapParenExpr(expr).(*sql.ColumnRef)
+	if !ok || ref.Table != "" || groupByKeywordName(ref.Name) {
+		return false
+	}
+	if ref.Name == "*" {
+		// A star keeps its historical collection: the collector's seen flag
+		// drives appendScanStarValues's output unwrap (the IPK rowid-alias
+		// fill leaves a wrapper in the star's slots).
+		return false
+	}
+	for i := range colDefs {
+		if strings.EqualFold(colDefs[i].Name, ref.Name) {
+			coll := colDefs[i].Collate
+			return coll == "" || strings.EqualFold(coll, "BINARY")
+		}
+	}
+	return false // unresolved name: keep the historical wrapper
 }
 
 // collectExpr collects column references from a single expression,
