@@ -916,22 +916,10 @@ func reverseRowMaps(maps []RowMap) {
 // references (columns compared with affinity must wrap their values).
 func (e *SelectEngine) scanTableAffinityCols(s *sql.SelectStmt, colDefs []sql.ColumnDef, needMaps bool) map[string]bool {
 	a := &affinityCollector{cols: make(map[string]bool)}
-	// Collect column references from the WHERE clause.
+	// Collect column references from the consuming clauses first (WHERE,
+	// ORDER BY, GROUP BY, HAVING, joins): their union decides whether the
+	// SELECT columns may take the bare-reference exemption below.
 	a.collectExprRefs(s.Where)
-	// Also collect from SELECT columns: expressions like "xt==+xi" need the
-	// affinity of xt even when xt is not referenced in WHERE/ORDER BY. A bare
-	// output column reference (SELECT c) is exempt: every output builder peels
-	// the wrappers off its slot value, so the wrapper never reaches a
-	// comparison — skipping it saves one allocation per row on the
-	// full-scan shapes. The declared-collation exception keeps the
-	// CollatedValue marker alive for consumers that read the marker off the
-	// row value (the GROUP BY key computation groups 'abc'/'aBC' together
-	// through a NOCASE column's declared collation).
-	for _, col := range s.Columns {
-		if !skipBareSelectRef(col.Expr, colDefs) {
-			a.collectExpr(col.Expr)
-		}
-	}
 	for _, ob := range s.OrderBy {
 		a.collectExpr(ob.Expr)
 	}
@@ -953,6 +941,34 @@ func (e *SelectEngine) scanTableAffinityCols(s *sql.SelectStmt, colDefs []sql.Co
 	// wrappers for the join comparison.
 	for i := range s.Joins {
 		e.collectJoinAffinity(a, &s.Joins[i], s.From.Name)
+	}
+	// Also collect from SELECT columns: expressions like "xt==+xi" need the
+	// affinity of xt even when xt is not referenced in WHERE/ORDER BY. A bare
+	// output column reference (SELECT c) is exempt: every output builder peels
+	// the wrappers off its slot value, so the wrapper never reaches a
+	// comparison — skipping it saves one allocation per row on the
+	// full-scan shapes. The declared-collation exception keeps the
+	// CollatedValue marker alive for consumers that read the marker off the
+	// row value (the GROUP BY key computation groups 'abc'/'aBC' together
+	// through a NOCASE column's declared collation). An output ALIAS
+	// referenced by a consuming clause (WHERE x='abc' for SELECT a AS x)
+	// resolves back to its SELECT expression at evaluation time through the
+	// alias stack, so any collected ref matching an output alias cancels the
+	// exemption for the whole statement — the underlying column must be
+	// decoded and wrapped exactly as before.
+	exemptBare := true
+	if aliases := selectAliasMap(s); len(aliases) > 0 {
+		for name := range a.cols {
+			if _, isAlias := aliases[name]; isAlias {
+				exemptBare = false
+				break
+			}
+		}
+	}
+	for _, col := range s.Columns {
+		if !(exemptBare && skipBareSelectRef(col.Expr, colDefs)) {
+			a.collectExpr(col.Expr)
+		}
 	}
 	return a.result(colDefs, needMaps)
 }
