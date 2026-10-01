@@ -6,6 +6,47 @@
 > followed by the current T33 session sections. Consult the archive for
 > closed-goal specifics (also in plan/goals/*.md and portplan/NA_EVIDENCE.md).
 
+## PERF.PARITY-pager — read-path memoization (2026-09-30/10-01, fleet/perf-parity-pager)
+
+- **Validate, don't invalidate, for page-parse memos.** The memoized
+  storage.ParsePage result on pager.Page carries a snapshot of the exact
+  bytes a parse reads (header + rightmost ptr + CELL POINTER ARRAY) and
+  re-compares on every access; no invalidation call sites to chase (writes,
+  defrag, splits, rollback restore, external-change cache drops all change
+  those bytes or the Page object). The snapshot MUST cover the pointer
+  array: a delete+reinsert can net-restore every header FIELD while moving
+  pointers — a header-only fingerprint would serve a stale parse.
+- **Wire a parse memo only where hit-rate dominates.** Fill cost (snapshot
+  copy ~2*CellCount bytes) exceeds a plain parse (48B). Cursor/seek/walk
+  reads of stable pages (fresh BTree per statement re-reads the same
+  root/leaf) win 40%; insertPage-style mutation-adjacent parses LOSE
+  (miss on nearly every call) — leave those on plain ParsePage. Shared
+  returned *BTreePage needs a read-only-contract audit: deleteCellOnPage
+  mutates the parsed struct it was handed, so any site reaching it stays
+  un-memoized.
+- **dirtyMark=nil is a semantic no-op that re-arms a fast path.**
+  clearDirtySetLocked allocated 2 maps per commit boundary — the pager's
+  per-statement floor on read-only workloads (every autocommit SELECT
+  flushes). Reuse dirty in place (clear(); trade in only above ~1024
+  entries) and DROP dirtyMark: a missing stamp reads as 0, identical to an
+  empty map everywhere it is consulted, and markDirtyLocked's fast path
+  requires nil.
+- **Contention indicts innocent code — twice in one night.** (1) A 40x
+  "wall-clock collapse" was load-20+ (other fleet tranches); alloc counts
+  stayed load-independent and interleaved GOMAXPROCS=2 A/B showed parity.
+  (2) The full harness "hung" 9m48s in temptable2/5.1.3 (O(cells x
+  targets) classifyIndexMatches during a 100k-row UPDATE) — pristine-main
+  runs the SAME statement in 151-579s depending on contention, and
+  isolated A/B = 171s vs 151s (both legacy-drift FAIL). P5 rule holds:
+  isolated A/B before chasing any phantom regression; run final validation
+  sequentially.
+- **A live main checkout is not a baseline.** Sibling tranches hold
+  in-flight edits there (its harness showed 4,487 FAIL lines vs 4,479 on
+  a pristine export). Baseline = `git archive <commit> | tar -x` into /tmp;
+  copy the gitignored fixture dirs (testdata/walconformance,
+  testdata/backupconformance — a fresh worktree fails
+  TestBackupConformance/walview tests without them).
+
 ## PERF.P5 — statement journal replaces per-statement pager snapshots (2026-09-28)
 
 - **The 9.4ms no-match DELETE was TWO O(database) costs stacked, not one.**
