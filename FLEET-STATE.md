@@ -888,3 +888,22 @@ pre-tranche 0/2. fleet/perf-parity-poolfix dispatched (ownership-aware
 registration). Environmental: 8 conformance tests need gitignored
 fixtures (pass after copy); harness isolation-mode failures pre-existing.
 Census/final close-out GATED on poolfix landing + 3x clean full-suite.
+
+## PERF-PARITY (END, 2026-10-01) — 7 tranches + audit + validation, parity converged
+
+All tranches merged to main (memofix f243cc18b last). Final quiet-machine
+table (vs sqlite3 3.54 literal): insert 6.8x, point 7.0x, scan 6.2x,
+group 4.6x, update 12.5x, delete 15.4x, file autocommit 1.65x FASTER.
+NEW capability: db.Prepare -> Stmt.Exec/Query parameter binding (bound
+point-SELECT 1.5x over literal, 184-188k ops/s). Census 1073/0/290
+audit exit 0.
+Correctness findings from parallel review+validation agents, ALL fixed
+with pinned probes: INSERT template kind coercion (pre-existing P1),
+btree seek saved-state reset (P2), pooled-wrapper use-after-pool
+(poolfix: finalizer-once + wrapper pooling dropped), pager-memo canary +
+crafted-CellCount uint16 wrap + index-decode tail guards. Documented
+pre-existing divergences: -0.0/0.0 and text-5-vs-int-5 textual-key
+grouping; x % 0.1 panic; rowid-vs-text whitespace affinity.
+Remaining structural tranches (documented): value-ordered-index/typed-row
+(scan 6.2x floor), exec plumbing (update/delete 12.5-15.4x), group-key
+EvalExpr per row (group 4.6x). prepare/bind API DELIVERED this round.

@@ -501,3 +501,92 @@ scan 6× (value-ordered-index/typed-row tranche), update/delete 13–19×
 (exec plumbing + retained-RowMap DML contracts), point/insert 6–7×
 (prepare/bind public API), group 4.4× (group-key EvalExpr per row —
 now the single largest frame in the group profile).
+
+---
+
+# PERF-PARITY — 2026-09-30: convergence round (parallel fleet, go-perf methodology)
+
+Seven parallel tranches applied on top of PERF-GC2, plus an adversarial
+review audit and a validation sweep — all using the go-perf loop
+(benchmark → profile → fix top frame → re-benchmark). Six agents
+optimized disjoint profiled fronts; one audited the entire perf stack
+adversarially.
+
+## Final table (both engines re-run back-to-back, quiet machine, 100k rows)
+
+| Workload | frigolite | sqlite3 literal | gap | sqlite3 prepared | gap (prep) |
+|---|---|---|---|---|---|
+| INSERT ×100k, 1 txn | 183,961 ops/s | 1,245,141 ops/s | 6.8× | 3,149,896 ops/s | 17.1× |
+| SELECT point `WHERE id=?` | 120,644 ops/s | 841,429 ops/s | 7.0× | 2,717,173 ops/s | 22.5× |
+| SELECT scan (rows/s) | 8,464,892 | 52,642,854 | 6.2× | 53,682,668 | 6.3× |
+| SELECT GROUP BY (passes) | 27 | 123 | 4.6× | 120 | 4.4× |
+| UPDATE ×20k, 1 txn | 76,763 ops/s | 958,247 ops/s | 12.5× | 3,591,427 ops/s | 46.8× |
+| DELETE ×5k, 1 txn | 80,776 ops/s | 1,246,483 ops/s | 15.4× | 3,689,734 ops/s | 45.6× |
+| INSERT autocommit, file | 9,037 ops/s | — | — | 5,484 ops/s | **1.65× faster** |
+
+Plus the NEW capability this round: `db.Prepare(sql) → Stmt.Exec(args...)/
+Query(args...)` — bound point-SELECT 184–188k ops/s (**1.5× over literal**,
+approaching sqlite3's own prepared/literal ratio), bound INSERT 218–225k
+ops/s, zero re-parse per call.
+
+CPU utilization 1.03–1.45× wall; peak per-phase heap 2.4–63 MB.
+
+## What landed
+
+- **posrows** (`fleet/perf-parity-posrows`, `4e5cf57d2`): positional
+  UPDATE/DELETE row collection (RowMaps materialize only for triggers'
+  OLD/NEW, RETURNING, preupdate, FK). Scan-shape UPDATE allocs −52%
+  (+24% ops/s), DELETE −33% (+39%); 1362 testgen packages green;
+  116-line parity transcript byte-identical.
+- **expr** (`fleet/perf-parity-expr`, `b3ccd8bfa`): typed arithmetic/
+  comparison/concat fast paths in the evaluator; expr-SELECT 1.16×,
+  expr-mixed 1.13×; 106-query parity sweep byte-identical; 77/77 suites.
+- **wrappers + poolfix** (`fleet/perf-parity-wrappers` `9cb942f92`,
+  `fleet/perf-parity-poolfix` `433e3aac7`): BTree wrapper/cursor pooling
+  with deterministic lifecycle; the pooling introduced a use-after-pool
+  crash (nested statement freed an outer statement's shared wrapper) —
+  root-caused to two stacked defects (per-registration SetFinalizer
+  double-set on recycled cursors; concurrent close of pooled wrappers) —
+  fixed by finalizer-once allocation + dropping wrapper pooling (cursor
+  pooling and scratch wins kept), 3× clean full-suite evidence.
+- **pager** (`fleet/perf-parity-pager`, `08b045049`): ParsePage
+  memoization with byte-fingerprint invalidation, dirty-set reuse, split
+  encode arena; point in-slice allocs −41%, insert −28%.
+- **memofix** (`fleet/perf-parity-memofix`, `f243cc18b`): memo canary +
+  torn-capture guard, crafted-CellCount uint16-wrap validation fix, and
+  in-bounds guards on all index-decode tail reads (crafted corrupt pages
+  now error like SQLite instead of panicking).
+- **group** (`fleet/perf-parity-group`, `b9dcf469b`): group/ORDER BY
+  invariant hoisting + sort comparator planning; +11% group loop.
+- **scan2** (`fleet/perf-parity-scan2`, `7ba2aabce`): bare-ref wrap skip
+  + all-bare-refs output fast path (+35% bare scan), GROUP BY positional
+  retention (+63%), output-alias hazard conservatively gated.
+- **api** (`fleet/perf-parity-api`, `b4b672465`): root-layer statement
+  splitting fast path + verbatim Query rows (root alloc objects −73%).
+- **bind** (`fleet/perf-parity-bind`, `09265ed7c`): the Prepare/Stmt
+  public API (above), plus pre-existing template-clone field drops fixed
+  (InsertStmt Alias/CTEs/OrFail; UPDATE/DELETE template cache was
+  silently disabled).
+
+## Correctness findings from the parallel review + validation agents
+
+Fixed with pinned probes: P1 INSERT template kind coercion (8.0 persisted
+as integer — pre-existing), P2 btree seek saved-state reset + missing
+checkOpen (latent stale-key restore), P1' pooled-wrapper use-after-pool
+(above), pager-memo mutation/torn-capture hardening + crafted-CellCount
+uint16 wrap + index-decode tail guards (crafted pages now error like
+SQLite). Documented pre-existing divergences: uncollated −0.0/0.0 and
+text-'5'-vs-int-5 textual-key grouping; `x % 0.1` divide-by-zero panic in
+generic modValues (oracle returns 0); rowid-vs-text whitespace affinity.
+
+## Where it stands
+
+frigolite now runs within **4.4–15.4× of sqlite3** on every CRUD
+workload (from 13×–15,000× at the first report), is **faster than
+sqlite3** on file-mode autocommit inserts, has a prepare/bind API
+matching sqlite3's prepared-mode economics, and holds census **1073
+pass / 0 fail / 290 skip**. The remaining gaps are structural: SQLite's
+register-based VM with typed values vs Go's interface-boxed pipeline
+(scan 6.2×), and per-statement exec plumbing (update/delete 12.5–15.4×)
+— both requiring the value-ordered-index/typed-row tranche documented in
+FLEET-STATE, beyond scoped optimization rounds.
