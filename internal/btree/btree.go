@@ -4,12 +4,18 @@ package btree
 
 import (
 	"encoding/binary"
+	"errors"
 	"fmt"
 
 	"github.com/pijalu/frigolite/internal/pager"
 	"github.com/pijalu/frigolite/internal/storage"
 	"github.com/pijalu/frigolite/internal/util"
 )
+
+// errCursorOwnerClosed reports a cursor use whose owning wrapper was closed
+// and recycled (an upstream ownership bug: a statement must never outlive
+// its wrapper). Reads report it instead of dereferencing the reset wrapper.
+var errCursorOwnerClosed = errors.New("btree: cursor's owning tree is closed")
 
 // contentOffset returns the b-tree page header offset for a page number.
 // Page 1 has a 100-byte database header before the b-tree content.
@@ -75,11 +81,16 @@ type cursorPathEntry struct {
 // without re-parsing; any page modified in between re-parses (the memo
 // re-validates the header bytes on every access).
 func (c *Cursor) cachePage() error {
+	if c.released || c.tx == nil || c.tx.pager == nil {
+		// The wrapper was closed and recycled while this cursor was still in
+		// use — an ownership bug upstream (a statement must never outlive its
+		// wrapper). Report an error instead of dereferencing the reset
+		// wrapper or serving its stale page cache (SQLite's BtCursor is
+		// unusable after BtreeCloseCursor too).
+		return errCursorOwnerClosed
+	}
 	if c.currentPg != nil && c.currentPg.PageNum == c.pageNum {
 		return nil // cache hit
-	}
-	if c.tx == nil || c.tx.pager == nil {
-		panic("btree probe: cachePage on wrapper without pager\n" + DebugWrapperState(c.tx) + "\ncursor at:\n" + debugStack(2))
 	}
 	pg, err := c.tx.pager.ReadPage(c.pageNum)
 	if err != nil {
@@ -219,7 +230,6 @@ func (t *BTree) OpenCursor() (*Cursor, error) {
 	if err := c.descendToFirstLeaf(); err != nil {
 		// The cursor was never registered (that happens below on success);
 		// recycle it instead of leaking it to the collector.
-		debugProbeCheckRelease(c)
 		c.resetFor(t)
 		t.cursorFree = append(t.cursorFree, c)
 		return nil, err
@@ -243,8 +253,8 @@ func (t *BTree) OpenCursor() (*Cursor, error) {
 func (c *Cursor) descendToFirstLeaf() error {
 	var sp storage.BTreePage
 	for {
-		if c.tx == nil || c.tx.pager == nil {
-			panic("btree probe: descend on wrapper without pager\n" + DebugWrapperState(c.tx) + "\ncursor at:\n" + debugStack(2))
+		if c.released || c.tx == nil || c.tx.pager == nil {
+			return errCursorOwnerClosed
 		}
 		pg, err := c.tx.pager.ReadPage(c.pageNum)
 		if err != nil {

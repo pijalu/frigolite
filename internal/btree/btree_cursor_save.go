@@ -3,7 +3,6 @@ package btree
 import (
 	"encoding/binary"
 	"fmt"
-	"runtime"
 	"sync"
 
 	"github.com/pijalu/frigolite/internal/pager"
@@ -58,21 +57,39 @@ var (
 
 // registerTreeCursor adds a cursor to its tree's invalidation list. The list
 // entry is removed deterministically by BTree.Close (statement teardown,
-// btree.c sqlite3VdbeFrameDelete/closeCursorsInFrame); a finalizer stays as
-// the safety net for wrappers that are never closed (out-of-statement use).
+// btree.c sqlite3VdbeFrameDelete/closeCursorsInFrame); a cursor finalizer
+// (set once at allocation, btree_pool.go newCursor) stays as the safety net
+// for wrappers that are never closed (out-of-statement use).
+//
+// Registration itself must NOT call SetFinalizer: cursors are pooled and
+// recycled across statements (btree_pool.go), and setting/clearing a
+// finalizer per registration on a recycled object races the GC sweep cycle
+// (a special can outlive its object through the pool drop at poolCleanup,
+// surfacing as the fatal "runtime.SetFinalizer: finalizer already set" on
+// the NEXT registration — 2 of 4 full-suite runs crashed there). The
+// finalizer reads c.regKey AT RUN TIME instead: registration just records
+// the key, Close/resetFor zero it once the registration is gone, so a late
+// (queued) finalizer unregisters nothing.
+//
 // The key rides on the cursor so the finalizer can be a static function —
 // a per-registration closure would allocate on every OpenCursor.
 func registerTreeCursor(key cursorTreeKey, c *Cursor) {
-	debugProbeCheckRegistration(c)
 	c.regKey = key
 	cursorRegMu.Lock()
 	defer cursorRegMu.Unlock()
 	cursorRegistry[key] = append(cursorRegistry[key], c)
-	runtime.SetFinalizer(c, cursorRegistryFinalizer)
 }
 
-// cursorRegistryFinalizer is registerTreeCursor's static finalizer.
+// cursorRegistryFinalizer is the cursor's allocation-time finalizer (set once
+// in newCursor, never re-set or cleared). It unregisters the cursor from the
+// invalidation registry under the key of its CURRENT registration; a zero
+// key (the cursor was recycled, closed, or never registered since reset)
+// unregisters nothing, so a finalizer queued while the cursor sat in a
+// dropped pool batch cannot disturb a later registration.
 func cursorRegistryFinalizer(cc *Cursor) {
+	if cc.regKey == (cursorTreeKey{}) {
+		return
+	}
 	unregisterTreeCursor(cc.regKey, cc)
 }
 
@@ -123,21 +140,30 @@ func (t *BTree) Close() {
 	if len(owned) > 0 {
 		cursorRegMu.Lock()
 		for _, c := range owned {
-			c.released = true
-			runtime.SetFinalizer(c, nil)
-			debugProbeMu.Lock()
-			delete(debugProbeRegStack, c)
-			debugProbeMu.Unlock()
 			// Unregister under the key the cursor was REGISTERED under,
 			// not the wrapper's current (pager, rootPage): schemaCursor
 			// opens a schema-keyed cursor on a user-tree wrapper while its
 			// rootPage is temporarily 1, so the wrapper's rootPage at Close
 			// time can differ from a cursor's registration key.
 			removeRegisteredCursor(c.regKey, c)
+			// Zero the key BEFORE the cursor is recycled: the allocation-time
+			// finalizer (newCursor) reads regKey at run time, so a finalizer
+			// queued against this cursor must find no live registration once
+			// Close has run.
+			c.regKey = cursorTreeKey{}
 		}
 		cursorRegMu.Unlock()
 	}
 	t.releaseCursors(owned)
+	// releaseCursors reset each cursor into the free list (clearing page
+	// references and the registration key); re-mark them released AFTER that
+	// so the marker survives until the cursor's NEXT acquisition — every use
+	// of a closed cursor reports an error (checkOpen / restoreIfNeeded /
+	// cachePage), and the wrapper re-entry in resetForPool must not leave a
+	// readable cursor behind.
+	for _, c := range owned {
+		c.released = true
+	}
 	t.resetForPool()
 }
 

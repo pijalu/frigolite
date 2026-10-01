@@ -1,6 +1,7 @@
 package btree
 
 import (
+	"runtime"
 	"sync"
 
 	"github.com/pijalu/frigolite/internal/pager"
@@ -31,7 +32,6 @@ var btreePool = sync.Pool{
 
 // initFrom initializes a (fresh or recycled) wrapper over the given tree.
 func (t *BTree) initFrom(pg *pager.Pager, rootPage uint32, isTable, isSchema bool) *BTree {
-	debugProbeCheckAcquire(t)
 	t.pager = pg
 	t.rootPage = rootPage
 	t.pageSize = pg.PageSize()
@@ -66,7 +66,6 @@ func (t *BTree) releaseCursors(owned []*Cursor) {
 // pool (the pooled object must not retain the last tenant's tree identity or
 // pager references; cursorFree keeps only reset cursors).
 func (t *BTree) resetForPool() {
-	debugProbeCheckPool(t)
 	t.pager = nil
 	t.rootPage = 0
 	t.pageSize = 0
@@ -91,8 +90,17 @@ func (t *BTree) acquireCursor() *Cursor {
 }
 
 // newCursor builds a bare cursor over t (fresh allocation path).
+//
+// The registry safety-net finalizer is installed EXACTLY ONCE here, at
+// allocation, and never re-set or cleared (btree_cursor_save.go): the cursor
+// is recycled across statements, and per-registration SetFinalizer calls on
+// a recycled object race the GC sweep cycle (a special can outlive its
+// object through the pool drop at poolCleanup — the fatal "runtime.
+// SetFinalizer: finalizer already set" on the next registration). The
+// finalizer reads c.regKey at run time; resetFor and Close zero the key, so
+// it unregisters nothing once the cursor left its registered life.
 func (t *BTree) newCursor() *Cursor {
-	return &Cursor{
+	c := &Cursor{
 		tx:      t,
 		pageNum: t.rootPage,
 		cellIdx: 0,
@@ -101,6 +109,8 @@ func (t *BTree) newCursor() *Cursor {
 		// clears the slice, not the capacity, so seeks reuse it too).
 		path: make([]cursorPathEntry, 0, 4),
 	}
+	runtime.SetFinalizer(c, cursorRegistryFinalizer)
+	return c
 }
 
 // resetFor returns a cursor to a pristine just-opened state over t. Buffers
