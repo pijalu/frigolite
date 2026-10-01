@@ -173,6 +173,15 @@ func TestDecodeRecordColumnsReuse(t *testing.T) {
 	}
 }
 
+// TestDecodeRecordColumnsShortOut pins the defensive contract: an out slice
+// shorter than the column list is an error, not a panic.
+func TestDecodeRecordColumnsShortOut(t *testing.T) {
+	data := mustRecord(t, []interface{}{int64(1), "a"})
+	if _, err := DecodeRecordColumns(data, []int{0, 1}, make([]interface{}, 1)); err == nil {
+		t.Error("short out slice: expected error")
+	}
+}
+
 // TestDecodeRecordColumnsBlobCopy pins that a blob read is a fresh copy, so a
 // caller retaining it across row overwrites cannot see later mutations of the
 // page buffer.

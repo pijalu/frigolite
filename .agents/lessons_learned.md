@@ -6,6 +6,76 @@
 > followed by the current T33 session sections. Consult the archive for
 > closed-goal specifics (also in plan/goals/*.md and portplan/NA_EVIDENCE.md).
 
+## PERF.STRUCT-scan — direct column reads replace the record-wide decode (fleet/perf-struct-scan, 2026-10-01)
+
+- **The last scan-floor mass was the FULL-RECORD decode on no-WHERE shapes.**
+  Lazy two-phase decode only armed when `s.Where != nil`, so the hottest
+  feed shapes (`SELECT SUM(c) FROM t`, `SELECT COUNT(*) FROM t`) and bare
+  projections (`SELECT c FROM t`) fell to `decodeRowFull`: every declared
+  column boxed into an interface per row, ~9 of 10 values discarded. Fix:
+  (a) feed mode arms the lazy two-phase pipeline even without a WHERE (its
+  phase-1 set is the statement's referenced columns; the feed branch skips
+  the refill), and (b) eligible scans decode exactly those slots via
+  `storage.DecodeRecordColumn(s)` — serial-type varints are self-sized, so
+  column k's data offset is the running size-sum of types 0..k-1
+  (vdbe.c OP_Column). Same-probe A/B vs origin/main (wide 10-col table,
+  300k rows): bare scan 294→143 ns/row (13.67→2.00 allocs/row, -43% B/row,
+  +106% rows/s), COUNT(*) 213→80 ns (13.67→2.00, +168%), SUM 216→114
+  (+90%), IPK-alias SUM 175→86 (+103%); star/where/groupby shapes
+  byte-identical (they keep the historical decode by design). Post-fix
+  profile: the floor is the header varint walk itself
+  (decodeRecordColumnsInto ~38% cum) — the "precompute column-offset hints"
+  follow-up lives there, not in the value decode.
+- **`scanConsumedByAggPass` is true for EVERY aggregate SELECT — it must not
+  gate a feed fast path.** The first wiring shared one exclusion list
+  (needMaps/posAgg/aggConsumesRows) across feed and bare branches; feed
+  scans were silently vetoed (aggConsumesRows = hasAggregates = true) and
+  ran the map-based phase-1 decode, costing half the win while every test
+  stayed green. The distinction: those flags only matter when ROWS OR MAPS
+  materialize — feed mode builds neither (needMaps forced false, posAgg
+  requires feed==nil, aggConsumesRows only suppresses per-row output
+  building). Rule: a fast path's eligibility exclusions must be derived per
+  branch from what that branch actually leaves readable, not shared because
+  the shapes look similar. Debugging aid: a profile showing the OLD path's
+  frames (decodeRecordValuesFromTypes + mapaccess2) while the new-path
+  symbols never appear means the gate never fired — instrument the gate,
+  not the fast path.
+- **The record header includes its own size varint: value data starts at
+  `hdrSize`, not at the varint's end.** First implementation anchored the
+  running offset at the header-size varint's end and read every column one
+  byte early (300 == 0x012C read as 515). DecodeRecord gets this for free by
+  finishing the type walk at hdrEnd; a partial walker must anchor at hdrEnd
+  explicitly.
+- **The eligibility contract is "every consumer of the reused StructRow reads
+  a direct slot"; undecoded slots keep the PREVIOUS row's values.** Feed mode
+  reads compiled slots + WHERE refs (all in the plan's phase-1 index set, no
+  rows/maps exist); bare output peels bareOutIdx only. Every whole-row
+  consumer excludes the direct path: SELECT * (star output), needMaps
+  (ORDER BY/DISTINCT/UNION rebuild from maps), posAgg clones, aggConsumesRows
+  (bare branch only — see above), joins, subquery-WHERE (correlated refs read
+  any column), WITHOUT ROWID (wrOrder permutes storage positions), dropped
+  columns (storage/declared ordinal shift). Excluding any one of these
+  silently serves stale slots.
+- **A strict primitive over a lenient scan path needs a per-row fallback.**
+  The scan's historical decode SILENTLY truncates on crafted payloads
+  (DecodeRecordValuesFromTypes stops at the first bad type/short value; only
+  a bad header size errors). DecodeRecordColumns validates strictly — so the
+  scan falls back to the historical per-row decode on ANY primitive error,
+  reproducing the silent-truncation semantics exactly (corrupt* suites are
+  the canary; all 23 corrupt/fts3corrupt/incrcorrupt/mmapcorrupt/altercorrupt
+  testgen packages stayed green before and after).
+- **Empty decode sets are first-class**: COUNT(*) compiles zero storage
+  slots; a non-nil empty directCols skips the record decode entirely (header
+  walk only) — 2 allocs/row total. Gate with `!= nil`, never `len > 0`.
+- **Walking the FULL header (not stopping at the last requested ordinal)
+  keeps ALTER TABLE ADD COLUMN defaults exact**: the caller needs the
+  record's true serial-type count to decide absent (apply DEFAULT) vs stored
+  NULL (keep nil). The varint walk was never the cost — the value boxing was.
+- **BSD xargs -I{} refuses long assembled command lines** ("command line
+  cannot be assembled, too long") even at ~350 bytes — fleet sweep runners
+  must delegate to an inner script taking the item as `$3` instead of
+  inlining the whole command in the -I template.
+
 ## PERF.PARITY-memofix — pager-memo poisoning + index-decode tails (fleet/perf-parity-memofix, 2026-10-01)
 
 - **A memo validated only against the BYTES it parsed cannot see Go-side

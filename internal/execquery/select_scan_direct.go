@@ -38,36 +38,67 @@ const maxDirectDecodeCols = 3
 // nil to keep the historical decode paths. plan must be the scan's decode
 // plan; feed may be nil.
 func (st *scanState) initDirectDecode(feed *simpleAggFeed, plan scanDecodePlan) {
-	if st.hasJoins || st.isSelectStar || st.needMaps || st.posAgg || st.aggConsumesRows {
-		return
+	st.directCols = st.directDecodeCols(feed, plan)
+	if st.directCols != nil {
+		st.directScratch = make([]interface{}, len(st.directCols))
+	}
+}
+
+// directDecodeCols returns the scan's directly decoded slots, or nil when the
+// historical decode paths must run. Shared exclusions first, then the
+// per-shape slot sets.
+func (st *scanState) directDecodeCols(feed *simpleAggFeed, plan scanDecodePlan) []int {
+	if st.hasJoins || st.isSelectStar {
+		return nil
 	}
 	if hasDroppedColumnDefs(st.colDefs) {
-		return
+		return nil
 	}
-	var cols []int
 	if feed != nil {
-		// A WHERE containing a subquery keeps the full decode (correlated
-		// references may read any column of the outer row), same gate the
-		// lazy decode uses.
-		if !plan.useLazyDecode {
-			return
-		}
-		cols = sortedIndexSet(plan.whereDecodeIndices)
-	} else {
-		// Bare-output scans take the direct read only without a WHERE clause:
-		// a WHERE keeps the lazy two-phase decode (whose phase-2 refill owns
-		// the full remaining-columns decode the bare output also reads).
-		if st.s.Where != nil || st.bareOutIdx == nil {
-			return
-		}
-		cols = dedupSortedSlots(st.bareOutIdx)
+		// Feed mode materializes no rows or row maps: needMaps is forced off
+		// in newScanState, posAgg requires feed==nil, and aggConsumesRows
+		// (true for every aggregate statement) only suppresses per-row output
+		// building, which feed mode skips anyway — it cannot make an undecoded
+		// slot readable.
+		return st.capDirectCols(feedDecodeSlots(plan))
 	}
-	// Only worthwhile when the record has columns the scan never reads.
+	if st.needMaps || st.posAgg || st.aggConsumesRows {
+		return nil
+	}
+	return st.capDirectCols(bareDecodeSlots(st.s, st.bareOutIdx))
+}
+
+// capDirectCols applies the effort guards: at most maxDirectDecodeCols
+// referenced columns, and only when the record has columns the scan never
+// reads (otherwise the direct walk saves nothing).
+func (st *scanState) capDirectCols(cols []int) []int {
 	if len(cols) > maxDirectDecodeCols || len(cols)+2 > st.activeColCount {
-		return
+		return nil
 	}
-	st.directCols = cols
-	st.directScratch = make([]interface{}, len(cols))
+	return cols
+}
+
+// feedDecodeSlots returns the feed scan's direct slots: the decode plan's
+// phase-1 index set (the statement's referenced columns — the feed's compiled
+// argument slots and the WHERE's references among them). A WHERE containing a
+// subquery keeps the full decode (correlated references may read any column
+// of the outer row), the same gate the lazy decode uses.
+func feedDecodeSlots(plan scanDecodePlan) []int {
+	if !plan.useLazyDecode {
+		return nil
+	}
+	return sortedIndexSet(plan.whereDecodeIndices)
+}
+
+// bareDecodeSlots returns the bare-projection scan's direct slots: the bare
+// output columns. Bare scans take the direct read only without a WHERE
+// clause: a WHERE keeps the lazy two-phase decode (whose phase-2 refill owns
+// the full remaining-columns decode the bare output also reads).
+func bareDecodeSlots(s *sql.SelectStmt, bareOutIdx []int) []int {
+	if s.Where != nil || bareOutIdx == nil {
+		return nil
+	}
+	return dedupSortedSlots(bareOutIdx)
 }
 
 // decodeRowDirect decodes the scan's referenced columns straight from the cell

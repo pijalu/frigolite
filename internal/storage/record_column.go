@@ -57,56 +57,41 @@ func DecodeRecordColumns(data []byte, cols []int, out []interface{}) (int, error
 // ordinal has been seen (the single-column primitive); when true it walks the
 // whole header so the returned count is the record's exact column count.
 func decodeRecordColumnsInto(data []byte, cols []int, out []interface{}, walkAll bool) (int, error) {
+	if len(out) < len(cols) {
+		return 0, fmt.Errorf("storage: output slice shorter than column list")
+	}
 	for i := range out {
 		out[i] = nil
 	}
-	pos := 0
-	hdrSize, n := util.GetVarint(data[pos:])
-	if n == 0 {
-		return 0, fmt.Errorf("storage: corrupt record header size")
+	typesStart, hdrEnd, err := recordHeaderBounds(data)
+	if err != nil {
+		return 0, err
 	}
-	pos += n
-	hdrEnd := int(hdrSize)
-
-	// The header must lie within the record's own bytes (vdbe.c OP_Column
-	// op_column_corrupt parity, same check as DecodeRecord).
-	if hdrEnd < pos || hdrEnd > len(data) {
-		return 0, fmt.Errorf("database disk image is malformed")
+	lastCol, err := requestedColumnBounds(cols)
+	if err != nil {
+		return 0, err
 	}
+	return walkRecordColumns(data, typesStart, hdrEnd, cols, out, lastCol, walkAll)
+}
 
-	lastCol := -1
-	for _, c := range cols {
-		if c < 0 {
-			return 0, fmt.Errorf("storage: negative column index %d", c)
-		}
-		if c > lastCol {
-			lastCol = c
-		}
-	}
-
-	// The header spans [0, hdrSize) and includes the size varint itself, so
-	// the value data begins exactly where the header ends.
-	dataOff := hdrEnd
-	col := 0
+// walkRecordColumns reads the serial-type varints in [typesStart, hdrEnd),
+// decoding each requested column from its byte offset (the running sum of the
+// preceding serial types' sizes) and returning the column count walked.
+func walkRecordColumns(data []byte, typesStart, hdrEnd int, cols []int, out []interface{}, lastCol int, walkAll bool) (int, error) {
+	pos, dataOff, col := typesStart, hdrEnd, 0
 	for pos < hdrEnd {
-		st, n2 := util.GetVarint(data[pos:])
-		if n2 == 0 {
+		st, n := util.GetVarint(data[pos:])
+		if n == 0 {
 			return 0, fmt.Errorf("storage: corrupt record header at offset %d", pos)
 		}
-		pos += n2
+		pos += n
 		valLen, err := SerialTypeLength(st)
 		if err != nil {
 			return 0, err
 		}
 		if col <= lastCol {
-			for i, c := range cols {
-				if c != col {
-					continue
-				}
-				if dataOff+int(valLen) > len(data) {
-					return 0, fmt.Errorf("storage: record data too short at value %d: need %d bytes at offset %d, have %d", col, valLen, dataOff, len(data))
-				}
-				out[i] = decodeValue(st, data[dataOff:dataOff+int(valLen)])
+			if err := decodeColumnAt(data, st, dataOff, int(valLen), col, cols, out); err != nil {
+				return 0, err
 			}
 		}
 		dataOff += int(valLen)
@@ -116,4 +101,54 @@ func decodeRecordColumnsInto(data []byte, cols []int, out []interface{}, walkAll
 		}
 	}
 	return col, nil
+}
+
+// recordHeaderBounds parses a record's header-size varint and validates that
+// the header lies within the record's own bytes (vdbe.c OP_Column's
+// op_column_corrupt check, identical to DecodeRecord's). Returns the offset
+// where the serial-type varints start and the offset where they end (the
+// value data's start: the header spans [0, hdrSize) including the size
+// varint itself).
+func recordHeaderBounds(data []byte) (typesStart, hdrEnd int, err error) {
+	hdrSize, n := util.GetVarint(data)
+	if n == 0 {
+		return 0, 0, fmt.Errorf("storage: corrupt record header size")
+	}
+	hdrEnd = int(hdrSize)
+	if hdrEnd < n || hdrEnd > len(data) {
+		return 0, 0, fmt.Errorf("database disk image is malformed")
+	}
+	return n, hdrEnd, nil
+}
+
+// requestedColumnBounds returns the highest requested column ordinal,
+// rejecting negative indices.
+func requestedColumnBounds(cols []int) (int, error) {
+	last := -1
+	for _, c := range cols {
+		if c < 0 {
+			return 0, fmt.Errorf("storage: negative column index %d", c)
+		}
+		if c > last {
+			last = c
+		}
+	}
+	return last, nil
+}
+
+// decodeColumnAt decodes column col (serial type st, valLen value bytes at
+// dataOff) into every requested out slot that names it. Absent columns never
+// reach here (the walk ends before their ordinal), so a stored NULL simply
+// leaves the slot nil.
+func decodeColumnAt(data []byte, st uint64, dataOff, valLen, col int, cols []int, out []interface{}) error {
+	for i, c := range cols {
+		if c != col {
+			continue
+		}
+		if dataOff+valLen > len(data) {
+			return fmt.Errorf("storage: record data too short at value %d: need %d bytes at offset %d, have %d", col, valLen, dataOff, len(data))
+		}
+		out[i] = decodeValue(st, data[dataOff:dataOff+valLen])
+	}
+	return nil
 }
