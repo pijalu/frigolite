@@ -97,24 +97,16 @@ func (c *exprClone) expr(e sql.Expr) (_ sql.Expr, ok bool) {
 	if e == nil {
 		return nil, false
 	}
+	if c.bind != nil {
+		return c.bindExpr(e)
+	}
 	switch v := e.(type) {
 	case *sql.NumericLit:
-		if c.bind != nil {
-			return e, true // bind mode: statement literals are immutable text
-		}
 		return c.numeric(v)
 	case *sql.StringLit:
-		if c.bind != nil {
-			return e, true
-		}
 		return c.anyLiteral(v.Value)
-	case *sql.NullLit, *sql.ColumnRef:
+	case *sql.NullLit, *sql.ColumnRef, *sql.ParameterExpr:
 		return e, true
-	case *sql.ParameterExpr:
-		if c.bind == nil {
-			return e, true
-		}
-		return c.bindParam(v)
 	case *sql.FuncCall:
 		return c.funcCall(v)
 	case *sql.CaseExpr:
@@ -128,16 +120,36 @@ func (c *exprClone) expr(e sql.Expr) (_ sql.Expr, ok bool) {
 	case *sql.BlobLit, *sql.RaiseExpr:
 		// Blob literals are not reconstructible from the normalized string
 		// value (hex decode is ambiguous with text); RAISE belongs to
-		// trigger programs. Both refuse the template. Bind mode shares both
-		// verbatim: the statement's own literals are immutable text, and a
-		// trigger's RAISE body is schema-fixed (never substituted).
-		if c.bind != nil {
-			return e, true
-		}
+		// trigger programs. Both refuse the template.
 		return nil, false
 	}
 	// Unknown expression kind: refuse the clone (a full parse keeps the
 	// result identical).
+	return nil, false
+}
+
+// bindExpr walks expressions in bind mode: the statement's own literals are
+// immutable text shared verbatim (blobs and RAISE included), parameter
+// markers substitute through the bind plan, and every operator shape
+// recurses through the same walker as the template mode. Unknown kinds
+// refuse the clone (the caller falls back to the rendered-SQL path).
+func (c *exprClone) bindExpr(e sql.Expr) (sql.Expr, bool) {
+	switch v := e.(type) {
+	case *sql.ParameterExpr:
+		return c.bindParam(v)
+	case *sql.NumericLit, *sql.StringLit, *sql.NullLit, *sql.ColumnRef, *sql.BlobLit, *sql.RaiseExpr:
+		return e, true
+	case *sql.FuncCall:
+		return c.funcCall(v)
+	case *sql.CaseExpr:
+		return c.caseExpr(v)
+	case *sql.BinaryOp, *sql.UnaryOp, *sql.ParenExpr, *sql.Between, *sql.InList, *sql.RowValue, *sql.CastExpr:
+		return c.exprOperator(e)
+	case *sql.IsNull, *sql.IsNotNull, *sql.IsDistinctFrom, *sql.IsNotDistinctFrom, *sql.IsTrue, *sql.IsFalse:
+		return c.exprPredicate(e)
+	case *sql.Subquery, *sql.ExistsExpr:
+		return c.exprNested(e)
+	}
 	return nil, false
 }
 

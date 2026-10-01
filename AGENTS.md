@@ -97,6 +97,12 @@ Frigolite supports a useful subset of SQLite SQL:
 - EXPLAIN / EXPLAIN QUERY PLAN
 - Virtual tables: `generate_series` via module system
 - VIEW / TRIGGER (stored and expanded/fired)
+- Parameter placeholders: `?`, `?NNN`, `:name`, `@name`, `$name` (tokenized, slot-assigned per
+  resolve.c). `db.Prepare(sql)` compiles once (`*Stmt`); `Stmt.Exec(args...)` / `Stmt.Query(args...)`
+  substitute bound values into a copy-on-write AST clone and execute with no re-parse; `Bind`/
+  `BindInt64`/`BindFloat`/`BindText`/`BindBlob`/`BindNull`/`BindNamed` + `Step`/`Reset`/`Finalize`
+  provide the sqlite3-step-style API. A `Stmt` is not safe for concurrent goroutines; multi-statement
+  SQL is rejected at Prepare.
 
 ### Implemented Extensions
 - **FTS3/4** — `internal/fts/` (tokenizers simple/unicode61, inverted index, MATCH, FTS3/4 modules)

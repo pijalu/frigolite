@@ -19,7 +19,7 @@ func benchBindOpen(b *testing.B) *frigolite.DB {
 		b.Fatal(err)
 	}
 	b.Cleanup(func() { db.Close() })
-	if r := db.Exec("CREATE TABLE t(a INTEGER, b INTEGER, c TEXT)"); r.Error != nil {
+	if r := db.Exec("CREATE TABLE t(id INTEGER PRIMARY KEY, b INTEGER, c TEXT)"); r.Error != nil {
 		b.Fatal(r.Error)
 	}
 	return db
@@ -66,25 +66,25 @@ func benchBindLoad(b *testing.B, db *frigolite.DB, n int) {
 		b.Fatal(err)
 	}
 	for i := 0; i < n; i++ {
-		if r := st.Exec(int64(i), int64(i*2), "x"); r.Error != nil {
+		if r := st.Exec(int64(i+1), int64(i*2), "x"); r.Error != nil {
 			b.Fatal(r.Error)
 		}
 	}
 	st.Close()
-	if r := db.Exec("CREATE INDEX ti ON t(a)"); r.Error != nil {
+	if r := db.Exec("CREATE INDEX ti ON t(b)"); r.Error != nil {
 		b.Fatal(r.Error)
 	}
 }
 
-// BenchmarkStmtSelectLiteral measures a point SELECT with a distinct literal
-// text per call.
+// BenchmarkStmtSelectLiteral measures an INTEGER PRIMARY KEY point SELECT
+// with a distinct literal text per call.
 func BenchmarkStmtSelectLiteral(b *testing.B) {
 	db := benchBindOpen(b)
 	const n = 20000
 	benchBindLoad(b, db, n)
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		r := db.Query(fmt.Sprintf("SELECT b FROM t WHERE a = %d", i%n))
+		r := db.Query(fmt.Sprintf("SELECT b FROM t WHERE id = %d", i%n+1))
 		if r.Error != nil || len(r.Rows) != 1 {
 			b.Fatal(r.Error)
 		}
@@ -97,14 +97,14 @@ func BenchmarkStmtSelectBound(b *testing.B) {
 	db := benchBindOpen(b)
 	const n = 20000
 	benchBindLoad(b, db, n)
-	st, err := db.Prepare("SELECT b FROM t WHERE a = ?")
+	st, err := db.Prepare("SELECT b FROM t WHERE id = ?")
 	if err != nil {
 		b.Fatal(err)
 	}
 	defer st.Close()
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		r := st.Query(int64(i % n))
+		r := st.Query(int64(i%n + 1))
 		if r.Error != nil || len(r.Rows) != 1 {
 			b.Fatal(r.Error)
 		}

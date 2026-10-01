@@ -132,9 +132,9 @@ func (c *exprClone) conflictClause(oc *sql.OnConflictClause) (*sql.OnConflictCla
 // oracle: real|8.0).
 func (c *exprClone) insertValue(expr sql.Expr) (sql.Expr, error) {
 	if c.bind != nil {
-		switch expr.(type) {
+		switch e := expr.(type) {
 		case *sql.ParameterExpr:
-			cloned, ok := c.bindParam(expr.(*sql.ParameterExpr))
+			cloned, ok := c.bindParam(e)
 			if !ok {
 				return nil, fmt.Errorf("bind: parameter substitution refused")
 			}

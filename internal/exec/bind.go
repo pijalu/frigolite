@@ -196,55 +196,93 @@ func bindLiteral(v interface{}) (sql.Expr, bool) {
 	case nil:
 		return &sql.NullLit{}, true
 	case bool:
-		if x {
-			return &sql.NumericLit{Value: "1"}, true
-		}
-		return &sql.NumericLit{Value: "0"}, true
+		return bindBoolLiteral(x), true
 	case int64:
 		return &sql.NumericLit{Value: strconv.FormatInt(x, 10)}, true
-	case int:
-		return &sql.NumericLit{Value: strconv.FormatInt(int64(x), 10)}, true
-	case int8:
-		return &sql.NumericLit{Value: strconv.FormatInt(int64(x), 10)}, true
-	case int16:
-		return &sql.NumericLit{Value: strconv.FormatInt(int64(x), 10)}, true
-	case int32:
-		return &sql.NumericLit{Value: strconv.FormatInt(int64(x), 10)}, true
-	case uint64:
-		return &sql.NumericLit{Value: strconv.FormatUint(x, 10)}, true
-	case uint:
-		return &sql.NumericLit{Value: strconv.FormatUint(uint64(x), 10)}, true
-	case uint8:
-		return &sql.NumericLit{Value: strconv.FormatUint(uint64(x), 10)}, true
-	case uint16:
-		return &sql.NumericLit{Value: strconv.FormatUint(uint64(x), 10)}, true
-	case uint32:
-		return &sql.NumericLit{Value: strconv.FormatUint(uint64(x), 10)}, true
+	case int, int8, int16, int32:
+		return bindSignedLiteral(v)
+	case uint64, uint, uint8, uint16, uint32:
+		return bindUnsignedLiteral(v)
 	case float64:
-		// Keep the REAL kind through the literal: an integral float needs
-		// the trailing ".0" ('g' drops the decimal point), NaN renders as
-		// NULL per SQLite semantics, and an infinity has no numeric literal
-		// (the fallback's fmt.Sprint path keeps its historical behavior).
-		if math.IsNaN(x) {
-			return &sql.NullLit{}, true
-		}
-		if math.IsInf(x, 0) {
-			return nil, false
-		}
-		s := strconv.FormatFloat(x, 'g', -1, 64)
-		if !strings.ContainsAny(s, ".eE") {
-			s += ".0"
-		}
-		return &sql.NumericLit{Value: s}, true
+		return bindFloatLiteral(x)
 	case string:
 		return &sql.StringLit{Value: x}, true
 	case []byte:
-		// Copy: the cloned AST may outlive the caller's buffer (the engine
-		// holds record values), and a host-side mutation must not corrupt a
-		// stored row.
-		buf := make([]byte, len(x))
-		copy(buf, x)
-		return &sql.BlobLit{Value: buf}, true
+		return bindBlobLiteral(x)
 	}
 	return nil, false
+}
+
+// bindBoolLiteral renders a Go bool as SQLite's integer truth value.
+func bindBoolLiteral(b bool) sql.Expr {
+	if b {
+		return &sql.NumericLit{Value: "1"}
+	}
+	return &sql.NumericLit{Value: "0"}
+}
+
+// bindSignedLiteral renders any Go signed integer kind as an INTEGER literal.
+func bindSignedLiteral(v interface{}) (sql.Expr, bool) {
+	var n int64
+	switch x := v.(type) {
+	case int:
+		n = int64(x)
+	case int8:
+		n = int64(x)
+	case int16:
+		n = int64(x)
+	case int32:
+		n = int64(x)
+	default:
+		return nil, false
+	}
+	return &sql.NumericLit{Value: strconv.FormatInt(n, 10)}, true
+}
+
+// bindUnsignedLiteral renders any Go unsigned integer kind as an INTEGER
+// literal.
+func bindUnsignedLiteral(v interface{}) (sql.Expr, bool) {
+	var n uint64
+	switch x := v.(type) {
+	case uint64:
+		n = x
+	case uint:
+		n = uint64(x)
+	case uint8:
+		n = uint64(x)
+	case uint16:
+		n = uint64(x)
+	case uint32:
+		n = uint64(x)
+	default:
+		return nil, false
+	}
+	return &sql.NumericLit{Value: strconv.FormatUint(n, 10)}, true
+}
+
+// bindFloatLiteral renders a float64 preserving the REAL kind: an integral
+// float needs the trailing ".0" ('g' drops the decimal point), NaN renders
+// as NULL per SQLite semantics, and an infinity has no numeric literal (the
+// fallback's fmt.Sprint path keeps its historical behavior).
+func bindFloatLiteral(f float64) (sql.Expr, bool) {
+	if math.IsNaN(f) {
+		return &sql.NullLit{}, true
+	}
+	if math.IsInf(f, 0) {
+		return nil, false
+	}
+	s := strconv.FormatFloat(f, 'g', -1, 64)
+	if !strings.ContainsAny(s, ".eE") {
+		s += ".0"
+	}
+	return &sql.NumericLit{Value: s}, true
+}
+
+// bindBlobLiteral renders a BLOB literal, copying the bytes: the cloned AST
+// may outlive the caller's buffer (the engine holds record values), and a
+// host-side mutation must not corrupt a stored row.
+func bindBlobLiteral(b []byte) (sql.Expr, bool) {
+	buf := make([]byte, len(b))
+	copy(buf, b)
+	return &sql.BlobLit{Value: buf}, true
 }
