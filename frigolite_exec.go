@@ -194,6 +194,67 @@ func foldQueryResult(allRows [][]interface{}, allColumns []string, res *exec.Res
 	return allRows, allColumns
 }
 
+// runSingleStmt executes one parsed statement through the shared statement
+// pipeline (trace hooks, zero-blob expansion, connection last-error state) —
+// the per-statement core of DB.Query, reused by the prepared-statement fast
+// path.
+func (db *DB) runSingleStmt(stmt sql.Stmt, stmtText string) *exec.Result {
+	res := db.execPrepared(stmt, stmtText)
+	if res.Error != nil {
+		db.engine.SetLastErr(res.Error.Error(), db.errorCode(res.Error))
+		return res
+	}
+	expandResultZeroBlobs(res)
+	if res.LastInsertRowID > 0 {
+		db.lastRowID = res.LastInsertRowID
+	}
+	db.engine.SetLastErr("", "")
+	return res
+}
+
+// runSQLText executes a SQL text (already single-statement in the prepared
+// path, potentially a batch otherwise) through engine.Prepare plus the
+// statement pipeline, returning the internal equivalent of DB.Query's
+// result: concatenated rows/columns for batches, the statement's own rows
+// for a single statement (zero rows → nil Rows), and the last-error state
+// maintained on the connection.
+func (db *DB) runSQLText(sqlStr string) *exec.Result {
+	stmts, err := db.engine.Prepare(sqlStr)
+	if err != nil && len(stmts) == 0 {
+		db.engine.SetLastErr(err.Error(), "SQLITE_ERROR")
+		return &exec.Result{Error: err}
+	}
+	if len(stmts) == 0 {
+		db.engine.SetLastErr("", "")
+		return &exec.Result{}
+	}
+
+	var allRows [][]interface{}
+	var allColumns []string
+	texts := statementTexts(sqlStr)
+	multi := len(stmts) > 1
+	var last *exec.Result
+	for si, stmt := range stmts {
+		res := db.execPrepared(stmt, stmtTextAt(sqlStr, texts, si))
+		if res.Error != nil {
+			db.engine.SetLastErr(res.Error.Error(), db.errorCode(res.Error))
+			return res
+		}
+		expandResultZeroBlobs(res)
+		allRows, allColumns = foldQueryResult(allRows, allColumns, res, multi)
+		if res.LastInsertRowID > 0 {
+			db.lastRowID = res.LastInsertRowID
+		}
+		last = res
+	}
+
+	db.engine.SetLastErr("", "")
+
+	out := *last
+	out.Rows, out.Columns = allRows, allColumns
+	return &out
+}
+
 // Query executes a SQL query and returns rows.
 // Multiple semicolon-separated statements are all executed and their results
 // concatenated, matching SQLite's behavior for multi-statement queries.
@@ -201,41 +262,15 @@ func (db *DB) Query(sqlStr string) *Result {
 	if db == nil || db.engine == nil {
 		return &Result{Error: fmt.Errorf("frigolite: database not initialized"), SQL: sqlStr}
 	}
-	stmts, err := db.engine.Prepare(sqlStr)
-	if err != nil && len(stmts) == 0 {
-		db.engine.SetLastErr(err.Error(), "SQLITE_ERROR")
-		return &Result{Error: err, SQL: sqlStr}
+	r := db.runSQLText(sqlStr)
+	if r.Error != nil {
+		out := execResult(r)
+		out.SQL = sqlStr
+		return out
 	}
-
-	if len(stmts) == 0 {
-		db.engine.SetLastErr("", "")
-		return &Result{SQL: sqlStr}
-	}
-
-	var allRows [][]interface{}
-	var allColumns []string
-	texts := statementTexts(sqlStr)
-	multi := len(stmts) > 1
-	for si, stmt := range stmts {
-		res := db.execPrepared(stmt, stmtTextAt(sqlStr, texts, si))
-		if res.Error != nil {
-			db.engine.SetLastErr(res.Error.Error(), db.errorCode(res.Error))
-			r := execResult(res)
-			r.SQL = sqlStr
-			return r
-		}
-		expandResultZeroBlobs(res)
-		allRows, allColumns = foldQueryResult(allRows, allColumns, res, multi)
-		if res.LastInsertRowID > 0 {
-			db.lastRowID = res.LastInsertRowID
-		}
-	}
-
-	db.engine.SetLastErr("", "")
-
 	return &Result{
-		Columns: allColumns,
-		Rows:    allRows,
+		Columns: r.Columns,
+		Rows:    r.Rows,
 		SQL:     sqlStr,
 	}
 }

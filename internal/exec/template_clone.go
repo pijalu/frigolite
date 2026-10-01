@@ -59,12 +59,13 @@ func (c *exprClone) stmt(stmt sql.Stmt) (sql.Stmt, bool) {
 }
 
 // insertStmt adapts the INSERT clone to the shared contract: the INSERT
-// clone consumes tuple values through the shared index, so a count mismatch
-// surfaces in cloneStmtsValues. The walker state carries the index itself,
-// so a refused INSERT leaves the index untouched for the caller's rollback.
+// clone consumes template values through the shared index, so a count
+// mismatch surfaces in cloneStmtsValues. The walker state carries the index
+// and the bind state itself; a refused INSERT leaves the index untouched for
+// the caller's rollback.
 func (c *exprClone) insertStmt(s *sql.InsertStmt) (sql.Stmt, bool) {
 	saved := c.idx
-	cloned, err := cloneInsertStmt(s, c.values, &c.idx)
+	cloned, err := c.insertStmtValues(s)
 	if err != nil {
 		c.idx = saved
 		return nil, false
@@ -73,9 +74,18 @@ func (c *exprClone) insertStmt(s *sql.InsertStmt) (sql.Stmt, bool) {
 }
 
 // exprClone is the copy-on-write substitution state for one statement.
+// It serves two modes, never both at once:
+//   - template mode (values set): substitute normalized template-cache
+//     values for NumericLit/StringLit slots in walk order.
+//   - bind mode (bind set): substitute prepared-statement bound values for
+//     sql.ParameterExpr markers (see bind.go); statement literals are
+//     immutable text and are shared unchanged.
 type exprClone struct {
-	values []interface{}
-	idx    int
+	values     []interface{}
+	idx        int
+	bind       *BindPlan     // bind mode: occurrence→slot plan (nil in template mode)
+	bindValues []interface{} // bind mode: slot→value table
+	bindOccI   int           // bind mode: next occurrence index
 }
 
 // expr substitutes cached values below e, returning the substituted
@@ -89,11 +99,22 @@ func (c *exprClone) expr(e sql.Expr) (_ sql.Expr, ok bool) {
 	}
 	switch v := e.(type) {
 	case *sql.NumericLit:
+		if c.bind != nil {
+			return e, true // bind mode: statement literals are immutable text
+		}
 		return c.numeric(v)
 	case *sql.StringLit:
+		if c.bind != nil {
+			return e, true
+		}
 		return c.anyLiteral(v.Value)
-	case *sql.NullLit, *sql.ColumnRef, *sql.ParameterExpr:
+	case *sql.NullLit, *sql.ColumnRef:
 		return e, true
+	case *sql.ParameterExpr:
+		if c.bind == nil {
+			return e, true
+		}
+		return c.bindParam(v)
 	case *sql.FuncCall:
 		return c.funcCall(v)
 	case *sql.CaseExpr:
@@ -107,7 +128,12 @@ func (c *exprClone) expr(e sql.Expr) (_ sql.Expr, ok bool) {
 	case *sql.BlobLit, *sql.RaiseExpr:
 		// Blob literals are not reconstructible from the normalized string
 		// value (hex decode is ambiguous with text); RAISE belongs to
-		// trigger programs. Both refuse the template.
+		// trigger programs. Both refuse the template. Bind mode shares both
+		// verbatim: the statement's own literals are immutable text, and a
+		// trigger's RAISE body is schema-fixed (never substituted).
+		if c.bind != nil {
+			return e, true
+		}
 		return nil, false
 	}
 	// Unknown expression kind: refuse the clone (a full parse keeps the
@@ -499,8 +525,14 @@ func (c *exprClone) orderBy(terms []sql.OrderByTerm) (_ []sql.OrderByTerm, chang
 	return out, true, true
 }
 
-// returning substitutes a RETURNING clause (a single SelectColumn).
+// returning substitutes a RETURNING clause (a single SelectColumn). A nil
+// Expr is a statement without RETURNING — nothing to substitute (the
+// historical walk refused here, silently disabling the template cache for
+// every plain UPDATE/DELETE).
 func (c *exprClone) returning(col sql.SelectColumn) (sql.SelectColumn, bool, bool) {
+	if col.Expr == nil {
+		return col, false, true
+	}
 	cloned, ok := c.expr(col.Expr)
 	if !ok {
 		return col, false, false

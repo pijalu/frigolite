@@ -69,6 +69,19 @@ type Stmt struct {
 	// the VDBE's rc: sqlite3_finalize of a statement whose step failed
 	// re-reports that error as the connection's last error.
 	lastErr error
+	// ast retains the parsed statement (single statement per Prepare) and
+	// plan its parameter occurrence table, enabling the Exec/Query fast
+	// path: bound values substitute into a copy-on-write clone of ast with
+	// no re-lex, re-parse, or normalization. ast is shared with the engine's
+	// statement caches and is never mutated (execution treats AST nodes as
+	// immutable); both are released at Close.
+	ast  []sql.Stmt
+	plan *exec.BindPlan
+	// bound mirrors args as a slot-indexed table (bound[i] = parameter i+1)
+	// so the per-call fast path projects bindings without iterating the
+	// Bind-API map; maintained by Bind/BindNamed/ClearBindings and the
+	// positional Exec/Query arguments.
+	bound []interface{}
 }
 
 // vmState models the observable subset of the VDBE run-state:
@@ -95,6 +108,9 @@ var (
 
 // Prepare compiles SQL for repeated execution. Syntax and schema errors are
 // reported immediately, matching sqlite3_prepare_v2's prepare-time behavior.
+// Like sqlite3_prepare, only a single statement may be prepared: the parsed
+// AST is retained on the Stmt so repeated Exec/Query calls skip re-parsing
+// entirely (bind values substitute into a copy-on-write clone).
 func (db *DB) Prepare(sqlText string) (*Stmt, error) {
 	if db == nil || db.engine == nil {
 		return nil, fmt.Errorf("frigolite: database not initialized")
@@ -103,10 +119,11 @@ func (db *DB) Prepare(sqlText string) (*Stmt, error) {
 	if err != nil {
 		return nil, err
 	}
-	stmt := &Stmt{db: db, sql: sqlText, args: make(map[int]interface{}), named: make(map[string]interface{})}
-	if len(parsed) == 1 {
-		_, stmt.readStmt = parsed[0].(*sql.SelectStmt)
+	if len(parsed) != 1 {
+		return nil, fmt.Errorf("frigolite: prepared statements support exactly one SQL statement, got %d", len(parsed))
 	}
+	stmt := &Stmt{db: db, sql: sqlText, args: make(map[int]interface{}), named: make(map[string]interface{})}
+	_, stmt.readStmt = parsed[0].(*sql.SelectStmt)
 	// CollectParameterNames already validated the statement inside
 	// Engine.Prepare; a failure here mirrors that prepare error.
 	names, err := exec.CollectParameterNames(sqlText)
@@ -114,6 +131,18 @@ func (db *DB) Prepare(sqlText string) (*Stmt, error) {
 		return nil, err
 	}
 	stmt.paramNames = names
+	// Retain the parsed AST and its parameter plan for the fast path: a
+	// non-nil plan lets Exec/Query substitute bound values into a COW clone
+	// instead of re-lexing/rendering/parsing per call. The plan is dropped
+	// (falling back to the rendered-SQL path) on any inconsistency with the
+	// CollectParameterNames slot table.
+	plan := exec.BuildBindPlan(sqlText, parsed)
+	if plan != nil && plan.Count() != len(names) {
+		plan = nil
+	}
+	stmt.ast = parsed
+	stmt.plan = plan
+	stmt.bound = make([]interface{}, len(names))
 	db.registerStmt()
 	return stmt, nil
 }
@@ -178,6 +207,9 @@ func (s *Stmt) Bind(index int, value interface{}) error {
 		}
 	}
 	s.args[index] = value
+	if index-1 < len(s.bound) {
+		s.bound[index-1] = value
+	}
 	return nil
 }
 
@@ -230,6 +262,9 @@ func (s *Stmt) BindNamed(name string, value interface{}) error {
 		return fmt.Errorf("unknown parameter: %s", name)
 	}
 	s.args[slot] = value
+	if slot-1 < len(s.bound) {
+		s.bound[slot-1] = value
+	}
 	return nil
 }
 
@@ -308,35 +343,6 @@ func (s *Stmt) StepResult() *Result {
 	return s.result
 }
 
-// Exec executes statement and returns its complete result. Unlike Step it
-// re-runs the statement from the start on every call (the transpiler helpers
-// use it for side-effect-only steps).
-func (s *Stmt) Exec() *Result {
-	if s == nil || s.closed {
-		return &Result{Error: fmt.Errorf("statement is closed")}
-	}
-	s.vmState = vmReady
-	r := s.db.Query(s.renderBoundSQL())
-	s.result = r
-	s.row = len(r.Rows)
-	if r.Error != nil {
-		s.lastErr = r.Error
-		s.vmState = vmPoisoned
-		// sqlite3_step reports the generic SQLITE_ERROR for constraint
-		// halts (vdbe.c OP_Halt) — wrap so ErrorCodeFor-classified readers
-		// of this result see the step-level code, while s.lastErr keeps
-		// the unwrapped error for the finalize path (capi2-3.23).
-		halted := stepHaltView(r.Error, s.db.ErrorCodeFor)
-		code := s.db.ErrorCodeFor(halted)
-		r.Error = halted
-		s.db.engine.SetLastErr(r.Error.Error(), code)
-	} else {
-		s.lastErr = nil
-		s.vmState = vmDone
-	}
-	return r
-}
-
 // Reset allows statement execution again, retaining bindings.
 func (s *Stmt) Reset() error {
 	if s == nil || s.closed {
@@ -356,6 +362,9 @@ func (s *Stmt) ClearBindings() error {
 	}
 	s.args = make(map[int]interface{})
 	s.named = make(map[string]interface{})
+	for i := range s.bound {
+		s.bound[i] = nil
+	}
 	return nil
 }
 
@@ -370,6 +379,8 @@ func (s *Stmt) Close() error {
 	s.releaseReadLock()
 	s.closed = true
 	s.result = nil
+	s.ast = nil
+	s.plan = nil
 	s.db.unregisterStmt()
 	return nil
 }
