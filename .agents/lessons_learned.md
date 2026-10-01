@@ -6,7 +6,43 @@
 > followed by the current T33 session sections. Consult the archive for
 > closed-goal specifics (also in plan/goals/*.md and portplan/NA_EVIDENCE.md).
 
-## PERF.PARITY-poolfix — finalizers + pooled cursors (fleet/perf-parity-poolfix, 2026-10-01)
+## PERF.PARITY-memofix — pager-memo poisoning + index-decode tails (fleet/perf-parity-memofix, 2026-10-01)
+
+- **A memo validated only against the BYTES it parsed cannot see Go-side
+  mutation of the parsed struct.** ParsedBTree re-checked hdrSnap bytes but
+  served &m.parsed forever while they matched; any consumer writing through
+  the shared struct (the read-only contract is unenforceable at compile
+  time) pinned a stale CellCount that walks the cell pointer array off the
+  page. Fix: the canary — re-derive the fields FROM the snapshot on every
+  hit (the parse is a pure function of that span, so 6 compares prove the
+  struct pristine) and re-parse on mismatch. Rule: **when a cache hands out
+  a pointer into itself, its revalidation must cover the exact bytes the
+  value is derived from, including the Go-side struct, not just the source
+  buffer.** Same check on the miss path closes the parse/snapshot straddle
+  (a torn capture must be served unmemoized, never pinned).
+- **Go slices panic where C pointer arithmetic stays in-bounds — the port
+  must guard the tails SQLite gets for free.** SQLite reads interior cells
+  through maskPage-masked offsets (in-page by construction) and bounds
+  CellCount in int arithmetic at btreeInitPage (nCell > MX_CELL). The Go
+  port's uint16 cellPtrEnd truncated (crafted CellCount 0xFFFF wrapped past
+  the content-start check) and its raw Data[cellOff:cellOff+4] /
+  Data[cellOff+n:] index-decode reads had no tail checks — every one a
+  latent slice-bounds panic on a corrupt image. Guard at the read site with
+  the standard "malformed" error; compute header bounds unwrapped.
+- **A slice-bounds crash "in index decode" attributed to a memo is most
+  likely reached through a CORRUPT IMAGE passing validation, not through
+  memo staleness** — enumerate the actual panic sites (every raw
+  Data[off:off+n] on the path) and fix each to error before theorizing
+  about cache poisoning.
+- **The merged-main full suite baseline (2026-10-01, 3 runs): NO crash,
+  but ~4,500 TestSQLiteSuite subtest failures from the __RESET_DB__
+  converter drift (reset markers land AFTER the cases they reset — cases
+  then see "table t1 already exists"/"no such table"), plus a parallel
+  windowcpin.db ENOENT flake (t.Chdir in parallel tests moves the process
+  cwd).** Relative-path fixtures + t.Parallel + t.Chdir = cross-test cwd
+  races; a "clean" fleet baseline means no crash and no NEW failures vs
+  this drift, not zero failures.
+
 
 - **NEVER SetFinalizer per registration on a pooled/recycled object.** The
   wrapper-pooling tranche set a registry finalizer on every OpenCursor and
