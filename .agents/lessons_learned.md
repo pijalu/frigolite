@@ -99,6 +99,54 @@
   testdata/backupconformance — a fresh worktree fails
   TestBackupConformance/walview tests without them).
 
+## PERF.PARITY-rows — positional DML row collection (2026-10-01)
+
+- **The DML collect mass was per-row `BuildRowMap` (execdml) + `updateConstraintUnchanged`'s
+  TWO `buildRowMapFromValues` per change + `computeGeneratedValues`' pass-map, NOT the
+  SELECT scan's `StructRowToMap`** (that one is the GROUP-BY phase, a follow-up). A
+  delta alloc profile (pprof `-base` between two `allocs.Lookup` snapshots around the
+  phase) settled it in minutes; whole-process profiles pointed at the wrong functions
+  because the table-build INSERT mass dominated. Always delta-profile the phase.
+- **The SELECT scan's affinity model ports to DML unchanged**: wrap only the columns the
+  evaluated expressions reference (WHERE ∪ SET ∪ ORDER BY via `affinityCollector`) +
+  the unconditional IPK rowid-alias NULL→rowid fill. The evaluator (execexpr) is
+  Row-interface-only — zero `.(RowMap)` assertions — so a `StructRow` evaluates
+  identically; `CurrentScanTable`/`qualifiedUnqualifiedFallback` never type-asserts.
+  A missing key vs a present-nil slot both evaluate to NULL (rowLookupUnqualified
+  falls through to nil), so full-width StructRow slots are safe for pre-ALTER short
+  records.
+- **The cut line is the consumer contract, and it is discoverable by grep**: triggers
+  receive `UnwrapRowMap` (RAW values — the collect-time wrapping was immediately
+  discarded), RETURNING/FK/partial-index/expression-index-keys need name-keyed maps,
+  everything else (WHERE, ORDER BY eval, PK sort, preupdate values, delete-identity
+  keys, index maintenance keys) is positional. `rowMapColumnValues(map)` ==
+  `DMLRowSnapshot` (unwrap∘wrap == identity on raw values; IPK substitution on both
+  sides), so the positional snapshot is byte-equivalent to what the map path fed
+  consumers.
+- **IPK rowid-alias substitution is the invisible parity trap in index maintenance**:
+  `buildRowMapFromValues` substitutes NULL-IPK → rowid, so index keys read the rowid;
+  raw `updateChange.values` hold stored NULL. Any lazy-map conversion of an index-key
+  path must re-apply the substitution (`ipkRowidSubstituted`) or indexed-IPK tables
+  write mismatching delete/insert index payloads (stale entries).
+- **Per-statement fixed costs need an amortization cutoff**: the positional plan
+  (~9 allocs: collector, colIndex, wrap slices, StructRow) REGRESSED the 1-candidate
+  point UPDATE/DELETE (+14 allocs/stmt on DELETE-by-rowid) before it saved anything.
+  Seek paths with ≤2 (UPDATE) / ≤4 (DELETE) candidates keep the map path; scans and
+  big candidate sets amortize. Measure the point-loop BEFORE claiming a win.
+- **`computeGeneratedValues` ran its fixpoint pass (building a name-keyed map) even on
+  tables with zero generated columns** — the early-out alone cut ~13% of the 50k
+  INSERT-loop allocs. Same class: `checkConstraints` built its row map per row with
+  no CHECK constraints anywhere (the row is read ONLY by CHECK expressions).
+- **Benchmarks lie under parallel load** (confirmed again): baseline UPDATE-by-rowid
+  read 6.1k ops/s under contention vs 12.5k idle — a phantom "2.1x speedup". Run the
+  final A/B strictly sequentially on an idle machine, base and new back to back.
+- **GROUP BY follow-up (measured, not done)**: partitionByGroupKey/evalAggregatesGroupBy
+  retain `[]RowMap` per group; the GROUP-BY phase profile is StructRowToMap 58% flat +
+  wrapPrecomputed 15% + appendRowOutput 8% (66% of phase allocs). Conversion requires
+  threading a positional row type through aggRowMaps/outerRows/window passes/
+  aggSteppingRows/evalHaving (~15 files in execquery's aggregate machinery) — too
+  invasive for a zero-behavior-change tranche; needs its own goal.
+
 ## PERF.P5 — statement journal replaces per-statement pager snapshots (2026-09-28)
 
 - **The 9.4ms no-match DELETE was TWO O(database) costs stacked, not one.**

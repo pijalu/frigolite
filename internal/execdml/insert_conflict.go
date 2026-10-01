@@ -735,14 +735,7 @@ func (e *DMLExecutor) deleteReplaceConflict(tableEntry *schema.Entry, colDefs []
 func (e *DMLExecutor) computeGeneratedValues(colDefs []sql.ColumnDef, values []interface{}) error {
 	// Tables without generated columns: nothing to compute (the loop below
 	// would run one no-op pass that builds a per-row name-keyed map).
-	hasGenerated := false
-	for i := range colDefs {
-		if colDefs[i].Generated != nil {
-			hasGenerated = true
-			break
-		}
-	}
-	if !hasGenerated {
+	if !hasGeneratedColumn(colDefs) {
 		return nil
 	}
 	for pass := 0; pass < len(colDefs); pass++ {
@@ -768,6 +761,17 @@ func (e *DMLExecutor) computeGeneratedValues(colDefs []sql.ColumnDef, values []i
 		}
 	}
 	return nil
+}
+
+// hasGeneratedColumn reports whether any column of the table is generated
+// (b AS (expr)).
+func hasGeneratedColumn(colDefs []sql.ColumnDef) bool {
+	for i := range colDefs {
+		if colDefs[i].Generated != nil {
+			return true
+		}
+	}
+	return false
 }
 
 // generatedRowMap builds a column-name-to-value map for generated expression

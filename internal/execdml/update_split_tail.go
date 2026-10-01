@@ -306,6 +306,12 @@ func (e *DMLExecutor) seekUpdateChanges(tableName string, rootPage uint32, colDe
 	colIndex := e.columnIndexFor(colDefs)
 	var changes []updateChange
 	var rowMaps []Row
+	// Small candidate sets keep the map representation: the per-statement
+	// positional plan only amortizes from three candidates up, and a point
+	// UPDATE ("WHERE id=<const>") must not pay for it.
+	if len(rowIDs) <= updateSeekMapPathMaxCandidates {
+		return e.seekUpdateChangesMaps(tree, tableEntry, colDefs, colIndex, s, deferSetEval, rowIDs)
+	}
 	plan := e.newUpdateRowPlan(colDefs, s)
 	srow := plan.NewRow()
 	retainMaps := updateRetainRowMaps(s, deferSetEval)
@@ -323,6 +329,44 @@ func (e *DMLExecutor) seekUpdateChanges(tableName string, rootPage uint32, colDe
 			continue // the rowid has no cell (deleted before this visit)
 		}
 		row := e.updateEvalRow(plan, srow, rec, colDefs, cell.RowID, retainMaps)
+		ch, matchRow, matched, err := e.matchUpdateRow(s, cell, rec, colIndex, colDefs, row, deferSetEval)
+		if err != nil {
+			return nil, nil, false // the scan fallback re-evaluates and surfaces it
+		}
+		if matched {
+			ch.seq = len(changes)
+			changes = append(changes, *ch)
+			rowMaps = append(rowMaps, matchRow)
+		}
+	}
+	return changes, rowMaps, true
+}
+
+// updateSeekMapPathMaxCandidates is the seek candidate count below which the
+// UPDATE collect keeps the per-row map representation (the positional plan's
+// fixed cost outweighs one or two row maps).
+const updateSeekMapPathMaxCandidates = 2
+
+// seekUpdateChangesMaps is seekUpdateChanges' map-backed small-candidate
+// form: the full WHERE evaluates against the row map built per candidate
+// (the exact collected map the scan built before positional collection).
+func (e *DMLExecutor) seekUpdateChangesMaps(tree *btree.BTree, tableEntry *schema.Entry, colDefs []sql.ColumnDef, colIndex map[string]int, s *sql.UpdateStmt, deferSetEval bool, rowIDs []int64) ([]updateChange, []Row, bool) {
+	var changes []updateChange
+	var rowMaps []Row
+	for _, rowID := range rowIDs {
+		// SQLITE_TEST interrupt countdown: one op per row examined
+		// (src/vdbe.c per-opcode decrement of sqlite3_interrupt_count).
+		if err := e.ctx.CheckProgress(); err != nil {
+			return nil, nil, false
+		}
+		cell, rec, failed := e.seekUpdateCandidateRow(tree, rowID, tableEntry, colDefs)
+		if failed {
+			return nil, nil, false // the scan fallback re-evaluates and surfaces it
+		}
+		if cell == nil {
+			continue // the rowid has no cell (deleted before this visit)
+		}
+		row := e.ctx.BuildRowMap(rec, colDefs, cell.RowID)
 		ch, matchRow, matched, err := e.matchUpdateRow(s, cell, rec, colIndex, colDefs, row, deferSetEval)
 		if err != nil {
 			return nil, nil, false // the scan fallback re-evaluates and surfaces it

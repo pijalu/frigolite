@@ -268,32 +268,12 @@ func (e *DMLExecutor) rowMapColumnValues(row RowMap, colDefs []sql.ColumnDef) []
 	return vals
 }
 
-// withoutRowidLess orders two WITHOUT ROWID rows by their PRIMARY KEY columns
-// (the order SQLite's table btree stores and scans them). The PK column
-// indices come from the table constraints.
-func (e *DMLExecutor) withoutRowidLess(a, b RowMap, tableName, createSQL string, colDefs []sql.ColumnDef) bool {
-	pkIdx := e.withoutRowidPKIdx(tableName, createSQL, colDefs)
-	if len(pkIdx) == 0 {
-		return false
-	}
-	for _, idx := range pkIdx {
-		if idx >= len(colDefs) {
-			continue
-		}
-		av, aok := a[colDefs[idx].Name]
-		bv, bok := b[colDefs[idx].Name]
-		if !aok || !bok {
-			continue
-		}
-		c := e.ctx.CompareValuesCollate(unwrapDMLValue(av), unwrapDMLValue(bv), colDefs[idx].Collate)
-		if c != 0 {
-			return c < 0
-		}
-	}
-	return false
-}
-
-// withoutRowidLessDML is withoutRowidLess over positionally collected rows:
+// withoutRowidLessDML orders two positionally collected WITHOUT ROWID rows by
+// their PRIMARY KEY columns (the order SQLite's table btree stores and scans
+// them). The PK column indices come from the table constraints; the raw
+// declared-order snapshots hold the exact values the collected map exposed
+// (unwrapDMLValue over its affinity-wrapped values), so the PK-column
+// comparison is identical.
 // the raw declared-order snapshots hold the exact values the collected map
 // exposed (unwrapDMLValue over the map's wrapped values), so the PK-column
 // comparison is identical.
@@ -445,16 +425,6 @@ func (e *DMLExecutor) validateDeleteTargetExprs(s *sql.DeleteStmt, tableEntry *s
 // t2 with t2(rowid int, ...) must remove every row).
 const trueRowidKey = "\x00trueRowid"
 
-// rowTrueRowID returns the row's true btree rowid: the reserved key when the
-// scan recorded it, else the legacy "rowid" slot.
-func rowTrueRowID(row RowMap) (int64, bool) {
-	if v, ok := row[trueRowidKey]; ok {
-		return util.UnwrapColumnValue(v).(int64), true
-	}
-	id, ok := util.UnwrapColumnValue(row["rowid"]).(int64)
-	return id, ok
-}
-
 // dmlRow is one collected DML row in positional form: the raw declared-order
 // value snapshot (dropped-column re-alignment, added-column DEFAULTs and the
 // INTEGER PRIMARY KEY rowid-alias substitution applied as raw values) plus
@@ -480,6 +450,16 @@ func (r *dmlRow) rowMap(e *DMLExecutor) RowMap {
 		r.m[trueRowidKey] = r.rowID
 	}
 	return r.m
+}
+
+// rowTrueRowID returns the row's true btree rowid: the reserved key when the
+// scan recorded it, else the legacy "rowid" slot.
+func rowTrueRowID(row RowMap) (int64, bool) {
+	if v, ok := row[trueRowidKey]; ok {
+		return util.UnwrapColumnValue(v).(int64), true
+	}
+	id, ok := util.UnwrapColumnValue(row["rowid"]).(int64)
+	return id, ok
 }
 
 // collectDeleteRows scans a table b-tree and returns the rows matching the
@@ -599,6 +579,12 @@ func (e *DMLExecutor) seekDeleteRows(tree *btree.BTree, s *sql.DeleteStmt, table
 	if !ok {
 		return nil, false
 	}
+	// Small candidate sets keep the map representation: the per-statement
+	// positional plan only amortizes from ~5 candidates up, and a point
+	// DELETE ("WHERE id=<const>") must not pay for it.
+	if len(rowIDs) <= deleteSeekMapPathMaxCandidates {
+		return e.seekDeleteRowsMaps(tree, s, tableEntry, colDefs, rowIDs)
+	}
 	rowPlan := e.ctx.NewDMLRowPlan(colDefs, []sql.Expr{s.Where}, s.OrderBy)
 	srow := rowPlan.NewRow()
 	var deletedRows []*dmlRow
@@ -636,6 +622,55 @@ func (e *DMLExecutor) seekDeleteRows(tree *btree.BTree, s *sql.DeleteStmt, table
 		}
 	}
 	return deletedRows, true
+}
+
+// deleteSeekMapPathMaxCandidates is the seek candidate count below which the
+// DELETE collect keeps the per-row map representation (the positional plan's
+// fixed cost outweighs one or two row maps).
+const deleteSeekMapPathMaxCandidates = 4
+
+// seekDeleteRowsMaps is seekDeleteRows' map-backed small-candidate form: the
+// full WHERE evaluates against the row map built per candidate (the exact
+// collected map the scan built before positional collection), and matched
+// rows are retained as dmlRows wrapping that map.
+func (e *DMLExecutor) seekDeleteRowsMaps(tree *btree.BTree, s *sql.DeleteStmt, tableEntry *schema.Entry, colDefs []sql.ColumnDef, rowIDs []int64) ([]*dmlRow, bool) {
+	var deletedRows []*dmlRow
+	for _, rowID := range rowIDs {
+		// SQLITE_TEST interrupt countdown: one op per row examined
+		// (src/vdbe.c per-opcode decrement of sqlite3_interrupt_count).
+		if err := e.ctx.CheckProgress(); err != nil {
+			return nil, false
+		}
+		row, found, err := e.fetchSeekRowMap(tree, tableEntry.Name, tableEntry.RootPage, tableEntry.SQL, colDefs, rowID)
+		if err != nil {
+			return nil, false // the scan fallback re-evaluates and surfaces it
+		}
+		if !found {
+			continue // the pinned rowid has no row (see seekDeleteRows)
+		}
+		match, err := e.rowMatchesWhere(s.Where, row)
+		if err != nil {
+			return nil, false // the scan fallback re-evaluates and surfaces it
+		}
+		if match {
+			deletedRows = append(deletedRows, e.dmlRowFromMap(row, colDefs))
+		}
+	}
+	return deletedRows, true
+}
+
+// dmlRowFromMap wraps an already-materialized name-keyed map into a dmlRow:
+// values is the map's positional extraction (the raw declared-order values
+// the map was built from, rowid-alias substituted), and the map serves as
+// the row's lazy map.
+func (e *DMLExecutor) dmlRowFromMap(row RowMap, colDefs []sql.ColumnDef) *dmlRow {
+	rowID, _ := rowTrueRowID(row)
+	return &dmlRow{
+		values:     e.rowMapColumnValues(row, colDefs),
+		valueCount: len(colDefs),
+		rowID:      rowID,
+		m:          row,
+	}
 }
 
 // execDeleteBulk executes a DELETE without RETURNING. SQLite's delete.c

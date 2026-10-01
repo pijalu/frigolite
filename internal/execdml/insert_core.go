@@ -643,22 +643,6 @@ func (e *DMLExecutor) checkConstraints(tableEntry *schema.Entry, colDefs []sql.C
 	return e.checkTableLevelCheckConstraints(tableEntry, colDefs, row)
 }
 
-// tableHasCheckConstraint reports whether the table declares a column-level
-// CHECK or a table-level CHECK constraint (both cached lookups).
-func (e *DMLExecutor) tableHasCheckConstraint(tableEntry *schema.Entry, colDefs []sql.ColumnDef) bool {
-	for i := range colDefs {
-		if colDefs[i].Check != nil {
-			return true
-		}
-	}
-	for _, tc := range e.ctx.TableConstraints(tableEntry.Name, tableEntry.SQL) {
-		if tc.Type == sql.ConstraintCheck && tc.Expr != nil {
-			return true
-		}
-	}
-	return false
-}
-
 // hasInsertConstraints reports whether the table imposes any constraints at
 // all: column-level NOT NULL/CHECK/PRIMARY KEY/UNIQUE, UNIQUE indexes, or
 // table-level constraints.

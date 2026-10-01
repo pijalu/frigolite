@@ -695,18 +695,25 @@ func (e *DMLExecutor) runUpdateFail(tableName string, tableEntry *schema.Entry, 
 		}
 		// FOREIGN KEY parent action for this row, before the write (a
 		// mid-statement FK error with OR FAIL keeps the rows written so far).
-		if e.ctx.ForeignKeys() {
-			oldRow := buildRowMapFromValues(c.oldValues, colDefs, c.rowID)
-			newRow := buildRowMapFromValues(c.values, colDefs, c.rowID)
-			if res := e.ctx.FkParentUpdate(tableEntry, colDefs, oldRow, newRow, c.rowID); res.Error != nil {
-				return res
-			}
+		if res := e.updateFailFkParent(tableEntry, colDefs, c); res.Error != nil {
+			return res
 		}
 		if res := e.writeUpdateCell(tree, tableName, tableEntry.RootPage, c, updateWriteRowID(c), c.values, tableEntry, colDefs); res.Error != nil {
 			return res
 		}
 	}
 	return &Result{Changes: int64(len(changes))}
+}
+
+// updateFailFkParent runs one OR FAIL change's FOREIGN KEY parent action
+// (no-op with foreign_keys OFF).
+func (e *DMLExecutor) updateFailFkParent(tableEntry *schema.Entry, colDefs []sql.ColumnDef, c updateChange) *Result {
+	if !e.ctx.ForeignKeys() {
+		return &Result{}
+	}
+	oldRow := buildRowMapFromValues(c.oldValues, colDefs, c.rowID)
+	newRow := buildRowMapFromValues(c.values, colDefs, c.rowID)
+	return e.ctx.FkParentUpdate(tableEntry, colDefs, oldRow, newRow, c.rowID)
 }
 
 // fireUpdateAfterTriggers fires AFTER UPDATE triggers for UPDATE OR REPLACE,

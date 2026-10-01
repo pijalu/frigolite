@@ -361,3 +361,33 @@ func (e *DMLExecutor) fetchSeekRowValues(tree *btree.BTree, tableName string, ro
 	e.ctx.RemapWRRecordToDeclared(rec, createSQL, colDefs)
 	return rec.Values, realRowID, true, nil
 }
+
+// fetchSeekRowMap is fetchSeekRowValues' map-backed form: the candidate row
+// as the exact collected name-keyed map (affinity-wrapped values, rowid
+// aliases, trueRowidKey) the small-candidate DELETE seek path evaluates the
+// WHERE against.
+func (e *DMLExecutor) fetchSeekRowMap(tree *btree.BTree, tableName string, rootPage uint32, createSQL string, colDefs []sql.ColumnDef, rowID int64) (RowMap, bool, error) {
+	cursor, err := tree.OpenCursor()
+	if err != nil {
+		return nil, false, err
+	}
+	found, err := cursor.SeekToRowID(rowID)
+	if err != nil {
+		return nil, false, err
+	}
+	if !found {
+		return nil, false, nil
+	}
+	payload, realRowID, err := cursor.ReadCellData()
+	if err != nil {
+		return nil, false, err
+	}
+	rec, err := storage.DecodeRecord(payload)
+	if err != nil || rec == nil {
+		return nil, false, nil
+	}
+	e.ctx.RemapWRRecordToDeclared(rec, createSQL, colDefs)
+	row := e.ctx.BuildRowMap(rec, colDefs, realRowID)
+	row[trueRowidKey] = realRowID
+	return row, true, nil
+}
