@@ -55,7 +55,20 @@ func resolveOrderByValue(obExpr sql.Expr, rows [][]interface{}, resultCols []str
 	return nil, false
 }
 
+// lessRows returns true if row i should come before row j according to ORDER BY.
+// resultCols maps ORDER BY aliases/column names to result column positions.
+// When the engine holds a comparator plan built for THIS sort (see
+// select_order_plan.go), the planned comparator runs; anything else takes the
+// legacy per-comparison path.
 func (e *SelectEngine) lessRows(orderBy []sql.OrderByTerm, rowMaps []RowMap, rows [][]interface{}, resultCols []string, i, j int) bool {
+	if p := e.obSortPlan; p != nil && p.planMatches(orderBy, rowMaps) {
+		if !p.init {
+			p.initFor(e, resultCols, rowMaps)
+		}
+		if p.usable && p.planMatches(orderBy, rowMaps) {
+			return e.lessRowsPlan(p, orderBy, rowMaps, rows, resultCols, i, j)
+		}
+	}
 	for _, ob := range orderBy {
 		cmp := e.compareOrderByTerm(ob, rowMaps, rows, resultCols, i, j)
 		if cmp < 0 {
@@ -88,6 +101,10 @@ func (e *SelectEngine) lessRows(orderBy []sql.OrderByTerm, rowMaps []RowMap, row
 // applyCompoundOrderByCollations' COLLATE wrapper, which the positional
 // fallback honors.
 func (e *SelectEngine) resolveOrderByOrdinalTerms(s *sql.SelectStmt, orderBy []sql.OrderByTerm) []sql.OrderByTerm {
+	// Every sortRowsWithMaps call passes through here immediately before its
+	// comparator sort: (re)build the once-per-sort comparator plan for this
+	// exact term slice (select_order_plan.go).
+	e.planSortOrderBy(orderBy)
 	if s == nil || s.Union != nil {
 		return orderBy
 	}
@@ -170,7 +187,7 @@ func ordinalPosition(expr sql.Expr, nCols int) (int, bool) {
 }
 
 // donatedCollationSortKey reports whether a non-bare-column result
-// expression (e.g. `(c1||'') COLLATE numeric`) with an unadorned ORDER BY
+// expression (e.g. `(c1||”) COLLATE numeric`) with an unadorned ORDER BY
 // ordinal keeps the term positional and donates the result column's
 // collation to the sort key.
 func donatedCollationSortKey(resultExpr sql.Expr, collateName, resultCollate string) (sql.Expr, bool) {
