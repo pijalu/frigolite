@@ -907,3 +907,15 @@ grouping; x % 0.1 panic; rowid-vs-text whitespace affinity.
 Remaining structural tranches (documented): value-ordered-index/typed-row
 (scan 6.2x floor), exec plumbing (update/delete 12.5-15.4x), group-key
 EvalExpr per row (group 4.6x). prepare/bind API DELIVERED this round.
+
+## PERF-STRUCT (2026-10-01, START) — structural tranches toward parity
+
+Verifier-gated round: scan floor 6.2x (value-ordered-index/typed-row
+tranche) then update/delete 12.5-15.4x (exec-plumbing rewrite).
+Tranche A (fleet agent): columnar/typed scan fast path — decode the
+referenced column directly from cell payload for the agg feed + bare
+projection, skip whole-record DecodeRecord boxing. Target >=20M rows/s
+(gap <=3x). Tranche B (fleet agent): single-pass update/delete pipeline
+for the rowid-seek shape — seek -> encode once -> in-place write, no
+intermediate change structs. Target >=2x (gap <=7x). Benchmark pair
+after EACH tranche; suites + census at end.
