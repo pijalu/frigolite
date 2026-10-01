@@ -311,6 +311,13 @@ func (c *Cursor) stepDownLeftmost(pg *pager.Page, page *storage.BTreePage) (uint
 		// (cellPtrOffset=12), pass coff+4 to get coff+12.
 		coff := contentOffset(pg.PageNum)
 		cellOff := int(storage.CellPointer(pg.Data, coff+cellPtrOffset(page.PageType)-8, 0, int(c.tx.pageSize)))
+		// A crafted cell pointer aimed at the page tail must not slice past
+		// the buffer (Go panics where SQLite's masked in-page addressing
+		// stays in-bounds); report no-child and let the walk surface the
+		// corruption downstream.
+		if cellOff < 0 || cellOff+4 > len(pg.Data) {
+			return 0, false
+		}
 		return binary.BigEndian.Uint32(pg.Data[cellOff : cellOff+4]), true
 	}
 	if page.RightmostPtr != 0 {
@@ -343,6 +350,13 @@ func (c *Cursor) navigateToNextChild() {
 		if top.childIdx < int(page.CellCount) {
 			// Navigate to cell[top.childIdx].leftChild
 			cellOff := int(storage.CellPointer(pg.Data, coff+cellPtrOffset(page.PageType)-8, top.childIdx, int(c.tx.pageSize)))
+			if cellOff < 0 || cellOff+4 > len(pg.Data) {
+				// Crafted cell pointer aimed at the page tail: stop the walk
+				// instead of slicing past the buffer; the caller's next read
+				// reports the malformed image.
+				c.endOfBTree = true
+				return
+			}
 			c.pageNum = binary.BigEndian.Uint32(pg.Data[cellOff : cellOff+4])
 			c.cellIdx = 0
 			c.endOfBTree = false
@@ -468,7 +482,13 @@ func (t *BTree) lastRowIDFrom(pageNum uint32, depth int) (int64, error) {
 		}
 		last := int(page.CellCount) - 1
 		cellOff := int(storage.CellPointer(pg.Data, coff, last, int(t.pageSize)))
+		if cellOff < 0 || cellOff >= len(pg.Data) {
+			return 0, fmt.Errorf("database disk image is malformed")
+		}
 		_, n := util.GetVarint(pg.Data[cellOff:])
+		if cellOff+n >= len(pg.Data) {
+			return 0, fmt.Errorf("database disk image is malformed")
+		}
 		rowID, _ := util.GetVarint(pg.Data[cellOff+n:])
 		return int64(rowID), nil
 	default:
@@ -493,6 +513,9 @@ func (t *BTree) lastRowIDFromInterior(pg *pager.Page, coff int, page *storage.BT
 	// cells high-to-low until a non-empty subtree is found.
 	for i := int(page.CellCount) - 1; i >= 0; i-- {
 		cellOff := int(storage.CellPointer(pg.Data, coff+4, i, int(t.pageSize)))
+		if cellOff < 0 || cellOff+4 > len(pg.Data) {
+			return 0, fmt.Errorf("database disk image is malformed")
+		}
 		child := binary.BigEndian.Uint32(pg.Data[cellOff : cellOff+4])
 		if child == 0 {
 			continue
@@ -600,9 +623,17 @@ func (c *Cursor) seekInLeafTable(pg *pager.Page, page *storage.BTreePage, rowID 
 	for lo <= hi {
 		mid := (lo + hi) / 2
 		cellOff := int(storage.CellPointer(pg.Data, contentOffset(pg.PageNum), mid, int(c.tx.pageSize)))
+		if cellOff < 0 || cellOff >= len(pg.Data) {
+			return false, fmt.Errorf("database disk image is malformed")
+		}
 		// Skip payload length varint
 		_, n := util.GetVarint(pg.Data[cellOff:])
 		cellOff += n
+		if cellOff >= len(pg.Data) {
+			// A crafted cell whose payload-length varint runs off the page
+			// tail must error, not slice past the buffer.
+			return false, fmt.Errorf("database disk image is malformed")
+		}
 		// Read rowID
 		midRowID, _ := util.GetVarint(pg.Data[cellOff:])
 		switch {

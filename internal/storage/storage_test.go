@@ -448,3 +448,30 @@ func TestEncodeDecodeLargeRecord(t *testing.T) {
 		}
 	}
 }
+
+// TestValidatePageHeaderCellCountNoWrap is the memofix regression for the
+// validation the parse feeds the memo: cellPtrEnd must be computed in
+// unwrapped int arithmetic. A 16-bit truncation let a crafted CellCount near
+// 0xFFFF wrap past the content-start comparison, pass validation, and later
+// drive cell-pointer reads past the page buffer (a slice-bounds panic in
+// index decode instead of the "malformed" error — btree.c bounds nCell
+// against MX_CELL in ints at btreeInitPage).
+func TestValidatePageHeaderCellCountNoWrap(t *testing.T) {
+	for _, coff := range []int{0, 100} {
+		data := make([]byte, 4096)
+		data[coff] = PageTypeLeafIndex
+		binary.BigEndian.PutUint16(data[coff+3:coff+5], 0xFFFF) // crafted huge CellCount
+		binary.BigEndian.PutUint16(data[coff+5:coff+7], 4000)   // plausible content start
+		if _, err := ParsePage(data, 4096, coff); err == nil {
+			t.Fatalf("coff %d: crafted CellCount 0xFFFF accepted by validatePageHeader", coff)
+		}
+	}
+	// Interior pages hit the same arithmetic with the 12-byte header.
+	data := make([]byte, 4096)
+	data[100] = PageTypeInteriorIndex
+	binary.BigEndian.PutUint16(data[103:105], 0xFFFF)
+	binary.BigEndian.PutUint16(data[105:107], 4000)
+	if _, err := ParsePage(data, 4096, 100); err == nil {
+		t.Fatalf("interior: crafted CellCount 0xFFFF accepted by validatePageHeader")
+	}
+}

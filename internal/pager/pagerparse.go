@@ -20,6 +20,7 @@ package pager
 
 import (
 	"bytes"
+	"encoding/binary"
 
 	"github.com/pijalu/frigolite/internal/storage"
 )
@@ -35,21 +36,60 @@ type pageParseMemo struct {
 	coff     int
 }
 
+// parsedMatchesSnapshot re-derives the parsed header fields from hdrSnap and
+// reports whether they still match. storage.ParsePage is a pure function of
+// the snapshotted span, so a mismatch means the shared parsed struct was
+// mutated by a consumer (the byte check cannot see Go-side writes to the
+// struct) or the snapshot was captured from different bytes than the parse
+// read (a torn capture across a page rewrite). Either way this memo
+// generation must not be served: the canary turns a would-be poisoned memo
+// into a one-generation miss (the fields re-parse from the settled bytes),
+// instead of a permanently stale CellCount feeding cell-pointer arithmetic —
+// the slice-bounds shape the memo tranche was blamed for.
+func (m *pageParseMemo) parsedMatchesSnapshot() bool {
+	b := m.hdrSnap
+	if len(b) < 8 ||
+		m.parsed.PageType != b[0] ||
+		m.parsed.FirstFree != binary.BigEndian.Uint16(b[1:3]) ||
+		m.parsed.CellCount != binary.BigEndian.Uint16(b[3:5]) ||
+		m.parsed.FragFree != b[7] {
+		return false
+	}
+	cc := int(binary.BigEndian.Uint16(b[5:7]))
+	if cc == 0 && m.pageSize == 65536 {
+		// storage.ParsePage normalizes the wrapped 64KiB content start.
+		cc = 65536
+	}
+	if m.parsed.CellContent != cc {
+		return false
+	}
+	if m.parsed.PageType == storage.PageTypeInteriorIndex || m.parsed.PageType == storage.PageTypeInteriorTable {
+		if len(b) < 12 || m.parsed.RightmostPtr != binary.BigEndian.Uint32(b[8:12]) {
+			return false
+		}
+	}
+	return true
+}
+
 // ParsedBTree returns the page's parsed b-tree header for pageSize and
 // contentOffset, memoizing the storage.ParsePage result on the page.
 //
 // The returned *BTreePage is SHARED between callers and owned by the memo:
 // callers must treat it as read-only (the btree layer's cursor paths only
 // read the header fields; write paths that mutate a parsed header keep their
-// own storage.ParsePage result). The fingerprint check makes every access
-// validate the current bytes, so a modified page re-parses — and re-validates
-// — exactly as a direct storage.ParsePage would. Corruption therefore fails
-// at the same points with and without the memo: an unparsable page returns
-// the same error on every access and is never memoized.
+// own storage.ParsePage result). Two validations make every access safe:
+// the fingerprint check re-validates the current bytes (a modified page
+// re-parses — and re-validates — exactly as a direct storage.ParsePage
+// would), and the parsedMatchesSnapshot canary re-derives the struct fields
+// from the snapshot, so a consumer that mutates the shared struct anyway is
+// detected on the NEXT access and the memo self-heals by re-parsing instead
+// of serving the mutant. Corruption therefore fails at the same points with
+// and without the memo: an unparsable page returns the same error on every
+// access and is never memoized.
 func (pg *Page) ParsedBTree(pageSize, contentOffset int) (*storage.BTreePage, error) {
 	if m := pg.parseMemo.Load(); m != nil && m.pageSize == pageSize && m.coff == contentOffset {
 		end := m.coff + len(m.hdrSnap)
-		if end <= len(pg.Data) && bytes.Equal(m.hdrSnap, pg.Data[m.coff:end]) {
+		if end <= len(pg.Data) && bytes.Equal(m.hdrSnap, pg.Data[m.coff:end]) && m.parsedMatchesSnapshot() {
 			return &m.parsed, nil
 		}
 	}
@@ -73,6 +113,15 @@ func (pg *Page) ParsedBTree(pageSize, contentOffset int) (*storage.BTreePage, er
 	}
 	mp.hdrSnap = make([]byte, end-contentOffset)
 	copy(mp.hdrSnap, pg.Data[contentOffset:end])
+	if !mp.parsedMatchesSnapshot() {
+		// Torn capture: the page bytes changed between the parse and the
+		// snapshot, so the parsed header and hdrSnap disagree (impossible
+		// under the engine's single-threaded-per-pager contract; cheap
+		// insurance if that contract ever widens). Serve the current parse
+		// UNMEMOIZED — the next access re-runs this path against the
+		// settled bytes instead of pinning the mixed generation forever.
+		return storage.ParsePage(pg.Data, pageSize, contentOffset)
+	}
 	pg.parseMemo.Store(mp)
 	return &mp.parsed, nil
 }

@@ -331,7 +331,11 @@ func (c *Cursor) seekTableLeafWithPath(pageNum uint32, rowID int64) (bool, error
 		}
 		// Route to the child holding rowID: the first cell whose separator
 		// key is >= rowID (its left child), else the rightmost pointer.
-		lo, childPage := c.routeInteriorTable(pg, page, rowID)
+		lo, childPage, rerr := c.routeInteriorTable(pg, page, rowID)
+		if rerr != nil {
+			c.endOfBTree = true
+			return false, rerr
+		}
 		c.path = append(c.path, cursorPathEntry{pageNum: pg.PageNum, childIdx: lo})
 		pageNum = childPage
 	}
@@ -339,13 +343,18 @@ func (c *Cursor) seekTableLeafWithPath(pageNum uint32, rowID int64) (bool, error
 
 // routeInteriorTable computes the descent for an interior table page: the
 // (child index, child page) pair for rowID, matching seekInInteriorTable's
-// separator convention.
-func (c *Cursor) routeInteriorTable(pg *pager.Page, page *storage.BTreePage, rowID int64) (int, uint32) {
+// separator convention. A crafted cell pointer aimed at the page tail
+// reports corruption (Go slices panic where SQLite's masked in-page
+// addressing stays in-bounds).
+func (c *Cursor) routeInteriorTable(pg *pager.Page, page *storage.BTreePage, rowID int64) (int, uint32, error) {
 	lo, hi := 0, int(page.CellCount)-1
 	childPage := page.RightmostPtr
 	for lo <= hi {
 		mid := (lo + hi) / 2
 		cellOff := int(storage.CellPointer(pg.Data, contentOffset(pg.PageNum)+cellPtrOffset(page.PageType)-8, mid, int(c.tx.pageSize)))
+		if cellOff < 0 || cellOff+4 > len(pg.Data) {
+			return 0, 0, fmt.Errorf("database disk image is malformed")
+		}
 		midRowID, _ := util.GetVarint(pg.Data[cellOff+4:])
 		if int64(midRowID) < rowID {
 			lo = mid + 1
@@ -356,12 +365,15 @@ func (c *Cursor) routeInteriorTable(pg *pager.Page, page *storage.BTreePage, row
 	}
 	if lo < int(page.CellCount) {
 		cellOff := int(storage.CellPointer(pg.Data, contentOffset(pg.PageNum)+cellPtrOffset(page.PageType)-8, lo, int(c.tx.pageSize)))
+		if cellOff < 0 || cellOff+4 > len(pg.Data) {
+			return 0, 0, fmt.Errorf("database disk image is malformed")
+		}
 		childPage = binary.BigEndian.Uint32(pg.Data[cellOff : cellOff+4])
 	}
 	if childPage == 0 {
 		childPage = page.RightmostPtr
 	}
-	return lo, childPage
+	return lo, childPage, nil
 }
 
 // seekIndexLeafWithPath is the index-b-tree mirror of seekTableLeafWithPath

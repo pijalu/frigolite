@@ -231,7 +231,13 @@ func parsePageInto(header []byte, pageData []byte, pageSize int, contentOffset i
 // checks behind SQLite's "free space corruption" (reported as "database
 // disk image is malformed"): the cell content area must start after the cell
 // pointer array and before the end of the page, and the first free-block
-// pointer must lie inside the page. Crash-written pages carry inconsistent
+// pointer must lie inside the page. cellPtrEnd is computed in UNWRAPPED int
+// arithmetic (mirroring btree.c's int nCell checks — SQLite bounds CellCount
+// against MX_CELL at btreeInitPage before any pointer math): a 16-bit
+// truncation let a crafted CellCount near 0xFFFF wrap past the content-start
+// comparison, pass validation, and later drive cell-pointer reads past the
+// page buffer (a slice-bounds panic in index decode instead of the
+// "malformed" error). Crash-written pages carry inconsistent
 // offsets (fts3corrupt4 21.1/24.1: Tree 4/7 free space corruption; a cell
 // pointer beyond the page). The engine now writes cellcontent=pageSize on
 // empty pages (matching SQLite), so a page with an out-of-range value is
@@ -245,9 +251,9 @@ func validatePageHeader(p *BTreePage, pageData []byte, pageSize int, contentOffs
 	default:
 		return fmt.Errorf("storage: unknown page type: 0x%02x", p.PageType)
 	}
-	cellPtrEnd := uint16(contentOffset + 8 + 2*int(p.CellCount))
+	cellPtrEnd := contentOffset + 8 + 2*int(p.CellCount)
 	cellContent := p.CellContent
-	if len(pageData) >= pageSize && (cellContent < int(cellPtrEnd) || cellContent > pageSize) {
+	if len(pageData) >= pageSize && (cellContent < cellPtrEnd || cellContent > pageSize) {
 		return fmt.Errorf("database disk image is malformed")
 	}
 	if p.FirstFree > uint16(pageSize) {

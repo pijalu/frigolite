@@ -181,6 +181,76 @@ func TestParsedBTreeInteriorKeepsRightmostPtr(t *testing.T) {
 	}
 }
 
+// TestParsedBTreeCanaryRejectsMutatedParse is the memofix regression: a
+// consumer that MUTATES the shared *BTreePage (the memo tranche's forbidden
+// but hard-to-enforce contract — the index-decode slice-bounds shape) must
+// not poison the memo. The byte fingerprint cannot see Go-side struct writes,
+// so the canary re-derives the fields from the snapshot on every access: the
+// first access after the mutation must self-heal by re-parsing from the
+// (unchanged) page bytes instead of serving the mutant's stale CellCount to
+// the next cell-pointer walk.
+func TestParsedBTreeCanaryRejectsMutatedParse(t *testing.T) {
+	pg := &Page{Data: buildBTreeLeafPage(1024, 3, storage.PageTypeLeafTable), PageNum: 7}
+	first, err := pg.ParsedBTree(1024, 0)
+	if err != nil {
+		t.Fatalf("first parse: %v", err)
+	}
+	if first.CellCount != 3 {
+		t.Fatalf("CellCount %d, want 3", first.CellCount)
+	}
+
+	// Simulate the latent mutator: a consumer writing through the shared
+	// parse — inflating CellCount the way a stale decrement/adjustment
+	// would (an inflated count walks the cell pointer array past its end).
+	first.CellCount = 5000
+	first.PageType = storage.PageTypeInteriorIndex
+
+	second, err := pg.ParsedBTree(1024, 0)
+	if err != nil {
+		t.Fatalf("second parse: %v", err)
+	}
+	if second == first {
+		t.Fatalf("canary served the mutated memo generation")
+	}
+	if second.CellCount != 3 || second.PageType != storage.PageTypeLeafTable {
+		t.Fatalf("next parse sees mutant state: CellCount %d type 0x%02x, want 3/leaf",
+			second.CellCount, second.PageType)
+	}
+
+	// The self-heal is durable: the repaired generation serves again.
+	third, err := pg.ParsedBTree(1024, 0)
+	if err != nil {
+		t.Fatalf("third parse: %v", err)
+	}
+	if third != second || third.CellCount != 3 {
+		t.Fatalf("repaired memo not stable: %+v", third)
+	}
+}
+
+// TestParsedBTreeInteriorCanaryCoversRightmostPtr pins the canary on the
+// interior-page fields too: a mutated RightmostPtr must be rejected the same
+// way (a stale pointer sends the descent to a foreign page).
+func TestParsedBTreeInteriorCanaryCoversRightmostPtr(t *testing.T) {
+	raw := buildBTreeLeafPage(1024, 2, storage.PageTypeInteriorTable)
+	binary.BigEndian.PutUint32(raw[8:12], 50)
+	pg := &Page{Data: raw, PageNum: 4}
+	first, err := pg.ParsedBTree(1024, 0)
+	if err != nil {
+		t.Fatalf("first parse: %v", err)
+	}
+	if first.RightmostPtr != 50 {
+		t.Fatalf("RightmostPtr %d, want 50", first.RightmostPtr)
+	}
+	first.RightmostPtr = 999 // simulated consumer mutation
+	second, err := pg.ParsedBTree(1024, 0)
+	if err != nil {
+		t.Fatalf("second parse: %v", err)
+	}
+	if second == first || second.RightmostPtr != 50 {
+		t.Fatalf("canary served mutated RightmostPtr: %d", second.RightmostPtr)
+	}
+}
+
 // TestParsedBTreeInvalidatedThroughPager walks the real pager path: fill the
 // memo via a read, write the page through WritePage (in-place byte mutation,
 // then journal/dirty bookkeeping), and assert the next read parses the fresh
