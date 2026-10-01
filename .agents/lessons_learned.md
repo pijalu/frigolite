@@ -6,6 +6,53 @@
 > followed by the current T33 session sections. Consult the archive for
 > closed-goal specifics (also in plan/goals/*.md and portplan/NA_EVIDENCE.md).
 
+## PERF.PARITY-poolfix — finalizers + pooled cursors (fleet/perf-parity-poolfix, 2026-10-01)
+
+- **NEVER SetFinalizer per registration on a pooled/recycled object.** The
+  wrapper-pooling tranche set a registry finalizer on every OpenCursor and
+  cleared it on every Close; on recycled cursors that set/clear pair races
+  the GC sweep cycle (a special can outlive its object through the pool drop
+  at poolCleanup) → fatal "runtime.SetFinalizer: finalizer already set" on
+  the next registration (2 of 4 full-suite runs). Fix: the safety-net
+  finalizer is installed EXACTLY ONCE at cursor allocation (acquireCursor's
+  pool-New); registration only records regKey; Close/resetFor zero regKey so
+  a queued finalizer unregisters nothing. SetFinalizer appears in exactly
+  one place per pooled type, at construction.
+- **A pooled WRAPPER is a crash multiplier — wrappers are no longer pooled.**
+  Probe run 5 caught it live: execCreateIndex inserting into a wrapper whose
+  Close ran from a DIFFERENT goroutine's statement teardown (Engine.Exec →
+  releaseStatementTrees → Close → resetForPool). A pooled wrapper is
+  re-armed for whoever Gets it next, so ANY close that races a statement
+  still holding it — concurrent Exec frames on one engine (the funnel
+  assumes strict nesting), or a segment mark mis-attributed across
+  goroutines — turns "closed wrapper" into a live statement's pager pointer
+  vanishing: the nil-pager SIGSEGV in Pager.ReadPage/WritePage. A closed
+  wrapper that is NOT recycled degrades to the pre-pooling behavior (an
+  object that merely becomes garbage). Cursor pooling (global cursorPool),
+  the deterministic registry shrink at Close, and the normalize/lock-key
+  scratch wins are all kept; the tradeoff is one small wrapper allocation
+  per statement/tree (mission-blessed).
+- **A Close that resets cursors must re-mark them released AFTER the reset.**
+  releaseCursors→resetFor cleared the `released` flag immediately, so the
+  "use of a closed cursor errors" contract (checkOpen/restoreIfNeeded) was
+  dead code on the hot path and a closed-owner read silently served a stale
+  page cache. Order: unregister → reset into free list → re-mark released;
+  acquisition is the only place the marker clears. cachePage and InsertCell
+  carry the same guard (error, not SIGSEGV).
+- **Pointer-keyed probe maps go stale through heap address reuse** — a
+  "last pooled at" stack captured for a DEAD wrapper at the same address
+  taints the diagnosis (probe run 5's history vs the live panic). Debug
+  state for object-lifetime bugs belongs ON the object (a closedBy field),
+  never in a package-global map keyed by pointer.
+- **Reproduce crashes in the FULL suite before theorizing.** Pre-fix runs
+  crashed differently every time (SetFinalizer fatal ×2, ReadPage SIGSEGV,
+  slice-bounds in index decode — the last one reproduces 2/2 on UNMODIFIED
+  main and belongs to the sibling pager-memo tranche, not pooling). Isolated
+  files never crash: the bug needs the global sync.Pool + GC churn only a
+  1002-file parallel run produces. And the 10-min package timeout plus
+  sibling-fleet load distort single measurements — baseline A/B on a second
+  worktree is the decisive instrument.
+
 ## PERF.PARITY-wrap — BTree wrapper/cursor pooling + statement-path scratch (fleet/perf-parity-wrappers, 2026-09-29)
 
 - **Pooling is safe exactly where the P6 lifecycle discipline holds.** BTree

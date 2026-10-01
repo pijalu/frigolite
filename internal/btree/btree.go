@@ -4,12 +4,18 @@ package btree
 
 import (
 	"encoding/binary"
+	"errors"
 	"fmt"
 
 	"github.com/pijalu/frigolite/internal/pager"
 	"github.com/pijalu/frigolite/internal/storage"
 	"github.com/pijalu/frigolite/internal/util"
 )
+
+// errCursorOwnerClosed reports a cursor use whose owning wrapper was closed
+// and recycled (an upstream ownership bug: a statement must never outlive
+// its wrapper). Reads report it instead of dereferencing the reset wrapper.
+var errCursorOwnerClosed = errors.New("btree: cursor's owning tree is closed")
 
 // contentOffset returns the b-tree page header offset for a page number.
 // Page 1 has a 100-byte database header before the b-tree content.
@@ -75,6 +81,14 @@ type cursorPathEntry struct {
 // without re-parsing; any page modified in between re-parses (the memo
 // re-validates the header bytes on every access).
 func (c *Cursor) cachePage() error {
+	if c.released || c.tx == nil || c.tx.pager == nil {
+		// The wrapper was closed and recycled while this cursor was still in
+		// use — an ownership bug upstream (a statement must never outlive its
+		// wrapper). Report an error instead of dereferencing the reset
+		// wrapper or serving its stale page cache (SQLite's BtCursor is
+		// unusable after BtreeCloseCursor too).
+		return errCursorOwnerClosed
+	}
 	if c.currentPg != nil && c.currentPg.PageNum == c.pageNum {
 		return nil // cache hit
 	}
@@ -118,10 +132,7 @@ type BTree struct {
 	// the registry only ever shrank via the runtime finalizer, which made
 	// saveAllCursors O(total cursors ever opened) per mutation.
 	cursors []*Cursor
-	// cursorFree holds cursors released by Close, recycled by the next
-	// OpenCursor (btree_pool.go). Kept across wrapper reuse.
-	cursorFree []*Cursor
-	closed     bool
+	closed  bool
 
 	// cellScratch recycles the encoded bytes of the cell currently being
 	// inserted (btree_insert.go). A BTree is built per statement over the
@@ -132,15 +143,14 @@ type BTree struct {
 }
 
 // NewBTree creates a new BTree instance.
+//
+// Wrappers are deliberately NOT pooled (btree_pool.go): a pooled wrapper is
+// re-armed for whichever statement Gets it next, so a Close that races a
+// statement still holding the wrapper crashes that statement's next read
+// with a nil pager. A fresh wrapper per statement costs one small
+// allocation and keeps every Close terminal.
 func NewBTree(pg *pager.Pager, rootPage uint32, isTable bool) *BTree {
-	// Wrappers are pooled (btree_pool.go): Close returns them here, and a
-	// statement teardown closes every wrapper it created, so the steady
-	// state recycles objects instead of allocating.
-	t, _ := btreePool.Get().(*BTree)
-	if t == nil {
-		t = new(BTree)
-	}
-	return t.initFrom(pg, rootPage, isTable, false)
+	return new(BTree).initFrom(pg, rootPage, isTable, false)
 }
 
 // SetKeyCompare installs a custom index-payload comparator (used for
@@ -161,12 +171,9 @@ func (t *BTree) compareKey(a, b []byte) int {
 // NewSchemaBTree creates a BTree for the sqlite_schema btree. Schema
 // btree allocations bypass the freelist so the schema btree's pages
 // don't take slots from the user-rootpage range (P8.INCRVACUUM.phase9).
+// Wrappers are not pooled (see NewBTree).
 func NewSchemaBTree(pg *pager.Pager) *BTree {
-	t, _ := btreePool.Get().(*BTree)
-	if t == nil {
-		t = new(BTree)
-	}
-	return t.initFrom(pg, 1, true, true)
+	return new(BTree).initFrom(pg, 1, true, true)
 }
 
 // allocPage allocates a page for the btree, bypassing the freelist if
@@ -217,7 +224,7 @@ func (t *BTree) OpenCursor() (*Cursor, error) {
 		// The cursor was never registered (that happens below on success);
 		// recycle it instead of leaking it to the collector.
 		c.resetFor(t)
-		t.cursorFree = append(t.cursorFree, c)
+		cursorPool.Put(c)
 		return nil, err
 	}
 	// Register for cross-statement invalidation: a nested statement's write
@@ -239,6 +246,9 @@ func (t *BTree) OpenCursor() (*Cursor, error) {
 func (c *Cursor) descendToFirstLeaf() error {
 	var sp storage.BTreePage
 	for {
+		if c.released || c.tx == nil || c.tx.pager == nil {
+			return errCursorOwnerClosed
+		}
 		pg, err := c.tx.pager.ReadPage(c.pageNum)
 		if err != nil {
 			c.endOfBTree = true
