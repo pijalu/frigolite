@@ -426,10 +426,10 @@ func TestTemplateNumericKindParity(t *testing.T) {
 		}
 	}
 	must("CREATE TABLE t(a)")
-	must("INSERT INTO t VALUES(5)")    // seeds the template slot (integer)
-	must("INSERT INTO t VALUES(8.0)")  // same shape, REAL value
-	must("INSERT INTO t VALUES(8.0)")  // template hit path
-	must("INSERT INTO t VALUES(8.5)")  // REAL with fraction
+	must("INSERT INTO t VALUES(5)")   // seeds the template slot (integer)
+	must("INSERT INTO t VALUES(8.0)") // same shape, REAL value
+	must("INSERT INTO t VALUES(8.0)") // template hit path
+	must("INSERT INTO t VALUES(8.5)") // REAL with fraction
 	r := db.Query("SELECT typeof(a), a FROM t ORDER BY rowid")
 	if r.Error != nil {
 		t.Fatal(r.Error)
@@ -479,9 +479,9 @@ func TestTemplateVaryingLiteralsSubstitute(t *testing.T) {
 	// plus a hex literal: every row must carry the executed statement's own
 	// value and kind.
 	stmts := []struct {
-		sql    string
-		kind   string
-		value  float64
+		sql   string
+		kind  string
+		value float64
 	}{
 		{"INSERT INTO t VALUES(5)", "integer", 5},
 		{"INSERT INTO t VALUES(7)", "integer", 7},
