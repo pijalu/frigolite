@@ -128,8 +128,9 @@ func removeRegisteredCursor(key cursorTreeKey, c *Cursor) {
 //
 // Close is terminal: after it runs no wrapper or cursor reference is used
 // again (the statement-tracking funnel truncates its slice; every
-// function-local site drops the variable), so the wrapper and its cursors
-// are recycled through the btree pool (btree_pool.go).
+// function-local site drops the variable). Cursors are recycled through the
+// global cursor pool (btree_pool.go); the wrapper itself is NOT recycled —
+// see the header of btree_pool.go.
 func (t *BTree) Close() {
 	if t == nil || t.closed {
 		return

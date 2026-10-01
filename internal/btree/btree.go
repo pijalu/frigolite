@@ -131,12 +131,9 @@ type BTree struct {
 	// them all from the cross-statement invalidation registry; without it
 	// the registry only ever shrank via the runtime finalizer, which made
 	// saveAllCursors O(total cursors ever opened) per mutation.
-	cursors []*Cursor
-	// cursorFree holds cursors released by Close, recycled by the next
-	// OpenCursor (btree_pool.go). Kept across wrapper reuse.
-	cursorFree []*Cursor
-	closed     bool
-	closedBy   string // TEMP probe: stack of the Close that set closed (cleared at initFrom)
+	cursors  []*Cursor
+	closed   bool
+	closedBy string // TEMP probe: stack of the Close that set closed (cleared at initFrom)
 
 	// cellScratch recycles the encoded bytes of the cell currently being
 	// inserted (btree_insert.go). A BTree is built per statement over the
@@ -147,15 +144,14 @@ type BTree struct {
 }
 
 // NewBTree creates a new BTree instance.
+//
+// Wrappers are deliberately NOT pooled (btree_pool.go): a pooled wrapper is
+// re-armed for whichever statement Gets it next, so a Close that races a
+// statement still holding the wrapper crashes that statement's next read
+// with a nil pager. A fresh wrapper per statement costs one small
+// allocation and keeps every Close terminal.
 func NewBTree(pg *pager.Pager, rootPage uint32, isTable bool) *BTree {
-	// Wrappers are pooled (btree_pool.go): Close returns them here, and a
-	// statement teardown closes every wrapper it created, so the steady
-	// state recycles objects instead of allocating.
-	t, _ := btreePool.Get().(*BTree)
-	if t == nil {
-		t = new(BTree)
-	}
-	return t.initFrom(pg, rootPage, isTable, false)
+	return new(BTree).initFrom(pg, rootPage, isTable, false)
 }
 
 // SetKeyCompare installs a custom index-payload comparator (used for
@@ -176,12 +172,9 @@ func (t *BTree) compareKey(a, b []byte) int {
 // NewSchemaBTree creates a BTree for the sqlite_schema btree. Schema
 // btree allocations bypass the freelist so the schema btree's pages
 // don't take slots from the user-rootpage range (P8.INCRVACUUM.phase9).
+// Wrappers are not pooled (see NewBTree).
 func NewSchemaBTree(pg *pager.Pager) *BTree {
-	t, _ := btreePool.Get().(*BTree)
-	if t == nil {
-		t = new(BTree)
-	}
-	return t.initFrom(pg, 1, true, true)
+	return new(BTree).initFrom(pg, 1, true, true)
 }
 
 // allocPage allocates a page for the btree, bypassing the freelist if
@@ -232,7 +225,7 @@ func (t *BTree) OpenCursor() (*Cursor, error) {
 		// The cursor was never registered (that happens below on success);
 		// recycle it instead of leaking it to the collector.
 		c.resetFor(t)
-		t.cursorFree = append(t.cursorFree, c)
+		cursorPool.Put(c)
 		return nil, err
 	}
 	// Register for cross-statement invalidation: a nested statement's write

@@ -13,24 +13,39 @@ import (
 // Every statement builds fresh BTree wrappers over the same (pager, rootPage)
 // pairs and opens short-lived cursors on them; the statement teardown path
 // (Engine.releaseStatementTrees -> BTree.Close, and the function-local
-// `defer tree.Close()` sites) closes every wrapper deterministically. That
-// deterministic lifecycle makes the objects poolable: Close is terminal — a
-// closed wrapper's cursors are released (unregistered from the cross-statement
-// invalidation registry, marked released) and no code path uses a wrapper or
-// cursor after its Close — so Close can hand both back to a pool and NewBTree
-// can hand out a Reset one.
+// `defer tree.Close()` sites) closes every wrapper deterministically.
 //
-// The reset contract (resetFor / Cursor.resetFor) reinitializes EVERY field;
-// buffers with capacity (the wrapper's cursor list, the cursor free list, the
-// cursor's path stack, the landing-page scratch) are kept and truncated so a
-// reused wrapper costs zero allocations.
+// CURSORS are pooled (cursorPool below): Close recycles every owned cursor
+// and OpenCursor hands out a Reset one, so a busy connection reuses cursor
+// objects instead of allocating them per statement.
+//
+// WRAPPERS are deliberately NOT pooled: a pooled wrapper is re-armed for
+// whichever statement Gets it next, so any Close that races a statement
+// still holding the wrapper (the engine's funnel assumes statements nest
+// strictly; concurrent Exec frames or a mis-attributed segment mark) turns
+// "a closed wrapper" into "a live statement's pager pointer vanished" —
+// a nil-pager SIGSEGV deep in the pager. A closed wrapper that is NOT
+// recycled degrades to the pre-pooling behavior (reads through it report
+// errors; the object is simply garbage). The per-wrapper cursorFree list is
+// therefore dead weight; the global cursorPool replaces it.
 
-// btreePool recycles BTree wrappers across statements.
-var btreePool = sync.Pool{
-	New: func() interface{} { return new(BTree) },
+// cursorPool recycles cursors across statements and wrappers. A recycled
+// cursor's registry finalizer (set ONCE at allocation — here and in
+// newCursor) is never re-set or cleared: re-registration only records regKey,
+// and a finalizer queued against a dropped pool batch finds regKey == 0 and
+// unregisters nothing. SetFinalizer on a recycled object is exactly what is
+// forbidden — see btree_cursor_save.go.
+var cursorPool = sync.Pool{
+	New: func() interface{} {
+		c := &Cursor{
+			path: make([]cursorPathEntry, 0, 4),
+		}
+		runtime.SetFinalizer(c, cursorRegistryFinalizer)
+		return c
+	},
 }
 
-// initFrom initializes a (fresh or recycled) wrapper over the given tree.
+// initFrom initializes a (fresh) wrapper over the given tree.
 func (t *BTree) initFrom(pg *pager.Pager, rootPage uint32, isTable, isSchema bool) *BTree {
 	probeInit(t, pg)
 	t.pager = pg
@@ -39,65 +54,47 @@ func (t *BTree) initFrom(pg *pager.Pager, rootPage uint32, isTable, isSchema boo
 	t.usableSize = pg.UsableSize()
 	t.isTable = isTable
 	// SetKeyCompare installs a per-tree comparator right after construction;
-	// a recycled wrapper must not inherit the previous tenant's.
+	// the wrapper is fresh, but a defensive clear keeps the invariant local.
 	t.keyCompare = nil
 	t.isSchema = isSchema
 	t.closed = false
+	t.closedBy = ""
 	if t.cursors == nil {
 		// A statement's wrapper opens a handful of cursors at most; the
 		// pre-sized slice absorbs them without per-OpenCursor growth.
-		// Recycled wrappers keep the capacity they grew to.
 		t.cursors = make([]*Cursor, 0, 4)
 	}
 	return t
 }
 
-// releaseCursors returns the wrapper's cursors to its free list without
-// killing the wrapper (the registry unregistration happens in Close before
-// this runs). Every released cursor is reset: a recycled cursor must not
-// carry page references, save/restore state, or a registry key.
+// releaseCursors returns the wrapper's cursors to the global cursor pool.
+// Every released cursor is reset: a recycled cursor must not carry page
+// references, save/restore state, or a registry key.
 func (t *BTree) releaseCursors(owned []*Cursor) {
 	for _, c := range owned {
 		c.resetFor(t)
-		t.cursorFree = append(t.cursorFree, c)
+		cursorPool.Put(c)
 	}
-}
-
-// resetForPool clears the wrapper's per-tree state before it re-enters the
-// pool (the pooled object must not retain the last tenant's tree identity or
-// pager references; cursorFree keeps only reset cursors).
-func (t *BTree) resetForPool() {
-	probePool(t)
-	t.pager = nil
-	t.rootPage = 0
-	t.pageSize = 0
-	t.usableSize = 0
-	t.isTable = false
-	t.keyCompare = nil
-	t.isSchema = false
-	t.closed = true // stays closed until a NewBTree reset re-arms it
-	btreePool.Put(t)
 }
 
 // acquireCursor returns a reset cursor for a fresh OpenCursor, reusing one
-// from the free list when available.
+// from the global cursor pool when available.
 func (t *BTree) acquireCursor() *Cursor {
-	if n := len(t.cursorFree); n > 0 {
-		c := t.cursorFree[n-1]
-		t.cursorFree = t.cursorFree[:n-1]
-		c.resetFor(t)
-		return c
+	c, _ := cursorPool.Get().(*Cursor)
+	if c == nil {
+		c = &Cursor{}
 	}
-	return t.newCursor()
+	c.resetFor(t)
+	return c
 }
 
 // newCursor builds a bare cursor over t (fresh allocation path).
 //
 // The registry safety-net finalizer is installed EXACTLY ONCE here, at
 // allocation, and never re-set or cleared (btree_cursor_save.go): the cursor
-// is recycled across statements, and per-registration SetFinalizer calls on
-// a recycled object race the GC sweep cycle (a special can outlive its
-// object through the pool drop at poolCleanup — the fatal "runtime.
+// is pooled and recycled across statements, and per-registration SetFinalizer
+// calls on a recycled object race the GC sweep cycle (a special can outlive
+// its object through the pool drop at poolCleanup — the fatal "runtime.
 // SetFinalizer: finalizer already set" on the next registration). The
 // finalizer reads c.regKey at run time; resetFor and Close zero the key, so
 // it unregisters nothing once the cursor left its registered life.
@@ -137,6 +134,25 @@ func (c *Cursor) resetFor(t *BTree) {
 	c.skipNext = 0
 	c.released = false
 	c.regKey = cursorTreeKey{}
+}
+
+// resetForPool clears the wrapper's per-tree state before it becomes
+// garbage. The wrapper is NOT returned to a pool (see the file header): a
+// recycled wrapper re-armed under a racing Close is the crash this package
+// guards against. It stays closed until a NewBTree reset re-arms a FRESH
+// wrapper. Kept name for the call sites' wording.
+func (t *BTree) resetForPool() {
+	probePool(t)
+	t.pager = nil
+	t.rootPage = 0
+	t.pageSize = 0
+	t.usableSize = 0
+	t.isTable = false
+	t.keyCompare = nil
+	t.isSchema = false
+	t.closed = true
+	t.cursors = nil
+	t.cellScratch = nil
 }
 
 // landingScratch returns the cursor's reusable parsed-header scratch,
