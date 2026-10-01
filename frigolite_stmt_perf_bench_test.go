@@ -12,28 +12,32 @@ import (
 	"github.com/pijalu/frigolite"
 )
 
-func benchBindOpen(b *testing.B) *frigolite.DB {
+func benchBindOpen(b *testing.B, schema string) *frigolite.DB {
 	b.Helper()
 	db, err := frigolite.Open(":memory:")
 	if err != nil {
 		b.Fatal(err)
 	}
 	b.Cleanup(func() { db.Close() })
-	if r := db.Exec("CREATE TABLE t(id INTEGER PRIMARY KEY, b INTEGER, c TEXT)"); r.Error != nil {
+	if r := db.Exec(schema); r.Error != nil {
 		b.Fatal(r.Error)
 	}
 	return db
 }
 
+// benchInsertSchema is the plain (non-IPK) insert-cost table: values grow
+// with b.N rescales, so the key must stay unique-free.
+const benchInsertSchema = "CREATE TABLE ins(a INTEGER, b INTEGER, c TEXT)"
+
 // BenchmarkStmtInsertLiteral measures one INSERT per call with a distinct
 // literal text (values vary → exact-statement cache misses, template-cache
 // clones).
 func BenchmarkStmtInsertLiteral(b *testing.B) {
-	db := benchBindOpen(b)
-	db.Exec("INSERT INTO t VALUES(1, 2, 'x')")
+	db := benchBindOpen(b, benchInsertSchema)
+	db.Exec("INSERT INTO ins VALUES(1, 2, 'x')")
 	b.ResetTimer()
 	for i := 0; i < b.N; i++ {
-		if r := db.Exec(fmt.Sprintf("INSERT INTO t VALUES(%d, %d, 'x%d')", i, i*2, i)); r.Error != nil {
+		if r := db.Exec(fmt.Sprintf("INSERT INTO ins VALUES(%d, %d, 'x%d')", i, i*2, i)); r.Error != nil {
 			b.Fatal(r.Error)
 		}
 	}
@@ -42,8 +46,8 @@ func BenchmarkStmtInsertLiteral(b *testing.B) {
 // BenchmarkStmtInsertBound measures the same INSERTs through a prepared
 // statement with positional arguments (parse once, bind per call).
 func BenchmarkStmtInsertBound(b *testing.B) {
-	db := benchBindOpen(b)
-	st, err := db.Prepare("INSERT INTO t VALUES(?, ?, ?)")
+	db := benchBindOpen(b, benchInsertSchema)
+	st, err := db.Prepare("INSERT INTO ins VALUES(?, ?, ?)")
 	if err != nil {
 		b.Fatal(err)
 	}
@@ -79,7 +83,7 @@ func benchBindLoad(b *testing.B, db *frigolite.DB, n int) {
 // BenchmarkStmtSelectLiteral measures an INTEGER PRIMARY KEY point SELECT
 // with a distinct literal text per call.
 func BenchmarkStmtSelectLiteral(b *testing.B) {
-	db := benchBindOpen(b)
+	db := benchBindOpen(b, "CREATE TABLE t(id INTEGER PRIMARY KEY, b INTEGER, c TEXT)")
 	const n = 20000
 	benchBindLoad(b, db, n)
 	b.ResetTimer()
@@ -94,7 +98,7 @@ func BenchmarkStmtSelectLiteral(b *testing.B) {
 // BenchmarkStmtSelectBound measures the same point SELECT through a prepared
 // statement with a bound argument.
 func BenchmarkStmtSelectBound(b *testing.B) {
-	db := benchBindOpen(b)
+	db := benchBindOpen(b, "CREATE TABLE t(id INTEGER PRIMARY KEY, b INTEGER, c TEXT)")
 	const n = 20000
 	benchBindLoad(b, db, n)
 	st, err := db.Prepare("SELECT b FROM t WHERE id = ?")
