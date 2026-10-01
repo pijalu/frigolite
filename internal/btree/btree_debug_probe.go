@@ -19,18 +19,38 @@ var (
 	debugProbeMu       sync.Mutex
 	debugProbeRegStack = map[*Cursor]string{} // cursor -> stack at registration
 	debugProbeLive     = map[*BTree]string{}  // wrapper -> stack at initFrom (live set)
+	debugProbePooled   = map[*BTree]string{}  // wrapper -> stack at last resetForPool (kept)
+	debugProbeInit     = map[*BTree]int{}     // wrapper -> times handed out
 )
+
+// DebugWrapperState renders a wrapper's probe history for diagnostics.
+func DebugWrapperState(t *BTree) string {
+	debugProbeMu.Lock()
+	defer debugProbeMu.Unlock()
+	live, isLive := debugProbeLive[t]
+	pooled, wasPooled := debugProbePooled[t]
+	inits := debugProbeInit[t]
+	s := fmt.Sprintf("wrapper %p: inits=%d closed=%v", t, inits, t.closed)
+	if isLive {
+		s += "\n--- live (acquired at):\n" + live
+	}
+	if wasPooled {
+		s += "\n--- last pooled at:\n" + pooled
+	}
+	return s
+}
 
 // debugProbeCheckAcquire asserts a pooled wrapper being re-armed is not
 // currently live (one Get per Put; a live wrapper must never be handed out).
 func debugProbeCheckAcquire(t *BTree) {
 	debugProbeMu.Lock()
-	prev, live := debugProbeLive[t]
-	if !live {
+	debugProbeInit[t]++
+	if _, live := debugProbeLive[t]; !live {
 		debugProbeLive[t] = debugStack(3)
 		debugProbeMu.Unlock()
 		return
 	}
+	prev := debugProbeLive[t]
 	debugProbeMu.Unlock()
 	panic(fmt.Sprintf("btree probe: WRAPPER %p HANDED OUT WHILE LIVE\n--- acquired at:\n%s--- re-acquired at:\n%s",
 		t, prev, debugStack(3)))
@@ -43,11 +63,13 @@ func debugProbeCheckPool(t *BTree) {
 	_, live := debugProbeLive[t]
 	if live {
 		delete(debugProbeLive, t)
+		debugProbePooled[t] = debugStack(3)
 		debugProbeMu.Unlock()
 		return
 	}
 	debugProbeMu.Unlock()
-	panic(fmt.Sprintf("btree probe: POOLING A WRAPPER THAT IS NOT LIVE (double Close/Put) %p\n--- pooled at:\n%s", t, debugStack(3)))
+	panic(fmt.Sprintf("btree probe: POOLING A WRAPPER THAT IS NOT LIVE (double Close/Put) %p\n--- last pooled at:\n%s--- now pooling at:\n%s",
+		t, debugProbePooled[t], debugStack(3)))
 }
 
 // debugStack renders a compact goroutine stack for probe messages.

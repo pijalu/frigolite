@@ -78,6 +78,9 @@ func (c *Cursor) cachePage() error {
 	if c.currentPg != nil && c.currentPg.PageNum == c.pageNum {
 		return nil // cache hit
 	}
+	if c.tx == nil || c.tx.pager == nil {
+		panic("btree probe: cachePage on wrapper without pager\n" + DebugWrapperState(c.tx) + "\ncursor at:\n" + debugStack(2))
+	}
 	pg, err := c.tx.pager.ReadPage(c.pageNum)
 	if err != nil {
 		return err
@@ -240,6 +243,9 @@ func (t *BTree) OpenCursor() (*Cursor, error) {
 func (c *Cursor) descendToFirstLeaf() error {
 	var sp storage.BTreePage
 	for {
+		if c.tx == nil || c.tx.pager == nil {
+			panic("btree probe: descend on wrapper without pager\n" + DebugWrapperState(c.tx) + "\ncursor at:\n" + debugStack(2))
+		}
 		pg, err := c.tx.pager.ReadPage(c.pageNum)
 		if err != nil {
 			c.endOfBTree = true
