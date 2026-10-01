@@ -1,6 +1,7 @@
 package exec
 
 import (
+	"math"
 	"strconv"
 	"strings"
 
@@ -16,11 +17,12 @@ import (
 // and execdml operate on their own copies.
 //
 // The walk consumes one cached value per literal slot in source order. ANY
-// deviation — an unknown node kind, a literal whose cached text is not the
-// canonical spelling of its normalized value, a value/count mismatch —
-// aborts the clone (ok=false) and the caller falls back to a full parse, so
-// a substituted AST is always identical to a fresh parse of the statement
-// text. (Statement-level walkers live in template_clone_stmt.go.)
+// deviation — an unknown node kind, a slot shape the value cannot reproduce
+// as a fresh parse would (folded unary-minus literals, hex, non-finite or
+// boundary REAL values), a value/count mismatch — aborts the clone
+// (ok=false) and the caller falls back to a full parse, so a substituted AST
+// is always identical to a fresh parse of the statement text.
+// (Statement-level walkers live in template_clone_stmt.go.)
 
 // cloneStmtsValues substitutes values into every statement of a cached
 // template. It returns (nil, false) when the template cannot serve the
@@ -324,41 +326,54 @@ func (c *exprClone) anyLiteral(original string) (sql.Expr, bool) {
 
 // numeric substitutes a numeric literal slot. SQLite distinguishes integer
 // from REAL literals (typeof/quote expose it), so a slot only serves values
-// of the same kind: an integer-shaped slot's text must have no '.'/'e' and a
-// float-shaped slot's text must be the canonical spelling of the value
-// (guards hex "0x1F", which normalizes to the value 0, and "1.50" vs "1.5").
+// of the same kind: an integer value into a decimal-integer slot, a REAL
+// value into a REAL slot ('.0' kept), a quoted-string value into any slot.
+// The gate exists because one normalized key can serve statements whose
+// parsed ASTs differ in shape, and the substitution must reproduce exactly
+// what a fresh parse of the current statement text produces:
+//
+//   - The parser folds the unary minus of a 2^63-magnitude decimal literal
+//     into the literal itself (rule 216, expr.c sqlite3ExprCodeInteger):
+//     "-9223372036854775808" becomes a single NumericLit, NOT UnaryOp{'-'}.
+//     Hex literals fold the same way ("-0x…"). A folded slot's text starts
+//     with '-' and never passes the slot-shape checks below, so any template
+//     whose statement folded refuses substitution and full-parses.
+//   - normalizeSQL extracts the UNSIGNED magnitude (the scan starts at the
+//     digits), and a 2^63-magnitude digit run extracts as float64 (int64
+//     overflow) — the very same float64 a "….0" spelling yields. A fresh
+//     parse of that text folds only for the integer spelling, so the exact
+//     double 2^63 is shape-ambiguous and refuses.
+//   - Hex spellings extract lossily (value 0, residual "x…" in the key);
+//     their slot text carries 'x'/'X' and never qualifies (hex digits
+//     include 'E', so a naive exponent check would admit "0xE8").
 func (c *exprClone) numeric(v *sql.NumericLit) (sql.Expr, bool) {
 	val, ok := c.next()
 	if !ok {
 		return nil, false
 	}
-	slotIsFloat := strings.ContainsAny(v.Value, ".eE")
 	switch n := val.(type) {
 	case int64:
-		if slotIsFloat {
+		// A fresh parse of the current text yields NumericLit{D} where D is
+		// an int64-range digit run (no fold is possible at these magnitudes);
+		// the canonical rendering has the same value and kind, leading zeros
+		// included (SQLite numerals are decimal, never octal).
+		if !isDecimalSlot(v.Value) {
 			return nil, false
 		}
-		return c.numericValue(int64Text(n), v.Value)
+		return &sql.NumericLit{Value: int64Text(n)}, true
 	case float64:
-		if !slotIsFloat {
+		// Slot must be a decimal REAL spelling; the value must be finite and
+		// not the ambiguous 2^63 double (see above).
+		if !isRealSlot(v.Value) || math.IsInf(n, 0) || math.IsNaN(n) || n == twoPow63 {
 			return nil, false
 		}
-		return c.numericValue(floatText(n), v.Value)
+		return &sql.NumericLit{Value: floatSlotText(n)}, true
 	case string:
 		// The slot is spelled with a quoted literal this time; the fresh
 		// parse of that text carries a StringLit.
 		return &sql.StringLit{Value: n}, true
 	}
 	return nil, false
-}
-
-// numericValue validates that the slot's original text is the canonical
-// spelling of the new value before building the fresh literal.
-func (c *exprClone) numericValue(canonical, original string) (sql.Expr, bool) {
-	if canonical != original {
-		return nil, false
-	}
-	return &sql.NumericLit{Value: original}, true
 }
 
 // next consumes the next cached value.
@@ -582,5 +597,40 @@ func (c *exprClone) assignments(assigns []sql.Assignment) (_ []sql.Assignment, c
 // int64Text renders an integer template value canonically.
 func int64Text(v int64) string { return strconv.FormatInt(v, 10) }
 
-// floatText renders a float template value canonically.
-func floatText(v float64) string { return strconv.FormatFloat(v, 'g', -1, 64) }
+// twoPow63 is 2^63 as a float64: the one numeric value whose normalized
+// spelling is ambiguous between a unary-minus integer literal the parser
+// FOLDS ("-9223372036854775808") and a plain REAL spelling
+// ("-9223372036854775808.0"). Substitution refuses it.
+const twoPow63 = float64(1 << 63)
+
+// floatSlotText renders a float template value canonically, restoring the
+// decimal point 'g' formatting drops so the slot stays REAL (5.0, not 5).
+func floatSlotText(v float64) string {
+	s := strconv.FormatFloat(v, 'g', -1, 64)
+	if !strings.ContainsAny(s, ".eE") {
+		s += ".0" // keep the REAL kind
+	}
+	return s
+}
+
+// isDecimalSlot reports whether text is a plain decimal integer spelling —
+// digits only. Signed ("-…", the parser's folded forms), hex ("0x…"), and
+// REAL ("…./…e…") slot texts all contain a non-digit and refuse.
+func isDecimalSlot(text string) bool {
+	if text == "" {
+		return false
+	}
+	for i := 0; i < len(text); i++ {
+		if text[i] < '0' || text[i] > '9' {
+			return false
+		}
+	}
+	return true
+}
+
+// isRealSlot reports whether text is a decimal REAL spelling (contains '.'
+// or an exponent, never 'x'/'X'). Hex digits include 'E', so the exponent
+// check alone would admit a hex slot like "0xE8"; hex is excluded first.
+func isRealSlot(text string) bool {
+	return !strings.ContainsAny(text, "xX") && strings.ContainsAny(text, ".eE")
+}

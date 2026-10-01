@@ -6,6 +6,37 @@
 > followed by the current T33 session sections. Consult the archive for
 > closed-goal specifics (also in plan/goals/*.md and portplan/NA_EVIDENCE.md).
 
+## PERF.PARITY-tplgate — template-cache same-kind substitution vs the parser's minus fold (fleet/perf-parity-tplgate, 2026-10-01)
+
+- **One normalized key can serve statements whose parsed ASTs differ in
+  shape; substitution must reproduce a fresh parse, not the stored
+  template.** normalizeSQL replaces literals with '?' and extracts the
+  UNSIGNED magnitude (the scan starts at the digits), so `f(-2^63)`,
+  `f(-123)` and `f(-1.5)` all share the key `f(-?)` — but the parser FOLDS
+  the unary minus of a 2^63-magnitude decimal literal into the literal
+  itself (rule 216, expr.c sqlite3ExprCodeInteger: "-9223372036854775808"
+  is one NumericLit, NOT UnaryOp{'-'}; hex folds too), while smaller
+  magnitudes keep UnaryOp. Cloning the stored shape under a different
+  value dropped or duplicated the sign (first attempt: -2147483648 became
+  +2147483648, tointeger(-2^63) became NULL). The gate now refuses any
+  slot text beginning '-' (folded), the exact double 2^63 (extractable
+  from BOTH a folding integer spelling and a non-folding "....0" spelling
+  — shape-ambiguous), hex slots ('x'/'X'; hex digits include 'E', so a
+  naive exponent check admits "0xE8"), non-finite floats, and kind
+  crossings; everything else substitutes same-kind (int -> digit-only
+  slot, real -> '.'/'e' slot with '.0' restored, string -> any).
+- **Oracle rendering drift: system sqlite3 3.54 prints shortest-round-trip
+  doubles, frigolite mirrors classic %.15g.** Cell-parity tests must
+  re-render the oracle's parsed value through util.FormatSQLiteReal and
+  compare text, not ParseFloat both sides (15-digit strings need not
+  round-trip to the same double).
+- **Fresh worktrees fail TestSQLiteSuite en masse (~4.5k subtests,
+  "no such table: t1") from harness shared-state/ordering, and
+  TestBackupConformance needs generated testdata/backupconformance
+  fixtures that are not committed.** A/B against a pristine origin/main
+  worktree before attributing anything to a change; failure sets differ
+  run-to-run at the 20-30-subtest level on identical code.
+
 ## PERF.PARITY-memofix — pager-memo poisoning + index-decode tails (fleet/perf-parity-memofix, 2026-10-01)
 
 - **A memo validated only against the BYTES it parsed cannot see Go-side
