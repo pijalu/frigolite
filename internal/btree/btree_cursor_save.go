@@ -63,6 +63,7 @@ var (
 // The key rides on the cursor so the finalizer can be a static function —
 // a per-registration closure would allocate on every OpenCursor.
 func registerTreeCursor(key cursorTreeKey, c *Cursor) {
+	debugProbeCheckRegistration(c)
 	c.regKey = key
 	cursorRegMu.Lock()
 	defer cursorRegMu.Unlock()
@@ -124,6 +125,9 @@ func (t *BTree) Close() {
 		for _, c := range owned {
 			c.released = true
 			runtime.SetFinalizer(c, nil)
+			debugProbeMu.Lock()
+			delete(debugProbeRegStack, c)
+			debugProbeMu.Unlock()
 			// Unregister under the key the cursor was REGISTERED under,
 			// not the wrapper's current (pager, rootPage): schemaCursor
 			// opens a schema-keyed cursor on a user-tree wrapper while its

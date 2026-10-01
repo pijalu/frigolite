@@ -216,6 +216,7 @@ func (t *BTree) OpenCursor() (*Cursor, error) {
 	if err := c.descendToFirstLeaf(); err != nil {
 		// The cursor was never registered (that happens below on success);
 		// recycle it instead of leaking it to the collector.
+		debugProbeCheckRelease(c)
 		c.resetFor(t)
 		t.cursorFree = append(t.cursorFree, c)
 		return nil, err
