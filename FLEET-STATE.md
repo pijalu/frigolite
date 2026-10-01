@@ -856,3 +856,22 @@ point 6.4x, scan 6.0x, group 4.4x, update 12.7x, delete 18.9x.
 Plan: fresh 6-phase CPU+alloc campaign; parallel fleet tranches
 (per-statement pipeline; scan/decode throughput); coordinator fixes on
 identified frames; iterate merges + re-profile; suites + census at end.
+
+## PERF-PARITY (during) — 5 of 6 tranches merged
+
+Merged: api b4b672465 (root-layer allocs -73%, wall 4-6%), expr
+b3ccd8bfa (typed arith/compare/concat fast paths, expr SELECT 1.16x,
+77/77 suites), wrappers 9cb942f92 (btree wrapper+cursor pooling, lockKey
+memo, normalizeSQL scratch; registry-key bug found+fixed en route;
+point -8.2% allocs 1.12-1.25x, INSERT -14.9%), pager 08b045049
+(ParsePage memo w/ byte-fingerprint invalidation, dirty-set reuse,
+split encode arena; point in-slice allocs -41%, insert -28%, +8-12%),
+group b9dcf469b (group/ORDER BY invariant hoisting +11%).
+Review-audit fixes 4db5f10eb (P1 INSERT template kind coercion — silent
+wrong persisted type, pre-existing; P2 seek saved-state reset + missing
+checkOpen; probes ported as committed tests).
+Full bench on main: insert 191k ops/s (6.6x), point 136k (6.1x), scan
+9.49M rows/s (5.5x), group 28, update 84k (11.4x), delete 91k (+40%
+this round; 13.6x), file autocommit 1.9x FASTER than sqlite3.
+In flight: fleet/perf-parity-posrows (resume agent adjudicating
+predecessor WIP — positional DML row collection).
