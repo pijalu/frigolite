@@ -29,33 +29,8 @@ type delSpan struct {
 // handled=false declines the fast path (the caller falls back to
 // deleteAllMatchingFromLeaf); a non-nil error is real and propagates.
 func (t *BTree) deleteSingleTableRowID(leafNum uint32, idx int, rowID int64) (handled bool, n int64, err error) {
-	pg, err := t.pager.ReadPage(leafNum)
-	if err != nil {
-		return false, 0, nil // the generic path re-reads and surfaces the error
-	}
-	coff := contentOffset(pg.PageNum)
-	page, err := storage.ParsePage(pg.Data, int(t.pageSize), coff)
-	if err != nil {
-		return false, 0, nil
-	}
-	if page.PageType != storage.PageTypeLeafTable {
-		return false, 0, nil
-	}
-	if idx < 0 || idx >= int(page.CellCount) {
-		return false, 0, nil
-	}
-	// Physical duplicate rowids on one leaf (corrupt/legacy image): the
-	// generic predicate deletes ALL matches, so keep its semantics by
-	// declining. The cursor seek lands on the FIRST match, so checking the
-	// next pointer suffices.
-	if idx+1 < int(page.CellCount) && t.tableLeafRowidAt(pg, coff, idx+1) == rowID {
-		return false, 0, nil
-	}
-	delOff := int(storage.CellPointer(pg.Data, coff, idx, int(t.pageSize)))
-	var delCell storage.Cell
-	if derr := storage.DecodeCellInto(pg.Data, delOff, storage.CellTableLeaf, int(t.usableSize), &delCell); derr != nil {
-		// A malformed target cell is kept by the generic path (decode-failed
-		// cells never match the predicate) — let it run.
+	pg, page, coff, delCell, ok := t.pointDeleteTarget(leafNum, idx, rowID)
+	if !ok {
 		return false, 0, nil
 	}
 	spans, ok := t.survivorSpans(pg, coff, page, idx)
@@ -75,6 +50,40 @@ func (t *BTree) deleteSingleTableRowID(leafNum uint32, idx int, rowID int64) (ha
 		return false, 0, err
 	}
 	return true, 1, nil
+}
+
+// pointDeleteTarget resolves the fast path's preconditions on the target
+// leaf: a parseable table leaf holding a well-formed cell at idx, with no
+// duplicate of the same rowid after it (the generic predicate deletes ALL
+// matches on the leaf; the cursor seek lands on the FIRST match, so checking
+// the next pointer suffices). ok=false declines the fast path.
+func (t *BTree) pointDeleteTarget(leafNum uint32, idx int, rowID int64) (*pager.Page, *storage.BTreePage, int, storage.Cell, bool) {
+	var delCell storage.Cell
+	pg, err := t.pager.ReadPage(leafNum)
+	if err != nil {
+		return nil, nil, 0, delCell, false // the generic path re-reads and surfaces the error
+	}
+	coff := contentOffset(pg.PageNum)
+	page, err := storage.ParsePage(pg.Data, int(t.pageSize), coff)
+	if err != nil {
+		return nil, nil, 0, delCell, false
+	}
+	if page.PageType != storage.PageTypeLeafTable {
+		return nil, nil, 0, delCell, false
+	}
+	if idx < 0 || idx >= int(page.CellCount) {
+		return nil, nil, 0, delCell, false
+	}
+	if idx+1 < int(page.CellCount) && t.tableLeafRowidAt(pg, coff, idx+1) == rowID {
+		return nil, nil, 0, delCell, false
+	}
+	delOff := int(storage.CellPointer(pg.Data, coff, idx, int(t.pageSize)))
+	if derr := storage.DecodeCellInto(pg.Data, delOff, storage.CellTableLeaf, int(t.usableSize), &delCell); derr != nil {
+		// A malformed target cell is kept by the generic path (decode-failed
+		// cells never match the predicate) — let it run.
+		return nil, nil, 0, delCell, false
+	}
+	return pg, page, coff, delCell, true
 }
 
 // survivorSpans collects the raw byte range of every cell except skip, in

@@ -22,27 +22,33 @@ import (
 )
 
 // pointUpdateEligible reports the statement shape the fast path rewrites
-// exactly: a plain (no OR clause, no RETURNING, no ORDER BY/LIMIT, no FROM,
-// no multi-column SET) UPDATE of an ordinary rowid table without triggers,
-// FK enforcement, per-constraint ON CONFLICT clauses, or generated columns,
-// whose SET targets are ordinary columns.
+// exactly (the clause-level shape plus the target-table gates).
 func (e *DMLExecutor) pointUpdateEligible(s *sql.UpdateStmt, tableEntry *schema.Entry, colDefs []sql.ColumnDef) bool {
+	return pointUpdateStatementShapeOK(s) &&
+		e.pointUpdateTargetOK(s, tableEntry, colDefs)
+}
+
+// pointUpdateStatementShapeOK reports the clause-level shape: a plain
+// statement (no OR clause, no RETURNING, no ORDER BY/LIMIT) over the target
+// table only (no FROM), with the single SET list form.
+func pointUpdateStatementShapeOK(s *sql.UpdateStmt) bool {
 	if s.OnConflict != "" || s.HasReturning || len(s.OrderBy) > 0 || s.Limit != nil {
 		return false
 	}
 	if s.From.Name != "" || s.From.Subquery != nil || len(s.FromJoins) > 0 {
 		return false
 	}
-	if len(s.SetParenColumns) > 0 {
-		return false
-	}
+	return len(s.SetParenColumns) == 0
+}
+
+// pointUpdateTargetOK reports the target-table gates: an ordinary rowid
+// table without triggers, FK enforcement, per-constraint ON CONFLICT
+// clauses, or generated columns, whose SET targets are ordinary columns.
+func (e *DMLExecutor) pointUpdateTargetOK(s *sql.UpdateStmt, tableEntry *schema.Entry, colDefs []sql.ColumnDef) bool {
 	if tableIsWithoutRowid(tableEntry.SQL) {
 		return false
 	}
-	if e.hasTriggersForTable(tableEntry.Name) {
-		return false
-	}
-	if e.ctx.ForeignKeys() {
+	if e.hasTriggersForTable(tableEntry.Name) || e.ctx.ForeignKeys() {
 		return false
 	}
 	if hasColumnConflictClauses(colDefs, tableEntry, e) {
@@ -53,9 +59,16 @@ func (e *DMLExecutor) pointUpdateEligible(s *sql.UpdateStmt, tableEntry *schema.
 			return false
 		}
 	}
-	// SET targets must resolve to ordinary declared columns: a rowid/IPK
-	// target re-keys the row (rowidMoveConflict, delete+reinsert at a new
-	// rowid) — the fast path does not handle it.
+	return e.pointUpdateSetTargetsOK(s, colDefs)
+}
+
+// pointUpdateSetTargetsOK reports whether every SET target resolves to an
+// ordinary declared column (a rowid/IPK target re-keys the row —
+// rowidMoveConflict, delete+reinsert at a new rowid — which the fast path
+// does not handle), and the pinned rowid equality is the WHOLE WHERE clause
+// (the seek's hit then matches by construction and the clause needs no
+// evaluation).
+func (e *DMLExecutor) pointUpdateSetTargetsOK(s *sql.UpdateStmt, colDefs []sql.ColumnDef) bool {
 	colIndex := e.columnIndexFor(colDefs)
 	for _, a := range s.Assignments {
 		ci, ok := colIndex[strings.ToLower(a.Column)]
@@ -63,8 +76,6 @@ func (e *DMLExecutor) pointUpdateEligible(s *sql.UpdateStmt, tableEntry *schema.
 			return false
 		}
 	}
-	// The pinned rowid equality must be the WHOLE WHERE clause: the seek's
-	// hit then matches by construction and the clause needs no evaluation.
 	return len(splitAndTerms(s.Where)) == 1
 }
 

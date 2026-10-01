@@ -48,17 +48,24 @@ func (e *DMLExecutor) execPointDelete(s *sql.DeleteStmt, tableEntry *schema.Entr
 	// exactly as execDeleteBulk opens it for every statement.
 	stmt := dbCtx.Pager.BeginStatement()
 	defer dbCtx.Pager.EndStatement(stmt)
+	return e.finishPointDelete(tableEntry, dbCtx, colDefs, tree, plan.rowid)
+}
 
+// finishPointDelete seeks the pinned rowid, deletes the row, and runs the
+// same per-row steps execDeleteBulk does (index maintenance, preupdate hook,
+// rowid-cache invalidate). handled=false falls back to the generic pipeline
+// (a fetch anomaly or a progress interrupt the scan path surfaces itself).
+func (e *DMLExecutor) finishPointDelete(tableEntry *schema.Entry, dbCtx *DatabaseContext, colDefs []sql.ColumnDef, tree *btree.BTree, rowID int64) (*Result, bool) {
 	// SQLITE_TEST interrupt countdown: one op per row examined
 	// (src/vdbe.c per-opcode decrement of sqlite3_interrupt_count).
 	if err := e.ctx.CheckProgress(); err != nil {
-		return nil, false // the scan path surfaces progress errors itself
+		return nil, false
 	}
 	cursor, err := tree.OpenCursor()
 	if err != nil {
 		return nil, false // anomaly: generic pipeline
 	}
-	found, serr := cursor.SeekToRowID(plan.rowid)
+	found, serr := cursor.SeekToRowID(rowID)
 	if serr != nil {
 		return nil, false // anomaly: generic pipeline
 	}
@@ -68,24 +75,11 @@ func (e *DMLExecutor) execPointDelete(s *sql.DeleteStmt, tableEntry *schema.Entr
 		e.ctx.InvalidateRowIDCache(e.dmlPager(tableEntry.Name), tableEntry.RootPage)
 		return &Result{}, true
 	}
-	payload, realRowID, rerr := cursor.ReadCellData()
-	if rerr != nil {
+	row, ok := e.decodePointDeleteRow(tableEntry, colDefs, cursor)
+	if !ok {
 		return nil, false // anomaly: generic pipeline
 	}
-	rec, derr := storage.DecodeRecord(payload)
-	if derr != nil || rec == nil {
-		return nil, false // anomaly: generic pipeline
-	}
-
-	// The row's positional snapshot (dropped-column re-alignment, added-column
-	// DEFAULTs, INTEGER PRIMARY KEY rowid-alias substitution) — the same
-	// raw values the generic collect retains for the preupdate hook and the
-	// index-maintenance keys.
-	rowPlan := e.ctx.NewDMLRowPlan(colDefs, nil, nil)
-	values := e.ctx.DMLRowSnapshot(rowPlan, rec.Values, len(rec.Values), realRowID)
-	row := &dmlRow{plan: rowPlan, values: values, valueCount: len(rec.Values), rowID: realRowID}
-
-	if _, err := tree.DeleteCellByRowID(realRowID); err != nil {
+	if _, err := tree.DeleteCellByRowID(row.rowID); err != nil {
 		return &Result{Error: err}, true
 	}
 	if err := e.maintainIndexesOnDelete(tableEntry, colDefs, []*dmlRow{row}); err != nil {
@@ -96,6 +90,25 @@ func (e *DMLExecutor) execPointDelete(s *sql.DeleteStmt, tableEntry *schema.Entr
 	}
 	e.ctx.InvalidateRowIDCache(e.dmlPager(tableEntry.Name), tableEntry.RootPage)
 	return &Result{Changes: 1}, true
+}
+
+// decodePointDeleteRow reads the seeked cell and builds the row's positional
+// snapshot (dropped-column re-alignment, added-column DEFAULTs, INTEGER
+// PRIMARY KEY rowid-alias substitution) — the same raw values the generic
+// collect retains for the preupdate hook and the index-maintenance keys.
+// ok=false reports a fetch anomaly (the caller falls back).
+func (e *DMLExecutor) decodePointDeleteRow(tableEntry *schema.Entry, colDefs []sql.ColumnDef, cursor *btree.Cursor) (*dmlRow, bool) {
+	payload, realRowID, err := cursor.ReadCellData()
+	if err != nil {
+		return nil, false
+	}
+	rec, derr := storage.DecodeRecord(payload)
+	if derr != nil || rec == nil {
+		return nil, false
+	}
+	rowPlan := e.ctx.NewDMLRowPlan(colDefs, nil, nil)
+	values := e.ctx.DMLRowSnapshot(rowPlan, rec.Values, len(rec.Values), realRowID)
+	return &dmlRow{plan: rowPlan, values: values, valueCount: len(rec.Values), rowID: realRowID}, true
 }
 
 // pointDeleteEligible reports the statement shape the fast path rewrites
