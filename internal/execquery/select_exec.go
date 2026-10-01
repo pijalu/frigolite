@@ -16,21 +16,21 @@ import (
 // result finalization. Extracted from select.go for file-level SRP.
 
 // execSelectScanPhase runs the table scan, WITHOUT ROWID PK ordering, and
-// system-table filtering, returning the scanned rows, row maps, and any error.
-// feed is the statement's simple-aggregate feed (nil when the statement keeps
-// the generic aggregate path).
-func (e *SelectEngine) execSelectScanPhase(s *sql.SelectStmt, cursor *btree.Cursor, colDefs []sql.ColumnDef, tableEntry *schema.Entry, feed *simpleAggFeed) ([][]interface{}, []RowMap, error) {
+// system-table filtering, returning the scanned rows, row maps, positional
+// aggregate rows (non-nil only in positional-aggregate mode; its row maps are
+// empty then), and any error.
+func (e *SelectEngine) execSelectScanPhase(s *sql.SelectStmt, cursor *btree.Cursor, colDefs []sql.ColumnDef, tableEntry *schema.Entry, feed *simpleAggFeed) ([][]interface{}, []RowMap, []Row, error) {
 	needMaps, withoutRowidPKCols := e.prepareScanOutputs(s, tableEntry, colDefs)
-	allRows, allRowMaps, err := e.scanTableRowsWithSQL(cursor, s, colDefs, needMaps, tableEntry.SQL, feed)
+	allRows, allRowMaps, aggRows, err := e.scanTableRowsWithSQL(cursor, s, colDefs, needMaps, tableEntry.SQL, feed, e.allowPositionalAggRows(s, tableEntry, withoutRowidPKCols))
 	if err != nil {
-		return nil, nil, err
+		return nil, nil, nil, err
 	}
 	if len(withoutRowidPKCols) > 0 && len(allRowMaps) > 0 {
 		sortRowMapsByPKNames(allRowMaps, withoutRowidPKCols)
 		for i := range allRows {
 			row, err := e.buildOutputRow(s.Columns, colDefs, allRowMaps[i])
 			if err != nil {
-				return nil, nil, err
+				return nil, nil, nil, err
 			}
 			allRows[i] = row
 		}
@@ -38,7 +38,7 @@ func (e *SelectEngine) execSelectScanPhase(s *sql.SelectStmt, cursor *btree.Curs
 	if IsSchemaTable(tableEntry.Name) && len(allRowMaps) > 0 {
 		allRows, allRowMaps = e.filterSystemTables(allRows, allRowMaps, colDefs)
 	}
-	return allRows, allRowMaps, nil
+	return allRows, allRowMaps, aggRows, nil
 }
 
 // prepareScanOutputs computes whether the scan must build row maps and the
@@ -65,8 +65,11 @@ func (e *SelectEngine) prepareScanOutputs(s *sql.SelectStmt, tableEntry *schema.
 
 // execSelectPostScan processes scanned rows: outer-row aggregates, correlated
 // aggregates, joins, regular aggregates, and result construction + finalization.
-func (e *SelectEngine) execSelectPostScan(s *sql.SelectStmt, allRows [][]interface{}, allRowMaps []RowMap, colDefs []sql.ColumnDef) *Result {
-	if len(e.outerRows) > 0 && e.hasAggregates(s.Columns) {
+// aggRows carries the scan's positional-aggregate rows (nil outside
+// positional-aggregate mode; the aggregate passes take them in preference to
+// the row maps).
+func (e *SelectEngine) execSelectPostScan(s *sql.SelectStmt, allRows [][]interface{}, allRowMaps []RowMap, aggRows []Row, colDefs []sql.ColumnDef) *Result {
+	if len(e.OuterRows()) > 0 && e.hasAggregates(s.Columns) {
 		if result := e.execSelectOuterAgg(s, allRowMaps, colDefs); result != nil {
 			return result
 		}
@@ -79,8 +82,9 @@ func (e *SelectEngine) execSelectPostScan(s *sql.SelectStmt, allRows [][]interfa
 		if allRows, allRowMaps, colDefs, err = e.execSelectJoins(s, allRowMaps, colDefs); err != nil {
 			return &Result{Error: err}
 		}
+		aggRows = nil // the join rebuilt the rows as maps
 	}
-	if result := e.handleSelectAggregates(s, allRowMaps, colDefs); result != nil {
+	if result := e.handleSelectAggregates(s, allRowMaps, aggRows, colDefs); result != nil {
 		return result
 	}
 	// Window-function pass: runs over the post-WHERE/JOIN/GROUP-BY row set
@@ -260,16 +264,16 @@ func (e *SelectEngine) execRealTableSelect(s *sql.SelectStmt) *Result {
 		if feed != nil {
 			return e.finishSimpleAggFeed(s, feed, colDefs)
 		}
-		return e.execSelectPostScan(s, rows, rowMaps, colDefs)
+		return e.execSelectPostScan(s, rows, rowMaps, nil, colDefs)
 	}
-	allRows, allRowMaps, scanErr := e.scan.ScanTable(s, tableEntry, colDefs, cursor, feed)
+	allRows, allRowMaps, aggRows, scanErr := e.scan.ScanTable(s, tableEntry, colDefs, cursor, feed)
 	if scanErr != nil {
 		return &Result{Error: scanErr}
 	}
 	if feed != nil {
 		return e.finishSimpleAggFeed(s, feed, colDefs)
 	}
-	return e.execSelectPostScan(s, allRows, allRowMaps, colDefs)
+	return e.execSelectPostScan(s, allRows, allRowMaps, aggRows, colDefs)
 }
 
 // execSelectPrevalidate runs the pre-scan validation for a real-table SELECT:
@@ -397,7 +401,7 @@ func (e *SelectEngine) execSelectPrevalidate(s *sql.SelectStmt, tableEntry *sche
 		return e.execSelectVtab(s, tableEntry, colDefs), colDefs
 	}
 	// OR-index optimization.
-	if len(s.Joins) == 0 && s.Where != nil && e.outerRow == nil && len(e.outerRows) == 0 && !e.ctx.ReverseUnordered() {
+	if len(s.Joins) == 0 && s.Where != nil && e.outerRow == nil && len(e.OuterRows()) == 0 && !e.ctx.ReverseUnordered() {
 		if branches, ok := e.ctx.PlanOrIndexScan(s.Where, tableEntry.Name, colDefs, dbCtx); ok {
 			return e.ctx.ExecSelectWithOrPlan(s, tableEntry, dbCtx, colDefs, branches), colDefs
 		}
@@ -574,7 +578,7 @@ func (e *SelectEngine) applyOuterToViewResult(s *sql.SelectStmt, viewEntry *sche
 	if jerr != nil {
 		return &Result{Error: jerr}
 	}
-	if aggResult := e.handleSelectAggregates(s, rowMaps, viewColDefs); aggResult != nil {
+	if aggResult := e.handleSelectAggregates(s, rowMaps, nil, viewColDefs); aggResult != nil {
 		return aggResult
 	}
 	// Window-function pass: runs over the post-WHERE/JOIN/GROUP-BY row set
@@ -651,7 +655,7 @@ func (e *SelectEngine) validateNoFromSelect(s *sql.SelectStmt, columns []string)
 // isTriggerRowRef (resolved against the trigger row's columns, triggerB-2.2:
 // an unrecognized name inside a trigger body still errors "no such column").
 func (e *SelectEngine) validateNoFromRefsAndRaise(s *sql.SelectStmt) error {
-	if e.outerRow == nil && len(e.outerRows) == 0 {
+	if e.outerRow == nil && len(e.OuterRows()) == 0 {
 		if err := e.validateNoFromColumnRefs(s); err != nil {
 			return err
 		}
@@ -677,8 +681,8 @@ var errUndeterminedCTEWidth = fmt.Errorf("__undetermined_cte_width__")
 // evalNoFromRow evaluates the output row for a FROM-less SELECT: aggregates
 // over outer rows when applicable, or each column expression individually.
 func (e *SelectEngine) evalNoFromRow(s *sql.SelectStmt) ([]interface{}, error) {
-	if len(e.outerRows) > 0 && e.hasAggregates(s.Columns) && e.aggHasColumnRef(s.Columns) {
-		return e.evalAggOverOuterRows(s, e.outerRows), nil
+	if len(e.OuterRows()) > 0 && e.hasAggregates(s.Columns) && e.aggHasColumnRef(s.Columns) {
+		return e.evalAggOverOuterRows(s, e.OuterRows()), nil
 	}
 	var outRow []interface{}
 	for _, col := range s.Columns {

@@ -54,13 +54,13 @@ func (e *SelectEngine) lastMinMaxAggregate(columns []sql.SelectColumn) *minMaxAg
 // extreme value (the first row on ties). When every argument is NULL the
 // aggregate yields NULL and bare columns take the last row, matching SQLite.
 // Returns -1 when rows is empty.
-func (e *SelectEngine) minMaxSourceRow(mm *minMaxAggregate, rowMaps []RowMap) int {
-	if len(rowMaps) == 0 {
+func (e *SelectEngine) minMaxSourceRow(mm *minMaxAggregate, rows []Row) int {
+	if len(rows) == 0 {
 		return -1
 	}
 	bestIdx := -1
 	var bestVal interface{}
-	for i, row := range rowMaps {
+	for i, row := range rows {
 		// FILTER (WHERE ...) excludes rows from the aggregate entirely:
 		// a filtered-out row can never be the row that produced the
 		// extreme value (filter1-3.3).
@@ -84,13 +84,13 @@ func (e *SelectEngine) minMaxSourceRow(mm *minMaxAggregate, rowMaps []RowMap) in
 		if mm.filter != nil {
 			return 0
 		}
-		return len(rowMaps) - 1
+		return len(rows) - 1
 	}
 	return bestIdx
 }
 
 // minMaxRowPassesFilter evaluates the aggregate's FILTER clause.
-func (e *SelectEngine) minMaxRowPassesFilter(mm *minMaxAggregate, row RowMap) bool {
+func (e *SelectEngine) minMaxRowPassesFilter(mm *minMaxAggregate, row Row) bool {
 	if mm.filter == nil {
 		return true
 	}
@@ -100,7 +100,7 @@ func (e *SelectEngine) minMaxRowPassesFilter(mm *minMaxAggregate, row RowMap) bo
 
 // minMaxRowValue evaluates the aggregate argument for one row, unwrapped
 // (nil on error or NULL).
-func (e *SelectEngine) minMaxRowValue(mm *minMaxAggregate, row RowMap) interface{} {
+func (e *SelectEngine) minMaxRowValue(mm *minMaxAggregate, row Row) interface{} {
 	val, err := e.ctx.EvalExpr(mm.arg, row)
 	if err != nil || val == nil {
 		return nil
@@ -127,18 +127,18 @@ func (e *SelectEngine) lastMinMaxAggregateFor(s *sql.SelectStmt) *minMaxAggregat
 // reorderRowsForMinMaxSource is reorderRowsForMinMax with the statement's
 // min/max aggregate pre-resolved (per-group callers hoist the resolution out
 // of their loop).
-func (e *SelectEngine) reorderRowsForMinMaxSource(mm *minMaxAggregate, rowMaps []RowMap) []RowMap {
-	if mm == nil || len(rowMaps) <= 1 {
-		return rowMaps
+func (e *SelectEngine) reorderRowsForMinMaxSource(mm *minMaxAggregate, rows []Row) []Row {
+	if mm == nil || len(rows) <= 1 {
+		return rows
 	}
-	idx := e.minMaxSourceRow(mm, rowMaps)
+	idx := e.minMaxSourceRow(mm, rows)
 	if idx <= 0 {
-		return rowMaps
+		return rows
 	}
-	rows := make([]RowMap, len(rowMaps))
-	copy(rows, rowMaps)
-	rows[0], rows[idx] = rows[idx], rows[0]
-	return rows
+	reordered := make([]Row, len(rows))
+	copy(reordered, rows)
+	reordered[0], reordered[idx] = reordered[idx], reordered[0]
+	return reordered
 }
 
 // reorderRowsForMinMax moves the row that produced the last min/max aggregate
@@ -147,8 +147,8 @@ func (e *SelectEngine) reorderRowsForMinMaxSource(mm *minMaxAggregate, rowMaps [
 // columns and the HAVING clause (a bare output column paired with
 // "HAVING max(x) ..." takes the row that produced the max, matching SQLite).
 // Returns the reordered slice (a copy is not made unless reordering is needed).
-func (e *SelectEngine) reorderRowsForMinMax(s *sql.SelectStmt, rowMaps []RowMap) []RowMap {
-	return e.reorderRowsForMinMaxSource(e.lastMinMaxAggregateFor(s), rowMaps)
+func (e *SelectEngine) reorderRowsForMinMax(s *sql.SelectStmt, rows []Row) []Row {
+	return e.reorderRowsForMinMaxSource(e.lastMinMaxAggregateFor(s), rows)
 }
 
 // aggregateName returns the name of the first aggregate function found in the

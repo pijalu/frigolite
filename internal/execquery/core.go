@@ -47,9 +47,11 @@ func (j *JoinExecutor) ExecFrom(s *sql.SelectStmt) (*Result, bool) {
 
 // --- AggregateEvaluator public surface (SOLID-04) ---
 
-// EvalAggregates evaluates aggregate queries over the scanned row maps.
-func (a *AggregateEvaluator) EvalAggregates(s *sql.SelectStmt, rowMaps []RowMap, colDefs []sql.ColumnDef) *Result {
-	return a.engine.evalAggregates(s, rowMaps, colDefs)
+// EvalAggregates evaluates aggregate queries over the scanned rows
+// (positional Row handles; name-keyed maps materialize only where a
+// consumer demands them).
+func (a *AggregateEvaluator) EvalAggregates(s *sql.SelectStmt, rows []Row, colDefs []sql.ColumnDef) *Result {
+	return a.engine.evalAggregates(s, rows, colDefs)
 }
 
 // --- SelectValidator public surface (SOLID-05) ---
@@ -62,11 +64,12 @@ func (v *SelectValidator) ValidateExprs(s *sql.SelectStmt) error {
 // --- TableScanner public surface (SOLID-06) ---
 
 // ScanTable scans a base table's rows (fast StructRow path) returning the
-// flat rows, the per-row maps, and an error. colDefs must be the resolved
-// column definitions for the table; tableEntry the schema entry; cursor the
-// open B-tree cursor positioned for the scan; feed the statement's
-// simple-aggregate feed (nil for the generic path).
-func (t *TableScanner) ScanTable(s *sql.SelectStmt, tableEntry *schema.Entry, colDefs []sql.ColumnDef, cursor *btree.Cursor, feed *simpleAggFeed) ([][]interface{}, []RowMap, error) {
+// flat rows, the per-row maps, the positional-aggregate rows (non-nil only
+// in positional-aggregate mode; its row maps stay empty then), and an error.
+// colDefs must be the resolved column definitions for the table; tableEntry
+// the schema entry; cursor the open B-tree cursor positioned for the scan;
+// feed the statement's simple-aggregate feed (nil for the generic path).
+func (t *TableScanner) ScanTable(s *sql.SelectStmt, tableEntry *schema.Entry, colDefs []sql.ColumnDef, cursor *btree.Cursor, feed *simpleAggFeed) ([][]interface{}, []RowMap, []Row, error) {
 	return t.engine.execSelectScanPhase(s, cursor, colDefs, tableEntry, feed)
 }
 

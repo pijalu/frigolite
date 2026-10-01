@@ -246,9 +246,16 @@ type SelectEngine struct {
 
 	// Query-state fields extracted from Engine (SOLID-14): correlated
 	// subquery resolution, CTE scopes, alias resolution, view expansion.
-	outerRow      Row                   // outer query row for correlated subquery resolution
-	outerRowStack []Row                 // stack of enclosing outer rows for multi-level correlation
-	outerRows     []RowMap              // all outer rows for correlated aggregate evaluation
+	outerRow      Row      // outer query row for correlated subquery resolution
+	outerRowStack []Row    // stack of enclosing outer rows for multi-level correlation
+	outerRows     []RowMap // all outer rows for correlated aggregate evaluation
+	// outerRowsSrc, when non-nil, holds a positional outer-row set (a GROUP
+	// BY group the aggregate pass is evaluating over). OuterRows()
+	// materializes its maps on first read and caches them in
+	// outerRowsMaps, so a positional group pays nothing unless a correlated
+	// consumer actually reads the set.
+	outerRowsSrc  []Row
+	outerRowsMaps []RowMap
 	aliasStack    []map[string]sql.Expr // output-column alias maps from enclosing SELECTs (innermost last)
 	// obCollationResolver resolves a column reference's schema-declared
 	// collation while an ORDER BY sort runs (set by sortRowsWithMaps from
@@ -282,10 +289,15 @@ type SelectEngine struct {
 	// expands another view does not inherit stale usage.
 	viewOuterStmt  *sql.SelectStmt
 	viewOuterQuals []string
-	// aggRowMaps, when non-nil, holds the row set an aggregate query is
-	// evaluating over. Nested aggregate functions (e.g. round(avg(x),2))
-	// resolve through it instead of evaluating per-row.
+	// aggRowMaps, when non-nil, holds the map view of the row set an
+	// aggregate query is evaluating over. Nested aggregate functions (e.g.
+	// round(avg(x),2)) resolve through it instead of evaluating per-row.
+	// aggRows is the positional form of the same set: exactly one of the
+	// two is non-nil at a time, and AggRowMaps() materializes the maps from
+	// aggRows on first read (a positional group's rows only pay for maps
+	// when a nested aggregate actually resolves through them).
 	aggRowMaps []RowMap
+	aggRows    []Row
 	// aggPendingErr captures an aggregate Step failure (e.g. zipfile's
 	// "out of memory") raised while the aggregate was evaluated inside a
 	// wrapping scalar expression, whose plumbing may not thread the error.
@@ -339,9 +351,71 @@ type SelectEngine struct {
 }
 
 // AggRowMaps returns the aggregate row maps for aggregate function
-// evaluation (e.g. round(avg(x),2) over the aggregate row set).
+// evaluation (e.g. round(avg(x),2) over the aggregate row set). When the
+// aggregate row set is held positionally (aggRows), the maps materialize
+// on this first read and are cached.
 func (e *SelectEngine) AggRowMaps() []RowMap {
+	if e.aggRowMaps != nil || e.aggRows == nil {
+		return e.aggRowMaps
+	}
+	e.aggRowMaps = rowsToRowMaps(e.aggRows)
 	return e.aggRowMaps
+}
+
+// setAggRowMaps records a map-backed aggregate row set (clearing any
+// positional form).
+func (e *SelectEngine) setAggRowMaps(maps []RowMap) {
+	e.aggRowMaps = maps
+	e.aggRows = nil
+}
+
+// setAggRows records a positional aggregate row set (clearing any map form).
+func (e *SelectEngine) setAggRows(rows []Row) {
+	e.aggRows = rows
+	e.aggRowMaps = nil
+}
+
+// clearAggRowState drops the aggregate row set (both forms). The deferred
+// per-statement teardown calls this.
+func (e *SelectEngine) clearAggRowState() {
+	e.aggRowMaps = nil
+	e.aggRows = nil
+}
+
+// OuterRows returns the outer-row set for correlated aggregate evaluation.
+// A set parked positionally (setOuterRowsFromRows) materializes its maps on
+// this first read.
+func (e *SelectEngine) OuterRows() []RowMap {
+	if e.outerRows != nil {
+		return e.outerRows
+	}
+	if e.outerRowsSrc == nil {
+		return nil
+	}
+	if e.outerRowsMaps == nil {
+		e.outerRowsMaps = rowsToRowMaps(e.outerRowsSrc)
+	}
+	return e.outerRowsMaps
+}
+
+// setOuterRowMaps records a map-backed outer-row set.
+func (e *SelectEngine) setOuterRowMaps(maps []RowMap) {
+	e.outerRows = maps
+	e.outerRowsSrc = nil
+	e.outerRowsMaps = nil
+}
+
+// setOuterRowsFromRows records a positional outer-row set; OuterRows()
+// materializes its maps lazily.
+func (e *SelectEngine) setOuterRowsFromRows(rows []Row) {
+	e.outerRows = nil
+	e.outerRowsSrc = rows
+	e.outerRowsMaps = nil
+}
+
+// restoreOuterRows restores a previously read OuterRows() value.
+func (e *SelectEngine) restoreOuterRows(prev []RowMap) {
+	e.setOuterRowMaps(prev)
 }
 
 // PushOuterRow pushes a correlated outer row onto the outer-row stack.
@@ -429,7 +503,7 @@ type joinExecutor interface {
 
 // aggEvaluator is the aggregate-evaluation capability (SOLID-04).
 type aggEvaluator interface {
-	evalAggregates(s *sql.SelectStmt, rowMaps []RowMap, colDefs []sql.ColumnDef) *Result
+	evalAggregates(s *sql.SelectStmt, rows []Row, colDefs []sql.ColumnDef) *Result
 }
 
 // selectValidator is the SELECT-clause validation capability (SOLID-05).
@@ -439,7 +513,7 @@ type selectValidator interface {
 
 // tableScanner is the table-scanning capability (SOLID-06).
 type tableScanner interface {
-	execSelectScanPhase(s *sql.SelectStmt, cursor *btree.Cursor, colDefs []sql.ColumnDef, tableEntry *schema.Entry, feed *simpleAggFeed) ([][]interface{}, []RowMap, error)
+	execSelectScanPhase(s *sql.SelectStmt, cursor *btree.Cursor, colDefs []sql.ColumnDef, tableEntry *schema.Entry, feed *simpleAggFeed) ([][]interface{}, []RowMap, []Row, error)
 }
 
 // queryPlanner is the query-planning capability (SOLID-08).
@@ -466,6 +540,8 @@ var (
 func (e *SelectEngine) ResetStatementCorrelatedScope() {
 	e.outerRow = nil
 	e.outerRows = nil
+	e.outerRowsSrc = nil
+	e.outerRowsMaps = nil
 }
 
 func (e *SelectEngine) ExecSelect(s *sql.SelectStmt) *Result {
@@ -521,7 +597,7 @@ func (e *SelectEngine) ExecExplain(s *sql.ExplainStmt) *Result {
 
 // HandleSelectAggregates runs aggregate processing for a SELECT.
 func (e *SelectEngine) HandleSelectAggregates(s *sql.SelectStmt, rowMaps []RowMap, colDefs []sql.ColumnDef) *Result {
-	return e.handleSelectAggregates(s, rowMaps, colDefs)
+	return e.handleSelectAggregates(s, rowMaps, nil, colDefs)
 }
 
 // FinalizeSelectResult applies ORDER BY/LIMIT and final column naming.

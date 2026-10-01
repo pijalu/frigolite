@@ -416,9 +416,13 @@ func distinctIndexOrder(e *SelectEngine, entry *schema.Entry, tableEntry *schema
 // scanTableRowsWithSQL scans with the table's CREATE SQL so WITHOUT ROWID
 // index-leaf records (PK-first) can be remapped to declared order. Empty
 // createSQL disables the remap (legacy callers without schema context).
-func (e *SelectEngine) scanTableRowsWithSQL(cursor *btree.Cursor, s *sql.SelectStmt, colDefs []sql.ColumnDef, needMaps bool, createSQL string, feed *simpleAggFeed) ([][]interface{}, []RowMap, error) {
+// allowPosAgg is the caller's positional-aggregate permission
+// (allowPositionalAggRows); the returned aggRows slice is non-nil exactly
+// when the scan ran in positional-aggregate mode (its rowMaps stay empty in
+// that mode — the aggregate passes consume aggRows instead).
+func (e *SelectEngine) scanTableRowsWithSQL(cursor *btree.Cursor, s *sql.SelectStmt, colDefs []sql.ColumnDef, needMaps bool, createSQL string, feed *simpleAggFeed, allowPosAgg bool) ([][]interface{}, []RowMap, []Row, error) {
 
-	st := newScanState(e, s, colDefs, needMaps, feed)
+	st := newScanState(e, s, colDefs, needMaps, feed, allowPosAgg)
 	// WITHOUT ROWID tables live in an index btree; the root is an index-leaf
 	// (0x0a) while small, and an interior index page (0x02) once the table
 	// exceeds one leaf. Both store PK-first records.
@@ -432,7 +436,7 @@ func (e *SelectEngine) scanTableRowsWithSQL(cursor *btree.Cursor, s *sql.SelectS
 		}
 	}
 	if err := st.runScan(cursor); err != nil {
-		return nil, nil, err
+		return nil, nil, nil, err
 	}
 	allRows := st.buildResultRows()
 	// PRAGMA reverse_unordered_selects: reverse the scan order of the
@@ -440,16 +444,19 @@ func (e *SelectEngine) scanTableRowsWithSQL(cursor *btree.Cursor, s *sql.SelectS
 	if st.shouldReverse() {
 		reverseInterfaces(allRows)
 		reverseRowMaps(st.allRowMaps)
+		reverseRows(st.aggRows)
 	}
 	// A WHERE-driven index scan emits rows in index-key order: SQLite drives
 	// the scan loop from the index (where.c), so the WHERE survivors arrive
 	// sorted by the index key (NULLs first, rowid ties) even though the
 	// engine filters a table scan (intpkey-2.3.2 "WHERE b<'second'" over
 	// index i1(b) emits (hello world, one two), not insertion order).
+	// Positional-aggregate scans decline this reorder up front
+	// (allowPositionalAggRows), so the map consumer below never sees one.
 	if idx := e.indexScanOrderIndex(s); idx != "" {
 		e.sortScanRowsIndexOrder(allRows, st.allRowMaps, s.From.Name, idx)
 	}
-	return allRows, st.allRowMaps, nil
+	return allRows, st.allRowMaps, st.aggRows, nil
 }
 
 // runScan drives the row iteration loop: read a cell, decode + filter it, and
@@ -546,6 +553,19 @@ type scanState struct {
 	// scanned row maps by the aggregate / GROUP BY / window passes, so a
 	// per-row output row built during the scan would be discarded work.
 	aggConsumesRows bool
+	// posAgg marks scans running in positional-aggregate mode: surviving rows
+	// are retained as StructRow clones in aggRows (index-addressed, shared
+	// column index) instead of per-row RowMaps. The aggregate passes read
+	// them through the Row interface; the consumers that demand name-keyed
+	// maps (window pass, nested aggregates, correlated outer sets) materialize
+	// them lazily. Gated to exactly the shapes whose scan output only the
+	// aggregate passes consume (see allowPositionalAggRows).
+	posAgg bool
+	// aggRows accumulates the positional rows of a posAgg scan; aggArena
+	// chunks the per-row value slices (cloneReuseSRow) so retention costs one
+	// small allocation per row.
+	aggRows  []Row
+	aggArena []interface{}
 	// serialTypesBuf is the scan's reusable record-header type buffer
 	// (parseRecordSerialTypesInto), reused across all rows of the scan.
 	serialTypesBuf []uint64
@@ -556,10 +576,31 @@ type scanState struct {
 	allRowMaps   []RowMap
 }
 
+// allowPositionalAggRows reports whether the caller (execSelectScanPhase)
+// permits positional-aggregate retention for this scan: no WITHOUT ROWID PK
+// reorder (it sorts the scan's row maps), no schema-table post-filter (it
+// consumes the maps), no WHERE-driven index-order reorder (same), no join
+// (the join pass rebuilds maps), and no outer/correlated aggregate context
+// (execSelectOuterAgg / execSelectCorrelatedAgg consume the maps first).
+func (e *SelectEngine) allowPositionalAggRows(s *sql.SelectStmt, tableEntry *schema.Entry, withoutRowidPKCols []string) bool {
+	if len(withoutRowidPKCols) > 0 || IsSchemaTable(tableEntry.Name) {
+		return false
+	}
+	if len(s.Joins) > 0 || s.From.Subquery != nil {
+		return false
+	}
+	if e.indexScanOrderIndex(s) != "" {
+		return false
+	}
+	return e.outerRow == nil && len(e.OuterRows()) == 0
+}
+
 // newScanState builds the scan configuration and reusable buffers for a table
 // scan. The StructRow and flat output buffers are reused across all rows to
-// avoid per-row allocation.
-func newScanState(e *SelectEngine, s *sql.SelectStmt, colDefs []sql.ColumnDef, needMaps bool, feed *simpleAggFeed) *scanState {
+// avoid per-row allocation. allowPosAgg is the caller's positional-retention
+// permission (allowPositionalAggRows); the scan adds its own statement-shape
+// gates on top.
+func newScanState(e *SelectEngine, s *sql.SelectStmt, colDefs []sql.ColumnDef, needMaps bool, feed *simpleAggFeed, allowPosAgg bool) *scanState {
 	hasJoins := len(s.Joins) > 0
 	if feed != nil {
 		// Feed mode materializes no rows or row maps: the map-driven
@@ -599,6 +640,16 @@ func newScanState(e *SelectEngine, s *sql.SelectStmt, colDefs []sql.ColumnDef, n
 	if feed != nil {
 		wrapCols = e.aggFeedWrapCols(s.Where, colDefs)
 	}
+	aggConsumes := scanConsumedByAggPass(e, s)
+	// Plain window scans (window functions, no GROUP BY / aggregates) fall
+	// through to execWindowPass over the scanned row maps: they keep the map
+	// path. Window-over-GROUP-BY shapes stay positional — the group passes
+	// materialize their maps per group for the window run. A correlated-
+	// aggregate subquery column re-evaluates the columns over the scanned
+	// row maps first (execSelectCorrelatedAgg): the feed excludes that shape
+	// for the same reason.
+	posAgg := allowPosAgg && feed == nil && !hasJoins && needMaps && aggConsumes &&
+		!e.selectHasWindowFuncs(s.Columns) && !e.hasSubqueryWithCorrelatedAgg(s.Columns)
 	return &scanState{
 		e:                      e,
 		s:                      s,
@@ -615,9 +666,10 @@ func newScanState(e *SelectEngine, s *sql.SelectStmt, colDefs []sql.ColumnDef, n
 		isSelectStar:           isSelectStar,
 		bareOutIdx:             bareOutputSlots(s, colDefs),
 		activeColCount:         activeColCount,
-		needMaps:               needMaps,
+		needMaps:               needMaps && !posAgg,
 		feed:                   feed,
-		aggConsumesRows:        scanConsumedByAggPass(e, s),
+		aggConsumesRows:        aggConsumes,
+		posAgg:                 posAgg,
 		// Pre-allocate a flat slice for SELECT * to avoid per-row make() calls.
 		outValues:    make([]interface{}, 0, 1024*activeColCount),
 		outRowStarts: make([]int, 0, 1024),
@@ -715,10 +767,52 @@ func (st *scanState) appendRowOutput() error {
 		}
 		st.nonStarRows = append(st.nonStarRows, row)
 	}
+	if st.posAgg {
+		st.aggRows = append(st.aggRows, st.cloneReuseSRow())
+		return nil
+	}
 	if st.needMaps {
 		st.allRowMaps = append(st.allRowMaps, StructRowToMap(st.reuseSRow))
 	}
 	return nil
+}
+
+// cloneReuseSRow retains the current row as a StructRow clone: the value
+// slice is copied out of the reused row buffer (the next fill REPLACES slot
+// contents, never mutates them, but the backing array is shared), with blob
+// payloads deep-copied under exactly the map path's retention discipline
+// (rowMapValue). Value slices are carved out of arena chunks so retention
+// costs one small allocation per row (the StructRow header).
+func (st *scanState) cloneReuseSRow() *StructRow {
+	n := len(st.reuseSRow.Values)
+	if cap(st.aggArena)-len(st.aggArena) < n {
+		st.aggArena = make([]interface{}, 0, 512*n)
+	}
+	start := len(st.aggArena)
+	st.aggArena = append(st.aggArena, st.reuseSRow.Values...)
+	vals := st.aggArena[start : start+n : start+n]
+	// Blob payloads are deep-copied under exactly the map path's retention
+	// discipline (rowMapValue); every other payload (scalars, fresh wrapper
+	// pointers) is exclusive to this row and shared as-is.
+	for i, v := range vals {
+		switch t := v.(type) {
+		case []byte:
+			b := make([]byte, len(t))
+			copy(b, t)
+			vals[i] = b
+		case *util.ColumnValue:
+			if _, isBlob := t.Value.([]byte); isBlob {
+				vals[i] = rowMapValue(v)
+			}
+		case *CollatedValue:
+			if cv, ok := t.Value.(*util.ColumnValue); ok {
+				if _, isBlob := cv.Value.([]byte); isBlob {
+					vals[i] = rowMapValue(v)
+				}
+			}
+		}
+	}
+	return &StructRow{Values: vals, Index: st.reuseSRow.Index, RowID: st.reuseSRow.RowID}
 }
 
 // bareOutputSlots lists the reused StructRow slot of every output column of
@@ -843,9 +937,14 @@ func (e *SelectEngine) scanTableAffinityCols(s *sql.SelectStmt, colDefs []sql.Co
 	}
 	// GROUP BY expressions need affinity/collation wrappers too: grouping a
 	// NOCASE column must compare values under that collation (b3's
-	// 'abc'/'aBC' group together).
+	// 'abc'/'aBC' group together). A bare term over a no-collation column is
+	// exempt — the key computation unwraps the evaluated value and reads the
+	// collation marker off it, so only a declared collation needs the
+	// wrapper to survive (same exception as the SELECT columns above).
 	for _, gb := range s.GroupBy {
-		a.collectExpr(gb)
+		if !skipBareSelectRef(gb, colDefs) {
+			a.collectExpr(gb)
+		}
 	}
 	if s.Having != nil {
 		a.collectExpr(s.Having)

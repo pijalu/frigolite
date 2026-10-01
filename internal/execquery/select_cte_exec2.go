@@ -21,7 +21,7 @@ func (e *SelectEngine) execCTEPostProcess(s *sql.SelectStmt, colDefs []sql.Colum
 	if whereErr != nil {
 		return &Result{Error: whereErr}
 	}
-	if result := e.handleSelectAggregates(s, allRowMaps, colDefs); result != nil {
+	if result := e.handleSelectAggregates(s, allRowMaps, nil, colDefs); result != nil {
 		return result
 	}
 	// Window-function pass over the CTE-materialized row set.
@@ -65,7 +65,7 @@ func (e *SelectEngine) execSelectOverMaterializedRowids(s *sql.SelectStmt, colDe
 	if ferr != nil {
 		return &Result{Error: ferr}
 	}
-	if result := e.handleSelectAggregates(s, allRowMaps, colDefs); result != nil {
+	if result := e.handleSelectAggregates(s, allRowMaps, nil, colDefs); result != nil {
 		return result
 	}
 	// Window-function pass over the materialized row set.
@@ -554,7 +554,7 @@ func (e *SelectEngine) processCTEOuterQuery(s *sql.SelectStmt, allRowMaps []RowM
 	if whereErr != nil {
 		return nil, nil, &Result{Error: whereErr}
 	}
-	if result := e.handleSelectAggregates(s, allRowMaps, colDefs); result != nil {
+	if result := e.handleSelectAggregates(s, allRowMaps, nil, colDefs); result != nil {
 		return nil, nil, result
 	}
 	return allRowMaps, colDefs, nil

@@ -904,7 +904,7 @@ func (e *SelectEngine) aggWindowRowResult(reg *function.Func, fn *sql.FuncCall, 
 	frameRows := e.collectAggFrameRows(fn, over, part, i, start, end)
 	// Aggregate ORDER BY terms apply within the frame.
 	if len(fn.OrderBy) > 0 {
-		frameRows = e.sortRowMapsByOrderBy(fn.OrderBy, frameRows)
+		frameRows = rowsToRowMaps(e.sortRowsByOrderBy(fn.OrderBy, rowMapRows(frameRows)))
 	}
 	for _, r := range frameRows {
 		if err := agg.Step(e.windowEvalAggArgs(fn, r)); err != nil {

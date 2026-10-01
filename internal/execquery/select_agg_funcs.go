@@ -18,11 +18,11 @@ import (
 // evalAggFuncCall evaluates a single aggregate function call across rowMaps,
 // applying its FILTER clause and ORDER BY ordering. Returns (nil, nil) for a
 // non-aggregate function over no rows.
-func (e *SelectEngine) evalAggFuncCall(v *sql.FuncCall, rowMaps []RowMap) (interface{}, error) {
+func (e *SelectEngine) evalAggFuncCall(v *sql.FuncCall, rows []Row) (interface{}, error) {
 	fn, ok := e.ctx.Functions().Find(v.Name)
 	if !ok || fn.Type != function.TypeAggregate {
-		if len(rowMaps) > 0 {
-			val, _ := e.ctx.EvalExpr(v, rowMaps[0])
+		if len(rows) > 0 {
+			val, _ := e.ctx.EvalExpr(v, rows[0])
 			return val, nil
 		}
 		return nil, nil
@@ -38,10 +38,10 @@ func (e *SelectEngine) evalAggFuncCall(v *sql.FuncCall, rowMaps []RowMap) (inter
 	// function's Step) because the collation is statement context the
 	// registry's collation-free Step signature cannot carry.
 	if (strings.EqualFold(v.Name, "MIN") || strings.EqualFold(v.Name, "MAX")) && len(v.Args) == 1 {
-		return e.evalMinMaxAggregate(v, rowMaps)
+		return e.evalMinMaxAggregate(v, rows)
 	}
 	agg := fn.AggregateFn()
-	rows := e.sortRowMapsByOrderBy(v.OrderBy, rowMaps)
+	rows = e.sortRowsByOrderBy(v.OrderBy, rows)
 	for _, row := range rows {
 		if !e.aggRowPassesFilter(v, row) {
 			continue
@@ -77,9 +77,9 @@ type minMaxReduction struct {
 // declared COLLATE clause — SQLite's sqlite3ExprCollSeq of the argument).
 // NULLs are skipped; the first extreme on ties wins (minmaxStep keeps the
 // earliest row's value).
-func (e *SelectEngine) evalMinMaxAggregate(v *sql.FuncCall, rowMaps []RowMap) (interface{}, error) {
+func (e *SelectEngine) evalMinMaxAggregate(v *sql.FuncCall, rows []Row) (interface{}, error) {
 	r := &minMaxReduction{isMax: strings.EqualFold(v.Name, "MAX")}
-	for _, row := range rowMaps {
+	for _, row := range rows {
 		if !e.aggRowPassesFilter(v, row) {
 			continue
 		}
@@ -92,7 +92,7 @@ func (e *SelectEngine) evalMinMaxAggregate(v *sql.FuncCall, rowMaps []RowMap) (i
 
 // stepArg evaluates the MIN/MAX argument for one row and folds the value
 // into the reduction.
-func (r *minMaxReduction) stepArg(e *SelectEngine, arg sql.Expr, row RowMap) error {
+func (r *minMaxReduction) stepArg(e *SelectEngine, arg sql.Expr, row Row) error {
 	restore := e.ctx.EnterAuxAggArg()
 	raw, err := e.ctx.EvalExpr(arg, row)
 	restore()
@@ -125,14 +125,14 @@ func (r *minMaxReduction) stepArg(e *SelectEngine, arg sql.Expr, row RowMap) err
 
 // evalDistinctAggregate evaluates an aggregate with DISTINCT over the distinct
 // argument tuples (after applying the FILTER clause and ORDER BY ordering).
-func (e *SelectEngine) evalDistinctAggregate(v *sql.FuncCall, rowMaps []RowMap) interface{} {
+func (e *SelectEngine) evalDistinctAggregate(v *sql.FuncCall, rows []Row) interface{} {
 	fn, ok := e.ctx.Functions().Find(v.Name)
 	if !ok || fn.Type != function.TypeAggregate {
 		return nil
 	}
 	agg := fn.AggregateFn()
-	uniqueRows := e.dedupeAggRows(v, rowMaps)
-	uniqueRows = e.sortRowMapsByOrderBy(v.OrderBy, uniqueRows)
+	uniqueRows := e.dedupeAggRows(v, rows)
+	uniqueRows = e.sortRowsByOrderBy(v.OrderBy, uniqueRows)
 	for _, row := range uniqueRows {
 		if err := agg.Step(e.evalAggCallArgs(v, row)); err != nil {
 			e.aggPendingErr = err
@@ -148,7 +148,8 @@ func (e *SelectEngine) evalDistinctAggregate(v *sql.FuncCall, rowMaps []RowMap) 
 }
 
 // EvalAggFuncCall evaluates an aggregate function call over the given row
-// maps. Exported for the expression evaluator's function-call dispatch.
+// maps. Exported for the expression evaluator's function-call dispatch; the
+// maps are viewed through the Row interface (no per-row copy).
 func (e *SelectEngine) EvalAggFuncCall(v *sql.FuncCall, rowMaps []RowMap) (interface{}, error) {
-	return e.evalAggFuncCall(v, rowMaps)
+	return e.evalAggFuncCall(v, rowMapRows(rowMaps))
 }

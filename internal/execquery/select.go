@@ -21,13 +21,20 @@ import (
 
 // handleSelectAggregates evaluates aggregates. Returns the result if aggregates
 // were processed and a result is available, or nil if no aggregates or empty result.
-func (e *SelectEngine) handleSelectAggregates(s *sql.SelectStmt, rowMaps []RowMap, colDefs []sql.ColumnDef) *Result {
+// aggRows carries the scan's positional rows (nil when the rows arrived as
+// maps — joins, materialized tables, seek paths — and the map slice is viewed
+// through the Row interface instead).
+func (e *SelectEngine) handleSelectAggregates(s *sql.SelectStmt, rowMaps []RowMap, aggRows []Row, colDefs []sql.ColumnDef) *Result {
 	// A column that is a correlated-aggregate scalar subquery (e.g. (SELECT
 	// max(y)) where y resolves to the outer query) makes the query an
 	// aggregate query: the inner aggregate collapses the query to one row per
 	// GROUP BY group (window1 76.5). This mirrors SQLite's SF_Aggregate
 	// marking when a subquery's aggregate references an outer column.
 	hasAggs := e.hasAggregates(s.Columns) || e.hasSubqueryWithCorrelatedAgg(s.Columns)
+	rows := aggRows
+	if rows == nil && len(rowMaps) > 0 {
+		rows = rowMapRows(rowMaps)
+	}
 	if hasAggs {
 		if len(s.GroupBy) > 0 {
 			// When a covering index exists for every column the aggregate
@@ -37,24 +44,50 @@ func (e *SelectEngine) handleSelectAggregates(s *sql.SelectStmt, rowMaps []RowMa
 			// e.g. SELECT group_concat(one) FROM b1 GROUP BY (one>4) over a
 			// PK on one emits 1,2,3,4 not the insertion order 1,4,3,2
 			// (e_select-4.9.2). Reorder the scanned rows to match.
-			if idxCols := e.coveringIndexForAggregate(s); len(idxCols) > 0 && len(rowMaps) > 1 {
-				reorderMapsByIndex(rowMaps, idxCols)
+			if idxCols := e.coveringIndexForAggregate(s); len(idxCols) > 0 && len(rows) > 1 {
+				if aggRows != nil {
+					reorderRowsByIndex(aggRows, idxCols)
+				} else {
+					reorderMapsByIndex(rowMaps, idxCols)
+				}
 			}
-			result := e.evalAggregatesGroupBy(s, rowMaps, colDefs)
+			result := e.evalAggregatesGroupBy(s, rows, colDefs)
 			if result != nil {
 				return result
 			}
 		} else {
-			result := e.aggs.EvalAggregates(s, rowMaps, colDefs)
+			result := e.aggs.EvalAggregates(s, rows, colDefs)
 			if result != nil {
 				return result
 			}
 		}
 	} else if len(s.GroupBy) > 0 {
 		// GROUP BY without aggregates: group rows, build output rows using buildOutputRow
-		return e.evalGroupByNoAggs(s, rowMaps, colDefs)
+		return e.evalGroupByNoAggs(s, rows, colDefs)
 	}
 	return nil
+}
+
+// reorderRowsByIndex sorts positional rows into the given index column order
+// (reorderMapsByIndex's Row-interface form: the rows' Get answers the same
+// lookups the row maps would).
+func reorderRowsByIndex(rows []Row, idxCols []string) {
+	sort.SliceStable(rows, func(i, j int) bool {
+		return compareRowsByIndex(rows[i], rows[j], idxCols) < 0
+	})
+}
+
+// compareRowsByIndex compares two rows by successive index columns (the
+// comparePairsByIndex contract over the Row interface).
+func compareRowsByIndex(a, b Row, idxCols []string) int {
+	for _, col := range idxCols {
+		vi, _ := a.Get(col)
+		vj, _ := b.Get(col)
+		if cmp := util.CompareValues(util.UnwrapColumnValue(vi), util.UnwrapColumnValue(vj)); cmp != 0 {
+			return cmp
+		}
+	}
+	return 0
 }
 
 // reorderMapsByIndex sorts row maps into the given index column order,
@@ -550,9 +583,9 @@ func (e *SelectEngine) execSelectCorrelatedAgg(s *sql.SelectStmt, allRowMaps []R
 		// collapsed row). window1 44.3.2: SELECT (0,0) IN(SELECT MIN(c0),
 		// NTILE(1) OVER()) FROM t0 with t0 empty → one row 0.
 		emptyRow := RowMap{}
-		prevOuterRows := e.outerRows
+		prevOuterRows := e.OuterRows()
 		prevOuterRow := e.outerRow
-		e.outerRows = []RowMap{emptyRow}
+		e.setOuterRowMaps([]RowMap{emptyRow})
 		e.outerRow = emptyRow
 		outRow, err := e.buildOutputRow(s.Columns, colDefs, emptyRow)
 		if err != nil {
@@ -564,9 +597,9 @@ func (e *SelectEngine) execSelectCorrelatedAgg(s *sql.SelectStmt, allRowMaps []R
 		result := &Result{Columns: columns, Rows: [][]interface{}{outRow}}
 		return e.finalizeSelectResult(result, s, []RowMap{emptyRow})
 	}
-	prevOuterRows := e.outerRows
+	prevOuterRows := e.OuterRows()
 	prevOuterRow := e.outerRow
-	e.outerRows = allRowMaps
+	e.setOuterRowMaps(allRowMaps)
 	e.outerRow = allRowMaps[0] // provide first row for non-aggregate column refs
 	outRow, err := e.buildOutputRow(s.Columns, colDefs, allRowMaps[0])
 	if err != nil {
@@ -663,7 +696,7 @@ func (e *SelectEngine) execFTS5VtabSelect(s *sql.SelectStmt, t5 *fts5.Table, col
 		return &Result{Error: err}
 	}
 	allRowMaps := buildMaterializedRowMaps(s, colDefs, allRows, rowids)
-	return e.execSelectPostScan(s, allRows, allRowMaps, colDefs)
+	return e.execSelectPostScan(s, allRows, allRowMaps, nil, colDefs)
 }
 
 // execFTSVtabSelect runs the FTS3/4 FROM path. A %_content shadow btree that
@@ -693,7 +726,7 @@ func (e *SelectEngine) execFTSVtabSelect(s *sql.SelectStmt, tableEntry *schema.E
 	for i, rowMap := range allRowMaps {
 		allRows[i] = rowMapToValues(rowMap, colDefs)
 	}
-	return e.execSelectPostScan(s, allRows, allRowMaps, colDefs)
+	return e.execSelectPostScan(s, allRows, allRowMaps, nil, colDefs)
 }
 
 // execGenericVtabSelect materializes a non-FTS virtual table's rows and runs
@@ -783,7 +816,7 @@ func (e *SelectEngine) execSelectOuterAgg(s *sql.SelectStmt, allRowMaps []RowMap
 		return nil
 	}
 	columns := e.buildColumnNames(s.Columns, colDefs, s)
-	outRow := e.evalAggOverOuterRowsWithInner(s, e.outerRows, allRowMaps)
+	outRow := e.evalAggOverOuterRowsWithInner(s, e.OuterRows(), allRowMaps)
 	result := &Result{Columns: columns, Rows: [][]interface{}{outRow}}
 	return e.finalizeSelectResult(result, s, allRowMaps)
 }

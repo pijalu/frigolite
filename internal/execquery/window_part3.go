@@ -62,7 +62,7 @@ func (e *SelectEngine) storeNestedAggsInFuncCall(dst RowMap, fc *sql.FuncCall, r
 	if reg, found := e.ctx.Functions().Find(fc.Name); found && reg.Type == function.TypeAggregate {
 		name := sql.ExprString(fc)
 		if _, exists := dst.Get(name); !exists {
-			if val, err := e.evalAggFuncCall(fc, rows); err == nil {
+			if val, err := e.evalAggFuncCall(fc, rowMapRows(rows)); err == nil {
 				dst[name] = val
 			}
 		}
