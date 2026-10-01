@@ -58,6 +58,71 @@
   storage/pager — sibling tranches' territory; the 30%-of-total target
   requires their reductions stacked on this one.
 
+## PERF.PARITY-scan2 — scan/aggregate second pass (fleet/perf-parity-scan2, 2026-10-01)
+
+- **The scan's affinity wrapper is 40-50% of alloc objects in EVERY full-scan
+  shape, and a bare output column's wrapper never reaches a comparison.**
+  buildOutputRow / appendScanStarValues / the aggregate arg paths all peel the
+  wrappers (unwrap∘wrap == identity on the raw slot), so
+  scanTableAffinityCols's SELECT-column collection existed only to allocate.
+  The exemption (`skipBareSelectRef`) must keep the wrapper when the column
+  declares a non-BINARY collation — the CollatedValue MARKER is the transport
+  the GROUP BY key computation reads to merge 'abc'/'aBC' — and when the
+  statement's output alias is referenced by a consuming clause (below).
+- **An output ALIAS referenced by WHERE/ORDER BY/GROUP BY/HAVING resolves back
+  to the SELECT expression at eval time through the alias stack; the
+  collector only sees the alias NAME.** Exempting the underlying bare column
+  then leaves it undecoded in lazy phase 1 AND unwrapped — the alias
+  comparison reads an empty slot and filters every row (collate8-2.1/2.2,
+  having, selectC). Rule: collect the consuming clauses FIRST; if any
+  collected ref matches an output alias, cancel the exemption statement-wide.
+  The same interplay is why the bare-output fast path requires
+  `len(selectAliasMap(s))==0` (an alias can shadow a later column of the same
+  name and change evalColumnRef's resolution order: SELECT a AS b, b).
+- **The IPK rowid-alias fill RIDEs ON the affinity plan** (`plan.apply`), so a
+  wrapper-free scan must still build a fill-only plan — a nil plan leaves
+  "SELECT id FROM ipk" emitting the stored NULL. (The star shape hides this:
+  the "*" ref marks the collector seen, which is also why stars must keep
+  their historical collection — the seen flag drives
+  appendScanStarValues's unwrap discipline, else the fill's wrapper leaks
+  into star output.)
+- **GROUP BY positional retention = one interface, two materialization
+  points.** Rows flow as `[]Row` (*StructRow clones sharing the scan's
+  colIndex; values carved from arena chunks = 1 small alloc/row) through
+  partitionByGroupKey/evalAggregatesGroupBy/evalHaving/evalAggFuncCall.
+  Name-keyed maps materialize ONLY where a consumer demands them: the window
+  pass (per group, gated on selectHasWindowFuncs), the group's
+  representative map for result ORDER BY, and the lazily-read engine sets
+  (AggRowMaps()/OuterRows() materialize on first read from their positional
+  source). A RowMap IS a Row, so map-fed sources (joins, CTEs, seeks) convert
+  with zero per-row copies. The 45%-of-alloc-objects StructRowToMap mass and
+  the per-row Get hashing both vanish for the single-scan GROUP BY shape.
+- **Gating positional retention: copy the feed's exclusion list, then some.**
+  The feed (aggFeedEvaluationEligible) excludes window functions and
+  correlated-agg subquery columns for eval-order reasons; positional rows
+  need the same list PLUS every consumer of allRowMaps between the scan and
+  the aggregate pass: WITHOUT ROWID PK sort, schema-table filter,
+  WHERE-driven index reorder, joins, enclosing outer contexts, and plain
+  window scans (they fall through to execWindowPass(allRowMaps) — window
+  WITHOUT GROUP BY must keep maps; window OVER GROUP BY is fine because the
+  group passes materialize per-group maps). Missing one shows up as
+  "empty result where rows are expected" — e.g. plain window scans silently
+  emitted nothing until the gate caught them.
+- **The scan's clone-retention discipline extends by construction**: decode
+  fills REPLACE slot contents (never in-place mutation), fresh wrappers are
+  exclusive per row, so a clone shares scalars/wrappers and deep-copies only
+  []byte payloads — identical to rowMapValue. But NEVER compare interfaces
+  with `!=` to detect the copy: `[]byte` dynamic types PANIC on interface
+  comparison (cloneReuseSRow). Type-switch instead.
+- **Under fleet load, CPU-time (getrusage) interleaved A/B with same-batch
+  base exports is the only honest instrument**; wall-clock swings 3x run to
+  run while allocs/row stay load-independent. The GROUP phase moved 9.8 ->
+  5.8 allocs/row (523 -> 286 B/row) and +55..70% rows/cpu-s; bare scan 3.0
+  -> 2.0 (+30..36%). Remaining known mass: exec.(*Engine).EnterAuxAggArg's
+  per-arg restore closure (~19% of group-phase alloc objects, exec package =
+  sibling scope) and int64 boxing in storage.decodeValue (unavoidable in
+  interface{} rows).
+
 ## PERF.PARITY-pager — read-path memoization (2026-09-30/10-01, fleet/perf-parity-pager)
 
 - **Validate, don't invalidate, for page-parse memos.** The memoized
