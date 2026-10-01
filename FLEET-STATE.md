@@ -919,3 +919,20 @@ projection, skip whole-record DecodeRecord boxing. Target >=20M rows/s
 for the rowid-seek shape — seek -> encode once -> in-place write, no
 intermediate change structs. Target >=2x (gap <=7x). Benchmark pair
 after EACH tranche; suites + census at end.
+
+## PERF-STRUCT (during) — same-kind template gate: first attempt reverted, tplgate agent dispatched
+
+Coordinator's same-kind substitution gate (int→int slot, float→float slot
+with .0 rule, hex/non-finite refusals) delivered huge wins in isolation
+(point 210k ops/s, update 136k, insert 228k) but broke testgen/func4
+boundary statements: unary-minus literals (-9223372036854775808,
+-2147483649) corrupted sign/value through template hits. Reverted
+(spelling gate restored, func4 green); semantics pin committed
+(9d211826c). Root-cause hypothesis: the parser FOLDS unary minus into
+minInt64-case literal text (AST "-9223372036854775808") while
+normalizeSQL skips the minus — stored template spelling mismatches what
+later statements' substitutions assume. fleet/perf-parity-tplgate
+dispatched with full forensic traces to derive the exact folding rule
+and implement a correct gate. Tranche A (columnar scan) + Tranche B
+(update/delete pipeline) dispatch pending this resolution (they consume
+the same per-statement fast path).
