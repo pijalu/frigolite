@@ -109,7 +109,7 @@ func (e *SelectEngine) aggFeedEvaluationEligible(s *sql.SelectStmt) bool {
 	}
 	// Correlated outer contexts route aggregates to the outer rows
 	// (execSelectOuterAgg / execSelectCorrelatedAgg run first).
-	if e.outerRow != nil || len(e.outerRows) > 0 {
+	if e.outerRow != nil || len(e.OuterRows()) > 0 {
 		return false
 	}
 	return !e.hasSubqueryWithCorrelatedAgg(s.Columns) && !e.selectHasWindowFuncs(s.Columns)

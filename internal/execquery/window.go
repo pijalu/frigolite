@@ -622,7 +622,7 @@ func (e *SelectEngine) windowPartitions(over *sql.WindowDef, rowMaps []RowMap) (
 // FROM t2) — d resolves to the outer t2 column), so the validation only
 // runs for statements evaluated without an outer row scope.
 func (e *SelectEngine) validateWindowPartitionCols(over *sql.WindowDef, rowMaps []RowMap) error {
-	if len(rowMaps) == 0 || e.outerRow != nil || len(e.outerRows) != 0 {
+	if len(rowMaps) == 0 || e.outerRow != nil || len(e.OuterRows()) != 0 {
 		return nil
 	}
 	for _, ex := range over.Partitions {

@@ -416,9 +416,13 @@ func distinctIndexOrder(e *SelectEngine, entry *schema.Entry, tableEntry *schema
 // scanTableRowsWithSQL scans with the table's CREATE SQL so WITHOUT ROWID
 // index-leaf records (PK-first) can be remapped to declared order. Empty
 // createSQL disables the remap (legacy callers without schema context).
-func (e *SelectEngine) scanTableRowsWithSQL(cursor *btree.Cursor, s *sql.SelectStmt, colDefs []sql.ColumnDef, needMaps bool, createSQL string, feed *simpleAggFeed) ([][]interface{}, []RowMap, error) {
+// allowPosAgg is the caller's positional-aggregate permission
+// (allowPositionalAggRows); the returned aggRows slice is non-nil exactly
+// when the scan ran in positional-aggregate mode (its rowMaps stay empty in
+// that mode — the aggregate passes consume aggRows instead).
+func (e *SelectEngine) scanTableRowsWithSQL(cursor *btree.Cursor, s *sql.SelectStmt, colDefs []sql.ColumnDef, needMaps bool, createSQL string, feed *simpleAggFeed, allowPosAgg bool) ([][]interface{}, []RowMap, []Row, error) {
 
-	st := newScanState(e, s, colDefs, needMaps, feed)
+	st := newScanState(e, s, colDefs, needMaps, feed, allowPosAgg)
 	// WITHOUT ROWID tables live in an index btree; the root is an index-leaf
 	// (0x0a) while small, and an interior index page (0x02) once the table
 	// exceeds one leaf. Both store PK-first records.
@@ -432,7 +436,7 @@ func (e *SelectEngine) scanTableRowsWithSQL(cursor *btree.Cursor, s *sql.SelectS
 		}
 	}
 	if err := st.runScan(cursor); err != nil {
-		return nil, nil, err
+		return nil, nil, nil, err
 	}
 	allRows := st.buildResultRows()
 	// PRAGMA reverse_unordered_selects: reverse the scan order of the
@@ -440,16 +444,19 @@ func (e *SelectEngine) scanTableRowsWithSQL(cursor *btree.Cursor, s *sql.SelectS
 	if st.shouldReverse() {
 		reverseInterfaces(allRows)
 		reverseRowMaps(st.allRowMaps)
+		reverseRows(st.aggRows)
 	}
 	// A WHERE-driven index scan emits rows in index-key order: SQLite drives
 	// the scan loop from the index (where.c), so the WHERE survivors arrive
 	// sorted by the index key (NULLs first, rowid ties) even though the
 	// engine filters a table scan (intpkey-2.3.2 "WHERE b<'second'" over
 	// index i1(b) emits (hello world, one two), not insertion order).
+	// Positional-aggregate scans decline this reorder up front
+	// (allowPositionalAggRows), so the map consumer below never sees one.
 	if idx := e.indexScanOrderIndex(s); idx != "" {
 		e.sortScanRowsIndexOrder(allRows, st.allRowMaps, s.From.Name, idx)
 	}
-	return allRows, st.allRowMaps, nil
+	return allRows, st.allRowMaps, st.aggRows, nil
 }
 
 // runScan drives the row iteration loop: read a cell, decode + filter it, and
@@ -533,6 +540,11 @@ type scanState struct {
 	isSelectStar           bool
 	activeColCount         int
 	needMaps               bool
+	// bareOutIdx, when non-nil, lists the StructRow slot of every output
+	// column of an all-bare-refs SELECT ("SELECT a, b FROM t"): the output
+	// row is built by peeling the reused StructRow's slots directly,
+	// skipping the per-column EvalExpr dispatch (appendRowOutput).
+	bareOutIdx []int
 	// feed, when non-nil, is the statement's simple-aggregate feed: surviving
 	// rows step it (phase-1 decoded values only) and no output rows or row
 	// maps are materialized; execSelectPostScan builds the aggregate result.
@@ -541,6 +553,19 @@ type scanState struct {
 	// scanned row maps by the aggregate / GROUP BY / window passes, so a
 	// per-row output row built during the scan would be discarded work.
 	aggConsumesRows bool
+	// posAgg marks scans running in positional-aggregate mode: surviving rows
+	// are retained as StructRow clones in aggRows (index-addressed, shared
+	// column index) instead of per-row RowMaps. The aggregate passes read
+	// them through the Row interface; the consumers that demand name-keyed
+	// maps (window pass, nested aggregates, correlated outer sets) materialize
+	// them lazily. Gated to exactly the shapes whose scan output only the
+	// aggregate passes consume (see allowPositionalAggRows).
+	posAgg bool
+	// aggRows accumulates the positional rows of a posAgg scan; aggArena
+	// chunks the per-row value slices (cloneReuseSRow) so retention costs one
+	// small allocation per row.
+	aggRows  []Row
+	aggArena []interface{}
 	// serialTypesBuf is the scan's reusable record-header type buffer
 	// (parseRecordSerialTypesInto), reused across all rows of the scan.
 	serialTypesBuf []uint64
@@ -551,10 +576,31 @@ type scanState struct {
 	allRowMaps   []RowMap
 }
 
+// allowPositionalAggRows reports whether the caller (execSelectScanPhase)
+// permits positional-aggregate retention for this scan: no WITHOUT ROWID PK
+// reorder (it sorts the scan's row maps), no schema-table post-filter (it
+// consumes the maps), no WHERE-driven index-order reorder (same), no join
+// (the join pass rebuilds maps), and no outer/correlated aggregate context
+// (execSelectOuterAgg / execSelectCorrelatedAgg consume the maps first).
+func (e *SelectEngine) allowPositionalAggRows(s *sql.SelectStmt, tableEntry *schema.Entry, withoutRowidPKCols []string) bool {
+	if len(withoutRowidPKCols) > 0 || IsSchemaTable(tableEntry.Name) {
+		return false
+	}
+	if len(s.Joins) > 0 || s.From.Subquery != nil {
+		return false
+	}
+	if e.indexScanOrderIndex(s) != "" {
+		return false
+	}
+	return e.outerRow == nil && len(e.OuterRows()) == 0
+}
+
 // newScanState builds the scan configuration and reusable buffers for a table
 // scan. The StructRow and flat output buffers are reused across all rows to
-// avoid per-row allocation.
-func newScanState(e *SelectEngine, s *sql.SelectStmt, colDefs []sql.ColumnDef, needMaps bool, feed *simpleAggFeed) *scanState {
+// avoid per-row allocation. allowPosAgg is the caller's positional-retention
+// permission (allowPositionalAggRows); the scan adds its own statement-shape
+// gates on top.
+func newScanState(e *SelectEngine, s *sql.SelectStmt, colDefs []sql.ColumnDef, needMaps bool, feed *simpleAggFeed, allowPosAgg bool) *scanState {
 	hasJoins := len(s.Joins) > 0
 	if feed != nil {
 		// Feed mode materializes no rows or row maps: the map-driven
@@ -568,53 +614,85 @@ func newScanState(e *SelectEngine, s *sql.SelectStmt, colDefs []sql.ColumnDef, n
 		colIndex[cd.Name] = i
 	}
 	activeColCount := countActiveColumns(colDefs)
-	// Lazy decode only decodes WHERE-referenced columns first. But if the WHERE
-	// contains subqueries (EXISTS, scalar), the subquery may reference any column
-	// of the outer row, so we must decode all columns upfront.
-	whereHasSubquery := s.Where != nil && exprHasSubquery(s.Where)
-	useLazyDecode := s.Where != nil && !hasJoins && !whereHasSubquery
-	var whereDecodeIndices, remainingDecodeIndices map[int]bool
-	if useLazyDecode {
-		whereDecodeIndices, remainingDecodeIndices = scanLazyDecodeIndices(colDefs, colIndex, affinityCols)
-	}
-	// LIKE-optimization range synthesis (whereexpr.c exprAnalyze): decorate
-	// index-usable LIKE/GLOB conjuncts for this scan only (s.Where itself is
-	// left untouched for EXPLAIN and other consumers).
-	whereExpr := s.Where
-	if !hasJoins && whereExpr != nil {
-		whereExpr = e.likeOptimizedScanWhere(s, colDefs, whereExpr)
-	}
-	// Feed mode wraps only WHERE-referenced columns (the WHERE evaluation
-	// consumes the wrappers; the feed steps raw values) PLUS the INTEGER
-	// PRIMARY KEY rowid-alias columns: the affinity plan performs their
-	// stored-NULL → rowid substitution, which is a value fill, not a
-	// comparison wrapper — dropping it would feed NULL to the aggregates.
-	wrapCols := affinityCols
-	if feed != nil {
-		wrapCols = e.aggFeedWrapCols(s.Where, colDefs)
-	}
+	isSelectStar := isSelectStarQuery(s, hasJoins)
+	plan := e.scanDecodePlan(s, colDefs, colIndex, affinityCols, feed, hasJoins)
+	aggConsumes := scanConsumedByAggPass(e, s)
+	posAgg := e.positionalAggScan(s, feed, allowPosAgg, hasJoins, needMaps, aggConsumes)
 	return &scanState{
 		e:                      e,
 		s:                      s,
 		colDefs:                colDefs,
 		hasJoins:               hasJoins,
-		whereExpr:              whereExpr,
+		whereExpr:              plan.whereExpr,
 		affinityCols:           affinityCols,
-		affPlan:                newAffinityPlan(colDefs, wrapCols),
+		affPlan:                newAffinityPlan(colDefs, plan.wrapCols),
 		ipkFillIdx:             ipkAliasIndices(colDefs),
 		reuseSRow:              &StructRow{Values: make([]interface{}, len(colDefs)), Index: colIndex},
-		useLazyDecode:          useLazyDecode,
-		whereDecodeIndices:     whereDecodeIndices,
-		remainingDecodeIndices: remainingDecodeIndices,
-		isSelectStar:           isSelectStarQuery(s, hasJoins),
+		useLazyDecode:          plan.useLazyDecode,
+		whereDecodeIndices:     plan.whereDecodeIndices,
+		remainingDecodeIndices: plan.remainingDecodeIndices,
+		isSelectStar:           isSelectStar,
+		bareOutIdx:             bareOutputSlots(s, colDefs),
 		activeColCount:         activeColCount,
-		needMaps:               needMaps,
+		needMaps:               needMaps && !posAgg,
 		feed:                   feed,
-		aggConsumesRows:        scanConsumedByAggPass(e, s),
+		aggConsumesRows:        aggConsumes,
+		posAgg:                 posAgg,
 		// Pre-allocate a flat slice for SELECT * to avoid per-row make() calls.
 		outValues:    make([]interface{}, 0, 1024*activeColCount),
 		outRowStarts: make([]int, 0, 1024),
 	}
+}
+
+// scanDecodePlan is the per-scan decode/wrap configuration newScanState
+// derives from the statement shape: the LIKE-optimized WHERE expression, the
+// lazy-decode phase-1/phase-2 index sets, and the affinity wrap set.
+type scanDecodePlan struct {
+	whereExpr              sql.Expr
+	wrapCols               map[string]bool
+	useLazyDecode          bool
+	whereDecodeIndices     map[int]bool
+	remainingDecodeIndices map[int]bool
+}
+
+// scanDecodePlan computes the scan's decode/wrap configuration. Lazy decode
+// only decodes WHERE-referenced columns first; a WHERE containing subqueries
+// (EXISTS, scalar) may reference any column of the outer row, so those scans
+// decode all columns upfront. Feed mode wraps only WHERE-referenced columns
+// (the WHERE evaluation consumes the wrappers; the feed steps raw values)
+// PLUS the INTEGER PRIMARY KEY rowid-alias columns: the affinity plan
+// performs their stored-NULL → rowid substitution, a value fill, not a
+// comparison wrapper — dropping it would feed NULL to the aggregates.
+func (e *SelectEngine) scanDecodePlan(s *sql.SelectStmt, colDefs []sql.ColumnDef, colIndex map[string]int, affinityCols map[string]bool, feed *simpleAggFeed, hasJoins bool) scanDecodePlan {
+	whereHasSubquery := s.Where != nil && exprHasSubquery(s.Where)
+	plan := scanDecodePlan{whereExpr: s.Where, wrapCols: affinityCols}
+	plan.useLazyDecode = s.Where != nil && !hasJoins && !whereHasSubquery
+	if plan.useLazyDecode {
+		plan.whereDecodeIndices, plan.remainingDecodeIndices = scanLazyDecodeIndices(colDefs, colIndex, affinityCols)
+	}
+	// LIKE-optimization range synthesis (whereexpr.c exprAnalyze): decorate
+	// index-usable LIKE/GLOB conjuncts for this scan only (s.Where itself is
+	// left untouched for EXPLAIN and other consumers).
+	if !hasJoins && plan.whereExpr != nil {
+		plan.whereExpr = e.likeOptimizedScanWhere(s, colDefs, plan.whereExpr)
+	}
+	if feed != nil {
+		plan.wrapCols = e.aggFeedWrapCols(s.Where, colDefs)
+	}
+	return plan
+}
+
+// positionalAggScan reports whether the scan retains its rows positionally
+// for the aggregate passes. Plain window scans (window functions, no
+// GROUP BY / aggregates) fall through to execWindowPass over the scanned
+// row maps: they keep the map path. Window-over-GROUP-BY shapes stay
+// positional — the group passes materialize their maps per group for the
+// window run. A correlated-aggregate subquery column re-evaluates the
+// columns over the scanned row maps first (execSelectCorrelatedAgg): the
+// feed excludes that shape for the same reason.
+func (e *SelectEngine) positionalAggScan(s *sql.SelectStmt, feed *simpleAggFeed, allowPosAgg, hasJoins, needMaps, aggConsumes bool) bool {
+	return allowPosAgg && feed == nil && !hasJoins && needMaps && aggConsumes &&
+		!e.selectHasWindowFuncs(s.Columns) && !e.hasSubqueryWithCorrelatedAgg(s.Columns)
 }
 
 // decodeAndFilterRow decodes the current row's columns and evaluates WHERE.
@@ -677,34 +755,6 @@ func (st *scanState) evalRowWhere(cursor *btree.Cursor) (bool, error) {
 	return st.e.rowPassesWhere(st.whereExpr, st.reuseSRow, cursor)
 }
 
-// appendRowOutput builds the output for the current row. For SELECT * it copies
-// values into the pre-allocated flat slice (fast path); otherwise it allocates a
-// row via buildOutputRow. Row maps are accumulated when needed. In a JOIN, the
-// scan produces only the first table's columns — output rows are rebuilt from
-// the full joined row maps by execJoins afterwards, so skip the (potentially
-// error-raising) per-row expression evaluation here to avoid evaluating
-// expressions against a row missing the joined tables' columns.
-func (st *scanState) appendRowOutput() error {
-	if st.isSelectStar {
-		if !st.aggConsumesRows {
-			st.outRowStarts = append(st.outRowStarts, len(st.outValues))
-			st.outValues = appendScanStarValues(st.outValues, st.colDefs, st.reuseSRow.Values, st.affinityCols != nil)
-		}
-	} else if !st.hasJoins && !st.aggConsumesRows {
-		row, err := st.e.buildOutputRow(st.s.Columns, st.colDefs, st.reuseSRow)
-		if err != nil {
-			return err
-		}
-		st.nonStarRows = append(st.nonStarRows, row)
-	}
-	if st.needMaps {
-		st.allRowMaps = append(st.allRowMaps, StructRowToMap(st.reuseSRow))
-	}
-	return nil
-}
-
-// buildResultRows assembles the final row slice: SELECT * rows from the flat
-// buffer first, then any individually-allocated (non-star) rows.
 func (st *scanState) buildResultRows() [][]interface{} {
 	totalStarRows := len(st.outRowStarts)
 	allRows := make([][]interface{}, totalStarRows+len(st.nonStarRows))
@@ -756,148 +806,6 @@ func reverseRowMaps(maps []RowMap) {
 	}
 }
 
-// scanTableAffinityCols collects the column names that need affinity wrappers
-// from the WHERE clause, SELECT columns, ORDER BY, and join ON/USING/NATURAL
-// references (columns compared with affinity must wrap their values).
-func (e *SelectEngine) scanTableAffinityCols(s *sql.SelectStmt, colDefs []sql.ColumnDef, needMaps bool) map[string]bool {
-	a := &affinityCollector{cols: make(map[string]bool)}
-	// Collect column references from the WHERE clause.
-	a.collectExprRefs(s.Where)
-	// Also collect from SELECT columns: expressions like "xt==+xi" need the
-	// affinity of xt even when xt is not referenced in WHERE/ORDER BY.
-	for _, col := range s.Columns {
-		a.collectExpr(col.Expr)
-	}
-	for _, ob := range s.OrderBy {
-		a.collectExpr(ob.Expr)
-	}
-	// GROUP BY expressions need affinity/collation wrappers too: grouping a
-	// NOCASE column must compare values under that collation (b3's
-	// 'abc'/'aBC' group together).
-	for _, gb := range s.GroupBy {
-		a.collectExpr(gb)
-	}
-	if s.Having != nil {
-		a.collectExpr(s.Having)
-	}
-	// JOIN ON/USING/NATURAL clauses reference columns that need affinity
-	// wrappers for the join comparison.
-	for i := range s.Joins {
-		e.collectJoinAffinity(a, &s.Joins[i], s.From.Name)
-	}
-	return a.result(colDefs, needMaps)
-}
-
-// affinityCollector accumulates column names that need affinity wrappers.
-type affinityCollector struct {
-	cols map[string]bool
-	seen bool // true once any column was collected
-}
-
-// collectExpr collects column references from a single expression,
-// descending into subquery SELECT bodies (their WHERE and output columns)
-// so outer scans wrap the columns a correlated subquery references. This
-// mirrors the original collectExprRefs helper the engine used before the
-// query extraction.
-func (a *affinityCollector) collectExpr(expr sql.Expr) {
-	if expr == nil {
-		return
-	}
-	WalkExprFull(expr, func(e sql.Expr) {
-		if cr, ok := e.(*sql.ColumnRef); ok {
-			a.cols[cr.Name] = true
-			a.seen = true
-		}
-		a.collectSubqueryCols(e)
-	})
-}
-
-// collectSubqueryCols descends into subquery and EXISTS bodies, collecting
-// column references from their WHERE and output columns.
-func (a *affinityCollector) collectSubqueryCols(e sql.Expr) {
-	if sub, ok := e.(*sql.Subquery); ok && sub.Select != nil {
-		a.collectSelectBodyCols(sub.Select)
-	}
-	if ex, ok := e.(*sql.ExistsExpr); ok && ex.Select != nil {
-		a.collectSelectBodyCols(ex.Select)
-	}
-}
-
-// collectSelectBodyCols collects affinity columns from a subquery's WHERE
-// and result columns.
-func (a *affinityCollector) collectSelectBodyCols(sel *sql.SelectStmt) {
-	if sel.Where != nil {
-		a.collectExpr(sel.Where)
-	}
-	for _, col := range sel.Columns {
-		a.collectExpr(col.Expr)
-	}
-}
-
-// collectExprRefs collects column references from one or more expressions.
-func (a *affinityCollector) collectExprRefs(expr sql.Expr) {
-	if expr != nil {
-		a.collectExpr(expr)
-	}
-}
-
-// add marks a column name as needing affinity.
-func (a *affinityCollector) add(name string) {
-	a.cols[name] = true
-	a.seen = true
-}
-
-// addAll marks all names as needing affinity.
-func (a *affinityCollector) addAll(names []string) {
-	for _, n := range names {
-		a.add(n)
-	}
-}
-
-// result returns the accumulated affinity set, or nil when nothing was
-// collected and needMaps is false. When needMaps is true but nothing was
-// collected, all columns need affinity (maps may be used downstream).
-func (a *affinityCollector) result(colDefs []sql.ColumnDef, needMaps bool) map[string]bool {
-	if a.seen {
-		return a.cols
-	}
-	if !needMaps {
-		return nil
-	}
-	for _, cd := range colDefs {
-		a.cols[cd.Name] = true
-	}
-	return a.cols
-}
-
-// collectJoinAffinity collects affinity-requiring columns from a join's ON,
-// USING, and (for NATURAL joins) the common columns of both tables.
-func (e *SelectEngine) collectJoinAffinity(a *affinityCollector, j *sql.JoinClause, fromTable string) {
-	if j.On != nil {
-		a.collectExpr(j.On)
-	}
-	for _, uc := range j.Using {
-		a.add(uc)
-	}
-	if !isNaturalJoinType(j.JoinType) {
-		return
-	}
-	// NATURAL joins compare all common columns; mark the join table's columns
-	// and, conservatively, the base FROM table's columns with the same names.
-	if names, err := e.tableColumnNames(j.Table.Name); err == nil {
-		a.addAll(names)
-	}
-	if fromTable != "" {
-		if names, err := e.tableColumnNames(fromTable); err == nil {
-			a.addAll(names)
-		}
-	}
-}
-
-// fastEvalComparison attempts to evaluate a simple BinaryOp comparison
-// (ColumnRef OP Literal or Literal OP ColumnRef) without going through the
-// full evalExpr → evalComplexExpr → evalBinaryOp chain. Returns (result, true)
-// if the fast path was taken, or (false, false) to fall through to the slow path.
 func (e *SelectEngine) fastEvalComparison(bop *sql.BinaryOp, row Row) (bool, bool) {
 	if !isSimpleComparisonOp(bop.Operator) {
 		return false, false

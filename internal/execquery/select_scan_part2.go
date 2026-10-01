@@ -79,11 +79,18 @@ func columnWrapInfo(cd *sql.ColumnDef) (rune, string) {
 }
 
 // newAffinityPlan builds the plan for a scan's colDefs against the collected
-// affinity column names. Returns nil when affinityCols is nil (no wrapping),
-// mirroring the previous fill-time `if affinityCols != nil` gate.
+// affinity column names. Returns nil when affinityCols is nil AND the table
+// has no INTEGER PRIMARY KEY rowid-alias column (the alias fill is a VALUE
+// substitution, not a wrapper, and it rides on the plan: without it a
+// wrapper-free scan would leave the alias slot at its stored NULL —
+// "SELECT id FROM ipk" must still emit the rowid). A nil-map-with-alias
+// table yields a fill-only plan (empty wrap set, IPK fill computed).
 func newAffinityPlan(colDefs []sql.ColumnDef, affinityCols map[string]bool) *affinityPlan {
 	if affinityCols == nil {
-		return nil
+		if !hasIPKRowidAliasCol(colDefs) {
+			return nil
+		}
+		affinityCols = map[string]bool{}
 	}
 	p := &affinityPlan{}
 	for i := range colDefs {
@@ -143,6 +150,18 @@ func ipkAliasIndices(colDefs []sql.ColumnDef) []int {
 		}
 	}
 	return idx
+}
+
+// hasIPKRowidAliasCol reports whether any column of the table is an INTEGER
+// PRIMARY KEY rowid-alias column (allocation-free existence check for the
+// affinity plan's fill-only fallback).
+func hasIPKRowidAliasCol(colDefs []sql.ColumnDef) bool {
+	for i := range colDefs {
+		if isIPKRowidAliasCol(colDefs[i]) {
+			return true
+		}
+	}
+	return false
 }
 
 // fillStructRowFromTypes fills a StructRow using pre-parsed serial types.

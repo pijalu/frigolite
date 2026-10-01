@@ -283,7 +283,7 @@ func joinIsEmptyNonLeft(e *SelectEngine, join sql.JoinClause) bool {
 // hasOuterRows reports whether the engine is executing inside an enclosing
 // query with rows on the outer-resolution stack (a correlated subquery).
 func (e *SelectEngine) hasOuterRows() bool {
-	return e.outerRow != nil || len(e.outerRows) > 0
+	return e.outerRow != nil || len(e.OuterRows()) > 0
 }
 
 // materializeSubqueryJoin builds the right-side row maps and column defs for a

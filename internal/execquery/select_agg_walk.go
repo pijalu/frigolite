@@ -528,7 +528,7 @@ func collationGroupKey(v interface{}, coll string) string {
 
 // evalHaving evaluates a HAVING expression by treating aggregate function
 // calls as group-aware (evaluating over all rows in the group).
-func (e *SelectEngine) evalHaving(expr sql.Expr, groupRows []RowMap) (bool, error) {
+func (e *SelectEngine) evalHaving(expr sql.Expr, groupRows []Row) (bool, error) {
 	v, err := e.evalHavingExpr(expr, groupRows)
 	if err != nil {
 		return false, err
@@ -574,7 +574,7 @@ func (e *SelectEngine) applyEmptyGroupHaving(s *sql.SelectStmt, columns []string
 
 // evalHavingExpr recursively evaluates an expression, handling aggregate
 // functions across all groupRows.
-func (e *SelectEngine) evalHavingExpr(expr sql.Expr, groupRows []RowMap) (interface{}, error) {
+func (e *SelectEngine) evalHavingExpr(expr sql.Expr, groupRows []Row) (interface{}, error) {
 	if expr == nil {
 		return nil, nil
 	}
@@ -603,7 +603,7 @@ func (e *SelectEngine) evalHavingExpr(expr sql.Expr, groupRows []RowMap) (interf
 // evalHavingBinaryOp evaluates a binary operator in a HAVING clause, applying
 // SQLite's NULL propagation for non-AND/OR operators. IS / IS NOT are
 // NULL-safe (NULL IS NULL is true), so they skip the propagation.
-func (e *SelectEngine) evalHavingBinaryOp(v *sql.BinaryOp, groupRows []RowMap) (interface{}, error) {
+func (e *SelectEngine) evalHavingBinaryOp(v *sql.BinaryOp, groupRows []Row) (interface{}, error) {
 	left, err := e.evalHavingExpr(v.Left, groupRows)
 	if err != nil {
 		return nil, err
@@ -631,7 +631,7 @@ func (e *SelectEngine) evalHavingBinaryOp(v *sql.BinaryOp, groupRows []RowMap) (
 }
 
 // evalHavingIsNull evaluates an IS NULL expression in a HAVING clause.
-func (e *SelectEngine) evalHavingIsNull(v *sql.IsNull, groupRows []RowMap) (interface{}, error) {
+func (e *SelectEngine) evalHavingIsNull(v *sql.IsNull, groupRows []Row) (interface{}, error) {
 	operand, err := e.evalHavingExpr(v.Operand, groupRows)
 	if err != nil {
 		return nil, err
@@ -641,7 +641,7 @@ func (e *SelectEngine) evalHavingIsNull(v *sql.IsNull, groupRows []RowMap) (inte
 	operand = util.UnwrapColumnValue(operand)
 	return execexpr.BoolToInt(operand == nil), nil
 }
-func (e *SelectEngine) evalHavingFuncCall(v *sql.FuncCall, groupRows []RowMap) (interface{}, error) {
+func (e *SelectEngine) evalHavingFuncCall(v *sql.FuncCall, groupRows []Row) (interface{}, error) {
 	fn, ok := e.ctx.Functions().Find(v.Name)
 	if ok && fn.Type == function.TypeAggregate {
 		if v.Distinct {
@@ -655,7 +655,7 @@ func (e *SelectEngine) evalHavingFuncCall(v *sql.FuncCall, groupRows []RowMap) (
 	return nil, nil
 }
 
-func (e *SelectEngine) evalHavingUnary(v *sql.UnaryOp, groupRows []RowMap) (interface{}, error) {
+func (e *SelectEngine) evalHavingUnary(v *sql.UnaryOp, groupRows []Row) (interface{}, error) {
 	operand, err := e.evalHavingExpr(v.Operand, groupRows)
 	if err != nil {
 		return nil, err
@@ -673,7 +673,7 @@ func (e *SelectEngine) evalHavingUnary(v *sql.UnaryOp, groupRows []RowMap) (inte
 	}
 }
 
-func (e *SelectEngine) evalHavingIsNotNull(v *sql.IsNotNull, groupRows []RowMap) (interface{}, error) {
+func (e *SelectEngine) evalHavingIsNotNull(v *sql.IsNotNull, groupRows []Row) (interface{}, error) {
 	operand, err := e.evalHavingExpr(v.Operand, groupRows)
 	if err != nil {
 		return nil, err
@@ -682,7 +682,7 @@ func (e *SelectEngine) evalHavingIsNotNull(v *sql.IsNotNull, groupRows []RowMap)
 	return execexpr.BoolToInt(operand != nil), nil
 }
 
-func (e *SelectEngine) evalHavingIsDistinctFrom(v *sql.IsDistinctFrom, groupRows []RowMap) (interface{}, error) {
+func (e *SelectEngine) evalHavingIsDistinctFrom(v *sql.IsDistinctFrom, groupRows []Row) (interface{}, error) {
 	left, err := e.evalHavingExpr(v.Left, groupRows)
 	if err != nil {
 		return nil, err
@@ -704,7 +704,7 @@ func (e *SelectEngine) evalHavingIsDistinctFrom(v *sql.IsDistinctFrom, groupRows
 	return int64(1), nil
 }
 
-func (e *SelectEngine) evalHavingIsNotDistinctFrom(v *sql.IsNotDistinctFrom, groupRows []RowMap) (interface{}, error) {
+func (e *SelectEngine) evalHavingIsNotDistinctFrom(v *sql.IsNotDistinctFrom, groupRows []Row) (interface{}, error) {
 	left, err := e.evalHavingExpr(v.Left, groupRows)
 	if err != nil {
 		return nil, err
@@ -726,7 +726,7 @@ func (e *SelectEngine) evalHavingIsNotDistinctFrom(v *sql.IsNotDistinctFrom, gro
 	return int64(0), nil
 }
 
-func (e *SelectEngine) evalHavingDefault(expr sql.Expr, groupRows []RowMap) (interface{}, error) {
+func (e *SelectEngine) evalHavingDefault(expr sql.Expr, groupRows []Row) (interface{}, error) {
 	if len(groupRows) > 0 {
 		return e.ctx.EvalExpr(expr, groupRows[0])
 	}
@@ -741,28 +741,28 @@ func (e *SelectEngine) evalHavingDefault(expr sql.Expr, groupRows []RowMap) (int
 // evalHavingSubquery evaluates a Subquery expression in a HAVING clause.
 // It sets outerRows to all group rows so that correlated aggregates within
 // the subquery can evaluate over the entire group (not just one row).
-func (e *SelectEngine) evalHavingSubquery(v *sql.Subquery, groupRows []RowMap) (interface{}, error) {
-	prevOuterRows := e.outerRows
+func (e *SelectEngine) evalHavingSubquery(v *sql.Subquery, groupRows []Row) (interface{}, error) {
+	prevOuterRows := e.OuterRows()
 	outer := RowMap{}
 	if len(groupRows) > 0 {
-		e.outerRows = groupRows
-		outer = groupRows[0]
+		e.setOuterRowsFromRows(groupRows)
+		outer = rowToRowMap(groupRows[0])
 	}
 	result, err := e.ctx.EvalSubquery(v, outer)
-	e.outerRows = prevOuterRows
+	e.restoreOuterRows(prevOuterRows)
 	return result, err
 }
 
-func (e *SelectEngine) evalAggregateExpr(expr sql.Expr, rowMaps []RowMap) (interface{}, error) {
+func (e *SelectEngine) evalAggregateExpr(expr sql.Expr, rows []Row) (interface{}, error) {
 	switch v := expr.(type) {
 	case *sql.FuncCall:
 		if v.Distinct {
-			return e.evalDistinctAggregate(v, rowMaps), nil
+			return e.evalDistinctAggregate(v, rows), nil
 		}
-		return e.evalAggFuncCall(v, rowMaps)
+		return e.evalAggFuncCall(v, rows)
 	default:
-		if len(rowMaps) > 0 {
-			val, err := e.ctx.EvalExpr(expr, rowMaps[0])
+		if len(rows) > 0 {
+			val, err := e.ctx.EvalExpr(expr, rows[0])
 			return val, err
 		}
 		return nil, nil

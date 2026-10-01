@@ -56,14 +56,14 @@ func groupByFastRef(expr sql.Expr) (*sql.ColumnRef, bool) {
 	}
 }
 
-// partitionByGroupKey partitions rowMaps by their GROUP BY key, preserving
+// partitionByGroupKey partitions rows by their GROUP BY key, preserving
 // first-seen order in keyOrder. It returns the per-key row slices, the per-key
 // evaluated key values, and the ordered list of keys.
-func (e *SelectEngine) partitionByGroupKey(groupBy []sql.Expr, rowMaps []RowMap) (map[string][]RowMap, map[string][]interface{}, []string) {
-	groups := make(map[string][]RowMap)
+func (e *SelectEngine) partitionByGroupKey(groupBy []sql.Expr, rows []Row) (map[string][]Row, map[string][]interface{}, []string) {
+	groups := make(map[string][]Row)
 	keyVals := make(map[string][]interface{})
 	var keyOrder []string
-	for _, row := range rowMaps {
+	for _, row := range rows {
 		key, vals, colls := e.computeGroupByKeyValues(groupBy, row)
 		group, exists := groups[key]
 		if !exists {
@@ -85,7 +85,7 @@ func (e *SelectEngine) partitionByGroupKey(groupBy []sql.Expr, rowMaps []RowMap)
 // otherwise cost O(groups) compares per new key and ~12% of the group-phase
 // profile). A group that stays new is registered in keyOrder/keyVals and
 // returns a nil row slice.
-func (e *SelectEngine) resolveGroupKeyMiss(groups map[string][]RowMap, keyOrder *[]string, keyVals map[string][]interface{}, key string, vals []interface{}, colls []string) (string, []RowMap) {
+func (e *SelectEngine) resolveGroupKeyMiss(groups map[string][]Row, keyOrder *[]string, keyVals map[string][]interface{}, key string, vals []interface{}, colls []string) (string, []Row) {
 	collated := false
 	for _, c := range colls {
 		if c != "" {
