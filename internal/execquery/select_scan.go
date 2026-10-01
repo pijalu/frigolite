@@ -432,7 +432,11 @@ func (e *SelectEngine) scanTableRowsWithSQL(cursor *btree.Cursor, s *sql.SelectS
 			st.wrOrder = wrStorageOrder(createSQL, colDefs)
 			// Lazy decode indexes positional slots; a permutation would decode
 			// the wrong columns in phase 1, so force full decode under remap.
+			// The direct column read is keyed on declared ordinals for the
+			// same reason.
 			st.useLazyDecode = false
+			st.directCols = nil
+			st.directScratch = nil
 		}
 	}
 	if err := st.runScan(cursor); err != nil {
@@ -569,6 +573,12 @@ type scanState struct {
 	// serialTypesBuf is the scan's reusable record-header type buffer
 	// (parseRecordSerialTypesInto), reused across all rows of the scan.
 	serialTypesBuf []uint64
+	// directCols, when non-nil, selects the direct column-read decode
+	// (decodeRowDirect): the sorted declared slots whose values the scan's
+	// consumers read, decoded straight from the cell payload each row via
+	// storage.DecodeRecordColumns. Eligibility in select_scan_direct.go.
+	directCols    []int
+	directScratch []interface{}
 	// output accumulators
 	outValues    []interface{}
 	outRowStarts []int
@@ -618,7 +628,7 @@ func newScanState(e *SelectEngine, s *sql.SelectStmt, colDefs []sql.ColumnDef, n
 	plan := e.scanDecodePlan(s, colDefs, colIndex, affinityCols, feed, hasJoins)
 	aggConsumes := scanConsumedByAggPass(e, s)
 	posAgg := e.positionalAggScan(s, feed, allowPosAgg, hasJoins, needMaps, aggConsumes)
-	return &scanState{
+	st := &scanState{
 		e:                      e,
 		s:                      s,
 		colDefs:                colDefs,
@@ -642,6 +652,8 @@ func newScanState(e *SelectEngine, s *sql.SelectStmt, colDefs []sql.ColumnDef, n
 		outValues:    make([]interface{}, 0, 1024*activeColCount),
 		outRowStarts: make([]int, 0, 1024),
 	}
+	st.initDirectDecode(feed, plan)
+	return st
 }
 
 // scanDecodePlan is the per-scan decode/wrap configuration newScanState
@@ -658,15 +670,19 @@ type scanDecodePlan struct {
 // scanDecodePlan computes the scan's decode/wrap configuration. Lazy decode
 // only decodes WHERE-referenced columns first; a WHERE containing subqueries
 // (EXISTS, scalar) may reference any column of the outer row, so those scans
-// decode all columns upfront. Feed mode wraps only WHERE-referenced columns
-// (the WHERE evaluation consumes the wrappers; the feed steps raw values)
-// PLUS the INTEGER PRIMARY KEY rowid-alias columns: the affinity plan
-// performs their stored-NULL → rowid substitution, a value fill, not a
-// comparison wrapper — dropping it would feed NULL to the aggregates.
+// decode all columns upfront. Feed mode runs the lazy two-phase pipeline even
+// without a WHERE clause — its phase-1 set is the statement's referenced
+// columns (the feed's compiled argument slots among them) and the feed branch
+// skips the phase-2 refill, so the record-wide full decode was pure waste.
+// Feed mode wraps only WHERE-referenced columns (the WHERE evaluation consumes
+// the wrappers; the feed steps raw values) PLUS the INTEGER PRIMARY KEY
+// rowid-alias columns: the affinity plan performs their stored-NULL → rowid
+// substitution, a value fill, not a comparison wrapper — dropping it would
+// feed NULL to the aggregates.
 func (e *SelectEngine) scanDecodePlan(s *sql.SelectStmt, colDefs []sql.ColumnDef, colIndex map[string]int, affinityCols map[string]bool, feed *simpleAggFeed, hasJoins bool) scanDecodePlan {
 	whereHasSubquery := s.Where != nil && exprHasSubquery(s.Where)
 	plan := scanDecodePlan{whereExpr: s.Where, wrapCols: affinityCols}
-	plan.useLazyDecode = s.Where != nil && !hasJoins && !whereHasSubquery
+	plan.useLazyDecode = (s.Where != nil || feed != nil) && !hasJoins && !whereHasSubquery
 	if plan.useLazyDecode {
 		plan.whereDecodeIndices, plan.remainingDecodeIndices = scanLazyDecodeIndices(colDefs, colIndex, affinityCols)
 	}
@@ -700,6 +716,16 @@ func (e *SelectEngine) positionalAggScan(s *sql.SelectStmt, feed *simpleAggFeed,
 // path when the row fails WHERE early (remaining columns are not decoded); the
 // caller must advance the cursor and continue in that case.
 func (st *scanState) decodeAndFilterRow(cursor *btree.Cursor, payload []byte, rowID int64) (passesWhere, filtered bool, err error) {
+	// Direct column read: decode only the scan's referenced slots straight
+	// from the payload (no record-wide boxing). A corrupt payload falls back
+	// to the historical decode below, which reproduces its exact
+	// silent-truncation semantics on crafted pages.
+	if st.directCols != nil {
+		if err := st.decodeRowDirect(payload, rowID); err == nil {
+			passes, err := st.evalRowWhere(cursor)
+			return passes, false, err
+		}
+	}
 	// Parse header ONCE per row into the scan's reusable type buffer — the
 	// types are consumed within this row's decode (fill + WHERE + refill),
 	// never retained, so one buffer serves the whole scan.
