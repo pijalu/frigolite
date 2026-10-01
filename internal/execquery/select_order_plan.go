@@ -133,47 +133,72 @@ func (p *obSortPlan) initFor(e *SelectEngine, resultCols []string, rowMaps []Row
 	}
 	for i := range p.terms {
 		t := &p.terms[i]
-		switch t.kind {
-		case obTermPositional:
-			if t.pos > len(resultCols) {
-				// Out-of-range ordinal: the comparator never rewrites the
-				// term, the expression stays a NumericLit, and the term
-				// takes the legacy path.
-				t.kind = obTermLegacy
-				continue
-			}
-			t.pos--
-			// The comparator sees the positional rewrite (a fresh column
-			// reference) for both the value read and the collation chain.
-			ref := &sql.ColumnRef{Name: resultCols[t.pos]}
-			t.expr = ref
-			t.exprN = ref
-			t.fallBack = sql.OrderByTerm{Expr: ref, Desc: t.ob.Desc, NullsFirst: t.ob.NullsFirst, NullsLast: t.ob.NullsLast}
-		case obTermBare:
-			t.exprN = normalizeOrderByExpr(t.expr)
-			ref, isRef := stripCollate(t.exprN).(*sql.ColumnRef)
-			if !isRef || ref.Table != "" || ref.Name == "*" {
-				t.kind = obTermLegacy
-				continue
-			}
-			t.refName = ref.Name
-			t.pos = resultColumnIndex(resultCols, ref.Name)
-			t.fallBack = t.ob
-			// resolveOrderByRowValues' alias resolution.
-			resolvedName, isAlias := e.orderByAliasColumnName(ref.Name)
-			t.aliasIsAlias = isAlias
-			t.aliasResolved = resolvedName
-			if isAlias && resolvedName != "" {
-				t.aliasPos = resultColumnIndex(resultCols, ref.Name)
-			}
-		default:
-			continue
+		if !t.initTerm(e, resultCols) {
+			continue // legacy term: the per-comparison comparator owns it
 		}
-		// Collation chain (orderBySortCollation's value-independent prefix).
-		t.termColl = orderByTermCollation(t.expr)
-		t.aliasColl = e.aliasOrderByCollation(t.expr)
-		t.declaredColl = e.declaredOrderByCollation(t.expr)
+		t.initCollations(e)
 	}
+}
+
+// initTerm resolves one term's kind-specific invariants against the sorting
+// result columns. false leaves the term on the legacy comparator.
+func (t *obSortTerm) initTerm(e *SelectEngine, resultCols []string) bool {
+	switch t.kind {
+	case obTermPositional:
+		return t.initPositional(resultCols)
+	case obTermBare:
+		return t.initBare(e, resultCols)
+	default:
+		return false
+	}
+}
+
+// initPositional finalizes an in-range ordinal: the comparator reads the
+// output row at the ordinal's position through a fresh column reference (the
+// positional rewrite, kept off the shared AST).
+func (t *obSortTerm) initPositional(resultCols []string) bool {
+	if t.pos > len(resultCols) {
+		// Out-of-range ordinal: the comparator never rewrites the term, the
+		// expression stays a NumericLit, and the term takes the legacy path.
+		t.kind = obTermLegacy
+		return false
+	}
+	t.pos--
+	ref := &sql.ColumnRef{Name: resultCols[t.pos]}
+	t.expr = ref
+	t.exprN = ref
+	t.fallBack = sql.OrderByTerm{Expr: ref, Desc: t.ob.Desc, NullsFirst: t.ob.NullsFirst, NullsLast: t.ob.NullsLast}
+	return true
+}
+
+// initBare finalizes a bare unqualified column term: result-column position
+// and resolveOrderByRowValues' alias resolution.
+func (t *obSortTerm) initBare(e *SelectEngine, resultCols []string) bool {
+	t.exprN = normalizeOrderByExpr(t.expr)
+	ref, isRef := stripCollate(t.exprN).(*sql.ColumnRef)
+	if !isRef || ref.Table != "" || ref.Name == "*" {
+		t.kind = obTermLegacy
+		return false
+	}
+	t.refName = ref.Name
+	t.pos = resultColumnIndex(resultCols, ref.Name)
+	t.fallBack = t.ob
+	// resolveOrderByRowValues' alias resolution.
+	resolvedName, isAlias := e.orderByAliasColumnName(ref.Name)
+	t.aliasIsAlias = isAlias
+	t.aliasResolved = resolvedName
+	if isAlias && resolvedName != "" {
+		t.aliasPos = resultColumnIndex(resultCols, ref.Name)
+	}
+	return true
+}
+
+// initCollations resolves the term's collation chain prefix — the parts of
+// orderBySortCollation that do not depend on the compared values.
+func (t *obSortTerm) initCollations(e *SelectEngine) {
+	t.termColl = orderByTermCollation(t.expr)
+	t.aliasColl = e.aliasOrderByCollation(t.expr)
+	t.declaredColl = e.declaredOrderByCollation(t.expr)
 }
 
 // planMatches reports whether the plan describes THIS lessRows call: same
@@ -223,42 +248,71 @@ func (e *SelectEngine) lessRowsPlan(p *obSortPlan, orderBy []sql.OrderByTerm, ro
 // carry the column's declared collation), then the fallback when either side
 // is unresolved.
 func (e *SelectEngine) planCompareBare(t *obSortTerm, ob sql.OrderByTerm, rowMaps []RowMap, rows [][]interface{}, resultCols []string, i, j int) int {
-	var left, right interface{}
-	lok, rok := false, false
-	if t.pos >= 0 {
-		if t.pos < len(rows[i]) {
-			left, lok = rows[i][t.pos], true
+	left, right, lok, rok := t.bareOutputValues(rows, i, j)
+	if !t.aliasKeepsOutputValues() {
+		if decided, l, r := t.aliasPositionValues(rows, i, j, left, right); decided {
+			return e.planCompareValues(t, l, r)
 		}
-		if t.pos < len(rows[j]) {
-			right, rok = rows[j][t.pos], true
-		}
-	}
-	// resolveOrderByRowValues: an alias that is not itself a plain column
-	// keeps the output-row values; an alias resolving to an output column
-	// reads that position; otherwise the row map supplies the values.
-	if !(t.aliasIsAlias && t.aliasResolved == "") {
-		rowName := t.refName
-		if t.aliasResolved != "" {
-			if t.aliasPos >= 0 && t.aliasPos < len(rows[i]) {
-				left = rows[i][t.aliasPos]
-				if t.aliasPos < len(rows[j]) {
-					right = rows[j][t.aliasPos]
-				}
-				return e.planCompareValues(t, left, right)
-			}
-			rowName = t.aliasResolved
-		}
-		if lm, ok := rowMaps[i].Get(rowName); ok {
-			left = lm
-		}
-		if rm, ok := rowMaps[j].Get(rowName); ok {
-			right = rm
-		}
+		left, right = t.bareRowMapValues(rowMaps, i, j, left, right)
 	}
 	if !lok || !rok {
 		return e.compareOrderByFallback(t.fallBack, t.exprN, rowMaps, rows, resultCols, i, j)
 	}
 	return e.planCompareValues(t, left, right)
+}
+
+// bareOutputValues reads the term's output-row values (resolveOrderByValue):
+// the result-column position resolved at plan time, with per-row bounds
+// checks. found=false means the comparator's fallback runs.
+func (t *obSortTerm) bareOutputValues(rows [][]interface{}, i, j int) (left, right interface{}, lok, rok bool) {
+	if t.pos < 0 {
+		return
+	}
+	if t.pos < len(rows[i]) {
+		left, lok = rows[i][t.pos], true
+	}
+	if t.pos < len(rows[j]) {
+		right, rok = rows[j][t.pos], true
+	}
+	return
+}
+
+// aliasKeepsOutputValues mirrors resolveOrderByRowValues' early return: an
+// alias whose expression is not a plain column reference keeps the
+// output-row values (the row map would grab a same-named source column).
+func (t *obSortTerm) aliasKeepsOutputValues() bool {
+	return t.aliasIsAlias && t.aliasResolved == ""
+}
+
+// aliasPositionValues implements the alias-resolves-to-output-column branch:
+// when the alias's output position exists in rows[i], both sides read that
+// position (rows[j] out of bounds keeps the prior right, exactly like the
+// comparator) and the comparison is decided.
+func (t *obSortTerm) aliasPositionValues(rows [][]interface{}, i, j int, left, right interface{}) (decided bool, l, r interface{}) {
+	if t.aliasResolved == "" || t.aliasPos < 0 || t.aliasPos >= len(rows[i]) {
+		return false, left, right
+	}
+	left = rows[i][t.aliasPos]
+	if t.aliasPos < len(rows[j]) {
+		right = rows[j][t.aliasPos]
+	}
+	return true, left, right
+}
+
+// bareRowMapValues applies the row-map override: the value under the term's
+// (alias-resolved) row name carries the column's declared collation.
+func (t *obSortTerm) bareRowMapValues(rowMaps []RowMap, i, j int, left, right interface{}) (interface{}, interface{}) {
+	rowName := t.refName
+	if t.aliasResolved != "" {
+		rowName = t.aliasResolved
+	}
+	if lm, ok := rowMaps[i].Get(rowName); ok {
+		left = lm
+	}
+	if rm, ok := rowMaps[j].Get(rowName); ok {
+		right = rm
+	}
+	return left, right
 }
 
 // planComparePositional mirrors compareOrderByTerm's positional branch: the

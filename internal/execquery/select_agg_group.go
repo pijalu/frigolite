@@ -2,18 +2,59 @@
 package execquery
 
 import (
+	"bytes"
 	"fmt"
+	"strconv"
+	"strings"
 
 	"github.com/pijalu/frigolite/internal/sql"
 	"github.com/pijalu/frigolite/internal/util"
-
-	"bytes"
-	"strconv"
 )
 
 // GROUP BY key partitioning (split from select_agg.go for file-size
 // hygiene): partitioning rows by their GROUP BY key and merging keys that
 // compare equal under a term's collation.
+
+// groupByKeywordName reports whether a bare identifier is one of the keyword
+// names evalColumnRef resolves as literals BEFORE the row lookup (TRUE, FALSE,
+// CURRENT_TIME, CURRENT_DATE, CURRENT_TIMESTAMP). Such terms must take the
+// generic evaluation path even when a column of the same name exists.
+func groupByKeywordName(name string) bool {
+	switch len(name) {
+	case 4: // TRUE
+		return strings.EqualFold(name, "TRUE")
+	case 5: // FALSE
+		return strings.EqualFold(name, "FALSE")
+	case 12: // CURRENT_TIME, CURRENT_DATE
+		return strings.EqualFold(name, "CURRENT_TIME") || strings.EqualFold(name, "CURRENT_DATE")
+	case 17: // CURRENT_TIMESTAMP
+		return strings.EqualFold(name, "CURRENT_TIMESTAMP")
+	}
+	return false
+}
+
+// groupByFastRef reports whether expr is a plain unqualified column reference
+// whose value EvalExpr returns unchanged from the row: evalExpr peels
+// ParenExpr wrappers and evalColumnRef resolves an unqualified reference to
+// row.Get's value as its first resolution step, so a hit means the fast path
+// and the generic path would produce the identical (value, collation) pair
+// after the unwrap. Returns nil when the term needs generic evaluation
+// (qualified refs, "*", keyword names, and every non-reference expression).
+func groupByFastRef(expr sql.Expr) (*sql.ColumnRef, bool) {
+	for {
+		switch v := expr.(type) {
+		case *sql.ParenExpr:
+			expr = v.Expr
+		case *sql.ColumnRef:
+			if v.Table != "" || v.Name == "*" || groupByKeywordName(v.Name) {
+				return nil, false
+			}
+			return v, true
+		default:
+			return nil, false
+		}
+	}
+}
 
 // partitionByGroupKey partitions rowMaps by their GROUP BY key, preserving
 // first-seen order in keyOrder. It returns the per-key row slices, the per-key
@@ -26,39 +67,42 @@ func (e *SelectEngine) partitionByGroupKey(groupBy []sql.Expr, rowMaps []RowMap)
 		key, vals, colls := e.computeGroupByKeyValues(groupBy, row)
 		group, exists := groups[key]
 		if !exists {
-			// Values equal under a term's collation share a group even when
-			// their serialized keys differ (collate5-4.2: '1' and '1.0'
-			// under a COLLATE NUMERIC column — the sorter compares with the
-			// per-term collation, so the textual keys need not match).
-			// Without any collated term the scan cannot merge: the key
-			// serializer is %v-faithful for every value type, so a textual
-			// miss already proves the values differ. Skipping the linear
-			// scan keeps uncollated GROUP BY at one map lookup per row
-			// (a 1000-group key otherwise cost O(groups) compares per new
-			// key and ~12% of the group-phase profile).
-			collated := false
-			for _, c := range colls {
-				if c != "" {
-					collated = true
-					break
-				}
-			}
-			if collated {
-				if merged := e.equivalentGroupKey(keyOrder, keyVals, vals, colls); merged != "" {
-					key = merged
-					group, exists = groups[key]
-				}
-			}
-			if !exists {
-				keyOrder = append(keyOrder, key)
-				// vals is the key computation's scratch buffer (reused for the
-				// next row): clone it for the group's retention.
-				keyVals[key] = append([]interface{}{}, vals...)
-			}
+			key, group = e.resolveGroupKeyMiss(groups, &keyOrder, keyVals, key, vals, colls)
 		}
 		groups[key] = append(group, row)
 	}
 	return groups, keyVals, keyOrder
+}
+
+// resolveGroupKeyMiss handles a row whose serialized GROUP BY key has no
+// group yet. Values equal under a term's collation share a group even when
+// their serialized keys differ (collate5-4.2: '1' and '1.0' under a COLLATE
+// NUMERIC column — the sorter compares with the per-term collation, so the
+// textual keys need not match). Without any collated term the scan cannot
+// merge: the key serializer is %v-faithful for every value type, so a
+// textual miss already proves the values differ. Skipping the linear scan
+// keeps uncollated GROUP BY at one map lookup per row (a 1000-group key
+// otherwise cost O(groups) compares per new key and ~12% of the group-phase
+// profile). A group that stays new is registered in keyOrder/keyVals and
+// returns a nil row slice.
+func (e *SelectEngine) resolveGroupKeyMiss(groups map[string][]RowMap, keyOrder *[]string, keyVals map[string][]interface{}, key string, vals []interface{}, colls []string) (string, []RowMap) {
+	collated := false
+	for _, c := range colls {
+		if c != "" {
+			collated = true
+			break
+		}
+	}
+	if collated {
+		if merged := e.equivalentGroupKey(*keyOrder, keyVals, vals, colls); merged != "" {
+			return merged, groups[merged]
+		}
+	}
+	*keyOrder = append(*keyOrder, key)
+	// vals is the key computation's scratch buffer (reused for the next
+	// row): clone it for the group's retention.
+	keyVals[key] = append([]interface{}{}, vals...)
+	return key, nil
 }
 
 // equivalentGroupKey returns an existing group key whose key values compare
@@ -113,19 +157,9 @@ func groupKeyScalarEqual(a, b interface{}) bool {
 	case nil:
 		return b == nil
 	case int64:
-		switch bv := b.(type) {
-		case int64:
-			return av == bv
-		case float64:
-			return strconv.FormatInt(av, 10) == strconv.FormatFloat(bv, 'g', -1, 64)
-		}
+		return int64GroupKeyEqual(av, b)
 	case float64:
-		switch bv := b.(type) {
-		case float64:
-			return av == bv
-		case int64:
-			return strconv.FormatFloat(av, 'g', -1, 64) == strconv.FormatInt(bv, 10)
-		}
+		return float64GroupKeyEqual(av, b)
 	case string:
 		bs, ok := b.(string)
 		return ok && av == bs
@@ -137,4 +171,30 @@ func groupKeyScalarEqual(a, b interface{}) bool {
 		return ok && bytes.Equal(av, bb)
 	}
 	return fmt.Sprintf("%v", a) == fmt.Sprintf("%v", b)
+}
+
+// int64GroupKeyEqual compares an int64 key value against b: int64s directly,
+// float64s by their shared %v spelling ("5" == 5.0); other types fall back
+// to the spelling comparison, matching the original inline switch.
+func int64GroupKeyEqual(av int64, b interface{}) bool {
+	switch bv := b.(type) {
+	case int64:
+		return av == bv
+	case float64:
+		return strconv.FormatInt(av, 10) == strconv.FormatFloat(bv, 'g', -1, 64)
+	}
+	return fmt.Sprintf("%v", av) == fmt.Sprintf("%v", b)
+}
+
+// float64GroupKeyEqual compares a float64 key value against b: float64s
+// directly, int64s by their shared %v spelling; other types fall back to the
+// spelling comparison, matching the original inline switch.
+func float64GroupKeyEqual(av float64, b interface{}) bool {
+	switch bv := b.(type) {
+	case float64:
+		return av == bv
+	case int64:
+		return strconv.FormatFloat(av, 'g', -1, 64) == strconv.FormatInt(bv, 10)
+	}
+	return fmt.Sprintf("%v", av) == fmt.Sprintf("%v", b)
 }
