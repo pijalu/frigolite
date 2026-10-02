@@ -462,6 +462,37 @@ func (e *SelectEngine) selectRowidRangeRows(s *sql.SelectStmt, tree *btree.BTree
 			return nil, nil, false
 		}
 	}
+	it := e.newRangeSeekRow(s, cursor, colDefs, a, needMaps, feed)
+	finished, ok := it.runBatch(a)
+	if !ok {
+		return nil, nil, false
+	}
+	if !finished {
+		// A nested write saved the cursor mid-walk: step off the saved cell
+		// (restore re-seeks the saved key; skipNext returns the next-larger
+		// entry) and finish on the per-row cursor loop — the same resume
+		// dance the plain scan's batch walker performs.
+		if _, err := it.cursor.Next(); err != nil {
+			return nil, nil, false
+		}
+		if !it.run(a) {
+			return nil, nil, false
+		}
+	}
+	// PRAGMA reverse_unordered_selects reverses the rowid range walk like it
+	// reverses the plain scan (select_scan's shouldReverse: top-level,
+	// no ORDER BY; where.c WHERE_REVERSE applies to the rowid loop too).
+	if it.e.ctx.ReverseUnordered() && len(s.OrderBy) == 0 && it.e.selectDepth == 1 {
+		reverseInterfaces(it.rows)
+		reverseRowMaps(it.maps)
+	}
+	return it.rows, it.maps, true
+}
+
+// newRangeSeekRow builds the range walk's decode plan and reusable buffers:
+// the scan's lazy two-phase decode indices, the feed-mode wrapping set, and
+// the covered-WHERE restrictions (no per-row predicate, feed-only decode).
+func (e *SelectEngine) newRangeSeekRow(s *sql.SelectStmt, cursor *btree.Cursor, colDefs []sql.ColumnDef, a *rowidSeekAnalysis, needMaps bool, feed *simpleAggFeed) *rangeSeekRow {
 	// Feed mode produces no rows or row maps: the statement's aggregate
 	// result is built from the feed after the loop.
 	if feed != nil {
@@ -494,7 +525,7 @@ func (e *SelectEngine) selectRowidRangeRows(s *sql.SelectStmt, tree *btree.BTree
 		wrapCols = nil
 		ipkIdx = filterFeedReadIPK(ipkIdx, whereIdx)
 	}
-	it := &rangeSeekRow{
+	return &rangeSeekRow{
 		e:            e,
 		s:            s,
 		cursor:       cursor,
@@ -510,30 +541,6 @@ func (e *SelectEngine) selectRowidRangeRows(s *sql.SelectStmt, tree *btree.BTree
 		values:       make([]interface{}, len(colDefs)),
 		srow:         &StructRow{Index: colIndex},
 	}
-	finished, ok := it.runBatch(a)
-	if !ok {
-		return nil, nil, false
-	}
-	if !finished {
-		// A nested write saved the cursor mid-walk: step off the saved cell
-		// (restore re-seeks the saved key; skipNext returns the next-larger
-		// entry) and finish on the per-row cursor loop — the same resume
-		// dance the plain scan's batch walker performs.
-		if _, err := it.cursor.Next(); err != nil {
-			return nil, nil, false
-		}
-		if !it.run(a) {
-			return nil, nil, false
-		}
-	}
-	// PRAGMA reverse_unordered_selects reverses the rowid range walk like it
-	// reverses the plain scan (select_scan's shouldReverse: top-level,
-	// no ORDER BY; where.c WHERE_REVERSE applies to the rowid loop too).
-	if it.e.ctx.ReverseUnordered() && len(s.OrderBy) == 0 && it.e.selectDepth == 1 {
-		reverseInterfaces(it.rows)
-		reverseRowMaps(it.maps)
-	}
-	return it.rows, it.maps, true
 }
 
 // affinityWrapIndices lists the column indices whose values receive the
@@ -655,33 +662,39 @@ func (it *rangeSeekRow) runBatch(a *rowidSeekAnalysis) (finished, ok bool) {
 			start = b.StartCell()
 			firstPage = false
 		}
-		n := b.CellCount()
-		for i := start; i < n; i++ {
+		for i := start; i < b.CellCount(); i++ {
 			payload, rowID, cellErr := b.Cell(i)
-			if cellErr != nil {
-				if errors.Is(cellErr, btree.ErrScanSaved) {
-					return true, nil // resume on the cursor loop
-				}
-				decline = true // the per-row loop's ReadCellData error path
-				return true, nil
-			}
-			if a.hiSet && rowID > a.hi {
-				return true, nil // the bound ends the range cleanly
-			}
-			if !it.processRow(payload, rowID) {
-				decline = true
+			stop, decline = it.batchCell(a, payload, rowID, cellErr, decline)
+			if stop {
 				return true, nil
 			}
 		}
 		return false, nil
 	})
-	if err != nil {
-		return false, false
-	}
-	if decline {
+	if err != nil || decline {
 		return false, false
 	}
 	return !saved, true
+}
+
+// batchCell folds one batch cell's outcome: a saved cursor (resume on the
+// per-row loop), an extraction anomaly or a failed row (decline to the scan
+// fallback), the hi bound (clean end), or a consumed row (keep walking).
+func (it *rangeSeekRow) batchCell(a *rowidSeekAnalysis, payload []byte, rowID int64, cellErr error, decline bool) (stop, nextDecline bool) {
+	nextDecline = decline
+	if cellErr != nil {
+		if errors.Is(cellErr, btree.ErrScanSaved) {
+			return true, nextDecline // resume on the cursor loop
+		}
+		return true, true // the per-row loop's ReadCellData error path
+	}
+	if a.hiSet && rowID > a.hi {
+		return true, nextDecline // the bound ends the range cleanly
+	}
+	if !it.processRow(payload, rowID) {
+		return true, true
+	}
+	return false, nextDecline
 }
 
 // step processes the current row and advances (the per-row cursor loop's

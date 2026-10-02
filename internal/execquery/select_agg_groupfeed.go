@@ -259,18 +259,37 @@ func (p *groupFeedPartition) compileCall(fn *sql.FuncCall, s *sql.SelectStmt, co
 	}
 	switch strings.ToUpper(fn.Name) {
 	case "MIN", "MAX":
-		if len(fn.Args) != 1 {
-			return groupFeedCall{}, false
-		}
-		c, ok := aggFeedColumnArg(fn.Args[0], reg, s, colDefs)
-		if !ok {
-			return groupFeedCall{}, false
-		}
-		mm := &groupMinMax{isMax: strings.EqualFold(fn.Name, "MAX")}
-		if c.slot != feedRowidSlot {
-			mm.coll = columnDeclaredCollation(&colDefs[c.slot])
-		}
-		return groupFeedCall{slot: c.slot, mmProto: mm}, true
+		return p.compileMinMaxCall(fn, s, colDefs)
+	case "COUNT", "SUM", "AVG", "TOTAL":
+		return p.compileRegistryCall(fn, reg, s, colDefs)
+	}
+	return groupFeedCall{}, false
+}
+
+// compileMinMaxCall compiles a single-argument MIN/MAX over a bare column
+// reference (or the rowid pseudo-column): the reduction template carries the
+// argument column's declared collation, the same marker the generic path's
+// wrapped value donates.
+func (p *groupFeedPartition) compileMinMaxCall(fn *sql.FuncCall, s *sql.SelectStmt, colDefs []sql.ColumnDef) (groupFeedCall, bool) {
+	if len(fn.Args) != 1 {
+		return groupFeedCall{}, false
+	}
+	reg, _ := p.e.ctx.Functions().Find(fn.Name)
+	c, ok := aggFeedColumnArg(fn.Args[0], reg, s, colDefs)
+	if !ok {
+		return groupFeedCall{}, false
+	}
+	mm := &groupMinMax{isMax: strings.EqualFold(fn.Name, "MAX")}
+	if c.slot != feedRowidSlot {
+		mm.coll = columnDeclaredCollation(&colDefs[c.slot])
+	}
+	return groupFeedCall{slot: c.slot, mmProto: mm}, true
+}
+
+// compileRegistryCall compiles COUNT/SUM/AVG/TOTAL: COUNT with zero or one
+// bare argument (COUNT(*)), the others with exactly one.
+func (p *groupFeedPartition) compileRegistryCall(fn *sql.FuncCall, reg *function.Func, s *sql.SelectStmt, colDefs []sql.ColumnDef) (groupFeedCall, bool) {
+	switch strings.ToUpper(fn.Name) {
 	case "COUNT":
 		c, ok := compileAggFeedCount(fn, reg, s, colDefs)
 		if !ok {
