@@ -201,3 +201,120 @@ func TestStmtJournalPoolBufferNotShared(t *testing.T) {
 		}
 	}
 }
+
+// TestStmtJournalScopeRecycleClean pins that a scope object returned to the
+// pager's free list carries none of its previous life into the next
+// statement: recycled entries must not resurrect (a page the previous
+// statement journalled must NOT be journalled in the next statement unless
+// that statement touches it), and a recycled scope's rollback restores ITS
+// OWN begin state.
+func TestStmtJournalScopeRecycleClean(t *testing.T) {
+	p := poolPager(t)
+	defer p.Close()
+
+	// Baseline content: pages 2 and 3 stamped with generation 1.
+	j := p.BeginStatement()
+	pg2, _ := p.ReadPage(2)
+	pageStamp(pg2, 1)
+	p.WritePage(pg2)
+	pg3, _ := p.ReadPage(3)
+	pageStamp(pg3, 1)
+	p.WritePage(pg3)
+	p.EndStatement(j)
+
+	// Statement 2 journals page 2 (and only page 2), then commits — the
+	// scope (with its entries map) recycles into the free list.
+	j = p.BeginStatement()
+	pg2, _ = p.ReadPage(2)
+	pageStamp(pg2, 2)
+	p.WritePage(pg2)
+	p.EndStatement(j)
+
+	// Statement 3 touches ONLY page 3 and rolls back. A stale recycled
+	// entry for page 2 would replay page 2's statement-2-captured image
+	// (generation 1) even though statement 3 never wrote it — page 2 must
+	// stay at generation 2 while page 3 returns to generation 1.
+	j = p.BeginStatement()
+	pg3, _ = p.ReadPage(3)
+	pageStamp(pg3, 3)
+	p.WritePage(pg3)
+	p.RollbackStatement(j)
+	pg2, _ = p.ReadPage(2)
+	if got := pagePattern(pg2); got != 2 {
+		t.Fatalf("page 2 = %d, want 2 (stale recycled entry replayed)", got)
+	}
+	pg3, _ = p.ReadPage(3)
+	if got := pagePattern(pg3); got != 1 {
+		t.Fatalf("page 3 = %d, want 1", got)
+	}
+
+	// The recycled object must be fully usable as the NEXT statement's
+	// scope: a fresh begin on the recycled token journals and rolls back
+	// exactly its own writes.
+	j = p.BeginStatement()
+	pg2, _ = p.ReadPage(2)
+	pageStamp(pg2, 9)
+	p.WritePage(pg2)
+	p.RollbackStatement(j)
+	pg2, _ = p.ReadPage(2)
+	if got := pagePattern(pg2); got != 2 {
+		t.Fatalf("page 2 = %d after recycled-scope rollback, want 2", got)
+	}
+}
+
+// TestStmtJournalImageFreeListRecycle pins the before-image buffer free list:
+// buffers dropped at EndStatement are reused by later captures without
+// aliasing — each capture writes its full page image before the entry is
+// observable, and a splice-kept parent image survives later statements
+// reusing the dropped buffers.
+func TestStmtJournalImageFreeListRecycle(t *testing.T) {
+	p := poolPager(t)
+	defer p.Close()
+
+	// Baseline: page 2 = 1, page 3 = 1.
+	j := p.BeginStatement()
+	for _, pgno := range []uint32{2, 3} {
+		pg, _ := p.ReadPage(pgno)
+		pageStamp(pg, 1)
+		p.WritePage(pg)
+	}
+	p.EndStatement(j)
+
+	// Outer scope captures page 2's image, then an inner scope captures
+	// pages 2 and 3. The inner splice keeps the outer's OLDER page-2 image
+	// and moves its page-3 image up; the dropped inner page-2 buffer
+	// recycles. A later capture must overwrite a recycled buffer in full
+	// (the outer's kept page-2 image must restore exactly).
+	outer := p.BeginStatement()
+	pg2, _ := p.ReadPage(2)
+	pageStamp(pg2, 2) // outer's first write captures page 2 at generation 1→2 boundary
+	p.WritePage(pg2)
+	inner := p.BeginStatement()
+	pg2, _ = p.ReadPage(2)
+	pageStamp(pg2, 3)
+	p.WritePage(pg2)
+	pg3, _ := p.ReadPage(3)
+	pageStamp(pg3, 3)
+	p.WritePage(pg3)
+	p.EndStatement(inner)
+	// More commits: their captures recycle the dropped buffer.
+	for gen := uint32(4); gen <= 20; gen++ {
+		jc := p.BeginStatement()
+		pg3, _ := p.ReadPage(3)
+		pageStamp(pg3, gen)
+		p.WritePage(pg3)
+		p.EndStatement(jc)
+	}
+	// Roll the outer scope back: page 2 must return to generation 1 (the
+	// image kept at splice, untouched by the recycled buffer), page 3 to
+	// generation 1.
+	p.RollbackStatement(outer)
+	pg2, _ = p.ReadPage(2)
+	if got := pagePattern(pg2); got != 1 {
+		t.Fatalf("page 2 = %d, want 1 (kept oldest image)", got)
+	}
+	pg3, _ = p.ReadPage(3)
+	if got := pagePattern(pg3); got != 1 {
+		t.Fatalf("page 3 = %d, want 1", got)
+	}
+}

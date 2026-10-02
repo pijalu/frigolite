@@ -158,6 +158,9 @@ type Pager struct {
 	// is pushed here when EndStatement/RollbackStatement closes it and is
 	// popped by the next BeginStatement. Guarded by mu.
 	stmtFree []*StmtJournal
+	// imageFree recycles statement-journal before-image page buffers (see
+	// pagerstmt.go stmtImageBuf/putStmtImageBuf). Guarded by mu.
+	imageFree [][]byte
 	// dirtyStamp is a monotonic counter advanced on every clean→dirty
 	// transition; dirtyMark records, per page, the stamp at which the page
 	// became dirty. A statement scope's beginDirtyStamp splits its first

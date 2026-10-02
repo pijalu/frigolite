@@ -362,8 +362,13 @@ func (e *Engine) findTableUncached(name string) (*schema.Entry, *DatabaseContext
 	// temp btree (pragma.c PragTyp_DATABASE_LIST's aDb[i].pBt stays NULL
 	// until something addresses temp): "SELECT * FROM sqlite_temp_master"
 	// then makes PRAGMA database_list report the temp row (pragma-6.1).
+	// The name check is allocation-free (it runs for every findTable, so
+	// the ToUpper here was a per-statement heap hit on the point-op floor);
+	// EqualFold over the exact lengths matches the old ToUpper comparison
+	// for every ASCII spelling.
 	if sch, obj := parseSchemaName(name); sch == "" || strings.EqualFold(sch, "temp") || strings.EqualFold(sch, "temporary") {
-		if u := strings.ToUpper(obj); u == "SQLITE_TEMP_MASTER" || u == "SQLITE_TEMP_SCHEMA" {
+		if (len(obj) == 18 && strings.EqualFold(obj, "sqlite_temp_master")) ||
+			(len(obj) == 17 && strings.EqualFold(obj, "sqlite_temp_schema")) {
 			e.openTempBtree()
 		}
 	}

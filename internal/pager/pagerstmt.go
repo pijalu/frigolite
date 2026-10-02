@@ -37,8 +37,6 @@
 package pager
 
 import (
-	"sync"
-
 	"github.com/pijalu/frigolite/internal/quota"
 )
 
@@ -70,44 +68,60 @@ type stmtEntry struct {
 	data []byte
 }
 
-// stmtImagePool recycles before-image page buffers (one page-size []byte per
-// captured page). Lifetime discipline — the reason this is safe:
+// Before-image buffers recycle through the pager's imageFree list (see
+// stmtImageBuf/putStmtImageBuf): capture and drop both hold p.mu, and each
+// buffer is referenced exclusively by its stmtEntry between the two, so the
+// pager can hand the same page-size buffers out statement after statement
+// with no allocation in the steady state. (The sync.Pool this replaced boxed
+// a fresh *[]byte on every Put — one heap allocation per captured page,
+// several per point write on the in-memory path.)
+//
+// Lifetime discipline — the reason this is safe:
 //
 //   - A buffer is acquired ONLY in copyPageBytesLocked, written in full, and
 //     from then on referenced exclusively by its stmtEntry (never aliased
 //     into the page cache: rollback RESTORES by adopting the buffer as the
 //     restored page's Data, transferring ownership, or by eviction — a
-//     pooled buffer never becomes a page's bytes through a copy that leaves
-//     the original shared).
-//   - A buffer is returned to the pool ONLY at the point its entry is
+//     free-list buffer never becomes a page's bytes through a copy that
+//     leaves the original shared).
+//   - A buffer is returned to the free list ONLY at the point its entry is
 //     dropped: EndStatement discards it (the parent already holds an older
 //     image for the page, or there is no parent to splice into), or — never
-//     — after a rollback (adopted buffers belong to the restored page).
+//     — after a rollback (adopted buffers belong to the restored page; the
+//     list refills through make() at the next capture).
 //   - Every scope closes exactly once (the done flag makes the second of
-//     EndStatement/RollbackStatement a no-op), so each buffer is Put at most
-//     once, and no caller observes an entry after its scope closed.
-//
-// sync.Pool drops buffers at GC: worst case the recycling silently stops.
-var stmtImagePool sync.Pool
+//     EndStatement/RollbackStatement a no-op), so each buffer is returned at
+//     most once, and no caller observes an entry after its scope closed.
 
-// stmtImageBuf returns a page-size buffer for a before-image (pooled when
+// stmtImageFreeCap bounds the pager's before-image free list (16 page-size
+// buffers: deeper statement footprints fall back to GC, as the sync.Pool
+// did).
+const stmtImageFreeCap = 16
+
+// stmtImageBuf returns a page-size buffer for a before-image (recycled when
 // one of the right size is available). Caller holds p.mu.
 func (p *Pager) stmtImageBuf() []byte {
-	if bp, ok := stmtImagePool.Get().(*[]byte); ok && bp != nil && cap(*bp) >= int(p.pageSize) {
-		return (*bp)[:p.pageSize]
+	for n := len(p.imageFree) - 1; n >= 0; n-- {
+		b := p.imageFree[n]
+		p.imageFree[n] = nil
+		p.imageFree = p.imageFree[:n]
+		if cap(b) >= int(p.pageSize) {
+			return b[:p.pageSize]
+		}
 	}
 	return make([]byte, p.pageSize)
 }
 
-// putStmtImageBuf returns a dead before-image buffer to the pool. Buffers of
-// the wrong capacity (a pager whose page size changed) are dropped. Caller
-// holds p.mu.
+// putStmtImageBuf returns a dead before-image buffer to the free list.
+// Buffers of the wrong capacity (a pager whose page size changed) are
+// dropped. Caller holds p.mu.
 func (p *Pager) putStmtImageBuf(b []byte) {
 	if cap(b) != int(p.pageSize) {
 		return
 	}
-	b = b[:cap(b)]
-	stmtImagePool.Put(&b)
+	if len(p.imageFree) < stmtImageFreeCap {
+		p.imageFree = append(p.imageFree, b[:cap(b)])
+	}
 }
 
 // StmtJournal is a statement-scoped rollback scope handed out by
