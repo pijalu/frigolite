@@ -2,8 +2,6 @@ package vtab
 
 import (
 	"fmt"
-	"strconv"
-	"strings"
 
 	"github.com/pijalu/frigolite/internal/value"
 )
@@ -118,13 +116,18 @@ func coordPasses[T coordType](op string, c T, value interface{}) bool {
 // non-numeric text/blob operand rewrites it to RTREE_TRUE for < / <= — any
 // number sorts before any text — and RTREE_FALSE for every other operator).
 // Returns (op, value, alwaysTrue, alwaysFalse); the value is kept verbatim
-// for numeric text so the column-affinity coercion below sees it.
+// for numeric text so the column-affinity coercion below sees it. Text is
+// numeric-classified with value.NumericText — sqlite3_value_numeric_type's
+// applyNumericAffinity rule (whitespace-trimmed, whole string consumed), so
+// ' 200 ' converts while '250abc' and 'Inf' stay TEXT.
 func rtreeConstraintOp(op string, value interface{}) (string, interface{}, bool, bool) {
 	switch v := value.(type) {
 	case nil:
 		return "", nil, false, true
 	case string:
-		if !rtreeWellFormedNumber(v) {
+		// integerCol only shapes the converted value, never the numeric
+		// classification, so the flavor-free reduction passes false.
+		if _, numeric := rtreeTextNumeric(v, false); !numeric {
 			return opIfRange(op)
 		}
 	case []byte:
@@ -142,11 +145,28 @@ func opIfRange(op string) (string, interface{}, bool, bool) {
 	return "", nil, false, true
 }
 
-// rtreeWellFormedNumber reports whether s is a well-formed integer or real
-// literal (sqlite3_value_numeric_type converts exactly these to numeric).
-func rtreeWellFormedNumber(s string) bool {
-	_, err := strconv.ParseFloat(strings.TrimSpace(s), 64)
-	return err == nil
+// rtreeTextNumeric converts numeric text through the sqlite3_value_numeric_type
+// rule (value.NumericText). integerCol selects the INTEGER-affinity coordinate
+// domain (rtree_i32): a converted integer stays int64 and a real truncates
+// onto it — exact against integral coordinates, since c OP trunc(f) equals
+// c OP f whenever f is non-integral and c is an integer. numeric reports
+// whether the text converted at all.
+func rtreeTextNumeric(s string, integerCol bool) (out interface{}, numeric bool) {
+	kind, iv, fv := value.NumericText(s)
+	switch kind {
+	case value.IntNumeric:
+		if integerCol {
+			return iv, true
+		}
+		return float64(iv), true
+	case value.RealNumeric:
+		if integerCol {
+			return int64(fv), true
+		}
+		return fv, true
+	default:
+		return nil, false
+	}
 }
 
 // isInt32Coord reports whether T is the int32 coordinate flavor.
@@ -157,18 +177,17 @@ func isInt32Coord[T coordType]() bool {
 }
 
 // applyColumnAffinity converts a pushed literal into the comparison domain of
-// a REAL or INTEGER column (SQLite applies column affinity to the other
-// operand before comparing). int32 marks INTEGER-affinity coordinates.
+// a REAL or INTEGER column (rtree.c compares coordinates against
+// sqlite3_value_numeric_type(argv): whitespace-trimmed fully-numeric text
+// converts, anything else never reaches here — rtreeConstraintOp rewrote it).
+// int32 marks the rtree_i32 INTEGER-affinity coordinate flavor.
 func applyColumnAffinity(value interface{}, integerCol bool) interface{} {
 	s, isText := value.(string)
 	if !isText {
 		return value
 	}
-	f := rtreeNumericPrefix(s)
-	if integerCol {
-		return int64(f)
-	}
-	return f // REAL affinity: text becomes float
+	out, _ := rtreeTextNumeric(s, integerCol)
+	return out
 }
 
 // numCompare applies op to two SQL values using the engine's canonical

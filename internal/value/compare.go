@@ -589,36 +589,6 @@ func ApplyColumnAffinity(val interface{}, typeName string) interface{} {
 	}
 }
 
-// parseInt parses an integer from a string. This is used for affinity
-// application during INSERT/UPDATE, where SQLite's sqlite3Atoi64 accepts
-// leading zeros (e.g., '03' → 3) — as does the comparison-path conversion
-// (value.NumericText).
-func parseInt(s string) (int64, error) {
-	if s == "" {
-		return 0, fmt.Errorf("empty string")
-	}
-	var i int64
-	var err error
-	if strings.Contains(s, ".") || strings.Contains(s, "e") || strings.Contains(s, "E") {
-		return 0, fmt.Errorf("not an integer")
-	}
-	i, err = strconv.ParseInt(s, 10, 64)
-	if err != nil {
-		// Try float then truncate
-		f, err2 := strconv.ParseFloat(s, 64)
-		if err2 != nil {
-			return 0, err
-		}
-		return int64(f), nil
-	}
-	return i, nil
-}
-
-// parseFloat parses a float from a string.
-func parseFloat(s string) (float64, error) {
-	return strconv.ParseFloat(s, 64)
-}
-
 // SQLite affinities: TEXT, NUMERIC, INTEGER, REAL, BLOB.
 func Affinity(typeName string) rune {
 	upper := strings.ToUpper(strings.TrimSpace(typeName))
@@ -677,15 +647,31 @@ func stringCompare(a, b, collation string) int {
 func applyIntAffinity(val interface{}) interface{} {
 	switch v := val.(type) {
 	case float64:
-		return int64(v)
+		// Keep a REAL that is non-integral or outside the safe int64 range
+		// (sqlite3VdbeIntegerAffinity refuses ix == SMALLEST_INT64 and
+		// non-integral doubles; Go's float→int64 conversion saturates).
+		if v == math.Trunc(v) && v > -9.223372036854776e18 && v < 9.223372036854776e18 {
+			return int64(v)
+		}
+		return v
 	case string:
-		if i, err := parseInt(v); err == nil {
-			return i
+		// Storage-affinity text conversion mirrors sqlite3VdbeMemNumerify /
+		// applyNumericAffinity through the shared sqlite3AtoF scanner
+		// (NumericText): whitespace-trimmed, whole string consumed. NaN/Inf/
+		// hex-float spellings that Go's ParseFloat accepts but sqlite3AtoF
+		// rejects stay TEXT.
+		kind, iv, fv := NumericText(v)
+		switch kind {
+		case IntNumeric:
+			return iv
+		case RealNumeric:
+			if fv == math.Trunc(fv) && fv > -9.223372036854776e18 && fv < 9.223372036854776e18 {
+				return int64(fv)
+			}
+			return fv
+		default:
+			return val
 		}
-		if f, err := parseFloat(v); err == nil {
-			return int64(f)
-		}
-		return val
 	default:
 		return val
 	}
@@ -696,10 +682,17 @@ func applyRealAffinity(val interface{}) interface{} {
 	case int64:
 		return float64(v)
 	case string:
-		if f, err := parseFloat(v); err == nil {
-			return f
+		// Same sqlite3AtoF scanner as applyIntAffinity: fully-numeric text
+		// becomes REAL, NaN/Inf/garbage spellings stay TEXT.
+		kind, iv, fv := NumericText(v)
+		switch kind {
+		case IntNumeric:
+			return float64(iv)
+		case RealNumeric:
+			return fv
+		default:
+			return val
 		}
-		return val
 	default:
 		return val
 	}
@@ -718,14 +711,28 @@ func applyTextAffinity(val interface{}) interface{} {
 
 func applyNumericAffinity(val interface{}) interface{} {
 	switch v := val.(type) {
+	case float64:
+		// NUMERIC affinity re-classifies integral REALs as INTEGER, keeping
+		// the ±2^63 saturation out (a REAL exactly at 2^63 stays REAL).
+		if v == math.Trunc(v) && v > -9.223372036854776e18 && v < 9.223372036854776e18 {
+			return int64(v)
+		}
+		return v
 	case string:
-		if i, err := parseInt(v); err == nil {
-			return i
+		// Same sqlite3AtoF scanner; NUMERIC affinity additionally
+		// re-classifies integral reals as INTEGER.
+		kind, iv, fv := NumericText(v)
+		switch kind {
+		case IntNumeric:
+			return iv
+		case RealNumeric:
+			if fv == math.Trunc(fv) && fv > -9.223372036854776e18 && fv < 9.223372036854776e18 {
+				return int64(fv)
+			}
+			return fv
+		default:
+			return val
 		}
-		if f, err := parseFloat(v); err == nil {
-			return f
-		}
-		return val
 	default:
 		return val
 	}
