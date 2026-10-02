@@ -4,7 +4,6 @@ package execquery
 import (
 	"bytes"
 	"fmt"
-	"strconv"
 	"strings"
 
 	"github.com/pijalu/frigolite/internal/sql"
@@ -174,27 +173,32 @@ func groupKeyScalarEqual(a, b interface{}) bool {
 }
 
 // int64GroupKeyEqual compares an int64 key value against b: int64s directly,
-// float64s by their shared %v spelling ("5" == 5.0); other types fall back
-// to the spelling comparison, matching the original inline switch.
+// float64s numerically (SQLite compares INTEGER and REAL as numbers — 1e15
+// equals 1000000000000000); other types fall back to the spelling
+// comparison, matching the serialized keys.
 func int64GroupKeyEqual(av int64, b interface{}) bool {
 	switch bv := b.(type) {
 	case int64:
 		return av == bv
 	case float64:
-		return strconv.FormatInt(av, 10) == strconv.FormatFloat(bv, 'g', -1, 64)
+		if i, ok := integralFloatKey(bv); ok {
+			return av == i
+		}
 	}
 	return fmt.Sprintf("%v", av) == fmt.Sprintf("%v", b)
 }
 
 // float64GroupKeyEqual compares a float64 key value against b: float64s
-// directly, int64s by their shared %v spelling; other types fall back to the
-// spelling comparison, matching the original inline switch.
+// directly, int64s numerically (same integralFloatKey rule as the serialized
+// keys); other types fall back to the spelling comparison.
 func float64GroupKeyEqual(av float64, b interface{}) bool {
 	switch bv := b.(type) {
 	case float64:
 		return av == bv
 	case int64:
-		return strconv.FormatFloat(av, 'g', -1, 64) == strconv.FormatInt(bv, 10)
+		if i, ok := integralFloatKey(av); ok {
+			return bv == i
+		}
 	}
 	return fmt.Sprintf("%v", av) == fmt.Sprintf("%v", b)
 }

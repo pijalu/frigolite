@@ -1,9 +1,7 @@
 package execquery
 
 import (
-	"math"
 	"sort"
-	"strconv"
 	"strings"
 
 	"github.com/pijalu/frigolite/internal/function"
@@ -368,28 +366,18 @@ func (p *groupFeedPartition) typedBucket(values []interface{}) (int32, bool) {
 	return 0, false
 }
 
-// typedIntGroupKey reports the int64 bucket a float64 key value shares when
-// its collationGroupKey spelling equals that int64's: integral floats whose
-// shortest 'g' spelling is the plain digits (5.0 buckets with 5; both spell
-// "5"). ±0.0 normalize to int 0's bucket (collationGroupKey folds -0.0 to
-// "0"). NaN and non-integral / exponent-spelled floats never match an integer
-// spelling, so they keep the string map — the same group the generic pass
-// files them under.
+// typedIntGroupKey reports the int64 bucket a float64 key value shares:
+// SQLite compares INTEGER and REAL numerically, and collationGroupKey spells
+// integral in-range floats with the INTEGER digits, so every integral exact
+// float buckets with its int64 (5.0 with 5; 1e15 with 1000000000000000).
+// ±0.0 normalize to int 0's bucket (collationGroupKey folds -0.0 to "0").
+// NaN, non-integrals and out-of-range floats (9e99, 2^63) keep the string
+// map — the same group the generic pass files them under.
 func typedIntGroupKey(f float64) (int64, bool) {
-	switch {
-	case f == 0:
+	if f == 0 {
 		return 0, true
-	case math.IsNaN(f) || f < i64MinF || f >= i64MaxF:
-		return 0, false
 	}
-	i := int64(f)
-	if float64(i) != f {
-		return 0, false
-	}
-	if strconv.FormatFloat(f, 'g', -1, 64) != strconv.FormatInt(i, 10) {
-		return 0, false
-	}
-	return i, true
+	return integralFloatKey(f)
 }
 
 // serializedKey computes the row's GROUP BY key the computeGroupByKeyValues

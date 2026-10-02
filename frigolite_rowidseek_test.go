@@ -158,7 +158,7 @@ func TestRowidSeekRange(t *testing.T) {
 		{"SELECT rowid FROM t WHERE rowid<1", 0},
 		{"SELECT rowid FROM t WHERE rowid BETWEEN -10 AND 0", 0},
 		{"SELECT rowid FROM t WHERE rowid>90", 10},
-		{"SELECT rowid FROM t WHERE rowid BETWEEN ' 10 ' AND 12", 0}, // spaced text is non-numeric text here
+		{"SELECT rowid FROM t WHERE rowid BETWEEN ' 10 ' AND 12", 3}, // text bound converts under rowid affinity (oracle: rows 10,11,12)
 		{"SELECT rowid FROM t WHERE rowid<'abc'", 100},
 		{"SELECT rowid FROM t WHERE rowid>'abc'", 0},
 		{"SELECT rowid FROM t WHERE rowid>NULL", 0},

@@ -190,20 +190,35 @@ func TestGroupFeedKeyEqualityIntFloat(t *testing.T) {
 	db := groupFeedOpen(t)
 	defer db.Close()
 	// int64 5 and float64 5.0 group together (shared spelling "5"); 5.5 is
-	// separate; the int64 1000000000000000 and the REAL 1e15 keep separate
-	// groups (exponent spelling vs digits — the engine's serialized-key
-	// semantics both paths share; the fast path's typed bucket declines the
-	// float and files it under the same string key).
+	// separate. int64 1000000000000000 and REAL 1e15 are ONE group: SQLite
+	// compares INTEGER and REAL numerically (oracle-verified: one group,
+	// representative = first row's value).
 	got := groupFeedParity(t, db,
 		"SELECT k, count(*), sum(c) FROM tk GROUP BY k",
 		"SELECT k, count(*), sum(c) FROM tk GROUP BY k ORDER BY k")
 	wantGot := "k|count(*)|sum(c) ;; " +
 		"int64:5,int64:2,int64:3;" +
 		"float64:5.5,int64:1,int64:3;" +
-		"int64:1000000000000000,int64:1,int64:4;" +
-		"float64:1e+15,int64:1,int64:5;"
+		"int64:1000000000000000,int64:2,int64:9;"
 	if got != wantGot {
 		t.Fatalf("tk groups:\n  got  %s\n  want %s", got, wantGot)
+	}
+	// Float-first representative (oracle: the group's k is the first-seen
+	// row's value). Rows are ordered so first-seen order equals sorted order
+	// (the parity helper compares the feed's natural order against the
+	// generic pass's ORDER BY order).
+	if res := db.Exec("CREATE TABLE tk2(k, c);" +
+		"INSERT INTO tk2 VALUES (2, 3), (2.0, 4), (1e15, 1), (1000000000000000, 2)"); res.Error != nil {
+		t.Fatal(res.Error)
+	}
+	got = groupFeedParity(t, db,
+		"SELECT k, typeof(k), count(*) FROM tk2 GROUP BY k",
+		"SELECT k, typeof(k), count(*) FROM tk2 GROUP BY k ORDER BY k")
+	wantGot = "k|typeof(k)|count(*) ;; " +
+		"int64:2,string:integer,int64:2;" +
+		"float64:1e+15,string:real,int64:2;"
+	if got != wantGot {
+		t.Fatalf("tk2 groups:\n  got  %s\n  want %s", got, wantGot)
 	}
 }
 

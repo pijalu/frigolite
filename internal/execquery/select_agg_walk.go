@@ -2,6 +2,7 @@ package execquery
 
 import (
 	"fmt"
+	"math"
 	"strconv"
 	"strings"
 
@@ -492,6 +493,19 @@ func unwrapGroupByValue(v interface{}) interface{} {
 	return util.UnwrapColumnValue(v)
 }
 
+// integralFloatKey reports the int64 a float64 shares a GROUP BY group with:
+// SQLite compares INTEGER and REAL numerically (sqlite3MemCompare), so an
+// integral, non-NaN float within [-2^63, 2^63) equals exactly one int64
+// (float64(i) round-trips exactly across that whole range). 2^63 itself has
+// no int64 equal (sqlite3IntFloatCompare: r >= 2^63 exceeds every int64), so
+// it stays on the float spelling.
+func integralFloatKey(f float64) (int64, bool) {
+	if math.IsNaN(f) || f != math.Trunc(f) || f < -9223372036854775808.0 || f >= 9223372036854775808.0 {
+		return 0, false
+	}
+	return int64(f), true
+}
+
 // collationGroupKey serializes a GROUP BY value into a key that groups values
 // equal under the expression's collation. For the built-in case-folding
 // collations this folds the text; BINARY and unknown collations keep the raw
@@ -516,10 +530,18 @@ func collationGroupKey(v interface{}, coll string) string {
 		// Negative zero normalizes to plain zero: SQLite's GROUP BY treats
 		// 0.0 and -0.0 as one group (they compare equal), but 'g' spells
 		// them "-0" and "0" — distinct textual keys would split them.
+		// Integral floats within int64 range share the INTEGER spelling:
+		// SQLite compares INTEGER and REAL numerically, so 1e15 and
+		// 1000000000000000 are one GROUP BY group (sqlite3MemCompare);
+		// 'g' would spell the float "1e+15" and split them.
 		if t == 0 {
 			t = 0
 		}
-		s = strconv.FormatFloat(t, 'g', -1, 64)
+		if i, ok := integralFloatKey(t); ok {
+			s = strconv.FormatInt(i, 10)
+		} else {
+			s = strconv.FormatFloat(t, 'g', -1, 64)
+		}
 	case bool:
 		if t {
 			s = "true"
