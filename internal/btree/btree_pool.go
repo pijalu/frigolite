@@ -135,6 +135,7 @@ func (t *BTree) resetForPool() {
 	t.closed = true
 	t.cursors = nil
 	t.cellScratch = nil
+	t.delArena = nil
 }
 
 // landingScratch returns the cursor's reusable parsed-header scratch,

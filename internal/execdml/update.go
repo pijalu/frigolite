@@ -316,6 +316,12 @@ func (e *DMLExecutor) deleteUpdateIndexEntriesFor(tableEntry *schema.Entry, colD
 	if len(changes) == 0 {
 		return nil
 	}
+	// A table with no indexes maintains nothing: skip the batch maps the
+	// collect loop below builds (every point UPDATE/DELETE on an unindexed
+	// table paid two maps per statement for nothing).
+	if len(e.allTableIndexes(tableEntry.Name)) == 0 {
+		return nil
+	}
 	// Union of touched indexes across changes, per index name (a rowid re-key
 	// touches every index; see maintainedUpdateIndexes).
 	defsByName := make(map[string]indexDef)
@@ -428,32 +434,6 @@ func (e *DMLExecutor) writeUpdateIndexEntriesFor(tableEntry *schema.Entry, colDe
 		}
 	}
 	return nil
-}
-
-// ipkRowidSubstituted returns values with the rowid-alias substitution the
-// name-keyed map build applies: a stored NULL in an INTEGER PRIMARY KEY
-// rowid-alias column reads back as rowID. The values are copied only when a
-// substitution actually applies (index maintenance only reads the result;
-// the change's own slices are never mutated).
-func ipkRowidSubstituted(values []interface{}, colDefs []sql.ColumnDef, rowID int64) []interface{} {
-	sub := false
-	for i := range colDefs {
-		if i < len(values) && values[i] == nil && isIPKRowidAliasCol(colDefs[i]) {
-			sub = true
-			break
-		}
-	}
-	if !sub {
-		return values
-	}
-	out := make([]interface{}, len(values))
-	copy(out, values)
-	for i := range colDefs {
-		if i < len(out) && out[i] == nil && isIPKRowidAliasCol(colDefs[i]) {
-			out[i] = rowID
-		}
-	}
-	return out
 }
 
 // maintainedUpdateIndexes returns the indexes a change touches plus the

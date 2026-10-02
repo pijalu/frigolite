@@ -90,6 +90,13 @@ func (e *DMLExecutor) execDeleteInner(s *sql.DeleteStmt) *Result {
 	// table-qualified column references ("t6.x") resolve to the row map.
 	prevScan := e.ctx.CurrentScanTable()
 	e.ctx.SetCurrentScanTable(tableEntry.Name)
+	// Rowid-pinned single-row fast path ("DELETE FROM t WHERE id=?"): one
+	// seek, one delete. Only the exact plain point shape; anything else runs
+	// the generic pipeline below.
+	if res, handled := e.execPointDelete(s, tableEntry, dbCtx, colDefs, tree); handled {
+		e.ctx.SetCurrentScanTable(prevScan)
+		return res
+	}
 	deletedRows, derr := e.collectDeleteRows(tree, s, tableEntry, colDefs)
 	e.ctx.SetCurrentScanTable(prevScan)
 	if derr != nil {

@@ -235,6 +235,14 @@ func (e *DMLExecutor) runUpdatePipeline(s *sql.UpdateStmt, tableEntry *schema.En
 		return res
 	}
 
+	// Rowid-pinned single-row fast path ("UPDATE t SET c=c+1 WHERE id=?"):
+	// one seek, one encode, one write. Only the exact plain point shape;
+	// anything else runs the generic pipeline below.
+	if res, handled := e.applyPointUpdate(s, tableEntry, colDefs); handled {
+		e.invalidateSchemaIfNeeded(tableEntry.Name)
+		return res
+	}
+
 	colIndex := e.columnIndexFor(colDefs)
 
 	// When the table has triggers, defer SET evaluation to the apply loop so
@@ -277,6 +285,13 @@ func (e *DMLExecutor) runUpdatePipeline(s *sql.UpdateStmt, tableEntry *schema.En
 	}
 
 	result := e.dispatchUpdate(s, tableEntry, colDefs, changes)
+	return e.finishPlainUpdate(s, tableEntry, colDefs, changes, returningRows, result)
+}
+
+// finishPlainUpdate is runUpdatePipeline's epilogue: fire the REPLACE path's
+// AFTER triggers, invalidate the schema after direct sqlite_schema edits, and
+// return the RETURNING rows or the change-count result.
+func (e *DMLExecutor) finishPlainUpdate(s *sql.UpdateStmt, tableEntry *schema.Entry, colDefs []sql.ColumnDef, changes []updateChange, returningRows [][]interface{}, result *Result) *Result {
 	if result.Error != nil {
 		return result
 	}

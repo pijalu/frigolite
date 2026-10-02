@@ -1,6 +1,10 @@
 package execdml
 
-import "strings"
+import (
+	"strings"
+
+	"github.com/pijalu/frigolite/internal/sql"
+)
 
 // parseSchemaName splits a possibly schema-qualified name into its schema
 // prefix and object name. Returns ("", name) when there is no prefix.
@@ -109,4 +113,30 @@ func bareToken(rest string) string {
 		}
 	}
 	return rest
+}
+
+// ipkRowidSubstituted returns values with the rowid-alias substitution the
+// name-keyed map build applies: a stored NULL in an INTEGER PRIMARY KEY
+// rowid-alias column reads back as rowID. The values are copied only when a
+// substitution actually applies (index maintenance only reads the result;
+// the change's own slices are never mutated).
+func ipkRowidSubstituted(values []interface{}, colDefs []sql.ColumnDef, rowID int64) []interface{} {
+	sub := false
+	for i := range colDefs {
+		if i < len(values) && values[i] == nil && isIPKRowidAliasCol(colDefs[i]) {
+			sub = true
+			break
+		}
+	}
+	if !sub {
+		return values
+	}
+	out := make([]interface{}, len(values))
+	copy(out, values)
+	for i := range colDefs {
+		if i < len(out) && out[i] == nil && isIPKRowidAliasCol(colDefs[i]) {
+			out[i] = rowID
+		}
+	}
+	return out
 }
