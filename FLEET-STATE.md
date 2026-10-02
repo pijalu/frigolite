@@ -1025,3 +1025,21 @@ fix at the boundary, FULL 1363-pkg testgen sweep mandatory.
 savepoint2 600s timeout in the same merged run = benchmark-process
 contention artifact (9.0s standalone, no panic signature).
 Census/final docs GATED on the corruption fix.
+
+## PERF-TYPEDROW (END, 2026-10-02) — corruption fixed; round closed clean
+
+fleet/perf-struct-fix merged d8c87aebb: template-cache clone walk-order
+violation (INSERT values consumed AST-order Values→Select→CTEs while
+normalization scans source-order WITH-first — same-shape CTE statements
+substituted wrong literals, recursion ran to the 1M-row limit, garbage
+rows + lost legit rows). Fix: clone CTEs FIRST (source order), bind mode
+inherits; pinned by frigolite_template_cte_order_test.go (fails pre-fix
+with exactly count=1000500). Root cause was NOT btree/encBuf aliasing —
+both suspects verified clean.
+Census post-fix: 1073/0/290 audit exit 0. Post-fix bench: insert 216k
+ops/s, point 184k, scan 9.29M rows/s, group 54, update 156k, delete
+162k; file autocommit 1.7x FASTER than sqlite3.
+Follow-up filed: WITHOUT ROWID duplicate-PK acceptance gap (pre-existing,
+repro'd on origin/main via the CTE overflow shape; needs WR conflict-scan
+tranche). TestSQLiteSuite fresh-worktree instability = harness shared
+state; testgen is authoritative.
