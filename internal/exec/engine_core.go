@@ -339,7 +339,11 @@ func (e *Engine) detectExternalSchemaChanges() {
 		return
 	}
 	changed := false
-	for _, ctx := range e.databases {
+	// dbList (a slice, ATTACH order) carries exactly the contexts the
+	// databases map holds; iterating the slice keeps the per-statement
+	// external-mod probe off the map-iteration path. The result is
+	// order-independent (any changed context flips the flag).
+	for _, ctx := range e.dbList {
 		if e.externalSchemaChanged(ctx) {
 			changed = true
 		}

@@ -173,7 +173,7 @@ func extractConst(e sql.Expr) interface{} {
 // column position in the PK constraint also counts.
 func (e *SelectEngine) isWithoutRowidPKColumn(tableName, colName string) bool {
 	entry, err := e.ctx.Schema().FindTable(tableName)
-	if err != nil || !e.ctx.HasWithoutRowidKeyword(strings.ToUpper(entry.SQL)) {
+	if err != nil || !e.ctx.TableIsWithoutRowidEntry(entry) {
 		return false
 	}
 	colDefs := e.ctx.ParseColumnDefs(entry.Name, entry.SQL)

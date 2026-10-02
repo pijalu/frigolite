@@ -228,6 +228,13 @@ type SelectContext interface {
 	IndexColumnCount(idxName string) int
 	ParseIndexColumns(sqlStr string) []string
 	HasWithoutRowidKeyword(upperSQL string) bool
+	// TableIsWithoutRowidEntry reports whether the table entry's CREATE SQL
+	// declares WITHOUT ROWID (the HasWithoutRowidKeyword check over the
+	// entry's SQL), memoized per engine on the entry identity — the SQL of a
+	// schema entry is immutable, and DDL replaces the entry object, so the
+	// memo cannot go stale. Hot paths call this several times per statement;
+	// the direct form re-upper-cases the whole CREATE text each time.
+	TableIsWithoutRowidEntry(entry *schema.Entry) bool
 	CaseSensitiveLike() bool
 	SchemaFunctionSafe(name string) bool
 

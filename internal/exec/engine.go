@@ -232,6 +232,12 @@ type Engine struct {
 	preAffName        string
 	preAffFingerprint uint64
 	preAffEntry       *schema.Entry
+	// wrEntry* memoizes TableIsWithoutRowidEntry (see select_context.go):
+	// schema entry → WITHOUT ROWID declaration, guarded by the same folded
+	// all-schemas fingerprint.
+	wrEntryMemo        *schema.Entry
+	wrEntryFingerprint uint64
+	wrEntryVal         bool
 	// commitHook / rollbackHook / updateHook hold the sqlite3_commit_hook,
 	// sqlite3_rollback_hook, and sqlite3_update_hook callbacks.
 	commitHook   func() int

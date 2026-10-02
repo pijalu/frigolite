@@ -22,14 +22,14 @@ func (e *SelectEngine) dmlSearchDetail(tableName string, where sql.Expr) string 
 	if err != nil || tableEntry == nil {
 		return ""
 	}
-	if e.ctx.HasWithoutRowidKeyword(strings.ToUpper(tableEntry.SQL)) {
+	if e.ctx.TableIsWithoutRowidEntry(tableEntry) {
 		return ""
 	}
 	colDefs := e.ctx.ParseColumnDefs(tableEntry.Name, tableEntry.SQL)
 	if RowHasRowIDColumn(colDefs) {
 		return ""
 	}
-	isRowidTable := !e.ctx.HasWithoutRowidKeyword(strings.ToUpper(tableEntry.SQL))
+	isRowidTable := !e.ctx.TableIsWithoutRowidEntry(tableEntry)
 	for _, conj := range splitAnd(where) {
 		bin, ok := conj.(*sql.BinaryOp)
 		if !ok || bin.Operator != "=" {
@@ -145,7 +145,7 @@ func (e *SelectEngine) ipkSeekColDefs(tableName string) ([]sql.ColumnDef, bool) 
 	if err != nil || tableEntry == nil {
 		return nil, false
 	}
-	if e.ctx.HasWithoutRowidKeyword(strings.ToUpper(tableEntry.SQL)) {
+	if e.ctx.TableIsWithoutRowidEntry(tableEntry) {
 		return nil, false
 	}
 	return e.ctx.ParseColumnDefs(tableEntry.Name, tableEntry.SQL), true

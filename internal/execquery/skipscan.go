@@ -498,7 +498,7 @@ func (e *SelectEngine) withoutRowidPKCols(tableName string) []string {
 	if err != nil || entry == nil {
 		return nil
 	}
-	if !e.ctx.HasWithoutRowidKeyword(strings.ToUpper(entry.SQL)) {
+	if !e.ctx.TableIsWithoutRowidEntry(entry) {
 		return nil
 	}
 	colDefs := e.ctx.ParseColumnDefs(entry.Name, entry.SQL)
