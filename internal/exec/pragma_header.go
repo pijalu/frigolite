@@ -2,6 +2,7 @@
 package exec
 
 import (
+	"encoding/binary"
 	"fmt"
 	"github.com/pijalu/frigolite/internal/lockreg"
 	"strconv"
@@ -94,6 +95,78 @@ func (e *Engine) updateFileChangeCounter(ctx *DatabaseContext) {
 	if ctx == nil {
 		ctx = e.mainDB
 	}
+	if count, ok, err := e.bumpFileChangeCounterFast(ctx); ok {
+		if err == nil && ctx.Schema != nil {
+			// Record the counter this connection wrote so external-mod
+			// detection does not invalidate the pager cache for our own
+			// commit.
+			ctx.Schema.NoteOwnWrite(count)
+		}
+		return
+	}
+	e.updateFileChangeCounterSlow(ctx)
+}
+
+// bumpFileChangeCounterFast is the per-statement fast path of
+// updateFileChangeCounter: it patches the four fields the bump moves (and
+// normalizes the payload-fraction bytes, clearing the reserved window) in the
+// pager's cached header IN PLACE — the byte-identical result of the general
+// path's ParseHeader→mutate→Encode→SetHeader round trip, which rewrites the
+// same 100 bytes — then mirrors them into page 1. It returns count=0 (with
+// err=nil) when the header shape is not the fast path's (no cached header,
+// short, bad magic): the caller falls back to the general path. err is
+// non-nil only when the page-1 mirror's WritePage fails, in which case — as
+// in the general path — the in-memory header keeps the bump and the schema
+// own-write note is skipped.
+func (e *Engine) bumpFileChangeCounterFast(ctx *DatabaseContext) (uint32, bool, error) {
+	if ctx == nil || ctx.Pager == nil {
+		return 0, false, nil
+	}
+	hdr := ctx.Pager.Header()
+	if len(hdr) < storage.HeaderSize || string(hdr[:16]) != storage.HeaderMagic {
+		return 0, false, nil
+	}
+	newCount := binary.BigEndian.Uint32(hdr[24:28]) + 1
+	numPages := ctx.Pager.NumPages()
+	if !ctx.Pager.AmendHeader(func(h []byte) {
+		// The ParseHeader→Encode round trip normalizes zero payload-fraction
+		// bytes to their format defaults and zeroes the reserved 72..92
+		// window Encode never writes; reproduce both so the amended bytes
+		// match the general path's encoded image exactly.
+		if h[21] == 0 {
+			h[21] = storage.MaxEmbeddedFraction
+		}
+		if h[22] == 0 {
+			h[22] = storage.MinEmbeddedFraction
+		}
+		if h[23] == 0 {
+			h[23] = storage.LeafEmbeddedFraction
+		}
+		binary.BigEndian.PutUint32(h[24:28], newCount)
+		binary.BigEndian.PutUint32(h[28:32], numPages)
+		clear(h[72:92])
+		binary.BigEndian.PutUint32(h[92:96], newCount)
+		binary.BigEndian.PutUint32(h[96:100], sqliteVersionNumber)
+	}) {
+		return 0, false, nil
+	}
+	// Persist: page 1's Data must carry the header bytes and be marked dirty
+	// so the next Flush writes it — the same ReadPage→copy→WritePage sequence
+	// updateDBHeaderField runs (a read failure keeps the in-memory header
+	// only; a write failure surfaces to the caller).
+	pg, err := ctx.Pager.ReadPage(1)
+	if err != nil {
+		return newCount, true, nil
+	}
+	copy(pg.Data[:storage.HeaderSize], ctx.Pager.Header())
+	return newCount, true, ctx.Pager.WritePage(pg)
+}
+
+// updateFileChangeCounterSlow is the general updateFileChangeCounter path for
+// headers the fast path does not model (fresh databases with no cached
+// header, malformed magic): parse, mutate through updateDBHeaderField, note
+// the own-write.
+func (e *Engine) updateFileChangeCounterSlow(ctx *DatabaseContext) {
 	dh := e.headerFor(ctx)
 	if dh == nil {
 		return

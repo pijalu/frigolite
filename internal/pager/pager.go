@@ -18,6 +18,7 @@ import (
 	"time"
 
 	"github.com/pijalu/frigolite/internal/quota"
+	"github.com/pijalu/frigolite/internal/storage"
 )
 
 const (
@@ -404,6 +405,28 @@ func (p *Pager) SetHeader(h []byte) {
 	p.mu.Lock()
 	defer p.mu.Unlock()
 	p.header = append([]byte(nil), h...)
+}
+
+// AmendHeader applies amend to the pager's cached database-header bytes in
+// place and reports whether it ran: false means no header of at least
+// HeaderSize bytes is cached or the cached bytes lack the SQLite magic (the
+// caller should fall back to its parse-mutate-encode path). The in-place
+// mutation follows the truncateHeaderCountsLocked model: the caller mirrors
+// the amended bytes into page 1 (ReadPage + copy + WritePage) so the next
+// flush persists them, and every other header holder (statement journals,
+// Snapshot/Restore) keeps its own copy, so none observes the mutation
+// unshielded.
+func (p *Pager) AmendHeader(amend func([]byte)) bool {
+	p.mu.Lock()
+	defer p.mu.Unlock()
+	if len(p.header) < storage.HeaderSize {
+		return false
+	}
+	if string(p.header[:16]) != storage.HeaderMagic {
+		return false
+	}
+	amend(p.header)
+	return true
 }
 func (p *Pager) Sync() error {
 	p.mu.Lock()
