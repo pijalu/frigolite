@@ -334,7 +334,7 @@ func (e *DMLExecutor) checkUniqueConstraintsExcluding(tableEntry *schema.Entry, 
 // path (findRowByUniqueCols) and returns the violation error, or nil when no
 // conflicting row exists (or only the excluded row matches).
 func (e *DMLExecutor) bareUniqueConflictError(tableEntry *schema.Entry, colDefs []sql.ColumnDef, colIndex map[string]int, values []interface{}, excludeRowID int64, haveExclude bool) error {
-	if len(uniqueColIndicesWithPK(colDefs, colIndex, values)) == 0 {
+	if !hasUniqueOrPKColValue(colDefs, colIndex, values) {
 		return nil
 	}
 	rowID, vals, conflictIdx, found := e.findRowByUniqueCols(tableEntry.Name, tableEntry.RootPage, colDefs, colIndex, values, tableEntry.SQL)
@@ -438,6 +438,25 @@ func uniqueColIndicesWithPK(colDefs []sql.ColumnDef, colIndex map[string]int, va
 		}
 	}
 	return uniqueCols
+}
+
+// hasUniqueOrPKColValue reports whether uniqueColIndicesWithPK would return a
+// non-empty list — the allocation-free emptiness test for the per-row UNIQUE
+// pre-check (bareUniqueConflictError). Mirrors its exact membership rules:
+// a declared-UNIQUE column present in colIndex and in bounds counts even when
+// NULL, a PRIMARY KEY column counts positionally when its value is non-NULL.
+func hasUniqueOrPKColValue(colDefs []sql.ColumnDef, colIndex map[string]int, values []interface{}) bool {
+	for i, cd := range colDefs {
+		if cd.Unique {
+			if idx, ok := colIndex[cd.Name]; ok && idx < len(values) {
+				return true
+			}
+		}
+		if cd.PrimaryKey && i < len(values) && values[i] != nil {
+			return true
+		}
+	}
+	return false
 }
 
 // compositeUniqueGroups returns groups of column indices that have table-level

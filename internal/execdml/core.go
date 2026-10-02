@@ -5,10 +5,13 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/pijalu/frigolite/internal/btree"
 	"github.com/pijalu/frigolite/internal/execexpr"
 	"github.com/pijalu/frigolite/internal/execquery"
 	"github.com/pijalu/frigolite/internal/pager"
+	"github.com/pijalu/frigolite/internal/schema"
 	"github.com/pijalu/frigolite/internal/sql"
+	"github.com/pijalu/frigolite/internal/storage"
 )
 
 // errRaiseIgnore is the sentinel error a RAISE(IGNORE) trigger action returns
@@ -118,6 +121,16 @@ type DMLExecutor struct {
 	// schema manager's fingerprint on every lookup, so any DDL rebuilds the
 	// affected list airtight — no explicit invalidation hooks.
 	indexDefsCache map[indexDefCacheKey]cachedIndexDefs
+
+	// INSERT-path scratch (writeTableRow): the row cell, the on-disk record
+	// buffer, and the IPK rowid-alias substitution copy. All three are
+	// consumed synchronously inside the row's encode+InsertCell window — the
+	// btree copies payload bytes into pages and no trigger can interleave
+	// there — so one executor (single-goroutine statement funnel) reuses
+	// them across rows/statements without observable aliasing.
+	insCell    storage.Cell
+	insRecBuf  []byte
+	insIPKVals []interface{}
 }
 
 // indexDefCacheKey identifies a cached index-maintenance-def list: the owning
@@ -157,6 +170,14 @@ func NewDMLExecutor(ctx DMLContext) *DMLExecutor {
 	e.update = UpdateExecutor{engine: e}
 	e.delete = DeleteExecutor{engine: e}
 	return e
+}
+
+// insertWriteTree builds the table b-tree a row is written through. It is
+// insert-path glue over the context's TableBTreePg (same resolution, same
+// statement-tracked lifetime); commit PERF.INSERT2-5 layers wrapper reuse on
+// this seam.
+func (e *DMLExecutor) insertWriteTree(pg *pager.Pager, tableEntry *schema.Entry, withoutRowid bool) *btree.BTree {
+	return e.ctx.TableBTreePg(pg, tableEntry.Name, tableEntry.RootPage, !withoutRowid)
 }
 
 // schemaNameForPager returns the schema name ("main", "aux", ...) whose

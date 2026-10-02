@@ -56,14 +56,24 @@ func (e *DMLExecutor) mapPositionalTupleValues(tableName string, values []interf
 	// and hidden columns are excluded from the count (SQLite computes the
 	// former and does not accept positional values for the latter).
 	expected := 0
+	positionalOnly := true
 	for _, cd := range colDefs {
-		if cd.Generated == nil && !execquery.IsHiddenColumnDef(cd) {
-			expected++
+		if cd.Generated != nil || execquery.IsHiddenColumnDef(cd) {
+			positionalOnly = false
+			continue
 		}
+		expected++
 	}
 	if len(values) != expected {
 		return nil, fmt.Errorf("table %s has %d columns but %d values were supplied",
 			tableName, expected, len(values))
+	}
+	// Identity mapping fast path: with no generated/hidden columns the VALUES
+	// order IS the full column order, so the re-map would copy values onto
+	// itself — return the slice as-is (the write path consumes it before the
+	// next tuple is evaluated).
+	if positionalOnly && len(values) == len(colDefs) {
+		return values, nil
 	}
 	// Re-map the values into the full column array: without a column list,
 	// the VALUES map to the non-generated, non-hidden columns in order
