@@ -206,6 +206,22 @@ func (e *Engine) DirectOnlyVTab(name string) bool {
 	return ok && vtab.ModuleIsEponymous(m) && vtab.ModuleIsDirectOnly(m)
 }
 
+// MayScanCreatedVTab implements execquery.DatabaseContext: it reports whether
+// name passes MaterializeCreatedVTab's eligibility early-outs (schema entry
+// with RootPage 0, module kind not scan-blocked, stored SQL naming a vtab or
+// echo module) without materializing the table or reading scan options.
+func (e *Engine) MayScanCreatedVTab(name string) bool {
+	entry, _, err := e.findTable(name)
+	if err != nil || entry == nil || entry.RootPage != 0 {
+		return false
+	}
+	modName, modArgs, isVtab, skip := createdVTabModuleKind(e, entry, name)
+	if skip {
+		return false
+	}
+	return isVtab || isEchoModule(modName, modArgs)
+}
+
 // MaterializeCreatedVTab materializes a CREATE VIRTUAL TABLE instance's rows
 // for SELECT execution: the schema entry has RootPage 0 and its stored SQL
 // names the module (e.g. csv). ok is false when name is not such a table.

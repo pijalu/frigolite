@@ -34,6 +34,23 @@ type tvfScopeItem struct {
 // Unqualified argument columns are not checked here; they resolve against
 // the row context at evaluation time.
 func (e *SelectEngine) validateTVFArgScope(s *sql.SelectStmt) error {
+	// A statement whose FROM term and every join operand carry no table-
+	// function arguments has no TVF scope to check (an item's tvf flag below
+	// is exactly "has arguments and is not a subquery"): skip building the
+	// scope slice entirely. Subquery FROM terms validate through their own
+	// recursive execSelect, so this covers them without a walk.
+	hasTVF := len(s.From.Args) > 0 && s.From.Subquery == nil
+	if !hasTVF {
+		for i := range s.Joins {
+			if len(s.Joins[i].Table.Args) > 0 && s.Joins[i].Table.Subquery == nil {
+				hasTVF = true
+				break
+			}
+		}
+	}
+	if !hasTVF {
+		return nil
+	}
 	items := make([]tvfScopeItem, 0, len(s.Joins)+1)
 	add := func(ref sql.TableRef, outer bool) {
 		n := ref.Name

@@ -165,6 +165,14 @@ type SelectContext interface {
 	// rows for SELECT (RootPage 0 + stored SQL naming a registered module,
 	// e.g. csv). ok is false when the name is not such a table.
 	MaterializeCreatedVTab(name string, opts VtabScanOptions) (colDefs []sql.ColumnDef, rows [][]interface{}, rowids []int64, err error, ok bool)
+	// MayScanCreatedVTab reports whether name could take the
+	// MaterializeCreatedVTab path: it applies exactly that function's
+	// eligibility early-outs (schema entry present, RootPage 0, module kind
+	// not scan-blocked, stored SQL naming a vtab/echo module) without
+	// materializing anything. FROM dispatch probes it before building scan
+	// options, so ordinary tables never pay the speculative reference
+	// collection.
+	MayScanCreatedVTab(name string) bool
 	// MaterializeCreatedVTabFunc materializes a FROM <created-vtab>(args...)
 	// reference: each argument binds to the next HIDDEN column as an
 	// equality constraint (SQLite's vtab table-valued form). ok is false
@@ -273,6 +281,13 @@ type SelectEngine struct {
 	seekCIDefs        *sql.ColumnDef
 	seekCILen         int
 	seekCICache       map[string]int
+	// collMap* memoizes the WHERE-collation name→collation map
+	// (collationMapFor in select_expr.go): the same schema-fingerprint +
+	// colDefs-slice-identity guard as seekCI*. Read-only after build.
+	collMapFingerprint uint64
+	collMapDefs        *sql.ColumnDef
+	collMapLen         int
+	collMapCache       map[string]string
 	cteScopes         [][]sql.CTEDef           // CTE scopes from enclosing statements (innermost last)
 	resolvingCTEs     map[*sql.SelectStmt]bool // CTE bodies currently being resolved (circular reference detection); keyed by the CTE body AST so a same-named inner WITH shadow is a different CTE
 	currentScanTable  string                   // table name being scanned (for qualified column resolution)

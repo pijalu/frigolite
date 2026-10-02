@@ -310,6 +310,19 @@ func (e *SelectEngine) prevalidateSelectChecks(s *sql.SelectStmt, tableEntry *sc
 // references are checked (1.130: SELECT a,b over the same table succeeds
 // because b uses the innocuous f1).
 func (e *SelectEngine) prevalidateSchemaFunctionSafety(s *sql.SelectStmt, colDefs []sql.ColumnDef) error {
+	// The check only constrains tables declaring generated columns; a table
+	// without any takes the early-out so the common shapes never pay the
+	// whole-statement column-reference collection below.
+	hasGenerated := false
+	for i := range colDefs {
+		if colDefs[i].Generated != nil {
+			hasGenerated = true
+			break
+		}
+	}
+	if !hasGenerated {
+		return nil
+	}
 	refs := collectSelectColumnRefs(s)
 	for _, cd := range colDefs {
 		if cd.Generated == nil {
