@@ -396,17 +396,8 @@ func (e *DMLExecutor) wrPKSeekConflict(tableName, createSQL string, rootPage uin
 	if len(order) != len(colDefs) || len(pkIdx) == 0 {
 		return 0, nil, -1, false
 	}
-	probe := make([]interface{}, len(pkIdx))
-	for s, ci := range pkIdx {
-		if ci >= len(values) || values[ci] == nil {
-			// A NULL PK slot never conflicts (WR PK columns are implicitly
-			// NOT NULL; the NOT NULL check rejects the row before this scan).
-			return 0, nil, -1, false
-		}
-		probe[s] = util.UnwrapColumnValue(values[ci])
-	}
-	payload, err := storage.EncodeRecord(probe)
-	if err != nil {
+	payload, ok := wrPKProbeRecord(pkIdx, values)
+	if !ok {
 		return 0, nil, -1, false
 	}
 	tree := e.uniqueScanTree(tableName, rootPage)
@@ -416,15 +407,41 @@ func (e *DMLExecutor) wrPKSeekConflict(tableName, createSQL string, rootPage uin
 	if err != nil {
 		return 0, nil, -1, false
 	}
-	if _, serr := cursor.SeekToKey(payload); serr != nil {
+	return e.wrPKSeekMatch(cursor, payload, createSQL, colDefs, pkIdx, values)
+}
+
+// wrPKProbeRecord encodes the PK-only probe record (storage order: the PK
+// slots in key order). ok=false when a PK slot is missing or NULL — a NULL
+// never conflicts (WR PK columns are implicitly NOT NULL, so the NOT NULL
+// check rejects the row before the conflict scan runs).
+func wrPKProbeRecord(pkIdx []int, values []interface{}) ([]byte, bool) {
+	probe := make([]interface{}, len(pkIdx))
+	for s, ci := range pkIdx {
+		if ci >= len(values) || values[ci] == nil {
+			return nil, false
+		}
+		probe[s] = util.UnwrapColumnValue(values[ci])
+	}
+	payload, err := storage.EncodeRecord(probe)
+	if err != nil {
+		return nil, false
+	}
+	return payload, true
+}
+
+// wrPKSeekMatch runs the key seek and compares the landing cell's PK slots
+// against the new row's. The lower-bound landing (see wrPKSeekConflict) makes
+// a slot mismatch conclusive: no row with that PK exists.
+func (e *DMLExecutor) wrPKSeekMatch(cursor *btree.Cursor, payload []byte, createSQL string, colDefs []sql.ColumnDef, pkIdx []int, values []interface{}) (int64, []interface{}, int, bool) {
+	if _, err := cursor.SeekToKey(payload); err != nil {
 		return 0, nil, -1, false
 	}
-	cell, rerr := cursor.ReadCell()
-	if rerr != nil || cell == nil {
+	cell, err := cursor.ReadCell()
+	if err != nil || cell == nil {
 		return 0, nil, -1, false
 	}
-	rec, derr := storage.DecodeRecord(cell.Payload)
-	if derr != nil || rec == nil {
+	rec, err := storage.DecodeRecord(cell.Payload)
+	if err != nil || rec == nil {
 		return 0, nil, -1, false
 	}
 	e.ctx.RemapWRRecordToDeclared(rec, createSQL, colDefs)
