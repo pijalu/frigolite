@@ -130,9 +130,13 @@ type BTree struct {
 	// are tracked here so a single Close (statement teardown) unregisters
 	// them all from the cross-statement invalidation registry; without it
 	// the registry only ever shrank via the runtime finalizer, which made
-	// saveAllCursors O(total cursors ever opened) per mutation.
-	cursors []*Cursor
-	closed  bool
+	// saveAllCursors O(total cursors ever opened) per mutation. The inline
+	// array backs the slice for the common (few cursors per statement) case;
+	// initFrom aliases cursors onto it, and a statement opening more than
+	// len(cursorsArr) cursors just grows the slice as before.
+	cursorsArr [2]*Cursor
+	cursors    []*Cursor
+	closed     bool
 
 	// cellScratch recycles the encoded bytes of the cell currently being
 	// inserted (btree_insert.go). A BTree is built per statement over the

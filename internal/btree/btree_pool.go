@@ -53,9 +53,11 @@ func (t *BTree) initFrom(pg *pager.Pager, rootPage uint32, isTable, isSchema boo
 	t.usableSize = pg.UsableSize()
 	t.isTable = isTable
 	t.isSchema = isSchema
-	// A statement's wrapper opens a handful of cursors at most; the pre-sized
-	// slice absorbs them without per-OpenCursor growth.
-	t.cursors = make([]*Cursor, 0, 4)
+	// A statement's wrapper opens a handful of cursors at most; the inline
+	// array absorbs them without per-OpenCursor growth AND without the
+	// per-wrapper heap slice allocation (NewBTree runs once per statement —
+	// one INSERT — so the make showed up verbatim in the insert profile).
+	t.cursors = t.cursorsArr[:0]
 	return t
 }
 
