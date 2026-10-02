@@ -13,6 +13,7 @@ import (
 	"github.com/pijalu/frigolite/internal/schema"
 	"github.com/pijalu/frigolite/internal/sql"
 	"github.com/pijalu/frigolite/internal/storage"
+	"github.com/pijalu/frigolite/internal/util"
 	"github.com/pijalu/frigolite/internal/vtab"
 )
 
@@ -668,8 +669,7 @@ func (e *Engine) createdVtabScanBlocked(entry *schema.Entry) bool {
 // vtabModuleFromSQL extracts the module name and arguments from a stored
 // "CREATE VIRTUAL TABLE ... USING module(args)" statement.
 func vtabModuleFromSQL(sqlStr string) (module string, args []string, ok bool) {
-	up := strings.ToUpper(sqlStr)
-	idx := strings.Index(up, " USING ")
+	idx := util.IndexFoldASCII(sqlStr, " USING ")
 	if idx < 0 {
 		return "", nil, false
 	}

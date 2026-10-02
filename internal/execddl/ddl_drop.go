@@ -14,9 +14,8 @@ import (
 	"github.com/pijalu/frigolite/internal/schema"
 	"github.com/pijalu/frigolite/internal/sql"
 	"github.com/pijalu/frigolite/internal/storage"
-	"github.com/pijalu/frigolite/internal/vtab"
-
 	"github.com/pijalu/frigolite/internal/util"
+	"github.com/pijalu/frigolite/internal/vtab"
 )
 
 // --- DROP VIEW ---
@@ -291,7 +290,7 @@ func (e *DDLExecutor) echoVTabSource(name string) (string, bool) {
 	// Plain tables (the overwhelmingly common probe during DML) have no
 	// USING clause: short-circuit before parseVTabSQL, which signals
 	// "not a vtab" by allocating a formatted error.
-	if !strings.Contains(strings.ToUpper(entry.SQL), " USING ") {
+	if !util.ContainsFoldASCII(entry.SQL, " USING ") {
 		return "", false
 	}
 	moduleName, args, perr := parseVTabSQL(entry.SQL)
