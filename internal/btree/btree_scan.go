@@ -50,6 +50,15 @@ func (b *LeafBatch) CellCount() int {
 	return int(b.page.CellCount)
 }
 
+// StartCell returns the cursor's recorded cell index on this page: the seek
+// position for the batch's FIRST page (SeekToRowID leaves cellIdx at the
+// sought/insertion cell, so a mid-page range walk must not replay earlier
+// cells), 0 for the subsequent pages the walker navigates to. The walker
+// starts its cell loop at StartCell on the first page it processes.
+func (b *LeafBatch) StartCell() int {
+	return int(b.c.cellIdx)
+}
+
 // Saved reports whether a nested statement's write saved the cursor's
 // position while this page's cells were being consumed.
 func (b *LeafBatch) Saved() bool {

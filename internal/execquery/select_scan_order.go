@@ -83,10 +83,19 @@ func (e *SelectEngine) rowidTableColDefs(tableName string) ([]sql.ColumnDef, boo
 }
 
 // constrainsRowidCol reports whether one WHERE conjunct is a comparison on
-// the rowid pseudo-column or an INTEGER PRIMARY KEY rowid-alias column.
+// the rowid pseudo-column or an INTEGER PRIMARY KEY rowid-alias column. A
+// non-negated rowid BETWEEN decomposes to two rowid range comparisons
+// (where.c's AND-pair form): the table b-tree drives the scan the same way,
+// so the constraint check mirrors analyzeRowidBetween's operand rule and the
+// index-order planning skips its row-count walk for BETWEEN-driven seeks.
 func constrainsRowidCol(conj sql.Expr, tableName string, colDefs []sql.ColumnDef, shadowed bool) bool {
 	bin, ok := conj.(*sql.BinaryOp)
 	if !ok {
+		if bt, isBetween := conj.(*sql.Between); isBetween && !bt.Negated {
+			if ref, isRef := unwrapParenExpr(bt.Operand).(*sql.ColumnRef); isRef {
+				return isRowidSeekRef(ref, tableName, tableName, colDefs)
+			}
+		}
 		return false
 	}
 	switch bin.Operator {

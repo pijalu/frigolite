@@ -1,6 +1,7 @@
 package execquery
 
 import (
+	"errors"
 	"math"
 	"strconv"
 	"strings"
@@ -39,6 +40,13 @@ type rowidSeekAnalysis struct {
 	hiSet   bool
 	empty   bool // a bound provably matches no row (NULL, text/blob lower, NaN)
 	planned bool // false: the shape keeps the full scan
+	// covers reports that the seek bounds enforce EVERY WHERE conjunct: the
+	// iteration domain [lo,hi] (or the pinned equality row) satisfies each
+	// folded literal rowid constraint by construction, so the per-row WHERE
+	// re-evaluation is redundant. It requires every conjunct to fold into an
+	// exact literal bound (no float ceil/floor normalization, no int64-edge
+	// saturation) and no trailing conjunct past a dominating equality.
+	covers bool
 }
 
 // analyzeRowidSeek extracts the rowid seek plan from a WHERE clause: the
@@ -47,14 +55,23 @@ type rowidSeekAnalysis struct {
 // bound. A nil result keeps the scan: no rowid conjunct, or a range conjunct
 // whose bound is not a literal (subquery, function, column reference).
 func analyzeRowidSeek(where sql.Expr, tableName, alias string, colDefs []sql.ColumnDef) *rowidSeekAnalysis {
-	a := &rowidSeekAnalysis{planned: true}
+	a := &rowidSeekAnalysis{planned: true, covers: true}
 	rangeBad := false
-	for _, conj := range splitAnd(where) {
-		done, bad := analyzeRowidConjunct(a, unwrapParenExpr(conj), tableName, alias, colDefs)
+	conjuncts := splitAnd(where)
+	for i, conj := range conjuncts {
+		done, bad, consumed := analyzeRowidConjunct(a, unwrapParenExpr(conj), tableName, alias, colDefs)
+		if !consumed {
+			a.covers = false // the conjunct survives as a per-row predicate
+		}
 		if bad {
 			rangeBad = true
 		}
 		if done {
+			// An equality dominates, but any conjunct after it still needs
+			// its per-row evaluation.
+			if i < len(conjuncts)-1 {
+				a.covers = false
+			}
 			break
 		}
 	}
@@ -69,8 +86,11 @@ func analyzeRowidSeek(where sql.Expr, tableName, alias string, colDefs []sql.Col
 
 // analyzeRowidConjunct folds one WHERE conjunct into the analysis. done
 // reports the analysis is final (an equality conjunct was found); bad
-// reports a range conjunct with a non-literal bound (scan fallback).
-func analyzeRowidConjunct(a *rowidSeekAnalysis, conj sql.Expr, tableName, alias string, colDefs []sql.ColumnDef) (done, bad bool) {
+// reports a rowid range conjunct with a non-literal bound (scan fallback);
+// consumed reports whether the seek bounds fully enforce this conjunct —
+// only a folded rowid bound or the dominating equality is; every other
+// conjunct survives as a per-row predicate.
+func analyzeRowidConjunct(a *rowidSeekAnalysis, conj sql.Expr, tableName, alias string, colDefs []sql.ColumnDef) (done, bad, consumed bool) {
 	switch c := conj.(type) {
 	case *sql.BinaryOp:
 		switch c.Operator {
@@ -79,41 +99,49 @@ func analyzeRowidConjunct(a *rowidSeekAnalysis, conj sql.Expr, tableName, alias 
 			if ok {
 				a.eqRowid, a.eqMatch, a.planned = selectRowidLiteral(lit)
 				a.eq = true
-				return true, false
+				return true, false, true
 			}
+			return false, false, false
 		case "<", ">", "<=", ">=":
-			return false, analyzeRowidRangeBinary(a, c, tableName, alias, colDefs)
+			folded, isRowidRange := analyzeRowidRangeBinary(a, c, tableName, alias, colDefs)
+			return false, isRowidRange && !folded, folded
 		}
 	case *sql.Between:
 		if c.Negated {
-			return false, false // NOT BETWEEN keeps the scan
+			return false, false, false // NOT BETWEEN keeps the scan
 		}
-		return false, analyzeRowidBetween(a, c, tableName, alias, colDefs)
+		folded, isRowidRange := analyzeRowidBetween(a, c, tableName, alias, colDefs)
+		return false, isRowidRange && !folded, folded
 	}
-	return false, false
+	return false, false, false
 }
 
 // analyzeRowidBetween folds "rowid BETWEEN low AND high" into an inclusive
 // lower and upper bound (where.c's AND-pair decomposition of TK_BETWEEN).
-func analyzeRowidBetween(a *rowidSeekAnalysis, c *sql.Between, tableName, alias string, colDefs []sql.ColumnDef) bool {
+// folded reports a bound application (the conjunct is seek-enforced);
+// isRowidRange reports a rowid conjunct whose bound is non-literal (the
+// scan keeps the conjunct). A non-rowid operand is neither.
+func analyzeRowidBetween(a *rowidSeekAnalysis, c *sql.Between, tableName, alias string, colDefs []sql.ColumnDef) (folded, isRowidRange bool) {
 	ref, ok := unwrapParenExpr(c.Operand).(*sql.ColumnRef)
 	if !ok || !isRowidSeekRef(ref, tableName, alias, colDefs) {
-		return false
+		return false, false
 	}
 	low, okL := resolveRangeBound(c.Low, ">=")
 	high, okH := resolveRangeBound(c.High, "<=")
 	if !okL || !okH {
-		return true // non-literal bound: the scan keeps the conjunct
+		return false, true // non-literal bound: the scan keeps the conjunct
 	}
 	applyRangeBound(a, true, low)
 	applyRangeBound(a, false, high)
-	return false
+	return true, true
 }
 
 // analyzeRowidRangeBinary folds one rowid comparison conjunct into a bound.
-// Either operand order is accepted (5 < rowid ≡ rowid > 5). Returns bad=true
-// when the comparison side opposite the rowid is not a literal.
-func analyzeRowidRangeBinary(a *rowidSeekAnalysis, bin *sql.BinaryOp, tableName, alias string, colDefs []sql.ColumnDef) bool {
+// Either operand order is accepted (5 < rowid ≡ rowid > 5). folded reports
+// a bound application; isRowidRange reports a rowid conjunct whose bound is
+// non-literal. A conjunct with no rowid side is neither (a plain per-row
+// predicate).
+func analyzeRowidRangeBinary(a *rowidSeekAnalysis, bin *sql.BinaryOp, tableName, alias string, colDefs []sql.ColumnDef) (folded, isRowidRange bool) {
 	for i, sides := range [2][2]sql.Expr{{bin.Left, bin.Right}, {bin.Right, bin.Left}} {
 		ref, ok := unwrapParenExpr(sides[0]).(*sql.ColumnRef)
 		if !ok || !isRowidSeekRef(ref, tableName, alias, colDefs) {
@@ -125,12 +153,12 @@ func analyzeRowidRangeBinary(a *rowidSeekAnalysis, bin *sql.BinaryOp, tableName,
 		}
 		b, ok := resolveRangeBound(sides[1], op)
 		if !ok {
-			return true
+			return false, true
 		}
 		applyRangeBound(a, op == ">" || op == ">=", b)
-		return false
+		return true, true
 	}
-	return false
+	return false, false
 }
 
 // flipRangeOp mirrors a comparison operator across its operands.
@@ -153,6 +181,10 @@ type rangeBound struct {
 	never  bool  // the bound provably matches no rowid (empty result)
 	always bool  // the bound matches every rowid (no numeric restriction)
 	val    int64 // inclusive integral bound (valid unless never/always)
+	// exact marks a bound derived from a pure-integer literal without
+	// int64-edge saturation: every iterated rowid at or inside the bound
+	// satisfies the conjunct, so the WHERE-covered skip may trust it.
+	exact bool
 }
 
 // resolveRangeBound resolves a literal range bound under the given (already
@@ -167,7 +199,7 @@ func resolveRangeBound(expr sql.Expr, op string) (rangeBound, bool) {
 		return textRangeBound(v.Value, op)
 	case *sql.NullLit:
 		// rowid CMP NULL is NULL for every row: the conjunct matches nothing.
-		return rangeBound{never: true}, true
+		return rangeBound{never: true, exact: true}, true
 	case *sql.BlobLit:
 		return nonNumericRangeBound(op), true
 	case *sql.UnaryOp:
@@ -205,12 +237,18 @@ func numericRangeBound(text, op string) (rangeBound, bool) {
 // otherwise the text stays TEXT and sorts above every integer rowid). A
 // pure-integer bound resolves exactly onto integer rowids; a real bound
 // ceil/floor-normalizes; a non-converting text/blob bound is lower→never /
-// upper→always (INTEGER < TEXT/BLOB always).
+// upper→always (INTEGER < TEXT/BLOB always). A text bound stays INEXACT for
+// the WHERE-covered skip even when it spells an integer: the plan's
+// NumericText conversion and the re-evaluation's affinity conversion
+// disagree on spellings like ' 10 ' (whitespace), so the re-check keeps the
+// final word.
 func textRangeBound(text, op string) (rangeBound, bool) {
 	kind, iv, fv := value.NumericText(text)
 	switch kind {
 	case value.IntNumeric:
-		return intRangeBound(iv, op), true
+		b := intRangeBound(iv, op)
+		b.exact = false
+		return b, true
 	case value.RealNumeric:
 		return floatRangeBound(fv, op)
 	default:
@@ -222,23 +260,24 @@ func textRangeBound(text, op string) (rangeBound, bool) {
 // b, < b ends at b-1, <= b at b. At the int64 edges the shifted side
 // saturates onto the boundary rowid instead of wrapping: the boundary
 // candidate the seek then admits fails the WHERE re-check exactly like the
-// scan's eval (rowid > 2^63-1 is false for every int64 rowid).
+// scan's eval (rowid > 2^63-1 is false for every int64 rowid) — a saturated
+// bound is not exact (its candidates still need the re-check).
 func intRangeBound(i int64, op string) rangeBound {
 	switch op {
 	case ">=":
-		return rangeBound{val: i}
+		return rangeBound{val: i, exact: true}
 	case ">":
 		if i == math.MaxInt64 {
 			return rangeBound{val: i}
 		}
-		return rangeBound{val: i + 1}
+		return rangeBound{val: i + 1, exact: true}
 	case "<=":
-		return rangeBound{val: i}
+		return rangeBound{val: i, exact: true}
 	default: // "<"
 		if i == math.MinInt64 {
 			return rangeBound{val: i}
 		}
-		return rangeBound{val: i - 1}
+		return rangeBound{val: i - 1, exact: true}
 	}
 }
 
@@ -316,8 +355,13 @@ func upperRangeBound(f float64, op string) rangeBound {
 
 // applyRangeBound folds a resolved bound into the analysis: never bounds
 // empty the plan, always bounds only contribute the rendered constraint,
-// numeric bounds tighten (lower: max, upper: min).
+// numeric bounds tighten (lower: max, upper: min). An inexact bound (float
+// ceil/floor normalization, saturated int64 edge) keeps its per-row WHERE
+// re-check: the coverage flag drops.
 func applyRangeBound(a *rowidSeekAnalysis, lower bool, b rangeBound) {
+	if !b.exact {
+		a.covers = false
+	}
 	if lower {
 		a.hasLo = true
 		switch {
@@ -381,6 +425,10 @@ type rangeSeekRow struct {
 	// rows step it instead of decoding the remaining columns and
 	// materializing output rows / row maps.
 	feed *simpleAggFeed
+	// whereCovered marks a plan whose seek bounds enforce every WHERE
+	// conjunct (rowidSeekAnalysis.covers): the per-row WHERE re-evaluation
+	// is redundant and skipped.
+	whereCovered bool
 
 	srow   *StructRow
 	values []interface{}
@@ -434,23 +482,49 @@ func (e *SelectEngine) selectRowidRangeRows(s *sql.SelectStmt, tree *btree.BTree
 	if feed != nil {
 		wrapCols = e.whereReferencedAffinityCols(s.Where)
 	}
-	it := &rangeSeekRow{
-		e:          e,
-		s:          s,
-		cursor:     cursor,
-		colDefs:    colDefs,
-		colIndex:   colIndex,
-		whereIdx:   whereIdx,
-		restIdx:    restIdx,
-		ipkIdx:     ipkAliasIndices(colDefs),
-		needMaps:   needMaps,
-		affWrapIdx: affinityWrapIndices(colDefs, wrapCols),
-		feed:       feed,
-		values:     make([]interface{}, len(colDefs)),
-		srow:       &StructRow{Index: colIndex},
+	// A covered WHERE (every conjunct is an exact literal rowid bound the
+	// seek enforces) never re-evaluates the predicate per row: no column
+	// decodes or wraps for the WHERE's sake, and the feed's own slots are
+	// the whole phase-1 decode set. The INTEGER PRIMARY KEY rowid-alias
+	// fill follows the same readers: only alias slots the feed reads.
+	ipkIdx := ipkAliasIndices(colDefs)
+	if a.covers && feed != nil {
+		whereIdx = feedReadSlots(feed)
+		restIdx = map[int]bool{}
+		wrapCols = nil
+		ipkIdx = filterFeedReadIPK(ipkIdx, whereIdx)
 	}
-	if !it.run(a) {
+	it := &rangeSeekRow{
+		e:            e,
+		s:            s,
+		cursor:       cursor,
+		colDefs:      colDefs,
+		colIndex:     colIndex,
+		whereIdx:     whereIdx,
+		restIdx:      restIdx,
+		ipkIdx:       ipkIdx,
+		needMaps:     needMaps,
+		affWrapIdx:   affinityWrapIndices(colDefs, wrapCols),
+		feed:         feed,
+		whereCovered: a.covers,
+		values:       make([]interface{}, len(colDefs)),
+		srow:         &StructRow{Index: colIndex},
+	}
+	finished, ok := it.runBatch(a)
+	if !ok {
 		return nil, nil, false
+	}
+	if !finished {
+		// A nested write saved the cursor mid-walk: step off the saved cell
+		// (restore re-seeks the saved key; skipNext returns the next-larger
+		// entry) and finish on the per-row cursor loop — the same resume
+		// dance the plain scan's batch walker performs.
+		if _, err := it.cursor.Next(); err != nil {
+			return nil, nil, false
+		}
+		if !it.run(a) {
+			return nil, nil, false
+		}
 	}
 	// PRAGMA reverse_unordered_selects reverses the rowid range walk like it
 	// reverses the plain scan (select_scan's shouldReverse: top-level,
@@ -476,6 +550,36 @@ func affinityWrapIndices(colDefs []sql.ColumnDef, affinityCols map[string]bool) 
 		}
 	}
 	return idx
+}
+
+// feedReadSlots returns the decoded-slot set a feed's steps read: every
+// compiled argument slot (COUNT(*) reads nothing; the rowid pseudo-column
+// rides the loop's rowID).
+func feedReadSlots(feed *simpleAggFeed) map[int]bool {
+	idx := make(map[int]bool)
+	if feed.group != nil {
+		feed.group.unionDecodeSlots(idx)
+		return idx
+	}
+	for ci := range feed.calls {
+		if !feed.calls[ci].countStar && feed.calls[ci].slot != feedRowidSlot {
+			idx[feed.calls[ci].slot] = true
+		}
+	}
+	return idx
+}
+
+// filterFeedReadIPK keeps only the INTEGER PRIMARY KEY rowid-alias slots the
+// feed reads (a covered WHERE never evaluates, so alias slots nobody reads
+// keep their stored NULL — no per-row fill).
+func filterFeedReadIPK(ipkIdx []int, read map[int]bool) []int {
+	var out []int
+	for _, i := range ipkIdx {
+		if read[i] {
+			out = append(out, i)
+		}
+	}
+	return out
 }
 
 // whereReferencedAffinityCols collects the affinity set restricted to the
@@ -511,9 +615,10 @@ func (e *SelectEngine) aggFeedWrapCols(where sql.Expr, colDefs []sql.ColumnDef) 
 	return cols
 }
 
-// run iterates the seeked range, emitting every row that passes the full
-// WHERE. ok=false falls back to the scan (a read or evaluation anomaly the
-// scan re-evaluates and surfaces identically).
+// run iterates the seeked range row by row (the fallback loop after a
+// mid-walk position save), emitting every row that passes. ok=false falls
+// back to the scan (a read or evaluation anomaly the scan re-evaluates and
+// surfaces identically).
 func (it *rangeSeekRow) run(a *rowidSeekAnalysis) bool {
 	for !it.cursor.AtEnd() {
 		payload, rowID, err := it.cursor.ReadCellData()
@@ -531,37 +636,100 @@ func (it *rangeSeekRow) run(a *rowidSeekAnalysis) bool {
 	return true
 }
 
-// step processes the current row: phase-1 decode, WHERE re-check, then either
-// a simple-aggregate step (feed mode — no row materialization) or the
-// phase-2 refill of the passing row plus its output. done=true reports
-// iteration finished cleanly (Next ran past the last entry). ok=false falls
-// back to the scan.
-func (it *rangeSeekRow) step(payload []byte, rowID int64) (done, ok bool) {
-	if !it.decodePhaseOne(payload, rowID) {
+// runBatch drives the seeked range through the btree page-batch walker: the
+// per-cell cursor machinery (restore checkpoint, page-cache hit, empty-leaf
+// skip) collapses to a per-page cost, and the hi bound still ends the walk
+// from inside a page. finished reports a cleanly ended iteration (bound hit
+// or end of tree); ok=false marks an extraction or row-processing anomaly
+// the full scan re-evaluates identically; finished=false with ok=true
+// reports a nested write's mid-walk position save (the caller steps one
+// Next and finishes on the per-row loop).
+func (it *rangeSeekRow) runBatch(a *rowidSeekAnalysis) (finished, ok bool) {
+	decline := false
+	firstPage := true
+	saved, err := it.cursor.ScanTableLeaves(func(b *btree.LeafBatch) (stop bool, err error) {
+		start := 0
+		if firstPage {
+			// The seeked cursor's cell position (a mid-page range start);
+			// the walker's later pages begin at cell 0.
+			start = b.StartCell()
+			firstPage = false
+		}
+		n := b.CellCount()
+		for i := start; i < n; i++ {
+			payload, rowID, cellErr := b.Cell(i)
+			if cellErr != nil {
+				if errors.Is(cellErr, btree.ErrScanSaved) {
+					return true, nil // resume on the cursor loop
+				}
+				decline = true // the per-row loop's ReadCellData error path
+				return true, nil
+			}
+			if a.hiSet && rowID > a.hi {
+				return true, nil // the bound ends the range cleanly
+			}
+			if !it.processRow(payload, rowID) {
+				decline = true
+				return true, nil
+			}
+		}
+		return false, nil
+	})
+	if err != nil {
 		return false, false
 	}
-	pass, err := it.e.RowPassesWhere(it.s.Where, it.srow, it.cursor)
-	if err != nil {
-		return false, false // the scan fallback re-evaluates and surfaces it
+	if decline {
+		return false, false
 	}
-	if pass {
-		switch {
-		case it.feed != nil:
-			// The feed reads only phase-1-decoded columns (every statement
-			// reference is in the WHERE-referenced index set); no refill, no
-			// output rows or row maps.
-			if err := it.feed.step(it.srow.Values, rowID); err != nil {
-				return false, false // the scan fallback re-evaluates and surfaces it
-			}
-		case !it.refill(it.srow, payload) || !it.emit(it.srow):
-			return false, false
-		}
+	return !saved, true
+}
+
+// step processes the current row and advances (the per-row cursor loop's
+// body). done=true reports iteration finished cleanly (Next ran past the
+// last entry). ok=false falls back to the scan.
+func (it *rangeSeekRow) step(payload []byte, rowID int64) (done, ok bool) {
+	if !it.processRow(payload, rowID) {
+		return false, false
 	}
 	more, err := it.cursor.Next()
 	if err != nil {
 		return false, false
 	}
 	return !more, true
+}
+
+// processRow decodes and filters the current row, then either steps the
+// simple-aggregate feed (feed mode — no row materialization) or refills the
+// passing row and emits it. ok=false marks an anomaly the scan fallback
+// re-evaluates and surfaces identically.
+func (it *rangeSeekRow) processRow(payload []byte, rowID int64) bool {
+	if !it.decodePhaseOne(payload, rowID) {
+		return false
+	}
+	pass := true
+	if !it.whereCovered {
+		// The seek bounds enforce every conjunct under a covered plan; the
+		// re-check only runs for plans that still carry per-row predicates.
+		var err error
+		pass, err = it.e.RowPassesWhere(it.s.Where, it.srow, it.cursor)
+		if err != nil {
+			return false // the scan fallback re-evaluates and surfaces it
+		}
+	}
+	if pass {
+		switch {
+		case it.feed != nil:
+			// The feed reads only phase-1-decoded columns (every statement
+			// reference is in the decode set); no refill, no output rows or
+			// row maps.
+			if err := it.feed.step(it.srow.Values, rowID); err != nil {
+				return false // the scan fallback re-evaluates and surfaces it
+			}
+		case !it.refill(it.srow, payload) || !it.emit(it.srow):
+			return false
+		}
+	}
+	return true
 }
 
 // decodePhaseOne decodes one table-leaf cell's WHERE-referenced columns into
