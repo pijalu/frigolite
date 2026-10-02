@@ -154,6 +154,10 @@ type Pager struct {
 	// parent field. Guarded by mu (read under RLock in the ReadPage fast
 	// path).
 	stmtTop *StmtJournal
+	// stmtFree recycles closed statement scopes (see pagerstmt.go): a scope
+	// is pushed here when EndStatement/RollbackStatement closes it and is
+	// popped by the next BeginStatement. Guarded by mu.
+	stmtFree []*StmtJournal
 	// dirtyStamp is a monotonic counter advanced on every clean→dirty
 	// transition; dirtyMark records, per page, the stamp at which the page
 	// became dirty. A statement scope's beginDirtyStamp splits its first

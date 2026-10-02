@@ -147,6 +147,13 @@ type StmtJournal struct {
 // sqlite3PagerStmtBegin). Scopes nest: a trigger body's statement opens a
 // scope inside the outer statement's scope. The call is O(1) — no pages are
 // copied; before-images are captured lazily as pages are first modified.
+//
+// Scope objects recycle through the pager's stmtFree list: a closed scope is
+// pushed back by its closer, and the next BeginStatement pops it. This is
+// safe because scope tokens are never touched after their close — the engine
+// closes every scope it opened before the next statement begins on the same
+// pager (defers run at statement end), and a stale second close lands on the
+// still-done object (a no-op) in the window before reuse.
 func (p *Pager) BeginStatement() *StmtJournal {
 	if quota.Active() {
 		// Quota layer (test_quota.c shim): a flush can fail mid-way through
@@ -158,20 +165,41 @@ func (p *Pager) BeginStatement() *StmtJournal {
 	}
 	p.mu.Lock()
 	defer p.mu.Unlock()
-	j := &StmtJournal{
-		p:                   p,
-		parent:              p.stmtTop,
-		entries:             make(map[uint32]stmtEntry),
-		numPages:            p.numPages,
-		fileSize:            p.fileSize,
-		pendingFileTruncate: p.pendingFileTruncate,
-		beginDirtyStamp:     p.dirtyStamp,
+	var j *StmtJournal
+	if n := len(p.stmtFree); n > 0 {
+		j = p.stmtFree[n-1]
+		p.stmtFree[n-1] = nil
+		p.stmtFree = p.stmtFree[:n-1]
+		clear(j.entries)
+	} else {
+		j = &StmtJournal{entries: make(map[uint32]stmtEntry)}
 	}
+	j.p = p
+	j.parent = p.stmtTop
+	j.numPages = p.numPages
+	j.fileSize = p.fileSize
+	j.pendingFileTruncate = p.pendingFileTruncate
+	j.beginDirtyStamp = p.dirtyStamp
+	j.done = false
+	j.fullState = nil
 	if p.header != nil {
-		j.header = append([]byte(nil), p.header...)
+		// Reuse the recycled scope's header buffer (the close path keeps its
+		// capacity) — one page-header copy, no fresh allocation.
+		j.header = append(j.header[:0], p.header...)
+	} else {
+		j.header = nil
 	}
 	p.stmtTop = j
 	return j
+}
+
+// recycleStmtLocked returns a just-closed scope's object to the free list
+// (bounded: deeper recycling falls back to GC). The entries map and header
+// buffer keep their storage for the next BeginStatement. Caller holds p.mu.
+func (p *Pager) recycleStmtLocked(j *StmtJournal) {
+	if len(p.stmtFree) < 8 {
+		p.stmtFree = append(p.stmtFree, j)
+	}
 }
 
 // EndStatement closes a succeeded statement's scope: its journal entries
@@ -198,6 +226,7 @@ func (p *Pager) EndStatement(j *StmtJournal) {
 	}
 	j.done = true
 	p.unlinkStmtLocked(j)
+	defer p.recycleStmtLocked(j)
 	if j.parent != nil && !j.parent.done {
 		for pgno, e := range j.entries {
 			if _, ok := j.parent.entries[pgno]; !ok {
@@ -247,6 +276,7 @@ func (p *Pager) RollbackStatement(j *StmtJournal) {
 	j.done = true
 	p.unlinkStmtLocked(j)
 	p.replayStmtEntriesLocked(j)
+	p.recycleStmtLocked(j)
 	// Drop cache pages above the restored count: allocations the statement
 	// made (and any bookkeeping pages created after its begin) are undone by
 	// the page-count restore, mirroring Restore's eviction of unknown pages.
