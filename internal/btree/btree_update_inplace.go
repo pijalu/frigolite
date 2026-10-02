@@ -39,7 +39,7 @@ func (t *BTree) OverwriteCellByRowID(rowID int64, cellData []byte) (done bool, e
 // rowid is not stored on a table leaf (missing row, interior page, or index
 // out of range).
 func (t *BTree) seekLeafRow(rowID int64) (pg *pager.Page, page *storage.BTreePage, idx int, ok bool, err error) {
-	c, err := t.OpenCursor()
+	c, err := t.OpenCursorAtRoot() // the seek re-descends from the root
 	if err != nil {
 		return nil, nil, 0, false, err
 	}

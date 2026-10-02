@@ -147,7 +147,9 @@ func (e *DMLExecutor) collectPointUpdateRow(tree *btree.BTree, s *sql.UpdateStmt
 	if err := e.ctx.CheckProgress(); err != nil {
 		return updateChange{}, false, &Result{Error: err}
 	}
-	cursor, err := tree.OpenCursor()
+	// The very next act is an explicit rowid seek, which re-descends from
+	// the root: skip OpenCursor's leftmost-leaf descent.
+	cursor, err := tree.OpenCursorAtRoot()
 	if err != nil {
 		return updateChange{}, false, nil // anomaly: generic pipeline
 	}

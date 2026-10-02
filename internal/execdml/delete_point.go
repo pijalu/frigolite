@@ -61,7 +61,9 @@ func (e *DMLExecutor) finishPointDelete(tableEntry *schema.Entry, dbCtx *Databas
 	if err := e.ctx.CheckProgress(); err != nil {
 		return nil, false
 	}
-	cursor, err := tree.OpenCursor()
+	// The very next act is an explicit rowid seek, which re-descends from
+	// the root: skip OpenCursor's leftmost-leaf descent.
+	cursor, err := tree.OpenCursorAtRoot()
 	if err != nil {
 		return nil, false // anomaly: generic pipeline
 	}
@@ -79,7 +81,9 @@ func (e *DMLExecutor) finishPointDelete(tableEntry *schema.Entry, dbCtx *Databas
 	if !ok {
 		return nil, false // anomaly: generic pipeline
 	}
-	if _, err := tree.DeleteCellByRowID(row.rowID); err != nil {
+	// The seek established the row's leaf position; delete through it
+	// (DeleteCellByRowID's post-seek half) instead of descending again.
+	if _, err := tree.DeleteCellByRowIDAt(row.rowID, cursor.PageNum(), cursor.CellIdx(), cursor.PathParent()); err != nil {
 		return &Result{Error: err}, true
 	}
 	if err := e.maintainIndexesOnDelete(tableEntry, colDefs, []*dmlRow{row}); err != nil {

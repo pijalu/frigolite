@@ -236,6 +236,23 @@ func (t *BTree) OpenCursor() (*Cursor, error) {
 	return c, nil
 }
 
+// OpenCursorAtRoot creates a cursor parked at the tree's root, for callers
+// that position it with an explicit seek (SeekToRowID/SeekToKey re-descend
+// from the root and reset the path stack). OpenCursor's leftmost-leaf
+// descent is pure overhead for that shape — one interior level per descent
+// on every point statement — so the point UPDATE/DELETE paths open through
+// this. Everything else (registration for cross-statement invalidation,
+// pooling, save/restore state) is identical to OpenCursor.
+func (t *BTree) OpenCursorAtRoot() (*Cursor, error) {
+	if t.closed {
+		return nil, fmt.Errorf("btree: cursor opened on closed tree")
+	}
+	c := t.acquireCursor() // resetFor parks it at the root with an empty path
+	t.cursors = append(t.cursors, c)
+	registerTreeCursor(cursorTreeKey{pg: t.pager, root: t.rootPage}, c)
+	return c, nil
+}
+
 // descendToFirstLeaf navigates from the current page to the leftmost leaf,
 // pushing interior pages onto the path stack. Used during OpenCursor.
 // Interior headers parse into a stack scratch (no per-level allocation) and

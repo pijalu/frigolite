@@ -81,5 +81,11 @@ func (t *BTree) pointDeleteTarget(leafNum uint32, idx int, rowID int64) (*pager.
 		// cells never match the predicate) — let it run.
 		return nil, nil, 0, delCell, 0, false
 	}
+	if delCell.RowID != rowID {
+		// The generic predicate deletes only exact rowid matches; a cell
+		// whose stored rowid differs (stale hinted position, corrupt image)
+		// must not be removed by the fast path.
+		return nil, nil, 0, delCell, 0, false
+	}
 	return pg, page, coff, delCell, delOff, true
 }

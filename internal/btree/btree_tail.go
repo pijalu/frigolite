@@ -231,6 +231,61 @@ func (t *BTree) maybeRebalanceAfterDelete(leafNum uint32) error {
 	return err
 }
 
+// PageNum returns the cursor's current leaf page number (valid after a
+// successful seek; the point-statement paths use it to re-address the
+// seeked row without a second descent).
+func (c *Cursor) PageNum() uint32 { return c.pageNum }
+
+// CellIdx returns the cursor's current cell index within its page (valid
+// after a successful seek).
+func (c *Cursor) CellIdx() int { return c.cellIdx }
+
+// PathParent returns the deepest interior page on the cursor's seek path —
+// the leaf's parent when the seek landed on a leaf below an interior level,
+// 0 otherwise (root leaf). The point-delete rebalance uses it as a verified
+// parent hint.
+func (c *Cursor) PathParent() uint32 {
+	if len(c.path) == 0 {
+		return 0
+	}
+	return c.path[len(c.path)-1].pageNum
+}
+
+// DeleteCellByRowIDAt is DeleteCellByRowID for a row whose leaf position a
+// caller-seeked cursor already established: the same single-cell fast path,
+// the same rebalance hint, the same generic-predicate fallback on a declined
+// fast path — but no second root-to-leaf descent. positionOK must come from
+// a seek on THIS tree (the target cell is re-validated against rowID; a
+// stale position falls back to the full DeleteCellByRowID seek).
+func (t *BTree) DeleteCellByRowIDAt(rowID int64, leaf uint32, idx int, hintParent uint32) (int64, error) {
+	t.saveAllCursors() // btree.c saveAllCursors on the delete path
+	handled, n, ferr := t.deleteSingleTableRowID(leaf, idx, rowID)
+	if ferr != nil {
+		return n, ferr
+	}
+	if handled {
+		if n == 0 {
+			return n, nil
+		}
+		if err := t.maybeRebalanceAfterDeleteHinted(leaf, hintParent); err != nil {
+			return n, err
+		}
+		return n, nil
+	}
+	// Fast path declined (anomaly on the leaf): the same generic predicate
+	// delete DeleteCellByRowID would run, on the same leaf.
+	n, err := t.deleteAllMatchingFromLeaf(leaf, func(cell *storage.Cell) bool {
+		return cell.RowID == rowID
+	})
+	if err != nil || n == 0 {
+		return n, err
+	}
+	if err := t.maybeRebalanceAfterDeleteHinted(leaf, hintParent); err != nil {
+		return n, err
+	}
+	return n, nil
+}
+
 // DeleteCellByRowID deletes the single table-leaf cell with the given rowid
 // using a direct O(log n) cursor seek instead of DeleteCellsWhere's full
 // sweep (a per-row sweep made UPDATE loops O(rows x tree): sqllimits1-7.5's
