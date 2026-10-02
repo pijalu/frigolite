@@ -350,6 +350,96 @@ func wrPkKeyFromDeclared(declaredValues []interface{}, pkIdx []int) []interface{
 	return key
 }
 
+// wrPKFirstIndex returns the declared index of a WITHOUT ROWID table's first
+// PRIMARY KEY column (key order), or -1 when the PK layout cannot be decoded.
+func wrPKFirstIndex(createSQL string, colDefs []sql.ColumnDef) int {
+	pkIdx := WRPKIndices(createSQL, colDefs)
+	if len(pkIdx) == 0 {
+		return -1
+	}
+	return pkIdx[0]
+}
+
+// wrPKSeekApplies reports whether a WITHOUT ROWID table's PRIMARY KEY conflict
+// question can be answered by the O(log n) key seek alone: the table's btree
+// is ordered by the binary comparison of the PK record prefix
+// (WRRecordComparator), so a PK column carrying a non-BINARY collation keeps
+// the collation-aware scanForConflict path (a collated duplicate can sort
+// outside the seek's binary landing window).
+func wrPKSeekApplies(createSQL string, colDefs []sql.ColumnDef) bool {
+	if len(WithoutRowidStorageOrder(createSQL, colDefs)) != len(colDefs) {
+		return false
+	}
+	for _, ci := range WRPKIndices(createSQL, colDefs) {
+		if ci >= len(colDefs) {
+			return false
+		}
+		if c := colDefs[ci].Collate; c != "" && !strings.EqualFold(c, "BINARY") {
+			return false
+		}
+	}
+	return true
+}
+
+// wrPKSeekConflict probes a WITHOUT ROWID table's PK-keyed index btree for an
+// existing row with the new row's PRIMARY KEY — sqlite3BtreeIndexMoveto
+// parity for OP_IdxInsert's constraint probe. The probe record holds only the
+// PK slots (storage order), and the comparator's shorter-record-first
+// tiebreak sorts it strictly before any equal-PK full row, so SeekToKey lands
+// on the lower bound of the PK key: a conflicting row — if one exists — sits
+// exactly there. Returns the conflicting row's cell rowid, its declared-order
+// values, and the first PK column's declared index; not-found is definitive
+// for a BINARY-collated PK (see wrPKSeekApplies).
+func (e *DMLExecutor) wrPKSeekConflict(tableName, createSQL string, rootPage uint32, colDefs []sql.ColumnDef, values []interface{}) (int64, []interface{}, int, bool) {
+	order := WithoutRowidStorageOrder(createSQL, colDefs)
+	pkIdx := WRPKIndices(createSQL, colDefs)
+	if len(order) != len(colDefs) || len(pkIdx) == 0 {
+		return 0, nil, -1, false
+	}
+	probe := make([]interface{}, len(pkIdx))
+	for s, ci := range pkIdx {
+		if ci >= len(values) || values[ci] == nil {
+			// A NULL PK slot never conflicts (WR PK columns are implicitly
+			// NOT NULL; the NOT NULL check rejects the row before this scan).
+			return 0, nil, -1, false
+		}
+		probe[s] = util.UnwrapColumnValue(values[ci])
+	}
+	payload, err := storage.EncodeRecord(probe)
+	if err != nil {
+		return 0, nil, -1, false
+	}
+	tree := e.uniqueScanTree(tableName, rootPage)
+	defer tree.Close() // probe tree is function-local
+	tree.SetKeyCompare(WRRecordComparator(len(pkIdx), colDefs, order))
+	cursor, err := tree.OpenCursor()
+	if err != nil {
+		return 0, nil, -1, false
+	}
+	if _, serr := cursor.SeekToKey(payload); serr != nil {
+		return 0, nil, -1, false
+	}
+	cell, rerr := cursor.ReadCell()
+	if rerr != nil || cell == nil {
+		return 0, nil, -1, false
+	}
+	rec, derr := storage.DecodeRecord(cell.Payload)
+	if derr != nil || rec == nil {
+		return 0, nil, -1, false
+	}
+	e.ctx.RemapWRRecordToDeclared(rec, createSQL, colDefs)
+	for _, ci := range pkIdx {
+		var have interface{}
+		if ci < len(rec.Values) {
+			have = rec.Values[ci]
+		}
+		if !wrValuesEqual(have, values[ci], colDefs[ci]) {
+			return 0, nil, -1, false
+		}
+	}
+	return cell.RowID, rec.Values, pkIdx[0], true
+}
+
 // deleteRowCells deletes the single row identified by (rowID, declaredValues):
 // rowid equality for ordinary tables; OLD-PK key match for WITHOUT ROWID
 // tables, whose index cells all share the synthetic RowID 0 so rowid equality

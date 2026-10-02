@@ -28,14 +28,29 @@ func (e *DMLExecutor) findRowByUniqueCols(tableName string, rootPage uint32, col
 		return 0, nil, -1, false
 	}
 
-	// Fast path: when the only unique column is an INTEGER PRIMARY KEY, the
-	// column value IS the rowid, so a conflict can be detected with a direct
-	// rowid seek instead of a full-table scan. This matters for large tables
-	// (e.g. delete3.test doubles a table via INSERT...SELECT 20 times) where
-	// scanning per-row would be O(n²). The seek is definitive: if the rowid
-	// does not exist there can be no UNIQUE conflict, so we return the result
-	// directly without falling through to scanForConflict.
-	if len(uniqueCols) == 1 {
+	withoutRowid := tableIsWithoutRowid(createSQL)
+
+	// WITHOUT ROWID fast path: when the only single-column uniqueness source
+	// is the PRIMARY KEY and the btree's binary PK ordering can answer the
+	// question, probe the PK-keyed index btree directly (O(log n) exact-key
+	// seek). A non-BINARY PK collation keeps the collation-aware scan below.
+	if withoutRowid && len(uniqueCols) == 1 && wrPKSeekApplies(createSQL, colDefs) {
+		if idx := uniqueCols[0]; idx < len(colDefs) && idx == wrPKFirstIndex(createSQL, colDefs) {
+			return e.wrPKSeekConflict(tableName, createSQL, rootPage, colDefs, values)
+		}
+	}
+
+	// Fast path: when the only unique column is an INTEGER PRIMARY KEY of a
+	// ROWID table, the column value IS the rowid, so a conflict can be
+	// detected with a direct rowid seek instead of a full-table scan. This
+	// matters for large tables (e.g. delete3.test doubles a table via
+	// INSERT...SELECT 20 times) where scanning per-row would be O(n²). The
+	// seek is definitive: if the rowid does not exist there can be no UNIQUE
+	// conflict, so we return the result directly without falling through to
+	// scanForConflict. A WITHOUT ROWID table's INTEGER PRIMARY KEY is NOT a
+	// rowid alias — its btree is keyed by the PK record and its cells carry
+	// synthetic rowids, so the seek above handles that shape instead.
+	if len(uniqueCols) == 1 && !withoutRowid {
 		idx := uniqueCols[0]
 		if idx < len(colDefs) && isIPKRowidAliasCol(colDefs[idx]) {
 			return e.ipkRowidAliasConflict(tableName, rootPage, colDefs, values, idx)
