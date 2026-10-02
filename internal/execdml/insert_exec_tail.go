@@ -292,6 +292,9 @@ func (e *DMLExecutor) writeTableRow(pg *pager.Pager, tableEntry *schema.Entry, c
 	if tree.RootPage() != e.ctx.RootPagePg(pg, tableEntry.Name, tableEntry.RootPage) {
 		e.ctx.UpdateRootPagePg(pg, tableEntry.Name, tree.RootPage())
 	}
+	// The wrapper tracks its own post-split root; the cache key follows so
+	// the next row's resolved-root lookup hits the same wrapper.
+	e.insertWriteTreeSync(tree.RootPage())
 	e.ctx.BumpRowIDCache(pg, tableEntry.RootPage, nextRowID)
 	return tree, nil
 }

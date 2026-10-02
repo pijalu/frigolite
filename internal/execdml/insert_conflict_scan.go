@@ -39,7 +39,7 @@ func (e *DMLExecutor) findRowByUniqueCols(tableName string, rootPage uint32, col
 		return rowID, vals, col, found
 	}
 
-	tree := e.uniqueScanTree(tableName, rootPage)
+	tree := e.uniqueScanTreeFresh(tableName, rootPage)
 	defer tree.Close() // scan tree is function-local
 	cursor, err := tree.OpenCursor()
 	if err != nil {
@@ -87,8 +87,28 @@ func (e *DMLExecutor) uniqueConflictFastPath(tableName, createSQL string, rootPa
 // uniqueScanTree builds the btree used by UNIQUE/PRIMARY KEY conflict scans,
 // preferring the modified table's context pager (an ATTACHed table named t1
 // lives on the attached pager, not the main pager; resolving by name alone
-// would scan the wrong table).
-func (e *DMLExecutor) uniqueScanTree(tableName string, rootPage uint32) *btree.BTree {
+// would scan the wrong table). owned=true when the caller must Close the
+// tree (a fresh statement-tracked wrapper); owned=false marks the executor's
+// cached insert write tree, whose lifetime is the executor's — its probe
+// cursor is released explicitly (Cursor.Close) and the tree itself is NOT
+// closed.
+func (e *DMLExecutor) uniqueScanTree(tableName string, rootPage uint32) (*btree.BTree, bool) {
+	if e.currentDMLCtx != nil && e.currentDMLCtx.Pager != nil {
+		pg := e.currentDMLCtx.Pager
+		root := e.ctx.RootPagePg(pg, tableName, rootPage)
+		key := insTreeKey{pg: pg, root: root, isTable: true}
+		if t := e.insTree; t != nil && !t.Closed() && e.insTreeKey == key {
+			return t, false
+		}
+		return e.uniqueScanTreeFresh(tableName, rootPage), true
+	}
+	return e.ctx.TableBTreeForName(tableName, rootPage, true), true
+}
+
+// uniqueScanTreeFresh is uniqueScanTree's always-fresh form (the historical
+// behavior): a statement-tracked wrapper the caller Closes. Used by the
+// conflict-scan loops whose cursors die with the tree.
+func (e *DMLExecutor) uniqueScanTreeFresh(tableName string, rootPage uint32) *btree.BTree {
 	if e.currentDMLCtx != nil && e.currentDMLCtx.Pager != nil {
 		return e.ctx.TableBTreePg(e.currentDMLCtx.Pager, tableName, rootPage, true)
 	}
@@ -125,7 +145,7 @@ func (e *DMLExecutor) compositeConflictRow(tableName string, rootPage uint32, co
 		if groupHasNull(group, values) {
 			continue
 		}
-		tree := e.uniqueScanTree(tableName, rootPage)
+		tree := e.uniqueScanTreeFresh(tableName, rootPage)
 		defer tree.Close() // per-group scan tree (deferred to function end)
 		cursor, err := tree.OpenCursor()
 		if err != nil {
@@ -174,7 +194,12 @@ func (e *DMLExecutor) scanGroupForMatchWR(cursor *btree.Cursor, colDefs []sql.Co
 }
 
 // ipkRowidAliasConflict uses a direct rowid seek when the only unique column
-// is an INTEGER PRIMARY KEY alias (its value IS the rowid).
+// is an INTEGER PRIMARY KEY alias (its value IS the rowid). The probe reuses
+// the executor's cached insert write tree when the identity matches (same
+// pager, resolved root, table kind) and releases its cursor explicitly — the
+// probe ran once per INSERT, and a fresh wrapper + Close per probe was a top
+// insert-phase allocation. The seek contract is unchanged: cursor.SeekToRowID
+// is still the O(log n) b-tree move (sqlite3BtreeMovetoUnpacked parity).
 func (e *DMLExecutor) ipkRowidAliasConflict(tableName string, rootPage uint32, colDefs []sql.ColumnDef, values []interface{}, idx int) (int64, []interface{}, int, bool) {
 	cd := colDefs[idx]
 	if !isIPKRowidAliasCol(cd) {
@@ -184,12 +209,15 @@ func (e *DMLExecutor) ipkRowidAliasConflict(tableName string, rootPage uint32, c
 	if !ok {
 		return 0, nil, -1, false
 	}
-	tree := e.uniqueScanTree(tableName, rootPage)
-	defer tree.Close() // probe tree is function-local
+	tree, owned := e.uniqueScanTree(tableName, rootPage)
+	if owned {
+		defer tree.Close() // probe tree is function-local
+	}
 	cursor, err := tree.OpenCursor()
 	if err != nil {
 		return 0, nil, -1, false
 	}
+	defer cursor.Close() // release without closing a cached tree
 	found, err := cursor.SeekToRowID(v)
 	if err != nil || !found {
 		return 0, nil, -1, false

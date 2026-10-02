@@ -400,7 +400,7 @@ func (e *DMLExecutor) wrPKSeekConflict(tableName, createSQL string, rootPage uin
 	if !ok {
 		return 0, nil, -1, false
 	}
-	tree := e.uniqueScanTree(tableName, rootPage)
+	tree := e.uniqueScanTreeFresh(tableName, rootPage)
 	defer tree.Close() // probe tree is function-local
 	tree.SetKeyCompare(WRRecordComparator(len(pkIdx), colDefs, order))
 	cursor, err := tree.OpenCursor()
