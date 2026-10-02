@@ -1976,3 +1976,41 @@ Resumed a dead predecessor mid-tranche on P9.PERF hot-path work (base 5807a9c1e,
   cannot fire there; only a node-level column-resolution cache (needs a
   cross-package hook into execquery's StructRow schema identity) or keeping
   rows position-based end-to-end can move it further.
+
+## PERF.STRUCT-dml — point-DML fast paths + single-cell leaf delete (fleet/perf-struct-dml, 2026-10-01)
+
+- **Point-DML wall time on :memory: is parse + exec statement scope + pager
+  header churn bound, not DML-pipeline bound.** After the point fast paths, a
+  1-row point UPDATE costs 91 allocs vs SELECT 1's 15; the delta is
+  dmlTableBTree (mission-blessed per-statement wrapper), BuildRowMap,
+  EncodeCell, the btree write, and pager stmtReadTouch/BeginStatement/header
+  Encode (~17%+14%+10% of the phase). The exec stmt cache makes REPEATED
+  identical SQL parse-free — a probe printing varying literals per statement
+  is the parse-realistic instrument (identical-SQL probes understate parse by
+  ~40% and make DML cuts look negligible).
+- **The suite-level failing-case COUNT is worthless as a regression signal;
+  so is the per-file failing-case count.** The reliable instrument stays the
+  per-file isolation sweep's FILE SET (same 409 failing files base and head),
+  and even within a file the failing-case SET wobbles run-to-run on UNMODIFIED
+  main (alter ±5, in ±4, e_delete flips 4↔7 identically on both trees).
+  Compare sets across trees, rerun any count delta twice on both trees before
+  believing it.
+- **A single-cell leaf delete can byte-match the decode/re-encode compaction
+  by staging survivors' RAW page spans through an arena in pointer order** —
+  finishLeafDelete's layout (pack downward from usableSize, pointer array in
+  that order, no fragmented bytes) is reproducible without decoding any
+  survivor; TableLeafCellSizeAt gives each survivor's footprint. Decline to
+  the generic predicate delete on EVERY anomaly (parse failure, duplicate
+  rowid on the leaf — the cursor seek lands on the first match, so one next-
+  pointer check covers it, overflow-free error) so corrupt-image behavior is
+  bit-identical.
+- **The 1-candidate point UPDATE was never allocation-fat** — the ≤2-candidate
+  map path already kept it small; its real costs were the grow shape's
+  O(table) DeleteCellsWhere sweep (99.4% of the phase — 1.7ms → 13.6µs when
+  replaced by seek delete + re-insert) and the fixed exec/pager/parse scope.
+  Cut lines for the point fast paths: single rowid-equality WHERE (skip WHERE
+  eval — the seek's hit matches by construction), plain OR-less/triggerless/
+  FK-off/generated-free target, SET against the collected row map (the
+  pre-positional small-candidate evaluation, cheapest at n=1); the
+  preCheckUpdate/checkUpdateConflicts gates run unchanged on the single
+  change.
