@@ -140,12 +140,6 @@ type BTree struct {
 	// no synchronization; the split path drops it whenever its bytes must
 	// stay stable across page rewrites.
 	cellScratch []byte
-
-	// delArena stages the surviving cells' raw bytes during the single-cell
-	// delete fast path (btree_delete_one.go): source and destination ranges
-	// overlap on a fragmented page, so the bytes must move through a copy.
-	// Per-statement like cellScratch, and dropped with it on reset.
-	delArena []byte
 }
 
 // NewBTree creates a new BTree instance.
@@ -903,19 +897,24 @@ func tableLeafCellHeader(pg *pager.Page, cellOff int, usableSize uint32) ([]byte
 	return pg.Data[pos : pos+payloadLen], rowID, pos + payloadLen, int(plen), payloadLen, nil
 }
 
-// leafHasRoom checks if a leaf page has enough room for the given cell data.
+// leafHasRoom reports whether a leaf page can plausibly hold the given cell
+// data: either the gap between the cell-pointer array and the content area
+// fits cell+pointer directly, or the page carries freeblocks/fragments whose
+// fold-in (allocateSpaceOnPage's freeblock search then defragment) might
+// make room. Only writeLeafCell's definitive allocateSpaceOnPage answer
+// counts; a false here skips straight to the split path.
 func leafHasRoom(pg *pager.Page, page *storage.BTreePage, cellData []byte, coff int, usableSize uint32) bool {
-	cellPtrEnd := coff + storage.CellPointerOffset + int(page.CellCount)*2 + 2
-	cellContentEnd := int(page.CellContent)
-	var cellStart int
-	if cellContentEnd == 0 {
+	gap := coff + storage.CellPointerOffset + 2*int(page.CellCount)
+	top := int(page.CellContent)
+	if top == 0 {
 		// Fresh page: the first cell ends at the usable end (matches
 		// writeLeafCell; btree.c packs cells from usableSize).
-		cellStart = int(usableSize) - len(cellData) - int(page.FragFree)
-	} else {
-		cellStart = cellContentEnd - len(cellData)
+		top = int(usableSize)
 	}
-	return cellStart >= cellPtrEnd
+	if gap+2+len(cellData) <= top {
+		return true
+	}
+	return page.FirstFree != 0 || page.FragFree != 0
 }
 
 // DeleteCell removes a cell from the b-tree by its index position. The cell

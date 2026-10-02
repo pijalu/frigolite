@@ -119,13 +119,17 @@ func (t *BTree) insertLeafPage(pg *pager.Page, page *storage.BTreePage, parentPg
 	}
 
 	if leafHasRoom(pg, page, cellData, coff, t.usableSize) {
-		// There is room — insert directly. The bytes are copied into the
-		// page above (writeLeafCell), so the scratch buffer is recyclable.
-		if err := t.writeLeafCell(pg, page, newCell, cellData, coff); err != nil {
-			return nil, err
+		// Try the in-place write: freeblock reuse, defragment-on-demand, or
+		// the content-area gap (allocateSpace parity). errLeafFull means the
+		// page truly cannot hold the cell — fall through to the split.
+		werr := t.writeLeafCell(pg, page, newCell, cellData, coff)
+		if werr == nil {
+			t.recycleCellScratch(cellData)
+			return nil, nil
 		}
-		t.recycleCellScratch(cellData)
-		return nil, nil
+		if werr != errLeafFull {
+			return nil, werr
+		}
 	}
 
 	// Split path: the encoded bytes flow into the redistribution machinery
