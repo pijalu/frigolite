@@ -35,6 +35,15 @@ type DMLExecutor struct {
 	ciCache       map[string]int
 	ctx           DMLContext
 
+	// delPlan* memoize the point-delete row plan (pointDeleteRowPlan) under
+	// the schema fingerprint, the same guard pattern as ciCache above: the
+	// plan is immutable after construction (execquery.DMLRowPlan), so one
+	// instance serves every point DELETE against the same table layout.
+	delPlanFingerprint uint64
+	delPlanDefs        *sql.ColumnDef
+	delPlanLen         int
+	delPlan            *execquery.DMLRowPlan
+
 	// Statement-family executors composing this engine. They share this
 	// DMLExecutor so inter-statement calls resolve through promoted methods.
 	insert InsertExecutor

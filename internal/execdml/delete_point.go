@@ -15,6 +15,7 @@ import (
 	"strings"
 
 	"github.com/pijalu/frigolite/internal/btree"
+	"github.com/pijalu/frigolite/internal/execquery"
 	"github.com/pijalu/frigolite/internal/schema"
 	"github.com/pijalu/frigolite/internal/sql"
 	"github.com/pijalu/frigolite/internal/storage"
@@ -96,6 +97,23 @@ func (e *DMLExecutor) finishPointDelete(tableEntry *schema.Entry, dbCtx *Databas
 	return &Result{Changes: 1}, true
 }
 
+// pointDeleteRowPlan returns the point-delete row plan for colDefs, memoized
+// per DML executor under the schema fingerprint (the ciCache guard pattern).
+// The plan is immutable after construction, so one instance serves every
+// point DELETE against the same table layout instead of a rebuild per row.
+func (e *DMLExecutor) pointDeleteRowPlan(colDefs []sql.ColumnDef) *execquery.DMLRowPlan {
+	if len(colDefs) == 0 {
+		return e.ctx.NewDMLRowPlan(colDefs, nil, nil)
+	}
+	fp := e.schemaFingerprint()
+	if e.delPlan != nil && e.delPlanFingerprint == fp && e.delPlanDefs == &colDefs[0] && e.delPlanLen == len(colDefs) {
+		return e.delPlan
+	}
+	p := e.ctx.NewDMLRowPlan(colDefs, nil, nil)
+	e.delPlanFingerprint, e.delPlanDefs, e.delPlanLen, e.delPlan = fp, &colDefs[0], len(colDefs), p
+	return p
+}
+
 // decodePointDeleteRow reads the seeked cell and builds the row's positional
 // snapshot (dropped-column re-alignment, added-column DEFAULTs, INTEGER
 // PRIMARY KEY rowid-alias substitution) — the same raw values the generic
@@ -110,7 +128,7 @@ func (e *DMLExecutor) decodePointDeleteRow(tableEntry *schema.Entry, colDefs []s
 	if derr != nil || rec == nil {
 		return nil, false
 	}
-	rowPlan := e.ctx.NewDMLRowPlan(colDefs, nil, nil)
+	rowPlan := e.pointDeleteRowPlan(colDefs)
 	values := e.ctx.DMLRowSnapshot(rowPlan, rec.Values, len(rec.Values), realRowID)
 	return &dmlRow{plan: rowPlan, values: values, valueCount: len(rec.Values), rowID: realRowID}, true
 }

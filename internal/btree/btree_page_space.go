@@ -25,6 +25,12 @@ import (
 	"github.com/pijalu/frigolite/internal/storage"
 )
 
+// delSpan is one cell's raw byte range on the page (defragment staging).
+type delSpan struct {
+	off  int
+	size int
+}
+
 func get2(data []byte, off int) int {
 	return int(binary.BigEndian.Uint16(data[off : off+2]))
 }
@@ -33,10 +39,70 @@ func put2(data []byte, off, v int) {
 	binary.BigEndian.PutUint16(data[off:off+2], uint16(v))
 }
 
-// delSpan is one cell's raw byte range on the page (defragment staging).
-type delSpan struct {
-	off  int
-	size int
+// freeSpacePos locates a freed range's insertion point in a page's
+// freeblock chain: iPtr is the address of the pointer to the successor,
+// iFreeBlk the successor itself (0 when the range lands at the chain end).
+type freeSpacePos struct {
+	iPtr     int
+	iFreeBlk int
+}
+
+// freeSpaceLocate walks the ascending-address chain for the first freeblock
+// at or after iStart (btree.c freeSpace's insertion-point scan). An out-of-
+// order or oversized link is a corrupt image.
+func freeSpaceLocate(data []byte, hdr, usableSize, iStart int) (freeSpacePos, error) {
+	iPtr := hdr + 1
+	if data[iPtr] == 0 && data[iPtr+1] == 0 {
+		return freeSpacePos{iPtr: iPtr}, nil // empty chain
+	}
+	for {
+		iFreeBlk := get2(data, iPtr)
+		if iFreeBlk >= iStart {
+			if iFreeBlk > usableSize-4 {
+				return freeSpacePos{}, storage.ErrMalformedImage
+			}
+			return freeSpacePos{iPtr: iPtr, iFreeBlk: iFreeBlk}, nil
+		}
+		if iFreeBlk <= iPtr {
+			if iFreeBlk == 0 {
+				return freeSpacePos{iPtr: iPtr}, nil
+			}
+			return freeSpacePos{}, storage.ErrMalformedImage
+		}
+		iPtr = iFreeBlk
+	}
+}
+
+// freeSpaceCoalesce folds the freed range [iStart, iEnd) into its chain
+// neighbors: the successor freeblock when it directly follows, and the
+// preceding freeblock when it directly ends at iStart (btree.c freeSpace's
+// two coalescing steps). The absorbed seams return as fragmented bytes.
+func freeSpaceCoalesce(data []byte, hdr, usableSize int, pos freeSpacePos, iStart, iSize, iEnd int) (start, size, end, next, nFrag int, err error) {
+	next = pos.iFreeBlk
+	if next != 0 && iEnd+3 >= next {
+		nFrag = next - iEnd
+		if iEnd > next {
+			return 0, 0, 0, 0, 0, storage.ErrMalformedImage
+		}
+		iEnd = next + get2(data, next+2)
+		if iEnd > usableSize {
+			return 0, 0, 0, 0, 0, storage.ErrMalformedImage
+		}
+		iSize = iEnd - iStart
+		next = get2(data, next)
+	}
+	if pos.iPtr > hdr+1 {
+		iPtrEnd := pos.iPtr + get2(data, pos.iPtr+2)
+		if iPtrEnd+3 >= iStart {
+			if iPtrEnd > iStart {
+				return 0, 0, 0, 0, 0, storage.ErrMalformedImage
+			}
+			nFrag += iStart - iPtrEnd
+			iSize = iEnd - pos.iPtr
+			iStart = pos.iPtr
+		}
+	}
+	return iStart, iSize, iEnd, next, nFrag, nil
 }
 
 // freeSpaceOnPage returns the byte range [iStart, iStart+iSize) of one leaf
@@ -46,79 +112,57 @@ type delSpan struct {
 // caller declines to mutate it).
 func freeSpaceOnPage(data []byte, hdr, usableSize, iStart, iSize int) error {
 	iEnd := iStart + iSize
-	nFrag := 0
-	iPtr := hdr + 1
-	var iFreeBlk int
-	if data[iPtr] == 0 && data[iPtr+1] == 0 {
-		iFreeBlk = 0 // freeblock chain is empty
-	} else {
-		// The chain is in ascending address order: find the first
-		// freeblock at or after iStart (its insertion point).
-		for {
-			iFreeBlk = get2(data, iPtr)
-			if iFreeBlk >= iStart {
-				break
-			}
-			if iFreeBlk <= iPtr {
-				if iFreeBlk == 0 {
-					break
-				}
-				return storage.ErrMalformedImage
-			}
-			iPtr = iFreeBlk
-		}
-		if iFreeBlk > usableSize-4 {
-			return storage.ErrMalformedImage
-		}
-		// Coalesce iFreeBlk onto the end of the freed range.
-		if iFreeBlk != 0 && iEnd+3 >= iFreeBlk {
-			nFrag = iFreeBlk - iEnd
-			if iEnd > iFreeBlk {
-				return storage.ErrMalformedImage
-			}
-			iEnd = iFreeBlk + get2(data, iFreeBlk+2)
-			if iEnd > usableSize {
-				return storage.ErrMalformedImage
-			}
-			iSize = iEnd - iStart
-			iFreeBlk = get2(data, iFreeBlk)
-		}
-		// Coalesce iStart onto the end of the preceding freeblock (iPtr
-		// is that freeblock when it is not the header pointer).
-		if iPtr > hdr+1 {
-			iPtrEnd := iPtr + get2(data, iPtr+2)
-			if iPtrEnd+3 >= iStart {
-				if iPtrEnd > iStart {
-					return storage.ErrMalformedImage
-				}
-				nFrag += iStart - iPtrEnd
-				iSize = iEnd - iPtr
-				iStart = iPtr
-			}
+	pos, err := freeSpaceLocate(data, hdr, usableSize, iStart)
+	if err != nil {
+		return err
+	}
+	next := pos.iFreeBlk
+	if data[hdr+1] != 0 || data[hdr+2] != 0 {
+		// Non-empty chain: coalesce with the touched neighbors and fold
+		// their seams into the fragmented count.
+		iStart, iSize, iEnd, next, nFrag, err := freeSpaceCoalesce(data, hdr, usableSize, pos, iStart, iSize, iEnd)
+		if err != nil {
+			return err
 		}
 		if nFrag > int(data[hdr+7]) {
 			return storage.ErrMalformedImage
 		}
 		data[hdr+7] -= byte(nFrag)
-	}
-	if iStart <= get2(data, hdr+5) {
-		// The freed range starts at the cell content area's beginning:
-		// extend the content area instead of chaining a freeblock.
-		if iStart < get2(data, hdr+5) {
-			return storage.ErrMalformedImage
+		if iStart <= get2(data, hdr+5) {
+			return freeSpaceExtendContent(data, hdr, pos.iPtr, iStart, iEnd, next)
 		}
-		if iPtr != hdr+1 {
-			return storage.ErrMalformedImage
-		}
-		put2(data, hdr+1, iFreeBlk)
-		put2(data, hdr+5, iEnd)
+		freeSpaceLink(data, hdr, pos.iPtr, iStart, iSize, next)
 		return nil
 	}
-	// Insert the (possibly coalesced) freeblock into the chain.
-	put2(data, iPtr, iStart)
-	put2(data, iStart, iFreeBlk)
-	put2(data, iStart+2, iSize)
+	if iStart <= get2(data, hdr+5) {
+		return freeSpaceExtendContent(data, hdr, pos.iPtr, iStart, iEnd, next)
+	}
+	freeSpaceLink(data, hdr, pos.iPtr, iStart, iSize, next)
 	return nil
+}
+
+// freeSpaceExtendContent handles a freed range that begins exactly at the
+// cell content area's start: the area grows upward instead of chaining a
+// freeblock (legal only at the chain head).
+func freeSpaceExtendContent(data []byte, hdr, iPtr, iStart, iEnd, next int) error {
+	if iStart < get2(data, hdr+5) {
+		return storage.ErrMalformedImage
+	}
+	if iPtr != hdr+1 {
+		return storage.ErrMalformedImage
+	}
+	put2(data, hdr+1, next)
+	put2(data, hdr+5, iEnd)
+	return nil
+}
+
+// freeSpaceLink chains a (possibly coalesced) freeblock at iStart: its
+// predecessor's pointer (at iPtr) aims at it, and it carries the successor
+// and its own size.
+func freeSpaceLink(data []byte, hdr, iPtr, iStart, iSize, next int) {
+	put2(data, iPtr, iStart)
+	put2(data, iStart, next)
+	put2(data, iStart+2, iSize)
 }
 
 // dropCellFromLeafPage removes the leaf cell at pointer-array index idx —
@@ -137,31 +181,41 @@ func dropCellFromLeafPage(pg *pager.Page, page *storage.BTreePage, coff, idx, ce
 	}
 	page.CellCount--
 	if page.CellCount == 0 {
-		// dropCell's emptied-page reset: no freeblocks, no fragments,
-		// content area back to the usable end (zeroPage's empty image).
-		data[coff+1] = 0
-		data[coff+2] = 0
-		data[coff+3] = 0
-		data[coff+4] = 0
-		data[coff+7] = 0
-		put2(data, coff+5, int(usableSize))
-		page.FirstFree = 0
-		page.CellContent = int(usableSize)
-		page.FragFree = 0
+		dropCellResetEmptyPage(data, page, coff, usableSize)
 		return nil
 	}
+	dropCellShiftPointers(data, coff, idx, int(page.CellCount))
+	put2(data, coff+3, int(page.CellCount))
+	return nil
+}
+
+// dropCellResetEmptyPage applies dropCell's emptied-page reset: no
+// freeblocks, no fragments, content area back to the usable end (zeroPage's
+// empty image).
+func dropCellResetEmptyPage(data []byte, page *storage.BTreePage, coff int, usableSize uint32) {
+	for i := 1; i <= 4; i++ {
+		data[coff+i] = 0
+	}
+	data[coff+7] = 0
+	put2(data, coff+5, int(usableSize))
+	page.FirstFree = 0
+	page.CellContent = int(usableSize)
+	page.FragFree = 0
+}
+
+// dropCellShiftPointers unlinks the deleted cell's pointer slot: slots after
+// idx shift down one, and the vacated tail slot zeroes.
+func dropCellShiftPointers(data []byte, coff, idx, cellCount int) {
 	ptrBase := coff + storage.CellPointerOffset
-	for i := idx; i < int(page.CellCount); i++ {
+	for i := idx; i < cellCount; i++ {
 		src := ptrBase + (i+1)*2
 		dst := ptrBase + i*2
 		data[dst] = data[src]
 		data[dst+1] = data[src+1]
 	}
-	lastPtr := ptrBase + int(page.CellCount)*2
+	lastPtr := ptrBase + cellCount*2
 	data[lastPtr] = 0
 	data[lastPtr+1] = 0
-	put2(data, coff+3, int(page.CellCount))
-	return nil
 }
 
 // allocateSpaceOnPage finds room for nByte cell bytes on one leaf page and
@@ -175,15 +229,9 @@ func dropCellFromLeafPage(pg *pager.Page, page *storage.BTreePage, coff, idx, ce
 func allocateSpaceOnPage(pg *pager.Page, page *storage.BTreePage, coff, nByte int, usableSize uint32) (off int, ok bool, err error) {
 	data := pg.Data
 	gap := coff + storage.CellPointerOffset + 2*int(page.CellCount)
-	top := page.CellContent
-	if top == 0 {
-		// Fresh (zero-initialized) page: content starts at the usable end
-		// (writeLeafCell's fresh-page convention; the 64KiB wrap is
-		// normalized at parse time).
-		top = int(usableSize)
-	}
-	if top > int(usableSize) || gap > top {
-		return 0, false, storage.ErrMalformedImage
+	top, err := leafContentTop(page, coff, int(usableSize))
+	if err != nil {
+		return 0, false, err
 	}
 	// Freeblock search — btree.c consults the chain whenever one exists
 	// and the pointer array has headroom for the cell's new pointer, even
@@ -201,17 +249,9 @@ func allocateSpaceOnPage(pg *pager.Page, page *storage.BTreePage, coff, nByte in
 	}
 	// No slot fit: when the content-area gap alone cannot take the cell,
 	// fold every freeblock and fragment into it (defragmentPage) first.
-	if gap+2+nByte > top {
-		if !defragmentLeafPage(pg, page, coff, usableSize) {
-			return 0, false, nil
-		}
-		top = page.CellContent
-		if top == 0 {
-			top = int(usableSize) // fresh-page convention (see above)
-		}
-	}
-	if gap+2+nByte > top {
-		return 0, false, nil // split needed
+	top, ok, err = allocateFromContentGap(pg, page, coff, nByte, int(usableSize), gap, top)
+	if err != nil || !ok {
+		return 0, false, err
 	}
 	top -= nByte
 	put2(data, coff+5, top)
@@ -219,42 +259,54 @@ func allocateSpaceOnPage(pg *pager.Page, page *storage.BTreePage, coff, nByte in
 	return top, true, nil
 }
 
+// leafContentTop unwraps the page's cell-content-area start (the fresh-page
+// convention: a zeroed page's first cell ends at the usable end; the 64KiB
+// wrap is normalized at parse time).
+func leafContentTop(page *storage.BTreePage, coff, usableSize int) (int, error) {
+	top := page.CellContent
+	if top == 0 {
+		top = usableSize
+	}
+	if top > usableSize || coff+storage.CellPointerOffset+2*int(page.CellCount) > top {
+		return 0, storage.ErrMalformedImage
+	}
+	return top, nil
+}
+
+// allocateFromContentGap decides whether the cell fits the content-area gap,
+// defragmenting first when the gap alone is too small. ok=false means the
+// page must split.
+func allocateFromContentGap(pg *pager.Page, page *storage.BTreePage, coff, nByte, usableSize, gap, top int) (int, bool, error) {
+	if coff+storage.CellPointerOffset+2*int(page.CellCount)+2+nByte <= top {
+		return top, true, nil
+	}
+	if !defragmentLeafPage(pg, page, coff, uint32(usableSize)) {
+		return 0, false, nil
+	}
+	top = page.CellContent
+	if top == 0 {
+		top = usableSize // fresh-page convention (see leafContentTop)
+	}
+	if coff+storage.CellPointerOffset+2*int(page.CellCount)+2+nByte > top {
+		return 0, false, nil
+	}
+	return top, true, nil
+}
+
 // pageFindSlot searches a page's freeblock chain for a slot of at least
 // nByte bytes, removing (or shrinking) the slot it uses (btree.c
-// pageFindSlot, src/btree.c:1743). Slots 1-3 bytes larger than the request
-// are skipped when the fragmented count would exceed 57. ok=false reports
-// no usable slot; an error reports a corrupt chain.
+// pageFindSlot, src/btree.c:1743). ok=false reports no usable slot; an
+// error reports a corrupt chain.
 func pageFindSlot(data []byte, hdr, usableSize, nByte, gap int) (off int, ok bool, err error) {
 	iAddr := hdr + 1
 	pc := get2(data, iAddr)
 	maxPC := usableSize - nByte
 	for pc <= maxPC {
-		size := get2(data, pc+2)
-		x := size - nByte
+		x := get2(data, pc+2) - nByte
 		if x >= 0 {
-			if x < 4 {
-				if data[hdr+7] > 57 {
-					return 0, false, nil // fragmentation budget spent: keep searching
-				}
-				// Remove the slot; its bytes join the fragmented count.
-				data[iAddr] = data[pc]
-				data[iAddr+1] = data[pc+1]
-				data[hdr+7] += byte(x)
-				if pc <= gap {
-					return 0, false, storage.ErrMalformedImage
-				}
-				return pc, true, nil
-			}
-			if x+pc > maxPC {
-				return 0, false, storage.ErrMalformedImage
-			}
-			// Shrink the slot to its remainder; allocate from its end.
-			put2(data, pc+2, x)
-			if pc+x <= gap {
-				return 0, false, storage.ErrMalformedImage
-			}
-			return pc + x, true, nil
+			return pageUseSlot(data, hdr, gap, iAddr, pc, x, maxPC)
 		}
+		// Too small: the next pointer lives IN this slot.
 		iAddr = pc
 		pc = get2(data, iAddr)
 		if pc <= iAddr {
@@ -268,6 +320,36 @@ func pageFindSlot(data []byte, hdr, usableSize, nByte, gap int) (off int, ok boo
 		return 0, false, storage.ErrMalformedImage
 	}
 	return 0, false, nil
+}
+
+// pageUseSlot consumes the freeblock at pc for an nByte allocation with
+// x bytes to spare (btree.c pageFindSlot's two use shapes): a remainder
+// under 4 bytes joins the fragmented count and the slot leaves the chain;
+// a larger slot shrinks in place and the allocation comes off its end.
+func pageUseSlot(data []byte, hdr, gap, iAddr, pc, x, maxPC int) (off int, ok bool, err error) {
+	if x < 4 {
+		if data[hdr+7] > 57 {
+			return 0, false, nil // fragmentation budget spent
+		}
+		// Remove the slot from the chain; its bytes join the fragmented
+		// count.
+		data[iAddr] = data[pc]
+		data[iAddr+1] = data[pc+1]
+		data[hdr+7] += byte(x)
+		if pc <= gap {
+			return 0, false, storage.ErrMalformedImage
+		}
+		return pc, true, nil
+	}
+	if x+pc > maxPC {
+		return 0, false, storage.ErrMalformedImage
+	}
+	// Shrink the slot to its remainder; allocate from its end.
+	put2(data, pc+2, x)
+	if pc+x <= gap {
+		return 0, false, storage.ErrMalformedImage
+	}
+	return pc + x, true, nil
 }
 
 // defragmentLeafPage packs a leaf page's cells contiguously from the usable
@@ -291,37 +373,60 @@ func defragmentLeafPage(pg *pager.Page, page *storage.BTreePage, coff int, usabl
 		// is left for the split path's wholesale rewrite.
 		return false
 	}
+	spans, ok := leafCellSpans(data, page, coff, usableSize)
+	if !ok {
+		return false
+	}
+	defragmentPackSpans(data, page, coff, usableSize, spans)
+	return true
+}
+
+// leafCellSpans measures every cell's raw byte range on the page (the
+// defragment staging input). ok=false declines malformed images.
+func leafCellSpans(data []byte, page *storage.BTreePage, coff int, usableSize uint32) ([]delSpan, bool) {
 	n := int(page.CellCount)
-	ptrBase := coff + storage.CellPointerOffset
-	total := 0
+	if total := totalSpanBound(n, coff, usableSize); total < 0 {
+		return nil, false
+	}
 	spans := make([]delSpan, n)
+	bound := int(usableSize)
 	for i := 0; i < n; i++ {
 		p := int(storage.CellPointer(data, coff, i, int(usableSize)))
-		if p < coff+8+2*n || p >= int(usableSize) {
-			return false
+		if p < coff+8+2*n || p >= bound {
+			return nil, false
 		}
 		sz, err := storage.TableLeafCellSizeAt(data, p, int(usableSize))
-		if err != nil || p+sz > int(usableSize) {
-			return false
+		if err != nil || p+sz > bound {
+			return nil, false
 		}
 		spans[i] = delSpan{off: p, size: sz}
-		total += sz
 	}
-	if total > int(usableSize)-coff-storage.CellPointerOffset-2*n {
-		return false // cannot happen on a well-formed page
+	return spans, true
+}
+
+// totalSpanBound reports the byte budget every packed cell set must fit
+// (negative when the pointer array already exceeds it — a corrupt page).
+func totalSpanBound(n, coff int, usableSize uint32) int {
+	return int(usableSize) - coff - storage.CellPointerOffset - 2*n
+}
+
+// defragmentPackSpans stages the spans through an arena and packs them from
+// the usable end downward, rewriting the pointer array and clearing the
+// free-space accounting (defragmentPage's repack + closing memset).
+func defragmentPackSpans(data []byte, page *storage.BTreePage, coff int, usableSize uint32, spans []delSpan) {
+	total := 0
+	for _, sp := range spans {
+		total += sp.size
 	}
-	// Stage the survivor bytes (source and destination ranges overlap).
 	arena := make([]byte, total)
 	pos := 0
 	for _, sp := range spans {
 		copy(arena[pos:pos+sp.size], data[sp.off:sp.off+sp.size])
 		pos += sp.size
 	}
-	// Pack from the usable end downward, in pointer-array order, and
-	// rewrite the pointers (defragmentPage's repack: cell i's new offset
-	// goes back into the pointer array).
 	start := int(usableSize)
 	arenaPos := 0
+	ptrBase := coff + storage.CellPointerOffset
 	for i, sp := range spans {
 		start -= sp.size
 		copy(data[start:start+sp.size], arena[arenaPos:arenaPos+sp.size])
@@ -337,8 +442,7 @@ func defragmentLeafPage(pg *pager.Page, page *storage.BTreePage, coff int, usabl
 	page.FragFree = 0
 	// The gap between the pointer array and the content area holds no
 	// live bytes after the pack (defragmentPage's closing memset).
-	for i := coff + 8 + 2*n; i < start; i++ {
+	for i := coff + 8 + 2*len(spans); i < start; i++ {
 		data[i] = 0
 	}
-	return true
 }
