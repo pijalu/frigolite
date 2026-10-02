@@ -334,7 +334,7 @@ func (e *DMLExecutor) checkUniqueConstraintsExcluding(tableEntry *schema.Entry, 
 // path (findRowByUniqueCols) and returns the violation error, or nil when no
 // conflicting row exists (or only the excluded row matches).
 func (e *DMLExecutor) bareUniqueConflictError(tableEntry *schema.Entry, colDefs []sql.ColumnDef, colIndex map[string]int, values []interface{}, excludeRowID int64, haveExclude bool) error {
-	if len(uniqueColIndicesWithPK(colDefs, values)) == 0 {
+	if len(uniqueColIndicesWithPK(colDefs, colIndex, values)) == 0 {
 		return nil
 	}
 	rowID, vals, conflictIdx, found := e.findRowByUniqueCols(tableEntry.Name, tableEntry.RootPage, colDefs, colIndex, values, tableEntry.SQL)
@@ -425,9 +425,10 @@ func (e *DMLExecutor) checkCompositeUniqueExcluding(tableEntry *schema.Entry, co
 }
 
 // uniqueColIndicesWithPK gathers the unique column indices, adding any
-// single-column PRIMARY KEY columns with non-nil values.
-func uniqueColIndicesWithPK(colDefs []sql.ColumnDef, values []interface{}) []int {
-	colIndex := buildColumnIndex(colDefs)
+// single-column PRIMARY KEY columns with non-nil values. colIndex is the
+// caller's memoized column index (columnIndexFor) — rebuilding it here made
+// the per-row UNIQUE pre-check the top allocator of the point-INSERT phase.
+func uniqueColIndicesWithPK(colDefs []sql.ColumnDef, colIndex map[string]int, values []interface{}) []int {
 	uniqueCols := gatherUniqueColIndices(colDefs, colIndex, values)
 	for i, cd := range colDefs {
 		if cd.PrimaryKey && !contains(uniqueCols, i) {
