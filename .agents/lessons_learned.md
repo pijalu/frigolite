@@ -6,6 +6,58 @@
 > followed by the current T33 session sections. Consult the archive for
 > closed-goal specifics (also in plan/goals/*.md and portplan/NA_EVIDENCE.md).
 
+## FIX.ROWID-AFFINITY — comparison text→numeric conversion is affinity-GATED, never prefix (fleet/fix-rowid-affinity, 2026-10-02)
+
+- **SQLite's comparison conversion fires ONLY where the operator carries
+  numeric comparison affinity**: a numeric-affinity COLUMN operand
+  (wrapped `util.ColumnValue`), or the rowid SEEK-BOUND constant the
+  optimizer codes. Unary `+` strips affinity (`Affinity: 0`), so
+  `+rowid > ' 5000 '` and `+k = ' 50 '` must NOT convert (oracle 3.54:
+  0 rows — the value stays TEXT and sorts above every number). Bare-vs-bare
+  (literal vs literal) never converts (`1 = '1'` → 0) — util's
+  `noAffinityPair` short-circuit encodes this; `value.CompareValuesCollate`
+  (the ungated twin) is safe only because no exec consumer reaches it
+  bare-vs-bare (rtree applies affinity first).
+- **There is NO longest-prefix rule in comparisons.** sqlite3AtoF returns
+  `rc<=0` when the whole (ws-trimmed) string isn't consumed and
+  applyNumericAffinity bails; '5000abc'/'4999.5abc' stay TEXT. Prefix
+  results live in DIFFERENT domains: CAST/arithmetic
+  (sqlite3VdbeMemNumerify) and sqlite3_value_double (AtoF writes the prefix
+  into pResult even when returning false). Task text claiming
+  "+rowid > '5000abc' → oracle 15000" was transcription drift — ALWAYS
+  re-probe the sqlite3 binary before implementing; the probe TSV is the
+  only ground truth (127 cells → /tmp/rowidaff/oracle*.tsv, regenerable).
+- **SQLite is internally inconsistent between seek and scan shapes**:
+  `rowid > ' 4999.5 '` → 15001 (seek bound converts) while
+  `+rowid > ' 4999.5 '` → 0 (scan, no affinity). Probe BOTH shapes; the
+  consistency rule is one-directional — seek bounds must be SUPERSETS of
+  eval acceptance because the WHERE re-check is the final filter
+  (typedrow lesson reaffirmed: EXPLAIN QUERY PLAN first to prove which
+  shape actually engaged).
+- **rtree's xFilter domain is sqlite3_value_numeric_type (full-string)**:
+  `rt WHERE x1 > ' 200 '` bounds at 200 (oracle 2,3) and
+  `x0 <= '250abc'` matches ALL rows (text ≥ every coordinate). The old
+  code classified with `ParseFloat(TrimSpace)` but converted with
+  rtreeNumericPrefix, whose mantissa slice INCLUDED the leading space —
+  `ParseFloat(' 200')` errors → compared against 0.0 → all rows leaked.
+  value.NumericText now serves both classification and conversion; the
+  CAST/blob-decode domains (geopoly args, geometry tokens, stored-cell
+  decode) keep rtreeNumericPrefix deliberately.
+- **Go's ParseFloat accepts NaN/Inf/'infinity'/hex-float spellings that
+  sqlite3AtoF rejects**: storage affinity stored `integer:0`/`REAL NaN`
+  for 'NaN' and `9e+999` for 'Inf' (oracle: TEXT stays TEXT), and NUMERIC
+  saturated 2^63 to MaxInt64 (oracle: REAL). The six string arms of
+  ApplyColumnAffinity (util + value twins) all convert through
+  value.NumericText with the strict `> -2^63 && < 2^63` integer-affinity
+  bounds (the exact ±2^63 doubles stay REAL: sqlite3Atoi64's
+  smallest-int64 refusal). One scanner, every consumer.
+- **worktree gotchas**: TestBackupConformance needs the UNTRACKED generated
+  `testdata/backupconformance/*.db` + `*-backup.db` fixtures — copy them
+  from the main worktree (read-only) instead of regenerating. zsh does not
+  word-split `$VAR` in `go test $PKGS` — a newline-joined package list
+  becomes ONE malformed import path (`[setup failed]` everywhere); use
+  shell globs.
+
 ## PERF.STRUCT-fix — template-cache INSERT clone walk order = source order (fleet/perf-struct-fix, 2026-10-02)
 
 - **The template cloner's walk order MUST match the statement's source
