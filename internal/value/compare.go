@@ -2,11 +2,118 @@ package value
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
 	"math"
 	"strconv"
 	"strings"
 )
+
+// NumericTextKind classifies the result of NumericText: SQLite's
+// comparison-path text→numeric conversion (applyNumericAffinity).
+type NumericTextKind uint8
+
+const (
+	// NotNumeric: the text does not fully convert — it stays TEXT under a
+	// numeric comparison affinity and sorts above every number.
+	NotNumeric NumericTextKind = iota
+	// IntNumeric: a pure integer that fits int64 (Int holds the value).
+	IntNumeric
+	// RealNumeric: a well-formed real, or an integer outside the int64
+	// range (Real holds the value).
+	RealNumeric
+)
+
+// NumericText applies SQLite's comparison text→numeric conversion
+// (vdbe.c applyNumericAffinity → util.c sqlite3AtoF): leading and trailing
+// whitespace (space, \t, \n, \v, \f, \r) is skipped, an optional +/- sign is
+// accepted, then digits with an optional decimal point and an optional
+// exponent — and the ENTIRE string must be consumed with at least one digit
+// present. Anything else (trailing garbage after an integer prefix like
+// '5000abc', a dangling exponent like '5e', ”, hex text like '0x10') is
+// NotNumeric and stays TEXT under comparison affinity: the longest-prefix
+// rule of CAST and arithmetic deliberately does not apply here, because
+// applyNumericAffinity returns unchanged when sqlite3AtoF does not consume
+// the whole string. Pure integers convert exactly (sqlite3Atoi64); an
+// integer outside the int64 range falls back to REAL, and integral reals
+// stay REAL at comparison time (applyNumericAffinity runs with
+// bTryForInt=0, so no integer-affinity re-classification happens).
+func NumericText(s string) (kind NumericTextKind, intVal int64, realVal float64) {
+	i, n := 0, len(s)
+	for i < n && isSpaceSQLite(s[i]) {
+		i++
+	}
+	if i == n {
+		return NotNumeric, 0, 0
+	}
+	start := i
+	if s[i] == '+' || s[i] == '-' {
+		i++
+	}
+	digitStart := i
+	for i < n && s[i] >= '0' && s[i] <= '9' {
+		i++
+	}
+	nDigit := i - digitStart
+	sawDot, sawExp, expValid := false, false, true
+	if i < n && s[i] == '.' {
+		sawDot = true
+		i++
+		for i < n && s[i] >= '0' && s[i] <= '9' {
+			i++
+			nDigit++
+		}
+	}
+	if nDigit > 0 && i < n && (s[i] == 'e' || s[i] == 'E') {
+		sawExp = true
+		expValid = false
+		i++
+		if i < n && (s[i] == '+' || s[i] == '-') {
+			i++
+		}
+		for i < n && s[i] >= '0' && s[i] <= '9' {
+			i++
+			expValid = true
+		}
+	}
+	// The numeric token ends here; trailing whitespace is skipped next but
+	// must not become part of the parsed literal.
+	numEnd := i
+	for i < n && isSpaceSQLite(s[i]) {
+		i++
+	}
+	// sqlite3AtoF's atof_return: the comparison conversion fires only when
+	// the whole string was consumed, at least one digit was present, and a
+	// present exponent is well-formed.
+	if i != n || nDigit == 0 || (sawExp && !expValid) {
+		return NotNumeric, 0, 0
+	}
+	num := s[start:numEnd]
+	if !sawDot && !sawExp {
+		if iv, err := strconv.ParseInt(num, 10, 64); err == nil {
+			return IntNumeric, iv, 0
+		}
+		// An integer outside the int64 range stays REAL: alsoAnInt's
+		// sqlite3RealSameAsInt check caps at 2^51, so the saturated int64
+		// never reads back as the parsed double.
+	}
+	f, err := strconv.ParseFloat(num, 64)
+	if err != nil && !errors.Is(err, strconv.ErrRange) {
+		// Unreachable for the grammar scanned above; stay TEXT for safety.
+		return NotNumeric, 0, 0
+	}
+	return RealNumeric, 0, f
+}
+
+// isSpaceSQLite reports whether c is one of sqlite3Isspace's whitespace
+// bytes: space, \t, \n, \v, \f, \r.
+func isSpaceSQLite(c byte) bool {
+	switch c {
+	case ' ', '\t', '\n', '\v', '\f', '\r':
+		return true
+	}
+	return false
+}
 
 // CompareValues compares two SQL values according to SQLite affinity rules.
 // Returns -1 if a < b, 0 if a == b, 1 if a > b.
@@ -186,21 +293,60 @@ func compareSameType(a, b interface{}, ta valueClass, collation string) int {
 }
 
 // compareNumericText compares a numeric value a with a text value b.
-// If b can be parsed as a number, compare numerically; otherwise
-// return typeOrder (numeric < text).
+// SQLite's comparison affinity (numeric on the a side) applies
+// NumericText's conversion to b: a fully-numeric text compares numerically,
+// anything else stays TEXT and returns typeOrder (numeric < text).
 func compareNumericText(a, b interface{}, typeOrder int) int {
-	if f, err := strconv.ParseFloat(toStr(b), 64); err == nil {
-		fa := toFloat64(a)
+	kind, iv, fv := NumericText(toStr(b))
+	switch kind {
+	case IntNumeric:
+		return compareValueToInt(a, iv)
+	case RealNumeric:
+		return compareValueToReal(a, fv)
+	default:
+		return typeOrder
+	}
+}
+
+// compareValueToInt orders the numeric operand a against converted integer
+// iv, returning the a-vs-iv ordering.
+func compareValueToInt(a interface{}, iv int64) int {
+	switch v := a.(type) {
+	case int64:
 		switch {
-		case fa < f:
+		case v < iv:
 			return -1
-		case fa > f:
+		case v > iv:
 			return 1
 		default:
 			return 0
 		}
+	case float64:
+		// REAL operand vs INTEGER: sqlite3MemCompare's int-float algorithm.
+		return -sqlite3IntFloatCompare(iv, v)
+	default:
+		return 0
 	}
-	return typeOrder
+}
+
+// compareValueToReal orders the numeric operand a against converted real
+// fv, returning the a-vs-fv ordering.
+func compareValueToReal(a interface{}, fv float64) int {
+	switch v := a.(type) {
+	case int64:
+		return sqlite3IntFloatCompare(v, fv)
+	case float64:
+		switch {
+		case v < fv:
+			return -1
+		case v > fv:
+			return 1
+		default:
+			return 0
+		}
+	default:
+		return 0
+	}
 }
 
 // compareIntFloat compares an int64 value with a float64 value using SQLite's
@@ -262,21 +408,47 @@ func sqlite3IntFloatCompare(i int64, r float64) int {
 }
 
 // compareTextNumeric compares a text value a with a numeric value b.
-// If a can be parsed as a number, compare numerically; otherwise
-// return typeOrder (text > numeric).
+// SQLite's comparison affinity (numeric on the b side) applies
+// NumericText's conversion to a: a fully-numeric text compares numerically,
+// anything else stays TEXT and returns typeOrder (text > numeric).
 func compareTextNumeric(a, b interface{}, typeOrder int) int {
-	if f, err := strconv.ParseFloat(toStr(a), 64); err == nil {
-		fb := toFloat64(b)
-		switch {
-		case f < fb:
-			return -1
-		case f > fb:
-			return 1
+	kind, iv, fv := NumericText(toStr(a))
+	switch kind {
+	case IntNumeric:
+		switch v := b.(type) {
+		case int64:
+			switch {
+			case iv < v:
+				return -1
+			case iv > v:
+				return 1
+			default:
+				return 0
+			}
+		case float64:
+			return sqlite3IntFloatCompare(iv, v)
 		default:
 			return 0
 		}
+	case RealNumeric:
+		switch v := b.(type) {
+		case int64:
+			return -sqlite3IntFloatCompare(v, fv)
+		case float64:
+			switch {
+			case fv < v:
+				return -1
+			case fv > v:
+				return 1
+			default:
+				return 0
+			}
+		default:
+			return 0
+		}
+	default:
+		return typeOrder
 	}
-	return typeOrder
 }
 
 type valueClass int
@@ -419,8 +591,8 @@ func ApplyColumnAffinity(val interface{}, typeName string) interface{} {
 
 // parseInt parses an integer from a string. This is used for affinity
 // application during INSERT/UPDATE, where SQLite's sqlite3Atoi64 accepts
-// leading zeros (e.g., '03' → 3). Leading-zero rejection only applies
-// in the comparison path (see compareNumericText/compareTextNumeric).
+// leading zeros (e.g., '03' → 3) — as does the comparison-path conversion
+// (value.NumericText).
 func parseInt(s string) (int64, error) {
 	if s == "" {
 		return 0, fmt.Errorf("empty string")

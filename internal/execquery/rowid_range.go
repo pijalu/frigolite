@@ -8,6 +8,7 @@ import (
 	"github.com/pijalu/frigolite/internal/btree"
 	"github.com/pijalu/frigolite/internal/sql"
 	"github.com/pijalu/frigolite/internal/storage"
+	"github.com/pijalu/frigolite/internal/value"
 )
 
 // Rowid range seek (src/where.c "SEARCH ... USING INTEGER PRIMARY KEY
@@ -184,7 +185,12 @@ func resolveRangeBound(expr sql.Expr, op string) (rangeBound, bool) {
 }
 
 // numericRangeBound resolves a numeric literal bound onto integer rowids.
+// A pure-integer literal resolves EXACTLY (int64, no float rounding above
+// 2^53); anything else goes through the double value.
 func numericRangeBound(text, op string) (rangeBound, bool) {
+	if i, err := strconv.ParseInt(text, 10, 64); err == nil {
+		return intRangeBound(i, op), true
+	}
 	f, err := strconv.ParseFloat(text, 64)
 	if err != nil {
 		return rangeBound{}, false
@@ -193,17 +199,47 @@ func numericRangeBound(text, op string) (rangeBound, bool) {
 }
 
 // textRangeBound applies the rowid column's numeric affinity to a text
-// bound: exactly well-formed numbers compare numerically, anything else
-// sorts above every integer rowid. No whitespace trimming: the bounds must
-// never be wider than the engine's own affinity conversion — the WHERE
-// re-check on every candidate row uses that conversion, and a wider bound
-// would plan rows the re-check then discards (or miss rows it keeps).
+// bound through value.NumericText — the same conversion the WHERE
+// re-evaluation applies (SQLite's applyNumericAffinity: leading/trailing
+// whitespace skipped, the WHOLE string must be a well-formed number,
+// otherwise the text stays TEXT and sorts above every integer rowid). A
+// pure-integer bound resolves exactly onto integer rowids; a real bound
+// ceil/floor-normalizes; a non-converting text/blob bound is lower→never /
+// upper→always (INTEGER < TEXT/BLOB always).
 func textRangeBound(text, op string) (rangeBound, bool) {
-	f, err := strconv.ParseFloat(text, 64)
-	if err != nil {
+	kind, iv, fv := value.NumericText(text)
+	switch kind {
+	case value.IntNumeric:
+		return intRangeBound(iv, op), true
+	case value.RealNumeric:
+		return floatRangeBound(fv, op)
+	default:
 		return nonNumericRangeBound(op), true
 	}
-	return floatRangeBound(f, op)
+}
+
+// intRangeBound resolves an exact int64 bound: > b starts at b+1, >= b at
+// b, < b ends at b-1, <= b at b. At the int64 edges the shifted side
+// saturates onto the boundary rowid instead of wrapping: the boundary
+// candidate the seek then admits fails the WHERE re-check exactly like the
+// scan's eval (rowid > 2^63-1 is false for every int64 rowid).
+func intRangeBound(i int64, op string) rangeBound {
+	switch op {
+	case ">=":
+		return rangeBound{val: i}
+	case ">":
+		if i == math.MaxInt64 {
+			return rangeBound{val: i}
+		}
+		return rangeBound{val: i + 1}
+	case "<=":
+		return rangeBound{val: i}
+	default: // "<"
+		if i == math.MinInt64 {
+			return rangeBound{val: i}
+		}
+		return rangeBound{val: i - 1}
+	}
 }
 
 // nonNumericRangeBound classifies a text/blob bound the INTEGER affinity

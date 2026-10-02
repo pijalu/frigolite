@@ -3,7 +3,6 @@ package execdml
 import (
 	"math"
 	"sort"
-	"strconv"
 	"strings"
 
 	"github.com/pijalu/frigolite/internal/btree"
@@ -13,6 +12,7 @@ import (
 	"github.com/pijalu/frigolite/internal/sql"
 	"github.com/pijalu/frigolite/internal/storage"
 	"github.com/pijalu/frigolite/internal/util"
+	"github.com/pijalu/frigolite/internal/value"
 )
 
 // Seek-driven row collection for UPDATE/DELETE (src/where.c point-lookup
@@ -185,17 +185,26 @@ func inRowidRange(f float64) bool {
 	return f == math.Trunc(f) && f >= -9.223372036854776e18 && f < 9.223372036854776e18
 }
 
-// dmlRowidConstFromText converts a text constant to a matching rowid.
-// Non-numeric or non-integral text never equals an integer rowid.
+// dmlRowidConstFromText converts a text constant to a matching rowid
+// through value.NumericText — the same conversion the WHERE re-evaluation
+// applies (SQLite's applyNumericAffinity: leading/trailing whitespace
+// skipped, the whole string a well-formed number). A pure integer pins its
+// rowid EXACTLY (int64, no float rounding near 2^63); an integral real
+// matches the same rowid; non-numeric or non-integral text never equals an
+// integer rowid.
 func dmlRowidConstFromText(n string) (rowid int64, matches bool, planned bool) {
-	f, err := strconv.ParseFloat(strings.TrimSpace(n), 64)
-	if err != nil {
-		return 0, false, true // non-numeric text never equals an integer rowid
+	kind, iv, fv := value.NumericText(n)
+	switch kind {
+	case value.IntNumeric:
+		return iv, true, true
+	case value.RealNumeric:
+		if inRowidRange(fv) {
+			return int64(fv), true, true
+		}
+		return 0, false, true
+	default:
+		return 0, false, true
 	}
-	if inRowidRange(f) {
-		return int64(f), true, true
-	}
-	return 0, false, true
 }
 
 // seekIndexFor finds the index driving a col = <const> candidate lookup: a

@@ -9,6 +9,7 @@ import (
 	"github.com/pijalu/frigolite/internal/schema"
 	"github.com/pijalu/frigolite/internal/sql"
 	"github.com/pijalu/frigolite/internal/storage"
+	"github.com/pijalu/frigolite/internal/value"
 )
 
 // Seek-driven SELECT (src/where.c "SEARCH ... USING INTEGER PRIMARY KEY"):
@@ -281,15 +282,22 @@ func signedRowidLiteral(v *sql.UnaryOp) (int64, bool, bool) {
 	return integralRowid(f)
 }
 
-// rowidFromNumericText applies the rowid column's numeric affinity to text:
-// well-formed numbers convert (integral ones pin a rowid); anything else
-// never equals an integer rowid.
+// rowidFromNumericText applies the rowid column's numeric affinity to text
+// through value.NumericText (SQLite's applyNumericAffinity full-string
+// rule): leading/trailing whitespace is skipped and a well-formed number
+// converts — a pure integer pins its rowid EXACTLY (int64, no float
+// rounding near 2^63), an integral real pins the same rowid, and anything
+// else ('5000abc', '5000.0abc', ”, '0x10') never equals an integer rowid.
 func rowidFromNumericText(text string) (int64, bool, bool) {
-	f, err := strconv.ParseFloat(strings.TrimSpace(text), 64)
-	if err != nil {
+	kind, iv, fv := value.NumericText(text)
+	switch kind {
+	case value.IntNumeric:
+		return iv, true, true
+	case value.RealNumeric:
+		return integralRowid(fv)
+	default:
 		return 0, false, true
 	}
-	return integralRowid(f)
 }
 
 // integralRowid maps a numeric constant to a rowid: only integral values
