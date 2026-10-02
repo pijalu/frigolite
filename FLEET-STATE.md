@@ -1043,3 +1043,15 @@ Follow-up filed: WITHOUT ROWID duplicate-PK acceptance gap (pre-existing,
 repro'd on origin/main via the CTE overflow shape; needs WR conflict-scan
 tranche). TestSQLiteSuite fresh-worktree instability = harness shared
 state; testgen is authoritative.
+
+## PERF-FIXUPS (2026-10-02, START) — fix every documented issue
+
+Issues from the review/validation trail, all to be fixed:
+A. WITHOUT ROWID duplicate-PK acceptance via INSERT (pre-existing, oracle
+   P1) — fleet/perf-fixwr agent.
+B. rowid-vs-text whitespace affinity gap (' 5000 ' should convert like
+   SQLite's text->numeric) — fleet/perf-fixrowid agent.
+C. Coordinator: x % 0.1 panic (oracle 0); group-key textual-key class
+   divergences (-0.0/0.0 same group per oracle; text '5' vs int 5
+   separate per oracle); CASE-collation in-place slot aliasing (latent).
+Suites + census at end.
