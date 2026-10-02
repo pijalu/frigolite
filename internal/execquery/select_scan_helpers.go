@@ -325,9 +325,15 @@ func applyIntComparison(op string, a, b int64) bool {
 
 // isSchemaTable returns true if the given table name is the sqlite_master/sqlite_schema table.
 func IsSchemaTable(name string) bool {
-	upper := strings.ToUpper(name)
-	return upper == "SQLITE_MASTER" || upper == "SQLITE_SCHEMA" ||
-		upper == "MAIN.SQLITE_MASTER" || upper == "MAIN.SQLITE_SCHEMA"
+	// Exact-length EqualFold comparisons: this runs per looked-up table on
+	// the DML floor, where a ToUpper was a heap hit per statement.
+	switch len(name) {
+	case 13:
+		return strings.EqualFold(name, "sqlite_master") || strings.EqualFold(name, "sqlite_schema")
+	case 18:
+		return strings.EqualFold(name, "main.sqlite_master") || strings.EqualFold(name, "main.sqlite_schema")
+	}
+	return false
 }
 
 // isSQLiteSequence reports whether name refers to the sqlite_sequence system

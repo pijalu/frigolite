@@ -64,7 +64,7 @@ func (e *Engine) isNonModifiableTable(entry *schema.Entry) bool {
 		// PRAGMA writable_schema=ON permits direct edits to sqlite_schema.
 		return !e.settings.writableSchema
 	}
-	return strings.HasPrefix(strings.ToUpper(entry.Name), "PRAGMA_")
+	return len(entry.Name) >= 7 && strings.EqualFold(entry.Name[:7], "pragma_")
 }
 
 // isStoragelessVirtualTable reports whether a table entry is a virtual table
@@ -372,12 +372,23 @@ func (e *Engine) stmtFTSShadowOwner(stmt sql.Stmt) string {
 // can undo FTS writes the pager journal does not cover.
 func (e *Engine) snapshotAllPagers() []pagerSnap {
 	var snaps []pagerSnap
-	seen := make(map[*pager.Pager]bool)
 	for _, ctx := range e.databases {
-		if ctx == nil || ctx.Pager == nil || seen[ctx.Pager] {
+		if ctx == nil || ctx.Pager == nil {
 			continue
 		}
-		seen[ctx.Pager] = true
+		// The attached-database count is tiny (a linear scan replaces the
+		// per-statement dedupe map this used to allocate; two databases
+		// sharing one file share one pager — attach-9.2).
+		dup := false
+		for _, s := range snaps {
+			if s.pg == ctx.Pager {
+				dup = true
+				break
+			}
+		}
+		if dup {
+			continue
+		}
 		snaps = append(snaps, pagerSnap{pg: ctx.Pager, journal: ctx.Pager.BeginStatement()})
 	}
 	// Attach the FTS snapshots to the statement snapshot list via a marker:

@@ -715,10 +715,11 @@ func (m *Manager) FindTriggersForTable(tableName string) ([]*Entry, error) {
 		return nil, err
 	}
 	var result []*Entry
-	upper := strings.ToUpper(tableName)
 	for _, e := range entries {
-		eUpper := strings.ToUpper(e.TblName)
-		if eUpper == upper || strings.HasSuffix(eUpper, "."+upper) {
+		// ASCII-free case-insensitive compares (SQLite table names compare
+		// ASCII-case-insensitively here): the historical per-entry ToUpper
+		// allocated twice per trigger lookup on the DML floor.
+		if strings.EqualFold(e.TblName, tableName) || tblNameSuffixFoldMatches(e.TblName, tableName) {
 			result = append(result, e)
 		}
 	}
@@ -958,3 +959,13 @@ func (m *Manager) UpdateEntryRoot(name string, newRoot uint32) error {
 // UpdateEntryFull updates an existing schema entry in place, preserving its
 // rowid and original type/rootpage. Used by ALTER TABLE operations that must
 // not reorder sqlite_schema rows (e.g. RENAME COLUMN, DROP COLUMN).
+
+// tblNameSuffixFoldMatches reports whether ".NAME" is a case-insensitive
+// suffix of tblName (the schema-qualified trigger target form).
+func tblNameSuffixFoldMatches(tblName, name string) bool {
+	dot := strings.LastIndexByte(tblName, '.')
+	if dot < 0 || len(tblName)-dot-1 != len(name) {
+		return false
+	}
+	return strings.EqualFold(tblName[dot+1:], name)
+}
