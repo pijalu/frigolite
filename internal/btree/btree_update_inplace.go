@@ -34,6 +34,39 @@ func (t *BTree) OverwriteCellByRowID(rowID int64, cellData []byte) (done bool, e
 	return t.overwriteLeafCellAt(pg, page, idx, rowID, cellData)
 }
 
+// OverwriteCellByRowIDAt is OverwriteCellByRowID for a row whose leaf
+// position a caller-seeked cursor already established (leaf, idx from
+// Cursor.PageNum/CellIdx): the same guards and the same in-place memcpy,
+// without the second root-to-leaf descent. A stale position (the cell at
+// idx no longer holds rowID) falls back to the full seek, so the result is
+// identical to OverwriteCellByRowID in every case.
+func (t *BTree) OverwriteCellByRowIDAt(rowID int64, cellData []byte, leaf uint32, idx int) (done bool, err error) {
+	t.saveAllCursors() // btree.c saveAllCursors at the sqlite3BtreeInsert entry
+	pg, err := t.pager.ReadPage(leaf)
+	if err != nil {
+		return false, err
+	}
+	page, err := storage.ParsePage(pg.Data, int(t.pageSize), contentOffset(pg.PageNum))
+	if err != nil {
+		return false, err
+	}
+	if page.PageType != storage.PageTypeLeafTable || idx < 0 || idx >= int(page.CellCount) {
+		// Position no longer valid: re-seek.
+		return t.OverwriteCellByRowID(rowID, cellData)
+	}
+	oldOff := int(storage.CellPointer(pg.Data, contentOffset(pg.PageNum), idx, int(t.pageSize)))
+	var old storage.Cell
+	if derr := storage.DecodeCellInto(pg.Data, oldOff, storage.CellTableLeaf, int(t.usableSize), &old); derr != nil {
+		return false, derr
+	}
+	if old.RowID != rowID {
+		// Stale hinted position: the row moved (or never lived here) —
+		// fall back to the authoritative seek.
+		return t.OverwriteCellByRowID(rowID, cellData)
+	}
+	return t.overwriteLeafCellAtDecoded(pg, page, idx, &old, oldOff, cellData)
+}
+
 // seekLeafRow positions a fresh cursor on the row with the given rowid and
 // returns its leaf page, parsed page and cell index. ok is false when the
 // rowid is not stored on a table leaf (missing row, interior page, or index
@@ -65,13 +98,20 @@ func (t *BTree) seekLeafRow(rowID int64) (pg *pager.Page, page *storage.BTreePag
 func (t *BTree) overwriteLeafCellAt(pg *pager.Page, page *storage.BTreePage, idx int, rowID int64, cellData []byte) (bool, error) {
 	coff := contentOffset(pg.PageNum)
 	oldOff := int(storage.CellPointer(pg.Data, coff, idx, int(t.pageSize)))
-	old, err := storage.DecodeCell(pg.Data, oldOff, storage.CellTableLeaf, int(t.usableSize))
-	if err != nil {
+	var old storage.Cell
+	if err := storage.DecodeCellInto(pg.Data, oldOff, storage.CellTableLeaf, int(t.usableSize), &old); err != nil {
 		return false, err
 	}
 	if old.RowID != rowID {
 		return false, nil
 	}
+	return t.overwriteLeafCellAtDecoded(pg, page, idx, &old, oldOff, cellData)
+}
+
+// overwriteLeafCellAtDecoded is overwriteLeafCellAt with the target cell
+// already decoded at oldOff (one decode per overwrite instead of two).
+func (t *BTree) overwriteLeafCellAtDecoded(pg *pager.Page, page *storage.BTreePage, idx int, old *storage.Cell, oldOff int, cellData []byte) (bool, error) {
+	coff := contentOffset(pg.PageNum)
 	oldSize, err := storage.TableLeafCellSizeAt(pg.Data, oldOff, int(t.usableSize))
 	if err != nil {
 		return false, err

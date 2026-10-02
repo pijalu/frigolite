@@ -750,6 +750,14 @@ func (e *DMLExecutor) fireUpdatePreupdate(tableName string, c updateChange) *Res
 	if err != nil {
 		return nil
 	}
+	return e.fireUpdatePreupdateEntry(entry, c)
+}
+
+// fireUpdatePreupdateEntry is fireUpdatePreupdate with the target table's
+// schema entry already in hand — the per-row FindTable (applyPreupdateAffinity
+// re-resolves the table again inside the engine) stays out of the point
+// write path.
+func (e *DMLExecutor) fireUpdatePreupdateEntry(entry *schema.Entry, c updateChange) *Result {
 	rowidTable := !tableIsWithoutRowid(entry.SQL)
 	rowID := c.rowID
 	if !rowidTable {
@@ -757,8 +765,8 @@ func (e *DMLExecutor) fireUpdatePreupdate(tableName string, c updateChange) *Res
 	}
 	return e.ctx.FirePreupdate(PreupdateEvent{
 		Type:  "UPDATE",
-		DB:    e.schemaNameForPager(e.dmlPager(tableName)),
-		Table: tableName,
+		DB:    e.schemaNameForPager(e.dmlPager(entry.Name)),
+		Table: entry.Name,
 		RowID: rowID, RowID2: rowID,
 		RowidTable: rowidTable,
 		Old:        append([]interface{}(nil), c.oldValues...),

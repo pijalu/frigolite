@@ -99,7 +99,7 @@ func (e *DMLExecutor) applyPointUpdate(s *sql.UpdateStmt, tableEntry *schema.Ent
 	}
 	tree := e.dmlTableBTree(tableEntry.Name, tableEntry.RootPage)
 	defer tree.Close() // seek+write tree is function-local
-	ch, matched, res := e.collectPointUpdateRow(tree, s, tableEntry, colDefs, plan.rowid)
+	ch, matched, res, pos := e.collectPointUpdateRow(tree, s, tableEntry, colDefs, plan.rowid)
 	if res != nil {
 		return res, true
 	}
@@ -129,10 +129,19 @@ func (e *DMLExecutor) applyPointUpdate(s *sql.UpdateStmt, tableEntry *schema.Ent
 	if res := e.deleteUpdateIndexEntriesFor(tableEntry, colDefs, changes); res != nil {
 		return &Result{Error: res}, true
 	}
-	if wres := e.writePointUpdateRow(tableEntry.Name, tree, tableEntry.RootPage, changes[0], tableEntry, colDefs); wres.Error != nil {
+	if wres := e.writePointUpdateRow(tableEntry.Name, tree, tableEntry.RootPage, changes[0], tableEntry, colDefs, pos); wres.Error != nil {
 		return wres, true
 	}
 	return &Result{Changes: 1}, true
+}
+
+// cellPos is the leaf position a seek established for one pinned row
+// (Cursor.PageNum/CellIdx), so the write can re-address the row without a
+// second descent. The btree write primitives re-validate it and fall back
+// to a full seek when it went stale.
+type cellPos struct {
+	leaf uint32
+	idx  int
 }
 
 // collectPointUpdateRow reads the pinned row by rowid and builds its change:
@@ -140,33 +149,35 @@ func (e *DMLExecutor) applyPointUpdate(s *sql.UpdateStmt, tableEntry *schema.Ent
 // against a positional row (the scan loop's evaluation model), generated
 // columns recomputed. matched=false reports the rowid is absent; res non-nil
 // is a real statement error. A fetch anomaly returns matched=false with a
-// nil res and the caller must fall back to the generic pipeline.
-func (e *DMLExecutor) collectPointUpdateRow(tree *btree.BTree, s *sql.UpdateStmt, tableEntry *schema.Entry, colDefs []sql.ColumnDef, rowID int64) (ch updateChange, matched bool, res *Result) {
+// nil res and the caller must fall back to the generic pipeline. The
+// seeked row's leaf position comes back in pos for the write.
+func (e *DMLExecutor) collectPointUpdateRow(tree *btree.BTree, s *sql.UpdateStmt, tableEntry *schema.Entry, colDefs []sql.ColumnDef, rowID int64) (ch updateChange, matched bool, res *Result, pos cellPos) {
 	// SQLITE_TEST interrupt countdown: one op per row examined
 	// (src/vdbe.c per-opcode decrement of sqlite3_interrupt_count).
 	if err := e.ctx.CheckProgress(); err != nil {
-		return updateChange{}, false, &Result{Error: err}
+		return updateChange{}, false, &Result{Error: err}, pos
 	}
 	// The very next act is an explicit rowid seek, which re-descends from
 	// the root: skip OpenCursor's leftmost-leaf descent.
 	cursor, err := tree.OpenCursorAtRoot()
 	if err != nil {
-		return updateChange{}, false, nil // anomaly: generic pipeline
+		return updateChange{}, false, nil, pos // anomaly: generic pipeline
 	}
 	found, serr := cursor.SeekToRowID(rowID)
 	if serr != nil {
-		return updateChange{}, false, nil // anomaly: generic pipeline
+		return updateChange{}, false, nil, pos // anomaly: generic pipeline
 	}
 	if !found {
-		return updateChange{}, false, &Result{}
+		return updateChange{}, false, &Result{}, pos
 	}
+	pos = cellPos{leaf: cursor.PageNum(), idx: cursor.CellIdx()}
 	cell, rerr := cursor.ReadCell()
 	if rerr != nil {
-		return updateChange{}, false, nil // anomaly: generic pipeline
+		return updateChange{}, false, nil, pos // anomaly: generic pipeline
 	}
 	rec, derr := storage.DecodeRecord(cell.Payload)
 	if derr != nil || rec == nil {
-		return updateChange{}, false, nil // anomaly: generic pipeline
+		return updateChange{}, false, nil, pos // anomaly: generic pipeline
 	}
 	e.ctx.RemapWRRecordToDeclared(rec, tableEntry.SQL, colDefs)
 
@@ -177,39 +188,40 @@ func (e *DMLExecutor) collectPointUpdateRow(tree *btree.BTree, s *sql.UpdateStmt
 	e.applyUpdateColumnDefaults(oldValues, colDefs, len(rec.Values))
 
 	// SET evaluation against the collected row map — the exact evaluation
-	// row the small-candidate seek collect built before the positional
-	// tranche (the positional plan amortizes only across candidate rows; a
-	// single pinned row keeps the map, which is both cheaper and original).
+	// row seekUpdateChangesMaps uses for single-candidate collects: the
+	// positional plan's fixed per-statement cost only amortizes from three
+	// candidates up (updateSeekMapPathMaxCandidates), so one pinned row
+	// keeps the map.
 	row := e.ctx.BuildRowMap(rec, colDefs, cell.RowID)
 	newRowID, aerr := e.applyUpdateAssignments(s, row, e.columnIndexFor(colDefs), colDefs, values)
 	if aerr != nil {
-		return updateChange{}, false, &Result{Error: aerr}
+		return updateChange{}, false, &Result{Error: aerr}, pos
 	}
 	if newRowID != nil {
-		return updateChange{}, false, nil // re-key: generic pipeline
+		return updateChange{}, false, nil, pos // re-key: generic pipeline
 	}
 	if gerr := e.recomputeUpdateGenerated(colDefs, values); gerr != nil {
-		return updateChange{}, false, &Result{Error: gerr}
+		return updateChange{}, false, &Result{Error: gerr}, pos
 	}
-	return updateChange{rowID: cell.RowID, values: values, oldValues: oldValues}, true, nil
+	return updateChange{rowID: cell.RowID, values: values, oldValues: oldValues}, true, nil, pos
 }
 
-// writePointUpdateRow writes one same-rowid change: the loc==0 in-place
-// overwrite when the new cell is the same size (btree.OverwriteCellByRowID),
+// writePointUpdateRow writes one same-rowid change: the in-place overwrite
+// when the new cell is the same size (btree.OverwriteCellByRowIDAt through
+// the collect seek's position — verified there and re-seeked on staleness),
 // a seek delete + re-insert otherwise. Index maintenance, the rowid-cache
 // bump/invalidate and the preupdate hook fire exactly as applyUpdateChanges'
 // single-change bulk run does.
-func (e *DMLExecutor) writePointUpdateRow(tableName string, tree *btree.BTree, rootPage uint32, ch updateChange, tableEntry *schema.Entry, colDefs []sql.ColumnDef) *Result {
+func (e *DMLExecutor) writePointUpdateRow(tableName string, tree *btree.BTree, rootPage uint32, ch updateChange, tableEntry *schema.Entry, colDefs []sql.ColumnDef, pos cellPos) *Result {
 	record, err := e.appendEncodedRecord(ch.values)
 	if err != nil {
 		return &Result{Error: err}
 	}
-	cellData := storage.EncodeCell(&storage.Cell{
-		Type:    storage.CellTableLeaf,
-		RowID:   ch.rowID,
-		Payload: record,
-	})
-	done, oerr := tree.OverwriteCellByRowID(ch.rowID, cellData)
+	cellData, cerr := e.appendEncodedCell(ch.rowID, record)
+	if cerr != nil {
+		return &Result{Error: cerr}
+	}
+	done, oerr := tree.OverwriteCellByRowIDAt(ch.rowID, cellData, pos.leaf, pos.idx)
 	if oerr != nil {
 		return &Result{Error: oerr}
 	}
@@ -234,13 +246,29 @@ func (e *DMLExecutor) writePointUpdateRow(tableName string, tree *btree.BTree, r
 		return &Result{Error: ierr}
 	}
 	e.ctx.BumpRowIDCache(e.dmlPager(tableName), rootPage, ch.rowID)
-	if res := e.fireUpdatePreupdate(tableName, ch); res != nil {
+	if res := e.fireUpdatePreupdateEntry(tableEntry, ch); res != nil {
 		return res
 	}
 	// applyUpdateChanges invalidates the rowid cache after the re-insert loop
 	// (SQLite recomputes the rowid counter after any DELETE/UPDATE).
 	e.ctx.InvalidateRowIDCache(e.dmlPager(tableName), rootPage)
 	return &Result{}
+}
+
+// appendEncodedCell encodes a table-leaf cell image (rowid + record payload)
+// into the executor's reusable cell buffer. Like appendEncodedRecord, the
+// bytes are consumed synchronously by the btree write paths (copied into
+// pages or split redistributions within the call), so the buffer can be
+// reused by the next statement.
+func (e *DMLExecutor) appendEncodedCell(rowID int64, record []byte) ([]byte, error) {
+	c := storage.Cell{Type: storage.CellTableLeaf, RowID: rowID, Payload: record}
+	n := storage.CellWireLen(&c)
+	if cap(e.cellBuf) < n {
+		e.cellBuf = make([]byte, n+64)
+	}
+	buf := e.cellBuf[:n]
+	storage.EncodeCellInto(&c, buf)
+	return buf, nil
 }
 
 // appendEncodedRecord encodes values into the executor's reusable record

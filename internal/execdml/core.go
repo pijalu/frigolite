@@ -74,6 +74,11 @@ type DMLExecutor struct {
 	// every statement of this connection.
 	encBuf []byte
 
+	// cellBuf is the point-UPDATE write path's reusable table-leaf cell
+	// image buffer (appendEncodedCell): like encBuf, its bytes are copied
+	// into pages synchronously and never retained by the btree.
+	cellBuf []byte
+
 	// andTerms is the reusable WHERE-conjunct scratch (splitAndTermsInto):
 	// the seek planner and the point-op gates decompose WHERE clauses per
 	// statement, consuming the terms before the next decomposition.
