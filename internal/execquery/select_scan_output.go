@@ -28,13 +28,15 @@ func (st *scanState) appendRowOutput() error {
 		// All-bare-refs SELECT: peel the reused StructRow's slots directly
 		// (evalColumnRef's in-row hit returns the same slot value, and both
 		// appendOutputExpr and the unwrap here peel the identical wrapper
-		// chain — the fast row is byte-identical to buildOutputRow's).
+		// chain — the fast row is byte-identical to buildOutputRow's). Rows
+		// carve out of the flat output buffer (the star path's discipline:
+		// result rows are read-only), so retention costs no per-row slice.
+		start := len(st.outValues)
 		values := st.reuseSRow.Values
-		row := make([]interface{}, len(st.bareOutIdx))
-		for i, slot := range st.bareOutIdx {
-			row[i] = unwrapCollatedValue(util.UnwrapColumnValue(values[slot]))
+		for _, slot := range st.bareOutIdx {
+			st.outValues = append(st.outValues, unwrapCollatedValue(util.UnwrapColumnValue(values[slot])))
 		}
-		st.nonStarRows = append(st.nonStarRows, row)
+		st.outRowStarts = append(st.outRowStarts, start)
 	} else if !st.hasJoins && !st.aggConsumesRows {
 		row, err := st.e.buildOutputRow(st.s.Columns, st.colDefs, st.reuseSRow)
 		if err != nil {

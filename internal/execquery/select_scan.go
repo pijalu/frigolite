@@ -599,8 +599,14 @@ type scanState struct {
 	// output accumulators
 	outValues    []interface{}
 	outRowStarts []int
-	nonStarRows  [][]interface{}
-	allRowMaps   []RowMap
+	// flatStride is the per-row slot count of the flat output buffer: the
+	// star column count for SELECT * scans, the bare-ref count for
+	// all-bare-refs scans (a statement is one or the other — a star column
+	// never qualifies as a bare ref); 0 leaves the rows to buildResultRows'
+	// active-column default (star scans).
+	flatStride int
+	nonStarRows [][]interface{}
+	allRowMaps  []RowMap
 }
 
 // allowPositionalAggRows reports whether the caller (execSelectScanPhase)
@@ -645,6 +651,7 @@ func newScanState(e *SelectEngine, s *sql.SelectStmt, colDefs []sql.ColumnDef, n
 	plan := e.scanDecodePlan(s, colDefs, colIndex, affinityCols, feed, hasJoins)
 	aggConsumes := scanConsumedByAggPass(e, s)
 	posAgg := e.positionalAggScan(s, feed, allowPosAgg, hasJoins, needMaps, aggConsumes)
+	bareSlots := bareOutputSlots(s, colDefs)
 	st := &scanState{
 		e:                      e,
 		s:                      s,
@@ -659,7 +666,7 @@ func newScanState(e *SelectEngine, s *sql.SelectStmt, colDefs []sql.ColumnDef, n
 		whereDecodeIndices:     plan.whereDecodeIndices,
 		remainingDecodeIndices: plan.remainingDecodeIndices,
 		isSelectStar:           isSelectStar,
-		bareOutIdx:             bareOutputSlots(s, colDefs),
+		bareOutIdx:             bareSlots,
 		activeColCount:         activeColCount,
 		needMaps:               needMaps && !posAgg,
 		feed:                   feed,
@@ -668,6 +675,15 @@ func newScanState(e *SelectEngine, s *sql.SelectStmt, colDefs []sql.ColumnDef, n
 		// Pre-allocate a flat slice for SELECT * to avoid per-row make() calls.
 		outValues:    make([]interface{}, 0, 1024*activeColCount),
 		outRowStarts: make([]int, 0, 1024),
+	}
+	// The flat buffer's per-row stride: the star path appends activeColCount
+	// values per row, the bare path len(bareSlots). Both mirror the exact
+	// shape their append branch checks, and a statement is never both star
+	// and bare (a star column is not a bare ref).
+	if isSelectStar && !aggConsumes {
+		st.flatStride = activeColCount
+	} else if bareSlots != nil && !hasJoins && !aggConsumes {
+		st.flatStride = len(bareSlots)
 	}
 	st.initDirectDecode(feed, plan)
 	return st
@@ -799,12 +815,18 @@ func (st *scanState) evalRowWhere() (bool, error) {
 }
 
 func (st *scanState) buildResultRows() [][]interface{} {
-	totalStarRows := len(st.outRowStarts)
-	allRows := make([][]interface{}, totalStarRows+len(st.nonStarRows))
-	for i, start := range st.outRowStarts {
-		allRows[i] = st.outValues[start : start+st.activeColCount : start+st.activeColCount]
+	// flat rows (SELECT * and all-bare-refs scans) carve out of outValues at
+	// the scan's per-row slot stride; individually-built rows follow.
+	stride := st.flatStride
+	if stride == 0 {
+		stride = st.activeColCount
 	}
-	copy(allRows[totalStarRows:], st.nonStarRows)
+	totalFlatRows := len(st.outRowStarts)
+	allRows := make([][]interface{}, totalFlatRows+len(st.nonStarRows))
+	for i, start := range st.outRowStarts {
+		allRows[i] = st.outValues[start : start+stride : start+stride]
+	}
+	copy(allRows[totalFlatRows:], st.nonStarRows)
 	return allRows
 }
 
