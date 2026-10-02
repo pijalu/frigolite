@@ -2281,3 +2281,57 @@ Resumed a dead predecessor mid-tranche on P9.PERF hot-path work (base 5807a9c1e,
   allocs/row unchanged). Remaining known mass: interface{} boxing of decoded
   values (value model), the [][]interface{} result materialization (API),
   and the aggregate/GROUP BY passes (sibling scope).
+- **PERF-scanagg tranche (fleet/perf-scanagg): the GROUP BY and range-scan
+  gap closed by streaming the aggregates, not by micro-tuning the generic
+  passes.** The generic GROUP BY path retained a positional StructRow clone
+  per input row (cloneReuseSRow arena + header ≈ GBs over 100 queries),
+  partitioned them under serialized string keys, and re-walked each group per
+  output aggregate. The grouped feed (select_agg_groupfeed.go) moves the
+  OP_AggStep/OP_AggFinal loop INTO the scan: per-group aggregator instances
+  keyed by the group key, output rows built per GROUP at Final. select_group
+  18→45 q/s (2.5x); select_scan 9.4M→21.5M rows/s (2.3x) via the batch leaf
+  walk + covered-WHERE skip. Reuse beats re-tuning: the feed reuses
+  collationGroupKey, resolveGroupKeyMiss's merge, aggFeedColumnArg,
+  compileAggFeedCount, the registry Aggregators and the scan's phase-1 lazy
+  decode — parity rides existing code.
+- **Typed fast-path maps must engage ONLY on provable string-key equality.**
+  The generic GROUP BY groups by serialized spellings (collationGroupKey):
+  int64 5 and float64 5.0 share "5", but 1e15 spells "1e+15" ≠ int64's
+  "1000000000000000" (sqlite3 groups them; frigolite's serialized-key
+  semantics deliberately split — parity must mirror the ENGINE, not the
+  oracle). typedIntGroupKey therefore engages only when FormatFloat('g',-1)
+  == FormatInt, with ±0.0 special-cased to int 0's bucket ("0"); NaN,
+  non-integrals and exponent spellings keep the string map. The map
+  invariant "an integral-spelled group is only ever filed typed" removes all
+  cross-map lookups. Pin with fast-vs-forced-generic parity (ORDER BY makes
+  the generic route deterministic; ORDER BY also gates the feed off).
+- **A seek that enforces the whole WHERE may skip the per-row re-check — but
+  "enforces" needs the plan and the re-check to agree on EVERY bound.**
+  Coverage requires pure-integer literal bounds only: text bounds stay
+  inexact even when they spell an integer because value.NumericText trims
+  whitespace (' 10 ') while the re-evaluation's affinity conversion does
+  not (pre-existing plan/re-check divergence the re-check arbitrated);
+  float ceil/floor bounds and int64-edge saturations admit boundary
+  candidates that must fail the re-check. Distinguish three conjunct
+  outcomes (folded / rowid-but-unresolvable / not-a-rowid-predicate) — the
+  old two-state return conflated "folded" with "not a rowid conjunct" and
+  silently claimed coverage for `c > 0`.
+- **btree.LeafBatch starts at cell 0; a SEEked cursor must not replay.**
+  ScanTableLeaves was built for full scans: the first page's loop must start
+  at LeafBatch.StartCell() (the seeked cellIdx) or the range seek emits from
+  the tree's first row (caught immediately by TestRowidSeekRange counts).
+  Resume after a mid-walk save is still one Next() then the per-row cursor
+  loop.
+- **Planning overhead is scan overhead: one tableRowCount walk per query.**
+  indexScanOrderIndex walked the whole table (300k Cursor.Next steps, ~8.5%
+  of scan CPU) whenever the rowid-constraint check missed the conjunct
+  shape — BETWEEN was simply not recognized (the comparison operators
+  were). Teach the planner the AND-pair BETWEEN form; same final plan, the
+  walk disappears.
+- **Benchmark deltas on a shared fleet box need back-to-back same-binary
+  rounds**: main itself swings 2x between rounds (insert 226k→118k ops/s).
+  Run main and worktree benches interleaved and compare per-phase ratios;
+  single absolute numbers are noise. Full-harness failure SETS are equally
+  load-sensitive (main: 26 vs 173 failing files across runs) — regression
+  proof must be per-FILE, each file run individually on both sides
+  (single-file runs are deterministic).
