@@ -981,3 +981,17 @@ Structural facts that own the residual: interface-boxed value pipeline
 (scan 5.6x, update/delete 7.6-10.9x), group-key EvalExpr per row (2.3x),
 prepare/bind exec-only floor (point/insert 4.5-5.7x). Multi-round
 rewrites documented here — not scoped optimizations.
+
+## PERF-STRUCT (FINAL, 2026-10-02) — census 1073/0/290 clean post-LIMIT fix
+
+Post-struct-round census caught one more tplgate-exposed latent bug:
+LIMIT comma-form vs OFFSET-keyword form share a normalize key but bind
+values in opposite text order — template hits cross-assigned limit/offset
+(limit-1.4.2: LIMIT 30, 50 executed as LIMIT 50 OFFSET 30). Fix
+7dd4dbdb1: both literal slots present ⇒ decline substitution in the
+SELECT/UPDATE/DELETE walks (single-slot forms substitute unambiguously);
+pinned by TestTemplateLimitCommaForm. Final census: 1073 pass / 0 fail /
+290 skip, audit exit 0. Final table in the report PERF-STRUCT section:
+insert 231,856 ops/s (5.7x), point 199,632 (4.5x), scan 9,412,998 rows/s
+(5.6x), group 55 (2.3x), update 133,209 (7.6x), delete 117,689 (10.9x),
+file autocommit 1.6x FASTER.
