@@ -995,3 +995,14 @@ pinned by TestTemplateLimitCommaForm. Final census: 1073 pass / 0 fail /
 insert 231,856 ops/s (5.7x), point 199,632 (4.5x), scan 9,412,998 rows/s
 (5.6x), group 55 (2.3x), update 133,209 (7.6x), delete 117,689 (10.9x),
 file autocommit 1.6x FASTER.
+
+## PERF-TYPEDROW (2026-10-02, START) — typed-row/batch-scan read path
+
+Verifier-gated tranche: scan floor 5.6x (9.41M vs 52.9M rows/s) —
+target >=2x (>=19M rows/s). Lever: page-batch scan API on the btree
+(per-leaf: one page fetch + cell-pointer array walk, rows decoded
+page-locally without per-row cursor Next/dispatch/memo-revalidation) +
+typed decode into reused slots (direct serial-type offset reads for the
+referenced columns). Wired into the bare/agg scan paths under the
+existing eligibility contracts. Update/delete exec-plumbing flattening
+next tranche. Benchmark pair after merge; suites + census at end.
