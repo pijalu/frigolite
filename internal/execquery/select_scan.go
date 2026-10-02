@@ -496,8 +496,19 @@ func (st *scanState) runScan(cursor *btree.Cursor) error {
 
 // scanRow handles a single scanned cell: decode + filter it, then build
 // output when appropriate. Cursor-free so the batch walker and the cursor
-// loop share one body; the caller owns advancing.
+// loop share one body; the caller owns advancing. The pure bare-projection
+// shape folds decode into output (scanRowBarePassthrough); scanRowDecoded is
+// the general pipeline both paths fall back to.
 func (st *scanState) scanRow(payload []byte, rowID int64) error {
+	if st.barePassthrough {
+		return st.scanRowBarePassthrough(payload, rowID)
+	}
+	return st.scanRowDecoded(payload, rowID)
+}
+
+// scanRowDecoded runs the general decode → WHERE → feed/output pipeline for
+// one scanned cell.
+func (st *scanState) scanRowDecoded(payload []byte, rowID int64) error {
 	passesWhere, filtered, err := st.decodeAndFilterRow(payload, rowID)
 	if err != nil {
 		return err
@@ -596,6 +607,11 @@ type scanState struct {
 	directIPKIdx   []int
 	directIPKAff   []rune
 	directIPKColl  []string
+	// barePassthrough marks the pure all-bare-refs scan (initBarePassthrough):
+	// decode lands straight in the flat output buffer, skipping the reused
+	// row's slot round-trip and the output unwrap.
+	barePassthrough   bool
+	ipkPassthroughPos []int
 	// output accumulators
 	outValues    []interface{}
 	outRowStarts []int
@@ -604,7 +620,7 @@ type scanState struct {
 	// all-bare-refs scans (a statement is one or the other — a star column
 	// never qualifies as a bare ref); 0 leaves the rows to buildResultRows'
 	// active-column default (star scans).
-	flatStride int
+	flatStride  int
 	nonStarRows [][]interface{}
 	allRowMaps  []RowMap
 }

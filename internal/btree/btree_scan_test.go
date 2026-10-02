@@ -237,3 +237,60 @@ func TestScanTableLeavesSavedDeclines(t *testing.T) {
 		t.Fatalf("cursor loop got %d cells, want %d", count, len(want)-5)
 	}
 }
+
+// TestScanTableLeavesSavedMidPageDeclines pins the t33misc-7.x contract: a
+// nested write saves the position WHILE fn consumes a page (the consumer
+// stops on Cell's ErrScanSaved), and the walker must report saved=true so the
+// consumer's cursor loop steps OFF the saved cell instead of re-reading it.
+func TestScanTableLeavesSavedMidPageDeclines(t *testing.T) {
+	tr, want := scanBatchTree(t, 100)
+	c, err := tr.OpenCursor()
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer tr.Close()
+	saved, err := c.ScanTableLeaves(func(b *LeafBatch) (bool, error) {
+		// Consume three cells, then simulate a nested write that saves the
+		// position at the THIRD cell (the one being consumed) — the exact
+		// saveCursorPosition capture the batch's cellIdx sync guarantees.
+		for i := 0; i < 3; i++ {
+			if _, _, err := b.Cell(i); err != nil {
+				return false, err
+			}
+		}
+		c.savedRowID = 3 // the last consumed cell
+		c.savedKey = nil
+		c.skipNext = 0
+		c.state = cursorRequireSeek
+		return true, nil // the consumer declines on ErrScanSaved
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !saved {
+		t.Fatal("want saved=true for a mid-page save")
+	}
+	// The consumer's resume: one Next steps off the saved cell (restore
+	// re-seeks to rowid 3, which still exists, and the Next advances past
+	// it), then the cursor loop serves 4..n exactly once.
+	if ok, err := c.Next(); err != nil || !ok {
+		t.Fatalf("step-off Next: ok=%v err=%v", ok, err)
+	}
+	count := 0
+	for {
+		_, rowID, err := c.ReadCellData()
+		if err != nil {
+			break
+		}
+		if rowID <= 3 {
+			t.Fatalf("rowid %d re-served after the step-off Next", rowID)
+		}
+		count++
+		if ok, err := c.Next(); err != nil || !ok {
+			break
+		}
+	}
+	if count != len(want)-3 {
+		t.Fatalf("cursor loop got %d cells, want %d", count, len(want)-3)
+	}
+}

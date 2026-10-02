@@ -42,7 +42,50 @@ func (st *scanState) initDirectDecode(feed *simpleAggFeed, plan scanDecodePlan) 
 	if st.directCols != nil {
 		st.directScratch = make([]interface{}, len(st.directCols))
 		st.initDirectAffinity()
+		st.initBarePassthrough(feed, plan)
 	}
+}
+
+// initBarePassthrough detects the pure all-bare-refs scan: no WHERE, no feed,
+// no joins/aggregate consumers (the bare output branch's own shape), and every
+// output column a directly decoded stored slot listed in output order. Only
+// that shape decodes straight into the flat output buffer
+// (scanRowBarePassthrough): between the decode and the output there is no
+// consumer at all.
+func (st *scanState) initBarePassthrough(feed *simpleAggFeed, plan scanDecodePlan) {
+	st.barePassthrough = feed == nil && plan.whereExpr == nil && !st.hasJoins &&
+		st.flatStride == len(st.bareOutIdx) && st.bareOutIdx != nil &&
+		sortedSlotsEqual(st.directCols, st.bareOutIdx)
+	if st.barePassthrough {
+		// An INTEGER PRIMARY KEY rowid-alias fill rides on the direct plan;
+		// record where each filled slot lands in the output window.
+		for _, slot := range st.directIPKIdx {
+			st.ipkPassthroughPos = append(st.ipkPassthroughPos, sortedSlotIndex(st.directCols, slot))
+		}
+	}
+}
+
+// sortedSlotsEqual reports whether the two sorted slot lists are identical.
+func sortedSlotsEqual(a, b []int) bool {
+	if len(a) != len(b) {
+		return false
+	}
+	for i := range a {
+		if a[i] != b[i] {
+			return false
+		}
+	}
+	return true
+}
+
+// sortedSlotIndex returns the position of slot in the sorted slots slice.
+func sortedSlotIndex(slots []int, slot int) int {
+	for i, s := range slots {
+		if s == slot {
+			return i
+		}
+	}
+	return 0 // unreachable: the fill's slots are direct slots
 }
 
 // initDirectAffinity restricts the scan's affinity plan to the direct slots
@@ -102,6 +145,39 @@ func (st *scanState) applyDirectAffinity(values []interface{}, rowID int64) {
 			values[i] = wrapPrecomputed(st.directIPKAff[k], st.directIPKColl[k], rowID)
 		}
 	}
+}
+
+// scanRowBarePassthrough decodes the bare output columns straight into the
+// flat output buffer. The pure all-bare-refs scan has no consumer between the
+// decode and the output, and every wrapper the pipeline could apply peels to
+// the raw decode value at output time (unwrapCollatedValue∘UnwrapColumnValue
+// is the identity on raw values, and the INTEGER PRIMARY KEY rowid-alias fill
+// peels to the rowid itself), so the reused row's slot round-trip, the
+// wrapper application, and the output peel all collapse.
+func (st *scanState) scanRowBarePassthrough(payload []byte, rowID int64) error {
+	n := len(st.bareOutIdx)
+	start := len(st.outValues)
+	for i := 0; i < n; i++ {
+		st.outValues = append(st.outValues, nil)
+	}
+	window := st.outValues[start : start+n : start+n]
+	count, err := storage.DecodeRecordColumns(payload, st.directCols, window)
+	if err != nil || count < st.activeColCount {
+		// A corrupt payload or a record written before ALTER TABLE ADD
+		// COLUMN: run the historical row pipeline for this row — its decode
+		// applies the added column's DEFAULT and its corrupt-payload
+		// fallback reproduces the full decode's silent-truncation semantics.
+		st.outValues = st.outValues[:start]
+		return st.scanRowDecoded(payload, rowID)
+	}
+	for k := range st.directIPKIdx {
+		pos := st.ipkPassthroughPos[k]
+		if window[pos] == nil {
+			window[pos] = rowID
+		}
+	}
+	st.outRowStarts = append(st.outRowStarts, start)
+	return nil
 }
 
 // directDecodeCols returns the scan's directly decoded slots, or nil when the

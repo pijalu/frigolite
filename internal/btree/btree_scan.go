@@ -173,6 +173,13 @@ func (c *Cursor) scanTableLeafPage(fn func(b *LeafBatch) (stop bool, err error))
 		return leafPageDone, err
 	}
 	if stop {
+		if c.state != cursorValid {
+			// The consumer stopped because a nested write saved the position
+			// mid-page (Cell's ErrScanSaved): the saved cell was fully
+			// consumed, so the cursor loop must STEP OFF it (one Next with
+			// the restore/skipNext dance), not re-read it.
+			return leafPageSaved, nil
+		}
 		return leafPageDone, nil
 	}
 	if c.state != cursorValid {
