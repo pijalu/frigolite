@@ -583,6 +583,19 @@ type scanState struct {
 	// storage.DecodeRecordColumns. Eligibility in select_scan_direct.go.
 	directCols    []int
 	directScratch []interface{}
+	// directWrap/directIPK are the affinity plan's application restricted to
+	// the direct slots: every consumer of the reused StructRow reads a DIRECT
+	// slot (the eligibility contract), so plan entries for undecoded slots are
+	// dead work — an INTEGER PRIMARY KEY rowid-alias fill for a slot nobody
+	// reads allocated a wrapper per row. Semantics match affinityPlan.apply on
+	// the slots that survive the restriction (wrap skips NULL, fill replaces a
+	// stored NULL with the rowid).
+	directWrapIdx  []int
+	directWrapAff  []rune
+	directWrapColl []string
+	directIPKIdx   []int
+	directIPKAff   []rune
+	directIPKColl  []string
 	// output accumulators
 	outValues    []interface{}
 	outRowStarts []int

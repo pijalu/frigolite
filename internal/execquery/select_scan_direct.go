@@ -41,6 +41,66 @@ func (st *scanState) initDirectDecode(feed *simpleAggFeed, plan scanDecodePlan) 
 	st.directCols = st.directDecodeCols(feed, plan)
 	if st.directCols != nil {
 		st.directScratch = make([]interface{}, len(st.directCols))
+		st.initDirectAffinity()
+	}
+}
+
+// initDirectAffinity restricts the scan's affinity plan to the direct slots
+// (see the scanState field docs): the plan's wrap and IPK-fill entries for
+// slots the direct read never decodes are dropped. When every plan entry is
+// a direct slot the restricted application is identical to affinityPlan.apply.
+func (st *scanState) initDirectAffinity() {
+	p := st.affPlan
+	if p == nil {
+		return
+	}
+	for k, i := range p.wrapIdx {
+		if sortedSlotPresent(st.directCols, i) {
+			st.directWrapIdx = append(st.directWrapIdx, i)
+			st.directWrapAff = append(st.directWrapAff, p.wrapAff[k])
+			st.directWrapColl = append(st.directWrapColl, p.wrapColl[k])
+		}
+	}
+	for k, i := range p.ipkIdx {
+		if sortedSlotPresent(st.directCols, i) {
+			st.directIPKIdx = append(st.directIPKIdx, i)
+			st.directIPKAff = append(st.directIPKAff, p.ipkAff[k])
+			st.directIPKColl = append(st.directIPKColl, p.ipkColl[k])
+		}
+	}
+}
+
+// sortedSlotPresent reports whether the sorted slots slice contains slot.
+func sortedSlotPresent(slots []int, slot int) bool {
+	lo, hi := 0, len(slots)-1
+	for lo <= hi {
+		mid := (lo + hi) / 2
+		switch {
+		case slots[mid] < slot:
+			lo = mid + 1
+		case slots[mid] > slot:
+			hi = mid - 1
+		default:
+			return true
+		}
+	}
+	return false
+}
+
+// applyDirectAffinity is affinityPlan.apply restricted to the direct slots
+// (initDirectAffinity): wrap the planned columns' values in place, then fill
+// INTEGER PRIMARY KEY rowid-alias columns whose stored NULL stands for the
+// rowid — but only for slots the direct read actually decodes.
+func (st *scanState) applyDirectAffinity(values []interface{}, rowID int64) {
+	for k, i := range st.directWrapIdx {
+		if v := values[i]; v != nil {
+			values[i] = wrapPrecomputed(st.directWrapAff[k], st.directWrapColl[k], v)
+		}
+	}
+	for k, i := range st.directIPKIdx {
+		if values[i] == nil {
+			values[i] = wrapPrecomputed(st.directIPKAff[k], st.directIPKColl[k], rowID)
+		}
 	}
 }
 
@@ -126,9 +186,7 @@ func (st *scanState) decodeRowDirect(payload []byte, rowID int64) error {
 	// written before ALTER TABLE ADD COLUMN need the added column's DEFAULT
 	// (only slots beyond the record's value count are filled).
 	st.e.applyColumnDefaults(values, st.colDefs, count)
-	if st.affPlan != nil {
-		st.affPlan.apply(values, rowID)
-	}
+	st.applyDirectAffinity(values, rowID)
 	return nil
 }
 
