@@ -30,7 +30,28 @@ func cloneStmtsWithValues(stmts []sql.Stmt, values []interface{}) ([]sql.Stmt, b
 // sql.ParameterExpr markers (statement literals are kept verbatim). Every
 // statement field is carried over so a substituted AST stays identical to a
 // fresh parse (the historical clone dropped Alias/CTEs/OrFail).
+//
+// The field walk order MUST match the statement's source order (WITH first,
+// then the VALUES tuples or the SELECT body): the normalizer extracts literal
+// values left-to-right over the raw text, so the WITH clause — which
+// syntactically precedes the INSERT keyword — contributes its literals BEFORE
+// the VALUES/SELECT body's. A walk visiting the select list or the tuples
+// first would cross-assign the values (the COUNT still lines up, so nothing
+// declines): "WITH s(i) AS (SELECT 501 UNION ALL SELECT i+1 FROM s WHERE i <
+// 5000) INSERT INTO t SELECT i, 'row' || i FROM s" would put 501 into the
+// 'row' literal, leave the anchor at the template's stale value, put 5000
+// into the i+1 increment, and put the string "row" into the guard's numeric
+// slot — an always-true integer<text comparison that ran a recursive CTE to
+// its 1M-row limit and duplicated 1M garbage rows into the table. The same
+// contract already governs the SELECT/UPDATE/DELETE walkers (see
+// selectStmt's walk-order note in template_clone_stmt.go).
 func (c *exprClone) insertStmtValues(s *sql.InsertStmt) (*sql.InsertStmt, error) {
+	// Clone WITH-clause bodies first (source order: the WITH clause precedes
+	// everything the INSERT clause contributes).
+	ctes, cteChanged, ok := c.ctes(s.CTEs)
+	if !ok {
+		return nil, fmt.Errorf("template clone: WITH clause refused")
+	}
 	clone := &sql.InsertStmt{
 		Table:        s.Table,
 		Alias:        s.Alias,
@@ -44,6 +65,11 @@ func (c *exprClone) insertStmtValues(s *sql.InsertStmt) (*sql.InsertStmt, error)
 		OrFail:       s.OrFail,
 		OrConflict:   s.OrConflict,
 		RawSQL:       s.RawSQL,
+	}
+	if cteChanged {
+		clone.CTEs = ctes
+	} else {
+		clone.CTEs = s.CTEs
 	}
 	// Clone values tuples
 	for vi, tuple := range s.Values {
@@ -63,16 +89,6 @@ func (c *exprClone) insertStmtValues(s *sql.InsertStmt) (*sql.InsertStmt, error)
 			return nil, fmt.Errorf("template clone: INSERT-SELECT refused")
 		}
 		clone.Select = sel
-	}
-	// Clone WITH-clause bodies
-	ctes, cteChanged, ok := c.ctes(s.CTEs)
-	if !ok {
-		return nil, fmt.Errorf("template clone: WITH clause refused")
-	}
-	if cteChanged {
-		clone.CTEs = ctes
-	} else {
-		clone.CTEs = s.CTEs
 	}
 	// Clone ON CONFLICT (upsert) expressions
 	conflict, conflictChanged, ok := c.conflictClause(s.OnConflict)

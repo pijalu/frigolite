@@ -6,6 +6,47 @@
 > followed by the current T33 session sections. Consult the archive for
 > closed-goal specifics (also in plan/goals/*.md and portplan/NA_EVIDENCE.md).
 
+## PERF.STRUCT-fix — template-cache INSERT clone walk order = source order (fleet/perf-struct-fix, 2026-10-02)
+
+- **The template cloner's walk order MUST match the statement's source
+  order — for INSERT too, not only SELECT/UPDATE/DELETE.** The normalizer
+  (normalizeSQLScratch) extracts literal values left-to-right over the raw
+  text; the walker consumes them positionally (c.idx). insertStmtValues
+  walked VALUES tuples → SELECT body → CTEs LAST, but an INSERT's WITH
+  clause precedes the INSERT keyword, so its literals are extracted FIRST.
+  With a same-shaped earlier statement in the template cache
+  (`WITH s(i) AS (SELECT 1 UNION ALL SELECT i+1 FROM s WHERE i < 500)
+  INSERT ... SELECT i, 'row' || i FROM s` then anchor-501/bound-5000), the
+  clone cross-assigned: 501 into the 'row' literal, the anchor left at the
+  template's 1, 5000 into the i+1 increment, and the STRING "row" into the
+  guard's numeric slot. Value count still matched the slot count, so every
+  guard passed and the statement silently executed the wrong AST: the
+  recursive CTE's guard became an always-true integer<text comparison and
+  ran to the 1M-row budget, inserting 1M garbage rows (count(*) 1000500 vs
+  5000; the corrupted run takes ~10s). Fix: clone CTEs before the
+  VALUES/SELECT body (frigolite_template_cte_order_test.go pins WR/rowid/
+  VALUES/bind shapes).
+- **Two symptoms were red herrings during forensics**: (1) the garbage rows
+  look like btree payload aliasing (`a = bound*j`, `b = str(anchor) || a`)
+  but integrity_check was "ok" and every value traceable to a wrongly
+  substituted literal — walk the DATA LINEAGE of garbage values before
+  suspecting storage; (2) the pre-existing btree pin
+  (TestT32KernelPinIndexRootSplitLeafToInterior) failed on main for the
+  same underlying reason (the repro's shape was already in its fixture).
+- **A recursive CTE's WHERE filters INPUT rows, so output reaches the bound
+  inclusively**: `... SELECT i+1 FROM s WHERE i < 10` yields 1..10 (oracle-
+  verified). A always-true guard therefore produces exactly rowLimit rows
+  (PRAGMA recursive_cte_limit, default 1000000) — a "magic" 1M row count in
+  any CTE repro means the guard never terminated.
+- **WITHOUT ROWID tables do not enforce PK uniqueness on INSERT (pre-
+  existing gap, repro 2026-10-02 on origin/main):** `CREATE TABLE w(a
+  INTEGER PRIMARY KEY, b TEXT) WITHOUT ROWID; INSERT INTO w VALUES(1,'x');
+  INSERT INTO w VALUES(1,'w')` stores both rows (count 2, DISTINCT a 1;
+  oracle: "UNIQUE constraint failed: w.a"). The rowid-table path correctly
+  errors. This gap amplified the clone-order corruption (garbage rows with
+  duplicate PKs coexisted with legit rows; integrity_check stayed "ok").
+  Follow-up needed in the WR insert conflict-scan path.
+
 ## PERF.PARITY-tplgate — template-cache same-kind substitution vs the parser's minus fold (fleet/perf-parity-tplgate, 2026-10-01)
 
 - **One normalized key can serve statements whose parsed ASTs differ in
