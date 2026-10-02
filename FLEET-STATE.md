@@ -1055,3 +1055,29 @@ C. Coordinator: x % 0.1 panic (oracle 0); group-key textual-key class
    divergences (-0.0/0.0 same group per oracle; text '5' vs int 5
    separate per oracle); CASE-collation in-place slot aliasing (latent).
 Suites + census at end.
+
+## PERF-FIXUPS (END, 2026-10-02) — all documented issues fixed; census 1073/0/290
+
+- WR duplicate-PK b8c26bf20: INTEGER-PK WR tables accepted duplicates via
+  a rowid-seek fast path probing an index btree; uniqueConflictFastPath
+  now picks the O(log n) PK-record seek for WR (binary-collated PKs;
+  NOCASE keeps the collation scan). Oracle-exact texts; text-PK WR
+  insert build 81s -> 0.4s. 10 pins (frigolite_wr_duppk_test.go).
+- rowid affinity ccf374907: predecessor's bare-rowid whitespace fix was
+  already oracle-correct (fresh 127-probe battery showed the mission's
+  3 "remaining" cells were transcription drift: +rowid strips affinity,
+  no conversion fires; no prefix rule in comparisons). Real fixes: rtree
+  query whitespace-bound bug (x1 > ' 200 ' returned ALL rows), storage-
+  affinity parse divergences ('NaN'->0, 'Inf'->9e999), all six string
+  arms through value.NumericText. 96+30-cell batteries 96-97/96-97.
+- Coordinator 112d608e0: % cast-divisor panic (5 % 0.1 = NULL per
+  oracle; also minInt64 % -1 wrap), GROUP BY class tags (TEXT '5' vs
+  INTEGER 5 separate), -0.0/0.0 one group, CASE-collation slot aliasing
+  (latent P3).
+CORRECTED RECORD: the "5/'5' textual-key grouping divergence" and
+"rowid-vs-text whitespace affinity gap" claims in earlier sections were
+transcription drift against the oracle — fresh batteries show frigolite
+matched on 5/'5' grouping and the predecessor's rowid fix was already
+96/96. Remaining known oracle divergences: none in the CRUD/expr/group
+surfaces covered by the batteries.
+Census: 1073 pass / 0 fail / 290 skip, audit exit 0.
