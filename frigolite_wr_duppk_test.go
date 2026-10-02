@@ -248,7 +248,7 @@ func TestWithoutRowidInsertDuplicatePKSeekDeepTable(t *testing.T) {
 	}
 	for _, probe := range []int{1, 1000, 2000, 1377} {
 		res := db.Exec(fmt.Sprintf("INSERT INTO d VALUES(%d, 'dup')", probe))
-		want := fmt.Sprintf("UNIQUE constraint failed: d.a")
+		want := "UNIQUE constraint failed: d.a"
 		if res.Error == nil || res.Error.Error() != want {
 			t.Fatalf("probe %d: error %v, want [%s]", probe, res.Error, want)
 		}

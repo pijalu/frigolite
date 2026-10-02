@@ -738,6 +738,13 @@ func (e *SelectEngine) scanDecodePlan(s *sql.SelectStmt, colDefs []sql.ColumnDef
 	plan.useLazyDecode = (s.Where != nil || feed != nil) && !hasJoins && !whereHasSubquery
 	if plan.useLazyDecode {
 		plan.whereDecodeIndices, plan.remainingDecodeIndices = scanLazyDecodeIndices(colDefs, colIndex, affinityCols)
+		// A grouped feed reads its key-term and aggregate-argument slots
+		// regardless of the affinity walk's exemptions (a bare GROUP BY term
+		// over a no-collation column is exempt from wrapping, not from
+		// decoding).
+		if feed != nil && feed.group != nil {
+			feed.group.unionDecodeSlots(plan.whereDecodeIndices)
+		}
 	}
 	// LIKE-optimization range synthesis (whereexpr.c exprAnalyze): decorate
 	// index-usable LIKE/GLOB conjuncts for this scan only (s.Where itself is

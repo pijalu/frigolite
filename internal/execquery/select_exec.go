@@ -242,11 +242,17 @@ func (e *SelectEngine) execRealTableSelect(s *sql.SelectStmt) *Result {
 	}
 	// Simple-aggregate feed (OP_AggStep parity): a bare COUNT/SUM/AVG/TOTAL
 	// select over one real rowid table accumulates straight from the row
-	// loop's decoded values. The feed stays a statement-LOCAL value handed to
-	// the seek/scan loops and consumed by finishSimpleAggFeed below — never
-	// engine state, so a nested statement (a WHERE subquery) can neither step
-	// nor consume an enclosing statement's feed.
+	// loop's decoded values. The grouped-aggregate feed extends the same
+	// machinery to GROUP BY statements whose output is bare aggregates and
+	// GROUP BY term projections (select_agg_groupfeed.go). The feed stays a
+	// statement-LOCAL value handed to the seek/scan loops and consumed by
+	// finishSimpleAggFeed below — never engine state, so a nested statement
+	// (a WHERE subquery) can neither step nor consume an enclosing
+	// statement's feed.
 	feed := e.compileSimpleAggFeed(s, tableEntry, colDefs)
+	if feed == nil && len(s.GroupBy) > 0 {
+		feed = e.compileGroupedAggFeed(s, tableEntry, colDefs)
+	}
 	tree := e.ctx.TableBTreePg(dbCtx.Pager, tableEntry.Name, tableEntry.RootPage, true)
 	cursor, err := tree.OpenCursor()
 	if err != nil {
