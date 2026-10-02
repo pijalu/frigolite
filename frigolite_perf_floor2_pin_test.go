@@ -253,3 +253,75 @@ func TestPinTVFArgScopeFastPathPreserved(t *testing.T) {
 		t.Fatalf("plain select = %v err %v", q.Rows, q.Error)
 	}
 }
+
+// TestPinPreupdateAffinityMemo pins applyPreupdateAffinity's memoized table
+// resolution: the preupdate hook must observe affinity-faithful values for
+// every row of a multi-row statement, per target table — including when DDL
+// replaces a table with a same-shaped one of different affinities, and when
+// two same-shaped tables with different column types interleave.
+func TestPinPreupdateAffinityMemo(t *testing.T) {
+	db, err := Open(":memory:")
+	if err != nil {
+		t.Fatalf("open: %v", err)
+	}
+	defer db.Close()
+
+	// snap captures the current preupdate event's new-row values.
+	var got [][]interface{}
+	db.SetPreupdateHook(func() {
+		row := make([]interface{}, db.PreupdateCount())
+		for i := range row {
+			row[i] = db.PreupdateNew(i)
+		}
+		got = append(got, row)
+	})
+
+	mustOK := func(stage, sql string) {
+		if res := db.Exec(sql); res.Error != nil {
+			t.Fatalf("%s: exec %q: %v", stage, sql, res.Error)
+		}
+	}
+	// Multi-row INSERT over a REAL column: every hook fire must see the
+	// REAL affinity applied to the integral literals (bind2 IntReal
+	// round-trip: values surface as float64).
+	mustOK("setup", "CREATE TABLE t(id INTEGER PRIMARY KEY, r REAL)")
+	mustOK("insert", "INSERT INTO t VALUES(1, 1), (2, 2)")
+	if len(got) != 2 {
+		t.Fatalf("hook fires = %d, want 2", len(got))
+	}
+	for i, row := range got {
+		if _, ok := row[1].(float64); !ok {
+			t.Fatalf("fire %d r value %T = %v, want float64 (REAL affinity)", i, row[1], row[1])
+		}
+	}
+
+	// DDL replaces the table with a same-shaped one (INTEGER r): the memo
+	// must rebuild and the hook must now see int64.
+	got = nil
+	mustOK("recreate", "DROP TABLE t")
+	mustOK("recreate", "CREATE TABLE t(id INTEGER PRIMARY KEY, r INTEGER)")
+	mustOK("insert2", "INSERT INTO t VALUES(1, 1)")
+	if len(got) != 1 {
+		t.Fatalf("post-DDL hook fires = %d, want 1", len(got))
+	}
+	if _, ok := got[0][1].(int64); !ok {
+		t.Fatalf("post-DDL r value %T = %v, want int64 (INTEGER affinity)", got[0][1], got[0][1])
+	}
+
+	// Two same-shaped tables (one column each) with different affinities,
+	// interleaved: each statement's hook values follow its own target table.
+	got = nil
+	mustOK("siblings", "CREATE TABLE t1(v REAL)")
+	mustOK("siblings", "CREATE TABLE t2(v INTEGER)")
+	mustOK("sib-ins", "INSERT INTO t1 VALUES(3)")
+	mustOK("sib-ins", "INSERT INTO t2 VALUES(3)")
+	if len(got) != 2 {
+		t.Fatalf("sibling hook fires = %d, want 2", len(got))
+	}
+	if _, ok := got[0][0].(float64); !ok {
+		t.Fatalf("t1 v value %T = %v, want float64", got[0][0], got[0][0])
+	}
+	if _, ok := got[1][0].(int64); !ok {
+		t.Fatalf("t2 v value %T = %v, want int64", got[1][0], got[1][0])
+	}
+}

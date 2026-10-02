@@ -92,13 +92,29 @@ func (e *Engine) FirePreupdate(ev execdml.PreupdateEvent) *Result {
 
 // applyPreupdateAffinity rewrites the current preupdate event's old/new
 // values with the target table's declared column affinities so every
-// consumer sees faithful values.
+// consumer sees faithful values. The table resolution is memoized per engine
+// (preAff* fields): a multi-row DML statement fires this per row for the same
+// table, and the per-row findTable (external-mod probe + trigger-scope +
+// table-cache lookup) dominated the point DML floor. The memo key is the
+// folded schema fingerprint of every attached database plus the table name —
+// any DDL (local cookie/mutation epoch or external cache drop) moves a
+// fingerprint and rebuilds the entry, the same contract the execquery
+// seekColIndexFor and execdml columnIndexFor memos rely on. entry.Columns is
+// immutable once cached (schema entries are replaced, never edited), so the
+// memo cannot serve mutated column state.
 func (e *Engine) applyPreupdateAffinity() {
-	entry, _, err := e.findTable(e.preupdate.Table)
-	if err != nil || entry == nil {
-		return
+	name := e.preupdate.Table
+	if e.preAffEntry == nil || e.preAffName != name || e.preAffFingerprint != e.allSchemasFingerprint() {
+		entry, _, err := e.findTable(name)
+		if err != nil || entry == nil {
+			// Resolution failed: leave the event values untouched and drop
+			// the memo so a later statement re-resolves.
+			e.preAffEntry = nil
+			return
+		}
+		e.preAffName, e.preAffFingerprint, e.preAffEntry = name, e.allSchemasFingerprint(), entry
 	}
-	cols := entry.Columns
+	cols := e.preAffEntry.Columns
 	if cols == nil {
 		return
 	}
@@ -112,6 +128,20 @@ func (e *Engine) applyPreupdateAffinity() {
 			e.preupdate.New[i] = value.ApplyColumnAffinity(e.preupdate.New[i], cols[i].Type)
 		}
 	}
+}
+
+// allSchemasFingerprint folds the schema fingerprint of every attached
+// database (main included) into one key, so a change in ANY schema — the
+// place findTable may resolve a name from — invalidates engine-side
+// name→entry memos.
+func (e *Engine) allSchemasFingerprint() uint64 {
+	fp := uint64(0)
+	for _, ctx := range e.dbList {
+		if ctx != nil && ctx.Schema != nil {
+			fp = fp*0x9E3779B97F4A7C15 ^ ctx.Schema.SchemaFingerprint()
+		}
+	}
+	return fp
 }
 
 // FireUpdateHook reports a row-level INSERT/UPDATE/DELETE on a ROWID table to

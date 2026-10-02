@@ -225,6 +225,13 @@ type Engine struct {
 	// current event (old/new column values) is held in preupdate.
 	preupdateHook func()
 	preupdate     execdml.PreupdateEvent
+	// preAff* memoizes applyPreupdateAffinity's table resolution (see
+	// preupdate.go): folded all-schemas fingerprint + table name → schema
+	// entry. Multi-row DML fires the preupdate per row for one table; the
+	// memo keeps that at one findTable per statement instead of per row.
+	preAffName        string
+	preAffFingerprint uint64
+	preAffEntry       *schema.Entry
 	// commitHook / rollbackHook / updateHook hold the sqlite3_commit_hook,
 	// sqlite3_rollback_hook, and sqlite3_update_hook callbacks.
 	commitHook   func() int
