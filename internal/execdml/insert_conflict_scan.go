@@ -28,18 +28,15 @@ func (e *DMLExecutor) findRowByUniqueCols(tableName string, rootPage uint32, col
 		return 0, nil, -1, false
 	}
 
-	// Fast path: when the only unique column is an INTEGER PRIMARY KEY, the
-	// column value IS the rowid, so a conflict can be detected with a direct
-	// rowid seek instead of a full-table scan. This matters for large tables
-	// (e.g. delete3.test doubles a table via INSERT...SELECT 20 times) where
-	// scanning per-row would be O(n²). The seek is definitive: if the rowid
-	// does not exist there can be no UNIQUE conflict, so we return the result
-	// directly without falling through to scanForConflict.
-	if len(uniqueCols) == 1 {
-		idx := uniqueCols[0]
-		if idx < len(colDefs) && isIPKRowidAliasCol(colDefs[idx]) {
-			return e.ipkRowidAliasConflict(tableName, rootPage, colDefs, values, idx)
-		}
+	// Fast paths: an O(log n) seek answers the conflict question without a
+	// table scan when the btree's own key answers it (a WITHOUT ROWID table's
+	// PK-keyed index btree, or a ROWID table's INTEGER PRIMARY KEY rowid
+	// alias). uniqueConflictFastPath reports handled=true only when its seek
+	// is definitive for every uniqueness source this function owns (the
+	// single-column unique/PK set); otherwise the collation-aware scan below
+	// runs.
+	if rowID, vals, col, found, handled := e.uniqueConflictFastPath(tableName, createSQL, rootPage, colDefs, uniqueCols, values); handled {
+		return rowID, vals, col, found
 	}
 
 	tree := e.uniqueScanTree(tableName, rootPage)
@@ -50,6 +47,41 @@ func (e *DMLExecutor) findRowByUniqueCols(tableName string, rootPage uint32, col
 	}
 
 	return e.scanForConflict(cursor, uniqueCols, values, colDefs, createSQL)
+}
+
+// uniqueConflictFastPath answers the single-column UNIQUE/PK conflict question
+// with an O(log n) seek when the btree's own key can decide it, reporting
+// handled=true only when the seek is definitive for every uniqueness source
+// findRowByUniqueCols owns (the single-column set); handled=false falls back
+// to the collation-aware scanForConflict.
+//
+// WITHOUT ROWID tables: the btree is an INDEX btree keyed by the PRIMARY KEY
+// record — its cells carry synthetic rowids, so the conflict probe is a PK-key
+// seek (wrPKSeekConflict). A non-BINARY PK collation or a second unique column
+// keeps the scan (the binary seek order cannot place a collated duplicate).
+//
+// ROWID tables: when the only unique column is an INTEGER PRIMARY KEY, the
+// column value IS the rowid, so a direct rowid seek answers it (this matters
+// for large tables — e.g. delete3.test doubles a table via INSERT...SELECT 20
+// times, where scanning per-row would be O(n²)). The seek is definitive: if
+// the rowid does not exist there can be no UNIQUE conflict.
+func (e *DMLExecutor) uniqueConflictFastPath(tableName, createSQL string, rootPage uint32, colDefs []sql.ColumnDef, uniqueCols []int, values []interface{}) (int64, []interface{}, int, bool, bool) {
+	if len(uniqueCols) != 1 {
+		return 0, nil, -1, false, false
+	}
+	idx := uniqueCols[0]
+	if tableIsWithoutRowid(createSQL) {
+		if idx < len(colDefs) && idx == wrPKFirstIndex(createSQL, colDefs) && wrPKSeekApplies(createSQL, colDefs) {
+			rowID, vals, col, found := e.wrPKSeekConflict(tableName, createSQL, rootPage, colDefs, values)
+			return rowID, vals, col, found, true
+		}
+		return 0, nil, -1, false, false
+	}
+	if idx < len(colDefs) && isIPKRowidAliasCol(colDefs[idx]) {
+		rowID, vals, col, found := e.ipkRowidAliasConflict(tableName, rootPage, colDefs, values, idx)
+		return rowID, vals, col, found, true
+	}
+	return 0, nil, -1, false, false
 }
 
 // uniqueScanTree builds the btree used by UNIQUE/PRIMARY KEY conflict scans,

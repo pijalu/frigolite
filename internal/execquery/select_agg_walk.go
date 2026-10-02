@@ -498,14 +498,27 @@ func unwrapGroupByValue(v interface{}) interface{} {
 // value (so the key stays lossless). The scalar cases avoid the fmt walk —
 // this runs per GROUP BY term per row.
 func collationGroupKey(v interface{}, coll string) string {
+	// Storage-class tags keep values that COMPARE unequal in separate groups:
+	// SQLite's GROUP BY never merges a TEXT '5' with an INTEGER 5 (text vs
+	// number is an ordering relation, not equality), while numerics across
+	// int/real spellings share one group (5 = 5.0). Numerics keep the bare
+	// spelling; text/blob carry a class tag a number can never spell.
 	var s string
 	switch t := v.(type) {
 	case string:
-		s = t
+		s = "\x01" + t
+	case []byte:
+		s = "\x02" + string(t)
 	case int64:
 		s = strconv.FormatInt(t, 10)
 	case float64:
 		// fmt's %v for float64 is strconv 'g' with the shortest representation.
+		// Negative zero normalizes to plain zero: SQLite's GROUP BY treats
+		// 0.0 and -0.0 as one group (they compare equal), but 'g' spells
+		// them "-0" and "0" — distinct textual keys would split them.
+		if t == 0 {
+			t = 0
+		}
 		s = strconv.FormatFloat(t, 'g', -1, 64)
 	case bool:
 		if t {

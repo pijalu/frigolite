@@ -284,3 +284,78 @@ func TestGroupByTypedKeyEquality(t *testing.T) {
 		}
 	}
 }
+
+// TestGroupKeyClassSeparation pins the storage-class tags in
+// collationGroupKey (sqlite3-oracle parity): INTEGER 5 and TEXT '5' are
+// SEPARATE groups (text vs number is an ordering relation, not equality),
+// while 0.0 and -0.0 share ONE group (they compare equal; the 'g' spelling
+// of -0.0 normalizes to "0" so the textual keys agree).
+func TestGroupKeyClassSeparation(t *testing.T) {
+	db, err := Open(":memory:")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer db.Close()
+	if r := db.Exec("CREATE TABLE u(v); INSERT INTO u VALUES(5),('5')"); r.Error != nil {
+		t.Fatal(r.Error)
+	}
+	r := db.Query("SELECT count(*), typeof(v) FROM u GROUP BY v ORDER BY typeof(v)")
+	if r.Error != nil {
+		t.Fatal(r.Error)
+	}
+	want := []struct {
+		count  int64
+		typeof string
+	}{{1, "integer"}, {1, "text"}}
+	if len(r.Rows) != len(want) {
+		t.Fatalf("groups: %v", r.Rows)
+	}
+	for i, row := range r.Rows {
+		if row[0] != want[i].count || row[1] != want[i].typeof {
+			t.Fatalf("group %d: %v, want {%d %s}", i, row, want[i].count, want[i].typeof)
+		}
+	}
+	if r := db.Exec("CREATE TABLE z(v); INSERT INTO z VALUES(0.0),(-0.0)"); r.Error != nil {
+		t.Fatal(r.Error)
+	}
+	r = db.Query("SELECT count(*), typeof(v) FROM z GROUP BY v")
+	if r.Error != nil {
+		t.Fatal(r.Error)
+	}
+	if len(r.Rows) != 1 || r.Rows[0][0] != int64(2) {
+		t.Fatalf("-0.0/0.0 groups: %v, want one group of 2", r.Rows)
+	}
+}
+
+// TestModCastDivisor pins SQLite's % semantics: both operands cast to
+// int64 BEFORE the modulo, so the divisor that matters is the cast one —
+// 5 % 0.1 is 5 % 0 → NULL (never a Go integer divide-by-zero panic), and
+// minInt64-class wraps for a -1 divisor yield 0.
+func TestModCastDivisor(t *testing.T) {
+	db, err := Open(":memory:")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer db.Close()
+	cases := []struct {
+		sql  string
+		null bool
+	}{
+		{"SELECT 5 % 0.1", true},
+		{"SELECT -5 % 0.1", true},
+		{"SELECT 5 % 0", true},
+		{"SELECT 5.5 % 2.0", false},
+	}
+	for _, c := range cases {
+		r := db.Query(c.sql)
+		if r.Error != nil {
+			t.Fatalf("%s: %v", c.sql, r.Error)
+		}
+		if c.null && r.Rows[0][0] != nil {
+			t.Fatalf("%s = %v, want NULL", c.sql, r.Rows[0][0])
+		}
+		if !c.null && r.Rows[0][0] == nil {
+			t.Fatalf("%s = NULL, want a value", c.sql)
+		}
+	}
+}

@@ -38,14 +38,28 @@
   verified). A always-true guard therefore produces exactly rowLimit rows
   (PRAGMA recursive_cte_limit, default 1000000) — a "magic" 1M row count in
   any CTE repro means the guard never terminated.
-- **WITHOUT ROWID tables do not enforce PK uniqueness on INSERT (pre-
-  existing gap, repro 2026-10-02 on origin/main):** `CREATE TABLE w(a
+- **WITHOUT ROWID PK-uniqueness-on-INSERT gap — FIXED (fleet/fix-wr-duppk,
+  2026-10-02; was repro'd 2026-10-02 on origin/main):** `CREATE TABLE w(a
   INTEGER PRIMARY KEY, b TEXT) WITHOUT ROWID; INSERT INTO w VALUES(1,'x');
-  INSERT INTO w VALUES(1,'w')` stores both rows (count 2, DISTINCT a 1;
-  oracle: "UNIQUE constraint failed: w.a"). The rowid-table path correctly
-  errors. This gap amplified the clone-order corruption (garbage rows with
-  duplicate PKs coexisted with legit rows; integrity_check stayed "ok").
-  Follow-up needed in the WR insert conflict-scan path.
+  INSERT INTO w VALUES(1,'w')` used to store both rows (oracle: "UNIQUE
+  constraint failed: w.a"). ROOT CAUSE: findRowByUniqueCols' single-unique-
+  column fast path matched `isIPKRowidAliasCol` for ANY INTEGER PRIMARY KEY —
+  including WR tables — and seeked the btree by CELL ROWID (SeekToRowID), but
+  a WR table's btree is an INDEX btree keyed by the PK record whose cells
+  carry synthetic rowids, so the seek missed and no other check ran. TEXT/
+  REAL/BLOB/composite PKs skipped the fast path and were caught by the
+  collation-aware scanForConflict full scan. FIX (conflict-scan layer):
+  gate the IPK fast path on rowid tables; add wrPKSeekConflict — an O(log n)
+  exact-key probe (cursor.SeekToKey over WRRecordComparator) whose PK-only
+  probe record sorts strictly before equal-PK full rows (shorter-record-first
+  tiebreak), so the landing cell IS the lower bound of the PK key; compare
+  the landing cell's PK slots with wrValuesEqual. Applies only when every PK
+  column is BINARY-collated (the btree's at-rest order is binary); a NOCASE
+  PK keeps the collation-aware scan (oracle: 'ABC' vs 'abc' still conflicts).
+  Side effect: TEXT-PK WR inserts went from per-row full scan to seek (20k-row
+  build 81s → 0.4s). OR IGNORE/REPLACE, upsert, synthetic-rowid fallback and
+  rowid tables unchanged. The WR duplicate-PK coexistence in the clone-order
+  corruption can no longer occur from this path.
 
 ## PERF.PARITY-tplgate — template-cache same-kind substitution vs the parser's minus fold (fleet/perf-parity-tplgate, 2026-10-01)
 
