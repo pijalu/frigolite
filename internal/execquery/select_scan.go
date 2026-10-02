@@ -463,56 +463,60 @@ func (e *SelectEngine) scanTableRowsWithSQL(cursor *btree.Cursor, s *sql.SelectS
 	return allRows, st.allRowMaps, st.aggRows, nil
 }
 
-// runScan drives the row iteration loop: read a cell, decode + filter it, and
-// accumulate output rows/maps for rows that pass (or all rows for joins).
+// runScan drives the row iteration loop: the page-batch walker decodes cells
+// page-locally when possible (select_scan_batch.go), and the cursor loop
+// finishes whatever the batch declined or could not decode.
 func (st *scanState) runScan(cursor *btree.Cursor) error {
+	saved, err := st.runScanBatch(cursor)
+	if err != nil {
+		return err
+	}
+	if saved {
+		// A nested write saved the position mid-scan: step off the saved cell
+		// exactly like the cursor loop's Next (restore re-seeks; skipNext
+		// returns the next-larger entry), then finish on the cursor loop.
+		if _, err := cursor.Next(); err != nil {
+			return nil // swallowed like the loop's advanceCursor
+		}
+	}
 	for {
 		payload, rowID, err := cursor.ReadCellData()
 		if err != nil {
 			break
 		}
-		if cont, err := st.processRow(cursor, payload, rowID); err != nil {
+		if err := st.scanRow(payload, rowID); err != nil {
 			return err
-		} else if !cont {
+		}
+		if ok, err := cursor.Next(); err != nil || !ok {
 			break
 		}
 	}
 	return nil
 }
 
-// processRow handles a single scanned cell. It decodes and filters the row, then
-// builds output when appropriate. Returns (continue, error): continue is false
-// when the scan should stop (no more cells), true to keep scanning.
-func (st *scanState) processRow(cursor *btree.Cursor, payload []byte, rowID int64) (bool, error) {
-	passesWhere, filtered, err := st.decodeAndFilterRow(cursor, payload, rowID)
+// scanRow handles a single scanned cell: decode + filter it, then build
+// output when appropriate. Cursor-free so the batch walker and the cursor
+// loop share one body; the caller owns advancing.
+func (st *scanState) scanRow(payload []byte, rowID int64) error {
+	passesWhere, filtered, err := st.decodeAndFilterRow(payload, rowID)
 	if err != nil {
-		return false, err
+		return err
 	}
 	if filtered {
-		return advanceCursor(cursor)
+		return nil
 	}
 	if st.hasJoins || passesWhere {
 		if st.feed != nil {
 			// Simple-aggregate feed: step from the decoded values; no output
 			// rows or row maps (execSelectPostScan builds the result).
 			if err := st.feed.step(st.reuseSRow.Values, rowID); err != nil {
-				return false, err
+				return err
 			}
 		} else if err := st.appendRowOutput(); err != nil {
-			return false, err
+			return err
 		}
 	}
-	return advanceCursor(cursor)
-}
-
-// advanceCursor moves to the next cell. Returns (true, nil) if there is another
-// cell to read, or (false, nil) if the scan is exhausted.
-func advanceCursor(cursor *btree.Cursor) (bool, error) {
-	ok, err := cursor.Next()
-	if err != nil || !ok {
-		return false, nil
-	}
-	return true, nil
+	return nil
 }
 
 // scanState holds the per-scan configuration and output accumulators for
@@ -714,15 +718,15 @@ func (e *SelectEngine) positionalAggScan(s *sql.SelectStmt, feed *simpleAggFeed,
 // decodeAndFilterRow decodes the current row's columns and evaluates WHERE.
 // Returns (passesWhere, filtered, err). filtered is true only in the lazy-decode
 // path when the row fails WHERE early (remaining columns are not decoded); the
-// caller must advance the cursor and continue in that case.
-func (st *scanState) decodeAndFilterRow(cursor *btree.Cursor, payload []byte, rowID int64) (passesWhere, filtered bool, err error) {
+// caller advances to the next cell in that case.
+func (st *scanState) decodeAndFilterRow(payload []byte, rowID int64) (passesWhere, filtered bool, err error) {
 	// Direct column read: decode only the scan's referenced slots straight
 	// from the payload (no record-wide boxing). A corrupt payload falls back
 	// to the historical decode below, which reproduces its exact
 	// silent-truncation semantics on crafted pages.
 	if st.directCols != nil {
 		if err := st.decodeRowDirect(payload, rowID); err == nil {
-			passes, err := st.evalRowWhere(cursor)
+			passes, err := st.evalRowWhere()
 			return passes, false, err
 		}
 	}
@@ -735,18 +739,18 @@ func (st *scanState) decodeAndFilterRow(cursor *btree.Cursor, payload []byte, ro
 		return false, false, err
 	}
 	if st.useLazyDecode {
-		return st.decodeRowLazy(cursor, payload, dataStart, rowID, st.serialTypesBuf)
+		return st.decodeRowLazy(payload, dataStart, rowID, st.serialTypesBuf)
 	}
-	return st.decodeRowFull(cursor, payload, dataStart, rowID, st.serialTypesBuf)
+	return st.decodeRowFull(payload, dataStart, rowID, st.serialTypesBuf)
 }
 
 // decodeRowLazy is the two-phase lazy decode: decode only WHERE-referenced
 // columns (phase 1), evaluate WHERE, and if filtered return early so the
 // remaining (expensive) columns are never decoded. Otherwise decode the rest
 // (phase 2) using the cached serial types.
-func (st *scanState) decodeRowLazy(cursor *btree.Cursor, payload []byte, dataStart int, rowID int64, serialTypes []uint64) (bool, bool, error) {
+func (st *scanState) decodeRowLazy(payload []byte, dataStart int, rowID int64, serialTypes []uint64) (bool, bool, error) {
 	st.e.fillStructRowFromTypes(st.reuseSRow, payload, dataStart, st.colDefs, rowID, st.affPlan, serialTypes, st.whereDecodeIndices, nil)
-	passesWhere, err := st.evalRowWhere(cursor)
+	passesWhere, err := st.evalRowWhere()
 	if err != nil {
 		return false, false, err
 	}
@@ -763,22 +767,22 @@ func (st *scanState) decodeRowLazy(cursor *btree.Cursor, payload []byte, dataSta
 }
 
 // decodeRowFull decodes all columns at once, then evaluates WHERE.
-func (st *scanState) decodeRowFull(cursor *btree.Cursor, payload []byte, dataStart int, rowID int64, serialTypes []uint64) (bool, bool, error) {
+func (st *scanState) decodeRowFull(payload []byte, dataStart int, rowID int64, serialTypes []uint64) (bool, bool, error) {
 	// wrOrder drives the PK-first → declared permutation inside the fill
 	// (before affinity/defaults), so the row is fully declared-order here.
 	st.e.fillStructRowFromTypes(st.reuseSRow, payload, dataStart, st.colDefs, rowID, st.affPlan, serialTypes, nil, st.wrOrder)
-	passesWhere, err := st.evalRowWhere(cursor)
+	passesWhere, err := st.evalRowWhere()
 	return passesWhere, false, err
 }
 
 // evalRowWhere evaluates the WHERE predicate against the current row. Returns
 // true (pass) when there is no WHERE clause to evaluate here (joins defer WHERE
 // to later join processing).
-func (st *scanState) evalRowWhere(cursor *btree.Cursor) (bool, error) {
+func (st *scanState) evalRowWhere() (bool, error) {
 	if st.hasJoins || st.whereExpr == nil {
 		return true, nil
 	}
-	return st.e.rowPassesWhere(st.whereExpr, st.reuseSRow, cursor)
+	return st.e.rowPassesWhere(st.whereExpr, st.reuseSRow, nil)
 }
 
 func (st *scanState) buildResultRows() [][]interface{} {

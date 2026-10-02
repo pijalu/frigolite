@@ -827,7 +827,7 @@ func (c *Cursor) readTableLeafCellData() (payload []byte, rowID int64, err error
 		return nil, 0, fmt.Errorf("database disk image is malformed")
 	}
 
-	payload, rowID, pos, plen, localLen, err := c.tableLeafCellHeader(pg, cellOff)
+	payload, rowID, pos, plen, localLen, err := tableLeafCellHeader(pg, cellOff, c.tx.usableSize)
 	if err != nil {
 		return nil, 0, err
 	}
@@ -878,8 +878,9 @@ func (c *Cursor) readCellFallback() ([]byte, int64, error) {
 // rowid and the LOCAL payload slice (bounded by the page buffer). Returns
 // the payload, rowid, the offset just past the local payload, the full
 // payload length (for the overflow check) and the CLAMPED local length the
-// spill check must use.
-func (c *Cursor) tableLeafCellHeader(pg *pager.Page, cellOff int) ([]byte, int64, int, int, int, error) {
+// spill check must use. Shared by the cursor's ReadCellData fast path and
+// the page-batch scan (btree_scan.go) so both decode identically.
+func tableLeafCellHeader(pg *pager.Page, cellOff int, usableSize uint32) ([]byte, int64, int, int, int, error) {
 	data := pg.Data[cellOff:]
 
 	// Skip payload length varint
@@ -895,7 +896,7 @@ func (c *Cursor) tableLeafCellHeader(pg *pager.Page, cellOff int) ([]byte, int64
 	rowID := int64(rowid)
 
 	// Slice the local payload from the page data (no copy)
-	payloadLen := storage.LocalPayloadSize(int(plen), int(c.tx.usableSize), storage.CellTableLeaf)
+	payloadLen := storage.LocalPayloadSize(int(plen), int(usableSize), storage.CellTableLeaf)
 	if payloadLen > len(pg.Data)-pos {
 		payloadLen = len(pg.Data) - pos
 	}
