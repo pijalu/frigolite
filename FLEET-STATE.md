@@ -963,3 +963,21 @@ bench: update 106k ops/s (+42%), delete 104k (+60%), group 49 (+75%),
 point 144k, insert 198k. Gaps: insert 6.3x, point 5.8x, scan 6.3x,
 group 2.5x, update 7.0x, delete 11.9x.
 In flight: fleet/perf-struct-dml (single-pass UPDATE/DELETE pipeline).
+
+## PERF-STRUCT (END, 2026-10-02) — structural tranches landed; parity converged to 2.3-10.9x
+
+Tranches merged: tplgate a55419000 (same-kind template gate; parser
+rule-216 fold contract pinned), struct-scan 8afc20df9 (columnar
+DecodeRecordColumn(s) read path), struct-dml 96d7a5f0e (single-pass
+rowid-pinned UPDATE/DELETE + single-cell DeleteCellByRowID + encode
+diet), poolfix 433e3aac7, memofix f243cc18b.
+Final quiet table (vs sqlite3 3.54 literal): insert 231,856 ops/s
+(5.7x), point 199,632 (4.5x), scan 9,412,998 rows/s (5.6x), group 55
+(2.3x), update 133,209 (7.6x), delete 117,689 (10.9x), file autocommit
+1.6x FASTER. Since the 2026-09-28 baselines: insert 10.9x, point 1040x,
+scan 6.5x, group 3.9x, update 2049x, delete 885x faster. Census
+1073/0/290 audit exit 0.
+Structural facts that own the residual: interface-boxed value pipeline
+(scan 5.6x, update/delete 7.6-10.9x), group-key EvalExpr per row (2.3x),
+prepare/bind exec-only floor (point/insert 4.5-5.7x). Multi-round
+rewrites documented here — not scoped optimizations.

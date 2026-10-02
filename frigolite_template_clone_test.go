@@ -533,3 +533,49 @@ func TestTemplateVaryingLiteralsSubstitute(t *testing.T) {
 		t.Fatalf("hex insert value: %v", r.Rows)
 	}
 }
+
+// TestTemplateLimitCommaForm pins the LIMIT/OFFSET slot-order guard: the
+// comma form (LIMIT a, b = OFFSET a LIMIT b) and the keyword form
+// (LIMIT a OFFSET b) share one normalize key but bind their values in
+// opposite text order. Both literal slots present ⇒ the substitution must
+// decline (full parse), or the values cross-assign
+// (limit-1.4.2: LIMIT 30, 50 executed as LIMIT 50 OFFSET 30).
+func TestTemplateLimitCommaForm(t *testing.T) {
+	db, err := frigolite.Open(":memory:")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer db.Close()
+	must := func(sql string) {
+		if r := db.Exec(sql); r.Error != nil {
+			t.Fatalf("%s: %v", sql, r.Error)
+		}
+	}
+	must("CREATE TABLE t1(x)")
+	for i := 0; i <= 31; i++ {
+		must(fmt.Sprintf("INSERT INTO t1 VALUES(%d)", i))
+	}
+	// Same-shape statements with different limit/offset values through the
+	// template: comma form, keyword form, single-slot forms.
+	check := func(sql string, want string) {
+		t.Helper()
+		r := db.Query(sql)
+		if r.Error != nil {
+			t.Fatalf("%s: %v", sql, r.Error)
+		}
+		var got []string
+		for _, row := range r.Rows {
+			got = append(got, fmt.Sprint(row[0]))
+		}
+		if strings.Join(got, " ") != want {
+			t.Fatalf("%s = [%s], want [%s]", sql, strings.Join(got, " "), want)
+		}
+	}
+	check("SELECT x FROM t1 ORDER BY x LIMIT 2, 3", "2 3 4")
+	check("SELECT x FROM t1 ORDER BY x LIMIT 30, 50", "30 31")
+	check("SELECT x FROM t1 ORDER BY x LIMIT 30, 50", "30 31") // template hit
+	check("SELECT x FROM t1 ORDER BY x LIMIT 50 OFFSET 30", "30 31")
+	check("SELECT x FROM t1 ORDER BY x LIMIT 31 OFFSET 30", "30 31")
+	check("SELECT x FROM t1 ORDER BY x LIMIT 3 OFFSET 0", "0 1 2")
+	check("SELECT x FROM t1 ORDER BY x LIMIT 1", "0")
+}

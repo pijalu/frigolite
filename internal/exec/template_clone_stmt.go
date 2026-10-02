@@ -139,6 +139,16 @@ func (c *exprClone) selectEnd(sel *sql.SelectStmt, p *selectParts) (bool, bool) 
 	if !ok {
 		return false, false
 	}
+	// LIMIT <a>, <b> and LIMIT <a> OFFSET <b> share one normalize key but
+	// bind their values in opposite text order (comma form: a=OFFSET b=LIMIT;
+	// keyword form: a=LIMIT b=OFFSET), and this walk substitutes in fixed
+	// field order — a two-slot limit shape would cross-assign its values
+	// (limit-1.4.2: LIMIT 30, 50 executed as LIMIT 50 OFFSET 30). Both
+	// slots present ⇒ decline; the statement full-parses. One slot is
+	// unambiguous (it is the LIMIT, or the OFFSET of a keyword-form).
+	if limit != nil && offset != nil {
+		return false, false
+	}
 	unionChanged := false
 	union := sel.Union
 	if sel.Union != nil {
@@ -372,6 +382,15 @@ func (c *exprClone) updateTail(s *sql.UpdateStmt, p *updateParts) (bool, bool) {
 	if !ok {
 		return false, false
 	}
+	// LIMIT <a>, <b> vs LIMIT <a> OFFSET <b> share one normalize key but
+	// bind values in opposite text order; both slots present ⇒ decline
+	// (same cross-assignment hazard as the SELECT walk).
+	if limit != nil && offset != nil {
+		return false, false
+	}
+	if !ok {
+		return false, false
+	}
 	returning, retChanged, ok := c.returning(s.Returning)
 	if !ok {
 		return false, false
@@ -430,6 +449,15 @@ func (c *exprClone) deleteWalk(s *sql.DeleteStmt, p *deleteParts) (bool, bool) {
 		return false, false
 	}
 	offset, oChanged, ok := c.exprField(s.Offset)
+	if !ok {
+		return false, false
+	}
+	// LIMIT <a>, <b> vs LIMIT <a> OFFSET <b> share one normalize key but
+	// bind values in opposite text order; both slots present ⇒ decline
+	// (same cross-assignment hazard as the SELECT walk).
+	if limit != nil && offset != nil {
+		return false, false
+	}
 	if !ok {
 		return false, false
 	}

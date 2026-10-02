@@ -1,94 +1,94 @@
 {
   "version": 1,
-  "generated_at": "2026-10-01T21:23:55Z",
+  "generated_at": "2026-10-02T00:46:44Z",
   "concurrency": 2,
   "timeout": "25m0s",
   "packages": {
     "affinity2": {
       "state": "pass",
-      "duration": "708ms"
+      "duration": "789ms"
     },
     "affinity3": {
       "state": "pass",
-      "duration": "709ms"
+      "duration": "789ms"
     },
     "aggerror": {
       "state": "pass",
-      "duration": "707ms"
+      "duration": "716ms"
     },
     "aggfault": {
       "state": "pass",
-      "duration": "705ms"
+      "duration": "713ms"
     },
     "aggnested": {
       "state": "pass",
-      "duration": "712ms"
+      "duration": "988ms"
     },
     "aggorderby": {
       "state": "pass",
-      "duration": "1.22s"
+      "duration": "1.497s"
     },
     "alias": {
       "state": "pass",
-      "duration": "625ms"
+      "duration": "628ms"
     },
     "all": {
       "state": "pass",
-      "duration": "643ms"
+      "duration": "637ms"
     },
     "alter": {
       "state": "pass",
-      "duration": "658ms"
+      "duration": "651ms"
     },
     "alter2": {
       "state": "skipped"
     },
     "alter3": {
       "state": "pass",
-      "duration": "674ms"
+      "duration": "677ms"
     },
     "alter4": {
       "state": "pass",
-      "duration": "656ms"
+      "duration": "626ms"
     },
     "alterauth": {
       "state": "skipped"
     },
     "alterauth2": {
       "state": "pass",
-      "duration": "673ms"
+      "duration": "1.027s"
     },
     "altercol": {
       "state": "pass",
-      "duration": "697ms"
+      "duration": "1.017s"
     },
     "altercons": {
       "state": "pass",
-      "duration": "687ms"
+      "duration": "733ms"
     },
     "altercons2": {
       "state": "pass",
-      "duration": "620ms"
+      "duration": "649ms"
     },
     "altercons3": {
       "state": "pass",
-      "duration": "688ms"
+      "duration": "712ms"
     },
     "altercorrupt": {
       "state": "pass",
-      "duration": "695ms"
+      "duration": "698ms"
     },
     "alterdropcol": {
       "state": "pass",
-      "duration": "17.546s"
+      "duration": "17.351s"
     },
     "alterdropcol2": {
       "state": "pass",
-      "duration": "624ms"
+      "duration": "712ms"
     },
     "alterfault": {
       "state": "pass",
-      "duration": "610ms"
+      "duration": "627ms"
     },
     "alterlegacy": {
       "state": "pass",
@@ -96,95 +96,95 @@
     },
     "altermalloc": {
       "state": "pass",
-      "duration": "609ms"
+      "duration": "641ms"
     },
     "altermalloc2": {
       "state": "pass",
-      "duration": "611ms"
+      "duration": "616ms"
     },
     "altermalloc3": {
       "state": "pass",
-      "duration": "613ms"
+      "duration": "618ms"
     },
     "alterqf": {
       "state": "pass",
-      "duration": "623ms"
+      "duration": "617ms"
     },
     "altertab": {
       "state": "pass",
-      "duration": "666ms"
+      "duration": "661ms"
     },
     "altertab2": {
       "state": "pass",
-      "duration": "636ms"
+      "duration": "647ms"
     },
     "altertab3": {
       "state": "pass",
-      "duration": "1.082s"
+      "duration": "1.086s"
     },
     "altertrig": {
       "state": "pass",
-      "duration": "631ms"
+      "duration": "640ms"
     },
     "amatch1": {
       "state": "pass",
-      "duration": "2.17s"
+      "duration": "2.147s"
     },
     "analyze": {
       "state": "pass",
-      "duration": "635ms"
+      "duration": "636ms"
     },
     "analyze3": {
       "state": "pass",
-      "duration": "604ms"
+      "duration": "614ms"
     },
     "analyze4": {
       "state": "pass",
-      "duration": "649ms"
+      "duration": "623ms"
     },
     "analyze5": {
       "state": "pass",
-      "duration": "617ms"
+      "duration": "610ms"
     },
     "analyze6": {
       "state": "pass",
-      "duration": "620ms"
+      "duration": "616ms"
     },
     "analyze7": {
       "state": "pass",
-      "duration": "1.218s"
+      "duration": "1.219s"
     },
     "analyze8": {
       "state": "pass",
-      "duration": "618ms"
+      "duration": "616ms"
     },
     "analyze9": {
       "state": "pass",
-      "duration": "622ms"
+      "duration": "611ms"
     },
     "analyzeC": {
       "state": "pass",
-      "duration": "619ms"
+      "duration": "612ms"
     },
     "analyzeD": {
       "state": "pass",
-      "duration": "624ms"
+      "duration": "614ms"
     },
     "analyzeE": {
       "state": "pass",
-      "duration": "618ms"
+      "duration": "624ms"
     },
     "analyzeF": {
       "state": "pass",
-      "duration": "955ms"
+      "duration": "627ms"
     },
     "analyzeG": {
       "state": "pass",
-      "duration": "579ms"
+      "duration": "595ms"
     },
     "analyzer1": {
       "state": "pass",
-      "duration": "679ms"
+      "duration": "626ms"
     },
     "atof1": {
       "state": "skipped"
@@ -194,31 +194,31 @@
     },
     "atomic": {
       "state": "pass",
-      "duration": "632ms"
+      "duration": "606ms"
     },
     "atomic2": {
       "state": "pass",
-      "duration": "656ms"
+      "duration": "611ms"
     },
     "attach": {
       "state": "pass",
-      "duration": "667ms"
+      "duration": "644ms"
     },
     "attach2": {
       "state": "pass",
-      "duration": "662ms"
+      "duration": "618ms"
     },
     "attach3": {
       "state": "pass",
-      "duration": "653ms"
+      "duration": "621ms"
     },
     "attach4": {
       "state": "pass",
-      "duration": "690ms"
+      "duration": "628ms"
     },
     "attachmalloc": {
       "state": "pass",
-      "duration": "688ms"
+      "duration": "602ms"
     },
     "auth": {
       "state": "skipped"
@@ -234,59 +234,59 @@
     },
     "autoinc": {
       "state": "pass",
-      "duration": "699ms"
+      "duration": "664ms"
     },
     "autoindex1": {
       "state": "pass",
-      "duration": "765ms"
+      "duration": "731ms"
     },
     "autoindex2": {
       "state": "pass",
-      "duration": "671ms"
+      "duration": "636ms"
     },
     "autoindex3": {
       "state": "pass",
-      "duration": "623ms"
+      "duration": "622ms"
     },
     "autoindex4": {
       "state": "pass",
-      "duration": "669ms"
+      "duration": "631ms"
     },
     "autoindex5": {
       "state": "pass",
-      "duration": "658ms"
+      "duration": "655ms"
     },
     "autovacuum": {
       "state": "pass",
-      "duration": "2.54s"
+      "duration": "2.402s"
     },
     "autovacuum2": {
       "state": "pass",
-      "duration": "616ms"
+      "duration": "613ms"
     },
     "autovacuum_ioerr2": {
       "state": "pass",
-      "duration": "627ms"
+      "duration": "598ms"
     },
     "avfs": {
       "state": "pass",
-      "duration": "635ms"
+      "duration": "629ms"
     },
     "avtrans": {
       "state": "pass",
-      "duration": "35.977s"
+      "duration": "36.358s"
     },
     "backcompat": {
       "state": "pass",
-      "duration": "611ms"
+      "duration": "597ms"
     },
     "backup": {
       "state": "pass",
-      "duration": "2.653s"
+      "duration": "2.655s"
     },
     "backup2": {
       "state": "pass",
-      "duration": "841ms"
+      "duration": "838ms"
     },
     "backup4": {
       "state": "pass",
@@ -294,7 +294,7 @@
     },
     "backup5": {
       "state": "pass",
-      "duration": "640ms"
+      "duration": "633ms"
     },
     "backup_ioerr": {
       "state": "skipped"
@@ -304,15 +304,15 @@
     },
     "badutf": {
       "state": "pass",
-      "duration": "612ms"
+      "duration": "631ms"
     },
     "badutf2": {
       "state": "pass",
-      "duration": "632ms"
+      "duration": "621ms"
     },
     "basexx1": {
       "state": "pass",
-      "duration": "749ms"
+      "duration": "753ms"
     },
     "bestindex1": {
       "state": "skipped"
@@ -364,35 +364,35 @@
     },
     "between": {
       "state": "pass",
-      "duration": "625ms"
+      "duration": "617ms"
     },
     "bigfile": {
       "state": "pass",
-      "duration": "626ms"
+      "duration": "632ms"
     },
     "bigfile2": {
       "state": "pass",
-      "duration": "614ms"
+      "duration": "667ms"
     },
     "bigmmap": {
       "state": "pass",
-      "duration": "642ms"
+      "duration": "624ms"
     },
     "bigrow": {
       "state": "pass",
-      "duration": "936ms"
+      "duration": "897ms"
     },
     "bigsort": {
       "state": "pass",
-      "duration": "4.617s"
+      "duration": "4.558s"
     },
     "bind": {
       "state": "pass",
-      "duration": "644ms"
+      "duration": "651ms"
     },
     "bind2": {
       "state": "pass",
-      "duration": "621ms"
+      "duration": "628ms"
     },
     "bindxfer": {
       "state": "skipped"
@@ -402,39 +402,39 @@
     },
     "blob": {
       "state": "pass",
-      "duration": "630ms"
+      "duration": "618ms"
     },
     "bloom1": {
       "state": "pass",
-      "duration": "637ms"
+      "duration": "635ms"
     },
     "boundary1": {
       "state": "pass",
-      "duration": "1.995s"
+      "duration": "1.977s"
     },
     "boundary2": {
       "state": "pass",
-      "duration": "5.609s"
+      "duration": "5.557s"
     },
     "boundary3": {
       "state": "pass",
-      "duration": "2.766s"
+      "duration": "2.687s"
     },
     "boundary4": {
       "state": "pass",
-      "duration": "628ms"
+      "duration": "623ms"
     },
     "btree01": {
       "state": "pass",
-      "duration": "1.491s"
+      "duration": "1.412s"
     },
     "btree02": {
       "state": "pass",
-      "duration": "627ms"
+      "duration": "639ms"
     },
     "btreefault": {
       "state": "pass",
-      "duration": "627ms"
+      "duration": "629ms"
     },
     "busy": {
       "state": "skipped"
@@ -444,182 +444,182 @@
     },
     "cache": {
       "state": "pass",
-      "duration": "633ms"
+      "duration": "630ms"
     },
     "cacheflush": {
       "state": "pass",
-      "duration": "637ms"
+      "duration": "643ms"
     },
     "cachespill": {
       "state": "pass",
-      "duration": "629ms"
+      "duration": "637ms"
     },
     "capi2": {
       "state": "pass",
-      "duration": "683ms"
+      "duration": "957ms"
     },
     "capi3": {
       "state": "pass",
-      "duration": "636ms"
+      "duration": "657ms"
     },
     "capi3b": {
       "state": "pass",
-      "duration": "615ms"
+      "duration": "622ms"
     },
     "capi3c": {
       "state": "pass",
-      "duration": "669ms"
+      "duration": "681ms"
     },
     "capi3d": {
       "state": "pass",
-      "duration": "633ms"
+      "duration": "729ms"
     },
     "capi3e": {
       "state": "pass",
-      "duration": "702ms"
+      "duration": "653ms"
     },
     "carray01": {
       "state": "pass",
-      "duration": "646ms"
+      "duration": "737ms"
     },
     "carray02": {
       "state": "pass",
-      "duration": "708ms"
+      "duration": "731ms"
     },
     "carrayfault": {
       "state": "pass",
-      "duration": "695ms"
+      "duration": "712ms"
     },
     "cast": {
       "state": "pass",
-      "duration": "721ms"
+      "duration": "883ms"
     },
     "cffault": {
       "state": "pass",
-      "duration": "720ms"
+      "duration": "690ms"
     },
     "changes": {
       "state": "pass",
-      "duration": "17.67s"
+      "duration": "17.512s"
     },
     "changes2": {
       "state": "pass",
-      "duration": "721ms"
+      "duration": "628ms"
     },
     "check": {
       "state": "pass",
-      "duration": "666ms"
+      "duration": "660ms"
     },
     "checkfault": {
       "state": "pass",
-      "duration": "634ms"
+      "duration": "628ms"
     },
     "chunksize": {
       "state": "skipped"
     },
     "cksumvfs": {
       "state": "pass",
-      "duration": "5.587s"
+      "duration": "5.564s"
     },
     "close_pkg": {
       "state": "pass",
-      "duration": "628ms"
+      "duration": "615ms"
     },
     "closure01": {
       "state": "pass",
-      "duration": "7.208s"
+      "duration": "7.137s"
     },
     "coalesce": {
       "state": "pass",
-      "duration": "624ms"
+      "duration": "623ms"
     },
     "collate1": {
       "state": "pass",
-      "duration": "632ms"
+      "duration": "643ms"
     },
     "collate2": {
       "state": "pass",
-      "duration": "643ms"
+      "duration": "631ms"
     },
     "collate3": {
       "state": "pass",
-      "duration": "652ms"
+      "duration": "666ms"
     },
     "collate4": {
       "state": "pass",
-      "duration": "629ms"
+      "duration": "659ms"
     },
     "collate5": {
       "state": "pass",
-      "duration": "696ms"
+      "duration": "735ms"
     },
     "collate6": {
       "state": "pass",
-      "duration": "644ms"
+      "duration": "608ms"
     },
     "collate7": {
       "state": "pass",
-      "duration": "624ms"
+      "duration": "716ms"
     },
     "collate8": {
       "state": "pass",
-      "duration": "596ms"
+      "duration": "713ms"
     },
     "collate9": {
       "state": "pass",
-      "duration": "662ms"
+      "duration": "739ms"
     },
     "collateA": {
       "state": "pass",
-      "duration": "594ms"
+      "duration": "737ms"
     },
     "collateB": {
       "state": "pass",
-      "duration": "666ms"
+      "duration": "726ms"
     },
     "colmeta": {
       "state": "pass",
-      "duration": "612ms"
+      "duration": "719ms"
     },
     "colname": {
       "state": "pass",
-      "duration": "656ms"
+      "duration": "725ms"
     },
     "columncount": {
       "state": "pass",
-      "duration": "628ms"
+      "duration": "711ms"
     },
     "conflict": {
       "state": "pass",
-      "duration": "798ms"
+      "duration": "807ms"
     },
     "conflict2": {
       "state": "pass",
-      "duration": "911ms"
+      "duration": "800ms"
     },
     "conflict3": {
       "state": "pass",
-      "duration": "670ms"
+      "duration": "423ms"
     },
     "contrib01": {
       "state": "pass",
-      "duration": "600ms"
+      "duration": "625ms"
     },
     "corrupt": {
       "state": "pass",
-      "duration": "36.468s"
+      "duration": "34.4s"
     },
     "corrupt2": {
       "state": "pass",
-      "duration": "633ms"
+      "duration": "630ms"
     },
     "corrupt3": {
       "state": "pass",
-      "duration": "632ms"
+      "duration": "636ms"
     },
     "corrupt4": {
       "state": "pass",
-      "duration": "633ms"
+      "duration": "635ms"
     },
     "corrupt5": {
       "state": "pass",
@@ -627,19 +627,19 @@
     },
     "corrupt6": {
       "state": "pass",
-      "duration": "629ms"
+      "duration": "637ms"
     },
     "corrupt7": {
       "state": "pass",
-      "duration": "622ms"
+      "duration": "623ms"
     },
     "corrupt8": {
       "state": "pass",
-      "duration": "1.269s"
+      "duration": "1.255s"
     },
     "corrupt9": {
       "state": "pass",
-      "duration": "650ms"
+      "duration": "644ms"
     },
     "corruptA": {
       "state": "pass",
@@ -647,70 +647,70 @@
     },
     "corruptB": {
       "state": "pass",
-      "duration": "677ms"
+      "duration": "698ms"
     },
     "corruptC": {
       "state": "skipped"
     },
     "corruptD": {
       "state": "pass",
-      "duration": "640ms"
+      "duration": "639ms"
     },
     "corruptE": {
       "state": "pass",
-      "duration": "625ms"
+      "duration": "630ms"
     },
     "corruptF": {
       "state": "pass",
-      "duration": "793ms"
+      "duration": "789ms"
     },
     "corruptG": {
       "state": "pass",
-      "duration": "633ms"
+      "duration": "632ms"
     },
     "corruptH": {
       "state": "pass",
-      "duration": "631ms"
+      "duration": "646ms"
     },
     "corruptI": {
       "state": "pass",
-      "duration": "635ms"
+      "duration": "631ms"
     },
     "corruptJ": {
       "state": "pass",
-      "duration": "630ms"
+      "duration": "622ms"
     },
     "corruptK": {
       "state": "pass",
-      "duration": "623ms"
+      "duration": "635ms"
     },
     "corruptL": {
       "state": "pass",
-      "duration": "2.129s"
+      "duration": "2.076s"
     },
     "corruptM": {
       "state": "pass",
-      "duration": "639ms"
+      "duration": "636ms"
     },
     "corruptN": {
       "state": "pass",
-      "duration": "682ms"
+      "duration": "687ms"
     },
     "cost": {
       "state": "pass",
-      "duration": "642ms"
+      "duration": "661ms"
     },
     "count": {
       "state": "pass",
-      "duration": "1.379s"
+      "duration": "1.358s"
     },
     "countofview": {
       "state": "pass",
-      "duration": "655ms"
+      "duration": "658ms"
     },
     "coveridxscan": {
       "state": "pass",
-      "duration": "619ms"
+      "duration": "638ms"
     },
     "crash": {
       "state": "skipped"
@@ -738,23 +738,23 @@
     },
     "crashM": {
       "state": "pass",
-      "duration": "941ms"
+      "duration": "954ms"
     },
     "createtab": {
       "state": "pass",
-      "duration": "726ms"
+      "duration": "717ms"
     },
     "cse": {
       "state": "pass",
-      "duration": "645ms"
+      "duration": "667ms"
     },
     "csv01": {
       "state": "pass",
-      "duration": "757ms"
+      "duration": "722ms"
     },
     "ctime": {
       "state": "pass",
-      "duration": "643ms"
+      "duration": "645ms"
     },
     "cursorhint": {
       "state": "skipped"
@@ -764,126 +764,126 @@
     },
     "dataversion1": {
       "state": "pass",
-      "duration": "628ms"
+      "duration": "634ms"
     },
     "date": {
       "state": "pass",
-      "duration": "756ms"
+      "duration": "774ms"
     },
     "date2": {
       "state": "pass",
-      "duration": "663ms"
+      "duration": "672ms"
     },
     "date3": {
       "state": "pass",
-      "duration": "630ms"
+      "duration": "635ms"
     },
     "date4": {
       "state": "pass",
-      "duration": "817ms"
+      "duration": "734ms"
     },
     "date5": {
       "state": "pass",
-      "duration": "632ms"
+      "duration": "644ms"
     },
     "dbdata": {
       "state": "pass",
-      "duration": "638ms"
+      "duration": "633ms"
     },
     "dbfuzz001": {
       "state": "skipped"
     },
     "dbpage": {
       "state": "pass",
-      "duration": "641ms"
+      "duration": "644ms"
     },
     "dbpagefault": {
       "state": "pass",
-      "duration": "626ms"
+      "duration": "660ms"
     },
     "dbstatus": {
       "state": "pass",
-      "duration": "638ms"
+      "duration": "641ms"
     },
     "dbstatus2": {
       "state": "pass",
-      "duration": "2.043s"
+      "duration": "1.913s"
     },
     "decimal": {
       "state": "pass",
-      "duration": "1.478s"
+      "duration": "1.6s"
     },
     "default_pkg": {
       "state": "pass",
-      "duration": "635ms"
+      "duration": "637ms"
     },
     "delete2": {
       "state": "pass",
-      "duration": "638ms"
+      "duration": "407ms"
     },
     "delete3": {
       "state": "pass",
-      "duration": "2.364s"
+      "duration": "2.276s"
     },
     "delete4": {
       "state": "pass",
-      "duration": "679ms"
+      "duration": "628ms"
     },
     "delete_db": {
       "state": "pass",
-      "duration": "638ms"
+      "duration": "622ms"
     },
     "delete_pkg": {
       "state": "pass",
-      "duration": "1.167s"
+      "duration": "1.097s"
     },
     "descidx1": {
       "state": "pass",
-      "duration": "632ms"
+      "duration": "618ms"
     },
     "descidx2": {
       "state": "pass",
-      "duration": "715ms"
+      "duration": "620ms"
     },
     "descidx3": {
       "state": "pass",
-      "duration": "619ms"
+      "duration": "594ms"
     },
     "diskfull": {
       "state": "pass",
-      "duration": "626ms"
+      "duration": "650ms"
     },
     "distinct": {
       "state": "pass",
-      "duration": "653ms"
+      "duration": "611ms"
     },
     "distinct2": {
       "state": "pass",
-      "duration": "732ms"
+      "duration": "799ms"
     },
     "distinctagg": {
       "state": "pass",
-      "duration": "629ms"
+      "duration": "630ms"
     },
     "e_blobbytes": {
       "state": "pass",
-      "duration": "1.921s"
+      "duration": "1.874s"
     },
     "e_blobclose": {
       "state": "pass",
-      "duration": "614ms"
+      "duration": "710ms"
     },
     "e_blobopen": {
       "state": "pass",
-      "duration": "679ms"
+      "duration": "662ms"
     },
     "e_blobwrite": {
       "state": "pass",
-      "duration": "658ms"
+      "duration": "652ms"
     },
     "e_changes": {
       "state": "pass",
-      "duration": "660ms"
+      "duration": "710ms"
     },
     "e_createtable": {
       "state": "skipped"
@@ -893,45 +893,45 @@
     },
     "e_droptrigger": {
       "state": "pass",
-      "duration": "691ms"
+      "duration": "722ms"
     },
     "e_dropview": {
       "state": "pass",
-      "duration": "634ms"
+      "duration": "668ms"
     },
     "e_expr": {
       "state": "skipped"
     },
     "e_fkey": {
       "state": "pass",
-      "duration": "990ms"
+      "duration": "926ms"
     },
     "e_fts3": {
       "state": "pass",
-      "duration": "774ms"
+      "duration": "750ms"
     },
     "e_insert": {
       "state": "pass",
-      "duration": "695ms"
+      "duration": "660ms"
     },
     "e_reindex": {
       "state": "pass",
-      "duration": "636ms"
+      "duration": "854ms"
     },
     "e_resolve": {
       "state": "pass",
-      "duration": "707ms"
+      "duration": "637ms"
     },
     "e_select": {
       "state": "skipped"
     },
     "e_select2": {
       "state": "pass",
-      "duration": "660ms"
+      "duration": "669ms"
     },
     "e_totalchanges": {
       "state": "pass",
-      "duration": "831ms"
+      "duration": "679ms"
     },
     "e_update": {
       "state": "skipped"
@@ -956,175 +956,175 @@
     },
     "emptytable": {
       "state": "pass",
-      "duration": "782ms"
+      "duration": "675ms"
     },
     "enc": {
       "state": "pass",
-      "duration": "717ms"
+      "duration": "631ms"
     },
     "enc2": {
       "state": "pass",
-      "duration": "675ms"
+      "duration": "671ms"
     },
     "enc3": {
       "state": "skipped"
     },
     "enc4": {
       "state": "pass",
-      "duration": "697ms"
+      "duration": "629ms"
     },
     "eqp": {
       "state": "pass",
-      "duration": "711ms"
+      "duration": "751ms"
     },
     "eqp2": {
       "state": "pass",
-      "duration": "868ms"
+      "duration": "870ms"
     },
     "errmsg": {
       "state": "pass",
-      "duration": "686ms"
+      "duration": "683ms"
     },
     "errofst1": {
       "state": "pass",
-      "duration": "672ms"
+      "duration": "629ms"
     },
     "eval": {
       "state": "skipped"
     },
     "exclusive": {
       "state": "pass",
-      "duration": "618ms"
+      "duration": "678ms"
     },
     "exclusive2": {
       "state": "pass",
-      "duration": "651ms"
+      "duration": "635ms"
     },
     "exec": {
       "state": "pass",
-      "duration": "639ms"
+      "duration": "768ms"
     },
     "exists": {
       "state": "pass",
-      "duration": "668ms"
+      "duration": "665ms"
     },
     "existsexpr": {
       "state": "pass",
-      "duration": "891ms"
+      "duration": "1.019s"
     },
     "existsexpr2": {
       "state": "pass",
-      "duration": "615ms"
+      "duration": "710ms"
     },
     "existsfault": {
       "state": "pass",
-      "duration": "609ms"
+      "duration": "623ms"
     },
     "expr": {
       "state": "pass",
-      "duration": "609ms"
+      "duration": "635ms"
     },
     "expr2": {
       "state": "pass",
-      "duration": "608ms"
+      "duration": "649ms"
     },
     "exprfault": {
       "state": "pass",
-      "duration": "620ms"
+      "duration": "597ms"
     },
     "exprfault2": {
       "state": "pass",
-      "duration": "615ms"
+      "duration": "622ms"
     },
     "expridx1": {
       "state": "pass",
-      "duration": "4.011s"
+      "duration": "3.977s"
     },
     "expridx2": {
       "state": "pass",
-      "duration": "600ms"
+      "duration": "615ms"
     },
     "extension01": {
       "state": "pass",
-      "duration": "607ms"
+      "duration": "631ms"
     },
     "external_reader": {
       "state": "pass",
-      "duration": "606ms"
+      "duration": "614ms"
     },
     "extraquick": {
       "state": "pass",
-      "duration": "602ms"
+      "duration": "612ms"
     },
     "fallocate": {
       "state": "skipped"
     },
     "filectrl": {
       "state": "pass",
-      "duration": "604ms"
+      "duration": "617ms"
     },
     "filefmt": {
       "state": "pass",
-      "duration": "639ms"
+      "duration": "640ms"
     },
     "filter1": {
       "state": "pass",
-      "duration": "724ms"
+      "duration": "672ms"
     },
     "filter2": {
       "state": "pass",
-      "duration": "669ms"
+      "duration": "640ms"
     },
     "filterfault": {
       "state": "pass",
-      "duration": "724ms"
+      "duration": "678ms"
     },
     "fkey1": {
       "state": "pass",
-      "duration": "741ms"
+      "duration": "672ms"
     },
     "fkey2": {
       "state": "pass",
-      "duration": "908ms"
+      "duration": "942ms"
     },
     "fkey3": {
       "state": "pass",
-      "duration": "669ms"
+      "duration": "657ms"
     },
     "fkey4": {
       "state": "pass",
-      "duration": "636ms"
+      "duration": "685ms"
     },
     "fkey5": {
       "state": "pass",
-      "duration": "618ms"
+      "duration": "643ms"
     },
     "fkey6": {
       "state": "pass",
-      "duration": "644ms"
+      "duration": "676ms"
     },
     "fkey7": {
       "state": "pass",
-      "duration": "602ms"
+      "duration": "658ms"
     },
     "fkey8": {
       "state": "pass",
-      "duration": "673ms"
+      "duration": "683ms"
     },
     "fkey_malloc": {
       "state": "pass",
-      "duration": "622ms"
+      "duration": "605ms"
     },
     "fordelete": {
       "state": "pass",
-      "duration": "673ms"
+      "duration": "746ms"
     },
     "format4": {
       "state": "skipped"
     },
     "fpconv1": {
       "state": "pass",
-      "duration": "2.37s"
+      "duration": "2.439s"
     },
     "fts3": {
       "state": "pass",
@@ -1132,58 +1132,58 @@
     },
     "fts3aa": {
       "state": "pass",
-      "duration": "638ms"
+      "duration": "643ms"
     },
     "fts3ab": {
       "state": "pass",
-      "duration": "648ms"
+      "duration": "615ms"
     },
     "fts3ac": {
       "state": "pass",
-      "duration": "661ms"
+      "duration": "691ms"
     },
     "fts3ad": {
       "state": "pass",
-      "duration": "655ms"
+      "duration": "668ms"
     },
     "fts3ae": {
       "state": "pass",
-      "duration": "657ms"
+      "duration": "670ms"
     },
     "fts3af": {
       "state": "pass",
-      "duration": "628ms"
+      "duration": "622ms"
     },
     "fts3ag": {
       "state": "pass",
-      "duration": "704ms"
+      "duration": "708ms"
     },
     "fts3ah": {
       "state": "skipped"
     },
     "fts3ai": {
       "state": "pass",
-      "duration": "636ms"
+      "duration": "640ms"
     },
     "fts3aj": {
       "state": "pass",
-      "duration": "718ms"
+      "duration": "731ms"
     },
     "fts3ak": {
       "state": "pass",
-      "duration": "717ms"
+      "duration": "727ms"
     },
     "fts3al": {
       "state": "pass",
-      "duration": "707ms"
+      "duration": "728ms"
     },
     "fts3am": {
       "state": "pass",
-      "duration": "706ms"
+      "duration": "728ms"
     },
     "fts3an": {
       "state": "pass",
-      "duration": "735ms"
+      "duration": "754ms"
     },
     "fts3ao": {
       "state": "skipped"
@@ -1205,79 +1205,79 @@
     },
     "fts3b": {
       "state": "pass",
-      "duration": "4m1.424s"
+      "duration": "3m57.549s"
     },
     "fts3c": {
       "state": "pass",
-      "duration": "624ms"
+      "duration": "657ms"
     },
     "fts3comp1": {
       "state": "pass",
-      "duration": "647ms"
+      "duration": "642ms"
     },
     "fts3conf": {
       "state": "pass",
-      "duration": "644ms"
+      "duration": "642ms"
     },
     "fts3corrupt": {
       "state": "pass",
-      "duration": "641ms"
+      "duration": "647ms"
     },
     "fts3corrupt2": {
       "state": "pass",
-      "duration": "2.424s"
+      "duration": "2.401s"
     },
     "fts3corrupt3": {
       "state": "pass",
-      "duration": "620ms"
+      "duration": "643ms"
     },
     "fts3corrupt4": {
       "state": "pass",
-      "duration": "1.83s"
+      "duration": "1.818s"
     },
     "fts3corrupt5": {
       "state": "pass",
-      "duration": "632ms"
+      "duration": "649ms"
     },
     "fts3corrupt6": {
       "state": "pass",
-      "duration": "1.178s"
+      "duration": "1.139s"
     },
     "fts3corrupt7": {
       "state": "pass",
-      "duration": "1.367s"
+      "duration": "1.364s"
     },
     "fts3cov": {
       "state": "pass",
-      "duration": "651ms"
+      "duration": "658ms"
     },
     "fts3d": {
       "state": "pass",
-      "duration": "641ms"
+      "duration": "663ms"
     },
     "fts3defer": {
       "state": "pass",
-      "duration": "1m22.603s"
+      "duration": "1m20.895s"
     },
     "fts3defer2": {
       "state": "pass",
-      "duration": "1.267s"
+      "duration": "1.311s"
     },
     "fts3defer3": {
       "state": "pass",
-      "duration": "672ms"
+      "duration": "681ms"
     },
     "fts3drop": {
       "state": "pass",
-      "duration": "630ms"
+      "duration": "614ms"
     },
     "fts3dropmod": {
       "state": "pass",
-      "duration": "613ms"
+      "duration": "623ms"
     },
     "fts3e": {
       "state": "pass",
-      "duration": "633ms"
+      "duration": "630ms"
     },
     "fts3expr": {
       "state": "pass",
@@ -1285,27 +1285,27 @@
     },
     "fts3expr2": {
       "state": "pass",
-      "duration": "609ms"
+      "duration": "621ms"
     },
     "fts3expr3": {
       "state": "pass",
-      "duration": "641ms"
+      "duration": "626ms"
     },
     "fts3expr4": {
       "state": "pass",
-      "duration": "629ms"
+      "duration": "619ms"
     },
     "fts3expr5": {
       "state": "pass",
-      "duration": "629ms"
+      "duration": "616ms"
     },
     "fts3f": {
       "state": "pass",
-      "duration": "626ms"
+      "duration": "641ms"
     },
     "fts3fault": {
       "state": "pass",
-      "duration": "748ms"
+      "duration": "759ms"
     },
     "fts3fault2": {
       "state": "skipped"
@@ -1315,57 +1315,57 @@
     },
     "fts3first": {
       "state": "pass",
-      "duration": "630ms"
+      "duration": "645ms"
     },
     "fts3fuzz001": {
       "state": "pass",
-      "duration": "656ms"
+      "duration": "647ms"
     },
     "fts3integrity": {
       "state": "pass",
-      "duration": "615ms"
+      "duration": "622ms"
     },
     "fts3join": {
       "state": "pass",
-      "duration": "640ms"
+      "duration": "627ms"
     },
     "fts3malloc": {
       "state": "skipped"
     },
     "fts3matchinfo": {
       "state": "pass",
-      "duration": "701ms"
+      "duration": "708ms"
     },
     "fts3matchinfo2": {
       "state": "pass",
-      "duration": "623ms"
+      "duration": "615ms"
     },
     "fts3misc": {
       "state": "skipped"
     },
     "fts3near": {
       "state": "pass",
-      "duration": "638ms"
+      "duration": "637ms"
     },
     "fts3offsets": {
       "state": "pass",
-      "duration": "618ms"
+      "duration": "631ms"
     },
     "fts3prefix": {
       "state": "pass",
-      "duration": "640ms"
+      "duration": "642ms"
     },
     "fts3prefix2": {
       "state": "pass",
-      "duration": "771ms"
+      "duration": "769ms"
     },
     "fts3query": {
       "state": "pass",
-      "duration": "625ms"
+      "duration": "630ms"
     },
     "fts3rank": {
       "state": "pass",
-      "duration": "633ms"
+      "duration": "621ms"
     },
     "fts3rnd": {
       "state": "skipped"
@@ -1379,119 +1379,119 @@
     },
     "fts3snippet2": {
       "state": "pass",
-      "duration": "616ms"
+      "duration": "621ms"
     },
     "fts3sort": {
       "state": "pass",
-      "duration": "14.424s"
+      "duration": "14.038s"
     },
     "fts3tok1": {
       "state": "pass",
-      "duration": "635ms"
+      "duration": "648ms"
     },
     "fts3tok_err": {
       "state": "pass",
-      "duration": "634ms"
+      "duration": "632ms"
     },
     "fts3varint": {
       "state": "pass",
-      "duration": "637ms"
+      "duration": "623ms"
     },
     "fts4aa": {
       "state": "pass",
-      "duration": "2.29s"
+      "duration": "2.256s"
     },
     "fts4check": {
       "state": "pass",
-      "duration": "1m38.053s"
+      "duration": "1m33.959s"
     },
     "fts4content": {
       "state": "pass",
-      "duration": "763ms"
+      "duration": "746ms"
     },
     "fts4docid": {
       "state": "pass",
-      "duration": "671ms"
+      "duration": "648ms"
     },
     "fts4growth": {
       "state": "pass",
-      "duration": "12.259s"
+      "duration": "12.114s"
     },
     "fts4growth2": {
       "state": "pass",
-      "duration": "696ms"
+      "duration": "651ms"
     },
     "fts4incr": {
       "state": "pass",
-      "duration": "10.719s"
+      "duration": "10.553s"
     },
     "fts4intck1": {
       "state": "pass",
-      "duration": "628ms"
+      "duration": "685ms"
     },
     "fts4langid": {
       "state": "pass",
-      "duration": "1.98s"
+      "duration": "1.977s"
     },
     "fts4lastrowid": {
       "state": "pass",
-      "duration": "633ms"
+      "duration": "626ms"
     },
     "fts4merge": {
       "state": "pass",
-      "duration": "1m58.052s"
+      "duration": "1m56.899s"
     },
     "fts4merge2": {
       "state": "pass",
-      "duration": "932ms"
+      "duration": "937ms"
     },
     "fts4merge3": {
       "state": "pass",
-      "duration": "621ms"
+      "duration": "617ms"
     },
     "fts4merge4": {
       "state": "pass",
-      "duration": "4m42.344s"
+      "duration": "4m34.33s"
     },
     "fts4merge5": {
       "state": "pass",
-      "duration": "767ms"
+      "duration": "778ms"
     },
     "fts4min": {
       "state": "pass",
-      "duration": "653ms"
+      "duration": "636ms"
     },
     "fts4noti": {
       "state": "pass",
-      "duration": "719ms"
+      "duration": "704ms"
     },
     "fts4onepass": {
       "state": "pass",
-      "duration": "653ms"
+      "duration": "679ms"
     },
     "fts4opt": {
       "state": "pass",
-      "duration": "10.634s"
+      "duration": "9.308s"
     },
     "fts4record": {
       "state": "pass",
-      "duration": "649ms"
+      "duration": "644ms"
     },
     "fts4rename": {
       "state": "pass",
-      "duration": "637ms"
+      "duration": "628ms"
     },
     "fts4umlaut": {
       "state": "pass",
-      "duration": "649ms"
+      "duration": "643ms"
     },
     "fts4unicode": {
       "state": "pass",
-      "duration": "1m1.939s"
+      "duration": "1m2.616s"
     },
     "fts4upfrom": {
       "state": "pass",
-      "duration": "728ms"
+      "duration": "738ms"
     },
     "fts5aa": {
       "state": "pass",
@@ -1499,46 +1499,46 @@
     },
     "fts5ab": {
       "state": "pass",
-      "duration": "622ms"
+      "duration": "612ms"
     },
     "fts5ac": {
       "state": "pass",
-      "duration": "628ms"
+      "duration": "625ms"
     },
     "fts5ad": {
       "state": "pass",
-      "duration": "633ms"
+      "duration": "610ms"
     },
     "fts5ae": {
       "state": "pass",
-      "duration": "628ms"
+      "duration": "655ms"
     },
     "fts5af": {
       "state": "pass",
-      "duration": "630ms"
+      "duration": "638ms"
     },
     "fts5ag": {
       "state": "pass",
-      "duration": "618ms"
+      "duration": "616ms"
     },
     "fts5ah": {
       "state": "pass",
-      "duration": "603ms"
+      "duration": "606ms"
     },
     "fts5ai": {
       "state": "pass",
-      "duration": "639ms"
+      "duration": "622ms"
     },
     "fts5aj": {
       "state": "skipped"
     },
     "fts5ak": {
       "state": "pass",
-      "duration": "616ms"
+      "duration": "619ms"
     },
     "fts5al": {
       "state": "pass",
-      "duration": "714ms"
+      "duration": "629ms"
     },
     "fts5alter": {
       "state": "pass",
@@ -1546,70 +1546,70 @@
     },
     "fts5auto": {
       "state": "pass",
-      "duration": "625ms"
+      "duration": "642ms"
     },
     "fts5aux": {
       "state": "skipped"
     },
     "fts5aux2": {
       "state": "pass",
-      "duration": "623ms"
+      "duration": "676ms"
     },
     "fts5auxdata": {
       "state": "pass",
-      "duration": "616ms"
+      "duration": "625ms"
     },
     "fts5bigid": {
       "state": "skipped"
     },
     "fts5bigpl": {
       "state": "pass",
-      "duration": "1m4.524s"
+      "duration": "1m4.276s"
     },
     "fts5bigtok": {
       "state": "pass",
-      "duration": "1.113s"
+      "duration": "1.153s"
     },
     "fts5blob": {
       "state": "pass",
-      "duration": "639ms"
+      "duration": "655ms"
     },
     "fts5cat": {
       "state": "pass",
-      "duration": "645ms"
+      "duration": "639ms"
     },
     "fts5circref": {
       "state": "pass",
-      "duration": "650ms"
+      "duration": "637ms"
     },
     "fts5colset": {
       "state": "skipped"
     },
     "fts5columnsize": {
       "state": "pass",
-      "duration": "645ms"
+      "duration": "651ms"
     },
     "fts5config": {
       "state": "skipped"
     },
     "fts5conflict": {
       "state": "pass",
-      "duration": "635ms"
+      "duration": "632ms"
     },
     "fts5connect": {
       "state": "pass",
-      "duration": "707ms"
+      "duration": "682ms"
     },
     "fts5content": {
       "state": "pass",
-      "duration": "656ms"
+      "duration": "647ms"
     },
     "fts5contentless": {
       "state": "skipped"
     },
     "fts5contentless2": {
       "state": "pass",
-      "duration": "913ms"
+      "duration": "865ms"
     },
     "fts5contentless3": {
       "state": "skipped"
@@ -1619,7 +1619,7 @@
     },
     "fts5contentless5": {
       "state": "pass",
-      "duration": "717ms"
+      "duration": "702ms"
     },
     "fts5corrupt": {
       "state": "skipped"
@@ -1632,7 +1632,7 @@
     },
     "fts5corrupt4": {
       "state": "pass",
-      "duration": "1.278s"
+      "duration": "1.312s"
     },
     "fts5corrupt5": {
       "state": "skipped"
@@ -1648,64 +1648,64 @@
     },
     "fts5corruptbig": {
       "state": "pass",
-      "duration": "620ms"
+      "duration": "637ms"
     },
     "fts5delete": {
       "state": "pass",
-      "duration": "19.552s"
+      "duration": "18.876s"
     },
     "fts5detail": {
       "state": "skipped"
     },
     "fts5determin": {
       "state": "pass",
-      "duration": "602ms"
+      "duration": "634ms"
     },
     "fts5dlidx": {
       "state": "pass",
-      "duration": "613ms"
+      "duration": "598ms"
     },
     "fts5doclist": {
       "state": "pass",
-      "duration": "886ms"
+      "duration": "910ms"
     },
     "fts5ea": {
       "state": "pass",
-      "duration": "601ms"
+      "duration": "598ms"
     },
     "fts5eb": {
       "state": "pass",
-      "duration": "616ms"
+      "duration": "605ms"
     },
     "fts5expr": {
       "state": "pass",
-      "duration": "683ms"
+      "duration": "718ms"
     },
     "fts5fault1": {
       "state": "skipped"
     },
     "fts5fault2": {
       "state": "pass",
-      "duration": "854ms"
+      "duration": "778ms"
     },
     "fts5fault3": {
       "state": "pass",
-      "duration": "622ms"
+      "duration": "607ms"
     },
     "fts5fault4": {
       "state": "pass",
-      "duration": "641ms"
+      "duration": "635ms"
     },
     "fts5fault5": {
       "state": "pass",
-      "duration": "619ms"
+      "duration": "610ms"
     },
     "fts5fault6": {
       "state": "skipped"
     },
     "fts5fault7": {
       "state": "pass",
-      "duration": "633ms"
+      "duration": "954ms"
     },
     "fts5fault8": {
       "state": "pass",
@@ -1713,23 +1713,23 @@
     },
     "fts5fault9": {
       "state": "pass",
-      "duration": "610ms"
+      "duration": "592ms"
     },
     "fts5faultA": {
       "state": "pass",
-      "duration": "613ms"
+      "duration": "632ms"
     },
     "fts5faultB": {
       "state": "pass",
-      "duration": "629ms"
+      "duration": "622ms"
     },
     "fts5faultD": {
       "state": "pass",
-      "duration": "614ms"
+      "duration": "600ms"
     },
     "fts5faultE": {
       "state": "pass",
-      "duration": "601ms"
+      "duration": "607ms"
     },
     "fts5faultF": {
       "state": "skipped"
@@ -1745,148 +1745,148 @@
     },
     "fts5first": {
       "state": "pass",
-      "duration": "630ms"
+      "duration": "603ms"
     },
     "fts5full": {
       "state": "pass",
-      "duration": "1.909s"
+      "duration": "1.966s"
     },
     "fts5fuzz1": {
       "state": "pass",
-      "duration": "616ms"
+      "duration": "612ms"
     },
     "fts5hash": {
       "state": "pass",
-      "duration": "759ms"
+      "duration": "811ms"
     },
     "fts5integrity": {
       "state": "skipped"
     },
     "fts5integrity2": {
       "state": "pass",
-      "duration": "672ms"
+      "duration": "599ms"
     },
     "fts5interrupt": {
       "state": "skipped"
     },
     "fts5join": {
       "state": "pass",
-      "duration": "613ms"
+      "duration": "705ms"
     },
     "fts5lastrowid": {
       "state": "pass",
-      "duration": "667ms"
+      "duration": "653ms"
     },
     "fts5leftjoin": {
       "state": "pass",
-      "duration": "616ms"
+      "duration": "712ms"
     },
     "fts5limits": {
       "state": "pass",
-      "duration": "710ms"
+      "duration": "707ms"
     },
     "fts5locale": {
       "state": "skipped"
     },
     "fts5matchinfo": {
       "state": "pass",
-      "duration": "657ms"
+      "duration": "730ms"
     },
     "fts5merge": {
       "state": "skipped"
     },
     "fts5merge2": {
       "state": "pass",
-      "duration": "707ms"
+      "duration": "719ms"
     },
     "fts5misc": {
       "state": "pass",
-      "duration": "3.074s"
+      "duration": "3.104s"
     },
     "fts5multi": {
       "state": "pass",
-      "duration": "617ms"
+      "duration": "720ms"
     },
     "fts5multiclient": {
       "state": "pass",
-      "duration": "592ms"
+      "duration": "588ms"
     },
     "fts5near": {
       "state": "pass",
-      "duration": "607ms"
+      "duration": "596ms"
     },
     "fts5onepass": {
       "state": "pass",
-      "duration": "671ms"
+      "duration": "609ms"
     },
     "fts5optimize": {
       "state": "pass",
-      "duration": "950ms"
+      "duration": "967ms"
     },
     "fts5optimize2": {
       "state": "pass",
-      "duration": "1m25.785s"
+      "duration": "1m25.787s"
     },
     "fts5optimize3": {
       "state": "pass",
-      "duration": "1m25.867s"
+      "duration": "1m25.849s"
     },
     "fts5origintext": {
       "state": "pass",
-      "duration": "663ms"
+      "duration": "669ms"
     },
     "fts5origintext2": {
       "state": "skipped"
     },
     "fts5origintext3": {
       "state": "pass",
-      "duration": "612ms"
+      "duration": "624ms"
     },
     "fts5origintext4": {
       "state": "pass",
-      "duration": "586ms"
+      "duration": "570ms"
     },
     "fts5origintext5": {
       "state": "skipped"
     },
     "fts5origintext6": {
       "state": "pass",
-      "duration": "633ms"
+      "duration": "657ms"
     },
     "fts5phrase": {
       "state": "pass",
-      "duration": "632ms"
+      "duration": "638ms"
     },
     "fts5plan": {
       "state": "pass",
-      "duration": "623ms"
+      "duration": "661ms"
     },
     "fts5porter": {
       "state": "pass",
-      "duration": "647ms"
+      "duration": "626ms"
     },
     "fts5porter2": {
       "state": "pass",
-      "duration": "623ms"
+      "duration": "644ms"
     },
     "fts5prefix": {
       "state": "pass",
-      "duration": "11.843s"
+      "duration": "11.919s"
     },
     "fts5prefix2": {
       "state": "pass",
-      "duration": "621ms"
+      "duration": "623ms"
     },
     "fts5query": {
       "state": "pass",
-      "duration": "706ms"
+      "duration": "719ms"
     },
     "fts5rank": {
       "state": "skipped"
     },
     "fts5rebuild": {
       "state": "pass",
-      "duration": "608ms"
+      "duration": "595ms"
     },
     "fts5restart": {
       "state": "skipped"
@@ -1899,72 +1899,72 @@
     },
     "fts5secure": {
       "state": "pass",
-      "duration": "2.281s"
+      "duration": "2.222s"
     },
     "fts5secure2": {
       "state": "pass",
-      "duration": "610ms"
+      "duration": "600ms"
     },
     "fts5secure3": {
       "state": "skipped"
     },
     "fts5secure4": {
       "state": "pass",
-      "duration": "2.059s"
+      "duration": "2.043s"
     },
     "fts5secure5": {
       "state": "pass",
-      "duration": "932ms"
+      "duration": "930ms"
     },
     "fts5secure6": {
       "state": "skipped"
     },
     "fts5secure7": {
       "state": "pass",
-      "duration": "2.886s"
+      "duration": "2.889s"
     },
     "fts5secure8": {
       "state": "pass",
-      "duration": "613ms"
+      "duration": "634ms"
     },
     "fts5securefault": {
       "state": "pass",
-      "duration": "680ms"
+      "duration": "664ms"
     },
     "fts5simple": {
       "state": "pass",
-      "duration": "1.028s"
+      "duration": "1.025s"
     },
     "fts5simple2": {
       "state": "pass",
-      "duration": "639ms"
+      "duration": "654ms"
     },
     "fts5simple3": {
       "state": "pass",
-      "duration": "691ms"
+      "duration": "697ms"
     },
     "fts5synonym": {
       "state": "pass",
-      "duration": "616ms"
+      "duration": "631ms"
     },
     "fts5synonym2": {
       "state": "pass",
-      "duration": "727ms"
+      "duration": "680ms"
     },
     "fts5tok1": {
       "state": "skipped"
     },
     "fts5tok2": {
       "state": "pass",
-      "duration": "2.139s"
+      "duration": "2.079s"
     },
     "fts5tokendata": {
       "state": "pass",
-      "duration": "612ms"
+      "duration": "617ms"
     },
     "fts5tokenizer": {
       "state": "pass",
-      "duration": "631ms"
+      "duration": "639ms"
     },
     "fts5tokenizer2": {
       "state": "skipped"
@@ -1974,58 +1974,58 @@
     },
     "fts5trigram": {
       "state": "pass",
-      "duration": "644ms"
+      "duration": "716ms"
     },
     "fts5trigram2": {
       "state": "pass",
-      "duration": "600ms"
+      "duration": "593ms"
     },
     "fts5ubsan": {
       "state": "pass",
-      "duration": "622ms"
+      "duration": "639ms"
     },
     "fts5umlaut": {
       "state": "pass",
-      "duration": "611ms"
+      "duration": "640ms"
     },
     "fts5unicode": {
       "state": "pass",
-      "duration": "666ms"
+      "duration": "649ms"
     },
     "fts5unicode2": {
       "state": "skipped"
     },
     "fts5unicode3": {
       "state": "pass",
-      "duration": "1.636s"
+      "duration": "1.684s"
     },
     "fts5unicode4": {
       "state": "pass",
-      "duration": "633ms"
+      "duration": "624ms"
     },
     "fts5unindexed": {
       "state": "pass",
-      "duration": "622ms"
+      "duration": "629ms"
     },
     "fts5unindexed2": {
       "state": "pass",
-      "duration": "668ms"
+      "duration": "658ms"
     },
     "fts5update": {
       "state": "pass",
-      "duration": "613ms"
+      "duration": "612ms"
     },
     "fts5update2": {
       "state": "pass",
-      "duration": "677ms"
+      "duration": "690ms"
     },
     "fts5version": {
       "state": "pass",
-      "duration": "666ms"
+      "duration": "653ms"
     },
     "fts5vocab": {
       "state": "pass",
-      "duration": "736ms"
+      "duration": "714ms"
     },
     "fts5vocab2": {
       "state": "skipped"
@@ -2035,43 +2035,43 @@
     },
     "full": {
       "state": "pass",
-      "duration": "683ms"
+      "duration": "679ms"
     },
     "func2": {
       "state": "pass",
-      "duration": "747ms"
+      "duration": "745ms"
     },
     "func3": {
       "state": "pass",
-      "duration": "735ms"
+      "duration": "734ms"
     },
     "func4": {
       "state": "pass",
-      "duration": "727ms"
+      "duration": "728ms"
     },
     "func5": {
       "state": "pass",
-      "duration": "705ms"
+      "duration": "684ms"
     },
     "func6": {
       "state": "pass",
-      "duration": "731ms"
+      "duration": "744ms"
     },
     "func7": {
       "state": "pass",
-      "duration": "702ms"
+      "duration": "693ms"
     },
     "func8": {
       "state": "pass",
-      "duration": "729ms"
+      "duration": "726ms"
     },
     "func9": {
       "state": "pass",
-      "duration": "717ms"
+      "duration": "711ms"
     },
     "func_pkg": {
       "state": "pass",
-      "duration": "917ms"
+      "duration": "881ms"
     },
     "fuzz": {
       "state": "skipped"
@@ -2087,7 +2087,7 @@
     },
     "fuzz_malloc": {
       "state": "pass",
-      "duration": "722ms"
+      "duration": "695ms"
     },
     "fuzz_oss1": {
       "state": "skipped"
@@ -2103,66 +2103,66 @@
     },
     "gcfault": {
       "state": "pass",
-      "duration": "710ms"
+      "duration": "688ms"
     },
     "gencol1": {
       "state": "pass",
-      "duration": "685ms"
+      "duration": "661ms"
     },
     "having": {
       "state": "pass",
-      "duration": "686ms"
+      "duration": "680ms"
     },
     "hexlit": {
       "state": "pass",
-      "duration": "623ms"
+      "duration": "642ms"
     },
     "hidden": {
       "state": "pass",
-      "duration": "643ms"
+      "duration": "699ms"
     },
     "hook": {
       "state": "pass",
-      "duration": "683ms"
+      "duration": "703ms"
     },
     "hook2": {
       "state": "pass",
-      "duration": "665ms"
+      "duration": "684ms"
     },
     "icu": {
       "state": "pass",
-      "duration": "645ms"
+      "duration": "635ms"
     },
     "ieee754": {
       "state": "pass",
-      "duration": "668ms"
+      "duration": "699ms"
     },
     "imposter1": {
       "state": "skipped"
     },
     "in": {
       "state": "pass",
-      "duration": "665ms"
+      "duration": "726ms"
     },
     "in2": {
       "state": "pass",
-      "duration": "4.983s"
+      "duration": "4.938s"
     },
     "in3": {
       "state": "pass",
-      "duration": "651ms"
+      "duration": "668ms"
     },
     "in4": {
       "state": "pass",
-      "duration": "680ms"
+      "duration": "657ms"
     },
     "in5": {
       "state": "pass",
-      "duration": "639ms"
+      "duration": "642ms"
     },
     "in6": {
       "state": "pass",
-      "duration": "630ms"
+      "duration": "1.033s"
     },
     "in7": {
       "state": "pass",
@@ -2176,153 +2176,153 @@
     },
     "incrblob3": {
       "state": "pass",
-      "duration": "639ms"
+      "duration": "624ms"
     },
     "incrblob4": {
       "state": "skipped"
     },
     "incrblob_err": {
       "state": "pass",
-      "duration": "619ms"
+      "duration": "622ms"
     },
     "incrblobfault": {
       "state": "pass",
-      "duration": "624ms"
+      "duration": "748ms"
     },
     "incrcorrupt": {
       "state": "pass",
-      "duration": "623ms"
+      "duration": "682ms"
     },
     "incrvacuum": {
       "state": "pass",
-      "duration": "1.091s"
+      "duration": "1.143s"
     },
     "incrvacuum2": {
       "state": "pass",
-      "duration": "622ms"
+      "duration": "688ms"
     },
     "incrvacuum3": {
       "state": "pass",
-      "duration": "985ms"
+      "duration": "848ms"
     },
     "incrvacuum_ioerr": {
       "state": "pass",
-      "duration": "641ms"
+      "duration": "657ms"
     },
     "index": {
       "state": "pass",
-      "duration": "549ms"
+      "duration": "733ms"
     },
     "index2": {
       "state": "pass",
-      "duration": "953ms"
+      "duration": "937ms"
     },
     "index3": {
       "state": "pass",
-      "duration": "621ms"
+      "duration": "625ms"
     },
     "index4": {
       "state": "pass",
-      "duration": "2.844s"
+      "duration": "2.814s"
     },
     "index5": {
       "state": "pass",
-      "duration": "5.239s"
+      "duration": "5.19s"
     },
     "index6": {
       "state": "pass",
-      "duration": "2.704s"
+      "duration": "2.776s"
     },
     "index7": {
       "state": "pass",
-      "duration": "8.493s"
+      "duration": "8.659s"
     },
     "index8": {
       "state": "pass",
-      "duration": "642ms"
+      "duration": "603ms"
     },
     "index9": {
       "state": "pass",
-      "duration": "621ms"
+      "duration": "642ms"
     },
     "indexA": {
       "state": "pass",
-      "duration": "658ms"
+      "duration": "669ms"
     },
     "indexedby": {
       "state": "pass",
-      "duration": "654ms"
+      "duration": "639ms"
     },
     "indexexpr1": {
       "state": "pass",
-      "duration": "520ms"
+      "duration": "665ms"
     },
     "indexexpr2": {
       "state": "pass",
-      "duration": "635ms"
+      "duration": "646ms"
     },
     "indexexpr3": {
       "state": "pass",
-      "duration": "657ms"
+      "duration": "626ms"
     },
     "indexfault": {
       "state": "pass",
-      "duration": "871ms"
+      "duration": "850ms"
     },
     "init": {
       "state": "skipped"
     },
     "insert": {
       "state": "pass",
-      "duration": "667ms"
+      "duration": "651ms"
     },
     "insert2": {
       "state": "pass",
-      "duration": "691ms"
+      "duration": "658ms"
     },
     "insert3": {
       "state": "pass",
-      "duration": "738ms"
+      "duration": "750ms"
     },
     "insert4": {
       "state": "pass",
-      "duration": "654ms"
+      "duration": "674ms"
     },
     "insert5": {
       "state": "pass",
-      "duration": "652ms"
+      "duration": "635ms"
     },
     "insertfault": {
       "state": "pass",
-      "duration": "604ms"
+      "duration": "615ms"
     },
     "instr": {
       "state": "pass",
-      "duration": "686ms"
+      "duration": "623ms"
     },
     "instrfault": {
       "state": "pass",
-      "duration": "649ms"
+      "duration": "620ms"
     },
     "intarray": {
       "state": "pass",
-      "duration": "36.419s"
+      "duration": "36.117s"
     },
     "interrupt": {
       "state": "pass",
-      "duration": "624ms"
+      "duration": "619ms"
     },
     "interrupt2": {
       "state": "pass",
-      "duration": "625ms"
+      "duration": "617ms"
     },
     "intpkey": {
       "state": "pass",
-      "duration": "641ms"
+      "duration": "642ms"
     },
     "intreal": {
       "state": "pass",
-      "duration": "633ms"
+      "duration": "620ms"
     },
     "io": {
       "state": "skipped"
@@ -2347,19 +2347,19 @@
     },
     "istrue": {
       "state": "pass",
-      "duration": "626ms"
+      "duration": "622ms"
     },
     "join": {
       "state": "pass",
-      "duration": "709ms"
+      "duration": "775ms"
     },
     "join2": {
       "state": "pass",
-      "duration": "658ms"
+      "duration": "646ms"
     },
     "join3": {
       "state": "pass",
-      "duration": "718ms"
+      "duration": "722ms"
     },
     "join4": {
       "state": "pass",
@@ -2367,19 +2367,19 @@
     },
     "join5": {
       "state": "pass",
-      "duration": "2.373s"
+      "duration": "2.353s"
     },
     "join6": {
       "state": "pass",
-      "duration": "629ms"
+      "duration": "627ms"
     },
     "join7": {
       "state": "pass",
-      "duration": "648ms"
+      "duration": "665ms"
     },
     "join8": {
       "state": "pass",
-      "duration": "686ms"
+      "duration": "695ms"
     },
     "join9": {
       "state": "skipped"
@@ -2393,14 +2393,14 @@
     },
     "joinC": {
       "state": "pass",
-      "duration": "740ms"
+      "duration": "756ms"
     },
     "joinD": {
       "state": "skipped"
     },
     "joinE": {
       "state": "pass",
-      "duration": "622ms"
+      "duration": "629ms"
     },
     "joinF": {
       "state": "skipped"
@@ -2413,87 +2413,87 @@
     },
     "journal1": {
       "state": "pass",
-      "duration": "615ms"
+      "duration": "612ms"
     },
     "journal2": {
       "state": "pass",
-      "duration": "638ms"
+      "duration": "636ms"
     },
     "journal3": {
       "state": "pass",
-      "duration": "919ms"
+      "duration": "625ms"
     },
     "jrnlmode": {
       "state": "pass",
-      "duration": "650ms"
+      "duration": "649ms"
     },
     "jrnlmode2": {
       "state": "pass",
-      "duration": "614ms"
+      "duration": "618ms"
     },
     "jrnlmode3": {
       "state": "pass",
-      "duration": "634ms"
+      "duration": "631ms"
     },
     "json101": {
       "state": "pass",
-      "duration": "716ms"
+      "duration": "710ms"
     },
     "json102": {
       "state": "pass",
-      "duration": "681ms"
+      "duration": "675ms"
     },
     "json103": {
       "state": "pass",
-      "duration": "659ms"
+      "duration": "637ms"
     },
     "json104": {
       "state": "pass",
-      "duration": "625ms"
+      "duration": "618ms"
     },
     "json105": {
       "state": "pass",
-      "duration": "621ms"
+      "duration": "614ms"
     },
     "json106": {
       "state": "pass",
-      "duration": "11.218s"
+      "duration": "11.088s"
     },
     "json107": {
       "state": "pass",
-      "duration": "620ms"
+      "duration": "616ms"
     },
     "json108": {
       "state": "pass",
-      "duration": "624ms"
+      "duration": "616ms"
     },
     "json109": {
       "state": "pass",
-      "duration": "621ms"
+      "duration": "616ms"
     },
     "json501": {
       "state": "pass",
-      "duration": "632ms"
+      "duration": "625ms"
     },
     "json502": {
       "state": "pass",
-      "duration": "622ms"
+      "duration": "626ms"
     },
     "jsonb01": {
       "state": "pass",
-      "duration": "627ms"
+      "duration": "612ms"
     },
     "keyword1": {
       "state": "pass",
-      "duration": "688ms"
+      "duration": "667ms"
     },
     "lastinsert": {
       "state": "pass",
-      "duration": "624ms"
+      "duration": "629ms"
     },
     "laststmtchanges": {
       "state": "pass",
-      "duration": "623ms"
+      "duration": "617ms"
     },
     "like": {
       "state": "pass",
@@ -2501,35 +2501,36 @@
     },
     "like2": {
       "state": "pass",
-      "duration": "793ms"
+      "duration": "728ms"
     },
     "like3": {
       "state": "pass",
-      "duration": "687ms"
+      "duration": "657ms"
     },
     "limit": {
-      "state": "pass",
-      "duration": "18.684s"
+      "state": "fail",
+      "duration": "18.578s",
+      "error": "--- FAIL: Test_limit (17.94s)\n    limit_test.go:266: result mismatch\n          got:  [{}]\n          want: [30 31]\nFAIL\nFAIL\tgithub.com/pijalu/frigolite/testgen/limit\t18.173s\nFAIL"
     },
     "limit2": {
       "state": "pass",
-      "duration": "922ms"
+      "duration": "914ms"
     },
     "literal": {
       "state": "pass",
-      "duration": "617ms"
+      "duration": "611ms"
     },
     "literal2": {
       "state": "pass",
-      "duration": "610ms"
+      "duration": "607ms"
     },
     "loadext": {
       "state": "pass",
-      "duration": "618ms"
+      "duration": "609ms"
     },
     "loadext2": {
       "state": "pass",
-      "duration": "619ms"
+      "duration": "610ms"
     },
     "lock": {
       "state": "pass",
@@ -2537,34 +2538,34 @@
     },
     "lock2": {
       "state": "pass",
-      "duration": "602ms"
+      "duration": "620ms"
     },
     "lock3": {
       "state": "pass",
-      "duration": "616ms"
+      "duration": "610ms"
     },
     "lock4": {
       "state": "skipped"
     },
     "lock5": {
       "state": "pass",
-      "duration": "776ms"
+      "duration": "792ms"
     },
     "lock6": {
       "state": "pass",
-      "duration": "622ms"
+      "duration": "611ms"
     },
     "lock7": {
       "state": "pass",
-      "duration": "620ms"
+      "duration": "619ms"
     },
     "lookaside": {
       "state": "pass",
-      "duration": "627ms"
+      "duration": "619ms"
     },
     "main": {
       "state": "pass",
-      "duration": "620ms"
+      "duration": "629ms"
     },
     "malloc": {
       "state": "skipped"
@@ -2592,88 +2593,88 @@
     },
     "mallocA": {
       "state": "pass",
-      "duration": "628ms"
+      "duration": "612ms"
     },
     "mallocAll": {
       "state": "pass",
-      "duration": "614ms"
+      "duration": "613ms"
     },
     "mallocB": {
       "state": "pass",
-      "duration": "614ms"
+      "duration": "610ms"
     },
     "mallocC": {
       "state": "pass",
-      "duration": "609ms"
+      "duration": "619ms"
     },
     "mallocD": {
       "state": "pass",
-      "duration": "630ms"
+      "duration": "615ms"
     },
     "mallocE": {
       "state": "pass",
-      "duration": "609ms"
+      "duration": "615ms"
     },
     "mallocF": {
       "state": "pass",
-      "duration": "620ms"
+      "duration": "617ms"
     },
     "mallocG": {
       "state": "pass",
-      "duration": "610ms"
+      "duration": "609ms"
     },
     "mallocH": {
       "state": "pass",
-      "duration": "630ms"
+      "duration": "614ms"
     },
     "mallocI": {
       "state": "skipped"
     },
     "mallocJ": {
       "state": "pass",
-      "duration": "618ms"
+      "duration": "609ms"
     },
     "mallocK": {
       "state": "skipped"
     },
     "mallocL": {
       "state": "pass",
-      "duration": "618ms"
+      "duration": "621ms"
     },
     "mallocM": {
       "state": "pass",
-      "duration": "612ms"
+      "duration": "614ms"
     },
     "manydb": {
       "state": "skipped"
     },
     "mem5": {
       "state": "pass",
-      "duration": "620ms"
+      "duration": "610ms"
     },
     "memdb": {
       "state": "pass",
-      "duration": "14.259s"
+      "duration": "12.677s"
     },
     "memdb1": {
       "state": "pass",
-      "duration": "679ms"
+      "duration": "676ms"
     },
     "memdb2": {
       "state": "pass",
-      "duration": "625ms"
+      "duration": "619ms"
     },
     "memjournal": {
       "state": "pass",
-      "duration": "637ms"
+      "duration": "638ms"
     },
     "memjournal2": {
       "state": "pass",
-      "duration": "21.832s"
+      "duration": "22.049s"
     },
     "memleak": {
       "state": "pass",
-      "duration": "622ms"
+      "duration": "634ms"
     },
     "memsubsys1": {
       "state": "skipped"
@@ -2683,15 +2684,15 @@
     },
     "merge1": {
       "state": "pass",
-      "duration": "632ms"
+      "duration": "628ms"
     },
     "minmax": {
       "state": "pass",
-      "duration": "661ms"
+      "duration": "694ms"
     },
     "minmax2": {
       "state": "pass",
-      "duration": "649ms"
+      "duration": "644ms"
     },
     "minmax3": {
       "state": "pass",
@@ -2699,43 +2700,43 @@
     },
     "minmax4": {
       "state": "pass",
-      "duration": "638ms"
+      "duration": "645ms"
     },
     "misc1": {
       "state": "pass",
-      "duration": "668ms"
+      "duration": "664ms"
     },
     "misc2": {
       "state": "pass",
-      "duration": "785ms"
+      "duration": "794ms"
     },
     "misc3": {
       "state": "pass",
-      "duration": "671ms"
+      "duration": "670ms"
     },
     "misc4": {
       "state": "pass",
-      "duration": "643ms"
+      "duration": "635ms"
     },
     "misc5": {
       "state": "pass",
-      "duration": "828ms"
+      "duration": "823ms"
     },
     "misc6": {
       "state": "pass",
-      "duration": "628ms"
+      "duration": "630ms"
     },
     "misc7": {
       "state": "pass",
-      "duration": "663ms"
+      "duration": "667ms"
     },
     "misc8": {
       "state": "pass",
-      "duration": "642ms"
+      "duration": "960ms"
     },
     "misuse": {
       "state": "pass",
-      "duration": "631ms"
+      "duration": "626ms"
     },
     "mjournal": {
       "state": "skipped"
@@ -2757,7 +2758,7 @@
     },
     "mmapfault": {
       "state": "pass",
-      "duration": "630ms"
+      "duration": "623ms"
     },
     "mmapwarm": {
       "state": "skipped"
@@ -2776,112 +2777,112 @@
     },
     "mutex1": {
       "state": "pass",
-      "duration": "636ms"
+      "duration": "624ms"
     },
     "mutex2": {
       "state": "skipped"
     },
     "nan": {
       "state": "pass",
-      "duration": "755ms"
+      "duration": "641ms"
     },
     "nockpt": {
       "state": "pass",
-      "duration": "686ms"
+      "duration": "640ms"
     },
     "nolock": {
       "state": "skipped"
     },
     "normalize": {
       "state": "pass",
-      "duration": "723ms"
+      "duration": "664ms"
     },
     "notify1": {
       "state": "pass",
-      "duration": "690ms"
+      "duration": "644ms"
     },
     "notify2": {
       "state": "pass",
-      "duration": "722ms"
+      "duration": "690ms"
     },
     "notify3": {
       "state": "pass",
-      "duration": "719ms"
+      "duration": "631ms"
     },
     "notnull": {
       "state": "pass",
-      "duration": "770ms"
+      "duration": "782ms"
     },
     "notnull2": {
       "state": "pass",
-      "duration": "757ms"
+      "duration": "729ms"
     },
     "notnullfault": {
       "state": "pass",
-      "duration": "742ms"
+      "duration": "713ms"
     },
     "null": {
       "state": "pass",
-      "duration": "737ms"
+      "duration": "708ms"
     },
     "nulls1": {
       "state": "pass",
-      "duration": "766ms"
+      "duration": "758ms"
     },
     "nulls2": {
       "state": "pass",
-      "duration": "718ms"
+      "duration": "714ms"
     },
     "numcast": {
       "state": "pass",
-      "duration": "715ms"
+      "duration": "743ms"
     },
     "numindex1": {
       "state": "pass",
-      "duration": "685ms"
+      "duration": "718ms"
     },
     "offset1": {
       "state": "skipped"
     },
     "openv2": {
       "state": "pass",
-      "duration": "713ms"
+      "duration": "703ms"
     },
     "orderby1": {
       "state": "pass",
-      "duration": "1.313s"
+      "duration": "1.296s"
     },
     "orderby2": {
       "state": "pass",
-      "duration": "669ms"
+      "duration": "656ms"
     },
     "orderby3": {
       "state": "pass",
-      "duration": "738ms"
+      "duration": "711ms"
     },
     "orderby4": {
       "state": "pass",
-      "duration": "680ms"
+      "duration": "663ms"
     },
     "orderby5": {
       "state": "pass",
-      "duration": "748ms"
+      "duration": "727ms"
     },
     "orderby6": {
       "state": "pass",
-      "duration": "2.072s"
+      "duration": "2.038s"
     },
     "orderby7": {
       "state": "pass",
-      "duration": "628ms"
+      "duration": "622ms"
     },
     "orderby8": {
       "state": "pass",
-      "duration": "667ms"
+      "duration": "657ms"
     },
     "orderby9": {
       "state": "pass",
-      "duration": "724ms"
+      "duration": "730ms"
     },
     "orderbyA": {
       "state": "pass",
@@ -2889,34 +2890,34 @@
     },
     "orderbyB": {
       "state": "pass",
-      "duration": "712ms"
+      "duration": "724ms"
     },
     "oserror": {
       "state": "skipped"
     },
     "ovfl": {
       "state": "pass",
-      "duration": "940ms"
+      "duration": "922ms"
     },
     "p_8_3_names": {
       "state": "pass",
-      "duration": "1.261s"
+      "duration": "1.287s"
     },
     "pager1": {
       "state": "pass",
-      "duration": "710ms"
+      "duration": "705ms"
     },
     "pager2": {
       "state": "pass",
-      "duration": "2.725s"
+      "duration": "2.704s"
     },
     "pager3": {
       "state": "pass",
-      "duration": "609ms"
+      "duration": "613ms"
     },
     "pager4": {
       "state": "pass",
-      "duration": "632ms"
+      "duration": "623ms"
     },
     "pagerfault": {
       "state": "skipped"
@@ -2933,7 +2934,7 @@
     },
     "pagesize": {
       "state": "pass",
-      "duration": "690ms"
+      "duration": "674ms"
     },
     "parser1": {
       "state": "pass",
@@ -2941,43 +2942,43 @@
     },
     "pcache": {
       "state": "pass",
-      "duration": "635ms"
+      "duration": "588ms"
     },
     "pcache2": {
       "state": "pass",
-      "duration": "681ms"
+      "duration": "653ms"
     },
     "pendingrace": {
       "state": "pass",
-      "duration": "637ms"
+      "duration": "630ms"
     },
     "percentile": {
       "state": "pass",
-      "duration": "8.635s"
+      "duration": "8.464s"
     },
     "permutations": {
       "state": "pass",
-      "duration": "675ms"
+      "duration": "618ms"
     },
     "pragma": {
       "state": "pass",
-      "duration": "855ms"
+      "duration": "852ms"
     },
     "pragma2": {
       "state": "pass",
-      "duration": "655ms"
+      "duration": "647ms"
     },
     "pragma3": {
       "state": "pass",
-      "duration": "641ms"
+      "duration": "636ms"
     },
     "pragma4": {
       "state": "pass",
-      "duration": "1.006s"
+      "duration": "1s"
     },
     "pragma5": {
       "state": "pass",
-      "duration": "662ms"
+      "duration": "640ms"
     },
     "pragma6": {
       "state": "pass",
@@ -2985,19 +2986,19 @@
     },
     "pragmafault": {
       "state": "pass",
-      "duration": "635ms"
+      "duration": "645ms"
     },
     "prefixes": {
       "state": "pass",
-      "duration": "627ms"
+      "duration": "635ms"
     },
     "printf": {
       "state": "pass",
-      "duration": "635ms"
+      "duration": "633ms"
     },
     "printf2": {
       "state": "pass",
-      "duration": "648ms"
+      "duration": "652ms"
     },
     "progress": {
       "state": "skipped"
@@ -3019,7 +3020,7 @@
     },
     "qrf04": {
       "state": "pass",
-      "duration": "648ms"
+      "duration": "653ms"
     },
     "qrf05": {
       "state": "pass",
@@ -3027,83 +3028,83 @@
     },
     "qrf06": {
       "state": "pass",
-      "duration": "623ms"
+      "duration": "659ms"
     },
     "queryonly": {
       "state": "pass",
-      "duration": "647ms"
+      "duration": "687ms"
     },
     "quick": {
       "state": "pass",
-      "duration": "614ms"
+      "duration": "618ms"
     },
     "quickcheck": {
       "state": "pass",
-      "duration": "669ms"
+      "duration": "712ms"
     },
     "quota": {
       "state": "pass",
-      "duration": "616ms"
+      "duration": "680ms"
     },
     "quota2": {
       "state": "pass",
-      "duration": "680ms"
+      "duration": "754ms"
     },
     "quota_glob": {
       "state": "pass",
-      "duration": "604ms"
+      "duration": "730ms"
     },
     "quote": {
       "state": "pass",
-      "duration": "652ms"
+      "duration": "668ms"
     },
     "randexpr1": {
       "state": "pass",
-      "duration": "3.785s"
+      "duration": "3.821s"
     },
     "rbu": {
       "state": "pass",
-      "duration": "628ms"
+      "duration": "631ms"
     },
     "rdonly": {
       "state": "pass",
-      "duration": "639ms"
+      "duration": "628ms"
     },
     "readonly": {
       "state": "pass",
-      "duration": "2.019s"
+      "duration": "2.023s"
     },
     "recover_pkg": {
       "state": "pass",
-      "duration": "680ms"
+      "duration": "682ms"
     },
     "regexp1": {
       "state": "pass",
-      "duration": "679ms"
+      "duration": "655ms"
     },
     "regexp2": {
       "state": "pass",
-      "duration": "685ms"
+      "duration": "687ms"
     },
     "reindex": {
       "state": "pass",
-      "duration": "622ms"
+      "duration": "640ms"
     },
     "reservebytes": {
       "state": "pass",
-      "duration": "1.268s"
+      "duration": "1.258s"
     },
     "resetdb": {
       "state": "pass",
-      "duration": "679ms"
+      "duration": "674ms"
     },
     "resolver01": {
       "state": "pass",
-      "duration": "647ms"
+      "duration": "655ms"
     },
     "returning1": {
       "state": "pass",
-      "duration": "688ms"
+      "duration": "696ms"
     },
     "returningfault": {
       "state": "pass",
@@ -3111,18 +3112,18 @@
     },
     "rollback": {
       "state": "pass",
-      "duration": "722ms"
+      "duration": "731ms"
     },
     "rollback2": {
       "state": "pass",
-      "duration": "676ms"
+      "duration": "690ms"
     },
     "rollbackfault": {
       "state": "skipped"
     },
     "round1": {
       "state": "pass",
-      "duration": "1.145s"
+      "duration": "1.139s"
     },
     "rowallock": {
       "state": "pass",
@@ -3133,7 +3134,7 @@
     },
     "rowid": {
       "state": "pass",
-      "duration": "765ms"
+      "duration": "768ms"
     },
     "rowvalue": {
       "state": "pass",
@@ -3141,11 +3142,11 @@
     },
     "rowvalue2": {
       "state": "pass",
-      "duration": "11.476s"
+      "duration": "11.482s"
     },
     "rowvalue3": {
       "state": "pass",
-      "duration": "649ms"
+      "duration": "640ms"
     },
     "rowvalue4": {
       "state": "pass",
@@ -3156,27 +3157,27 @@
     },
     "rowvalue6": {
       "state": "pass",
-      "duration": "631ms"
+      "duration": "626ms"
     },
     "rowvalue7": {
       "state": "pass",
-      "duration": "615ms"
+      "duration": "622ms"
     },
     "rowvalue8": {
       "state": "pass",
-      "duration": "621ms"
+      "duration": "641ms"
     },
     "rowvalue9": {
       "state": "pass",
-      "duration": "642ms"
+      "duration": "653ms"
     },
     "rowvalueA": {
       "state": "pass",
-      "duration": "645ms"
+      "duration": "631ms"
     },
     "rowvaluefault": {
       "state": "pass",
-      "duration": "618ms"
+      "duration": "616ms"
     },
     "rowvaluevtab": {
       "state": "pass",
@@ -3184,92 +3185,92 @@
     },
     "rtree": {
       "state": "pass",
-      "duration": "624ms"
+      "duration": "609ms"
     },
     "rtree1": {
       "state": "pass",
-      "duration": "1.081s"
+      "duration": "1.076s"
     },
     "rtree2": {
       "state": "pass",
-      "duration": "17.293s"
+      "duration": "17.039s"
     },
     "rtree3": {
       "state": "pass",
-      "duration": "1.454s"
+      "duration": "1.381s"
     },
     "rtree4": {
       "state": "pass",
-      "duration": "17.915s"
+      "duration": "18.003s"
     },
     "rtree5": {
       "state": "pass",
-      "duration": "713ms"
+      "duration": "723ms"
     },
     "rtree6": {
       "state": "pass",
-      "duration": "639ms"
+      "duration": "631ms"
     },
     "rtree7": {
       "state": "pass",
-      "duration": "652ms"
+      "duration": "664ms"
     },
     "rtree8": {
       "state": "skipped"
     },
     "rtree9": {
       "state": "pass",
-      "duration": "1.801s"
+      "duration": "1.761s"
     },
     "rtreeA": {
       "state": "skipped"
     },
     "rtreeB": {
       "state": "pass",
-      "duration": "623ms"
+      "duration": "636ms"
     },
     "rtreeC": {
       "state": "pass",
-      "duration": "995ms"
+      "duration": "990ms"
     },
     "rtreeD": {
       "state": "pass",
-      "duration": "667ms"
+      "duration": "615ms"
     },
     "rtreeE": {
       "state": "pass",
-      "duration": "12.145s"
+      "duration": "12.048s"
     },
     "rtreeF": {
       "state": "pass",
-      "duration": "646ms"
+      "duration": "618ms"
     },
     "rtreeG": {
       "state": "pass",
-      "duration": "640ms"
+      "duration": "634ms"
     },
     "rtreeH": {
       "state": "pass",
-      "duration": "1m22.907s"
+      "duration": "1m19.174s"
     },
     "rtreeI": {
       "state": "pass",
-      "duration": "644ms"
+      "duration": "628ms"
     },
     "rtreeJ": {
       "state": "skipped"
     },
     "rtreecheck": {
       "state": "pass",
-      "duration": "923ms"
+      "duration": "931ms"
     },
     "rtreecirc": {
       "state": "pass",
-      "duration": "613ms"
+      "duration": "632ms"
     },
     "rtreeconnect": {
       "state": "pass",
-      "duration": "620ms"
+      "duration": "630ms"
     },
     "rtreedoc": {
       "state": "skipped"
@@ -3285,52 +3286,53 @@
     },
     "savepoint": {
       "state": "pass",
-      "duration": "770ms"
+      "duration": "834ms"
     },
     "savepoint2": {
-      "state": "pass",
-      "duration": "9.008s"
+      "state": "fail",
+      "duration": "25m1.611s",
+      "error": "02e2cecb, 0x1b}, {0x102e37997, 0x2e}, 0x3b07e0e20480, {0x103377cf8, 0x1, 0x1}, {0x3b07e0e3fc58?, 0x3b07e0e7e860?, ...})\n\t/opt/homebrew/Cellar/go/1.27.1/libexec/src/testing/testing.go:2740 +0x400\ntesting.(*M).Run(0x3b07e0f4cc80)\n\t/opt/homebrew/Cellar/go/1.27.1/libexec/src/testing/testing.go:2600 +0x578\nmain.main()\n\t_testmain.go:46 +0x80\n\ngoroutine 4 [running]:\n\tgoroutine running on other thread; stack unavailable\ncreated by testing.(*T).Run in goroutine 1\n\t/opt/homebrew/Cellar/go/1.27.1/libexec/src/testing/testing.go:2258 +0x3b8\nFAIL\tgithub.com/pijalu/frigolite/testgen/savepoint2\t1501.197s\nFAIL"
     },
     "savepoint4": {
       "state": "skipped"
     },
     "savepoint5": {
       "state": "pass",
-      "duration": "617ms"
+      "duration": "696ms"
     },
     "savepoint6": {
       "state": "skipped"
     },
     "savepoint7": {
       "state": "pass",
-      "duration": "706ms"
+      "duration": "704ms"
     },
     "savepointfault": {
       "state": "pass",
-      "duration": "611ms"
+      "duration": "626ms"
     },
     "scanstatus": {
       "state": "skipped"
     },
     "scanstatus2": {
       "state": "pass",
-      "duration": "639ms"
+      "duration": "655ms"
     },
     "schema": {
       "state": "pass",
-      "duration": "629ms"
+      "duration": "631ms"
     },
     "schema2": {
       "state": "pass",
-      "duration": "621ms"
+      "duration": "629ms"
     },
     "schema3": {
       "state": "pass",
-      "duration": "677ms"
+      "duration": "615ms"
     },
     "schema4": {
       "state": "pass",
-      "duration": "642ms"
+      "duration": "638ms"
     },
     "schema5": {
       "state": "pass",
@@ -3338,95 +3340,95 @@
     },
     "schema6": {
       "state": "pass",
-      "duration": "613ms"
+      "duration": "615ms"
     },
     "schemafault": {
       "state": "pass",
-      "duration": "624ms"
+      "duration": "621ms"
     },
     "securedel": {
       "state": "pass",
-      "duration": "622ms"
+      "duration": "624ms"
     },
     "securedel2": {
       "state": "pass",
-      "duration": "2.124s"
+      "duration": "2.091s"
     },
     "seekscan1": {
       "state": "pass",
-      "duration": "2.414s"
+      "duration": "2.425s"
     },
     "select1": {
       "state": "pass",
-      "duration": "2.277s"
+      "duration": "2.3s"
     },
     "select2": {
       "state": "pass",
-      "duration": "1.237s"
+      "duration": "1.238s"
     },
     "select3": {
       "state": "pass",
-      "duration": "658ms"
+      "duration": "662ms"
     },
     "select4": {
       "state": "pass",
-      "duration": "685ms"
+      "duration": "689ms"
     },
     "select5": {
       "state": "pass",
-      "duration": "645ms"
+      "duration": "640ms"
     },
     "select6": {
       "state": "pass",
-      "duration": "638ms"
+      "duration": "899ms"
     },
     "select7": {
       "state": "pass",
-      "duration": "639ms"
+      "duration": "684ms"
     },
     "select8": {
       "state": "pass",
-      "duration": "631ms"
+      "duration": "639ms"
     },
     "select9": {
       "state": "pass",
-      "duration": "641ms"
+      "duration": "1.012s"
     },
     "selectA": {
       "state": "pass",
-      "duration": "700ms"
+      "duration": "715ms"
     },
     "selectB": {
       "state": "pass",
-      "duration": "620ms"
+      "duration": "637ms"
     },
     "selectC": {
       "state": "pass",
-      "duration": "623ms"
+      "duration": "637ms"
     },
     "selectD": {
       "state": "pass",
-      "duration": "629ms"
+      "duration": "656ms"
     },
     "selectE": {
       "state": "pass",
-      "duration": "619ms"
+      "duration": "628ms"
     },
     "selectF": {
       "state": "pass",
-      "duration": "616ms"
+      "duration": "620ms"
     },
     "selectG": {
       "state": "pass",
-      "duration": "9.382s"
+      "duration": "9.684s"
     },
     "selectH": {
       "state": "pass",
-      "duration": "625ms"
+      "duration": "635ms"
     },
     "session": {
       "state": "pass",
-      "duration": "616ms"
+      "duration": "625ms"
     },
     "shared": {
       "state": "skipped"
@@ -3454,11 +3456,11 @@
     },
     "sharedA": {
       "state": "pass",
-      "duration": "616ms"
+      "duration": "627ms"
     },
     "sharedB": {
       "state": "pass",
-      "duration": "612ms"
+      "duration": "618ms"
     },
     "shared_err": {
       "state": "skipped"
@@ -3468,80 +3470,80 @@
     },
     "shell1": {
       "state": "pass",
-      "duration": "621ms"
+      "duration": "622ms"
     },
     "shell2": {
       "state": "pass",
-      "duration": "617ms"
+      "duration": "620ms"
     },
     "shell3": {
       "state": "pass",
-      "duration": "607ms"
+      "duration": "609ms"
     },
     "shell4": {
       "state": "pass",
-      "duration": "611ms"
+      "duration": "627ms"
     },
     "shell5": {
       "state": "pass",
-      "duration": "619ms"
+      "duration": "769ms"
     },
     "shell6": {
       "state": "pass",
-      "duration": "622ms"
+      "duration": "826ms"
     },
     "shell7": {
       "state": "pass",
-      "duration": "624ms"
+      "duration": "677ms"
     },
     "shell8": {
       "state": "pass",
-      "duration": "631ms"
+      "duration": "680ms"
     },
     "shell9": {
       "state": "pass",
-      "duration": "620ms"
+      "duration": "648ms"
     },
     "shellA": {
       "state": "skipped"
     },
     "shellB": {
       "state": "pass",
-      "duration": "618ms"
+      "duration": "677ms"
     },
     "shmlock": {
       "state": "skipped"
     },
     "shortread1": {
       "state": "pass",
-      "duration": "618ms"
+      "duration": "681ms"
     },
     "shrink": {
       "state": "pass",
-      "duration": "628ms"
+      "duration": "654ms"
     },
     "sidedelete": {
       "state": "pass",
-      "duration": "3.047s"
+      "duration": "3.309s"
     },
     "skipscan1": {
       "state": "skipped"
     },
     "skipscan2": {
       "state": "pass",
-      "duration": "1.063s"
+      "duration": "1.136s"
     },
     "skipscan3": {
       "state": "pass",
-      "duration": "1.366s"
+      "duration": "1.432s"
     },
     "skipscan5": {
       "state": "pass",
-      "duration": "615ms"
+      "duration": "659ms"
     },
     "skipscan6": {
       "state": "pass",
-      "duration": "613ms"
+      "duration": "740ms"
     },
     "snapshot": {
       "state": "skipped"
@@ -3563,23 +3565,23 @@
     },
     "soak": {
       "state": "pass",
-      "duration": "627ms"
+      "duration": "632ms"
     },
     "softheap1": {
       "state": "pass",
-      "duration": "614ms"
+      "duration": "652ms"
     },
     "sort": {
       "state": "pass",
-      "duration": "12.733s"
+      "duration": "12.557s"
     },
     "sort2": {
       "state": "pass",
-      "duration": "614ms"
+      "duration": "1.217s"
     },
     "sort3": {
       "state": "pass",
-      "duration": "10.073s"
+      "duration": "10.251s"
     },
     "sort4": {
       "state": "skipped"
@@ -3589,57 +3591,57 @@
     },
     "sorterref": {
       "state": "pass",
-      "duration": "594ms"
+      "duration": "1.076s"
     },
     "sortfault": {
       "state": "pass",
-      "duration": "755ms"
+      "duration": "821ms"
     },
     "speed1": {
       "state": "pass",
-      "duration": "647ms"
+      "duration": "677ms"
     },
     "speed1p": {
       "state": "pass",
-      "duration": "639ms"
+      "duration": "999ms"
     },
     "speed2": {
       "state": "pass",
-      "duration": "665ms"
+      "duration": "691ms"
     },
     "speed3": {
       "state": "pass",
-      "duration": "1.069s"
+      "duration": "1.096s"
     },
     "speed4": {
       "state": "skipped"
     },
     "speed4p": {
       "state": "pass",
-      "duration": "649ms"
+      "duration": "681ms"
     },
     "spellfix": {
       "state": "pass",
-      "duration": "5.595s"
+      "duration": "6.125s"
     },
     "spellfix2": {
       "state": "pass",
-      "duration": "633ms"
+      "duration": "653ms"
     },
     "spellfix3": {
       "state": "pass",
-      "duration": "637ms"
+      "duration": "649ms"
     },
     "spellfix4": {
       "state": "pass",
-      "duration": "1.472s"
+      "duration": "1.72s"
     },
     "sqldiff1": {
       "state": "skipped"
     },
     "sqllimits1": {
       "state": "pass",
-      "duration": "18.101s"
+      "duration": "19.096s"
     },
     "sqllog": {
       "state": "skipped"
@@ -3649,50 +3651,50 @@
     },
     "stat": {
       "state": "pass",
-      "duration": "630ms"
+      "duration": "1.104s"
     },
     "statfault": {
       "state": "pass",
-      "duration": "632ms"
+      "duration": "674ms"
     },
     "stmt": {
       "state": "pass",
-      "duration": "642ms"
+      "duration": "747ms"
     },
     "stmtrand": {
       "state": "pass",
-      "duration": "621ms"
+      "duration": "677ms"
     },
     "stmtvtab1": {
       "state": "skipped"
     },
     "strict1": {
       "state": "pass",
-      "duration": "647ms"
+      "duration": "696ms"
     },
     "strict2": {
       "state": "pass",
-      "duration": "624ms"
+      "duration": "702ms"
     },
     "subjournal": {
       "state": "pass",
-      "duration": "665ms"
+      "duration": "744ms"
     },
     "subquery": {
       "state": "pass",
-      "duration": "653ms"
+      "duration": "752ms"
     },
     "subquery2": {
       "state": "pass",
-      "duration": "629ms"
+      "duration": "714ms"
     },
     "subselect": {
       "state": "pass",
-      "duration": "634ms"
+      "duration": "726ms"
     },
     "substr": {
       "state": "pass",
-      "duration": "621ms"
+      "duration": "709ms"
     },
     "subtype1": {
       "state": "skipped"
@@ -3711,7 +3713,7 @@
     },
     "swarmvtabfault": {
       "state": "pass",
-      "duration": "628ms"
+      "duration": "713ms"
     },
     "symlink": {
       "state": "skipped"
@@ -3721,367 +3723,367 @@
     },
     "sync": {
       "state": "pass",
-      "duration": "1.001s"
+      "duration": "720ms"
     },
     "sync2": {
       "state": "pass",
-      "duration": "630ms"
+      "duration": "712ms"
     },
     "syscall": {
       "state": "pass",
-      "duration": "624ms"
+      "duration": "692ms"
     },
     "sysfault": {
       "state": "skipped"
     },
     "tabfunc01": {
       "state": "pass",
-      "duration": "678ms"
+      "duration": "779ms"
     },
     "table": {
       "state": "skipped"
     },
     "tableapi": {
       "state": "pass",
-      "duration": "648ms"
+      "duration": "698ms"
     },
     "tableopts": {
       "state": "pass",
-      "duration": "626ms"
+      "duration": "695ms"
     },
     "tclsqlite": {
       "state": "skipped"
     },
     "tempdb": {
       "state": "pass",
-      "duration": "634ms"
+      "duration": "694ms"
     },
     "tempdb2": {
       "state": "pass",
-      "duration": "627ms"
+      "duration": "697ms"
     },
     "tempfault": {
       "state": "pass",
-      "duration": "621ms"
+      "duration": "679ms"
     },
     "temptable": {
       "state": "pass",
-      "duration": "635ms"
+      "duration": "697ms"
     },
     "temptable2": {
       "state": "skipped"
     },
     "temptable3": {
       "state": "pass",
-      "duration": "623ms"
+      "duration": "685ms"
     },
     "temptrigger": {
       "state": "pass",
-      "duration": "651ms"
+      "duration": "703ms"
     },
     "thread001": {
       "state": "pass",
-      "duration": "628ms"
+      "duration": "688ms"
     },
     "thread002": {
       "state": "pass",
-      "duration": "624ms"
+      "duration": "685ms"
     },
     "thread003": {
       "state": "pass",
-      "duration": "718ms"
+      "duration": "675ms"
     },
     "thread004": {
       "state": "pass",
-      "duration": "683ms"
+      "duration": "682ms"
     },
     "thread005": {
       "state": "pass",
-      "duration": "742ms"
+      "duration": "1.044s"
     },
     "thread1": {
       "state": "pass",
-      "duration": "736ms"
+      "duration": "753ms"
     },
     "thread2": {
       "state": "pass",
-      "duration": "735ms"
+      "duration": "677ms"
     },
     "thread3": {
       "state": "pass",
-      "duration": "735ms"
+      "duration": "670ms"
     },
     "timediff1": {
       "state": "pass",
-      "duration": "740ms"
+      "duration": "682ms"
     },
     "tkt1435": {
       "state": "pass",
-      "duration": "726ms"
+      "duration": "640ms"
     },
     "tkt1443": {
       "state": "pass",
-      "duration": "727ms"
+      "duration": "655ms"
     },
     "tkt1444": {
       "state": "pass",
-      "duration": "713ms"
+      "duration": "688ms"
     },
     "tkt1449": {
       "state": "pass",
-      "duration": "750ms"
+      "duration": "677ms"
     },
     "tkt1473": {
       "state": "pass",
-      "duration": "736ms"
+      "duration": "699ms"
     },
     "tkt1501": {
       "state": "pass",
-      "duration": "703ms"
+      "duration": "691ms"
     },
     "tkt1512": {
       "state": "pass",
-      "duration": "690ms"
+      "duration": "1.047s"
     },
     "tkt1514": {
       "state": "pass",
-      "duration": "723ms"
+      "duration": "674ms"
     },
     "tkt1536": {
       "state": "pass",
-      "duration": "724ms"
+      "duration": "1.067s"
     },
     "tkt1537": {
       "state": "pass",
-      "duration": "728ms"
+      "duration": "695ms"
     },
     "tkt1567": {
       "state": "pass",
-      "duration": "932ms"
+      "duration": "762ms"
     },
     "tkt1644": {
       "state": "pass",
-      "duration": "640ms"
+      "duration": "678ms"
     },
     "tkt1667": {
       "state": "pass",
-      "duration": "956ms"
+      "duration": "1.014s"
     },
     "tkt1873": {
       "state": "pass",
-      "duration": "629ms"
+      "duration": "676ms"
     },
     "tkt2141": {
       "state": "pass",
-      "duration": "673ms"
+      "duration": "687ms"
     },
     "tkt2192": {
       "state": "pass",
-      "duration": "639ms"
+      "duration": "665ms"
     },
     "tkt2213": {
       "state": "pass",
-      "duration": "698ms"
+      "duration": "675ms"
     },
     "tkt2251": {
       "state": "pass",
-      "duration": "653ms"
+      "duration": "689ms"
     },
     "tkt2285": {
       "state": "pass",
-      "duration": "717ms"
+      "duration": "700ms"
     },
     "tkt2332": {
       "state": "pass",
-      "duration": "772ms"
+      "duration": "797ms"
     },
     "tkt2339": {
       "state": "pass",
-      "duration": "711ms"
+      "duration": "677ms"
     },
     "tkt2391": {
       "state": "pass",
-      "duration": "645ms"
+      "duration": "698ms"
     },
     "tkt2409": {
       "state": "skipped"
     },
     "tkt2450": {
       "state": "pass",
-      "duration": "725ms"
+      "duration": "685ms"
     },
     "tkt2565": {
       "state": "pass",
-      "duration": "702ms"
+      "duration": "681ms"
     },
     "tkt2640": {
       "state": "pass",
-      "duration": "742ms"
+      "duration": "696ms"
     },
     "tkt2643": {
       "state": "pass",
-      "duration": "734ms"
+      "duration": "685ms"
     },
     "tkt2686": {
       "state": "pass",
-      "duration": "2.934s"
+      "duration": "2.846s"
     },
     "tkt2767": {
       "state": "pass",
-      "duration": "717ms"
+      "duration": "683ms"
     },
     "tkt2817": {
       "state": "pass",
-      "duration": "625ms"
+      "duration": "691ms"
     },
     "tkt2820": {
       "state": "pass",
-      "duration": "622ms"
+      "duration": "667ms"
     },
     "tkt2822": {
       "state": "pass",
-      "duration": "641ms"
+      "duration": "675ms"
     },
     "tkt2832": {
       "state": "pass",
-      "duration": "613ms"
+      "duration": "676ms"
     },
     "tkt2854": {
       "state": "skipped"
     },
     "tkt2920": {
       "state": "pass",
-      "duration": "621ms"
+      "duration": "682ms"
     },
     "tkt2927": {
       "state": "pass",
-      "duration": "620ms"
+      "duration": "667ms"
     },
     "tkt2942": {
       "state": "pass",
-      "duration": "619ms"
+      "duration": "1.039s"
     },
     "tkt3080": {
       "state": "pass",
-      "duration": "624ms"
+      "duration": "665ms"
     },
     "tkt3093": {
       "state": "skipped"
     },
     "tkt3121": {
       "state": "pass",
-      "duration": "638ms"
+      "duration": "699ms"
     },
     "tkt3201": {
       "state": "pass",
-      "duration": "608ms"
+      "duration": "675ms"
     },
     "tkt3292": {
       "state": "pass",
-      "duration": "628ms"
+      "duration": "687ms"
     },
     "tkt3298": {
       "state": "pass",
-      "duration": "598ms"
+      "duration": "675ms"
     },
     "tkt3334": {
       "state": "pass",
-      "duration": "632ms"
+      "duration": "664ms"
     },
     "tkt3346": {
       "state": "pass",
-      "duration": "588ms"
+      "duration": "680ms"
     },
     "tkt3357": {
       "state": "pass",
-      "duration": "683ms"
+      "duration": "665ms"
     },
     "tkt3363": {
       "state": "pass",
-      "duration": "627ms"
+      "duration": "682ms"
     },
     "tkt3419": {
       "state": "pass",
-      "duration": "657ms"
+      "duration": "659ms"
     },
     "tkt3424": {
       "state": "pass",
-      "duration": "632ms"
+      "duration": "659ms"
     },
     "tkt3442": {
       "state": "pass",
-      "duration": "663ms"
+      "duration": "655ms"
     },
     "tkt3457": {
       "state": "pass",
-      "duration": "642ms"
+      "duration": "668ms"
     },
     "tkt3461": {
       "state": "pass",
-      "duration": "722ms"
+      "duration": "664ms"
     },
     "tkt3493": {
       "state": "pass",
-      "duration": "648ms"
+      "duration": "660ms"
     },
     "tkt3508": {
       "state": "pass",
-      "duration": "1.17s"
+      "duration": "658ms"
     },
     "tkt3522": {
       "state": "pass",
-      "duration": "1.159s"
+      "duration": "670ms"
     },
     "tkt3527": {
       "state": "pass",
-      "duration": "737ms"
+      "duration": "673ms"
     },
     "tkt3541": {
       "state": "pass",
-      "duration": "731ms"
+      "duration": "664ms"
     },
     "tkt3554": {
       "state": "pass",
-      "duration": "819ms"
+      "duration": "681ms"
     },
     "tkt3581": {
       "state": "pass",
-      "duration": "813ms"
+      "duration": "686ms"
     },
     "tkt35xx": {
       "state": "pass",
-      "duration": "745ms"
+      "duration": "686ms"
     },
     "tkt3630": {
       "state": "pass",
-      "duration": "739ms"
+      "duration": "671ms"
     },
     "tkt3718": {
       "state": "skipped"
     },
     "tkt3731": {
       "state": "pass",
-      "duration": "741ms"
+      "duration": "652ms"
     },
     "tkt3757": {
       "state": "pass",
-      "duration": "734ms"
+      "duration": "678ms"
     },
     "tkt3761": {
       "state": "pass",
-      "duration": "723ms"
+      "duration": "664ms"
     },
     "tkt3762": {
       "state": "pass",
-      "duration": "841ms"
+      "duration": "756ms"
     },
     "tkt3773": {
       "state": "pass",
-      "duration": "676ms"
+      "duration": "675ms"
     },
     "tkt3791": {
       "state": "pass",
-      "duration": "636ms"
+      "duration": "682ms"
     },
     "tkt3793": {
       "state": "skipped"
@@ -4091,154 +4093,154 @@
     },
     "tkt3824": {
       "state": "pass",
-      "duration": "713ms"
+      "duration": "691ms"
     },
     "tkt3832": {
       "state": "pass",
-      "duration": "636ms"
+      "duration": "696ms"
     },
     "tkt3838": {
       "state": "pass",
-      "duration": "720ms"
+      "duration": "695ms"
     },
     "tkt3841": {
       "state": "pass",
-      "duration": "718ms"
+      "duration": "687ms"
     },
     "tkt3871": {
       "state": "pass",
-      "duration": "765ms"
+      "duration": "728ms"
     },
     "tkt3879": {
       "state": "pass",
-      "duration": "724ms"
+      "duration": "697ms"
     },
     "tkt3911": {
       "state": "pass",
-      "duration": "725ms"
+      "duration": "642ms"
     },
     "tkt3918": {
       "state": "pass",
-      "duration": "698ms"
+      "duration": "640ms"
     },
     "tkt3922": {
       "state": "pass",
-      "duration": "694ms"
+      "duration": "653ms"
     },
     "tkt3929": {
       "state": "pass",
-      "duration": "720ms"
+      "duration": "655ms"
     },
     "tkt3935": {
       "state": "pass",
-      "duration": "729ms"
+      "duration": "642ms"
     },
     "tkt3992": {
       "state": "pass",
-      "duration": "693ms"
+      "duration": "638ms"
     },
     "tkt3997": {
       "state": "pass",
-      "duration": "717ms"
+      "duration": "653ms"
     },
     "tkt4018": {
       "state": "pass",
-      "duration": "1.342s"
+      "duration": "1.188s"
     },
     "tkt_02a8e81d44": {
       "state": "pass",
-      "duration": "641ms"
+      "duration": "633ms"
     },
     "tkt_18458b1a": {
       "state": "pass",
-      "duration": "718ms"
+      "duration": "638ms"
     },
     "tkt_26ff0c2d1e": {
       "state": "pass",
-      "duration": "702ms"
+      "duration": "638ms"
     },
     "tkt_2a5629202f": {
       "state": "pass",
-      "duration": "742ms"
+      "duration": "634ms"
     },
     "tkt_2d1a5c67d": {
       "state": "pass",
-      "duration": "732ms"
+      "duration": "620ms"
     },
     "tkt_2ea2425d34": {
       "state": "pass",
-      "duration": "723ms"
+      "duration": "632ms"
     },
     "tkt_31338dca7e": {
       "state": "pass",
-      "duration": "727ms"
+      "duration": "648ms"
     },
     "tkt_313723c356": {
       "state": "pass",
-      "duration": "719ms"
+      "duration": "642ms"
     },
     "tkt_385a5b56b9": {
       "state": "pass",
-      "duration": "708ms"
+      "duration": "628ms"
     },
     "tkt_38cb5df375": {
       "state": "pass",
-      "duration": "746ms"
+      "duration": "654ms"
     },
     "tkt_3998683a16": {
       "state": "pass",
-      "duration": "727ms"
+      "duration": "670ms"
     },
     "tkt_3a77c9714e": {
       "state": "pass",
-      "duration": "710ms"
+      "duration": "980ms"
     },
     "tkt_3fe897352e": {
       "state": "skipped"
     },
     "tkt_4a03edc4c8": {
       "state": "pass",
-      "duration": "687ms"
+      "duration": "643ms"
     },
     "tkt_4c86b126f2": {
       "state": "pass",
-      "duration": "739ms"
+      "duration": "632ms"
     },
     "tkt_4dd95f6943": {
       "state": "pass",
-      "duration": "978ms"
+      "duration": "798ms"
     },
     "tkt_4ef7e3cfca": {
       "state": "pass",
-      "duration": "674ms"
+      "duration": "647ms"
     },
     "tkt_54844eea3f": {
       "state": "pass",
-      "duration": "591ms"
+      "duration": "726ms"
     },
     "tkt_5d863f876e": {
       "state": "pass",
-      "duration": "679ms"
+      "duration": "639ms"
     },
     "tkt_5e10420e8d": {
       "state": "pass",
-      "duration": "658ms"
+      "duration": "648ms"
     },
     "tkt_5ee23731f": {
       "state": "pass",
-      "duration": "666ms"
+      "duration": "628ms"
     },
     "tkt_6bfb98dfc0": {
       "state": "pass",
-      "duration": "640ms"
+      "duration": "635ms"
     },
     "tkt_752e1646fc": {
       "state": "pass",
-      "duration": "673ms"
+      "duration": "628ms"
     },
     "tkt_78e04e52ea": {
       "state": "pass",
-      "duration": "652ms"
+      "duration": "651ms"
     },
     "tkt_7a31705a7e6": {
       "state": "skipped"
@@ -4248,34 +4250,34 @@
     },
     "tkt_80ba201079": {
       "state": "pass",
-      "duration": "707ms"
+      "duration": "647ms"
     },
     "tkt_80e031a00f": {
       "state": "pass",
-      "duration": "653ms"
+      "duration": "643ms"
     },
     "tkt_8454a207b9": {
       "state": "pass",
-      "duration": "728ms"
+      "duration": "655ms"
     },
     "tkt_868145d012": {
       "state": "pass",
-      "duration": "689ms"
+      "duration": "625ms"
     },
     "tkt_8c63ff0ec": {
       "state": "pass",
-      "duration": "746ms"
+      "duration": "628ms"
     },
     "tkt_91e2e8ba6f": {
       "state": "pass",
-      "duration": "745ms"
+      "duration": "629ms"
     },
     "tkt_99378177930f87bd": {
       "state": "skipped"
     },
     "tkt_9a8b09f8e6": {
       "state": "pass",
-      "duration": "724ms"
+      "duration": "631ms"
     },
     "tkt_9d68c883": {
       "state": "skipped"
@@ -4285,66 +4287,66 @@
     },
     "tkt_a7b7803e": {
       "state": "pass",
-      "duration": "720ms"
+      "duration": "633ms"
     },
     "tkt_a7debbe0": {
       "state": "pass",
-      "duration": "718ms"
+      "duration": "638ms"
     },
     "tkt_a8a0d2996a": {
       "state": "pass",
-      "duration": "710ms"
+      "duration": "640ms"
     },
     "tkt_b1d3a2e531": {
       "state": "pass",
-      "duration": "728ms"
+      "duration": "647ms"
     },
     "tkt_b351d95f9": {
       "state": "pass",
-      "duration": "717ms"
+      "duration": "732ms"
     },
     "tkt_b72787b1": {
       "state": "pass",
-      "duration": "721ms"
+      "duration": "868ms"
     },
     "tkt_b75a9ca6b0": {
       "state": "pass",
-      "duration": "715ms"
+      "duration": "678ms"
     },
     "tkt_ba7cbfaedc": {
       "state": "pass",
-      "duration": "726ms"
+      "duration": "667ms"
     },
     "tkt_bd484a090c": {
       "state": "pass",
-      "duration": "718ms"
+      "duration": "646ms"
     },
     "tkt_bdc6bbbb38": {
       "state": "skipped"
     },
     "tkt_c48d99d690": {
       "state": "pass",
-      "duration": "738ms"
+      "duration": "650ms"
     },
     "tkt_c694113d5": {
       "state": "pass",
-      "duration": "726ms"
+      "duration": "650ms"
     },
     "tkt_cbd054fa6b": {
       "state": "pass",
-      "duration": "712ms"
+      "duration": "634ms"
     },
     "tkt_d11f09d36e": {
       "state": "pass",
-      "duration": "1m4.132s"
+      "duration": "1m2.038s"
     },
     "tkt_d635236375": {
       "state": "pass",
-      "duration": "615ms"
+      "duration": "1.787s"
     },
     "tkt_d82e3f3721": {
       "state": "pass",
-      "duration": "635ms"
+      "duration": "759ms"
     },
     "tkt_f3e5abed55": {
       "state": "skipped"
@@ -4354,236 +4356,236 @@
     },
     "tkt_f777251dc7a": {
       "state": "pass",
-      "duration": "617ms"
+      "duration": "723ms"
     },
     "tkt_f7b4edec": {
       "state": "pass",
-      "duration": "621ms"
+      "duration": "707ms"
     },
     "tkt_f973c7ac31": {
       "state": "pass",
-      "duration": "618ms"
+      "duration": "744ms"
     },
     "tkt_fa7bf5ec": {
       "state": "pass",
-      "duration": "600ms"
+      "duration": "703ms"
     },
     "tkt_fc62af4523": {
       "state": "pass",
-      "duration": "996ms"
+      "duration": "773ms"
     },
     "tkt_fc7bd6358f": {
       "state": "pass",
-      "duration": "639ms"
+      "duration": "727ms"
     },
     "tokenize": {
       "state": "pass",
-      "duration": "613ms"
+      "duration": "733ms"
     },
     "tpch01": {
       "state": "pass",
-      "duration": "641ms"
+      "duration": "739ms"
     },
     "trace": {
       "state": "pass",
-      "duration": "613ms"
+      "duration": "708ms"
     },
     "trace2": {
       "state": "pass",
-      "duration": "608ms"
+      "duration": "733ms"
     },
     "trace3": {
       "state": "pass",
-      "duration": "629ms"
+      "duration": "683ms"
     },
     "trans": {
       "state": "pass",
-      "duration": "1.66s"
+      "duration": "1.809s"
     },
     "trans2": {
       "state": "skipped"
     },
     "trans3": {
       "state": "pass",
-      "duration": "630ms"
+      "duration": "714ms"
     },
     "transitive1": {
       "state": "pass",
-      "duration": "658ms"
+      "duration": "727ms"
     },
     "trigger1": {
       "state": "pass",
-      "duration": "655ms"
+      "duration": "567ms"
     },
     "trigger2": {
       "state": "pass",
-      "duration": "779ms"
+      "duration": "1.066s"
     },
     "trigger3": {
       "state": "pass",
-      "duration": "621ms"
+      "duration": "715ms"
     },
     "trigger4": {
       "state": "pass",
-      "duration": "668ms"
+      "duration": "695ms"
     },
     "trigger5": {
       "state": "pass",
-      "duration": "621ms"
+      "duration": "683ms"
     },
     "trigger6": {
       "state": "pass",
-      "duration": "622ms"
+      "duration": "694ms"
     },
     "trigger7": {
       "state": "pass",
-      "duration": "615ms"
+      "duration": "683ms"
     },
     "trigger8": {
       "state": "pass",
-      "duration": "621ms"
+      "duration": "697ms"
     },
     "trigger9": {
       "state": "pass",
-      "duration": "617ms"
+      "duration": "677ms"
     },
     "triggerA": {
       "state": "pass",
-      "duration": "645ms"
+      "duration": "696ms"
     },
     "triggerB": {
       "state": "pass",
-      "duration": "892ms"
+      "duration": "967ms"
     },
     "triggerC": {
       "state": "skipped"
     },
     "triggerD": {
       "state": "pass",
-      "duration": "624ms"
+      "duration": "716ms"
     },
     "triggerE": {
       "state": "pass",
-      "duration": "639ms"
+      "duration": "709ms"
     },
     "triggerF": {
       "state": "pass",
-      "duration": "630ms"
+      "duration": "677ms"
     },
     "triggerG": {
       "state": "pass",
-      "duration": "615ms"
+      "duration": "664ms"
     },
     "triggerupfrom": {
       "state": "pass",
-      "duration": "629ms"
+      "duration": "690ms"
     },
     "trustschema1": {
       "state": "pass",
-      "duration": "635ms"
+      "duration": "686ms"
     },
     "types": {
       "state": "pass",
-      "duration": "674ms"
+      "duration": "732ms"
     },
     "types2": {
       "state": "pass",
-      "duration": "625ms"
+      "duration": "685ms"
     },
     "types3": {
       "state": "pass",
-      "duration": "619ms"
+      "duration": "677ms"
     },
     "unhex": {
       "state": "pass",
-      "duration": "618ms"
+      "duration": "671ms"
     },
     "unionall": {
       "state": "pass",
-      "duration": "658ms"
+      "duration": "714ms"
     },
     "unionall2": {
       "state": "pass",
-      "duration": "628ms"
+      "duration": "667ms"
     },
     "unionallfault": {
       "state": "pass",
-      "duration": "628ms"
+      "duration": "678ms"
     },
     "unionvtab": {
       "state": "pass",
-      "duration": "669ms"
+      "duration": "764ms"
     },
     "unionvtabfault": {
       "state": "skipped"
     },
     "unique": {
       "state": "pass",
-      "duration": "620ms"
+      "duration": "698ms"
     },
     "unique2": {
       "state": "pass",
-      "duration": "624ms"
+      "duration": "673ms"
     },
     "unixexcl": {
       "state": "pass",
-      "duration": "615ms"
+      "duration": "671ms"
     },
     "unordered": {
       "state": "pass",
-      "duration": "618ms"
+      "duration": "661ms"
     },
     "update": {
       "state": "pass",
-      "duration": "870ms"
+      "duration": "778ms"
     },
     "update2": {
       "state": "pass",
-      "duration": "641ms"
+      "duration": "689ms"
     },
     "upfrom1": {
       "state": "pass",
-      "duration": "632ms"
+      "duration": "675ms"
     },
     "upfrom2": {
       "state": "pass",
-      "duration": "629ms"
+      "duration": "688ms"
     },
     "upfrom3": {
       "state": "pass",
-      "duration": "626ms"
+      "duration": "674ms"
     },
     "upfrom4": {
       "state": "pass",
-      "duration": "623ms"
+      "duration": "675ms"
     },
     "upfromfault": {
       "state": "pass",
-      "duration": "625ms"
+      "duration": "677ms"
     },
     "upsert1": {
       "state": "pass",
-      "duration": "643ms"
+      "duration": "682ms"
     },
     "upsert2": {
       "state": "pass",
-      "duration": "641ms"
+      "duration": "676ms"
     },
     "upsert3": {
       "state": "pass",
-      "duration": "612ms"
+      "duration": "663ms"
     },
     "upsert4": {
       "state": "pass",
-      "duration": "675ms"
+      "duration": "699ms"
     },
     "upsert5": {
       "state": "pass",
-      "duration": "730ms"
+      "duration": "784ms"
     },
     "upsertfault": {
       "state": "pass",
-      "duration": "617ms"
+      "duration": "675ms"
     },
     "uri": {
       "state": "skipped"
@@ -4593,164 +4595,164 @@
     },
     "utf16align": {
       "state": "pass",
-      "duration": "620ms"
+      "duration": "683ms"
     },
     "vacuum": {
       "state": "pass",
-      "duration": "1.048s"
+      "duration": "1.141s"
     },
     "vacuum2": {
       "state": "pass",
-      "duration": "646ms"
+      "duration": "695ms"
     },
     "vacuum3": {
       "state": "pass",
-      "duration": "2.418s"
+      "duration": "2.604s"
     },
     "vacuum4": {
       "state": "pass",
-      "duration": "622ms"
+      "duration": "695ms"
     },
     "vacuum5": {
       "state": "pass",
-      "duration": "1.642s"
+      "duration": "3.127s"
     },
     "vacuum6": {
       "state": "pass",
-      "duration": "18.45s"
+      "duration": "29.045s"
     },
     "vacuum_into": {
       "state": "pass",
-      "duration": "1.028s"
+      "duration": "2.377s"
     },
     "vacuummem": {
       "state": "skipped"
     },
     "values": {
       "state": "pass",
-      "duration": "653ms"
+      "duration": "698ms"
     },
     "valuesfault": {
       "state": "pass",
-      "duration": "615ms"
+      "duration": "659ms"
     },
     "varint": {
       "state": "pass",
-      "duration": "624ms"
+      "duration": "676ms"
     },
     "veryquick": {
       "state": "pass",
-      "duration": "611ms"
+      "duration": "668ms"
     },
     "view": {
       "state": "pass",
-      "duration": "646ms"
+      "duration": "732ms"
     },
     "view2": {
       "state": "pass",
-      "duration": "591ms"
+      "duration": "710ms"
     },
     "view3": {
       "state": "pass",
-      "duration": "4.07s"
+      "duration": "4.154s"
     },
     "vtab1": {
       "state": "pass",
-      "duration": "1.865s"
+      "duration": "1.995s"
     },
     "vtab2": {
       "state": "pass",
-      "duration": "634ms"
+      "duration": "822ms"
     },
     "vtab3": {
       "state": "pass",
-      "duration": "626ms"
+      "duration": "1.001s"
     },
     "vtab4": {
       "state": "pass",
-      "duration": "628ms"
+      "duration": "902ms"
     },
     "vtab5": {
       "state": "pass",
-      "duration": "663ms"
+      "duration": "1.526s"
     },
     "vtab6": {
       "state": "pass",
-      "duration": "689ms"
+      "duration": "685ms"
     },
     "vtab7": {
       "state": "skipped"
     },
     "vtab8": {
       "state": "pass",
-      "duration": "697ms"
+      "duration": "662ms"
     },
     "vtab9": {
       "state": "pass",
-      "duration": "662ms"
+      "duration": "666ms"
     },
     "vtabA": {
       "state": "pass",
-      "duration": "729ms"
+      "duration": "684ms"
     },
     "vtabB": {
       "state": "pass",
-      "duration": "643ms"
+      "duration": "665ms"
     },
     "vtabC": {
       "state": "pass",
-      "duration": "847ms"
+      "duration": "783ms"
     },
     "vtabD": {
       "state": "pass",
-      "duration": "3.52s"
+      "duration": "3.332s"
     },
     "vtabE": {
       "state": "pass",
-      "duration": "612ms"
+      "duration": "682ms"
     },
     "vtabF": {
       "state": "pass",
-      "duration": "612ms"
+      "duration": "673ms"
     },
     "vtabH": {
       "state": "pass",
-      "duration": "21.036s"
+      "duration": "1m11.834s"
     },
     "vtabI": {
       "state": "pass",
-      "duration": "648ms"
+      "duration": "2.644s"
     },
     "vtabJ": {
       "state": "pass",
-      "duration": "679ms"
+      "duration": "651ms"
     },
     "vtabK": {
       "state": "pass",
-      "duration": "666ms"
+      "duration": "653ms"
     },
     "vtabL": {
       "state": "pass",
-      "duration": "658ms"
+      "duration": "638ms"
     },
     "vtab_alter": {
       "state": "pass",
-      "duration": "656ms"
+      "duration": "652ms"
     },
     "vtab_err": {
       "state": "pass",
-      "duration": "665ms"
+      "duration": "661ms"
     },
     "vtab_shared": {
       "state": "pass",
-      "duration": "644ms"
+      "duration": "638ms"
     },
     "vtabdistinct": {
       "state": "skipped"
     },
     "vtabdrop": {
       "state": "pass",
-      "duration": "651ms"
+      "duration": "641ms"
     },
     "vtabrhs1": {
       "state": "skipped"
@@ -4790,11 +4792,11 @@
     },
     "walbig": {
       "state": "pass",
-      "duration": "640ms"
+      "duration": "642ms"
     },
     "walblock": {
       "state": "pass",
-      "duration": "652ms"
+      "duration": "663ms"
     },
     "walckptnoop": {
       "state": "skipped"
@@ -4831,11 +4833,11 @@
     },
     "waloverwrite": {
       "state": "pass",
-      "duration": "741ms"
+      "duration": "710ms"
     },
     "walpersist": {
       "state": "pass",
-      "duration": "725ms"
+      "duration": "729ms"
     },
     "walprotocol": {
       "state": "skipped"
@@ -4848,11 +4850,11 @@
     },
     "walro": {
       "state": "pass",
-      "duration": "641ms"
+      "duration": "685ms"
     },
     "walro2": {
       "state": "pass",
-      "duration": "664ms"
+      "duration": "653ms"
     },
     "walrofault": {
       "state": "pass",
@@ -4884,38 +4886,38 @@
     },
     "walthread": {
       "state": "pass",
-      "duration": "689ms"
+      "duration": "649ms"
     },
     "walvfs": {
       "state": "skipped"
     },
     "where": {
       "state": "pass",
-      "duration": "7.154s"
+      "duration": "6.768s"
     },
     "where2": {
       "state": "pass",
-      "duration": "1.734s"
+      "duration": "1.027s"
     },
     "where3": {
       "state": "pass",
-      "duration": "738ms"
+      "duration": "685ms"
     },
     "where4": {
       "state": "pass",
-      "duration": "720ms"
+      "duration": "688ms"
     },
     "where5": {
       "state": "pass",
-      "duration": "722ms"
+      "duration": "670ms"
     },
     "where6": {
       "state": "pass",
-      "duration": "713ms"
+      "duration": "658ms"
     },
     "where7": {
       "state": "pass",
-      "duration": "816ms"
+      "duration": "729ms"
     },
     "where8": {
       "state": "skipped"
@@ -4925,35 +4927,35 @@
     },
     "whereA": {
       "state": "pass",
-      "duration": "718ms"
+      "duration": "668ms"
     },
     "whereB": {
       "state": "pass",
-      "duration": "733ms"
+      "duration": "658ms"
     },
     "whereC": {
       "state": "pass",
-      "duration": "647ms"
+      "duration": "640ms"
     },
     "whereD": {
       "state": "pass",
-      "duration": "720ms"
+      "duration": "673ms"
     },
     "whereE": {
       "state": "pass",
-      "duration": "874ms"
+      "duration": "816ms"
     },
     "whereF": {
       "state": "pass",
-      "duration": "708ms"
+      "duration": "667ms"
     },
     "whereG": {
       "state": "pass",
-      "duration": "686ms"
+      "duration": "662ms"
     },
     "whereH": {
       "state": "pass",
-      "duration": "678ms"
+      "duration": "631ms"
     },
     "whereI": {
       "state": "pass",
@@ -4961,47 +4963,47 @@
     },
     "whereJ": {
       "state": "pass",
-      "duration": "677ms"
+      "duration": "645ms"
     },
     "whereK": {
       "state": "pass",
-      "duration": "671ms"
+      "duration": "637ms"
     },
     "whereL": {
       "state": "pass",
-      "duration": "701ms"
+      "duration": "634ms"
     },
     "whereM": {
       "state": "pass",
-      "duration": "622ms"
+      "duration": "644ms"
     },
     "whereN": {
       "state": "pass",
-      "duration": "731ms"
+      "duration": "652ms"
     },
     "wherefault": {
       "state": "pass",
-      "duration": "689ms"
+      "duration": "636ms"
     },
     "wherelfault": {
       "state": "pass",
-      "duration": "711ms"
+      "duration": "991ms"
     },
     "wherelimit": {
       "state": "pass",
-      "duration": "736ms"
+      "duration": "665ms"
     },
     "wherelimit2": {
       "state": "pass",
-      "duration": "734ms"
+      "duration": "668ms"
     },
     "wherelimit3": {
       "state": "pass",
-      "duration": "708ms"
+      "duration": "665ms"
     },
     "widetab1": {
       "state": "pass",
-      "duration": "692ms"
+      "duration": "658ms"
     },
     "win32heap": {
       "state": "skipped"
@@ -5017,87 +5019,87 @@
     },
     "window1": {
       "state": "pass",
-      "duration": "847ms"
+      "duration": "820ms"
     },
     "window2": {
       "state": "pass",
-      "duration": "687ms"
+      "duration": "659ms"
     },
     "window3": {
       "state": "pass",
-      "duration": "3.871s"
+      "duration": "3.764s"
     },
     "window4": {
       "state": "pass",
-      "duration": "718ms"
+      "duration": "1.026s"
     },
     "window5": {
       "state": "pass",
-      "duration": "649ms"
+      "duration": "634ms"
     },
     "window6": {
       "state": "pass",
-      "duration": "634ms"
+      "duration": "643ms"
     },
     "window7": {
       "state": "pass",
-      "duration": "701ms"
+      "duration": "674ms"
     },
     "window8": {
       "state": "pass",
-      "duration": "1.038s"
+      "duration": "1.044s"
     },
     "window9": {
       "state": "pass",
-      "duration": "622ms"
+      "duration": "625ms"
     },
     "windowA": {
       "state": "pass",
-      "duration": "664ms"
+      "duration": "640ms"
     },
     "windowB": {
       "state": "pass",
-      "duration": "604ms"
+      "duration": "645ms"
     },
     "windowC": {
       "state": "pass",
-      "duration": "689ms"
+      "duration": "645ms"
     },
     "windowD": {
       "state": "pass",
-      "duration": "634ms"
+      "duration": "627ms"
     },
     "windowE": {
       "state": "pass",
-      "duration": "665ms"
+      "duration": "636ms"
     },
     "windowerr": {
       "state": "pass",
-      "duration": "636ms"
+      "duration": "624ms"
     },
     "windowfault": {
       "state": "pass",
-      "duration": "841ms"
+      "duration": "722ms"
     },
     "windowpushd": {
       "state": "pass",
-      "duration": "636ms"
+      "duration": "641ms"
     },
     "with1": {
       "state": "pass",
-      "duration": "4.012s"
+      "duration": "3.754s"
     },
     "with2": {
       "state": "pass",
-      "duration": "634ms"
+      "duration": "662ms"
     },
     "with3": {
       "state": "pass",
-      "duration": "762ms"
+      "duration": "782ms"
     },
     "with4": {
       "state": "pass",
-      "duration": "612ms"
+      "duration": "623ms"
     },
     "with5": {
       "state": "pass",
@@ -5105,66 +5107,66 @@
     },
     "with6": {
       "state": "pass",
-      "duration": "613ms"
+      "duration": "636ms"
     },
     "withM": {
       "state": "pass",
-      "duration": "616ms"
+      "duration": "632ms"
     },
     "without_rowid1": {
       "state": "pass",
-      "duration": "832ms"
+      "duration": "730ms"
     },
     "without_rowid2": {
       "state": "pass",
-      "duration": "683ms"
+      "duration": "629ms"
     },
     "without_rowid3": {
       "state": "pass",
-      "duration": "633ms"
+      "duration": "622ms"
     },
     "without_rowid4": {
       "state": "pass",
-      "duration": "731ms"
+      "duration": "769ms"
     },
     "without_rowid5": {
       "state": "pass",
-      "duration": "653ms"
+      "duration": "634ms"
     },
     "without_rowid6": {
       "state": "pass",
-      "duration": "1.213s"
+      "duration": "1.263s"
     },
     "without_rowid7": {
       "state": "pass",
-      "duration": "627ms"
+      "duration": "662ms"
     },
     "writecrash": {
       "state": "skipped"
     },
     "zeroblob": {
       "state": "pass",
-      "duration": "706ms"
+      "duration": "874ms"
     },
     "zeroblobfault": {
       "state": "pass",
-      "duration": "642ms"
+      "duration": "653ms"
     },
     "zerodamage": {
       "state": "pass",
-      "duration": "1.346s"
+      "duration": "1.278s"
     },
     "zipfile": {
       "state": "pass",
-      "duration": "685ms"
+      "duration": "721ms"
     },
     "zipfile2": {
       "state": "pass",
-      "duration": "674ms"
+      "duration": "656ms"
     },
     "zipfilefault": {
       "state": "pass",
-      "duration": "657ms"
+      "duration": "636ms"
     }
   }
 }

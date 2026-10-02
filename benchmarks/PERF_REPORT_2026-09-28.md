@@ -590,3 +590,91 @@ register-based VM with typed values vs Go's interface-boxed pipeline
 (scan 6.2×), and per-statement exec plumbing (update/delete 12.5–15.4×)
 — both requiring the value-ordered-index/typed-row tranche documented in
 FLEET-STATE, beyond scoped optimization rounds.
+
+---
+
+# PERF-STRUCT — 2026-10-02: structural tranches (columnar scan, single-pass DML, same-kind template gate)
+
+The structural round the previous sections scoped. Three parallel
+tranches + the corrected same-kind template gate.
+
+## Final table (both engines re-run back-to-back, quiet machine, 100k rows)
+
+| Workload | frigolite | sqlite3 literal | gap | sqlite3 prepared | gap (prep) |
+|---|---|---|---|---|---|
+| INSERT ×100k, 1 txn | 231,856 ops/s | 1,322,565 ops/s | 5.7× | 3,149,896 ops/s | 13.6× |
+| SELECT point `WHERE id=?` | 199,632 ops/s | 891,687 ops/s | 4.5× | 2,717,173 ops/s | 13.6× |
+| SELECT scan (rows/s) | 9,412,998 | 52,889,958 | 5.6× | 53,682,668 | 5.7× |
+| SELECT GROUP BY (passes) | 55 | 123 | 2.3× | 120 | 2.2× |
+| UPDATE ×20k, 1 txn | 133,209 ops/s | 1,014,958 ops/s | 7.6× | 3,591,427 ops/s | 27.0× |
+| DELETE ×5k, 1 txn | 117,689 ops/s | 1,288,436 ops/s | 10.9× | 3,689,734 ops/s | 31.4× |
+| INSERT autocommit, file | 9,657 ops/s | — | — | 5,915 ops/s | **1.6× faster** |
+
+Progress vs the 2026-09-28 baselines: INSERT 21.3k → 231.9k ops/s
+(**10.9× faster**), point SELECT 192 → 199.6k ops/s (**1040×**), scan
+1.45M → 9.41M rows/s (6.5×), GROUP BY 14 → 55 passes (3.9×), UPDATE 65 →
+133.2k ops/s (**2049×**), DELETE 133 → 117.7k ops/s (**885×**). Gaps
+closed from 36×–15,152× to 2.3×–10.9×.
+
+## What landed
+
+- **Same-kind template gate** (`fleet/perf-parity-tplgate`,
+  `a55419000`): the historical spelling-equality gate refused every
+  different literal value → full re-parse per statement (24% of
+  update-statement CPU). The corrected gate substitutes within kind
+  (INTEGER→INTEGER via FormatInt; REAL→REAL via FormatFloat with the
+  .0 restore), refusing folded-minInt64 slots (the parser folds unary
+  minus into `-2^63`/hex literal text — rule 216 is now a pinned
+  contract), hex-spelled slots (lossy extraction), exact-2^63 doubles,
+  non-finite floats, and kind crossings. point 1.55×, update 1.54×
+  (probes); func4 green; 18 white-box gate pins + boundary tests vs the
+  sqlite3 oracle.
+- **Columnar scan path** (`fleet/perf-struct-scan`, `8afc20df9`):
+  `storage.DecodeRecordColumn(s)` reads the referenced columns directly
+  from cell payload serial-type offsets (OP_Column parity) — no whole
+  record decode, no per-row boxing beyond the read columns. Wired into
+  the aggregate feed and bare projection under a strict eligibility
+  contract. Bare single-column scan 3.4M → 7.0M rows/s (2×) on wide
+  fixtures, COUNT(*) +168%, allocs/row −73…−85%; 188/188 testgen
+  packages green; 18-shape parity byte-identical.
+- **Single-pass DML** (`fleet/perf-struct-dml`, `96d7a5f0e`):
+  rowid-pinned UPDATE/DELETE takes one seek → positional SET application
+  → single encode into a reusable buffer → in-place overwrite (loc==0)
+  or seek-delete + re-insert → index maintenance; P1 constraint gates
+  run unchanged on the single change; everything complex falls back to
+  the generic pipeline exactly. UPDATE-by-rowid +24% ops/s (−35%
+  bytes); grow-shape UPDATE (delete+reinsert) **125× ops/s** (−98%
+  allocs); DELETE-by-rowid +28% (−44% bytes); single-cell
+  `DeleteCellByRowID` raw-span repack inherited by all callers. 69
+  testgen packages + corrupt canaries green; 2 transcripts
+  byte-identical.
+- **Poolfix** (`fleet/perf-parity-poolfix`, `433e3aac7`): the
+  wrapper-pooling tranche's use-after-pool crash root-caused to two
+  stacked defects (per-registration SetFinalizer double-set on recycled
+  cursors; concurrent close of pooled wrappers) — finalizer-once
+  allocation, wrapper pooling dropped (cursor pooling kept), 3× clean
+  full-suite evidence.
+- **Memofix** (`fleet/perf-parity-memofix`, `f243cc18b`): ParsePage memo
+  canary + torn-capture guard, crafted-CellCount uint16-wrap validation
+  fix, index-decode tail guards (crafted pages error like SQLite).
+
+## Correctness findings (parallel review + validation agents, all fixed with pinned probes)
+
+INSERT template kind coercion (pre-existing P1), btree seek saved-state
+reset (P2), pooled-wrapper use-after-pool (P1), pager-memo mutation
+hardening + uint16 wrap + tail guards, missing checkOpen on
+SeekIndexKey. Documented pre-existing divergences (unchanged):
+uncollated −0.0/0.0 and text-'5'-vs-int-5 textual-key grouping;
+`x % 0.1` divide-by-zero panic; rowid-vs-text whitespace affinity.
+
+## Where it stands
+
+Every CRUD workload now runs within **2.3×–10.9×** of sqlite3 (file-mode
+autocommit **1.6× faster**), with a prepare/bind API at parity-grade
+economics. The census holds at **1073 pass / 0 fail / 290 skip** across
+the entire campaign. The residual gaps are owned by two remaining
+structural facts: SQLite's register-based VM with typed values
+(scan 5.6×, update/delete 7.6–10.9× — the interface-boxed pipeline is
+inherent to the pure-Go value model) and GROUP BY's per-row key
+evaluation (2.3×). Both are multi-round rewrites documented in
+FLEET-STATE rather than scoped optimizations.
