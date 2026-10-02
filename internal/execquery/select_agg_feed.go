@@ -34,6 +34,10 @@ const feedRowidSlot = -1
 // loops (rowid seek, range seek, table scan) consume it from engine state.
 type simpleAggFeed struct {
 	calls []aggFeedCall
+	// scratch carries each step's one-element argument slice. Reused across
+	// steps and calls: the Step implementations never retain the argument
+	// slice (aggFeedCall's contract), so one buffer serves the whole feed.
+	scratch [1]interface{}
 }
 
 // aggFeedCall is one output column's aggregate: the registry aggregator plus
@@ -233,7 +237,6 @@ func aggFeedArgSlot(colDefs []sql.ColumnDef, name string) (int, bool) {
 // unwrapCollatedValue), so the aggregate receives the same raw scalar it
 // would receive through the row-map path. countStar steps with no argument.
 func (f *simpleAggFeed) step(values []interface{}, rowID int64) error {
-	var scratch [1]interface{}
 	for ci := range f.calls {
 		c := &f.calls[ci]
 		if c.countStar {
@@ -248,8 +251,8 @@ func (f *simpleAggFeed) step(values []interface{}, rowID int64) error {
 		} else {
 			raw = values[c.slot]
 		}
-		scratch[0] = unwrapCollatedValue(util.UnwrapColumnValue(raw))
-		if err := c.agg.Step(scratch[:1]); err != nil {
+		f.scratch[0] = unwrapCollatedValue(util.UnwrapColumnValue(raw))
+		if err := c.agg.Step(f.scratch[:1]); err != nil {
 			return err
 		}
 	}
