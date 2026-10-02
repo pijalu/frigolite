@@ -21,6 +21,14 @@ func (t *BTree) InsertCell(newCell *storage.Cell) error {
 		// the write instead of dereferencing the reset wrapper.
 		return errCursorOwnerClosed
 	}
+	// The insert walk's parse slots are pooled per InsertCell (the recursion
+	// below never re-enters InsertCell on the same wrapper).
+	t.insScratch = insertScratchPool.Get().(*[4]storage.BTreePage)
+	t.insDepth = 0
+	defer func() {
+		insertScratchPool.Put(t.insScratch)
+		t.insScratch = nil
+	}()
 	// Splits and defragmentation move cells: save the positions of cursors
 	// open on this tree from enclosing statements (btree.c saveAllCursors,
 	// reached on the insert path through sqlite3BtreeInsert).
@@ -64,16 +72,24 @@ func (t *BTree) InsertCell(newCell *storage.Cell) error {
 // separating it from the previous page), or nil when no split occurred. The
 // caller must add each (pageNum, medianKey, newPage) pointer to the parent
 // interior page.
+//
+// The page header parses into a DEPTH-INDEXED per-tree scratch
+// (parseInsertScratch): every insert walks root→leaf, so ParsePage's heap
+// header ran twice per INSERT in the profile. The scratch slot is owned by
+// the insertPage frame until it returns; the contract every handler already
+// satisfies is that a parsed `page` is not used after the frame recurses
+// (insertInteriorPage's last use is findChildPageForInsert; a deeper tree
+// than the scratch falls back to the heap parse).
 func (t *BTree) insertPage(pageNum uint32, parentPgno uint32, newCell *storage.Cell) ([]leafSplitResult, error) {
 	pg, err := t.pager.ReadPage(pageNum)
 	if err != nil {
 		return nil, err
 	}
-	coff := contentOffset(pg.PageNum)
-	page, err := storage.ParsePage(pg.Data, int(t.pageSize), coff)
+	page, err := t.parseInsertScratch(pg)
 	if err != nil {
 		return nil, err
 	}
+	defer func() { t.insDepth-- }()
 
 	switch page.PageType {
 	case storage.PageTypeLeafTable, storage.PageTypeLeafIndex:
@@ -83,6 +99,21 @@ func (t *BTree) insertPage(pageNum uint32, parentPgno uint32, newCell *storage.C
 	default:
 		return nil, fmt.Errorf("btree: unknown page type 0x%02x", page.PageType)
 	}
+}
+
+// parseInsertScratch parses pg's b-tree header into the insert walk's
+// depth-indexed scratch slot, claiming the slot for the caller's frame
+// (insertPage decrements insDepth when its handler returns). Beyond the
+// scratch depth it falls back to the heap parse — trees deeper than the
+// scratch are rare (b-trees of realistic fanout stay ≤ 4 high).
+func (t *BTree) parseInsertScratch(pg *pager.Page) (*storage.BTreePage, error) {
+	if t.insScratch != nil && t.insDepth < len(t.insScratch) {
+		p := &t.insScratch[t.insDepth]
+		t.insDepth++
+		return storage.ParsePageInto(pg.Data, int(t.pageSize), contentOffset(pg.PageNum), p)
+	}
+	t.insDepth++
+	return storage.ParsePage(pg.Data, int(t.pageSize), contentOffset(pg.PageNum))
 }
 
 // insertLeafPage inserts a cell into a leaf page. If the leaf is full, it
