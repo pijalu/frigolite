@@ -250,12 +250,18 @@ func (e *Engine) tryTemplateCache(sqlStr, normSQL string, values []interface{}) 
 	}
 	// Template cache hit — clone AST with new values. If the clone refuses
 	// (unknown shape or value mismatch), fall through to re-parse.
+	// The clone is NOT stored in the exact-text stmtCache: a structurally
+	// identical statement with different literals has a different exact text,
+	// so the store only paid a map insert + entry churn per statement (the
+	// cache filled to its cap and was wholesale-dropped under unique-text
+	// streams) while every exact-text repeat still re-clones from the same
+	// template below. Results are identical either way: a substituted AST is
+	// byte-for-byte what a fresh parse of the statement text produces, and
+	// statement execution treats AST nodes as immutable.
 	cloned, ok := cloneStmtsWithValues(cached.ast, values)
 	if !ok {
 		return nil, false
 	}
-	// Also cache by exact SQL for future exact matches
-	e.caches.stmtCache[sqlStr] = cloned
 	return cloned, true
 }
 

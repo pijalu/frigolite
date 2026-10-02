@@ -420,7 +420,7 @@ func (e *SelectEngine) selectRowidRangeRows(s *sql.SelectStmt, tree *btree.BTree
 		needMaps = false
 	}
 	affinityCols := e.scanTableAffinityCols(s, colDefs, needMaps)
-	colIndex := buildSeekColIndex(colDefs)
+	colIndex := e.seekColIndexFor(colDefs)
 	whereIdx, restIdx := scanLazyDecodeIndices(colDefs, colIndex, affinityCols)
 	// Feed mode reads raw values for the aggregate steps: wrap only the
 	// WHERE-referenced columns (their wrappers feed the WHERE evaluation).

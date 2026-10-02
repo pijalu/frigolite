@@ -344,6 +344,10 @@ type Engine struct {
 	// except for a late file-path assignment, which the entry guards on.
 	// Entries are evicted when the context is detached.
 	lockKeyCache map[*DatabaseContext]dbLockKeyEnt
+	// allKeysCache memoizes Engine.allLockKeys over the attach-order list
+	// (nil = needs rebuild). Invalidated by ATTACH/DETACH/list reset and by
+	// any per-context key recompute; shared read-only with callers.
+	allKeysCache []string
 	// normBuf / normValues are Prepare's substitution scratch (the normalized
 	// SQL text buffer and the extracted literal values), recycled across
 	// statements. Neither outlives a Prepare call.

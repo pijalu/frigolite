@@ -26,6 +26,7 @@ func (e *Engine) DBList() []*DatabaseContext {
 // AppendDBList appends a database context to the attach-order list.
 func (e *Engine) AppendDBList(ctx *DatabaseContext) {
 	e.dbList = append(e.dbList, ctx)
+	e.invalidateAllLockKeysCache()
 }
 
 // RemoveDBListIndex removes the database context at index i from the
@@ -38,12 +39,14 @@ func (e *Engine) RemoveDBListIndex(i int) {
 	if ctx != nil && e.lockKeyCache != nil {
 		delete(e.lockKeyCache, ctx)
 	}
+	e.invalidateAllLockKeysCache()
 }
 
 // ResetDBList resets the attach-order list to contain only main.
 func (e *Engine) ResetDBList() {
 	e.dbList = []*DatabaseContext{e.mainDB}
 	e.lockKeyCache = nil
+	e.invalidateAllLockKeysCache()
 }
 
 // OpenTempBtree marks the temp btree open (see openTempBtree).

@@ -150,13 +150,17 @@ type BTree struct {
 
 // NewBTree creates a new BTree instance.
 //
-// Wrappers are deliberately NOT pooled (btree_pool.go): a pooled wrapper is
-// re-armed for whichever statement Gets it next, so a Close that races a
-// statement still holding the wrapper crashes that statement's next read
-// with a nil pager. A fresh wrapper per statement costs one small
-// allocation and keeps every Close terminal.
+// Wrappers are recycled through the package's wrapper pool (btree_pool.go):
+// Close returns the wrapper to the pool exactly once (the t.closed transition
+// guard makes double-Close a no-op), and initFrom re-arms every field —
+// including the previous tenant's keyCompare and staging buffers — before
+// the wrapper reaches its next owner. No finalizer ever touches a wrapper.
 func NewBTree(pg *pager.Pager, rootPage uint32, isTable bool) *BTree {
-	return new(BTree).initFrom(pg, rootPage, isTable, false)
+	t, _ := wrapperPool.Get().(*BTree)
+	if t == nil {
+		t = new(BTree)
+	}
+	return t.initFrom(pg, rootPage, isTable, false)
 }
 
 // SetKeyCompare installs a custom index-payload comparator (used for
@@ -177,9 +181,13 @@ func (t *BTree) compareKey(a, b []byte) int {
 // NewSchemaBTree creates a BTree for the sqlite_schema btree. Schema
 // btree allocations bypass the freelist so the schema btree's pages
 // don't take slots from the user-rootpage range (P8.INCRVACUUM.phase9).
-// Wrappers are not pooled (see NewBTree).
+// Wrappers are recycled through the wrapper pool (see NewBTree).
 func NewSchemaBTree(pg *pager.Pager) *BTree {
-	return new(BTree).initFrom(pg, 1, true, true)
+	t, _ := wrapperPool.Get().(*BTree)
+	if t == nil {
+		t = new(BTree)
+	}
+	return t.initFrom(pg, 1, true, true)
 }
 
 // allocPage allocates a page for the btree, bypassing the freelist if

@@ -265,7 +265,14 @@ type SelectEngine struct {
 	// select_order_plan.go): rebuilt by resolveOrderByOrdinalTerms for the
 	// sort that immediately follows, bound to that sort's term/row-map slice
 	// identities, and ignored by any other lessRows caller.
-	obSortPlan        *obSortPlan
+	obSortPlan *obSortPlan
+	// seekCI* memoizes the rowid-seek path's column-name→slot index
+	// (seekColIndexFor in rowid_seek.go): schema-fingerprint + colDefs-slice
+	// identity guarded, rebuilt on DDL. The map is read-only after build.
+	seekCIFingerprint uint64
+	seekCIDefs        *sql.ColumnDef
+	seekCILen         int
+	seekCICache       map[string]int
 	cteScopes         [][]sql.CTEDef           // CTE scopes from enclosing statements (innermost last)
 	resolvingCTEs     map[*sql.SelectStmt]bool // CTE bodies currently being resolved (circular reference detection); keyed by the CTE body AST so a same-named inner WITH shadow is a different CTE
 	currentScanTable  string                   // table name being scanned (for qualified column resolution)
