@@ -422,6 +422,12 @@ func (e *SelectEngine) selectRowidRangeRows(s *sql.SelectStmt, tree *btree.BTree
 	affinityCols := e.scanTableAffinityCols(s, colDefs, needMaps)
 	colIndex := buildSeekColIndex(colDefs)
 	whereIdx, restIdx := scanLazyDecodeIndices(colDefs, colIndex, affinityCols)
+	// A grouped feed also reads its key-term and aggregate-argument slots
+	// (the affinity walk exempts bare no-collation references from wrapping;
+	// they still must decode).
+	if feed != nil && feed.group != nil {
+		feed.group.unionDecodeSlots(whereIdx)
+	}
 	// Feed mode reads raw values for the aggregate steps: wrap only the
 	// WHERE-referenced columns (their wrappers feed the WHERE evaluation).
 	wrapCols := affinityCols

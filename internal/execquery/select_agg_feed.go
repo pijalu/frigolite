@@ -32,8 +32,11 @@ const feedRowidSlot = -1
 // column, in output order. It lives on the SelectEngine for the duration of
 // one execRealTableSelect (saved/restored like outerRows) because the row
 // loops (rowid seek, range seek, table scan) consume it from engine state.
+// group, when non-nil, is the grouped-aggregate partition (select_agg_groupfeed.go):
+// the statement is a GROUP BY feed and step routes to it.
 type simpleAggFeed struct {
 	calls []aggFeedCall
+	group *groupFeedPartition
 	// scratch carries each step's one-element argument slice. Reused across
 	// steps and calls: the Step implementations never retain the argument
 	// slice (aggFeedCall's contract), so one buffer serves the whole feed.
@@ -236,7 +239,11 @@ func aggFeedArgSlot(colDefs []sql.ColumnDef, name string) (int, bool) {
 // unwrapping mirrors evalAggCallArgs exactly (util.UnwrapColumnValue then
 // unwrapCollatedValue), so the aggregate receives the same raw scalar it
 // would receive through the row-map path. countStar steps with no argument.
+// A grouped feed (GROUP BY partition) owns the whole step.
 func (f *simpleAggFeed) step(values []interface{}, rowID int64) error {
+	if f.group != nil {
+		return f.group.step(values, rowID)
+	}
 	for ci := range f.calls {
 		c := &f.calls[ci]
 		if c.countStar {
@@ -263,8 +270,12 @@ func (f *simpleAggFeed) step(values []interface{}, rowID int64) error {
 // building the single aggregate output row through the registry Final calls
 // and the shared finalize path. A zero-row input lands here too: each Final
 // returns the same empty-input value the generic path's emptyAggValue yields
-// (COUNT 0, TOTAL 0.0, SUM/AVG NULL).
+// (COUNT 0, TOTAL 0.0, SUM/AVG NULL). A grouped feed builds one output row
+// per GROUP instead (finishGroupedAggFeed).
 func (e *SelectEngine) finishSimpleAggFeed(s *sql.SelectStmt, feed *simpleAggFeed, colDefs []sql.ColumnDef) *Result {
+	if feed.group != nil {
+		return e.finishGroupedAggFeed(s, feed, colDefs)
+	}
 	columns := e.buildColumnNames(s.Columns, colDefs, s)
 	outRow := make([]interface{}, len(feed.calls))
 	for i := range feed.calls {
