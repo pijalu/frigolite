@@ -607,6 +607,10 @@ type scanState struct {
 	directIPKIdx   []int
 	directIPKAff   []rune
 	directIPKColl  []string
+	// directSlotCeil is max(directCols)+1: the prefix header walk's returned
+	// count is exact exactly when it is below this ceiling; at or above it
+	// every requested slot is present in the record.
+	directSlotCeil int
 	// barePassthrough marks the pure all-bare-refs scan (initBarePassthrough):
 	// decode lands straight in the flat output buffer, skipping the reused
 	// row's slot round-trip and the output unwrap.

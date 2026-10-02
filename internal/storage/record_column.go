@@ -52,6 +52,16 @@ func DecodeRecordColumns(data []byte, cols []int, out []interface{}) (int, error
 	return decodeRecordColumnsInto(data, cols, out, true)
 }
 
+// DecodeRecordColumnsPrefix is DecodeRecordColumns with an early-exit header
+// walk: the walk stops once every requested ordinal has been decoded, so the
+// returned count is min(record's column count, max(cols)+1) — exact when the
+// record is not longer than the highest requested slot, capped otherwise. A
+// caller that needs absent-slot defaults for slots beyond the cap must
+// re-read with DecodeRecordColumns (whose full walk returns the exact count).
+func DecodeRecordColumnsPrefix(data []byte, cols []int, out []interface{}) (int, error) {
+	return decodeRecordColumnsInto(data, cols, out, false)
+}
+
 // decodeRecordColumnsInto walks the record header, recording the requested
 // columns' values. When walkAll is false the walk stops once every requested
 // ordinal has been seen (the single-column primitive); when true it walks the

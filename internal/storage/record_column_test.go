@@ -2,6 +2,7 @@ package storage
 
 import (
 	"bytes"
+	"fmt"
 	"reflect"
 	"testing"
 )
@@ -202,5 +203,55 @@ func TestDecodeRecordColumnsBlobCopy(t *testing.T) {
 	b[0] = 0xFF
 	if data[len(data)-3] == 0xFF {
 		t.Fatal("blob read aliases the payload buffer")
+	}
+}
+
+// TestDecodeRecordColumnsPrefixMatchesFullDecode pins the prefix walk's
+// contract: values identical to DecodeRecordColumns, and the returned count
+// is min(record column count, max(cols)+1) — exact below the ceiling, capped
+// at it once every requested slot is present.
+func TestDecodeRecordColumnsPrefixMatchesFullDecode(t *testing.T) {
+	values := []interface{}{int64(1), "two", 3.5, []byte("four"), nil, int64(6), "seven", 8.0, "nine", int64(10)}
+	data := mustRecord(t, values)
+	cases := [][]int{
+		{0}, {1}, {9}, {0, 1}, {1, 4}, {0, 9}, {2, 5, 8}, {0, 1, 2, 3, 4, 5, 6, 7, 8, 9},
+	}
+	for _, cols := range cases {
+		full := make([]interface{}, len(cols))
+		wantCount, err := DecodeRecordColumns(data, cols, full)
+		if err != nil {
+			t.Fatalf("full decode %v: %v", cols, err)
+		}
+		got := make([]interface{}, len(cols))
+		gotCount, err := DecodeRecordColumnsPrefix(data, cols, got)
+		if err != nil {
+			t.Fatalf("prefix decode %v: %v", cols, err)
+		}
+		for i := range cols {
+			if fmt.Sprint(full[i]) != fmt.Sprint(got[i]) {
+				t.Errorf("cols %v slot %d: prefix %v, full %v", cols, i, got[i], full[i])
+			}
+		}
+		wantCeil := cols[len(cols)-1] + 1
+		want := wantCount
+		if want > wantCeil {
+			want = wantCeil
+		}
+		if gotCount != want {
+			t.Errorf("cols %v: prefix count %d, want min(%d, %d)", cols, gotCount, wantCount, wantCeil)
+		}
+	}
+}
+
+// TestDecodeRecordColumnsPrefixShortRecord pins the absent-slot behavior: a
+// record shorter than the requested ordinal returns the exact (smaller)
+// count so the caller can fall back for defaults.
+func TestDecodeRecordColumnsPrefixShortRecord(t *testing.T) {
+	data := mustRecord(t, []interface{}{int64(1), "two"})
+	if count, err := DecodeRecordColumnsPrefix(data, []int{0, 5}, make([]interface{}, 2)); err != nil || count != 2 {
+		t.Fatalf("count=%d err=%v, want 2/nil", count, err)
+	}
+	if count, err := DecodeRecordColumnsPrefix(data, []int{1}, make([]interface{}, 1)); err != nil || count != 2 {
+		t.Fatalf("count=%d err=%v, want 2/nil", count, err)
 	}
 }

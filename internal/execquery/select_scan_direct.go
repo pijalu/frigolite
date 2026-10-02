@@ -41,6 +41,13 @@ func (st *scanState) initDirectDecode(feed *simpleAggFeed, plan scanDecodePlan) 
 	st.directCols = st.directDecodeCols(feed, plan)
 	if st.directCols != nil {
 		st.directScratch = make([]interface{}, len(st.directCols))
+		// The prefix walk's exact-count ceiling: a count below it means a
+		// requested slot is absent (the record predates an ALTER TABLE ADD
+		// COLUMN). An empty slot set (COUNT(*) — no referenced columns) keeps
+		// the exact-count walk.
+		if len(st.directCols) > 0 {
+			st.directSlotCeil = st.directCols[len(st.directCols)-1] + 1
+		}
 		st.initDirectAffinity()
 		st.initBarePassthrough(feed, plan)
 	}
@@ -161,12 +168,14 @@ func (st *scanState) scanRowBarePassthrough(payload []byte, rowID int64) error {
 		st.outValues = append(st.outValues, nil)
 	}
 	window := st.outValues[start : start+n : start+n]
-	count, err := storage.DecodeRecordColumns(payload, st.directCols, window)
-	if err != nil || count < st.activeColCount {
+	count, err := storage.DecodeRecordColumnsPrefix(payload, st.directCols, window)
+	if err != nil || count < st.directSlotCeil {
 		// A corrupt payload or a record written before ALTER TABLE ADD
-		// COLUMN: run the historical row pipeline for this row — its decode
-		// applies the added column's DEFAULT and its corrupt-payload
-		// fallback reproduces the full decode's silent-truncation semantics.
+		// COLUMN (a requested slot is absent — the prefix walk's count is
+		// exact exactly when it is below the requested ceiling): run the
+		// historical row pipeline for this row — its decode applies the
+		// added column's DEFAULT and its corrupt-payload fallback
+		// reproduces the full decode's silent-truncation semantics.
 		st.outValues = st.outValues[:start]
 		return st.scanRowDecoded(payload, rowID)
 	}
@@ -247,7 +256,24 @@ func bareDecodeSlots(s *sql.SelectStmt, bareOutIdx []int) []int {
 // leak between rows. A corrupt payload returns an error; the caller falls
 // back to the historical decode for that row.
 func (st *scanState) decodeRowDirect(payload []byte, rowID int64) error {
-	count, err := storage.DecodeRecordColumns(payload, st.directCols, st.directScratch)
+	// Prefix walk: the header walk stops after the highest requested slot, so
+	// a wide record costs lastCol+1 varint reads instead of its full column
+	// count. The count is exact whenever it is below the ceiling; a cap means
+	// every requested slot is present and no default can apply to a requested
+	// slot (slots beyond the ceiling are never read).
+	var count int
+	var err error
+	if st.directSlotCeil == 0 {
+		count, err = storage.DecodeRecordColumns(payload, st.directCols, st.directScratch)
+	} else {
+		count, err = storage.DecodeRecordColumnsPrefix(payload, st.directCols, st.directScratch)
+		if count < st.directSlotCeil {
+			// A requested slot is absent (the record predates an ALTER TABLE
+			// ADD COLUMN): re-read with the exact-count walk so the default
+			// fills exactly the slots beyond the record's true value count.
+			count, err = storage.DecodeRecordColumns(payload, st.directCols, st.directScratch)
+		}
+	}
 	if err != nil {
 		return err
 	}
