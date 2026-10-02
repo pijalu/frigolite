@@ -1006,3 +1006,22 @@ typed decode into reused slots (direct serial-type offset reads for the
 referenced columns). Wired into the bare/agg scan paths under the
 existing eligibility contracts. Update/delete exec-plumbing flattening
 next tranche. Benchmark pair after merge; suites + census at end.
+
+## PERF-TYPEDROW (during) — P1 corruption regression found+root-caused, fix agent dispatched
+
+DML-flat tranche (agent died pre-report, 6 commits green on build/suites/
+A/B: update 199k, delete 205k ops/s = +17%/+15%) merged 61df1fe07.
+BUT: full-suite triage exposed a P1 data-corruption regression on main:
+WITHOUT ROWID + INSERT...SELECT recursive CTE (2 consecutive statements)
+duplicates rows massively (count 1000500 vs oracle 5000) — pinned by
+pre-existing TestT32KernelPinIndexRootSplitLeafToInterior.
+Bisect evidence: struct-dml tip alone GREEN, struct-scan tip alone GREEN,
+any merge of struct-dml commit a04220129 into struct-scan 8afc20df9 =
+CORRUPT. Interaction: struct-dml's encBuf/AppendEncodeRecord reuse
+invariant ("btree writes copy payloads, never retain") x struct-scan's
+reused decode buffers aliasing CTE insert-select row data.
+fleet/perf-struct-fix dispatched: aliasing-chain root-cause, ownership
+fix at the boundary, FULL 1363-pkg testgen sweep mandatory.
+savepoint2 600s timeout in the same merged run = benchmark-process
+contention artifact (9.0s standalone, no panic signature).
+Census/final docs GATED on the corruption fix.
