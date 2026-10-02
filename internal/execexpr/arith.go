@@ -243,13 +243,24 @@ func modValues(a, b interface{}) (interface{}, error) {
 	af, aok := toFloat(a)
 	bf, bok := toFloat(b)
 	if aok && bok {
-		if bf == 0 {
+		// The divisor that matters is the INTEGER-CAST one (SQLite casts both
+		// operands to int64 for %): 5 % 0.1 is 5 % 0 → NULL, not a Go
+		// integer divide-by-zero panic. minInt64 % -1 wraps to 0 in SQLite;
+		// Go's int64 modulo overflows, so guard it.
+		bi := int64(bf)
+		if bi == 0 {
 			return nil, nil
+		}
+		if bi == -1 {
+			if NumericIsInt(a) && NumericIsInt(b) {
+				return int64(0), nil
+			}
+			return float64(0), nil
 		}
 		// SQLite's % truncates both operands to integers then applies integer
 		// modulo (5.5 % 2 is 1, not 1.5). The result type is REAL when either
 		// operand was REAL, INTEGER otherwise (5 % 2 → 1, 5.0 % 2 → 1.0).
-		r := int64(af) % int64(bf)
+		r := int64(af) % bi
 		if NumericIsInt(a) && NumericIsInt(b) {
 			return r, nil
 		}

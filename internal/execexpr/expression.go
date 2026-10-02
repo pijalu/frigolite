@@ -117,9 +117,14 @@ func (ev *Evaluator) evalExprWithCollation(expr sql.Expr, row Row) (interface{},
 		// collation from the source THEN/ELSE lists, not the taken branch), so
 		// override an existing marker rather than skipping the wrap.
 		if cv, ok := v.(*CollatedValue); ok {
-			cv.Collation = coll
-			cv.Explicit = true
-			return v, nil
+			// The value may be a SHARED slot (row-map values are shared across
+			// maps since the row-output diet): mutating it in place would
+			// hijack the collation for every other reader of that value.
+			// Clone the marker instead.
+			clone := *cv
+			clone.Collation = coll
+			clone.Explicit = true
+			return &clone, nil
 		}
 		return &CollatedValue{Value: v, Collation: coll, Explicit: true}, nil
 	}

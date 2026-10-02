@@ -97,10 +97,17 @@ func fastIntArith(op string, l, r int64) interface{} {
 		}
 		return int64(float64(l)) / int64(float64(r))
 	default: // "%" (arithFastOps filtered the operator set)
-		if r == 0 {
+		// SQLite casts both operands to int64 for %; the divisor that
+		// matters is the CAST one (5 % 0.1 = 5 % 0 = NULL — a float64
+		// 0.1 is nonzero but truncates to 0).
+		ri := int64(float64(r))
+		if ri == 0 {
 			return nil
 		}
-		return int64(float64(l)) % int64(float64(r))
+		if ri == -1 {
+			return 0 // minInt64 % -1 overflows int64 in Go; SQLite wraps to 0
+		}
+		return int64(float64(l)) % ri
 	}
 }
 
@@ -126,10 +133,14 @@ func fastFloatArith(op string, af, bf float64) interface{} {
 		}
 		return NanToNil(af / bf)
 	default: // "%"
-		if bf == 0 {
+		bi := int64(bf)
+		if bi == 0 {
 			return nil
 		}
-		return float64(int64(af) % int64(bf))
+		if bi == -1 {
+			return float64(0) // minInt64 % -1 overflows int64 in Go
+		}
+		return float64(int64(af) % bi)
 	}
 }
 
