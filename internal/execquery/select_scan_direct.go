@@ -129,10 +129,11 @@ func (st *scanState) directDecodeCols(feed *simpleAggFeed, plan scanDecodePlan) 
 }
 
 // capDirectCols applies the effort guards: at most maxDirectDecodeCols
-// referenced columns, and only when the record has columns the scan never
-// reads (otherwise the direct walk saves nothing).
+// referenced columns, and only when the record has at least one column the
+// scan never reads (with zero unread columns the direct walk saves nothing
+// over the full decode — every stored value boxes either way).
 func (st *scanState) capDirectCols(cols []int) []int {
-	if len(cols) > maxDirectDecodeCols || len(cols)+2 > st.activeColCount {
+	if len(cols) > maxDirectDecodeCols || len(cols)+1 > st.activeColCount {
 		return nil
 	}
 	return cols

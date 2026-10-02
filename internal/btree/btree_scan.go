@@ -96,6 +96,18 @@ func (b *LeafBatch) Cell(i int) (payload []byte, rowID int64, err error) {
 	return payload, rowID, nil
 }
 
+// leafPageResult is one walk step's outcome: the page was consumed (continue
+// the walk), the walk ends cleanly (a page the batch cannot decode, a
+// swallowed extraction error, or fn's stop), or a nested write saved the
+// position mid-page (the consumer must resume on the cursor loop).
+type leafPageResult int8
+
+const (
+	leafPageNext  leafPageResult = iota // page consumed; continue the walk
+	leafPageDone                        // walk ends cleanly
+	leafPageSaved                       // nested write saved the position
+)
+
 // ScanTableLeaves walks the cursor's remaining table-leaf pages in order,
 // calling fn once per page with a LeafBatch view. fn returns stop=true to end
 // the walk (the cursor keeps the batch's saved/restore state untouched).
@@ -118,35 +130,53 @@ func (c *Cursor) ScanTableLeaves(fn func(b *LeafBatch) (stop bool, err error)) (
 			// (its cursor loop re-seeks through restoreIfNeeded).
 			return true, nil
 		}
-		if err := c.cachePage(); err != nil {
-			return false, nil // the cursor loop reports/ends identically
+		res, err := c.scanTableLeafPage(fn)
+		if err != nil {
+			return false, err
 		}
-		// Skip forward past empty leaf pages (the engine keeps them after
-		// deletes; scans must not stop early).
-		if err := c.skipEmptyLeaves(); err != nil {
-			return false, nil // "cursor at end": clean EOF on the cursor path
+		if res == leafPageNext {
+			c.clearPageCache()
+			c.navigateToNextChild()
+			continue
 		}
-		page := c.currentPage
-		if page.PageType != storage.PageTypeLeafTable {
-			// Not a rowid-table leaf (WITHOUT ROWID trees live in index
-			// leaves): decline — the consumer decodes through the cursor path.
-			return false, nil
-		}
-		if page.CellCount > 0 {
-			b := LeafBatch{c: c, pg: c.currentPg, page: page, coff: contentOffset(c.currentPg.PageNum)}
-			stop, err := fn(&b)
-			if err != nil {
-				return false, err
-			}
-			if stop {
-				return false, nil
-			}
-			if c.state != cursorValid {
-				return true, nil // a nested write saved the position mid-page
-			}
-		}
-		c.clearPageCache()
-		c.navigateToNextChild()
+		return res == leafPageSaved, nil
 	}
 	return false, nil
+}
+
+// scanTableLeafPage primes the cursor's page cache, skips empty leaves, and
+// hands fn one table-leaf page's batch view. Pages the batch cannot decode
+// (non-table-leaf) and errors the cursor loop would swallow end the walk
+// cleanly (leafPageDone) — the consumer's cursor loop reproduces their
+// behavior exactly.
+func (c *Cursor) scanTableLeafPage(fn func(b *LeafBatch) (stop bool, err error)) (leafPageResult, error) {
+	if err := c.cachePage(); err != nil {
+		return leafPageDone, nil // the cursor loop reports/ends identically
+	}
+	// Skip forward past empty leaf pages (the engine keeps them after
+	// deletes; scans must not stop early).
+	if err := c.skipEmptyLeaves(); err != nil {
+		return leafPageDone, nil // "cursor at end": clean EOF on the cursor path
+	}
+	page := c.currentPage
+	if page.PageType != storage.PageTypeLeafTable {
+		// Not a rowid-table leaf (WITHOUT ROWID trees live in index leaves):
+		// decline — the consumer decodes through the cursor path.
+		return leafPageDone, nil
+	}
+	if page.CellCount == 0 {
+		return leafPageNext, nil
+	}
+	b := LeafBatch{c: c, pg: c.currentPg, page: page, coff: contentOffset(c.currentPg.PageNum)}
+	stop, err := fn(&b)
+	if err != nil {
+		return leafPageDone, err
+	}
+	if stop {
+		return leafPageDone, nil
+	}
+	if c.state != cursorValid {
+		return leafPageSaved, nil // a nested write saved the position mid-page
+	}
+	return leafPageNext, nil
 }
