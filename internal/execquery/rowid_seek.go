@@ -86,9 +86,32 @@ func (e *SelectEngine) fetchSeekStructRow(s *sql.SelectStmt, tree *btree.BTree, 
 		return nil, nil, false, false
 	}
 	affinityCols := e.scanTableAffinityCols(s, colDefs, needMaps)
-	colIndex := buildSeekColIndex(colDefs)
+	colIndex := e.seekColIndexFor(colDefs)
 	srow = e.structRowFromRecord(rec.Values, len(rec.Values), colDefs, realRowID, affinityCols, colIndex)
 	return cursor, srow, true, true
+}
+
+// seekColIndexFor returns the column-name → slot index for colDefs, memoized
+// per SelectEngine and guarded by the schema fingerprint (DDL invalidates it)
+// plus the colDefs slice identity — the same pattern the DML executor's
+// columnIndexFor uses. The hot point-SELECT path rebuilt this identical map
+// on every statement; the built map is read-only afterwards (StructRow.Get
+// and the range iterator only look up), so sharing it across statements is
+// safe.
+func (e *SelectEngine) seekColIndexFor(colDefs []sql.ColumnDef) map[string]int {
+	if len(colDefs) == 0 {
+		return buildSeekColIndex(colDefs)
+	}
+	fp := uint64(0)
+	if sm := e.ctx.Schema(); sm != nil {
+		fp = sm.SchemaFingerprint()
+	}
+	if e.seekCICache != nil && e.seekCIFingerprint == fp && e.seekCIDefs == &colDefs[0] && e.seekCILen == len(colDefs) {
+		return e.seekCICache
+	}
+	m := buildSeekColIndex(colDefs)
+	e.seekCIFingerprint, e.seekCIDefs, e.seekCILen, e.seekCICache = fp, &colDefs[0], len(colDefs), m
+	return m
 }
 
 // buildSeekColIndex builds the column-name → slot index the seek path's

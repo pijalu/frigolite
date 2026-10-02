@@ -2,6 +2,7 @@ package exec
 
 import (
 	"fmt"
+	"hash/maphash"
 	"strconv"
 	"strings"
 	"time"
@@ -31,6 +32,10 @@ func cloneStmtsWithValues(stmts []sql.Stmt, values []interface{}) ([]sql.Stmt, b
 // statement field is carried over so a substituted AST stays identical to a
 // fresh parse (the historical clone dropped Alias/CTEs/OrFail).
 //
+// The clone is built on the walker's depth-indexed scratch when one is
+// attached (Engine.cloneStmtsWithValues): every field below is assigned, so a
+// recycled tenant is indistinguishable from a fresh struct (clone_scratch.go).
+//
 // The field walk order MUST match the statement's source order (WITH first,
 // then the VALUES tuples or the SELECT body): the normalizer extracts literal
 // values left-to-right over the raw text, so the WITH clause — which
@@ -52,28 +57,45 @@ func (c *exprClone) insertStmtValues(s *sql.InsertStmt) (*sql.InsertStmt, error)
 	if !ok {
 		return nil, fmt.Errorf("template clone: WITH clause refused")
 	}
-	clone := &sql.InsertStmt{
-		Table:        s.Table,
-		Alias:        s.Alias,
-		Columns:      s.Columns,
-		Values:       make([][]sql.Expr, len(s.Values)),
-		OnConflict:   s.OnConflict,
-		Returning:    s.Returning,
-		HasReturning: s.HasReturning,
-		IsReplace:    s.IsReplace,
-		OrIgnore:     s.OrIgnore,
-		OrFail:       s.OrFail,
-		OrConflict:   s.OrConflict,
-		RawSQL:       s.RawSQL,
+	var clone *sql.InsertStmt
+	if c.scratch != nil {
+		clone = c.scratch.takeInsertStmt()
 	}
+	if clone == nil {
+		clone = new(sql.InsertStmt)
+	}
+	clone.Table = s.Table
+	clone.Alias = s.Alias
+	clone.Columns = s.Columns
+	if cap(clone.Values) >= len(s.Values) {
+		clone.Values = clone.Values[:len(s.Values)]
+	} else {
+		clone.Values = make([][]sql.Expr, len(s.Values))
+	}
+	clone.OnConflict = s.OnConflict
+	clone.Returning = s.Returning
+	clone.HasReturning = s.HasReturning
+	clone.IsReplace = s.IsReplace
+	clone.OrIgnore = s.OrIgnore
+	clone.OrFail = s.OrFail
+	clone.OrConflict = s.OrConflict
+	clone.RawSQL = s.RawSQL
 	if cteChanged {
 		clone.CTEs = ctes
 	} else {
 		clone.CTEs = s.CTEs
 	}
-	// Clone values tuples
+	clone.Select = nil
+	// Clone values tuples (a recycled tenant's backing arrays are reused in
+	// place when the shape fits; every element is rewritten below).
 	for vi, tuple := range s.Values {
-		clone.Values[vi] = make([]sql.Expr, len(tuple))
+		tup := clone.Values[vi][:0]
+		if cap(tup) < len(tuple) {
+			tup = make([]sql.Expr, len(tuple))
+		} else {
+			tup = tup[:len(tuple)]
+		}
+		clone.Values[vi] = tup
 		for vj, expr := range tuple {
 			cloned, err := c.insertValue(expr)
 			if err != nil {
@@ -97,6 +119,9 @@ func (c *exprClone) insertStmtValues(s *sql.InsertStmt) (*sql.InsertStmt, error)
 	}
 	if conflictChanged {
 		clone.OnConflict = conflict
+	}
+	if c.scratch != nil {
+		c.scratch.retireInsert(clone)
 	}
 	return clone, nil
 }
@@ -233,43 +258,63 @@ func (e *Engine) Prepare(sqlStr string) ([]sql.Stmt, error) {
 		return stmts, perr
 	}
 	e.caches.stmtCache[sqlStr] = stmts
-	e.storeTemplateCache(sqlStr, normSQL, values, stmts)
+	e.storeTemplateCache(normSQL, values, stmts)
 	return stmts, nil
 }
 
+// templateCacheHash keys the template cache: a seeded AES hash of the
+// normalized text. The seed is per-process; lookups verify the candidate
+// entry's stored text against the normalized bytes before use, so a (never
+// observed) collision degrades to a full parse, never to a wrong template.
+var templateCacheHash = maphash.MakeSeed()
+
 // tryTemplateCache attempts to reuse a cached AST template for structurally
-// identical SQL (same after replacing literal values). It returns (nil, false)
-// when there is no usable template, falling through to a full parse.
-func (e *Engine) tryTemplateCache(sqlStr, normSQL string, values []interface{}) ([]sql.Stmt, bool) {
-	if normSQL == sqlStr || len(values) == 0 {
+// identical SQL (same after replacing literal values). normSQL is the
+// recycled normalization scratch (nil when the statement held no literals).
+// It returns (nil, false) when there is no usable template, falling through
+// to a full parse.
+func (e *Engine) tryTemplateCache(sqlStr string, normSQL []byte, values []interface{}) ([]sql.Stmt, bool) {
+	if len(normSQL) == 0 || len(values) == 0 {
 		return nil, false
 	}
-	cached, ok := e.caches.templateCache[normSQL]
-	if !ok {
+	cached, ok := e.caches.templateCache[maphash.Bytes(templateCacheHash, normSQL)]
+	if !ok || cached.template != string(normSQL) {
 		return nil, false
 	}
 	// Template cache hit — clone AST with new values. If the clone refuses
 	// (unknown shape or value mismatch), fall through to re-parse.
-	cloned, ok := cloneStmtsWithValues(cached.ast, values)
+	// The clone is NOT stored in the exact-text stmtCache: a structurally
+	// identical statement with different literals has a different exact text,
+	// so the store only paid a map insert + entry churn per statement (the
+	// cache filled to its cap and was wholesale-dropped under unique-text
+	// streams) while every exact-text repeat still re-clones from the same
+	// template below. Results are identical either way: a substituted AST is
+	// byte-for-byte what a fresh parse of the statement text produces, and
+	// statement execution treats AST nodes as immutable.
+	cloned, ok := e.cloneStmtsValuesScratch(cached.ast, values)
 	if !ok {
 		return nil, false
 	}
-	// Also cache by exact SQL for future exact matches
-	e.caches.stmtCache[sqlStr] = cloned
 	return cloned, true
 }
 
 // storeTemplateCache records a parsed statement list as a template for
-// structurally identical SQL, bounded by maxTemplateCacheSize.
-func (e *Engine) storeTemplateCache(sqlStr, normSQL string, values []interface{}, stmts []sql.Stmt) {
-	if normSQL == sqlStr || len(values) == 0 || len(e.caches.templateCache) >= maxTemplateCacheSize {
+// structurally identical SQL, bounded by maxTemplateCacheSize. normSQL is
+// the normalization scratch; a fresh template materializes its normalized
+// text once (the per-statement string the lookup path never pays).
+func (e *Engine) storeTemplateCache(normSQL []byte, values []interface{}, stmts []sql.Stmt) {
+	if len(normSQL) == 0 || len(values) == 0 || len(e.caches.templateCache) >= maxTemplateCacheSize {
 		return
 	}
 	if e.caches.templateCache == nil {
-		e.caches.templateCache = make(map[string]*sqlTemplateEntry)
+		e.caches.templateCache = make(map[uint64]*sqlTemplateEntry)
 	}
-	e.caches.templateCache[normSQL] = &sqlTemplateEntry{
-		template: normSQL,
+	key := maphash.Bytes(templateCacheHash, normSQL)
+	if existing, ok := e.caches.templateCache[key]; ok && existing.template == string(normSQL) {
+		return
+	}
+	e.caches.templateCache[key] = &sqlTemplateEntry{
+		template: string(normSQL),
 		ast:      stmts,
 	}
 }

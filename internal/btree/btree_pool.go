@@ -61,10 +61,17 @@ func (t *BTree) initFrom(pg *pager.Pager, rootPage uint32, isTable, isSchema boo
 
 // releaseCursors returns the wrapper's cursors to the global cursor pool.
 // Every released cursor is reset: a recycled cursor must not carry page
-// references, save/restore state, or a registry key.
+// references, save/restore state, or a registry key. The released marker is
+// set BEFORE the Put: a cursor is live pool cargo the moment Put runs, and a
+// write after Put races the next acquirer's resetFor (concurrent
+// connections' -race stress: the closer's flag write interleaved with the
+// acquirer's reset). resetFor clears the flag on acquisition, so the marker
+// still survives exactly until the cursor's NEXT acquisition — every use of
+// a closed cursor reports an error.
 func (t *BTree) releaseCursors(owned []*Cursor) {
 	for _, c := range owned {
 		c.resetFor(t)
+		c.released = true
 		cursorPool.Put(c)
 	}
 }

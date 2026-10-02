@@ -2281,3 +2281,52 @@ Resumed a dead predecessor mid-tranche on P9.PERF hot-path work (base 5807a9c1e,
   allocs/row unchanged). Remaining known mass: interface{} boxing of decoded
   values (value model), the [][]interface{} result materialization (API),
   and the aggregate/GROUP BY passes (sibling scope).
+
+## PERF.FLOOR — per-statement exec tax (fleet/perf-floor, 2026-10-02)
+
+- **The per-statement floor is allocation, and the runtime noise it buys is
+  ~60% of CPU.** Point-SELECT CPU profile: kevent 24% + usleep 13% + madvise
+  12% + cond_wait 10% = scheduler/GC churn; engine work (runSQLText cum) is
+  ~25%. Killing alloc frames moves throughput superlinearly through GC.
+- **A stale pre-check rebuilt the DML memo's map per row**: the bare-unique
+  gate (uniqueColIndicesWithPK) called buildColumnIndex although its caller
+  already held the memoized colIndex. The memo existed — the last unreached
+  call site didn't use it. Insert floor −9% allocs from a two-line change.
+- **Storing template-cloned statements in the exact-text stmtCache is pure
+  loss under unique-text streams**: the cache fills to cap and is
+  wholesale-dropped; each store paid a map insert per statement and nothing
+  ever hit. Clones now re-clone per exec (substituted AST ≡ fresh parse).
+- **Template-cache keys don't need a per-statement string**: key on a seeded
+  maphash of the normalization SCRATCH BYTES and verify the entry's stored
+  text with `entry.template != string(bytes)` (compiles to memequal, no
+  alloc). Collisions degrade to full parse, never a wrong template.
+- **Transient clone pooling that is SAFE: per-execDepth retire/rotate.** One
+  slot per execDepth on the engine; every statement struct a substitution
+  clones is retired into the slot, and the NEXT substitution at that depth
+  rotates retired→free. Within one substitution each struct is handed out at
+  most once. Two traps found by tests: (1) borrow must happen BEFORE the
+  field walks — walks recurse into nested selects/UNION members that borrow
+  the same slot, and take-after-walk handed one struct to two levels (a
+  self-referential Union chain the from-term counter walked forever);
+  (2) one substitution builds SEVERAL coexisting clones (InsertStmt + CTE
+  bodies + SELECT) — a single lastClone slot aliased the CTE body and the
+  INSERT's SELECT ("circular reference: s"). Retire/rotate fixes both.
+- **BTree WRAPPER pooling is structurally unsafe here — confirmed by
+  experiment.** Close's idempotency contract (late second Close must no-op)
+  breaks recycling: owner A closes → pool → owner B re-arms (closed=false)
+  → A's late second Close now proceeds and frees B's wrapper mid-use. A
+  GLOBAL pool makes it cross-engine; the engine's stmtBtrees funnel cannot
+  express "this wrapper is dead" without ownership tokens. Wrappers stay
+  unpooled (the file header was right); cursors remain pooled.
+- **Pre-existing pooled-cursor race**: BTree.Close marked cursors released
+  AFTER cursorPool.Put — the marker write raced the next acquirer's
+  resetFor (4 DATA RACEs on pristine main with 4 concurrent connections).
+  The marking now precedes the Put; resetFor still clears it on acquisition.
+- **Fresh worktrees need the untracked fixtures**: testdata/{backup,hook,
+  incrvacuum2,recover,stmtbind,wal}conformance and tools/orafixture are
+  gitignored; their absence fails ~7 root tests that look like engine
+  regressions. Copy them from the main checkout before judging failure sets.
+- **TestRowidSeekRange fails on pristine main** (BETWEEN ' 10 ' AND 12 →
+  3 rows, test wants 0) and **internal/fts TestSegviewOracleX6InteriorNodes/
+  TestWriterConformance fail on pristine main** — pre-existing, not this
+  branch.

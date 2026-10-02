@@ -119,7 +119,7 @@ func (s *Stmt) execute(args []interface{}) *exec.Result {
 		return &exec.Result{Error: err}
 	}
 	if s.plan != nil {
-		if cloned, ok := exec.BindStmtValues(s.ast, s.plan, s.boundValues()); ok {
+		if cloned, ok := s.db.engine.BindStmtValuesScratch(s.ast, s.plan, s.boundValues()); ok {
 			return s.db.runSingleStmt(cloned[0], s.sql)
 		}
 	}

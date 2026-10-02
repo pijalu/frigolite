@@ -131,12 +131,20 @@ func (e *Engine) dbLockKey(ctx *DatabaseContext) string {
 		e.lockKeyCache = make(map[*DatabaseContext]dbLockKeyEnt)
 	}
 	e.lockKeyCache[ctx] = dbLockKeyEnt{key: key, filePath: ctx.FilePath, isMemory: ctx.IsMemory}
+	e.invalidateAllLockKeysCache()
 	return key
 }
 
 // allLockKeys returns the registry keys for every database attached to the
-// engine (main, temp, and attached).
+// engine (main, temp, and attached). The list is memoized: the attach-order
+// list only changes on ATTACH/DETACH/reset, and a per-context key recompute
+// (file path drift), so the per-write-statement registerWriteTx rebuild paid
+// a map + slice per statement on the in-transaction INSERT floor. The
+// returned slice is shared — callers must treat it as read-only.
 func (e *Engine) allLockKeys() []string {
+	if e.allKeysCache != nil {
+		return e.allKeysCache
+	}
 	seen := make(map[string]bool)
 	var keys []string
 	for _, ctx := range e.dbList {
@@ -146,7 +154,15 @@ func (e *Engine) allLockKeys() []string {
 			keys = append(keys, k)
 		}
 	}
+	e.allKeysCache = keys
 	return keys
+}
+
+// invalidateAllLockKeysCache drops the memoized attach-order lock-key list
+// (allLockKeys). Called whenever e.dbList's shape or a context's key may
+// have changed.
+func (e *Engine) invalidateAllLockKeysCache() {
+	e.allKeysCache = nil
 }
 
 // registerWriteTx marks every database file of this connection as having an
