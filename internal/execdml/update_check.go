@@ -16,7 +16,13 @@ func (e *DMLExecutor) checkUpdateConflicts(tableEntry *schema.Entry, colDefs []s
 	colIndex := e.columnIndexFor(colDefs)
 	uniqueCols := uniqueColsForTable(colDefs)
 	idxColsList := e.updateConstrainedDefs(tableEntry, colDefs)
-	wrOrder := e.ctx.WRStorageOrder(tableEntry.SQL, colDefs)
+	// WITHOUT ROWID tables store PK-first records; rowid tables have no
+	// storage reordering, so skip the layout computation for them (it is
+	// nil for rowid tables either way).
+	var wrOrder []int
+	if tableIsWithoutRowid(tableEntry.SQL) {
+		wrOrder = e.ctx.WRStorageOrder(tableEntry.SQL, colDefs)
+	}
 
 	// A change that re-keys its row (SET rowid=...) must not land on an
 	// unavailable rowid — SQLite raises "UNIQUE constraint failed:
@@ -34,8 +40,16 @@ func (e *DMLExecutor) checkUpdateConflicts(tableEntry *schema.Entry, colDefs []s
 	// name-keyed row maps (partial-index predicates / expression keys).
 	needRowMaps := dmlConstraintRowMapsNeeded(colIndex, idxColsList)
 
-	tree := e.dmlTableBTree(tableEntry.Name, tableEntry.RootPage)
-	defer tree.Close() // conflict-scan tree is function-local
+	// The conflict-scan tree serves only checkLiveTableConflictsWR: the
+	// change-detection gate skips every scan when no constrained value
+	// moved (the common point-UPDATE shape), and that shape must not pay
+	// for a tree wrapper. Created lazily on the first live scan.
+	var tree *btree.BTree
+	defer func() {
+		if tree != nil {
+			tree.Close() // conflict-scan tree is function-local
+		}
+	}()
 	for i := range changes {
 		c := changes[i]
 		// No constrained value moved: the change's new values agree with its
@@ -48,6 +62,9 @@ func (e *DMLExecutor) checkUpdateConflicts(tableEntry *schema.Entry, colDefs []s
 		}
 		if res := e.checkEarlierChanges(changes, i, c, colDefs, colIndex, uniqueCols, idxColsList, tableEntry.Name); res.Error != nil {
 			return res
+		}
+		if tree == nil {
+			tree = e.dmlTableBTree(tableEntry.Name, tableEntry.RootPage)
 		}
 		if res := e.checkLiveTableConflictsWR(tree, changes[:i], c, colDefs, colIndex, uniqueCols, idxColsList, tableEntry, wrOrder); res.Error != nil {
 			return res

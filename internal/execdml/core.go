@@ -35,6 +35,15 @@ type DMLExecutor struct {
 	ciCache       map[string]int
 	ctx           DMLContext
 
+	// delPlan* memoize the point-delete row plan (pointDeleteRowPlan) under
+	// the schema fingerprint, the same guard pattern as ciCache above: the
+	// plan is immutable after construction (execquery.DMLRowPlan), so one
+	// instance serves every point DELETE against the same table layout.
+	delPlanFingerprint uint64
+	delPlanDefs        *sql.ColumnDef
+	delPlanLen         int
+	delPlan            *execquery.DMLRowPlan
+
 	// Statement-family executors composing this engine. They share this
 	// DMLExecutor so inter-statement calls resolve through promoted methods.
 	insert InsertExecutor
@@ -73,6 +82,16 @@ type DMLExecutor struct {
 	// pages synchronously and never retain the slice, so one buffer serves
 	// every statement of this connection.
 	encBuf []byte
+
+	// cellBuf is the point-UPDATE write path's reusable table-leaf cell
+	// image buffer (appendEncodedCell): like encBuf, its bytes are copied
+	// into pages synchronously and never retained by the btree.
+	cellBuf []byte
+
+	// ptValues/ptOldValues are the point-UPDATE collect's pooled value-slot
+	// pair (pointUpdateValueSlots), fully consumed within one statement.
+	ptValues    []interface{}
+	ptOldValues []interface{}
 
 	// andTerms is the reusable WHERE-conjunct scratch (splitAndTermsInto):
 	// the seek planner and the point-op gates decompose WHERE clauses per

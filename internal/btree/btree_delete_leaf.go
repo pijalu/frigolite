@@ -300,6 +300,12 @@ func (t *BTree) finishLeafDelete(pg *pager.Page, page *storage.BTreePage, encode
 		copy(pg.Data[start:start+len(encoded[ci])], encoded[ci])
 		newPtrs[pos] = uint16(start)
 	}
+	// The wholesale rewrite folds any freeblock chain into the packed
+	// content area — the chain head must clear or it would point into the
+	// rewritten cell bytes.
+	pg.Data[coff+1] = 0
+	pg.Data[coff+2] = 0
+	page.FirstFree = 0
 	ptrBase := coff + storage.CellPointerOffset
 	for i := 0; i < len(newPtrs); i++ {
 		binary.BigEndian.PutUint16(pg.Data[ptrBase+i*2:ptrBase+i*2+2], newPtrs[i])
@@ -427,7 +433,11 @@ func (t *BTree) compactLeafAfterDelete(pg *pager.Page, page *storage.BTreePage, 
 
 	page.CellContent = start
 	binary.BigEndian.PutUint16(pg.Data[coff+5:coff+7], uint16(start))
-	// After compaction there is no fragmented free space.
+	// After compaction there is no fragmented free space, and the packed
+	// rewrite folds any freeblock chain (its head must clear with it).
+	pg.Data[coff+1] = 0
+	pg.Data[coff+2] = 0
 	pg.Data[coff+7] = 0
+	page.FirstFree = 0
 	return nil
 }

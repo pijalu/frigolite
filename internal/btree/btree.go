@@ -140,12 +140,6 @@ type BTree struct {
 	// no synchronization; the split path drops it whenever its bytes must
 	// stay stable across page rewrites.
 	cellScratch []byte
-
-	// delArena stages the surviving cells' raw bytes during the single-cell
-	// delete fast path (btree_delete_one.go): source and destination ranges
-	// overlap on a fragmented page, so the bytes must move through a copy.
-	// Per-statement like cellScratch, and dropped with it on reset.
-	delArena []byte
 }
 
 // NewBTree creates a new BTree instance.
@@ -237,6 +231,23 @@ func (t *BTree) OpenCursor() (*Cursor, error) {
 	// on this tree saves the cursor's position (btree.c saveAllCursors). The
 	// owner back-pointer lets BTree.Close unregister deterministically at
 	// statement teardown.
+	t.cursors = append(t.cursors, c)
+	registerTreeCursor(cursorTreeKey{pg: t.pager, root: t.rootPage}, c)
+	return c, nil
+}
+
+// OpenCursorAtRoot creates a cursor parked at the tree's root, for callers
+// that position it with an explicit seek (SeekToRowID/SeekToKey re-descend
+// from the root and reset the path stack). OpenCursor's leftmost-leaf
+// descent is pure overhead for that shape — one interior level per descent
+// on every point statement — so the point UPDATE/DELETE paths open through
+// this. Everything else (registration for cross-statement invalidation,
+// pooling, save/restore state) is identical to OpenCursor.
+func (t *BTree) OpenCursorAtRoot() (*Cursor, error) {
+	if t.closed {
+		return nil, fmt.Errorf("btree: cursor opened on closed tree")
+	}
+	c := t.acquireCursor() // resetFor parks it at the root with an empty path
 	t.cursors = append(t.cursors, c)
 	registerTreeCursor(cursorTreeKey{pg: t.pager, root: t.rootPage}, c)
 	return c, nil
@@ -903,19 +914,24 @@ func tableLeafCellHeader(pg *pager.Page, cellOff int, usableSize uint32) ([]byte
 	return pg.Data[pos : pos+payloadLen], rowID, pos + payloadLen, int(plen), payloadLen, nil
 }
 
-// leafHasRoom checks if a leaf page has enough room for the given cell data.
+// leafHasRoom reports whether a leaf page can plausibly hold the given cell
+// data: either the gap between the cell-pointer array and the content area
+// fits cell+pointer directly, or the page carries freeblocks/fragments whose
+// fold-in (allocateSpaceOnPage's freeblock search then defragment) might
+// make room. Only writeLeafCell's definitive allocateSpaceOnPage answer
+// counts; a false here skips straight to the split path.
 func leafHasRoom(pg *pager.Page, page *storage.BTreePage, cellData []byte, coff int, usableSize uint32) bool {
-	cellPtrEnd := coff + storage.CellPointerOffset + int(page.CellCount)*2 + 2
-	cellContentEnd := int(page.CellContent)
-	var cellStart int
-	if cellContentEnd == 0 {
+	gap := coff + storage.CellPointerOffset + 2*int(page.CellCount)
+	top := int(page.CellContent)
+	if top == 0 {
 		// Fresh page: the first cell ends at the usable end (matches
 		// writeLeafCell; btree.c packs cells from usableSize).
-		cellStart = int(usableSize) - len(cellData) - int(page.FragFree)
-	} else {
-		cellStart = cellContentEnd - len(cellData)
+		top = int(usableSize)
 	}
-	return cellStart >= cellPtrEnd
+	if gap+2+len(cellData) <= top {
+		return true
+	}
+	return page.FirstFree != 0 || page.FragFree != 0
 }
 
 // DeleteCell removes a cell from the b-tree by its index position. The cell

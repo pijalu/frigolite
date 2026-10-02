@@ -14,8 +14,15 @@ import (
 	"github.com/pijalu/frigolite/internal/util"
 )
 
+// errLeafFull reports that a leaf page cannot hold a pending cell even
+// after freeblock reuse and defragmentation — the caller must split
+// (btree.c balance's trigger: insertCell could not place the cell).
+var errLeafFull = fmt.Errorf("btree: page is full")
+
 // writeLeafCell inserts a cell at the correct position in a leaf page.
-// Assumes the page has room (call leafHasRoom first).
+// Returns errLeafFull when the page cannot hold the cell (the caller
+// splits). Space comes from allocateSpaceOnPage's btree.c precedence:
+// freeblock slot, then (defragmented) content-area gap.
 func (t *BTree) writeLeafCell(pg *pager.Page, page *storage.BTreePage, newCell *storage.Cell, cellData []byte, coff int) error {
 	if page == nil {
 		var err error
@@ -49,19 +56,14 @@ func (t *BTree) writeLeafCell(pg *pager.Page, page *storage.BTreePage, newCell *
 		insertIdx = t.findInsertPositionTable(pg, page, newCell.RowID)
 	}
 
-	// Compute cell placement
-	cellPtrEnd := coff + storage.CellPointerOffset + int(page.CellCount)*2 + 2
-	cellContentEnd := int(page.CellContent)
-	cellStart := cellContentEnd - len(cellData)
-	if cellContentEnd == 0 {
-		// Fresh (zero-initialized) page: the first cell ends at the usable
-		// end (zeroPage sets the content pointer to usableSize; btree.c
-		// packs cells from cbrk=usableSize with no page-end reservation).
-		cellStart = int(t.usableSize) - len(cellData) - int(page.FragFree)
+	// Allocate the cell's bytes (freeblock reuse, defragment-on-demand, or
+	// the content-area gap — allocateSpace parity).
+	cellStart, ok, err := allocateSpaceOnPage(pg, page, coff, len(cellData), t.usableSize)
+	if err != nil {
+		return err
 	}
-
-	if cellStart < cellPtrEnd {
-		return fmt.Errorf("btree: page is full")
+	if !ok {
+		return errLeafFull
 	}
 
 	// Shift cell pointers
@@ -71,12 +73,10 @@ func (t *BTree) writeLeafCell(pg *pager.Page, page *storage.BTreePage, newCell *
 	copy(pg.Data[cellStart:], cellData)
 	binary.BigEndian.PutUint16(pg.Data[coff+storage.CellPointerOffset+insertIdx*2:coff+storage.CellPointerOffset+insertIdx*2+2], uint16(cellStart))
 
-	// Update header
+	// Update header (the cell count only — allocateSpaceOnPage already
+	// moved the content-start field to its post-allocation position).
 	page.CellCount++
 	binary.BigEndian.PutUint16(pg.Data[coff+3:coff+5], page.CellCount)
-	if cellContentEnd == 0 || cellStart < cellContentEnd {
-		binary.BigEndian.PutUint16(pg.Data[coff+5:coff+7], uint16(cellStart))
-	}
 
 	return t.pager.WritePage(pg)
 }
