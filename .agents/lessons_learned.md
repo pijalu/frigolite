@@ -2114,3 +2114,63 @@ Resumed a dead predecessor mid-tranche on P9.PERF hot-path work (base 5807a9c1e,
   pre-positional small-candidate evaluation, cheapest at n=1); the
   preCheckUpdate/checkUpdateConflicts gates run unchanged on the single
   change.
+
+## PERF.TYPEDROW — page-batch scan + typed-row decode floor (fleet/perf-typedrow-scan, 2026-10-01)
+
+- **The scan floor was ALLOCATION, not cursor machinery.** The premise (per-row
+  cursor Next/cachePage/restore dominates) measured wrong: driving the batch
+  walker alone moved bare scan ~3% (within noise) — the cursor's per-row cost
+  is a handful of branches (cache hit + restore check). The real mass was 4
+  allocs/row of which 3 were structural waste: an unread column's slot walk
+  and the INTEGER PRIMARY KEY rowid-alias fill wrapper (capDirectCols's
+  `len(cols)+2 > activeColCount` guard kept 1-of-2-column tables on the full
+  decode), a fresh one-row output slice (nonStarRows make), and the feed's
+  per-step [1]interface{} escape (Scratch through an interface method call
+  always heaps). Alloc profile attribution at baseline: wrapPrecomputed 33%,
+  decodeValue boxing ~21%, appendRowOutput 16.5%, feed step 16%.
+- **A wrapper that is only ever unwrapped is identity — fold it.** The bare
+  output peel (unwrapCollatedValue∘UnwrapColumnValue) strips ANY wrapper stack
+  to the raw value, and the IPK fill peels to the rowid itself, so the pure
+  bare scan (no WHERE/feed, output slots == direct slots in order) can decode
+  straight into the flat result buffer's next window: no reuseSRow round
+  trip, no wrap, no peel. Gates must include the flat output branch's own
+  shape (no joins, no agg consumers) and slots EQUALITY (SELECT c,k keeps the
+  historical path — the fold needs output order == decode order).
+- **The prefix header walk is only legal when absence is detected by the
+  CALLER.** DecodeRecordColumns walks all headers for the exact count (ALTER
+  TABLE defaults key on it). The prefix variant returns
+  min(count, max(cols)+1): a count below that ceiling means a requested slot
+  is absent → re-read exact (defaults correct); at the ceiling every
+  requested slot is present and slots beyond it are unread (the direct
+  contract) so skipping defaults is invisible. The ceiling is
+  max(cols)+1 — NOT len(cols): generated columns leave gaps
+  (SELECT a,c over a,b GENERATED → cols=[0,2]). Empty slot sets (SELECT
+  COUNT(*)) keep the exact walk. Trip hazard: `len(cols)-1` on a non-nil
+  EMPTY slice panics — feedDecodeSlots deliberately returns non-nil empty.
+- **Batch-scan save/restore fidelity: sync the cursor position per CELL, and
+  route EVERY stop path through the save check.** saveAllCursors captures
+  (page, cellIdx); Cell(i) must set c.cellIdx=i BEFORE decoding so a nested
+  write (eval() UDF in the select list) saves the cell actually being
+  consumed, and must check state BEFORE reading bytes the write may have
+  defragmented (ErrScanSaved → consumer declines to the cursor loop). The
+  resume is ONE Next() (restore re-seeks, skipNext returns the next-larger
+  entry) then the cursor loop — the exact read/Next window of the pure
+  cursor path. The t33misc shape caught it: a save discovered through the
+  consumer's stop returned through the "fn stop" path as a clean walk end,
+  the resume skipped the step-off Next, and the saved row was re-read
+  (row 1 emitted twice). Every stop path must re-check state.
+- **Full-suite failure-set regression proof needs the fixture dirs copied
+  into the fresh worktree (testdata/backupconformance, testdata/walconformance)
+  and a full pristine-BASE run, not just per-test sampling**: the base full
+  run failed TestWindowCGroupConcatBlobUTF16 identically to head (shared-CWD
+  fixture race: one test's os.Remove+Open of a .db races the parallel
+  suite), which isolation runs never show (5/5 PASS). head ⊂ base failure
+  sets is the acceptance criterion.
+- **Scan floor after this tranche** (100k-row (k IPK, c) in-memory, 3
+  interleaved rounds): bare SELECT c 11.9→6.2ms (1.91x, 16.1M rows/s; GOGC=off
+  23.9M), SUM(c),COUNT(*) 8.3→5.0ms (1.65x, 19.8M), wide-table variants
+  1.87-1.94x; allocs/row 4→1.01 (the remaining alloc IS the boxed value).
+  Star scans and GROUP BY shapes are deliberately untouched (3.0/6.0
+  allocs/row unchanged). Remaining known mass: interface{} boxing of decoded
+  values (value model), the [][]interface{} result materialization (API),
+  and the aggregate/GROUP BY passes (sibling scope).
