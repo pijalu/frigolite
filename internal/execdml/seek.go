@@ -64,7 +64,7 @@ func (e *DMLExecutor) planDMLSeek(tableEntry *schema.Entry, colDefs []sql.Column
 	}
 	colIndex := e.columnIndexFor(colDefs)
 	rowidTable := !execquery.RowHasRowIDColumn(colDefs)
-	for _, conj := range splitAndTerms(where) {
+	for _, conj := range e.splitAndTermsInto(where) {
 		col, val, aff, ok := e.extractEquality(conj, outerCols)
 		if !ok || !aff || !dmlQualifierMatches(col, conj, scanName) {
 			continue

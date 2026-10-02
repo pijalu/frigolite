@@ -173,15 +173,44 @@ func isOrExpr(expr sql.Expr) bool {
 
 // splitAndTerms splits a top-level AND chain into its conjuncts.
 func splitAndTerms(expr sql.Expr) []sql.Expr {
+	return appendAndTerms(nil, expr)
+}
+
+// splitAndTermsInto decomposes expr into its top-level AND conjuncts,
+// appending into dst (the DML executor's reusable scratch — callers consume
+// the terms before the next decomposition; nothing retains the slice).
+func (e *DMLExecutor) splitAndTermsInto(expr sql.Expr) []sql.Expr {
+	e.andTerms = appendAndTerms(e.andTerms[:0], expr)
+	return e.andTerms
+}
+
+// appendAndTerms appends expr's top-level AND conjuncts to dst in
+// splitAndTerms' left-to-right order.
+func appendAndTerms(dst []sql.Expr, expr sql.Expr) []sql.Expr {
 	expr = unwrapParen(expr)
 	b, ok := expr.(*sql.BinaryOp)
 	if !ok {
-		return []sql.Expr{expr}
+		return append(dst, expr)
 	}
 	if strings.EqualFold(b.Operator, "AND") {
-		return append(splitAndTerms(b.Left), splitAndTerms(b.Right)...)
+		dst = appendAndTerms(dst, b.Left)
+		return appendAndTerms(dst, b.Right)
 	}
-	return []sql.Expr{expr}
+	return append(dst, expr)
+}
+
+// andTermCount counts expr's top-level AND conjuncts without materializing
+// the term list (the point-op gates only test the count).
+func andTermCount(expr sql.Expr) int {
+	expr = unwrapParen(expr)
+	b, ok := expr.(*sql.BinaryOp)
+	if !ok {
+		return 1
+	}
+	if strings.EqualFold(b.Operator, "AND") {
+		return andTermCount(b.Left) + andTermCount(b.Right)
+	}
+	return 1
 }
 
 // flattenOrTerms converts an expression into DNF OR terms, distributing AND

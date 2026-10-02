@@ -103,8 +103,8 @@ func (p *Pager) Restore(s *PagerState) {
 	// capture their before-images from memory. A missing stamp reads as 0,
 	// which beginDirtyStamp (>= 0) never exceeds — identical semantics to the
 	// empty map this replaced, without keeping markDirtyLocked off its fast
-	// path (it requires a nil dirtyMark).
-	p.dirtyMark = nil
+	// path (it requires an empty dirtyMark).
+	clear(p.dirtyMark)
 	for n := range s.dirty {
 		p.dirty[n] = true
 	}

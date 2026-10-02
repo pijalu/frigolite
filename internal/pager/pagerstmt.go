@@ -467,12 +467,12 @@ func (p *Pager) unlinkStmtLocked(j *StmtJournal) {
 // in the pager goes through this method — it is the statement journal's
 // capture choke point. Caller holds p.mu.
 func (p *Pager) markDirtyLocked(pgno uint32) {
-	// Fast path: no open scope and no stale dirty stamps (dirtyMark is nil
-	// outside transactions — clearDirtySetLocked drops it at every commit
-	// boundary) — the statement journal needs nothing here, so keep this as
-	// cheap as the raw store it replaces (write-heavy workloads dirty
-	// pages millions of times).
-	if p.stmtTop == nil && p.dirtyMark == nil {
+	// Fast path: no open scope and no stale dirty stamps (dirtyMark is
+	// empty outside transactions — clearDirtySetLocked clears it at every
+	// commit boundary) — the statement journal needs nothing here, so keep
+	// this as cheap as the raw store it replaces (write-heavy workloads
+	// dirty pages millions of times).
+	if p.stmtTop == nil && len(p.dirtyMark) == 0 {
 		p.dirty[pgno] = true
 		return
 	}
@@ -490,19 +490,21 @@ func (p *Pager) markDirtyLocked(pgno uint32) {
 // clearDirtySetLocked resets the dirty set at commit/rollback boundaries,
 // dropping the per-page dirty stamps with it.
 //
-// The dirty map is reused in place (small sets: clear() keeps the buckets)
-// and the dirty-stamp map is dropped entirely — it is nil outside
-// transactions, which is what markDirtyLocked's fast path requires. Both
-// maps were freshly allocated per boundary before, which made two map
+// Both maps are reused in place (small sets: clear() keeps the buckets); a
+// huge transaction's bucket arrays are traded in. The dirty-stamp map reads
+// as empty afterwards, which is what markDirtyLocked's fast path requires —
+// the maps were freshly allocated per boundary before, which made two map
 // allocations the pager's per-statement floor on read-mostly workloads
 // (every autocommit SELECT ends in a flush).
 func (p *Pager) clearDirtySetLocked() {
 	if len(p.dirty) > 1024 {
-		// A huge transaction's bucket array would otherwise be retained by
-		// the reused map; trade it in instead.
 		p.dirty = make(map[uint32]bool)
 	} else {
 		clear(p.dirty)
 	}
-	p.dirtyMark = nil
+	if len(p.dirtyMark) > 1024 {
+		p.dirtyMark = make(map[uint32]uint64)
+	} else {
+		clear(p.dirtyMark)
+	}
 }

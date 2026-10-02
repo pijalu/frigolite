@@ -43,55 +43,85 @@ func checkRaiseInExpr(expr sql.Expr, checkSelect func(*sql.SelectStmt) error) er
 	case *sql.ExistsExpr:
 		return checkSelect(v.Select)
 	}
-	for _, kid := range raiseChildExprs(expr) {
-		if err := checkRaiseInExpr(kid, checkSelect); err != nil {
-			return err
-		}
+	// One closure per walk (not per node): the recursion re-runs through
+	// forEachRaiseChild with the walker itself as the child callback, so the
+	// per-statement validation never materializes child slices.
+	var rec func(sql.Expr) error
+	rec = func(kid sql.Expr) error {
+		return checkRaiseInExprCb(kid, checkSelect, rec)
 	}
-	return nil
+	return checkRaiseInExprCb(expr, checkSelect, rec)
 }
 
-// raiseChildExprs returns the immediate child expressions of an expression
-// node (empty for leaves), mirroring the expression kinds whose subtrees can
-// contain a RAISE() outside a trigger.
-func raiseChildExprs(expr sql.Expr) []sql.Expr {
+// checkRaiseInExprCb is checkRaiseInExpr with the child walk injected (the
+// recursion re-enters through next so the walk allocates nothing per node).
+func checkRaiseInExprCb(expr sql.Expr, checkSelect func(*sql.SelectStmt) error, next func(sql.Expr) error) error {
+	if expr == nil {
+		return nil
+	}
+	if isRaiseExpr(expr) {
+		return errRaiseOutsideTrigger
+	}
+	switch v := expr.(type) {
+	case *sql.Subquery:
+		return checkSelect(v.Select)
+	case *sql.ExistsExpr:
+		return checkSelect(v.Select)
+	}
+	var err error
+	forEachRaiseChild(expr, func(kid sql.Expr) {
+		if err == nil {
+			err = next(kid)
+		}
+	})
+	return err
+}
+
+// forEachRaiseChild calls fn for each immediate child expression of an
+// expression node in raiseChildExprs' traversal order (empty for leaves) —
+// the allocation-free form the per-statement RAISE walks use. It mirrors the
+// expression kinds whose subtrees can contain a RAISE() outside a trigger.
+func forEachRaiseChild(expr sql.Expr, fn func(sql.Expr)) {
 	switch v := expr.(type) {
 	case *sql.ParenExpr:
-		return []sql.Expr{v.Expr}
+		fn(v.Expr)
 	case *sql.BinaryOp:
-		return []sql.Expr{v.Left, v.Right}
+		fn(v.Left)
+		fn(v.Right)
 	case *sql.UnaryOp:
-		return []sql.Expr{v.Operand}
+		fn(v.Operand)
 	case *sql.FuncCall:
-		return v.Args
+		for _, a := range v.Args {
+			fn(a)
+		}
 	case *sql.CastExpr:
-		return []sql.Expr{v.Operand}
+		fn(v.Operand)
 	case *sql.CaseExpr:
-		return caseChildExprs(v)
+		// The operand, ELSE, then the WHEN/THEN pairs (caseChildExprs order).
+		fn(v.Operand)
+		fn(v.Else)
+		for _, w := range v.Whens {
+			fn(w.When)
+			fn(w.Then)
+		}
 	case *sql.Between:
-		return []sql.Expr{v.Operand, v.Low, v.High}
+		fn(v.Operand)
+		fn(v.Low)
+		fn(v.High)
 	case *sql.InList:
-		kids := []sql.Expr{v.Operand}
-		kids = append(kids, v.List...)
-		return kids
+		fn(v.Operand)
+		for _, item := range v.List {
+			fn(item)
+		}
 	case *sql.RowValue:
-		return v.Values
+		for _, item := range v.Values {
+			fn(item)
+		}
 	case *sql.IsNull:
-		return []sql.Expr{v.Operand}
+		fn(v.Operand)
 	case *sql.IsNotNull:
-		return []sql.Expr{v.Operand}
+		fn(v.Operand)
 	}
-	return nil
-}
-
-// caseChildExprs returns the operand, WHEN/THEN pairs, and ELSE of a CASE
-// expression in traversal order.
-func caseChildExprs(v *sql.CaseExpr) []sql.Expr {
-	kids := []sql.Expr{v.Operand, v.Else}
-	for _, w := range v.Whens {
-		kids = append(kids, w.When, w.Then)
-	}
-	return kids
 }
 
 // validateNoRaiseOutsideTrigger walks a statement's expression trees and

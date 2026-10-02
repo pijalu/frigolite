@@ -76,7 +76,7 @@ func (e *DMLExecutor) pointUpdateSetTargetsOK(s *sql.UpdateStmt, colDefs []sql.C
 			return false
 		}
 	}
-	return len(splitAndTerms(s.Where)) == 1
+	return andTermCount(s.Where) == 1
 }
 
 // applyPointUpdate applies the rowid-pinned single-row UPDATE fast path:

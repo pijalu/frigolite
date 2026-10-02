@@ -455,12 +455,75 @@ func selectRowIDExprClauses(s *sql.SelectStmt) []sql.Expr {
 // expression node types. The traversal is pre-order: fn is invoked on a node
 // before its children.
 func WalkExprFull(expr sql.Expr, fn func(sql.Expr)) {
-	if expr == nil {
-		return
+	// One closure per walk (not per node): the recursion re-runs through
+	// ForEachExprChild with the walker itself as the child callback, so the
+	// per-statement validation walks never materialize child slices.
+	var rec func(sql.Expr)
+	rec = func(e sql.Expr) {
+		if e == nil {
+			return
+		}
+		fn(e)
+		ForEachExprChild(e, rec)
 	}
-	fn(expr)
-	for _, child := range exprChildren(expr) {
-		WalkExprFull(child, fn)
+	rec(expr)
+}
+
+// ForEachExprChild calls fn for each direct child expression of a node in
+// exprChildren's traversal order (nil children included), without
+// materializing the child slice — the allocation-free form WalkExprFull and
+// other per-statement walkers use on the DML floor.
+func ForEachExprChild(e sql.Expr, fn func(sql.Expr)) {
+	switch v := e.(type) {
+	case *sql.ParenExpr:
+		fn(v.Expr)
+	case *sql.BinaryOp:
+		fn(v.Left)
+		fn(v.Right)
+	case *sql.IsDistinctFrom:
+		fn(v.Left)
+		fn(v.Right)
+	case *sql.IsNotDistinctFrom:
+		fn(v.Left)
+		fn(v.Right)
+	case *sql.Between:
+		fn(v.Operand)
+		fn(v.Low)
+		fn(v.High)
+	case *sql.FuncCall:
+		for _, a := range v.Args {
+			fn(a)
+		}
+	case *sql.InList:
+		fn(v.Operand)
+		for _, item := range v.List {
+			fn(item)
+		}
+	case *sql.RowValue:
+		for _, item := range v.Values {
+			fn(item)
+		}
+	case *sql.RaiseExpr:
+		fn(v.Message)
+	case *sql.UnaryOp:
+		fn(v.Operand)
+	case *sql.CastExpr:
+		fn(v.Operand)
+	case *sql.IsNull:
+		fn(v.Operand)
+	case *sql.IsNotNull:
+		fn(v.Operand)
+	case *sql.IsTrue:
+		fn(v.Operand)
+	case *sql.IsFalse:
+		fn(v.Operand)
+	case *sql.CaseExpr:
+		fn(v.Operand)
+		for _, w := range v.Whens {
+			fn(w.When)
+			fn(w.Then)
+		}
+		fn(v.Else)
 	}
 }
 

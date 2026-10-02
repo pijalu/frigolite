@@ -35,7 +35,7 @@ func (e *DMLExecutor) execPointDelete(s *sql.DeleteStmt, tableEntry *schema.Entr
 	}
 	// The pinned rowid equality must be the WHOLE WHERE clause: the seek's
 	// hit then matches by construction and the clause needs no evaluation.
-	if len(splitAndTerms(s.Where)) != 1 {
+	if andTermCount(s.Where) != 1 {
 		return nil, false
 	}
 	// execDeleteBulk skips the statement journal inside the FTS flush (the

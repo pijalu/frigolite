@@ -67,9 +67,30 @@ func countSelectExprSubqueries(expr sql.Expr, countSelect func(*sql.SelectStmt))
 		countSelect(ex.Select)
 		return
 	}
-	for _, kid := range raiseChildExprs(expr) {
-		countSelectExprSubqueries(kid, countSelect)
+	// One closure per walk (not per node) — no child slices on the
+	// per-statement subquery-count walk.
+	var rec func(sql.Expr)
+	rec = func(kid sql.Expr) {
+		countSelectExprSubqueriesCb(kid, countSelect, rec)
 	}
+	countSelectExprSubqueriesCb(expr, countSelect, rec)
+}
+
+// countSelectExprSubqueriesCb is countSelectExprSubqueries with the child
+// walk injected (the recursion re-enters through next).
+func countSelectExprSubqueriesCb(expr sql.Expr, countSelect func(*sql.SelectStmt), next func(sql.Expr)) {
+	if expr == nil {
+		return
+	}
+	if sub, ok := expr.(*sql.Subquery); ok {
+		countSelect(sub.Select)
+		return
+	}
+	if ex, ok := expr.(*sql.ExistsExpr); ok {
+		countSelect(ex.Select)
+		return
+	}
+	forEachRaiseChild(expr, next)
 }
 
 // countSelectExprSubqueriesInStmt walks a statement's expression positions

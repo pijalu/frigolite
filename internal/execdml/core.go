@@ -74,6 +74,11 @@ type DMLExecutor struct {
 	// every statement of this connection.
 	encBuf []byte
 
+	// andTerms is the reusable WHERE-conjunct scratch (splitAndTermsInto):
+	// the seek planner and the point-op gates decompose WHERE clauses per
+	// statement, consuming the terms before the next decomposition.
+	andTerms []sql.Expr
+
 	// lookupCache memoizes the prepare-time DML column lookup
 	// (dmlColumnLookup) under the schema fingerprint, the same guard pattern
 	// as ciCache above.
