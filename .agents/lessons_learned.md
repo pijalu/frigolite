@@ -1,5 +1,54 @@
 # Lessons Learned — Frigolite
 
+## PERF.DML2 — point UPDATE/DELETE at btree.c parity (fleet/perf-dml2, 2026-10-02)
+
+- **dropCell+freeSpace+allocateSpace is the correct fundamental shape for point
+  deletes; page repacking was the engine's invention.** Ported verbatim
+  (btree.c:1918/7228/1743/1836/1613), the single-cell delete becomes O(1)
+  freeblock-chain accounting and the insert path reuses/defragments that space
+  on demand. Paired (contended-machine) delete_xact went +50% vs main. The
+  engine's previous "compact on every delete" invariant is what made
+  finishLeafDelete's missing freeblock-head clear safe — once ANY path creates
+  freeblocks, every wholesale page rewrite (finishLeafDelete,
+  compactLeafAfterDelete) must zero header bytes 1-2 or a stale chain head
+  points into rewritten cell bytes.
+- **allocateSpace allocates the range [top-nByte, top) — the overflow check is
+  `top <= usableSize` (validated at entry), NOT `top+nByte <= usableSize`.**
+  I initially conflated the two and every fresh-page insert split (or errored
+  "cell too large"). SQLite's defrag condition is `gap+2+nByte > top`; the
+  fast path is `gap+2 <= top`, identical to the engine's old leafHasRoom.
+- **Fresh (zeroed) pages keep content=0 as a sentinel in the parsed header**
+  — allocateSpace must re-apply the `top==0 → usableSize` convention AFTER a
+  no-op defrag, or the first insert takes the split path with CellCount==0
+  and fails "cell too large".
+- **The single-candidate point UPDATE must keep the per-row map** (mirrors
+  updateSeekMapPathMaxCandidates=2): the positional DMLRowPlan's fixed
+  per-statement cost (affinity walk + colIndex build) exceeds one BuildRowMap.
+  I measured the StructRow switch as a regression before reverting.
+- **Seek-first cursors: OpenCursor's leftmost-leaf descent is pure waste when
+  the next act is SeekToRowID/SeekToKey** (they reset the path and re-descend
+  from the root). OpenCursorAtRoot + position accessors (PageNum/CellIdx/
+  PathParent) + DeleteCellByRowIDAt/OverwriteCellByRowIDAt remove the second
+  descent per point statement. The hinted primitives must re-validate the
+  stored rowid (parity with the generic predicate delete on stale positions).
+- **exec-level per-statement costs are the remaining wall** (out of fleet/
+  perf-dml2's scope): findTable/detectExternalSchemaChanges ≈ 20-30% of each
+  point statement (map iteration + EqualFold per statement),
+  FirePreupdate→applyPreupdateAffinity→findTable PER ROW (both UPDATE and
+  DELETE preupdate paths), VTabUpdaterInstance/EchoVTabSource probes per
+  statement, CrossConnLockError. fixing findTable-per-row inside
+  applyPreupdateAffinity (or gating FirePreupdate on hook presence with an
+  exec accessor) is the next big delete/update win.
+- **Fresh worktrees lack gitignored GENERATED fixtures** (testdata/
+  walconformance, recoverconformance/*.input.db, internal/fts/testdata/
+  ftsconformance/*.db) — full-suite failures there are environmental; copy
+  them from the main checkout before judging. One worktree fts-x6-growth.db
+  was a 0-byte placeholder; md5-compare against main exposes it.
+- **Machine contention invalidates absolute ops/s**: sibling fleet agents
+  share the box; main's own numbers moved ±20% between runs. All claims in
+  this tranche are PAIRED same-minute main-vs-worktree runs, alternating.
+
+
 > Consolidated 2026-09-26 (T33 close): dated per-session sections (P6.VTAB
 > sessions through T32) moved verbatim to `.agents/lessons_archive_2026-09.md`.
 > The durable rules, methodology, engine knowledge and process live below,

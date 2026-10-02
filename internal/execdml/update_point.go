@@ -144,6 +144,34 @@ type cellPos struct {
 	idx  int
 }
 
+// pointUpdateValueSlots is updateChangeValueSlots over the executor's pooled
+// slot pair (two slices per point UPDATE instead of two allocations). The
+// returned slices are consumed entirely within the calling statement — the
+// preupdate event copies them — so the next statement may reuse the storage.
+// The values slice is cleared first: slots beyond the stored record keep nil
+// unless an added-column DEFAULT fills them (updateChangeValueSlots' fresh
+// make() semantics).
+func (e *DMLExecutor) pointUpdateValueSlots(rec *storage.Record, colIndex map[string]int) ([]interface{}, []interface{}) {
+	maxIdx := len(rec.Values)
+	for _, idx := range colIndex {
+		if idx+1 > maxIdx {
+			maxIdx = idx + 1
+		}
+	}
+	if cap(e.ptValues) < maxIdx {
+		e.ptValues = make([]interface{}, maxIdx)
+	}
+	values := e.ptValues[:maxIdx]
+	clear(values)
+	copy(values, rec.Values)
+	if cap(e.ptOldValues) < len(rec.Values) {
+		e.ptOldValues = make([]interface{}, len(rec.Values))
+	}
+	oldValues := e.ptOldValues[:len(rec.Values)]
+	copy(oldValues, rec.Values)
+	return values, oldValues
+}
+
 // collectPointUpdateRow reads the pinned row by rowid and builds its change:
 // the raw value slots with defaults applied, the SET expressions applied
 // against a positional row (the scan loop's evaluation model), generated
@@ -181,7 +209,10 @@ func (e *DMLExecutor) collectPointUpdateRow(tree *btree.BTree, s *sql.UpdateStmt
 	}
 	e.ctx.RemapWRRecordToDeclared(rec, tableEntry.SQL, colDefs)
 
-	values, oldValues := updateChangeValueSlots(rec, e.columnIndexFor(colDefs))
+	// The pooled slot pair is safe here and only here: the single change is
+	// fully consumed within this statement (the generic pipeline's changes
+	// outlive the collect loop and keep fresh allocations).
+	values, oldValues := e.pointUpdateValueSlots(rec, e.columnIndexFor(colDefs))
 	// Rows written before ALTER TABLE ADD COLUMN read their added-column
 	// DEFAULTs (buildUpdateChange parity).
 	e.applyUpdateColumnDefaults(values, colDefs, len(rec.Values))

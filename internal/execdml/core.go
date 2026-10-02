@@ -88,6 +88,11 @@ type DMLExecutor struct {
 	// into pages synchronously and never retained by the btree.
 	cellBuf []byte
 
+	// ptValues/ptOldValues are the point-UPDATE collect's pooled value-slot
+	// pair (pointUpdateValueSlots), fully consumed within one statement.
+	ptValues    []interface{}
+	ptOldValues []interface{}
+
 	// andTerms is the reusable WHERE-conjunct scratch (splitAndTermsInto):
 	// the seek planner and the point-op gates decompose WHERE clauses per
 	// statement, consuming the terms before the next decomposition.
