@@ -48,10 +48,15 @@ func TestAffinity(t *testing.T) {
 }
 
 func TestApplyColumnAffinity(t *testing.T) {
-	// INTEGER affinity: convert float to int
+	// INTEGER affinity keeps a non-integral REAL (sqlite3VdbeIntegerAffinity
+	// leaves 3.99 REAL; oracle-verified: INSERT 3.99 into an INTEGER column
+	// stores real) and converts only integral reals in int64 range.
 	result := ApplyColumnAffinity(float64(3.99), "INTEGER")
-	if result != int64(3) {
-		t.Errorf("ApplyColumnAffinity(3.99, INTEGER) = %v, want 3", result)
+	if result != float64(3.99) {
+		t.Errorf("ApplyColumnAffinity(3.99, INTEGER) = %v, want 3.99", result)
+	}
+	if result := ApplyColumnAffinity(float64(12), "INTEGER"); result != int64(12) {
+		t.Errorf("ApplyColumnAffinity(12.0, INTEGER) = %v, want 12", result)
 	}
 
 	// REAL affinity: convert int to float

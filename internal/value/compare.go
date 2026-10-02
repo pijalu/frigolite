@@ -9,21 +9,6 @@ import (
 	"strings"
 )
 
-// NumericTextKind classifies the result of NumericText: SQLite's
-// comparison-path text→numeric conversion (applyNumericAffinity).
-type NumericTextKind uint8
-
-const (
-	// NotNumeric: the text does not fully convert — it stays TEXT under a
-	// numeric comparison affinity and sorts above every number.
-	NotNumeric NumericTextKind = iota
-	// IntNumeric: a pure integer that fits int64 (Int holds the value).
-	IntNumeric
-	// RealNumeric: a well-formed real, or an integer outside the int64
-	// range (Real holds the value).
-	RealNumeric
-)
-
 // NumericText applies SQLite's comparison text→numeric conversion
 // (vdbe.c applyNumericAffinity → util.c sqlite3AtoF): leading and trailing
 // whitespace (space, \t, \n, \v, \f, \r) is skipped, an optional +/- sign is
@@ -39,23 +24,76 @@ const (
 // stay REAL at comparison time (applyNumericAffinity runs with
 // bTryForInt=0, so no integer-affinity re-classification happens).
 func NumericText(s string) (kind NumericTextKind, intVal int64, realVal float64) {
-	i, n := 0, len(s)
-	for i < n && isSpaceSQLite(s[i]) {
-		i++
-	}
-	if i == n {
+	i := skipSQLiteSpace(s, 0)
+	if i == len(s) {
 		return NotNumeric, 0, 0
 	}
 	start := i
-	if s[i] == '+' || s[i] == '-' {
+	end, nDigit, sawDot, sawExp, expValid := scanNumericToken(s, i)
+	i = skipSQLiteSpace(s, end)
+	// sqlite3AtoF's atof_return: the comparison conversion fires only when
+	// the whole string was consumed, at least one digit was present, and a
+	// present exponent is well-formed.
+	if i != len(s) || nDigit == 0 || (sawExp && !expValid) {
+		return NotNumeric, 0, 0
+	}
+	return convertNumericToken(s[start:end], sawDot, sawExp)
+}
+
+// NumericTextKind classifies the result of NumericText: SQLite's
+// comparison-path text→numeric conversion (applyNumericAffinity).
+type NumericTextKind uint8
+
+const (
+	// NotNumeric: the text does not fully convert — it stays TEXT under a
+	// numeric comparison affinity and sorts above every number.
+	NotNumeric NumericTextKind = iota
+	// IntNumeric: a pure integer that fits int64 (Int holds the value).
+	IntNumeric
+	// RealNumeric: a well-formed real, or an integer outside the int64
+	// range (Real holds the value).
+	RealNumeric
+)
+
+// skipSQLiteSpace returns the index of the first byte at or after i that is
+// not one of sqlite3Isspace's whitespace bytes.
+func skipSQLiteSpace(s string, i int) int {
+	for i < len(s) && isSpaceSQLite(s[i]) {
+		i++
+	}
+	return i
+}
+
+// scanNumericToken scans the numeric token grammar starting at s[i] (the
+// caller has guaranteed i < len(s)): an optional sign, digits with an
+// optional decimal point, and an optional exponent attempted only when at
+// least one mantissa digit was seen (sqlite3AtoF's scan order). It returns
+// the token's end index (the exponent characters only count as consumed when
+// well-formed — expValid reports that), the number of digits, and whether a
+// dot/exponent was present. The scan never fails structurally: validity is
+// decided by the caller's full-consumption and nDigit checks.
+func scanNumericToken(s string, i int) (end, nDigit int, sawDot, sawExp, expValid bool) {
+	i, nDigit, sawDot = scanMantissa(s, i)
+	if nDigit > 0 && i < len(s) && (s[i] == 'e' || s[i] == 'E') {
+		sawExp = true
+		i, expValid = scanExponent(s, i+1)
+	}
+	return i, nDigit, sawDot, sawExp, expValid
+}
+
+// scanMantissa scans "[+-]digits[.digits]" from s[i]: sqlite3AtoF's sign,
+// integer-part and optional fraction. It returns the end index, the total
+// mantissa digit count, and whether the decimal point was present.
+func scanMantissa(s string, i int) (end, nDigit int, sawDot bool) {
+	n := len(s)
+	if i < n && (s[i] == '+' || s[i] == '-') {
 		i++
 	}
 	digitStart := i
 	for i < n && s[i] >= '0' && s[i] <= '9' {
 		i++
 	}
-	nDigit := i - digitStart
-	sawDot, sawExp, expValid := false, false, true
+	nDigit = i - digitStart
 	if i < n && s[i] == '.' {
 		sawDot = true
 		i++
@@ -64,38 +102,36 @@ func NumericText(s string) (kind NumericTextKind, intVal int64, realVal float64)
 			nDigit++
 		}
 	}
-	if nDigit > 0 && i < n && (s[i] == 'e' || s[i] == 'E') {
-		sawExp = true
-		expValid = false
-		i++
-		if i < n && (s[i] == '+' || s[i] == '-') {
-			i++
-		}
-		for i < n && s[i] >= '0' && s[i] <= '9' {
-			i++
-			expValid = true
-		}
-	}
-	// The numeric token ends here; trailing whitespace is skipped next but
-	// must not become part of the parsed literal.
-	numEnd := i
-	for i < n && isSpaceSQLite(s[i]) {
+	return i, nDigit, sawDot
+}
+
+// scanExponent scans "[+-]digits" from s[i] (just past the 'e'/'E'). It
+// returns the end index and whether at least one exponent digit followed
+// (sqlite3AtoF's eValid: a dangling exponent like '1e' or '1e+' is malformed
+// and stops the conversion, with the exponent text left unconsumed).
+func scanExponent(s string, i int) (end int, valid bool) {
+	n := len(s)
+	if i < n && (s[i] == '+' || s[i] == '-') {
 		i++
 	}
-	// sqlite3AtoF's atof_return: the comparison conversion fires only when
-	// the whole string was consumed, at least one digit was present, and a
-	// present exponent is well-formed.
-	if i != n || nDigit == 0 || (sawExp && !expValid) {
-		return NotNumeric, 0, 0
+	for i < n && s[i] >= '0' && s[i] <= '9' {
+		i++
+		valid = true
 	}
-	num := s[start:numEnd]
+	return i, valid
+}
+
+// convertNumericToken parses the scanned token text: pure integers convert
+// exactly through ParseInt (no float rounding near 2^63); an integer outside
+// the int64 range stays REAL — alsoAnInt's sqlite3RealSameAsInt check caps at
+// 2^51, so the saturated int64 never reads back as the parsed double — and
+// reals go through ParseFloat (ErrRange overflows keep the ±Inf/±0 result,
+// like sqlite3AtoF).
+func convertNumericToken(num string, sawDot, sawExp bool) (NumericTextKind, int64, float64) {
 	if !sawDot && !sawExp {
 		if iv, err := strconv.ParseInt(num, 10, 64); err == nil {
 			return IntNumeric, iv, 0
 		}
-		// An integer outside the int64 range stays REAL: alsoAnInt's
-		// sqlite3RealSameAsInt check caps at 2^51, so the saturated int64
-		// never reads back as the parsed double.
 	}
 	f, err := strconv.ParseFloat(num, 64)
 	if err != nil && !errors.Is(err, strconv.ErrRange) {
