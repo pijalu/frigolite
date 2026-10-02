@@ -26,7 +26,9 @@ import (
 
 // cloneStmtsValues substitutes values into every statement of a cached
 // template. It returns (nil, false) when the template cannot serve the
-// values and a re-parse is required instead.
+// values and a re-parse is required instead. (The engine's Prepare path uses
+// the scratch-backed Engine.cloneStmtsWithValues; this standalone form has no
+// scratch and allocates its out slice.)
 func cloneStmtsValues(stmts []sql.Stmt, values []interface{}) ([]sql.Stmt, bool) {
 	out := make([]sql.Stmt, len(stmts))
 	c := exprClone{values: values}
@@ -88,6 +90,7 @@ type exprClone struct {
 	bind       *BindPlan     // bind mode: occurrence→slot plan (nil in template mode)
 	bindValues []interface{} // bind mode: slot→value table
 	bindOccI   int           // bind mode: next occurrence index
+	scratch    *cloneScratch // engine scratch when cloning for a same-depth reuse (nil in the standalone form)
 }
 
 // expr substitutes cached values below e, returning the substituted

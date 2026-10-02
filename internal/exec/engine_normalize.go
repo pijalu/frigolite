@@ -53,11 +53,14 @@ func continuesIdentToken(s string, i int) bool {
 //
 // The caller's byte and value buffers are reused as scratch (the engine's
 // per-statement buffers: the substitution buffer alone is one SQL-text-sized
-// allocation per statement otherwise). It returns the substituted text, the
-// values, and the (possibly grown) scratch buffers for the next statement.
-// Callers must not retain the returned values slice past the statement — it
-// is the recycled scratch.
-func normalizeSQLScratch(s string, buf []byte, values []interface{}) (norm string, outValues []interface{}, outBuf []byte) {
+// allocation per statement otherwise). It returns the substituted text AS
+// SCRATCH BYTES (nil when the input held no literals — the value count gates
+// every template-cache use), the values, and the (possibly grown) scratch
+// buffers for the next statement. Callers must not retain the returned bytes
+// or values slice past the statement — they are the recycled scratch; the
+// template cache keys on the bytes' hash and verifies against the entry's
+// stored text, so no per-statement normalized-string allocation remains.
+func normalizeSQLScratch(s string, buf []byte, values []interface{}) (norm []byte, outValues []interface{}, outBuf []byte) {
 	last := 0
 	i := 0
 	started := false
@@ -87,10 +90,10 @@ func normalizeSQLScratch(s string, buf []byte, values []interface{}) (norm strin
 		last = i
 	}
 	if !started {
-		return s, nil, buf
+		return nil, nil, buf
 	}
 	buf = append(buf, s[last:]...)
-	return string(buf), values, buf
+	return buf, values, buf
 }
 
 // nextLiteral scans the literal starting at i (if any), returning the index

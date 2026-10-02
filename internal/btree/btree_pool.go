@@ -19,37 +19,15 @@ import (
 // and OpenCursor hands out a Reset one, so a busy connection reuses cursor
 // objects instead of allocating them per statement.
 //
-// WRAPPERS are pooled too (wrapperPool below), with a strict
-// ownership-transfer contract — the shape that history (the P1
-// use-after-pool) showed to be the only safe one:
-//
-//   - NO finalizer ever touches a wrapper. The P1 was a SetFinalizer on a
-//     recycled object (double-set fatal) plus a finalizer closing a wrapper
-//     that a later tenant already owned. Wrappers carry no finalizer and no
-//     registry entry of their own; their cursors' allocation-time finalizers
-//     read the cursor's key at run time and unregister nothing once Close
-//     has recycled them.
-//   - A wrapper enters the pool EXACTLY ONCE, from Close, under the
-//     t.closed transition guard. Double Close is a no-op and never re-Puts.
-//   - A wrapper leaves the pool ONLY through NewBTree/NewSchemaBTree, which
-//     re-arm every field in initFrom — including the state a previous
-//     tenant could have customized (keyCompare) or buffered (cellScratch,
-//     delArena) — so a recycled wrapper is byte-for-byte indistinguishable
-//     from a fresh one.
-//   - Ownership is linear per wrapper: NewBTree (one owner: the statement)
-//     -> Close (pool return). The engine's statement funnel guarantees the
-//     closing frame is the creating frame; nothing holds a wrapper across
-//     statements. A stale reference used after its owner closed would
-//     alias a later tenant — the same discipline the cursor pool (and every
-//     per-engine cache) already relies on.
-
-// wrapperPool recycles statement-scoped BTree wrappers. A recycled wrapper
-// is fully re-initialized by initFrom before it becomes visible to its next
-// owner; no finalizer is ever set on a wrapper (see the ownership contract
-// above).
-var wrapperPool = sync.Pool{
-	New: func() interface{} { return new(BTree) },
-}
+// WRAPPERS are deliberately NOT pooled: a pooled wrapper is re-armed for
+// whichever statement Gets it next, so any Close that races a statement
+// still holding the wrapper (the engine's funnel assumes statements nest
+// strictly; concurrent Exec frames or a mis-attributed segment mark) turns
+// "a closed wrapper" into "a live statement's pager pointer vanished" —
+// a nil-pager SIGSEGV deep in the pager. A closed wrapper that is NOT
+// recycled degrades to the pre-pooling behavior (reads through it report
+// errors; the object is simply garbage). The per-wrapper cursorFree list is
+// therefore dead weight; the global cursorPool replaces it.
 
 // cursorPool recycles cursors across statements and wrappers. A recycled
 // cursor's registry finalizer is installed once at allocation (acquireCursor)
@@ -67,10 +45,7 @@ var cursorPool = sync.Pool{
 	},
 }
 
-// initFrom initializes a fresh wrapper over the given tree. It re-arms EVERY
-// field a wrapper carries — including the previous tenant's customizations
-// (keyCompare) and reusable buffers (cellScratch, delArena) — so a recycled
-// wrapper is indistinguishable from a fresh allocation.
+// initFrom initializes a fresh wrapper over the given tree.
 func (t *BTree) initFrom(pg *pager.Pager, rootPage uint32, isTable, isSchema bool) *BTree {
 	t.pager = pg
 	t.rootPage = rootPage
@@ -78,31 +53,25 @@ func (t *BTree) initFrom(pg *pager.Pager, rootPage uint32, isTable, isSchema boo
 	t.usableSize = pg.UsableSize()
 	t.isTable = isTable
 	t.isSchema = isSchema
-	t.keyCompare = nil
-	t.closed = false
 	// A statement's wrapper opens a handful of cursors at most; the pre-sized
-	// slice absorbs them without per-OpenCursor growth. A recycled wrapper
-	// keeps its backing array (Close truncated it to :0).
-	if cap(t.cursors) >= 4 {
-		t.cursors = t.cursors[:0]
-	} else {
-		t.cursors = make([]*Cursor, 0, 4)
-	}
-	// Stale encode/delete staging from a previous tenant must never leak:
-	// both are per-statement buffers dropped on Close, and re-arming clears
-	// them (kept capacity would be safe only for cellScratch's reset-in-place
-	// uses; delArena holds raw page spans that must never alias).
-	t.cellScratch = nil
-	t.delArena = nil
+	// slice absorbs them without per-OpenCursor growth.
+	t.cursors = make([]*Cursor, 0, 4)
 	return t
 }
 
 // releaseCursors returns the wrapper's cursors to the global cursor pool.
 // Every released cursor is reset: a recycled cursor must not carry page
-// references, save/restore state, or a registry key.
+// references, save/restore state, or a registry key. The released marker is
+// set BEFORE the Put: a cursor is live pool cargo the moment Put runs, and a
+// write after Put races the next acquirer's resetFor (concurrent
+// connections' -race stress: the closer's flag write interleaved with the
+// acquirer's reset). resetFor clears the flag on acquisition, so the marker
+// still survives exactly until the cursor's NEXT acquisition — every use of
+// a closed cursor reports an error.
 func (t *BTree) releaseCursors(owned []*Cursor) {
 	for _, c := range owned {
 		c.resetFor(t)
+		c.released = true
 		cursorPool.Put(c)
 	}
 }
@@ -157,12 +126,11 @@ func (c *Cursor) resetFor(t *BTree) {
 	c.regKey = cursorTreeKey{}
 }
 
-// resetForPool clears the wrapper's per-tree state and returns it to the
-// wrapper pool. Called EXACTLY ONCE per wrapper generation, from Close under
-// the t.closed transition guard (see the ownership contract in the file
-// header): a double Close is a no-op and never re-Puts, and the next owner
-// receives the wrapper only through NewBTree/NewSchemaBTree's initFrom, which
-// re-arms every field. Kept name for the call sites' wording.
+// resetForPool clears the wrapper's per-tree state before it becomes
+// garbage. The wrapper is NOT returned to a pool (see the file header): a
+// recycled wrapper re-armed under a racing Close is the crash this package
+// guards against. It stays closed until a NewBTree reset re-arms a FRESH
+// wrapper. Kept name for the call sites' wording.
 func (t *BTree) resetForPool() {
 	t.pager = nil
 	t.rootPage = 0
@@ -175,7 +143,6 @@ func (t *BTree) resetForPool() {
 	t.cursors = nil
 	t.cellScratch = nil
 	t.delArena = nil
-	wrapperPool.Put(t)
 }
 
 // landingScratch returns the cursor's reusable parsed-header scratch,

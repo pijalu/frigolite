@@ -47,6 +47,12 @@ func (c *exprClone) selectStmt(sel *sql.SelectStmt) (*sql.SelectStmt, bool, bool
 	if sel == nil {
 		return nil, false, true
 	}
+	// Borrow the recycled tenant BEFORE the field walks: the walks recurse
+	// into nested selects and UNION members, each of which borrows the slot
+	// in turn. Taking first reserves this frame's tenant so a nested walk
+	// cannot hand the same struct to two levels of one clone (a cycle the
+	// from-term counter would walk forever).
+	out := c.borrowSelect()
 	var p selectParts
 	headChanged, ok := c.selectHead(sel, &p)
 	if !ok {
@@ -61,9 +67,40 @@ func (c *exprClone) selectStmt(sel *sql.SelectStmt) (*sql.SelectStmt, bool, bool
 		return nil, false, false
 	}
 	if !headChanged && !midChanged && !endChanged {
+		// Nothing substituted: return the shared template node. The borrowed
+		// tenant is unmodified — give it back for the next borrow.
+		c.giveBackSelect(out)
 		return sel, false, true
 	}
-	out := *sel
+	c.buildSelect(out, sel, &p)
+	c.retireSelect(out)
+	return out, true, true
+}
+
+// borrowSelect returns the frame's recycled tenant, or a fresh SelectStmt
+// when the walker has no scratch (the standalone form) or the free list is
+// empty (clone_scratch.go).
+func (c *exprClone) borrowSelect() *sql.SelectStmt {
+	if c.scratch != nil {
+		if out := c.scratch.takeSelectStmt(); out != nil {
+			return out
+		}
+	}
+	return new(sql.SelectStmt)
+}
+
+// giveBackSelect returns an unmodified borrowed tenant for the next borrow.
+func (c *exprClone) giveBackSelect(out *sql.SelectStmt) {
+	if c.scratch != nil {
+		c.scratch.giveBackSelect(out)
+	}
+}
+
+// buildSelect fills the borrowed tenant from the template and the walked
+// parts: the full-struct copy assigns every field, so a recycled tenant is
+// indistinguishable from a fresh struct (clone_scratch.go).
+func (c *exprClone) buildSelect(out, sel *sql.SelectStmt, p *selectParts) {
+	*out = *sel
 	out.CTEs = p.ctes
 	out.Columns = p.cols
 	out.From = p.from
@@ -76,7 +113,14 @@ func (c *exprClone) selectStmt(sel *sql.SelectStmt) (*sql.SelectStmt, bool, bool
 	out.Limit = p.limit
 	out.Offset = p.offset
 	out.Union = p.union
-	return &out, true, true
+}
+
+// retireSelect records the built clone for the next substitution's free
+// list.
+func (c *exprClone) retireSelect(out *sql.SelectStmt) {
+	if c.scratch != nil {
+		c.scratch.retireSelect(out)
+	}
 }
 
 // selectHead walks the WITH clause and the select list / FROM head, in

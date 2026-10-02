@@ -156,15 +156,11 @@ func (t *BTree) Close() {
 		cursorRegMu.Unlock()
 	}
 	t.releaseCursors(owned)
-	// releaseCursors reset each cursor into the free list (clearing page
-	// references and the registration key); re-mark them released AFTER that
-	// so the marker survives until the cursor's NEXT acquisition — every use
-	// of a closed cursor reports an error (checkOpen / restoreIfNeeded /
-	// cachePage), and the wrapper re-entry in resetForPool must not leave a
-	// readable cursor behind.
-	for _, c := range owned {
-		c.released = true
-	}
+	// releaseCursors marked each cursor released BEFORE returning it to the
+	// pool (btree_pool.go): the marker survives until the cursor's NEXT
+	// acquisition — every use of a closed cursor reports an error
+	// (checkOpen / restoreIfNeeded / cachePage) — and no write races the
+	// next acquirer's resetFor.
 	t.resetForPool()
 }
 

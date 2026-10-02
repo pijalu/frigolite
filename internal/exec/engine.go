@@ -348,6 +348,11 @@ type Engine struct {
 	// (nil = needs rebuild). Invalidated by ATTACH/DETACH/list reset and by
 	// any per-context key recompute; shared read-only with callers.
 	allKeysCache []string
+	// cloneScratches holds one transient-AST-clone scratch per execDepth
+	// (clone_scratch.go). Slots are borrowed only while the depth is not
+	// executing; the engine's single-goroutine statement funnel makes the
+	// per-depth lifecycle strictly sequential.
+	cloneScratches []*cloneScratch
 	// normBuf / normValues are Prepare's substitution scratch (the normalized
 	// SQL text buffer and the extracted literal values), recycled across
 	// statements. Neither outlives a Prepare call.
@@ -429,7 +434,7 @@ type tableCaches struct {
 	tableCache     map[string]*cachedTableEntry // cached table entry lookups
 	nextRowIDCache map[rowidCacheKey]int64      // cached next rowid per (pager, root page)
 	autoIncSeq     map[rowidCacheKey]int64      // AUTOINCREMENT sequence: largest rowid ever used per (pager, root page)
-	templateCache  map[string]*sqlTemplateEntry // normalized SQL → cached AST template
+	templateCache  map[uint64]*sqlTemplateEntry // normalized-SQL hash → cached AST template (text-verified on lookup)
 	uniqueIdxCache map[string][]uniqueIndexDef  // cached unique-index definitions per table name
 	viewDefCache   map[string][]sql.ColumnDef   // cached view column definitions (viewName -> colDefs)
 }
