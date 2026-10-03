@@ -209,6 +209,13 @@ func (e *DMLExecutor) ipkRowidAliasConflict(tableName string, rootPage uint32, c
 	if !ok {
 		return 0, nil, -1, false
 	}
+	// Append-bias parity (btree.c BTREE_APPEND): the executor's largest-rowid
+	// cache holds the tree's true maximum (bump-only-grows, invalidated by
+	// every delete / rowid-changing update), so a rowid ABOVE it cannot exist
+	// — the seek is skipped instead of descending on every row.
+	if cached, ok := e.ctx.NextRowIDFor(e.dmlPager(tableName), rootPage); ok && v > cached {
+		return 0, nil, -1, false
+	}
 	tree, owned := e.uniqueScanTree(tableName, rootPage)
 	if owned {
 		defer tree.Close() // probe tree is function-local

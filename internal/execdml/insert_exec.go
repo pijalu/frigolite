@@ -165,7 +165,13 @@ func (e *DMLExecutor) execInsertTuples(dbCtx *DatabaseContext, tableEntry *schem
 		}
 		return res
 	}
-	return &Result{Changes: totalChanges, InsertedChanges: totalInserted, LastInsertRowID: lastRowID}
+	// Reusable per-statement result (executor scratch — consumed by the
+	// engine's result conversion before any nested/next statement reuses it;
+	// see insStmtRes). RETURNING statements return a row-set result built
+	// fresh above.
+	res := &e.insStmtRes
+	*res = Result{Changes: totalChanges, InsertedChanges: totalInserted, LastInsertRowID: lastRowID}
+	return res
 }
 
 // tupleErrorResult builds the Result for a failed VALUES tuple, applying the

@@ -592,7 +592,11 @@ func (e *DMLExecutor) insertRow(pg *pager.Pager, tableEntry *schema.Entry, colDe
 			return res
 		}
 	}
-	return &Result{Changes: 1, LastInsertRowID: nextRowID}
+	// Reusable per-row success result (executor scratch — the fields are
+	// consumed by insertOneTuple before the next row; see insRowRes).
+	res = &e.insRowRes
+	*res = Result{Changes: 1, LastInsertRowID: nextRowID}
+	return res
 }
 
 // insertFTSRow routes a row insert to an FTS virtual table, or returns nil
