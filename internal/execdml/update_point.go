@@ -97,8 +97,13 @@ func (e *DMLExecutor) applyPointUpdate(s *sql.UpdateStmt, tableEntry *schema.Ent
 	if plan == nil || plan.empty || plan.index != nil {
 		return nil, false
 	}
-	tree := e.dmlTableBTree(tableEntry.Name, tableEntry.RootPage)
-	defer tree.Close() // seek+write tree is function-local
+	// The point write path's cached wrapper (insertWriteTree pattern): one
+	// b-tree serves the row fetch and the write across statements (the
+	// write primitives save/restore cursors themselves; the statement's
+	// leaked internal seek cursors are released on return).
+	pg := e.dmlPager(tableEntry.Name)
+	tree := e.pointWriteTree(&e.updTree, &e.updTreeKey, pg, tableEntry.Name, tableEntry.RootPage)
+	defer tree.ReleaseIdleCursors()
 	ch, matched, res, pos := e.collectPointUpdateRow(tree, s, tableEntry, colDefs, plan.rowid)
 	if res != nil {
 		return res, true
@@ -132,6 +137,9 @@ func (e *DMLExecutor) applyPointUpdate(s *sql.UpdateStmt, tableEntry *schema.Ent
 	if wres := e.writePointUpdateRow(tableEntry.Name, tree, tableEntry.RootPage, changes[0], tableEntry, colDefs, pos); wres.Error != nil {
 		return wres, true
 	}
+	// A growth split may have moved the root: re-key the cached wrapper and
+	// persist the new root (persistTreeRootPage parity with the insert path).
+	e.pointWriteTreeSync(&e.updTreeKey, pg, tableEntry.Name, tableEntry.RootPage, tree)
 	return &Result{Changes: 1}, true
 }
 

@@ -69,7 +69,7 @@ func (e *DMLExecutor) execDeleteInner(s *sql.DeleteStmt) *Result {
 	if err := e.ctx.Authorize(auth.ActionDelete, s.Table, "", "", ""); err != nil {
 		return &Result{Error: err}
 	}
-	tableEntry, dbCtx, colDefs, tree, res, prevDMLCtx := e.deleteTableContext(s)
+	tableEntry, dbCtx, colDefs, res, prevDMLCtx := e.deleteTableContext(s)
 	if res != nil {
 		return res
 	}
@@ -91,12 +91,14 @@ func (e *DMLExecutor) execDeleteInner(s *sql.DeleteStmt) *Result {
 	prevScan := e.ctx.CurrentScanTable()
 	e.ctx.SetCurrentScanTable(tableEntry.Name)
 	// Rowid-pinned single-row fast path ("DELETE FROM t WHERE id=?"): one
-	// seek, one delete. Only the exact plain point shape; anything else runs
-	// the generic pipeline below.
-	if res, handled := e.execPointDelete(s, tableEntry, dbCtx, colDefs, tree); handled {
+	// seek, one delete on the point path's cached write wrapper. Only the
+	// exact plain point shape; anything else builds the statement's own tree
+	// and runs the generic pipeline below.
+	if res, handled := e.execPointDelete(s, tableEntry, dbCtx, colDefs); handled {
 		e.ctx.SetCurrentScanTable(prevScan)
 		return res
 	}
+	tree := e.ctx.TableBTreePg(dbCtx.Pager, tableEntry.Name, tableEntry.RootPage, true)
 	deletedRows, derr := e.collectDeleteRows(tree, s, tableEntry, colDefs)
 	e.ctx.SetCurrentScanTable(prevScan)
 	if derr != nil {
@@ -359,26 +361,29 @@ func (e *DMLExecutor) pkIdxFromConstraints(tableName, createSQL string, colIndex
 // deleteTableContext resolves the DELETE's target table (routing views through
 // INSTEAD OF triggers and FTS tables through their delete path), guards against
 // modification of protected tables, validates RETURNING, and returns the
-// table entry, db context, column defs, b-tree, plus any error result (or view
-// route). It also returns the prior DMLCtx for trigger-scope restoration.
-func (e *DMLExecutor) deleteTableContext(s *sql.DeleteStmt) (*schema.Entry, *DatabaseContext, []sql.ColumnDef, *btree.BTree, *Result, *DatabaseContext) {
+// table entry, db context, column defs, plus any error result (or view route).
+// It also returns the prior DMLCtx for trigger-scope restoration. The table's
+// b-tree is NOT built here: the point path uses its cached write wrapper and
+// the generic pipeline builds the statement's own tree, so a point DELETE no
+// longer pays a per-statement NewBTree for a tree it never opens.
+func (e *DMLExecutor) deleteTableContext(s *sql.DeleteStmt) (*schema.Entry, *DatabaseContext, []sql.ColumnDef, *Result, *DatabaseContext) {
 	tableEntry, dbCtx, err := e.ctx.FindTable(s.Table)
 	// Alias masking for DELETE ("DELETE FROM t1 AS a WHERE t1.x=1").
 	if err == nil {
 		if res := e.validateDeleteTargetExprs(s, tableEntry); res != nil {
-			return nil, nil, nil, nil, res, nil
+			return nil, nil, nil, res, nil
 		}
 	}
 	if err != nil {
 		// Not a table — route through INSTEAD OF DELETE triggers on a view.
 		viewEntry, _, viewErr := e.ctx.FindView(s.Table)
 		if viewErr == nil {
-			return nil, nil, nil, nil, e.execDeleteView(s, viewEntry), nil
+			return nil, nil, nil, e.execDeleteView(s, viewEntry), nil
 		}
-		return nil, nil, nil, nil, &Result{Error: err}, nil
+		return nil, nil, nil, &Result{Error: err}, nil
 	}
 	if e.ctx.IsNonModifiableTable(tableEntry) {
-		return nil, nil, nil, nil, &Result{Error: fmt.Errorf("table %s may not be modified", tableEntry.Name)}, nil
+		return nil, nil, nil, &Result{Error: fmt.Errorf("table %s may not be modified", tableEntry.Name)}, nil
 	}
 	colDefs := e.ctx.ParseColumnDefs(tableEntry.Name, tableEntry.SQL)
 	// A WHERE-clause DELETE is row-by-row and maintains every index on the
@@ -387,25 +392,24 @@ func (e *DMLExecutor) deleteTableContext(s *sql.DeleteStmt) (*schema.Entry, *Dat
 	// truncates the table b-tree and needs no collation (collate3-3.6).
 	if s.Where != nil {
 		if res := e.validateIndexCollations(tableEntry, colDefs, nil); res != nil {
-			return nil, nil, nil, nil, res, nil
+			return nil, nil, nil, res, nil
 		}
 	}
 	if s.HasReturning {
 		if err := e.validateReturning(s.Returning, colDefs, tableEntry.Name); err != nil {
-			return nil, nil, nil, nil, &Result{Error: err}, nil
+			return nil, nil, nil, &Result{Error: err}, nil
 		}
 	}
 	prevDMLCtx := e.currentDMLCtx
 	// Route fts5 virtual table deletes through the fts5 engine.
 	if t5, ok := e.ctx.FTS5Tables()[tableEntry.Name]; ok {
-		return nil, nil, nil, nil, e.execFTS5Delete(t5, colDefs, s), prevDMLCtx
+		return nil, nil, nil, e.execFTS5Delete(t5, colDefs, s), prevDMLCtx
 	}
 	// Route FTS virtual table deletes
 	if ftsTable, ok := e.ctx.FTSTables()[tableEntry.Name]; ok {
-		return nil, nil, nil, nil, e.ctx.ExecFTSDelete(tableEntry.Name, ftsTable, colDefs, s), prevDMLCtx
+		return nil, nil, nil, e.ctx.ExecFTSDelete(tableEntry.Name, ftsTable, colDefs, s), prevDMLCtx
 	}
-	tree := e.ctx.TableBTreePg(dbCtx.Pager, tableEntry.Name, tableEntry.RootPage, true)
-	return tableEntry, dbCtx, colDefs, tree, nil, prevDMLCtx
+	return tableEntry, dbCtx, colDefs, nil, prevDMLCtx
 }
 
 // validateDeleteTargetExprs runs the DELETE target's prepare-time checks:

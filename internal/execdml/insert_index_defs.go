@@ -115,10 +115,21 @@ func autoindexConstraintColumns(tableEntry *schema.Entry, e *DMLExecutor) []stri
 // and the list rebuilds fresh. Cached slices are read-only by convention;
 // callers iterate and copy, never mutate.
 func (e *DMLExecutor) allTableIndexes(tableName string) []indexDef {
+	// One-slot memo (the ciCache guard pattern): a point UPDATE/DELETE
+	// resolves the table's index list three times per statement (the
+	// collation validation, the OLD-entry removal and the NEW-entry write),
+	// and each resolution walks the engine's database-context map. The defs
+	// are a pure function of the schema, so the fingerprint guard makes one
+	// map walk per statement serve the rest.
+	fp := e.schemaFingerprint()
+	if e.atiName == tableName && e.atiFP == fp {
+		return e.atiDefs
+	}
 	var result []indexDef
 	for _, ctx := range e.ctx.Databases() {
 		result = append(result, e.indexDefsInCached(ctx, tableName)...)
 	}
+	e.atiName, e.atiFP, e.atiDefs = tableName, fp, result
 	return result
 }
 

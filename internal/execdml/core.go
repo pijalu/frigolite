@@ -137,6 +137,25 @@ type DMLExecutor struct {
 	// and replaced on identity change, never re-armed after Close.
 	insTree    *btree.BTree
 	insTreeKey insTreeKey
+
+	// updTree/delTree are the point-UPDATE and point-DELETE write paths'
+	// cached b-tree wrappers — the insertWriteTree pattern extended to the
+	// other point-op families (one NewBTree + track + Close per statement
+	// dominated the point-op profiles the same way it dominated insert's).
+	// Same ownership rules: identity-keyed, closed+replaced on identity
+	// change, pager layout hook invalidates, and each statement releases the
+	// btree write primitives' leaked seek cursors (ReleaseIdleCursors).
+	updTree    *btree.BTree
+	updTreeKey insTreeKey
+	delTree    *btree.BTree
+	delTreeKey insTreeKey
+
+	// ati* is the allTableIndexes one-slot memo (schema fingerprint-guarded):
+	// the point-op paths resolve the same table's index list several times
+	// per statement, and each resolution walks the databases map.
+	atiName string
+	atiFP   uint64
+	atiDefs []indexDef
 }
 
 // indexDefCacheKey identifies a cached index-maintenance-def list: the owning
@@ -215,9 +234,9 @@ func (e *DMLExecutor) insertWriteTreeSync(root uint32) {
 	e.insTreeKey.root = root
 }
 
-// InvalidateWriteTree drops the cached insert write tree: the open wrapper is
-// closed (terminal, per the btree_pool.go contract) and the cache key cleared,
-// so the next insertWriteTree builds a fresh wrapper at the CURRENT pager
+// InvalidateWriteTree drops the cached write trees: each open wrapper is
+// closed (terminal, per the btree_pool.go contract) and its cache key
+// cleared, so the next writeTree builds a fresh wrapper at the CURRENT pager
 // geometry.
 //
 // The engine fires this from the pager's layout hook: a wrapper snapshots
@@ -230,11 +249,52 @@ func (e *DMLExecutor) insertWriteTreeSync(root uint32) {
 // copy-back inserts then fail "database disk image is malformed" and the
 // rebuild's restore path silently reverts the pending page size.
 func (e *DMLExecutor) InvalidateWriteTree() {
-	if e.insTree != nil && !e.insTree.Closed() {
-		e.insTree.Close()
+	for _, slot := range []*struct {
+		tree *btree.BTree
+		key  *insTreeKey
+	}{
+		{e.insTree, &e.insTreeKey},
+		{e.updTree, &e.updTreeKey},
+		{e.delTree, &e.delTreeKey},
+	} {
+		if slot.tree != nil && !slot.tree.Closed() {
+			slot.tree.Close()
+		}
+		*slot.key = insTreeKey{}
 	}
-	e.insTree = nil
-	e.insTreeKey = insTreeKey{}
+	e.insTree, e.updTree, e.delTree = nil, nil, nil
+}
+
+// pointWriteTree returns the cached slot's b-tree wrapper for a point-op
+// write (the insertWriteTree pattern shared by the UPDATE and DELETE point
+// paths): one wrapper per (pager, resolved-root, table) identity, closed and
+// replaced on identity change. The tree is built OUTSIDE the engine's
+// statement-tracking funnel — it outlives the statement, so the point paths
+// release its per-statement leaked seek cursors explicitly
+// (ReleaseIdleCursors) and re-sync the key after any root move.
+func (e *DMLExecutor) pointWriteTree(slot **btree.BTree, key *insTreeKey, pg *pager.Pager, tableName string, rootPage uint32) *btree.BTree {
+	root := e.ctx.RootPagePg(pg, tableName, rootPage)
+	k := insTreeKey{pg: pg, root: root, isTable: true}
+	if t := *slot; t != nil && !t.Closed() && *key == k {
+		return t
+	}
+	if t := *slot; t != nil && !t.Closed() {
+		t.Close()
+	}
+	t := btree.NewBTree(pg, root, true)
+	*slot = t
+	*key = k
+	return t
+}
+
+// pointWriteTreeSync re-keys a cached point-op write tree after a split or
+// rebalance moved the root, persisting the new root like the insert path's
+// persistTreeRootPage (the wrapper tracks its own root; the cache key must
+// follow so the next statement's resolved-root lookup hits the same
+// wrapper).
+func (e *DMLExecutor) pointWriteTreeSync(slot *insTreeKey, pg *pager.Pager, tableName string, rootPage uint32, tree *btree.BTree) {
+	e.persistTreeRootPage(pg, tableName, rootPage, tree)
+	slot.root = tree.RootPage()
 }
 
 // insTreeKey identifies the insert path's cached b-tree wrapper: the owning
