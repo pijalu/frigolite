@@ -1,5 +1,55 @@
 # Lessons Learned — Frigolite
 
+## PERF.POINT3 — point-SELECT scaffolding, tranche 3 (fleet/perf-point3, 2026-10-03)
+
+- **The seek path paid OpenCursor's leftmost-leaf descent for nothing.**
+  fetchSeekStructRow + the loSet rowid-range seek now open through
+  OpenCursorAtRoot (the point-UPDATE/DELETE shape): SeekToRowID clears the
+  path stack and re-descends from the root, so descendToFirstLeaf was dead
+  work per statement (+9% point ops/s alone). The scan cursor opens AFTER
+  the seek verdict in execRealTableSelect — a seek-resolved statement never
+  scans.
+- **Memo keys on the copy-on-write clone: schema slices AND template-shared
+  AST slices.** The template clone returns UNCHANGED slices (e.g. a bare
+  column list without literal slots) to the template instance, so
+  &s.Columns[0] is a stable cross-statement key exactly like &colDefs[0] —
+  guarded by the schema fingerprint, capped (64 entries, flush on overflow),
+  and copied on hit so per-statement caller-owned semantics stay identical.
+  Anything containing literals (WHERE chains) is fresh per statement and can
+  NEVER be a key.
+- **One census walk replaces a dozen validator walks.** The SELECT prepare
+  chain (aggregate misuse, star-arg arity, FILTER, DISTINCT arity, subquery
+  resolution, window placement, row values, FTS MATCH, ORDER BY terms) all
+  key on node KINDS; one WalkExprFull pass collecting {funcCall, aggFunc,
+  distinct, filter, over, subquery, rowValue, matchOp, collateOp} lets each
+  validator skip when its kinds are provably absent. Soundness hinges on
+  WalkExprFull NOT descending into subquery bodies: any validator whose
+  error paths inspect inside a subquery stays enabled while census saw a
+  subquery at this level (its own execution validates its body).
+- **Collation-free tables skip checkWhereCollations entirely**: the error
+  only fires through the declared-collation lookup, so an empty
+  collationMapFor means the WHERE walk can never fail.
+- **The point-SELECT profile floor after all cuts**: btree descent
+  (routeInteriorTable + seekInLeafTable ≈ 16%), template-clone literal
+  substitution, output-row construction, and GC from the remaining
+  per-statement allocations (NewBTree wrapper — deliberately NOT pooled per
+  btree_pool.go's race note, affinity visitor closure, DecodeRecord). The
+  next tranche needs btree write-path-adjacent work (out of scope here) or
+  clone-machinery changes.
+- **The shared-box full harness flakes in PARALLEL**: hundreds of files fail
+  at ~0.01s each under fleet load (t.Parallel subtests + cleanupTestDBFiles
+  racing), with MAIN failing the IDENTICAL 382-file set. Regression proof =
+  per-FILE solo runs (deterministic) on both sides — 33 query-heavy files
+  showed byte-identical failure counts pre/post change.
+- **Method values still allocate per evaluation site** — caching
+  `a.visitFn = a.visitNode` in the struct does not remove the closure alloc
+  (it just moves it); only restructuring the walk to avoid the closure
+  entirely would. Not worth it at ~190B/statement.
+- **scanTableAffinityCols' map is statement-retained** (scanState/
+  rangeSeekRow keep it for the scan duration), so per-engine scratch-map
+  reuse is UNSAFE — a nested statement's collector would clear the outer
+  statement's map mid-scan.
+
 ## PERF.DML2 — point UPDATE/DELETE at btree.c parity (fleet/perf-dml2, 2026-10-02)
 
 - **dropCell+freeSpace+allocateSpace is the correct fundamental shape for point
