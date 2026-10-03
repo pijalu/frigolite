@@ -2123,6 +2123,14 @@
       ]
     },
     {
+      "name": "__RESET_DB__",
+      "steps": [
+        {
+          "type": "reset_db"
+        }
+      ]
+    },
+    {
       "name": "btree01-2.1",
       "steps": [
         {
