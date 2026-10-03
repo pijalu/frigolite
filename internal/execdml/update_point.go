@@ -210,6 +210,14 @@ func (e *DMLExecutor) pointUpdateRowMap(rec *storage.Record, colDefs []sql.Colum
 	} else {
 		clear(row)
 	}
+	e.fillPointUpdateRowMap(row, rec, colDefs, rowID)
+	return row
+}
+
+// fillPointUpdateRowMap refills the pooled map from the record (the
+// buildRowMap fill: affinity/collation-wrapped declared columns, extra
+// record values projected as c<N>, rowid pseudo-aliases).
+func (e *DMLExecutor) fillPointUpdateRowMap(row RowMap, rec *storage.Record, colDefs []sql.ColumnDef, rowID int64) {
 	for i := range colDefs {
 		cd := colDefs[i]
 		if v := rec.Values[i]; v == nil && isIPKRowidAliasCol(cd) {
@@ -234,7 +242,6 @@ func (e *DMLExecutor) pointUpdateRowMap(rec *storage.Record, colDefs []sql.Colum
 		row["_rowid_"] = rowidCV
 		row["oid"] = rowidCV
 	}
-	return row
 }
 
 // subqueryInAssignments reports whether any SET expression contains a
@@ -248,72 +255,98 @@ func subqueryInAssignments(assigns []sql.Assignment) bool {
 	return false
 }
 
-// exprHasSubqueryNode walks e for a Subquery/ExistsExpr node.
+// exprHasSubqueryNode walks e for a Subquery/ExistsExpr node. The single-
+// child kinds dispatch here; the multi-child containers (function calls,
+// CASE, BETWEEN, IN lists, row values, DISTINCT pairs) recurse through
+// exprHasSubqueryMulti so each walker stays under the complexity gate.
 func exprHasSubqueryNode(e sql.Expr) bool {
-	switch v := e.(type) {
-	case nil:
-		return false
+	switch e.(type) {
 	case *sql.Subquery, *sql.ExistsExpr:
 		return true
-	case *sql.FuncCall:
-		for _, a := range v.Args {
-			if exprHasSubqueryNode(a) {
-				return true
-			}
-		}
-		return exprHasSubqueryNode(v.Filter)
-	case *sql.CaseExpr:
-		if exprHasSubqueryNode(v.Operand) || exprHasSubqueryNode(v.Else) {
-			return true
-		}
-		for i := range v.Whens {
-			if exprHasSubqueryNode(v.Whens[i].When) || exprHasSubqueryNode(v.Whens[i].Then) {
-				return true
-			}
-		}
-		return false
+	case *sql.BinaryOp, *sql.IsDistinctFrom, *sql.IsNotDistinctFrom:
+		return exprHasSubqueryPair(e)
+	case *sql.FuncCall, *sql.CaseExpr, *sql.Between, *sql.InList, *sql.RowValue:
+		return exprHasSubqueryMulti(e)
+	default:
+		return exprHasSubquerySingle(e)
+	}
+}
+
+// exprHasSubqueryPair walks the two-child expression nodes.
+func exprHasSubqueryPair(e sql.Expr) bool {
+	var left, right sql.Expr
+	switch v := e.(type) {
 	case *sql.BinaryOp:
-		return exprHasSubqueryNode(v.Left) || exprHasSubqueryNode(v.Right)
+		left, right = v.Left, v.Right
+	case *sql.IsDistinctFrom:
+		left, right = v.Left, v.Right
+	case *sql.IsNotDistinctFrom:
+		left, right = v.Left, v.Right
+	}
+	return exprHasSubqueryNode(left) || exprHasSubqueryNode(right)
+}
+
+// exprHasSubquerySingle walks the single-child expression nodes.
+func exprHasSubquerySingle(e sql.Expr) bool {
+	switch v := e.(type) {
 	case *sql.UnaryOp:
 		return exprHasSubqueryNode(v.Operand)
 	case *sql.ParenExpr:
 		return exprHasSubqueryNode(v.Expr)
-	case *sql.Between:
-		return exprHasSubqueryNode(v.Operand) || exprHasSubqueryNode(v.Low) || exprHasSubqueryNode(v.High)
-	case *sql.InList:
-		if exprHasSubqueryNode(v.Operand) {
-			return true
-		}
-		for _, item := range v.List {
-			if exprHasSubqueryNode(item) {
-				return true
-			}
-		}
-		return false
-	case *sql.RowValue:
-		for _, item := range v.Values {
-			if exprHasSubqueryNode(item) {
-				return true
-			}
-		}
-		return false
 	case *sql.CastExpr:
 		return exprHasSubqueryNode(v.Operand)
 	case *sql.IsNull:
 		return exprHasSubqueryNode(v.Operand)
 	case *sql.IsNotNull:
 		return exprHasSubqueryNode(v.Operand)
-	case *sql.IsDistinctFrom:
-		return exprHasSubqueryNode(v.Left) || exprHasSubqueryNode(v.Right)
-	case *sql.IsNotDistinctFrom:
-		return exprHasSubqueryNode(v.Left) || exprHasSubqueryNode(v.Right)
 	case *sql.IsTrue:
 		return exprHasSubqueryNode(v.Operand)
 	case *sql.IsFalse:
 		return exprHasSubqueryNode(v.Operand)
-	default:
-		return false
 	}
+	return false
+}
+
+// exprHasSubqueryMulti walks the multi-child expression containers for a
+// Subquery/ExistsExpr node (exprHasSubqueryNode's tail dispatch).
+func exprHasSubqueryMulti(e sql.Expr) bool {
+	switch v := e.(type) {
+	case *sql.FuncCall:
+		return exprListHasSubquery(v.Args) || exprHasSubqueryNode(v.Filter)
+	case *sql.CaseExpr:
+		return caseExprHasSubquery(v)
+	case *sql.Between:
+		return exprHasSubqueryNode(v.Operand) || exprHasSubqueryNode(v.Low) || exprHasSubqueryNode(v.High)
+	case *sql.InList:
+		return exprListHasSubquery(append([]sql.Expr{v.Operand}, v.List...))
+	case *sql.RowValue:
+		return exprListHasSubquery(v.Values)
+	}
+	return false
+}
+
+// caseExprHasSubquery walks a CASE expression's operand, WHEN arms and ELSE.
+func caseExprHasSubquery(v *sql.CaseExpr) bool {
+	if exprHasSubqueryNode(v.Operand) || exprHasSubqueryNode(v.Else) {
+		return true
+	}
+	for i := range v.Whens {
+		if exprHasSubqueryNode(v.Whens[i].When) || exprHasSubqueryNode(v.Whens[i].Then) {
+			return true
+		}
+	}
+	return false
+}
+
+// exprListHasSubquery reports whether any list expression holds a
+// Subquery/ExistsExpr node.
+func exprListHasSubquery(list []sql.Expr) bool {
+	for _, item := range list {
+		if exprHasSubqueryNode(item) {
+			return true
+		}
+	}
+	return false
 }
 
 // collectPointUpdateRow reads the pinned row by rowid and builds its change:

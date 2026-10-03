@@ -19,29 +19,40 @@ func (ts *templateSlots) validateValues(values []interface{}) bool {
 		return false
 	}
 	for i, c := range ts.classes {
-		switch v := values[i].(type) {
-		case int64:
-			if c == slotReal {
-				return false
-			}
-		case float64:
-			if c == slotInt || c == slotStr {
-				return false
-			}
-			// REAL gates mirror numeric(): finite, not the shape-ambiguous
-			// 2^63 double. The INSERT family (slotInsAny) keeps insertValue's
-			// unchecked rendering — parity with the COW walk by construction.
-			if c == slotReal && (math.IsInf(v, 0) || math.IsNaN(v) || v == twoPow63) {
-				return false
-			}
-		case string:
-			// A quoted value serves any slot (the fresh node kind follows
-			// the value).
-		default:
+		if !slotClassAccepts(c, values[i]) {
 			return false
 		}
 	}
 	return true
+}
+
+// slotClassAccepts mirrors the COW walkers' per-slot value gate for one
+// class/value pair: an int64 refuses REAL slots, a float64 refuses int and
+// string slots (and, in REAL slots, the non-finite and shape-ambiguous 2^63
+// values — the INSERT family keeps insertValue's unchecked rendering, parity
+// with the COW walk by construction), a string serves any slot, anything
+// else refuses.
+func slotClassAccepts(c slotClass, v interface{}) bool {
+	switch v := v.(type) {
+	case int64:
+		return c != slotReal
+	case float64:
+		if c == slotInt || c == slotStr {
+			return false
+		}
+		return c == slotInsAny || !isAmbiguousReal(v)
+	case string:
+		return true
+	default:
+		return false
+	}
+}
+
+// isAmbiguousReal reports whether a REAL value is one the numeric() gate
+// refuses: non-finite or the exact 2^63 double whose normalized spelling is
+// shape-ambiguous between a folded integer and a REAL literal.
+func isAmbiguousReal(v float64) bool {
+	return math.IsInf(v, 0) || math.IsNaN(v) || v == twoPow63
 }
 
 // apply rewrites the literal leaves of the live clone along the precomputed
@@ -135,75 +146,42 @@ func slotStepNode(cur any, st slotStep, v sql.Expr, set bool) (any, bool) {
 		return slotInsertNode(node, st, v, set)
 	case *sql.OnConflictClause:
 		return slotConflictNode(node, st, v, set)
+	case *sql.BinaryOp, *sql.IsDistinctFrom, *sql.IsNotDistinctFrom, *sql.FuncCall, *sql.CaseExpr:
+		return slotStepNodePairContainer(cur, st, v, set)
+	case *sql.Between, *sql.InList:
+		return slotStepNodeTripleContainer(cur, st, v, set)
+	default:
+		return slotStepNodeSingle(cur, st, v, set)
+	}
+}
+
+// slotStepNodePairContainer handles the two-child expression nodes'
+// selectors (BinaryOp, DISTINCT pairs).
+func slotStepNodePairContainer(cur any, st slotStep, v sql.Expr, set bool) (any, bool) {
+	var left, right *sql.Expr
+	switch node := cur.(type) {
 	case *sql.BinaryOp:
-		switch st.field {
-		case sfBinLeft:
-			return exprFieldNode(&node.Left, v, set)
-		case sfBinRight:
-			return exprFieldNode(&node.Right, v, set)
-		}
-	case *sql.UnaryOp:
-		if st.field == sfUnary {
-			return exprFieldNode(&node.Operand, v, set)
-		}
-	case *sql.ParenExpr:
-		if st.field == sfParen {
-			return exprFieldNode(&node.Expr, v, set)
-		}
-	case *sql.Between:
-		switch st.field {
-		case sfBetweenOp:
-			return exprFieldNode(&node.Operand, v, set)
-		case sfBetweenLow:
-			return exprFieldNode(&node.Low, v, set)
-		case sfBetweenHigh:
-			return exprFieldNode(&node.High, v, set)
-		}
-	case *sql.InList:
-		switch st.field {
-		case sfInOperand:
-			return exprFieldNode(&node.Operand, v, set)
-		case sfInItem:
-			return exprSliceNode(&node.List, st.idx, v, set)
-		}
-	case *sql.RowValue:
-		if st.field == sfRowVal {
-			return exprSliceNode(&node.Values, st.idx, v, set)
-		}
-	case *sql.CastExpr:
-		if st.field == sfCast {
-			return exprFieldNode(&node.Operand, v, set)
-		}
-	case *sql.IsNull:
-		if st.field == sfIsNull {
-			return exprFieldNode(&node.Operand, v, set)
-		}
-	case *sql.IsNotNull:
-		if st.field == sfIsNotNull {
-			return exprFieldNode(&node.Operand, v, set)
-		}
+		left, right = &node.Left, &node.Right
 	case *sql.IsDistinctFrom:
-		switch st.field {
-		case sfDistL:
-			return exprFieldNode(&node.Left, v, set)
-		case sfDistR:
-			return exprFieldNode(&node.Right, v, set)
-		}
+		left, right = &node.Left, &node.Right
 	case *sql.IsNotDistinctFrom:
-		switch st.field {
-		case sfNotDistL:
-			return exprFieldNode(&node.Left, v, set)
-		case sfNotDistR:
-			return exprFieldNode(&node.Right, v, set)
-		}
-	case *sql.IsTrue:
-		if st.field == sfTrue {
-			return exprFieldNode(&node.Operand, v, set)
-		}
-	case *sql.IsFalse:
-		if st.field == sfFalse {
-			return exprFieldNode(&node.Operand, v, set)
-		}
+		left, right = &node.Left, &node.Right
+	default:
+		return slotStepNodeNamedChildren(cur, st, v, set)
+	}
+	if st.field == sfBinLeft || st.field == sfDistL || st.field == sfNotDistL {
+		return exprFieldNode(left, v, set)
+	}
+	if st.field == sfBinRight || st.field == sfDistR || st.field == sfNotDistR {
+		return exprFieldNode(right, v, set)
+	}
+	return nil, false
+}
+
+// slotStepNodeNamedChildren handles the named-children expression nodes'
+// selectors (function calls, CASE arms).
+func slotStepNodeNamedChildren(cur any, st slotStep, v sql.Expr, set bool) (any, bool) {
+	switch node := cur.(type) {
 	case *sql.FuncCall:
 		switch st.field {
 		case sfFuncArg:
@@ -232,6 +210,91 @@ func slotStepNode(cur any, st slotStep, v sql.Expr, set bool) (any, bool) {
 	return nil, false
 }
 
+// slotStepNodeTripleContainer handles BETWEEN's three children and IN
+// list's operand+items.
+func slotStepNodeTripleContainer(cur any, st slotStep, v sql.Expr, set bool) (any, bool) {
+	switch node := cur.(type) {
+	case *sql.Between:
+		switch st.field {
+		case sfBetweenOp:
+			return exprFieldNode(&node.Operand, v, set)
+		case sfBetweenLow:
+			return exprFieldNode(&node.Low, v, set)
+		case sfBetweenHigh:
+			return exprFieldNode(&node.High, v, set)
+		}
+	case *sql.InList:
+		switch st.field {
+		case sfInOperand:
+			return exprFieldNode(&node.Operand, v, set)
+		case sfInItem:
+			return exprSliceNode(&node.List, st.idx, v, set)
+		}
+	}
+	return nil, false
+}
+
+// singleChildExprField maps the single-Expr-field expression nodes'
+// selector to their field address. The set of kinds is fixed by the
+// collector; a missing entry means the selector does not fit the node.
+func singleChildExprField(cur any, f slotField) *sql.Expr {
+	switch node := cur.(type) {
+	case *sql.UnaryOp:
+		if f == sfUnary {
+			return &node.Operand
+		}
+	case *sql.ParenExpr:
+		if f == sfParen {
+			return &node.Expr
+		}
+	default:
+		return singlePredicateExprField(cur, f)
+	}
+	return nil
+}
+
+// singlePredicateExprField resolves the comparison-predicate and wrapper
+// nodes' single expression field.
+func singlePredicateExprField(cur any, f slotField) *sql.Expr {
+	switch node := cur.(type) {
+	case *sql.CastExpr:
+		if f == sfCast {
+			return &node.Operand
+		}
+	case *sql.IsNull:
+		if f == sfIsNull {
+			return &node.Operand
+		}
+	case *sql.IsNotNull:
+		if f == sfIsNotNull {
+			return &node.Operand
+		}
+	case *sql.IsTrue:
+		if f == sfTrue {
+			return &node.Operand
+		}
+	case *sql.IsFalse:
+		if f == sfFalse {
+			return &node.Operand
+		}
+	}
+	return nil
+}
+
+// slotStepNodeSingle handles the single-child expression nodes' selectors.
+func slotStepNodeSingle(cur any, st slotStep, v sql.Expr, set bool) (any, bool) {
+	if st.field == sfRowVal {
+		if node, ok := cur.(*sql.RowValue); ok {
+			return exprSliceNode(&node.Values, st.idx, v, set)
+		}
+		return nil, false
+	}
+	if f := singleChildExprField(cur, st.field); f != nil {
+		return exprFieldNode(f, v, set)
+	}
+	return nil, false
+}
+
 // slotSelectNode handles one selector against a SELECT statement (including
 // the selector kinds reused by UPDATE/DELETE/INSERT for their CTE lists).
 func slotSelectNode(node *sql.SelectStmt, st slotStep, v sql.Expr, set bool) (any, bool) {
@@ -240,44 +303,16 @@ func slotSelectNode(node *sql.SelectStmt, st slotStep, v sql.Expr, set bool) (an
 		if st.idx < len(node.CTEs) {
 			return node.CTEs[st.idx].Select, true
 		}
-	case sfSelCol:
-		if st.idx < len(node.Columns) {
-			return exprFieldNode(&node.Columns[st.idx].Expr, v, set)
-		}
-	case sfSelFromSub:
-		if node.From.Subquery != nil {
-			return node.From.Subquery, true
-		}
-	case sfSelFromArg:
-		return exprSliceNode(&node.From.Args, st.idx, v, set)
-	case sfSelJoinOn:
-		if st.idx < len(node.Joins) {
-			return exprFieldNode(&node.Joins[st.idx].On, v, set)
-		}
-	case sfSelJoinSub:
-		if joinArgOuter(st.idx) < len(node.Joins) && node.Joins[joinArgOuter(st.idx)].Table.Subquery != nil {
-			return node.Joins[joinArgOuter(st.idx)].Table.Subquery, true
-		}
-	case sfSelJoinArg:
-		if joinArgOuter(st.idx) < len(node.Joins) {
-			return exprSliceNode(&node.Joins[joinArgOuter(st.idx)].Table.Args, joinArgItem(st.idx), v, set)
-		}
+	case sfSelCol, sfSelFromSub, sfSelFromArg, sfSelJoinOn, sfSelJoinSub, sfSelJoinArg:
+		return slotSelectNodeHead(node, st, v, set)
 	case sfSelWhere:
 		return exprFieldNode(&node.Where, v, set)
 	case sfSelGroup:
 		return exprSliceNode(&node.GroupBy, st.idx, v, set)
 	case sfSelHaving:
 		return exprFieldNode(&node.Having, v, set)
-	case sfSelWinPart:
-		if joinArgOuter(st.idx) < len(node.Windows) {
-			return exprSliceNode(&node.Windows[joinArgOuter(st.idx)].Partitions, joinArgItem(st.idx), v, set)
-		}
-	case sfSelWinOrd:
-		if joinArgOuter(st.idx) < len(node.Windows) {
-			return orderByTermNode(&node.Windows[joinArgOuter(st.idx)].OrderBy, joinArgItem(st.idx), v, set)
-		}
-	case sfSelOrder:
-		return orderByTermNode(&node.OrderBy, st.idx, v, set)
+	case sfSelWinPart, sfSelWinOrd, sfSelOrder:
+		return slotSelectNodeOrder(node, st, v, set)
 	case sfSelLimit:
 		return exprFieldNode(&node.Limit, v, set)
 	case sfSelOffset:
@@ -290,6 +325,67 @@ func slotSelectNode(node *sql.SelectStmt, st slotStep, v sql.Expr, set bool) (an
 	return nil, false
 }
 
+// slotSelectNodeHead handles the select-list and FROM/JOIN selectors.
+func slotSelectNodeHead(node *sql.SelectStmt, st slotStep, v sql.Expr, set bool) (any, bool) {
+	switch st.field {
+	case sfSelCol:
+		if st.idx < len(node.Columns) {
+			return exprFieldNode(&node.Columns[st.idx].Expr, v, set)
+		}
+	case sfSelFromSub:
+		if node.From.Subquery != nil {
+			return node.From.Subquery, true
+		}
+	case sfSelFromArg:
+		return exprSliceNode(&node.From.Args, st.idx, v, set)
+	case sfSelJoinOn, sfSelJoinSub, sfSelJoinArg:
+		return slotSelectNodeJoin(node, st, v, set)
+	}
+	return nil, false
+}
+
+// slotSelectNodeJoin handles the JOIN clauses' ON, subquery and arg
+// selectors (idx carries the join index; args pack item in the low byte).
+func slotSelectNodeJoin(node *sql.SelectStmt, st slotStep, v sql.Expr, set bool) (any, bool) {
+	if st.idx < len(node.Joins) && st.field == sfSelJoinOn {
+		return exprFieldNode(&node.Joins[st.idx].On, v, set)
+	}
+	outer := joinArgOuter(st.idx)
+	if outer >= len(node.Joins) {
+		return nil, false
+	}
+	if st.field == sfSelJoinSub {
+		if node.Joins[outer].Table.Subquery != nil {
+			return node.Joins[outer].Table.Subquery, true
+		}
+		return nil, false
+	}
+	return exprSliceNode(&node.Joins[outer].Table.Args, joinArgItem(st.idx), v, set)
+}
+
+// slotSelectNodeOrder handles the statement ORDER BY term and the WINDOW
+// clause's partition/term selectors (idx packs the window and item indexes
+// for the window forms).
+func slotSelectNodeOrder(node *sql.SelectStmt, st slotStep, v sql.Expr, set bool) (any, bool) {
+	if st.field == sfSelOrder {
+		return orderByTermNode(&node.OrderBy, st.idx, v, set)
+	}
+	return slotSelectNodeWindow(node, st, v, set)
+}
+
+// slotSelectNodeWindow handles the WINDOW clause's partition and ORDER BY
+// selectors (idx packs the window and item indexes).
+func slotSelectNodeWindow(node *sql.SelectStmt, st slotStep, v sql.Expr, set bool) (any, bool) {
+	if joinArgOuter(st.idx) >= len(node.Windows) {
+		return nil, false
+	}
+	win := &node.Windows[joinArgOuter(st.idx)]
+	if st.field == sfSelWinPart {
+		return exprSliceNode(&win.Partitions, joinArgItem(st.idx), v, set)
+	}
+	return orderByTermNode(&win.OrderBy, joinArgItem(st.idx), v, set)
+}
+
 // slotUpdateNode handles one selector against an UPDATE statement.
 func slotUpdateNode(node *sql.UpdateStmt, st slotStep, v sql.Expr, set bool) (any, bool) {
 	switch st.field {
@@ -297,28 +393,8 @@ func slotUpdateNode(node *sql.UpdateStmt, st slotStep, v sql.Expr, set bool) (an
 		if st.idx < len(node.CTEs) {
 			return node.CTEs[st.idx].Select, true
 		}
-	case sfUpdAssign:
-		if st.idx < len(node.Assignments) {
-			return exprFieldNode(&node.Assignments[st.idx].Value, v, set)
-		}
-	case sfUpdFromSub:
-		if node.From.Subquery != nil {
-			return node.From.Subquery, true
-		}
-	case sfUpdFromArg:
-		return exprSliceNode(&node.From.Args, st.idx, v, set)
-	case sfUpdFJOn:
-		if st.idx < len(node.FromJoins) {
-			return exprFieldNode(&node.FromJoins[st.idx].On, v, set)
-		}
-	case sfUpdFJSub:
-		if joinArgOuter(st.idx) < len(node.FromJoins) && node.FromJoins[joinArgOuter(st.idx)].Table.Subquery != nil {
-			return node.FromJoins[joinArgOuter(st.idx)].Table.Subquery, true
-		}
-	case sfUpdFJArg:
-		if joinArgOuter(st.idx) < len(node.FromJoins) {
-			return exprSliceNode(&node.FromJoins[joinArgOuter(st.idx)].Table.Args, joinArgItem(st.idx), v, set)
-		}
+	case sfUpdAssign, sfUpdFromSub, sfUpdFromArg, sfUpdFJOn, sfUpdFJSub, sfUpdFJArg:
+		return slotUpdateNodeHead(node, st, v, set)
 	case sfUpdWhere:
 		return exprFieldNode(&node.Where, v, set)
 	case sfUpdOrder:
@@ -331,6 +407,44 @@ func slotUpdateNode(node *sql.UpdateStmt, st slotStep, v sql.Expr, set bool) (an
 		return exprFieldNode(&node.Returning.Expr, v, set)
 	}
 	return nil, false
+}
+
+// slotUpdateNodeHead handles the SET-assignment and FROM-clause selectors.
+func slotUpdateNodeHead(node *sql.UpdateStmt, st slotStep, v sql.Expr, set bool) (any, bool) {
+	switch st.field {
+	case sfUpdAssign:
+		if st.idx < len(node.Assignments) {
+			return exprFieldNode(&node.Assignments[st.idx].Value, v, set)
+		}
+	case sfUpdFromSub:
+		if node.From.Subquery != nil {
+			return node.From.Subquery, true
+		}
+	case sfUpdFromArg:
+		return exprSliceNode(&node.From.Args, st.idx, v, set)
+	case sfUpdFJOn, sfUpdFJSub, sfUpdFJArg:
+		return slotUpdateNodeJoin(node, st, v, set)
+	}
+	return nil, false
+}
+
+// slotUpdateNodeJoin handles the UPDATE FROM joins' ON, subquery and arg
+// selectors (idx carries the join index; args pack item in the low byte).
+func slotUpdateNodeJoin(node *sql.UpdateStmt, st slotStep, v sql.Expr, set bool) (any, bool) {
+	if st.idx < len(node.FromJoins) && st.field == sfUpdFJOn {
+		return exprFieldNode(&node.FromJoins[st.idx].On, v, set)
+	}
+	outer := joinArgOuter(st.idx)
+	if outer >= len(node.FromJoins) {
+		return nil, false
+	}
+	if st.field == sfUpdFJSub {
+		if node.FromJoins[outer].Table.Subquery != nil {
+			return node.FromJoins[outer].Table.Subquery, true
+		}
+		return nil, false
+	}
+	return exprSliceNode(&node.FromJoins[outer].Table.Args, joinArgItem(st.idx), v, set)
 }
 
 // slotDeleteNode handles one selector against a DELETE statement.
@@ -442,61 +556,92 @@ func orderByTermNode(s *[]sql.OrderByTerm, i int, v sql.Expr, set bool) (any, bo
 
 // exprHasLiteral reports whether any NumericLit/StringLit sits anywhere
 // below e, including inside nested subqueries (the INSERT tuple contract's
-// value-count divergence check).
+// value-count divergence check). Single-child kinds dispatch here; the
+// multi-child containers recurse through exprHasLiteralMulti.
 func exprHasLiteral(e sql.Expr) bool {
 	switch v := e.(type) {
-	case nil:
-		return false
 	case *sql.NumericLit, *sql.StringLit:
 		return true
-	case *sql.FuncCall:
-		return exprListHasLiteral(v.Args) || exprHasLiteral(v.Filter) || orderByHasLiteral(v.OrderBy)
-	case *sql.CaseExpr:
-		if exprHasLiteral(v.Operand) || exprHasLiteral(v.Else) {
-			return true
-		}
-		for i := range v.Whens {
-			if exprHasLiteral(v.Whens[i].When) || exprHasLiteral(v.Whens[i].Then) {
-				return true
-			}
-		}
-		return false
+	case *sql.BinaryOp, *sql.IsDistinctFrom, *sql.IsNotDistinctFrom:
+		return exprHasLiteralPair(e)
+	case *sql.FuncCall, *sql.CaseExpr, *sql.Between, *sql.InList, *sql.RowValue:
+		return exprHasLiteralMulti(e)
+	case *sql.Subquery:
+		return selectHasLiteral(v.Select)
+	case *sql.ExistsExpr:
+		return selectHasLiteral(v.Select)
+	default:
+		return exprHasLiteralSingle(e)
+	}
+}
+
+// exprHasLiteralPair walks the two-child expression nodes.
+func exprHasLiteralPair(e sql.Expr) bool {
+	var left, right sql.Expr
+	switch v := e.(type) {
 	case *sql.BinaryOp:
-		return exprHasLiteral(v.Left) || exprHasLiteral(v.Right)
+		left, right = v.Left, v.Right
+	case *sql.IsDistinctFrom:
+		left, right = v.Left, v.Right
+	case *sql.IsNotDistinctFrom:
+		left, right = v.Left, v.Right
+	}
+	return exprHasLiteral(left) || exprHasLiteral(right)
+}
+
+// exprHasLiteralSingle walks the single-child expression nodes. NULL
+// literals, column refs, parameters, blob/RAISE literals and unknown kinds
+// carry no substitutable literal (blob/RAISE refuse the whole template at
+// the collector).
+func exprHasLiteralSingle(e sql.Expr) bool {
+	switch v := e.(type) {
 	case *sql.UnaryOp:
 		return exprHasLiteral(v.Operand)
 	case *sql.ParenExpr:
 		return exprHasLiteral(v.Expr)
-	case *sql.Between:
-		return exprHasLiteral(v.Operand) || exprHasLiteral(v.Low) || exprHasLiteral(v.High)
-	case *sql.InList:
-		return exprHasLiteral(v.Operand) || exprListHasLiteral(v.List)
-	case *sql.RowValue:
-		return exprListHasLiteral(v.Values)
 	case *sql.CastExpr:
 		return exprHasLiteral(v.Operand)
 	case *sql.IsNull:
 		return exprHasLiteral(v.Operand)
 	case *sql.IsNotNull:
 		return exprHasLiteral(v.Operand)
-	case *sql.IsDistinctFrom:
-		return exprHasLiteral(v.Left) || exprHasLiteral(v.Right)
-	case *sql.IsNotDistinctFrom:
-		return exprHasLiteral(v.Left) || exprHasLiteral(v.Right)
 	case *sql.IsTrue:
 		return exprHasLiteral(v.Operand)
 	case *sql.IsFalse:
 		return exprHasLiteral(v.Operand)
-	case *sql.Subquery:
-		return selectHasLiteral(v.Select)
-	case *sql.ExistsExpr:
-		return selectHasLiteral(v.Select)
-	default:
-		// BlobLit/RaiseExpr and unknown kinds carry no substitutable literal,
-		// but the collector refuses them anyway — this arm is unreachable in
-		// the divergence check's callers.
-		return false
 	}
+	return false
+}
+
+// exprHasLiteralMulti walks the multi-child expression containers for a
+// literal (exprHasLiteral's tail dispatch).
+func exprHasLiteralMulti(e sql.Expr) bool {
+	switch v := e.(type) {
+	case *sql.FuncCall:
+		return exprListHasLiteral(v.Args) || exprHasLiteral(v.Filter)
+	case *sql.CaseExpr:
+		return caseExprHasLiteral(v)
+	case *sql.Between:
+		return exprHasLiteral(v.Operand) || exprHasLiteral(v.Low) || exprHasLiteral(v.High)
+	case *sql.InList:
+		return exprHasLiteral(v.Operand) || exprListHasLiteral(v.List)
+	case *sql.RowValue:
+		return exprListHasLiteral(v.Values)
+	}
+	return false
+}
+
+// caseExprHasLiteral walks a CASE expression's operand, WHEN arms and ELSE.
+func caseExprHasLiteral(v *sql.CaseExpr) bool {
+	if exprHasLiteral(v.Operand) || exprHasLiteral(v.Else) {
+		return true
+	}
+	for i := range v.Whens {
+		if exprHasLiteral(v.Whens[i].When) || exprHasLiteral(v.Whens[i].Then) {
+			return true
+		}
+	}
+	return false
 }
 
 // exprListHasLiteral reports whether any list item holds a literal.
@@ -520,11 +665,20 @@ func orderByHasLiteral(terms []sql.OrderByTerm) bool {
 }
 
 // selectHasLiteral reports whether any literal sits anywhere below a SELECT
-// (subquery descent for the INSERT divergence check).
+// (subquery descent for the INSERT divergence check). The walk mirrors the
+// collector's field order in three segments (head/mid/tail).
 func selectHasLiteral(sel *sql.SelectStmt) bool {
 	if sel == nil {
 		return false
 	}
+	if selectHasLiteralHead(sel) || selectHasLiteralMid(sel) {
+		return true
+	}
+	return selectHasLiteralTail(sel)
+}
+
+// selectHasLiteralHead walks the WITH bodies, select list and FROM clause.
+func selectHasLiteralHead(sel *sql.SelectStmt) bool {
 	for i := range sel.CTEs {
 		if selectHasLiteral(sel.CTEs[i].Select) {
 			return true
@@ -547,9 +701,17 @@ func selectHasLiteral(sel *sql.SelectStmt) bool {
 			return true
 		}
 	}
-	if exprHasLiteral(sel.Where) || exprListHasLiteral(sel.GroupBy) || exprHasLiteral(sel.Having) {
-		return true
-	}
+	return false
+}
+
+// selectHasLiteralMid walks WHERE, GROUP BY and HAVING.
+func selectHasLiteralMid(sel *sql.SelectStmt) bool {
+	return exprHasLiteral(sel.Where) || exprListHasLiteral(sel.GroupBy) || exprHasLiteral(sel.Having)
+}
+
+// selectHasLiteralTail walks WINDOW, ORDER BY, LIMIT, OFFSET and the
+// compound tail.
+func selectHasLiteralTail(sel *sql.SelectStmt) bool {
 	for i := range sel.Windows {
 		if exprListHasLiteral(sel.Windows[i].Partitions) || orderByHasLiteral(sel.Windows[i].OrderBy) {
 			return true

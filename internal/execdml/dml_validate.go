@@ -95,11 +95,11 @@ func (e *DMLExecutor) validateDMLExprs(qualifiers []string, colDefs []sql.Column
 
 // dmlValidationWalker is the fused validation state for one statement.
 type dmlValidationWalker struct {
-	e         *DMLExecutor
-	lookup    map[string]bool
-	quals     []string
-	colDefs   []sql.ColumnDef
-	collErr   *error
+	e       *DMLExecutor
+	lookup  map[string]bool
+	quals   []string
+	colDefs []sql.ColumnDef
+	collErr *error
 }
 
 // walkDMLExprValidation walks one expression pre-order (the WalkExprFull /
@@ -111,6 +111,9 @@ func (e *DMLExecutor) walkDMLExprValidation(ex sql.Expr, lookup map[string]bool,
 }
 
 // expr validates one node and recurses into its children in traversal order.
+// Single-child kinds dispatch here; the multi-child containers recurse
+// through the multi/walk helpers below so each function stays under the
+// complexity gate.
 func (w *dmlValidationWalker) expr(ex sql.Expr) error {
 	if ex == nil {
 		return nil
@@ -119,58 +122,33 @@ func (w *dmlValidationWalker) expr(ex sql.Expr) error {
 	case *sql.Subquery, *sql.ExistsExpr:
 		return nil
 	case *sql.ColumnRef:
-		if err := w.e.dmlColumnRefError(v, w.lookup, w.quals); err != nil {
-			return err
-		}
+		return w.e.dmlColumnRefError(v, w.lookup, w.quals)
 	case *sql.FuncCall:
 		if err := w.e.dmlFuncCallError(v); err != nil {
 			return err
 		}
+		return w.multi(ex)
 	case *sql.BinaryOp:
-		if err := w.e.comparisonCollationError(ex, w.colDefs); err != nil && *w.collErr == nil {
-			*w.collErr = err
-		}
-		if err := w.expr(v.Left); err != nil {
-			return err
-		}
-		return w.expr(v.Right)
+		return w.binary(ex, v.Left, v.Right)
 	case *sql.IsDistinctFrom:
-		if err := w.expr(v.Left); err != nil {
-			return err
-		}
-		return w.expr(v.Right)
+		return w.pair(v.Left, v.Right)
 	case *sql.IsNotDistinctFrom:
-		if err := w.expr(v.Left); err != nil {
-			return err
-		}
-		return w.expr(v.Right)
+		return w.pair(v.Left, v.Right)
+	case *sql.Between, *sql.InList, *sql.RowValue, *sql.CaseExpr:
+		return w.multi(ex)
+	default:
+		return w.single(ex)
+	}
+}
+
+// single walks the single-child expression nodes (parentheses, unary and
+// cast operands, the IS NULL / truth-value predicates, RAISE's message).
+func (w *dmlValidationWalker) single(ex sql.Expr) error {
+	switch v := ex.(type) {
 	case *sql.ParenExpr:
 		return w.expr(v.Expr)
-	case *sql.Between:
-		if err := w.expr(v.Operand); err != nil {
-			return err
-		}
-		if err := w.expr(v.Low); err != nil {
-			return err
-		}
-		return w.expr(v.High)
-	case *sql.InList:
-		if err := w.expr(v.Operand); err != nil {
-			return err
-		}
-		for _, item := range v.List {
-			if err := w.expr(item); err != nil {
-				return err
-			}
-		}
-		return nil
-	case *sql.RowValue:
-		for _, item := range v.Values {
-			if err := w.expr(item); err != nil {
-				return err
-			}
-		}
-		return nil
+	case *sql.RaiseExpr:
+		return w.expr(v.Message)
 	case *sql.UnaryOp:
 		return w.expr(v.Operand)
 	case *sql.CastExpr:
@@ -183,8 +161,47 @@ func (w *dmlValidationWalker) expr(ex sql.Expr) error {
 		return w.expr(v.Operand)
 	case *sql.IsFalse:
 		return w.expr(v.Operand)
-	case *sql.RaiseExpr:
-		return w.expr(v.Message)
+	}
+	return nil
+}
+
+// binary validates a binary operator node: the COLLATE/comparison
+// collation resolution is recorded (deferred — a name-resolution error
+// anywhere in the statement outranks it), then both operands walk.
+func (w *dmlValidationWalker) binary(ex sql.Expr, left, right sql.Expr) error {
+	if err := w.e.comparisonCollationError(ex, w.colDefs); err != nil && *w.collErr == nil {
+		*w.collErr = err
+	}
+	return w.pair(left, right)
+}
+
+// pair walks two child expressions in order.
+func (w *dmlValidationWalker) pair(left, right sql.Expr) error {
+	if err := w.expr(left); err != nil {
+		return err
+	}
+	return w.expr(right)
+}
+
+// multi walks a multi-child container's children in the ForEachExprChild
+// traversal order (BETWEEN operand/low/high, IN operand+list, row values,
+// function args+FILTER, CASE operand/whens/else).
+func (w *dmlValidationWalker) multi(ex sql.Expr) error {
+	switch v := ex.(type) {
+	case *sql.Between:
+		return w.triple(v.Operand, v.Low, v.High)
+	case *sql.InList:
+		if err := w.expr(v.Operand); err != nil {
+			return err
+		}
+		return w.list(v.List)
+	case *sql.RowValue:
+		return w.list(v.Values)
+	case *sql.FuncCall:
+		// ForEachExprChild walks a function call's arguments only (FILTER
+		// and OVER bodies are not descended into by the validation walk —
+		// parity with the closure walkers this fuses).
+		return w.list(v.Args)
 	case *sql.CaseExpr:
 		if err := w.expr(v.Operand); err != nil {
 			return err
@@ -198,6 +215,27 @@ func (w *dmlValidationWalker) expr(ex sql.Expr) error {
 			}
 		}
 		return w.expr(v.Else)
+	}
+	return nil
+}
+
+// triple walks three child expressions in order.
+func (w *dmlValidationWalker) triple(a, b, c sql.Expr) error {
+	if err := w.expr(a); err != nil {
+		return err
+	}
+	if err := w.expr(b); err != nil {
+		return err
+	}
+	return w.expr(c)
+}
+
+// list walks an expression list in order.
+func (w *dmlValidationWalker) list(items []sql.Expr) error {
+	for _, item := range items {
+		if err := w.expr(item); err != nil {
+			return err
+		}
 	}
 	return nil
 }

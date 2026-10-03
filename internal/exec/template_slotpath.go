@@ -240,16 +240,36 @@ func (sc *slotCollector) collectStmt(root int, stmt sql.Stmt) {
 
 // collectSelect walks a SELECT in the COW walker's source order (WITH,
 // select list, FROM, JOINs, WHERE, GROUP BY, HAVING, WINDOW, ORDER BY,
-// LIMIT, OFFSET, compound tail).
+// LIMIT, OFFSET, compound tail), split head/mid/tail like the COW walker's
+// own selectHead/selectMid/selectEnd. Collection is sticky-fail: once
+// sc.ok is false every subsequent walk is a no-op and collectTemplateSlots
+// discards the result, so the segment helpers need no per-call checks.
 func (sc *slotCollector) collectSelect(sel *sql.SelectStmt) {
-	if sel == nil {
+	if sel == nil || !sc.ok {
+		return
+	}
+	sc.collectSelectHead(sel)
+	sc.collectSelectMid(sel)
+	sc.collectSelectEnd(sel)
+}
+
+// collectSelectHead walks the WITH clause, select list, FROM term and JOINs
+// (source order).
+func (sc *slotCollector) collectSelectHead(sel *sql.SelectStmt) {
+	if !sc.ok {
 		return
 	}
 	for i := range sel.CTEs {
 		sc.pushPop(sfSelCTE, i, func() { sc.collectSelect(sel.CTEs[i].Select) })
 	}
+	if !sc.enter() {
+		return
+	}
 	for i := range sel.Columns {
 		sc.pushPopExpr(sfSelCol, i, sel.Columns[i].Expr)
+	}
+	if !sc.enter() {
+		return
 	}
 	if sel.From.Subquery != nil {
 		sc.pushPop(sfSelFromSub, 0, func() { sc.collectSelect(sel.From.Subquery) })
@@ -257,8 +277,16 @@ func (sc *slotCollector) collectSelect(sel *sql.SelectStmt) {
 	for i := range sel.From.Args {
 		sc.pushPopExpr(sfSelFromArg, i, sel.From.Args[i])
 	}
-	for i := range sel.Joins {
-		j := &sel.Joins[i]
+	sc.collectSelectJoins(sel.Joins)
+}
+
+// collectSelectJoins walks the JOIN clauses' ON conditions and FROM terms.
+func (sc *slotCollector) collectSelectJoins(joins []sql.JoinClause) {
+	if !sc.enter() {
+		return
+	}
+	for i := range joins {
+		j := &joins[i]
 		sc.pushPopExpr(sfSelJoinOn, i, j.On)
 		if j.Table.Subquery != nil {
 			sc.pushPop(sfSelJoinSub, i, func() { sc.collectSelect(j.Table.Subquery) })
@@ -267,20 +295,27 @@ func (sc *slotCollector) collectSelect(sel *sql.SelectStmt) {
 			sc.pushPopExpr(sfSelJoinArg, joinArgIdx(i, k), j.Table.Args[k])
 		}
 	}
+}
+
+// collectSelectMid walks WHERE, GROUP BY and HAVING (source order).
+func (sc *slotCollector) collectSelectMid(sel *sql.SelectStmt) {
+	if !sc.enter() {
+		return
+	}
 	sc.exprField(sfSelWhere, sel.Where)
 	for i := range sel.GroupBy {
 		sc.pushPopExpr(sfSelGroup, i, sel.GroupBy[i])
 	}
 	sc.exprField(sfSelHaving, sel.Having)
-	for i := range sel.Windows {
-		w := &sel.Windows[i]
-		for k := range w.Partitions {
-			sc.pushPopExpr(sfSelWinPart, joinArgIdx(i, k), w.Partitions[k])
-		}
-		for k := range w.OrderBy {
-			sc.pushPopExpr(sfSelWinOrd, joinArgIdx(i, k), w.OrderBy[k].Expr)
-		}
+}
+
+// collectSelectEnd walks WINDOW, ORDER BY, LIMIT, OFFSET and the compound
+// tail (source order), with the COW walk's dual-slot LIMIT/OFFSET refusal.
+func (sc *slotCollector) collectSelectEnd(sel *sql.SelectStmt) {
+	if !sc.enter() {
+		return
 	}
+	sc.collectSelectWindows(sel.Windows)
 	for i := range sel.OrderBy {
 		sc.pushPopExpr(sfSelOrder, i, sel.OrderBy[i].Expr)
 	}
@@ -295,6 +330,25 @@ func (sc *slotCollector) collectSelect(sel *sql.SelectStmt) {
 	if sel.Union != nil {
 		sc.pushPop(sfSelUnion, 0, func() { sc.collectSelect(sel.Union) })
 	}
+}
+
+// collectSelectWindows walks the WINDOW definitions' partitions and terms.
+func (sc *slotCollector) collectSelectWindows(windows []sql.WindowDef) {
+	for i := range windows {
+		w := &windows[i]
+		for k := range w.Partitions {
+			sc.pushPopExpr(sfSelWinPart, joinArgIdx(i, k), w.Partitions[k])
+		}
+		for k := range w.OrderBy {
+			sc.pushPopExpr(sfSelWinOrd, joinArgIdx(i, k), w.OrderBy[k].Expr)
+		}
+	}
+}
+
+// enter re-enters only while collection is live (the sticky-fail guard for
+// segment helpers whose caller already ran a sibling segment).
+func (sc *slotCollector) enter() bool {
+	return sc.ok
 }
 
 // collectUpdate walks an UPDATE in source order (WITH, SET, FROM, FROM
@@ -364,22 +418,8 @@ func (sc *slotCollector) collectInsert(s *sql.InsertStmt) {
 	for i := range s.CTEs {
 		sc.pushPop(sfSelCTE, i, func() { sc.collectSelect(s.CTEs[i].Select) })
 	}
-	for ti, tuple := range s.Values {
-		if len(tuple) >= insTupleMaxItems || len(s.Values) >= insTupleMaxTuples {
-			sc.ok = false
-			return
-		}
-		for vi, expr := range tuple {
-			switch expr.(type) {
-			case *sql.NumericLit, *sql.StringLit:
-				sc.slotTuple(ti, vi, slotInsAny)
-			default:
-				if exprHasLiteral(expr) {
-					sc.ok = false
-					return
-				}
-			}
-		}
+	if !sc.collectInsertTuples(s.Values) {
+		return
 	}
 	if s.Select != nil {
 		sc.pushPop(sfInsSelect, 0, func() { sc.collectSelect(s.Select) })
@@ -394,6 +434,35 @@ func (sc *slotCollector) collectInsert(s *sql.InsertStmt) {
 		sc.ok = false
 		return
 	}
+}
+
+// collectInsertTuples walks the VALUES tuples under the INSERT walker's
+// consumption contract: a tuple consumes ONLY a direct NumericLit/StringLit
+// (any literal nested inside a non-substituted tuple expression diverges
+// from the normalizer's value count, so the template stays COW-only).
+func (sc *slotCollector) collectInsertTuples(values [][]sql.Expr) bool {
+	if len(values) >= insTupleMaxTuples {
+		sc.ok = false
+		return false
+	}
+	for ti, tuple := range values {
+		if len(tuple) >= insTupleMaxItems {
+			sc.ok = false
+			return false
+		}
+		for vi, expr := range tuple {
+			switch expr.(type) {
+			case *sql.NumericLit, *sql.StringLit:
+				sc.slotTuple(ti, vi, slotInsAny)
+			default:
+				if exprHasLiteral(expr) {
+					sc.ok = false
+					return false
+				}
+			}
+		}
+	}
+	return true
 }
 
 // collectConflict walks an upsert ON CONFLICT chain in the COW walker's
@@ -453,41 +522,71 @@ func (sc *slotCollector) exprField(f slotField, e sql.Expr) {
 // recorded with their gate class, everything else descends in field order.
 // Unknown kinds, blob literals and RAISE abort collection (ok=false).
 func (sc *slotCollector) expr(e sql.Expr) {
+	if !sc.ok {
+		return
+	}
 	switch v := e.(type) {
-	case nil:
-		sc.ok = false
 	case *sql.NumericLit:
-		switch {
-		case isDecimalSlot(v.Value):
-			sc.slot(slotInt)
-		case isRealSlot(v.Value):
-			sc.slot(slotReal)
-		default:
-			// Folded unary-minus and hex slots refuse every value (the COW
-			// numeric() gate) — the template stays COW-only.
-			sc.ok = false
-		}
+		sc.numericSlot(v)
 	case *sql.StringLit:
 		sc.slot(slotStr)
 	case *sql.NullLit, *sql.ColumnRef, *sql.ParameterExpr:
 	case *sql.FuncCall:
-		for i := range v.Args {
-			sc.pushPopExpr(sfFuncArg, i, v.Args[i])
-		}
-		sc.exprField(sfFuncFilter, v.Filter)
-		for i := range v.OrderBy {
-			sc.pushPopExpr(sfFuncOrd, i, v.OrderBy[i].Expr)
-		}
+		sc.funcCallSlots(v)
 	case *sql.CaseExpr:
-		sc.exprField(sfCaseOp, v.Operand)
-		for i := range v.Whens {
-			sc.pushPopExpr(sfCaseWhenWhen, i, v.Whens[i].When)
-			sc.pushPopExpr(sfCaseWhenThen, i, v.Whens[i].Then)
-		}
-		sc.exprField(sfCaseElse, v.Else)
+		sc.caseExprSlots(v)
 	case *sql.BinaryOp:
 		sc.pushPopExpr(sfBinLeft, 0, v.Left)
 		sc.pushPopExpr(sfBinRight, 0, v.Right)
+	case *sql.Subquery:
+		sc.pushPop(sfSubq, 0, func() { sc.collectSelect(v.Select) })
+	case *sql.ExistsExpr:
+		sc.pushPop(sfExists, 0, func() { sc.collectSelect(v.Select) })
+	default:
+		sc.exprOperatorSlots(e)
+	}
+}
+
+// numericSlot records a numeric literal slot by its spelling class: a plain
+// decimal integer or a decimal REAL; folded unary-minus and hex slots refuse
+// every value (the COW numeric() gate), keeping the template COW-only.
+func (sc *slotCollector) numericSlot(v *sql.NumericLit) {
+	switch {
+	case isDecimalSlot(v.Value):
+		sc.slot(slotInt)
+	case isRealSlot(v.Value):
+		sc.slot(slotReal)
+	default:
+		sc.ok = false
+	}
+}
+
+// funcCallSlots walks a function call's arguments, FILTER and ORDER BY (the
+// COW funcCall's consumption order; the OVER clause is not walked).
+func (sc *slotCollector) funcCallSlots(v *sql.FuncCall) {
+	for i := range v.Args {
+		sc.pushPopExpr(sfFuncArg, i, v.Args[i])
+	}
+	sc.exprField(sfFuncFilter, v.Filter)
+	for i := range v.OrderBy {
+		sc.pushPopExpr(sfFuncOrd, i, v.OrderBy[i].Expr)
+	}
+}
+
+// caseExprSlots walks a CASE expression's operand, WHEN arms and ELSE.
+func (sc *slotCollector) caseExprSlots(v *sql.CaseExpr) {
+	sc.exprField(sfCaseOp, v.Operand)
+	for i := range v.Whens {
+		sc.pushPopExpr(sfCaseWhenWhen, i, v.Whens[i].When)
+		sc.pushPopExpr(sfCaseWhenThen, i, v.Whens[i].Then)
+	}
+	sc.exprField(sfCaseElse, v.Else)
+}
+
+// exprOperatorSlots walks the operator-shaped expressions' children in field
+// order, plus the refusal kinds (blob/RAISE) and unknown kinds.
+func (sc *slotCollector) exprOperatorSlots(e sql.Expr) {
+	switch v := e.(type) {
 	case *sql.UnaryOp:
 		sc.pushPopExpr(sfUnary, 0, v.Operand)
 	case *sql.ParenExpr:
@@ -505,6 +604,14 @@ func (sc *slotCollector) expr(e sql.Expr) {
 		for i := range v.Values {
 			sc.pushPopExpr(sfRowVal, i, v.Values[i])
 		}
+	default:
+		sc.exprPredicateSlots(e)
+	}
+}
+
+// exprPredicateSlots walks the comparison-predicate and refusal kinds.
+func (sc *slotCollector) exprPredicateSlots(e sql.Expr) {
+	switch v := e.(type) {
 	case *sql.CastExpr:
 		sc.pushPopExpr(sfCast, 0, v.Operand)
 	case *sql.IsNull:
@@ -521,10 +628,6 @@ func (sc *slotCollector) expr(e sql.Expr) {
 		sc.pushPopExpr(sfTrue, 0, v.Operand)
 	case *sql.IsFalse:
 		sc.pushPopExpr(sfFalse, 0, v.Operand)
-	case *sql.Subquery:
-		sc.pushPop(sfSubq, 0, func() { sc.collectSelect(v.Select) })
-	case *sql.ExistsExpr:
-		sc.pushPop(sfExists, 0, func() { sc.collectSelect(v.Select) })
 	case *sql.BlobLit, *sql.RaiseExpr:
 		sc.ok = false
 	default:
