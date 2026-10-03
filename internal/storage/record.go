@@ -154,7 +154,81 @@ func DecodeRecordValuesFromTypes(data []byte, dataStart int, target []interface{
 	return decodeRecordValuesFromTypes(data, dataStart, target, serialTypes, colIndices)
 }
 
-// decodeRecordValuesFromTypes decodes record values into target using pre-parsed
+// DecodeRecordValuesFromTypesCols is DecodeRecordValuesFromTypes with the
+// decode-selection set as a by-index bool slice (cols[i] selects on-disk
+// column i; nil = all). The scan/seek paths precompute the set once per
+// statement; a slice index replaces the per-column map lookup in the row loop.
+// Selection semantics are identical to the map form.
+func DecodeRecordValuesFromTypesCols(data []byte, dataStart int, target []interface{}, serialTypes []uint64, cols []bool) int {
+	pos := dataStart
+	count := len(serialTypes)
+	if count > len(target) {
+		count = len(target)
+	}
+	decodeAll := cols == nil
+	for i := 0; i < count; i++ {
+		valLen, err := SerialTypeLength(serialTypes[i])
+		if err != nil {
+			return i
+		}
+		// bounds check (safety: skip instead of panic for corrupted data)
+		if pos+int(valLen) > len(data) {
+			// truncated record — stop decoding
+			return i
+		}
+		if decodeAll || cols[i] {
+			target[i] = decodeValue(serialTypes[i], data[pos:pos+int(valLen)])
+		}
+		// For skipped columns (not selected), advance past the data but
+		// leave target[i] as its zero value (nil).
+		pos += int(valLen)
+	}
+	return count
+}
+
+// DecodeSerialInt64 decodes an integer serial type's (st ∈ [SerialInt8,
+// SerialInt64]) big-endian signed value without boxing. ok=false when st is
+// not an integer serial type.
+func DecodeSerialInt64(serialType uint64, data []byte) (int64, bool) {
+	switch serialType {
+	case SerialInt8:
+		return int64(int8(data[0])), true
+	case SerialInt16:
+		return int64(int16(binary.BigEndian.Uint16(data))), true
+	case SerialInt24:
+		v := uint32(data[0])<<16 | uint32(data[1])<<8 | uint32(data[2])
+		if v&0x800000 != 0 {
+			v |= 0xFF000000 // sign extend
+		}
+		return int64(int32(v)), true
+	case SerialInt32:
+		return int64(int32(binary.BigEndian.Uint32(data))), true
+	case SerialInt48:
+		v := uint64(data[0])<<40 | uint64(data[1])<<32 | uint64(data[2])<<24 |
+			uint64(data[3])<<16 | uint64(data[4])<<8 | uint64(data[5])
+		if v&0x800000000000 != 0 {
+			v |= 0xFFFF000000000000
+		}
+		return int64(v), true
+	case SerialInt64:
+		return int64(binary.BigEndian.Uint64(data)), true
+	}
+	return 0, false
+}
+
+// DecodeSerialFloat64 decodes the float serial type's big-endian value
+// without boxing.
+func DecodeSerialFloat64(data []byte) float64 {
+	return math.Float64frombits(binary.BigEndian.Uint64(data))
+}
+
+// DecodeRecordValue decodes one value of the given serial type from its data
+// bytes — decodeValue's exported form for callers that read single columns
+// straight off a parsed record header.
+func DecodeRecordValue(serialType uint64, data []byte) interface{} {
+	return decodeValue(serialType, data)
+}
+
 func decodeRecordValuesFromTypes(data []byte, dataStart int, target []interface{}, serialTypes []uint64, colIndices map[int]bool) int {
 	pos := dataStart
 	count := len(serialTypes)

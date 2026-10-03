@@ -425,6 +425,11 @@ type rangeSeekRow struct {
 	// rows step it instead of decoding the remaining columns and
 	// materializing output rows / row maps.
 	feed *simpleAggFeed
+	// typed, when non-nil, is the feed's direct-from-payload lane: under a
+	// covered WHERE the loop's only per-row consumers are the feed's own
+	// aggregate arguments, and the lane steps them straight off the record
+	// bytes (no values buffer, no boxing, no StructRow assembly).
+	typed *typedAggLane
 	// whereCovered marks a plan whose seek bounds enforce every WHERE
 	// conjunct (rowidSeekAnalysis.covers): the per-row WHERE re-evaluation
 	// is redundant and skipped.
@@ -535,7 +540,13 @@ func (e *SelectEngine) newRangeSeekRow(s *sql.SelectStmt, cursor *btree.Cursor, 
 		wrapCols = nil
 		ipkIdx = filterFeedReadIPK(ipkIdx, whereIdx)
 	}
-	return &rangeSeekRow{
+	// Under the covered plan the typed lane replaces the whole per-row decode
+	// pipeline when every call can feed unboxed.
+	var typed *typedAggLane
+	if a.covers && feed != nil {
+		typed = e.compileTypedAggLane(feed, colDefs)
+	}
+	r := &rangeSeekRow{
 		e:            e,
 		s:            s,
 		cursor:       cursor,
@@ -547,10 +558,12 @@ func (e *SelectEngine) newRangeSeekRow(s *sql.SelectStmt, cursor *btree.Cursor, 
 		needMaps:     needMaps,
 		affWrapIdx:   affinityWrapIndices(colDefs, wrapCols),
 		feed:         feed,
+		typed:        typed,
 		whereCovered: a.covers,
 		values:       make([]interface{}, len(colDefs)),
 		srow:         &StructRow{Index: colIndex},
 	}
+	return r
 }
 
 // affinityWrapIndices lists the column indices whose values receive the
@@ -726,6 +739,20 @@ func (it *rangeSeekRow) step(payload []byte, rowID int64) (done, ok bool) {
 // passing row and emits it. ok=false marks an anomaly the scan fallback
 // re-evaluates and surfaces identically.
 func (it *rangeSeekRow) processRow(payload []byte, rowID int64) bool {
+	if it.typed != nil {
+		// The direct-feed lane owns the covered loop: step the accumulators
+		// straight off the record bytes (no decode, no WHERE — a covered plan
+		// has no per-row predicate).
+		st, dataStart, err := parseRecordSerialTypesInto(payload, it.serialTypes[:0])
+		if err != nil {
+			return false
+		}
+		it.serialTypes = st
+		if err := it.typed.stepDirect(payload, dataStart, st, rowID); err != nil {
+			return false
+		}
+		return true
+	}
 	if !it.decodePhaseOne(payload, rowID) {
 		return false
 	}

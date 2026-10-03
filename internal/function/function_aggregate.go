@@ -30,6 +30,29 @@ func (c *countAgg) Final() (interface{}, error) {
 	return c.count, nil
 }
 
+// CountRow counts one non-NULL input row without the boxed Step call — the
+// unboxed feed for COUNT(col) (COUNT(*) feeds the same counter with no
+// argument). Identical to Step's counter branch for a non-nil argument.
+func (c *countAgg) CountRow() {
+	c.count++
+}
+
+// TypedSumStep is the unboxed numeric-input surface of the SUM family
+// (SUM/AVG/TOTAL share sumAgg). StepInt64/StepFloat64 apply the exact
+// accumulation the boxed Step applies to an int64/float64 input after its
+// sqlite3_value_numeric_type classification (an already-numeric value passes
+// that classification unchanged), so mixing typed and boxed steps on one
+// accumulator is state-identical to all-boxed feeding.
+type TypedSumStep interface {
+	StepInt64(v int64) error
+	StepFloat64(v float64) error
+}
+
+// TypedCountStep is the counter's unboxed feed: one non-NULL input row.
+type TypedCountStep interface {
+	CountRow()
+}
+
 // sumAgg ports func.c SumCtx + sumStep/sumFinalize: an exact int64 running
 // sum that, on int64 overflow or first non-integer input, switches to a
 // Kahan-Babuška-Neumaier compensated double sum. SUM() only raises
@@ -201,6 +224,40 @@ func (s *sumAgg) stepApprox(arg interface{}) error {
 	default:
 		s.kahanBabuskaNeumaierStep(0)
 	}
+	return nil
+}
+
+// StepInt64 feeds one integer input without the interface-boxed Step path
+// (sumStep's integer branch: count, then the exact accumulator — or the
+// compensated sum when an earlier input already promoted it). The boxed
+// Step reaches this same state for an int64 input.
+func (s *sumAgg) StepInt64(v int64) error {
+	s.count++
+	if !s.isFloat {
+		return s.stepExact(v)
+	}
+	s.kahanBabuskaNeumaierStepInt64(v)
+	return nil
+}
+
+// StepFloat64 feeds one real input without boxing (sumStep's non-integer
+// branches: the first one seeds the compensated sum from the int64
+// accumulator, a later one absorbs any pending overflow). The boxed Step
+// reaches this same state for a float64 input.
+func (s *sumAgg) StepFloat64(v float64) error {
+	s.count++
+	if !s.isFloat {
+		// First non-integer input: seed the compensated sum from the int64
+		// accumulator (sumStep's kahanBabuskaNeumaierInit branch). ovrfl
+		// cannot be set while approx==0.
+		s.kahanBabuskaNeumaierInit(s.intSum)
+		s.isFloat = true
+	} else {
+		// A later non-integer input absorbs an earlier overflow (sumStep
+		// clears ovrfl in the approx/non-integer branch).
+		s.ovrfl = false
+	}
+	s.kahanBabuskaNeumaierStep(v)
 	return nil
 }
 
