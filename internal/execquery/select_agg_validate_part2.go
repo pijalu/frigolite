@@ -99,8 +99,13 @@ func (e *SelectEngine) whereSubqueryOuterAggRef(expr sql.Expr) string {
 // checkOrderByNestedAgg rejects aggregates in ORDER BY when the SELECT doesn't
 // use aggregates and has no GROUP BY (catches aggregates nested inside
 // expressions like 10+max(x)).
-func (e *SelectEngine) checkOrderByNestedAgg(s *sql.SelectStmt) error {
+func (e *SelectEngine) checkOrderByNestedAgg(s *sql.SelectStmt, c *selectExprCensus) error {
 	if len(s.OrderBy) == 0 || len(s.GroupBy) > 0 || e.inCompoundMember || e.hasAggregates(s.Columns) {
+		return nil
+	}
+	// FindAggregateInExpr needs an aggregate at this level; a subquery keeps
+	// the walk enabled because its body is not censused.
+	if !c.aggFunc && !c.subquery {
 		return nil
 	}
 	for _, ob := range s.OrderBy {
@@ -289,7 +294,13 @@ func collectSelectAliases(columns []sql.SelectColumn) map[string]bool {
 
 // validateSelectRowValues validates row-value usage across a SELECT's columns,
 // WHERE, HAVING, LIMIT, OFFSET, and ORDER BY clauses.
-func (e *SelectEngine) validateSelectRowValues(s *sql.SelectStmt) error {
+func (e *SelectEngine) validateSelectRowValues(s *sql.SelectStmt, c *selectExprCensus) error {
+	// Row-value misuse is the only error source here (an explicit COLLATE
+	// rides the same validator through validateRowValueBinaryOp); skip when
+	// the census saw neither kind.
+	if !c.rowValue && !c.collateOp {
+		return nil
+	}
 	for _, col := range s.Columns {
 		if err := e.validateRowValueUse(col.Expr, true); err != nil {
 			return err

@@ -745,7 +745,8 @@ func (e *SelectEngine) execFTSVtabSelect(s *sql.SelectStmt, tableEntry *schema.E
 	if len(s.Joins) > 0 && e.ftsReadsContentColumns(s, ftsTable) && e.contentBtreeCorrupt(tableEntry.Name) {
 		return &Result{Error: fmt.Errorf("database disk image is malformed")}
 	}
-	if err := e.validateMultipleFTSMatch(s); err != nil {
+	c := censusSelectStmt(e, s)
+	if err := e.validateMultipleFTSMatch(s, &c); err != nil {
 		return &Result{Error: err}
 	}
 	if len(s.Joins) == 0 {

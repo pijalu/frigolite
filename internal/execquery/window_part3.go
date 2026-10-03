@@ -475,7 +475,12 @@ var windowOnlyFuncs = map[string]bool{
 //   - non-window functions may not be used with OVER (e.g. trim() OVER ...)
 //   - named windows must exist in the statement's WINDOW clause
 //   - window function argument counts are validated
-func (e *SelectEngine) validateWindowFunctions(s *sql.SelectStmt) error {
+func (e *SelectEngine) validateWindowFunctions(s *sql.SelectStmt, c *selectExprCensus) error {
+	// Every window rule requires a window function (an OVER call) or a named
+	// WINDOW definition; a statement with neither has nothing to check.
+	if !c.funcCall && !c.over && len(s.Windows) == 0 {
+		return nil
+	}
 	if err := e.validateWindowMisusePlacement(s); err != nil {
 		return err
 	}

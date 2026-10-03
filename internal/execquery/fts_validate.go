@@ -20,7 +20,12 @@ import (
 // loop order, so the planner reports "unable to use function MATCH in the
 // requested context" (fts3.c fts3BestIndexMethod, whereexpr.c
 // isAuxiliaryVtabOperator). The check walks the WHERE and every JOIN ON clause.
-func (e *SelectEngine) validateMultipleFTSMatch(s *sql.SelectStmt) error {
+func (e *SelectEngine) validateMultipleFTSMatch(s *sql.SelectStmt, c *selectExprCensus) error {
+	// MATCH reaches the planner as a BinaryOp operator; without one there is
+	// no FTS constraint to classify.
+	if !c.matchOp {
+		return nil
+	}
 	// An unqualified MATCH column (a MATCH 'x') must resolve against THIS
 	// query's FROM tables in FROM order: the connection-wide FTS table map
 	// may hold other tables whose columns share the name (e_fts3 7.3.x:

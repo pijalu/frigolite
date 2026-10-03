@@ -83,39 +83,42 @@ func bareColWindowAlias(expr sql.Expr, winAliases map[string]bool) string {
 
 // validateSelectExprs validates aggregate misuse, DISTINCT aggregate arity,
 // subquery validity, ORDER BY length limits, row-value misuse, and UNION
-// subquery aggregates across a SELECT's clauses.
+// subquery aggregates across a SELECT's clauses. One census walk collects the
+// node kinds the clause validators key on (select_census.go); validators
+// whose kinds are provably absent skip their own walks.
 func (e *SelectEngine) validateSelectExprs(s *sql.SelectStmt) error {
-	if err := e.validateSelectExprsClauses(s); err != nil {
+	c := censusSelectStmt(e, s)
+	if err := e.validateSelectExprsClauses(s, &c); err != nil {
 		return err
 	}
-	return e.validateSelectExprsOrdering(s)
+	return e.validateSelectExprsOrdering(s, &c)
 }
 
 // validateSelectExprsClauses validates the SELECT list and each auxiliary
 // clause (GROUP BY / HAVING / WHERE / LIMIT / OFFSET / ORDER BY terms).
-func (e *SelectEngine) validateSelectExprsClauses(s *sql.SelectStmt) error {
-	if err := e.validateMultipleFTSMatch(s); err != nil {
+func (e *SelectEngine) validateSelectExprsClauses(s *sql.SelectStmt, c *selectExprCensus) error {
+	if err := e.validateMultipleFTSMatch(s, c); err != nil {
 		return err
 	}
-	if err := e.checkOrderByAggMisuse(s); err != nil {
+	if err := e.checkOrderByAggMisuse(s, c); err != nil {
 		return err
 	}
-	if err := e.validateAggregateStarArgs(s); err != nil {
+	if err := e.validateAggregateStarArgs(s, c); err != nil {
 		return err
 	}
-	if err := e.validateSelectColumnList(s); err != nil {
+	if err := e.validateSelectColumnList(s, c); err != nil {
 		return err
 	}
-	if err := e.validateWindowFunctions(s); err != nil {
+	if err := e.validateWindowFunctions(s, c); err != nil {
 		return err
 	}
-	if err := e.validateGroupByClauses(s); err != nil {
+	if err := e.validateGroupByClauses(s, c); err != nil {
 		return err
 	}
 	// LIMIT/OFFSET expressions are name-resolved at prepare time like other
 	// clauses: a subquery naming a missing table fails the statement
 	// ("no such table: blah", misc5-3.2), it is not silently un-evaluable.
-	if err := e.validateLimitOffsetSubqueries(s); err != nil {
+	if err := e.validateLimitOffsetSubqueries(s, c); err != nil {
 		return err
 	}
 	if err := e.validateHavingExprs(s); err != nil {
@@ -124,15 +127,18 @@ func (e *SelectEngine) validateSelectExprsClauses(s *sql.SelectStmt) error {
 	if err := e.validateHavingAliasedAggregate(s); err != nil {
 		return err
 	}
-	if err := e.validateWhereExprs(s); err != nil {
+	if err := e.validateWhereExprs(s, c); err != nil {
 		return err
 	}
-	return e.validateOrderByTerms(s)
+	return e.validateOrderByTerms(s, c)
 }
 
 // validateLimitOffsetSubqueries validates scalar subqueries inside the
-// LIMIT/OFFSET expressions.
-func (e *SelectEngine) validateLimitOffsetSubqueries(s *sql.SelectStmt) error {
+// LIMIT/OFFSET expressions. Only a subquery in those expressions can fail.
+func (e *SelectEngine) validateLimitOffsetSubqueries(s *sql.SelectStmt, c *selectExprCensus) error {
+	if !c.subquery {
+		return nil
+	}
 	for _, limExpr := range []sql.Expr{s.Limit, s.Offset} {
 		if limExpr == nil {
 			continue
@@ -144,8 +150,13 @@ func (e *SelectEngine) validateLimitOffsetSubqueries(s *sql.SelectStmt) error {
 	return nil
 }
 
-// validateGroupByClauses rejects aggregates in GROUP BY and HAVING.
-func (e *SelectEngine) validateGroupByClauses(s *sql.SelectStmt) error {
+// validateGroupByClauses rejects aggregates in GROUP BY and HAVING. With
+// neither clause present there is nothing to validate (resolveGroupByOrdinals
+// and validateClauseFunctions both reduce to empty loops).
+func (e *SelectEngine) validateGroupByClauses(s *sql.SelectStmt, c *selectExprCensus) error {
+	if len(s.GroupBy) == 0 && s.Having == nil {
+		return nil
+	}
 	if err := e.validateGroupByExprs(s); err != nil {
 		return err
 	}
@@ -160,7 +171,10 @@ func (e *SelectEngine) validateGroupByClauses(s *sql.SelectStmt) error {
 // names/subqueries even when the term does not match a result column
 // (window1 67.1: a nested (SELECT 1 FROM v1) inside a window's ORDER BY must
 // raise "no such table: v1").
-func (e *SelectEngine) validateOrderByTerms(s *sql.SelectStmt) error {
+func (e *SelectEngine) validateOrderByTerms(s *sql.SelectStmt, c *selectExprCensus) error {
+	if len(s.OrderBy) == 0 || !(c.distinct || c.subquery) {
+		return nil
+	}
 	for _, ob := range s.OrderBy {
 		if err := validateDistinctAggArgs(ob.Expr); err != nil {
 			return err
@@ -175,14 +189,17 @@ func (e *SelectEngine) validateOrderByTerms(s *sql.SelectStmt) error {
 // validateSelectExprsOrdering runs the ORDER BY / result-shaping validations:
 // aliased window-function references, row values, compound subquery
 // aggregates, nested aggregates, and schema collation registration.
-func (e *SelectEngine) validateSelectExprsOrdering(s *sql.SelectStmt) error {
+func (e *SelectEngine) validateSelectExprsOrdering(s *sql.SelectStmt, c *selectExprCensus) error {
 	// A scalar subquery in ORDER BY that references a SELECT-list alias of a
 	// window function is a misuse (window1 43.x: ORDER BY (SELECT m) on
-	// SELECT count() OVER() AS m).
-	if name := e.orderByWindowAliasRef(s); name != "" {
-		return fmt.Errorf("misuse of aliased window function %s", name)
+	// SELECT count() OVER() AS m). Only a window function in the statement
+	// can build the alias map the check resolves against.
+	if c.over {
+		if name := e.orderByWindowAliasRef(s); name != "" {
+			return fmt.Errorf("misuse of aliased window function %s", name)
+		}
 	}
-	if err := e.validateSelectRowValues(s); err != nil {
+	if err := e.validateSelectRowValues(s, c); err != nil {
 		return err
 	}
 	if s.From.Subquery != nil {
@@ -190,7 +207,7 @@ func (e *SelectEngine) validateSelectExprsOrdering(s *sql.SelectStmt) error {
 			return err
 		}
 	}
-	if err := e.checkOrderByNestedAgg(s); err != nil {
+	if err := e.checkOrderByNestedAgg(s, c); err != nil {
 		return err
 	}
 	// Schema-declared collations resolve at prepare time: ORDER BY/GROUP BY
@@ -208,22 +225,37 @@ func (e *SelectEngine) validateSelectExprsOrdering(s *sql.SelectStmt) error {
 // terms, subquery validity, ORDER BY length, DISTINCT aggregate arity, and
 // FILTER clause misuse (FILTER only on aggregates, no window/aggregate inside
 // FILTER).
-func (e *SelectEngine) validateSelectColumnList(s *sql.SelectStmt) error {
+func (e *SelectEngine) validateSelectColumnList(s *sql.SelectStmt, c *selectExprCensus) error {
 	for _, col := range s.Columns {
-		if err := e.validateExprOrderBy(col.Expr); err != nil {
-			return err
+		// Each per-column check walks col.Expr; the census skips the walks
+		// whose trigger kinds are provably absent (ORDER BY inside
+		// expressions only rides FuncCall, subqueries included via the
+		// subquery flag — WalkExprFull does not descend into subquery
+		// bodies, so those checks keep their own subquery handling).
+		if c.funcCall || c.subquery {
+			if err := e.validateExprOrderBy(col.Expr); err != nil {
+				return err
+			}
 		}
-		if err := validateOrderByLength(col.Expr, 1000); err != nil {
-			return err
+		if c.funcCall {
+			if err := validateOrderByLength(col.Expr, 1000); err != nil {
+				return err
+			}
 		}
-		if err := e.validateFilterClause(col.Expr); err != nil {
-			return err
+		if c.filter {
+			if err := e.validateFilterClause(col.Expr); err != nil {
+				return err
+			}
 		}
-		if err := e.validateExprSubqueries(col.Expr); err != nil {
-			return err
+		if c.subquery {
+			if err := e.validateExprSubqueries(col.Expr); err != nil {
+				return err
+			}
 		}
-		if err := validateDistinctAggArgs(col.Expr); err != nil {
-			return err
+		if c.distinct {
+			if err := validateDistinctAggArgs(col.Expr); err != nil {
+				return err
+			}
 		}
 	}
 	return nil
@@ -312,8 +344,13 @@ func (e *SelectEngine) validateHavingExprs(s *sql.SelectStmt) error {
 // validateWhereExprs validates the WHERE clause for subquery validity and
 // DISTINCT aggregate arity. A correlated aggregate in a WHERE scalar subquery
 // is a misuse (SQLite: "misuse of aggregate: X()").
-func (e *SelectEngine) validateWhereExprs(s *sql.SelectStmt) error {
+func (e *SelectEngine) validateWhereExprs(s *sql.SelectStmt, c *selectExprCensus) error {
 	if s.Where == nil {
+		return nil
+	}
+	// Every WHERE check here requires a subquery, a direct/aliased aggregate,
+	// or a row value; the census proves which of the three exist.
+	if !(c.subquery || c.aggFunc || c.rowValue) {
 		return nil
 	}
 	if err := e.validateExprSubqueries(s.Where); err != nil {
