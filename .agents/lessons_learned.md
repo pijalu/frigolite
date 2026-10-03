@@ -2653,12 +2653,13 @@ ADD COLUMN defaults fall back to the boxed Step per value), covered eq-seek
 skips the redundant WHERE re-eval, point fetch decodes only consumed columns
 (seekDecodeCols), decode sets materialized by position as []bool
 (DecodeRecordValuesFromTypesCols — map hash lookups out of the row loop),
-single-bare-ref point output reads the slot directly. Interleaved medians:
-select_scan 20.2M→39.6M rows/s (1.96x); other phases parity (±2%,
-load-noise floor). Point unchanged (~1.0x): its floor is statement prep
-(render→lex/parse of 200k DISTINCT literal strings + template misses +
-execSelectPrevalidate) — the sibling's lane; fetchSeekStructRow was only
-12.5% cum.
+single-bare-ref point output reads the slot directly. Interleaved medians (final, 5 rounds):
+select_scan 21.33M→38.68M rows/s (1.81x); point +0.7%; insert/update/
+delete/group/file parity (±0.7%) — zero regressions. Point's floor is
+statement prep (render→lex/parse of 200k DISTINCT literal strings +
+template misses + execSelectPrevalidate) — the sibling's lane;
+fetchSeekStructRow was only 12.5% cum; the in-slice levers (covered eq
+skips the WHERE re-eval, single-bare-ref output slot read) bought ~+2%.
 
 - **The scan loop's boxing tax is three separate taxes**: (1) int64→interface{}
   boxing in decodeValue (24% cum, 175MB), (2) map-based decode-set tests
@@ -2688,6 +2689,12 @@ execSelectPrevalidate) — the sibling's lane; fetchSeekStructRow was only
   binaries (PHASE=env early-return) + interleaved base/branch medians in one
   window are the only trustworthy signal; absolute numbers move ±15% with
   load, ratios hold.
+- **Column-targeted decode has a fixed cost** (reference collector + bool
+  set construction per fetch); a one-row point fetch on a narrow table
+  amortizes none of it — measured a consistent −5% on the 2-column point
+  benchmark until the set build was gated to tables with ≥4 columns (below
+  that: full decode, which is the same boxes for less work). Gate per-shape
+  fast paths by WHERE THE SAVINGS SCALE, not just by semantic eligibility.
 - **Harness filtered runs need setup**: `go test -run
   TestSQLiteSuite/select1$` fails "no such table: test1" on MAIN and branch
   alike — filtered-mode skips the fixture setup step. Full-suite or

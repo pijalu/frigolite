@@ -113,16 +113,18 @@ func (e *SelectEngine) fetchSeekStructRow(s *sql.SelectStmt, tree *btree.BTree, 
 // seekDecodeCols builds the point fetch's column-targeted decode set
 // (on-disk positions — decodeRecordValuesFromTypesCols's indices — with
 // case-insensitive name matching, the affinity walk's rule), or nil when the
-// row's consumers are not statically known: row maps read any column by name,
-// and a non-bare projection reference (qualified or a GROUP BY keyword shape)
-// keeps the historical full decode. The set is the projection's references
-// (bare or not — an expression output evaluates its column slots) plus the
-// consuming clauses' references (WHERE/ORDER BY/GROUP BY/HAVING/joins) unless
-// the plan covered the WHERE. INTEGER PRIMARY KEY alias slots stay out: their
-// stored NULL substitutes the rowid at fill time, and a projected alias
-// reference rides that fill.
+// row's consumers are not statically known or the decode is too narrow to
+// pay for the set's construction: row maps read any column by name; a
+// non-bare projection reference (qualified or a GROUP BY keyword shape)
+// keeps the historical full decode; and a narrow table decodes every stored
+// column anyway (the one-row fetch amortizes nothing). The set is the
+// projection's references (bare or not — an expression output evaluates its
+// column slots) plus the consuming clauses' references (WHERE/ORDER BY/
+// GROUP BY/HAVING/joins) unless the plan covered the WHERE. INTEGER PRIMARY
+// KEY alias slots stay out: their stored NULL substitutes the rowid at fill
+// time, and a projected alias reference rides that fill.
 func (e *SelectEngine) seekDecodeCols(s *sql.SelectStmt, colDefs []sql.ColumnDef, affinityCols map[string]bool, needMaps, whereCovered bool) []bool {
-	if needMaps || !projectionIsBareRefs(s) {
+	if needMaps || len(colDefs) < 4 || !projectionIsBareRefs(s) {
 		return nil
 	}
 	projRefs := &affinityCollector{cols: make(map[string]bool)}
