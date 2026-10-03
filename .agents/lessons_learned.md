@@ -1,5 +1,47 @@
 # Lessons Learned — Frigolite
 
+## PERF.INSQUICK — insert append-cursor + staging (fleet/perf-insquick, 2026-10-03)
+
+- **The b-tree root descent was NOT the insert hot cost.** The
+  balance_quick-style saved-rightmost-leaf append cursor (btree.c
+  BTCF_ValidNKey + BTREE_APPEND) works and engages (296k/300k hits on the
+  harness workload, 0 verify fails), but InsertCell cum was only ~12% CPU
+  and most of it is the leaf write itself (encode + allocateSpaceOnPage +
+  WritePage), not the descent. Landing it bought a few percent; the profile
+  truth was per-row execdml scaffolding.
+- **The hidden second descent: ipkRowidAliasConflict.** Every explicit-rowid
+  INSERT sought the tree (cursor.SeekToRowID) to check the PK value — a
+  full root→leaf descent PLUS cursor-registry register/unregister churn per
+  row, on top of the insert's own descent. The executor's largest-rowid
+  cache is bump-only-grows and invalidated by every delete/rowid-changing
+  update, so `probe rowid > cachedMax ⇒ no conflict` skips it soundly
+  (btree.c BTREE_APPEND's moveto bias is the same idea). This was worth
+  more than the append cursor.
+- **Cross-statement quick-state must be keyed (pager, root), not kept on
+  the wrapper**, and Close() is the invalidation workhorse: statement
+  teardown after a DELETE/UPDATE/VACUUM closes the function-local wrapper,
+  which clears the insert tree's slot at that statement boundary. A journal
+  ROLLBACK rewrites page images WITHOUT running btree code, so the quick
+  path re-verifies the saved leaf on every engagement (leaf type + last
+  rowid == recorded max) — that check is what makes savepoint/txn rollback
+  and DROP/CREATE page-reuse safe, and it cost 0 fails over the whole
+  suite.
+- **Reusable per-row/per-statement execdml Results are safe under trigger
+  nesting** because trigger statements consume their Result fields strictly
+  inside the outer statement's consumption window (stack discipline).
+  What is NOT safe: pooling the PUBLIC frigolite.Result (callers may retain
+  it across Execs) — the root execResult conversion (~32MB/300k inserts)
+  stays; likewise the preupdate-hook `New` values copy (~13.5MB) is
+  unavoidable without a DMLContext interface change (internal/exec is
+  pinned by scope).
+- **Fleet-box measurement discipline**: under load 4-17, sequential runs
+  swing ±25% (same binary 414k vs 329k ops/s). Interleaved rounds with
+  alternating first-runner keep the comparison fair (branch won 7/8
+  rounds); quiet-machine deltas are the honest ones. zsh gotcha: `set --
+  $ord` does not word-split — drive benchmark loops from a bash script.
+- In-lane floor reached: remaining insert-phase cost is the exec-layer
+  parse/clone/dispatch (~35%) + template literal substitution + root
+  execResult — the template-floor sibling's lane, not btree/execdml.
 ## PERF.POINT3 — point-SELECT scaffolding, tranche 3 (fleet/perf-point3, 2026-10-03)
 
 - **The seek path paid OpenCursor's leftmost-leaf descent for nothing.**
