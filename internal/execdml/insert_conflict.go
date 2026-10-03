@@ -424,24 +424,8 @@ func (e *DMLExecutor) checkCompositeUniqueExcluding(tableEntry *schema.Entry, co
 	return compositeUniqueError(tableEntry, colDefs, group)
 }
 
-// uniqueColIndicesWithPK gathers the unique column indices, adding any
-// single-column PRIMARY KEY columns with non-nil values. colIndex is the
-// caller's memoized column index (columnIndexFor) — rebuilding it here made
-// the per-row UNIQUE pre-check the top allocator of the point-INSERT phase.
-func uniqueColIndicesWithPK(colDefs []sql.ColumnDef, colIndex map[string]int, values []interface{}) []int {
-	uniqueCols := gatherUniqueColIndices(colDefs, colIndex, values)
-	for i, cd := range colDefs {
-		if cd.PrimaryKey && !contains(uniqueCols, i) {
-			if i < len(values) && values[i] != nil {
-				uniqueCols = append(uniqueCols, i)
-			}
-		}
-	}
-	return uniqueCols
-}
-
-// hasUniqueOrPKColValue reports whether uniqueColIndicesWithPK would return a
-// non-empty list — the allocation-free emptiness test for the per-row UNIQUE
+// hasUniqueOrPKColValue reports whether the per-row UNIQUE pre-check would
+// find a constrained column — the allocation-free emptiness test for the per-row UNIQUE
 // pre-check (bareUniqueConflictError). Mirrors its exact membership rules:
 // a declared-UNIQUE column present in colIndex and in bounds counts even when
 // NULL, a PRIMARY KEY column counts positionally when its value is non-NULL.
