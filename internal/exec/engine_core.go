@@ -12,7 +12,6 @@ import (
 	"github.com/pijalu/frigolite/internal/quota"
 	"github.com/pijalu/frigolite/internal/schema"
 	"github.com/pijalu/frigolite/internal/sql"
-	"github.com/pijalu/frigolite/internal/storage"
 
 	"github.com/pijalu/frigolite/internal/util"
 )
@@ -339,10 +338,10 @@ func (e *Engine) detectExternalSchemaChanges() {
 		return
 	}
 	changed := false
-	// dbList (a slice, ATTACH order) carries exactly the contexts the
-	// databases map holds; iterating the slice keeps the per-statement
-	// external-mod probe off the map-iteration path. The result is
-	// order-independent (any changed context flips the flag).
+	// dbList (a slice, ATTACH order) holds the same contexts as the databases
+	// map — iterate the slice to keep the per-statement external-mod probe
+	// off the map-iteration path. The result is order-independent (any
+	// changed context flips the flag).
 	for _, ctx := range e.dbList {
 		if e.externalSchemaChanged(ctx) {
 			changed = true
@@ -354,33 +353,6 @@ func (e *Engine) detectExternalSchemaChanges() {
 
 		e.caches.autoIncSeq = make(map[rowidCacheKey]int64)
 	}
-}
-
-// externalSchemaChanged checks one database's schema manager for an external
-// file modification and reports whether it was invalidated. The MAIN database
-// is included: a second connection to the same file may have committed DDL
-// (e.g. ALTER TABLE RENAME COLUMN) that invalidates cached table entries
-// (altercol-2.3). TEMP is in-memory and never tracked.
-func (e *Engine) externalSchemaChanged(ctx *DatabaseContext) bool {
-	if ctx == nil || ctx.Schema == nil || ctx.Pager == nil {
-		return false
-	}
-	if strings.EqualFold(ctx.Name, "TEMP") || strings.EqualFold(ctx.Name, "TEMPORARY") {
-		return false
-	}
-	ctx.Schema.CheckExternalMod()
-	if !ctx.Schema.ConsumeExternalInvalidation() {
-		return false
-	}
-	// Another connection committed to this database; refresh the
-	// per-connection data_version so PRAGMA data_version observes it
-	// (own commits do not change data_version).
-	if hdr := ctx.Pager.Header(); hdr != nil {
-		if dh, err := storage.ParseHeader(hdr); err == nil {
-			e.settings.dataVersion = int64(dh.FileChangeCount) + 1
-		}
-	}
-	return true
 }
 
 // findTable searches for a table across all attached databases, enforcing

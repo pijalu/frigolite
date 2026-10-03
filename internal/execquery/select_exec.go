@@ -321,14 +321,7 @@ func (e *SelectEngine) prevalidateSchemaFunctionSafety(s *sql.SelectStmt, colDef
 	// The check only constrains tables declaring generated columns; a table
 	// without any takes the early-out so the common shapes never pay the
 	// whole-statement column-reference collection below.
-	hasGenerated := false
-	for i := range colDefs {
-		if colDefs[i].Generated != nil {
-			hasGenerated = true
-			break
-		}
-	}
-	if !hasGenerated {
+	if !colDefsHaveGenerated(colDefs) {
 		return nil
 	}
 	refs := collectSelectColumnRefs(s)
@@ -353,6 +346,17 @@ func (e *SelectEngine) prevalidateSchemaFunctionSafety(s *sql.SelectStmt, colDef
 		}
 	}
 	return nil
+}
+
+// colDefsHaveGenerated reports whether any column definition declares a
+// generated expression.
+func colDefsHaveGenerated(colDefs []sql.ColumnDef) bool {
+	for i := range colDefs {
+		if colDefs[i].Generated != nil {
+			return true
+		}
+	}
+	return false
 }
 
 // collectSelectColumnRefs returns the lower-cased column names referenced by a

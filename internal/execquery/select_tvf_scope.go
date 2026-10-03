@@ -39,16 +39,7 @@ func (e *SelectEngine) validateTVFArgScope(s *sql.SelectStmt) error {
 	// is exactly "has arguments and is not a subquery"): skip building the
 	// scope slice entirely. Subquery FROM terms validate through their own
 	// recursive execSelect, so this covers them without a walk.
-	hasTVF := len(s.From.Args) > 0 && s.From.Subquery == nil
-	if !hasTVF {
-		for i := range s.Joins {
-			if len(s.Joins[i].Table.Args) > 0 && s.Joins[i].Table.Subquery == nil {
-				hasTVF = true
-				break
-			}
-		}
-	}
-	if !hasTVF {
+	if !fromTermHasTVF(s.From) && !joinsHaveTVF(s.Joins) {
 		return nil
 	}
 	items := make([]tvfScopeItem, 0, len(s.Joins)+1)
@@ -60,7 +51,7 @@ func (e *SelectEngine) validateTVFArgScope(s *sql.SelectStmt) error {
 		items = append(items, tvfScopeItem{
 			name:  strings.ToLower(n),
 			outer: outer,
-			tvf:   len(ref.Args) > 0 && ref.Subquery == nil,
+			tvf:   fromTermHasTVF(ref),
 			ref:   ref,
 		})
 	}
@@ -81,6 +72,23 @@ func (e *SelectEngine) validateTVFArgScope(s *sql.SelectStmt) error {
 		}
 	}
 	return nil
+}
+
+// fromTermHasTVF reports whether a FROM term is a table-function reference:
+// table-function syntax with arguments, not a subquery (the scope item's tvf
+// flag).
+func fromTermHasTVF(ref sql.TableRef) bool {
+	return len(ref.Args) > 0 && ref.Subquery == nil
+}
+
+// joinsHaveTVF reports whether any join operand is a table-function reference.
+func joinsHaveTVF(joins []sql.JoinClause) bool {
+	for i := range joins {
+		if fromTermHasTVF(joins[i].Table) {
+			return true
+		}
+	}
+	return false
 }
 
 // checkTVFArgTables walks one argument expression and validates every
