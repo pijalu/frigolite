@@ -1081,3 +1081,26 @@ matched on 5/'5' grouping and the predecessor's rowid fix was already
 96/96. Remaining known oracle divergences: none in the CRUD/expr/group
 surfaces covered by the batteries.
 Census: 1073 pass / 0 fail / 290 skip, audit exit 0.
+
+## PERF-PARITY2 (2026-10-02, DURING) — five tranches merged; gaps 2.4-4.6x
+
+Fresh pair @main (NROWS=300k NPOINT=200k NSCAN=3 NGROUP=30 NUPDATE=100k
+NDELETE=30k NAUTO=5k, vs sqlite3 same ops): insert 350,878 ops/s (4.6x),
+point 384,053 (2.8x), scan 22,282,927 rows/s (2.4x), group 50 q/s (1.35x
+FASTER), update 282,547 (4.0x), delete 377,417 (4.1x), file autocommit
+10,415 (1.62x FASTER). Campaign start: 10.9x/1040x/6.5x/3.9x/2049x/885x.
+Merged: fleet/perf-floor (memoized column indexes, template-cache maphash
+keys, clone scratch, btree.Close race fix), fleet/perf-dml2 (btree
+freeblock space mgmt, in-place cell overwrite, lazy conflict scan),
+fleet/perf-scanagg (streaming GROUP BY feed 2.5x, batch range-scan
+leaves 2.1-2.3x), FIX.GROUPKEY (INTEGER/REAL numeric group parity —
+oracle 1e15==10^15 one group; collationGroupKey/typedIntGroupKey/
+groupKeyScalarEqual unified on integralFloatKey; pinned), fleet/perf-
+floor2 (speculative vtab dispatch, without-rowid memo, preupdate table
+memo, lock-gate short-circuit; point 1.57x, insert 1.27x, delete 1.25x,
+update 1.21x). Stale TestRowidSeekRange ' 10 ' expectation corrected to
+oracle (3 rows — affinity converts spaced text; battery-verified).
+In flight: fleet/perf-insert2 (btree split staging + page-buffer +
+insertRow staging diet; 5 commits, gates running). Next walls: pager
+statement-journal capture on update/delete (~33% stmtReadTouch/
+copyPageBytes), point template clone ~8%, scan/point value boxing.
