@@ -14,6 +14,9 @@ import (
 
 func (t *BTree) DeleteCellsWhere(fn func(cell *storage.Cell) bool) (int64, error) {
 	t.saveAllCursors() // btree.c saveAllCursors on the delete path
+	cursorRegMu.Lock()
+	t.invalidateAppendCursorLocked() // a delete may remove the maximum key
+	cursorRegMu.Unlock()
 	var deleted int64
 	// The sweep runs in passes: balanceNonroot (invoked when a leaf
 	// empties) can redistribute surviving cells into a leaf that was
@@ -259,6 +262,9 @@ func (c *Cursor) PathParent() uint32 {
 // stale position falls back to the full DeleteCellByRowID seek).
 func (t *BTree) DeleteCellByRowIDAt(rowID int64, leaf uint32, idx int, hintParent uint32) (int64, error) {
 	t.saveAllCursors() // btree.c saveAllCursors on the delete path
+	cursorRegMu.Lock()
+	t.invalidateAppendCursorLocked() // a delete may remove the maximum key
+	cursorRegMu.Unlock()
 	handled, n, ferr := t.deleteSingleTableRowID(leaf, idx, rowID)
 	if ferr != nil {
 		return n, ferr
@@ -293,6 +299,9 @@ func (t *BTree) DeleteCellByRowIDAt(rowID int64, leaf uint32, idx int, hintParen
 // deleted (0 when the rowid is absent).
 func (t *BTree) DeleteCellByRowID(rowID int64) (int64, error) {
 	t.saveAllCursors() // btree.c saveAllCursors on the delete path
+	cursorRegMu.Lock()
+	t.invalidateAppendCursorLocked() // a delete may remove the maximum key
+	cursorRegMu.Unlock()
 	c, err := t.OpenCursor()
 	if err != nil {
 		return 0, err

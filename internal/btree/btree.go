@@ -488,6 +488,9 @@ func (t *BTree) RootPageType() byte {
 // DELETE FROM %_segments: 72 of 187 blocks became unfindable).
 func (t *BTree) Clear() error {
 	t.saveAllCursors() // btree.c saveAllCursors on the clearTable path
+	cursorRegMu.Lock()
+	t.invalidateAppendCursorLocked() // a cleared tree has no rightmost leaf
+	cursorRegMu.Unlock()
 	pg, err := t.pager.ReadPage(t.rootPage)
 	if err != nil {
 		return err
@@ -963,6 +966,9 @@ func leafHasRoom(pg *pager.Page, page *storage.BTreePage, cellData []byte, coff 
 // (defragmentPage parity).
 func (t *BTree) DeleteCell(cellIdx int) error {
 	t.saveAllCursors() // btree.c saveAllCursors on the dropCell path
+	cursorRegMu.Lock()
+	t.invalidateAppendCursorLocked() // a delete may remove the maximum key
+	cursorRegMu.Unlock()
 	pg, err := t.pager.ReadPage(t.rootPage)
 	if err != nil {
 		return err

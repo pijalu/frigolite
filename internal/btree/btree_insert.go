@@ -21,6 +21,19 @@ func (t *BTree) InsertCell(newCell *storage.Cell) error {
 		// the write instead of dereferencing the reset wrapper.
 		return errCursorOwnerClosed
 	}
+	// Append-cursor fast path (btree.c's rightmost-cursor reuse): a rightmost
+	// append with a trusted saved leaf is written in place, O(1) amortized.
+	// Every bail-out clears the slot, so the generic path below always runs
+	// with the slot untrusted and re-establishes it at the end.
+	if t.isTable {
+		handled, err := t.insertQuickAppend(newCell)
+		if err != nil {
+			return err
+		}
+		if handled {
+			return nil
+		}
+	}
 	// The insert walk's parse slots are pooled per InsertCell (the recursion
 	// below never re-enters InsertCell on the same wrapper).
 	t.insScratch = insertScratchPool.Get().(*[4]storage.BTreePage)
@@ -46,22 +59,30 @@ func (t *BTree) InsertCell(newCell *storage.Cell) error {
 			// btree.c balance_deeper keeps the root page as the root: its
 			// page number never changes (schema entries stay valid) and the
 			// two halves move to freshly allocated pages in ascending order.
-			return t.relocateRootSplit(splits)
-		}
-		// The schema b-tree (sqlite_schema) is permanently rooted at page 1:
-		// page 1 is the database file header page and cannot be demoted to a
-		// child. When its root splits, page 1 becomes an interior page and
-		// the split halves are moved to newly allocated pages.
-		rootPg, err := t.createInteriorRoot(t.rootPage, splits[0], splits[0].pageNum)
-		if err != nil {
-			return err
-		}
-		for i := 1; i < len(splits); i++ {
-			if err := t.addInteriorCellToPage(rootPg.PageNum, splits[i-1].pageNum, splits[i], splits[i].pageNum); err != nil {
+			if err := t.relocateRootSplit(splits); err != nil {
 				return err
 			}
+		} else {
+			// The schema b-tree (sqlite_schema) is permanently rooted at page 1:
+			// page 1 is the database file header page and cannot be demoted to a
+			// child. When its root splits, page 1 becomes an interior page and
+			// the split halves are moved to newly allocated pages.
+			rootPg, err := t.createInteriorRoot(t.rootPage, splits[0], splits[0].pageNum)
+			if err != nil {
+				return err
+			}
+			for i := 1; i < len(splits); i++ {
+				if err := t.addInteriorCellToPage(rootPg.PageNum, splits[i-1].pageNum, splits[i], splits[i].pageNum); err != nil {
+					return err
+				}
+			}
+			t.rootPage = rootPg.PageNum
 		}
-		t.rootPage = rootPg.PageNum
+	}
+	if t.isTable {
+		// Park the append cursor when this insert landed at the right edge
+		// (the append-cursor fast path's establishment step).
+		t.noteAppendInsert(newCell)
 	}
 
 	return nil

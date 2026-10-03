@@ -136,6 +136,14 @@ func (t *BTree) Close() {
 		return
 	}
 	t.closed = true
+	// Drop this tree's append-cursor slot: statement teardown after a DELETE
+	// (or any other mutation through a function-local wrapper) must clear the
+	// insert path's saved rightmost leaf, and a layout-replacement drop of
+	// the cached write tree (execdml's InvalidateWriteTree) must not leave a
+	// slot pointing into replaced pages.
+	cursorRegMu.Lock()
+	t.invalidateAppendCursorLocked()
+	cursorRegMu.Unlock()
 	owned := t.cursors
 	t.cursors = t.cursors[:0]
 	if len(owned) > 0 {
