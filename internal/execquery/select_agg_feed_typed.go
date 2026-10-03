@@ -49,7 +49,19 @@ func (e *SelectEngine) compileTypedAggLane(feed *simpleAggFeed, colDefs []sql.Co
 	if feed == nil || feed.group != nil || len(feed.calls) == 0 {
 		return nil
 	}
-	// slot → on-disk position (rank among non-dropped colDefs).
+	lane := &typedAggLane{calls: make([]typedAggCall, len(feed.calls))}
+	diskOf := diskSlotRanks(colDefs)
+	for ci := range feed.calls {
+		if !e.compileTypedAggCall(&lane.calls[ci], &feed.calls[ci], colDefs, diskOf) {
+			return nil
+		}
+	}
+	return lane
+}
+
+// diskSlotRanks maps each colDefs index to its on-disk record position (rank
+// among non-dropped columns); dropped columns get -1.
+func diskSlotRanks(colDefs []sql.ColumnDef) []int {
 	diskOf := make([]int, len(colDefs))
 	disk := 0
 	for i := range colDefs {
@@ -60,51 +72,66 @@ func (e *SelectEngine) compileTypedAggLane(feed *simpleAggFeed, colDefs []sql.Co
 		diskOf[i] = disk
 		disk++
 	}
-	lane := &typedAggLane{calls: make([]typedAggCall, len(feed.calls))}
-	for ci := range feed.calls {
-		c := &feed.calls[ci]
-		tc := &lane.calls[ci]
-		tc.agg = c.agg
-		tc.slot = c.slot
-		tc.countStar = c.countStar
-		switch {
-		case c.countStar:
-			counter, ok := c.agg.(function.TypedCountStep)
-			if !ok {
-				return nil // COUNT(*) with a non-counter aggregator: keep boxed
-			}
-			tc.counter = counter
-			tc.diskSlot = -1
-			continue
-		case c.slot == feedRowidSlot:
-			tc.diskSlot = -1
-		default:
-			tc.diskSlot = diskOf[c.slot]
-			tc.ipkAlias = isIPKRowidAliasCol(colDefs[c.slot])
+	return diskOf
+}
+
+// compileTypedAggCall configures one call's direct-feed state from its
+// compiled feed call. ok=false reports the call cannot feed unboxed (the
+// whole lane stays off). See typedAggCall's field docs for the slot/disk/
+// default semantics.
+func (e *SelectEngine) compileTypedAggCall(tc *typedAggCall, c *aggFeedCall, colDefs []sql.ColumnDef, diskOf []int) bool {
+	tc.agg = c.agg
+	tc.slot = c.slot
+	tc.countStar = c.countStar
+	switch {
+	case c.countStar:
+		counter, ok := c.agg.(function.TypedCountStep)
+		if !ok {
+			return false // COUNT(*) with a non-counter aggregator: keep boxed
 		}
-		// Typed surfaces: the SUM family's unboxed accumulator and the
-		// counter's unboxed row feed. Either may be absent (a future
-		// aggregate in the compile family) — that call stays boxed.
-		tc.sum, _ = c.agg.(function.TypedSumStep)
-		tc.counter, _ = c.agg.(function.TypedCountStep)
-		if tc.sum == nil && tc.counter == nil {
-			return nil
-		}
-		if c.slot >= 0 {
-			cd := &colDefs[c.slot]
-			if cd.Generated != nil {
-				return nil // generated columns keep the decoded path
-			}
-			if cd.Default != nil {
-				dv, err := e.ctx.EvalExpr(cd.Default, nil)
-				if err != nil {
-					return nil // default eval error: the decoded path surfaces it per row
-				}
-				tc.hasDef, tc.defVal = true, util.ApplyColumnAffinity(dv, cd.Type)
-			}
-		}
+		tc.counter = counter
+		tc.diskSlot = -1
+		return true
+	case c.slot == feedRowidSlot:
+		tc.diskSlot = -1
+	default:
+		tc.diskSlot = diskOf[c.slot]
+		tc.ipkAlias = isIPKRowidAliasCol(colDefs[c.slot])
 	}
-	return lane
+	// Typed surfaces: the SUM family's unboxed accumulator and the counter's
+	// unboxed row feed. Either may be absent (a future aggregate in the
+	// compile family) — that call stays boxed.
+	tc.sum, _ = c.agg.(function.TypedSumStep)
+	tc.counter, _ = c.agg.(function.TypedCountStep)
+	if tc.sum == nil && tc.counter == nil {
+		return false
+	}
+	if c.slot < 0 {
+		return true
+	}
+	cd := &colDefs[c.slot]
+	if cd.Generated != nil {
+		return false // generated columns keep the decoded path
+	}
+	if cd.Default == nil {
+		return true
+	}
+	dv, err := e.defaultEvalFor(cd)
+	if err != nil {
+		return false // default eval error: the decoded path surfaces it per row
+	}
+	tc.hasDef, tc.defVal = true, dv
+	return true
+}
+
+// defaultEvalFor evaluates one ADD COLUMN default the way
+// applyColumnDefaults does (empty row, then the column's declared affinity).
+func (e *SelectEngine) defaultEvalFor(cd *sql.ColumnDef) (interface{}, error) {
+	dv, err := e.ctx.EvalExpr(cd.Default, nil)
+	if err != nil {
+		return nil, err
+	}
+	return util.ApplyColumnAffinity(dv, cd.Type), nil
 }
 
 // stepDirect feeds one row's record (payload + pre-parsed serial types) into
@@ -145,20 +172,10 @@ func (c *typedAggCall) stepCall(payload []byte, dataStart int, serialTypes []uin
 	if c.diskSlot >= len(serialTypes) {
 		return c.feedDefault()
 	}
-	pos := dataStart
-	for i := 0; i < c.diskSlot; i++ {
-		n, err := storage.SerialTypeLength(serialTypes[i])
-		if err != nil || pos+int(n) > len(payload) {
-			return nil // corrupt record: the decoded path leaves the slot NULL
-		}
-		pos += int(n)
-	}
-	st := serialTypes[c.diskSlot]
-	n, err := storage.SerialTypeLength(st)
-	if err != nil || pos+int(n) > len(payload) {
+	st, data, ok := c.resolveSlot(payload, dataStart, serialTypes)
+	if !ok {
 		return nil // corrupt record: the decoded path leaves the slot NULL
 	}
-	data := payload[pos : pos+int(n)]
 	switch {
 	case st == storage.SerialNull:
 		if c.ipkAlias {
@@ -173,6 +190,26 @@ func (c *typedAggCall) stepCall(payload []byte, dataStart int, serialTypes []uin
 	default:
 		return c.feedBoxed(storage.DecodeRecordValue(st, data))
 	}
+}
+
+// resolveSlot walks the record header to the call's on-disk slot and returns
+// its serial type and value bytes. ok=false reports a corrupt or truncated
+// record (the decoded decode path leaves the slot NULL in exactly those
+// cases).
+func (c *typedAggCall) resolveSlot(payload []byte, dataStart int, serialTypes []uint64) (st uint64, data []byte, ok bool) {
+	pos := dataStart
+	for i := 0; i < c.diskSlot; i++ {
+		n, err := storage.SerialTypeLength(serialTypes[i])
+		if err != nil || pos+int(n) > len(payload) {
+			return 0, nil, false
+		}
+		pos += int(n)
+	}
+	n, err := storage.SerialTypeLength(serialTypes[c.diskSlot])
+	if err != nil || pos+int(n) > len(payload) {
+		return 0, nil, false
+	}
+	return serialTypes[c.diskSlot], payload[pos : pos+int(n)], true
 }
 
 // feedDefault feeds the column's ADD COLUMN DEFAULT (past the record width).

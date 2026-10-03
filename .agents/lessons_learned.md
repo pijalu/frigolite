@@ -2643,3 +2643,52 @@ reservebytes, vacuum3, vacuum6): page size stayed at the old value.
   wrapper across a root reallocation (enough prior schema/row state that the
   (pager, root, kind) key survives the reset). Reproduce from the harness
   shape first, minimize only after the mechanism is known.
+
+## PERF.SCANBOX — scan/point read-path boxing diet (fleet/perf-scanbox, 2026-10-03)
+
+Landed: typed aggregate feed lane (covered rowid-range plans step
+SUM/AVG/TOTAL/COUNT straight off the record payload — `function.TypedSumStep`
+unboxed surfaces StepInt64/StepFloat64 + countAgg.CountRow; text/blob and
+ADD COLUMN defaults fall back to the boxed Step per value), covered eq-seek
+skips the redundant WHERE re-eval, point fetch decodes only consumed columns
+(seekDecodeCols), decode sets materialized by position as []bool
+(DecodeRecordValuesFromTypesCols — map hash lookups out of the row loop),
+single-bare-ref point output reads the slot directly. Interleaved medians:
+select_scan 20.2M→39.6M rows/s (1.96x); other phases parity (±2%,
+load-noise floor). Point unchanged (~1.0x): its floor is statement prep
+(render→lex/parse of 200k DISTINCT literal strings + template misses +
+execSelectPrevalidate) — the sibling's lane; fetchSeekStructRow was only
+12.5% cum.
+
+- **The scan loop's boxing tax is three separate taxes**: (1) int64→interface{}
+  boxing in decodeValue (24% cum, 175MB), (2) map-based decode-set tests
+  (mapaccess2_fast64, ~6%), (3) the boxed feed step's unwrap/classify chain
+  (unwrapCollatedValue + sumNumericArg + asserts, ~12%). Only (1) needs a
+  semantically-typed lane; (2)/(3) are mechanical. Killing all three needs the
+  lane to read the payload DIRECTLY — a typed decode into []interface{} still
+  boxes; the values buffer must not exist.
+- **Typed accumulator parity is exact when the typed step IS the boxed
+  branch**: sumAgg.StepInt64/StepFloat64 reproduce Step's own branches
+  (same count++, same stepExact/kahan routing), so mixed typed/boxed feeding
+  is state-identical. Fallbacks preserve the rest: text/blob → boxed Step
+  (numeric-text classification lives in sumNumericArg), stored NULL → skip,
+  past-record-width → precomputed ADD COLUMN default (evaluated once per
+  statement, ApplyColumnAffinity'd like applyColumnDefaults), IPK alias
+  stored NULL → rowid. Oracle 3.54 pin: int64 overflow in SUM persists as
+  "integer overflow" even after later REAL/integer inputs — do not
+  "absorb" it.
+- **On-disk slot mapping**: feed slots are colDefs indices; record positions
+  are colDefs minus Dropped (shiftDroppedColumns's contract). The lane walks
+  by precomputed rank. (The old map-based covered feed selected decode
+  columns by colDefs index on the on-disk loop — a latent wrong-column
+  decode for dropped-column tables; the rank walk fixes that class.)
+- **Benchmarking under a loaded machine**: fleet siblings run parallel full
+  suites (load 7+); a full-suite failure count is then meaningless (main
+  3110 vs branch 19 for the SAME tree in different windows). Phase-focused
+  binaries (PHASE=env early-return) + interleaved base/branch medians in one
+  window are the only trustworthy signal; absolute numbers move ±15% with
+  load, ratios hold.
+- **Harness filtered runs need setup**: `go test -run
+  TestSQLiteSuite/select1$` fails "no such table: test1" on MAIN and branch
+  alike — filtered-mode skips the fixture setup step. Full-suite or
+  per-FILE solo runs only.

@@ -747,18 +747,7 @@ func (it *rangeSeekRow) step(payload []byte, rowID int64) (done, ok bool) {
 // re-evaluates and surfaces identically.
 func (it *rangeSeekRow) processRow(payload []byte, rowID int64) bool {
 	if it.typed != nil {
-		// The direct-feed lane owns the covered loop: step the accumulators
-		// straight off the record bytes (no decode, no WHERE — a covered plan
-		// has no per-row predicate).
-		st, dataStart, err := parseRecordSerialTypesInto(payload, it.serialTypes[:0])
-		if err != nil {
-			return false
-		}
-		it.serialTypes = st
-		if err := it.typed.stepDirect(payload, dataStart, st, rowID); err != nil {
-			return false
-		}
-		return true
+		return it.processRowTyped(payload, rowID)
 	}
 	if !it.decodePhaseOne(payload, rowID) {
 		return false
@@ -785,6 +774,22 @@ func (it *rangeSeekRow) processRow(payload []byte, rowID int64) bool {
 		case !it.refill(it.srow, payload) || !it.emit(it.srow):
 			return false
 		}
+	}
+	return true
+}
+
+// processRowTyped runs the direct-feed lane's row step: the lane owns the
+// covered loop, stepping the accumulators straight off the record bytes (no
+// decode, no WHERE — a covered plan has no per-row predicate). ok=false
+// falls back to the scan like every processRow anomaly.
+func (it *rangeSeekRow) processRowTyped(payload []byte, rowID int64) bool {
+	st, dataStart, err := parseRecordSerialTypesInto(payload, it.serialTypes[:0])
+	if err != nil {
+		return false
+	}
+	it.serialTypes = st
+	if err := it.typed.stepDirect(payload, dataStart, st, rowID); err != nil {
+		return false
 	}
 	return true
 }

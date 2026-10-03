@@ -9,6 +9,7 @@ import (
 	"github.com/pijalu/frigolite/internal/schema"
 	"github.com/pijalu/frigolite/internal/sql"
 	"github.com/pijalu/frigolite/internal/storage"
+	"github.com/pijalu/frigolite/internal/util"
 	"github.com/pijalu/frigolite/internal/value"
 )
 
@@ -121,41 +122,54 @@ func (e *SelectEngine) fetchSeekStructRow(s *sql.SelectStmt, tree *btree.BTree, 
 // stored NULL substitutes the rowid at fill time, and a projected alias
 // reference rides that fill.
 func (e *SelectEngine) seekDecodeCols(s *sql.SelectStmt, colDefs []sql.ColumnDef, affinityCols map[string]bool, needMaps, whereCovered bool) []bool {
-	if needMaps {
+	if needMaps || !projectionIsBareRefs(s) {
 		return nil
-	}
-	for i := range s.Columns {
-		ref, ok := unwrapParenExpr(s.Columns[i].Expr).(*sql.ColumnRef)
-		if !ok || ref.Name == "*" || ref.Table != "" || groupByKeywordName(ref.Name) {
-			return nil
-		}
 	}
 	projRefs := &affinityCollector{cols: make(map[string]bool)}
 	for i := range s.Columns {
 		projRefs.collectExpr(s.Columns[i].Expr)
 	}
 	cols := make([]bool, len(colDefs))
-	decodable := 0
+	disk := 0
 	for i := range colDefs {
 		cd := &colDefs[i]
-		if cd.Dropped || isIPKRowidAliasCol(*cd) {
-			continue // not stored / stored NULL (the fill substitutes the rowid)
-		}
-		if !needsAffinity(projRefs.cols, cd.Name) &&
-			(whereCovered || affinityCols == nil || !needsAffinity(affinityCols, cd.Name)) {
-			continue
-		}
-		// On-disk position: the slot's rank among non-dropped columns.
-		disk := 0
-		for j := 0; j < i; j++ {
-			if !colDefs[j].Dropped {
-				disk++
+		if !cd.Dropped {
+			if e.seekColConsumed(cd, projRefs.cols, affinityCols, whereCovered) {
+				cols[disk] = true
 			}
+			disk++
 		}
-		cols[disk] = true
-		decodable++
 	}
 	return cols
+}
+
+// projectionIsBareRefs reports whether every SELECT column is a bare
+// unqualified column reference (not a star, not a GROUP BY keyword shape) —
+// the shapes whose table-slot consumers the reference walk enumerates.
+func projectionIsBareRefs(s *sql.SelectStmt) bool {
+	for i := range s.Columns {
+		ref, ok := unwrapParenExpr(s.Columns[i].Expr).(*sql.ColumnRef)
+		if !ok || ref.Name == "*" || ref.Table != "" || groupByKeywordName(ref.Name) {
+			return false
+		}
+	}
+	return len(s.Columns) > 0
+}
+
+// seekColConsumed reports whether a stored column's value feeds any of the
+// point fetch's consumers: the projection's references (any spelling), or —
+// when the plan did not cover the WHERE — the consuming clauses' references.
+// INTEGER PRIMARY KEY alias columns are never decoded (their stored NULL
+// substitutes the rowid at fill time, which also serves a projected alias
+// reference).
+func (e *SelectEngine) seekColConsumed(cd *sql.ColumnDef, projRefs, affinityCols map[string]bool, whereCovered bool) bool {
+	if isIPKRowidAliasCol(*cd) {
+		return false
+	}
+	if needsAffinity(projRefs, cd.Name) {
+		return true
+	}
+	return !whereCovered && affinityCols != nil && needsAffinity(affinityCols, cd.Name)
 }
 
 // seekColIndexFor returns the column-name → slot index for colDefs, memoized
@@ -240,26 +254,49 @@ func (e *SelectEngine) selectRowidSeekPlan(s *sql.SelectStmt, tableEntry *schema
 // buildOutputRow projection) plus its row map when needed.
 func (e *SelectEngine) seekRowOutput(s *sql.SelectStmt, colDefs []sql.ColumnDef, srow *StructRow, affinity, needMaps bool) ([][]interface{}, []RowMap, bool) {
 	if len(s.Columns) == 1 {
-		if ref, ok := s.Columns[0].Expr.(*sql.ColumnRef); ok && ref.Name == "*" && ref.Table == "" {
-			star := appendScanStarValues(nil, colDefs, srow.Values, affinity)
-			rows := [][]interface{}{star}
-			var maps []RowMap
-			if needMaps {
-				maps = []RowMap{StructRowToMap(srow)}
+		if ref, ok := s.Columns[0].Expr.(*sql.ColumnRef); ok {
+			if ref.Name == "*" && ref.Table == "" {
+				star := appendScanStarValues(nil, colDefs, srow.Values, affinity)
+				return finishSeekRowOutput([][]interface{}{star}, needMaps, srow)
 			}
-			return rows, maps, true
+			if rows, ok := e.bareRefSeekOutput(ref, srow, needMaps); ok {
+				return rows, nil, true
+			}
 		}
 	}
 	row, err := e.buildOutputRow(s.Columns, colDefs, srow)
 	if err != nil {
 		return nil, nil, false
 	}
-	rows := [][]interface{}{row}
+	return finishSeekRowOutput([][]interface{}{row}, needMaps, srow)
+}
+
+// finishSeekRowOutput pairs the built row with its row map when the caller
+// needs maps.
+func finishSeekRowOutput(rows [][]interface{}, needMaps bool, srow *StructRow) ([][]interface{}, []RowMap, bool) {
 	var maps []RowMap
 	if needMaps {
 		maps = []RowMap{StructRowToMap(srow)}
 	}
 	return rows, maps, true
+}
+
+// bareRefSeekOutput reads a single bare column reference's slot directly: the
+// generic route evaluates the reference through the expression walker and
+// unwraps the result — for a resolved real column (exact or case-folded,
+// StructRow.Get's lookup) the value is exactly the slot's
+// (appendOutputExpr's unwrap of a raw slot is the identity). ok=false keeps
+// the generic route: star/keyword/qualified shapes, row-map consumers, and
+// unresolved names (its "no such column" error path).
+func (e *SelectEngine) bareRefSeekOutput(ref *sql.ColumnRef, srow *StructRow, needMaps bool) ([][]interface{}, bool) {
+	if needMaps || ref.Table != "" || ref.Name == "*" || groupByKeywordName(ref.Name) {
+		return nil, false
+	}
+	v, ok := srow.Get(ref.Name)
+	if !ok {
+		return nil, false
+	}
+	return [][]interface{}{{util.UnwrapColumnValue(unwrapCollatedValue(v))}}, true
 }
 
 // rowidEqualitySides matches an equality conjunct whose rowid-side reference
