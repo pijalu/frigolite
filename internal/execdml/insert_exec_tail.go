@@ -236,16 +236,6 @@ func unwrapCollationWrappers(values []interface{}) {
 
 // writeTableRow encodes and inserts a table row, returning the tree (for
 // index-failure cleanup) and any write result.
-
-// writeTableRow encodes and inserts a table row, returning the tree (for
-// index-failure cleanup) and any write result.
-
-// writeTableRow encodes and inserts a table row, returning the tree (for
-// index-failure cleanup) and any write result.
-// writeTableRow encodes and inserts a table row, returning the tree (for
-// index-failure cleanup) and any write result.
-// writeTableRow encodes and inserts a table row, returning the tree (for
-// index-failure cleanup) and any write result.
 func (e *DMLExecutor) writeTableRow(pg *pager.Pager, tableEntry *schema.Entry, colDefs []sql.ColumnDef, values []interface{}, nextRowID int64) (*btree.BTree, *Result) {
 	withoutRowid := tableIsWithoutRowid(tableEntry.SQL)
 	stored := values
@@ -264,11 +254,19 @@ func (e *DMLExecutor) writeTableRow(pg *pager.Pager, tableEntry *schema.Entry, c
 		return nil, &Result{Error: err}
 	}
 	cell := &e.insCell
+	// Reset EVERY wire-format field: prepareCell stamps PayloadLen/LocalLen on
+	// an overflow-bearing row and deliberately does not clear them when the
+	// next row's payload fits locally (cellPlen/localOrFull trust them when
+	// set). A stale PayloadLen/LocalLen leaked into the next row's cell and
+	// encoded a corrupt wire cell (fts5prefix doubling: "database disk image
+	// is malformed" on the shadow %_data tree).
 	cell.Type = storage.CellTableLeaf
 	cell.RowID = nextRowID
 	cell.Payload = record
 	cell.LeftPtr = 0
 	cell.Overflow = 0
+	cell.PayloadLen = 0
+	cell.LocalLen = 0
 	if withoutRowid {
 		cell.Type = storage.CellIndexLeaf
 	}
