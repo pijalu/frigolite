@@ -212,21 +212,25 @@ func (e *DMLExecutor) updateRowInPlace(tree *btree.BTree, tableEntry *schema.Ent
 		return false, res
 	}
 	// Fire the preupdate hook with the old and new row values (UPDATE OR
-	// REPLACE's in-place update write).
-	rowID := c.rowID
-	if withoutRowidKw {
-		rowID = 0
-	}
-	if res := e.ctx.FirePreupdate(PreupdateEvent{
-		Type:  "UPDATE",
-		DB:    e.schemaNameForPager(e.dmlPager(tableEntry.Name)),
-		Table: tableEntry.Name,
-		RowID: rowID, RowID2: rowID,
-		RowidTable: !withoutRowidKw,
-		Old:        append([]interface{}(nil), c.oldValues...),
-		New:        append([]interface{}(nil), c.values...),
-	}); res != nil {
-		return false, res
+	// REPLACE's in-place update write). Skipped when no hook consumes the
+	// event (PreupdateNeeded) — the per-row Old/New copies stay off the
+	// un-hooked write path.
+	if e.ctx.PreupdateNeeded() {
+		rowID := c.rowID
+		if withoutRowidKw {
+			rowID = 0
+		}
+		if res := e.ctx.FirePreupdate(PreupdateEvent{
+			Type:  "UPDATE",
+			DB:    e.schemaNameForPager(e.dmlPager(tableEntry.Name)),
+			Table: tableEntry.Name,
+			RowID: rowID, RowID2: rowID,
+			RowidTable: !withoutRowidKw,
+			Old:        append([]interface{}(nil), c.oldValues...),
+			New:        append([]interface{}(nil), c.values...),
+		}); res != nil {
+			return false, res
+		}
 	}
 	return true, nil
 }

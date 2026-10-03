@@ -514,8 +514,12 @@ func (e *DMLExecutor) bumpUpdateRowIDCache(tableName string, rootPage uint32, ol
 
 // fireUpdateWritePreupdate fires the preupdate UPDATE hook after a
 // writeUpdateCell write, reporting the change's old rowid (0 for WITHOUT
-// ROWID tables, which use the key columns instead).
+// ROWID tables, which use the key columns instead). A no-op when no hook
+// consumes the event.
 func (e *DMLExecutor) fireUpdateWritePreupdate(tableName string, ch updateChange, finalValues []interface{}) *Result {
+	if !e.ctx.PreupdateNeeded() {
+		return &Result{}
+	}
 	if entry, _, err := e.ctx.FindTable(tableName); err == nil {
 		rowID := ch.rowID
 		wr := tableIsWithoutRowid(entry.SQL)

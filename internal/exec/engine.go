@@ -381,6 +381,28 @@ type Engine struct {
 	// statements. Neither outlives a Prepare call.
 	normBuf    []byte
 	normValues []interface{}
+	// execPreflight's single-entry statement memos. pfAST* memoizes the
+	// AST-only checks (the RAISE() walk and the FROM-term count) keyed by the
+	// statement pointer; pfDML* memoizes the schema-dependent DML checks
+	// (embedded-subquery arity + the fk.c prepare-time FK resolution) keyed
+	// by (statement pointer, folded all-schemas fingerprint, foreign_keys
+	// setting). Both hold the statement reference, so the pointer key cannot
+	// be recycled to a different AST while memoized; the template cache's
+	// per-depth live clones (and the prepared-statement cache) hand the same
+	// pointer back for structurally identical statements, which turns the
+	// checks into pointer compares on the repeated-statement floor. Literal
+	// values are the only thing slot substitution rewrites, and none of the
+	// memoized checks reads a literal (RAISE detection is function-name
+	// shaped, the FROM count and subquery arity are structural, FK
+	// resolution reads declarations), so a substituted clone answers exactly
+	// as its template would.
+	pfASTStmt   sql.Stmt
+	pfASTRaise  error
+	pfASTFromOK bool
+	pfDMLStmt   sql.Stmt
+	pfDMLFP     uint64
+	pfDMLFKOn   bool
+	pfDMLErr    error
 }
 
 // engineSettings groups the PRAGMA/config flags and limits that previously
@@ -631,6 +653,18 @@ func (e *Engine) SetPendingByteMain(byteOffset uint32) uint32 {
 		return e.mainDB.Pager.SetPendingByte(byteOffset)
 	}
 	return 0x40000000
+}
+
+// StmtHooksActive reports whether any statement trace/profile hook is
+// registered (sqlite3_trace, sqlite3_profile, or sqlite3_trace_v2). The
+// statement-execution entry uses it to skip the per-statement trace gate —
+// the elapsed-time clock and the Begin/End/FireTraceRow calls — entirely
+// when no hook could observe them. A zero-mask trace_v2 registration keeps
+// the hook non-nil, so it still takes the traced path (the mask is cheap to
+// consult there and the hook may be re-armed by SetTraceV2Hook's mask
+// argument alone).
+func (e *Engine) StmtHooksActive() bool {
+	return e.traceHook != nil || e.profileHook != nil || e.traceV2Hook != nil
 }
 
 // authorize checks whether an operation is allowed by the authorizer.

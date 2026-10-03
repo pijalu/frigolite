@@ -67,8 +67,11 @@ func (e *DMLExecutor) insertSelectWrittenRow(tableEntry *schema.Entry, colDefs [
 
 // fireInsertPreupdate fires the preupdate INSERT hook with the new row's
 // values (WITHOUT ROWID tables report the synthetic rowid 0 — SQLite uses
-// the key columns instead).
+// the key columns instead). A no-op when no hook consumes the event.
 func (e *DMLExecutor) fireInsertPreupdate(tableEntry *schema.Entry, rowID int64, values []interface{}) *Result {
+	if !e.ctx.PreupdateNeeded() {
+		return nil
+	}
 	wr := tableIsWithoutRowid(tableEntry.SQL)
 	puRowID := rowID
 	if wr {

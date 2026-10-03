@@ -453,3 +453,64 @@ func (r *Registry) AnyMarks() bool {
 		len(r.pending) > 0 ||
 		len(r.dotfileRefs) > 0
 }
+
+// ForeignMarks reports whether any lock mark in the registry belongs to a
+// connection OTHER than self (the "held by OTHER" half of every
+// cross-connection check). When it answers false, no
+// *ByOther/ExclusiveLockedByOther-style check can fire for self, so a
+// statement's lock gate can skip its per-statement key resolution and the
+// whole check loop in one registry pass. Connection-less marks — the backup
+// lock count and the dotfile reference count — are attributed to OTHER
+// (conservative: they make the answer true and send the caller down the
+// full check path, which then applies their actual rules). The check is
+// advisory: marks appearing after a false answer is harmless (the caller
+// then runs the full check path on its next statement).
+func (r *Registry) ForeignMarks(self int64) bool {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	for _, conn := range r.exclusive {
+		if conn != self {
+			return true
+		}
+	}
+	for _, conns := range r.writeTx {
+		for conn := range conns {
+			if conn != self {
+				return true
+			}
+		}
+	}
+	if len(r.backupLock) > 0 {
+		return true
+	}
+	for _, conns := range r.readTx {
+		for conn := range conns {
+			if conn != self {
+				return true
+			}
+		}
+	}
+	for _, conns := range r.sharedTx {
+		for conn := range conns {
+			if conn != self {
+				return true
+			}
+		}
+	}
+	for _, conns := range r.persistentShared {
+		for conn := range conns {
+			if conn != self {
+				return true
+			}
+		}
+	}
+	for _, conn := range r.pending {
+		if conn != self {
+			return true
+		}
+	}
+	if len(r.dotfileRefs) > 0 {
+		return true
+	}
+	return false
+}

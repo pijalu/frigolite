@@ -68,6 +68,15 @@ func (e *Engine) PreupdateNew(i int) interface{} {
 	return e.preupdate.New[i]
 }
 
+// PreupdateNeeded implements execdml.DMLContext.PreupdateNeeded: reports
+// whether any hook consumes preupdate events — the sqlite3_preupdate_hook
+// or the sqlite3_update_hook is registered. The DML executor hoists this
+// check above its per-row event build (the old/new value copies), so an
+// un-hooked connection's DML never materializes the event.
+func (e *Engine) PreupdateNeeded() bool {
+	return e.preupdateHook != nil || e.updateHook != nil
+}
+
 // FirePreupdate sets the current preupdate event and invokes the registered
 // hook (if any). The event state stays valid until the next DML row write, so
 // the hook can query count/old/new. For ROWID tables the sqlite3_update_hook

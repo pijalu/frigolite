@@ -227,6 +227,14 @@ type DMLContext interface {
 	// to the owning engine, which sets the current preupdate event and invokes
 	// the registered sqlite3_preupdate_hook.
 	FirePreupdate(ev PreupdateEvent) *Result
+	// PreupdateNeeded reports whether any hook consumes preupdate events —
+	// the sqlite3_preupdate_hook or the sqlite3_update_hook is registered.
+	// When false, DML skips building the per-row PreupdateEvent entirely
+	// (the old/new value copies and the WITHOUT-ROWID rowid resolution) and
+	// does not call FirePreupdate: no hook could observe the event, and the
+	// public PreupdateCount/Old/New accessors report the event state of the
+	// last hooked DML, exactly as before.
+	PreupdateNeeded() bool
 	// FireUpdateHook reports a row-level INSERT/UPDATE/DELETE on a ROWID table
 	// to the connection's sqlite3_update_hook callback.
 	FireUpdateHook(op, db, table string, rowid int64)

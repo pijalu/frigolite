@@ -754,8 +754,12 @@ func (e *DMLExecutor) finishBulkTriggerRow(tableEntry *schema.Entry, dbCtx *Data
 // fireDeletePreupdate fires the preupdate hook with a deleted row's values
 // (WITHOUT ROWID tables report the synthetic rowid 0 — SQLite uses the key
 // columns instead). The positional snapshot holds exactly the values
-// rowMapColumnValues extracted from the collected map.
+// rowMapColumnValues extracted from the collected map. A no-op when no hook
+// consumes the event.
 func (e *DMLExecutor) fireDeletePreupdate(tableEntry *schema.Entry, dbCtx *DatabaseContext, colDefs []sql.ColumnDef, row *dmlRow) *Result {
+	if !e.ctx.PreupdateNeeded() {
+		return nil
+	}
 	rowID := row.rowID
 	oldVals := row.values
 	delRowID := rowID

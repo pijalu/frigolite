@@ -549,21 +549,25 @@ func (e *DMLExecutor) insertRow(pg *pager.Pager, tableEntry *schema.Entry, colDe
 
 	// Fire the preupdate hook (sqlite3_preupdate_hook) with the new row's
 	// values. WITHOUT ROWID tables report rowid 0 (SQLite uses the key
-	// columns instead); rowid tables report the assigned rowid.
-	rowID := nextRowID
-	if tableIsWithoutRowid(tableEntry.SQL) {
-		rowID = 0
-	}
-	if res := e.ctx.FirePreupdate(PreupdateEvent{
-		Type:  "INSERT",
-		DB:    e.schemaNameForPager(pg),
-		Table: tableEntry.Name,
-		RowID: rowID, RowID2: rowID,
-		RowidTable: !tableIsWithoutRowid(tableEntry.SQL),
-		Old:        nil,
-		New:        append([]interface{}(nil), values...),
-	}); res != nil {
-		return res
+	// columns instead); rowid tables report the assigned rowid. Skipped
+	// entirely when no hook consumes the event (PreupdateNeeded) — the
+	// per-row New copy is a fixed cost of every inserted row otherwise.
+	if e.ctx.PreupdateNeeded() {
+		rowID := nextRowID
+		if tableIsWithoutRowid(tableEntry.SQL) {
+			rowID = 0
+		}
+		if res := e.ctx.FirePreupdate(PreupdateEvent{
+			Type:  "INSERT",
+			DB:    e.schemaNameForPager(pg),
+			Table: tableEntry.Name,
+			RowID: rowID, RowID2: rowID,
+			RowidTable: !tableIsWithoutRowid(tableEntry.SQL),
+			Old:        nil,
+			New:        append([]interface{}(nil), values...),
+		}); res != nil {
+			return res
+		}
 	}
 
 	// Maintain indexes: evaluate partial predicates and expression keys in a
