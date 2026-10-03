@@ -9,6 +9,7 @@ import (
 	"github.com/pijalu/frigolite/internal/fts5"
 	"github.com/pijalu/frigolite/internal/schema"
 	"github.com/pijalu/frigolite/internal/sql"
+	"github.com/pijalu/frigolite/internal/storage"
 )
 
 func (e *Engine) normalizeCorruptionError(res *Result) *Result {
@@ -760,3 +761,30 @@ func (e *Engine) execAfterWrite(stmt sql.Stmt, res *Result, isDML bool) *Result 
 // structural damage (an unknown page type, an out-of-range cell offset) as
 // internal errors; SQLite reports all of them as SQLITE_CORRUPT (fts3corrupt4
 // 27.2: a crash-written page with type 0x00 during a huge recursive INSERT).
+
+// externalSchemaChanged checks one database's schema manager for an external
+// file modification and reports whether it was invalidated. The MAIN database
+// is included: a second connection to the same file may have committed DDL
+// (e.g. ALTER TABLE RENAME COLUMN) that invalidates cached table entries
+// (altercol-2.3). TEMP is in-memory and never tracked.
+func (e *Engine) externalSchemaChanged(ctx *DatabaseContext) bool {
+	if ctx == nil || ctx.Schema == nil || ctx.Pager == nil {
+		return false
+	}
+	if strings.EqualFold(ctx.Name, "TEMP") || strings.EqualFold(ctx.Name, "TEMPORARY") {
+		return false
+	}
+	ctx.Schema.CheckExternalMod()
+	if !ctx.Schema.ConsumeExternalInvalidation() {
+		return false
+	}
+	// Another connection committed to this database; refresh the
+	// per-connection data_version so PRAGMA data_version observes it
+	// (own commits do not change data_version).
+	if hdr := ctx.Pager.Header(); hdr != nil {
+		if dh, err := storage.ParseHeader(hdr); err == nil {
+			e.settings.dataVersion = int64(dh.FileChangeCount) + 1
+		}
+	}
+	return true
+}

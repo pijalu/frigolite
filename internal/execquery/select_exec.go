@@ -53,7 +53,7 @@ func (e *SelectEngine) prepareScanOutputs(s *sql.SelectStmt, tableEntry *schema.
 	if len(s.Joins) > 0 || len(s.OrderBy) > 0 {
 		return needMaps, nil
 	}
-	if !e.ctx.HasWithoutRowidKeyword(strings.ToUpper(tableEntry.SQL)) {
+	if !e.ctx.TableIsWithoutRowidEntry(tableEntry) {
 		return needMaps, nil
 	}
 	withoutRowidPKCols = PKColumnNames(tableEntry.SQL, colDefs)
@@ -249,9 +249,17 @@ func (e *SelectEngine) execRealTableSelect(s *sql.SelectStmt) *Result {
 	// finishSimpleAggFeed below — never engine state, so a nested statement
 	// (a WHERE subquery) can neither step nor consume an enclosing
 	// statement's feed.
-	feed := e.compileSimpleAggFeed(s, tableEntry, colDefs)
-	if feed == nil && len(s.GroupBy) > 0 {
-		feed = e.compileGroupedAggFeed(s, tableEntry, colDefs)
+	//
+	// Both feeds produce a non-nil result only from aggregate columns (or,
+	// grouped, bare GROUP BY projections), so a statement with neither an
+	// aggregate nor a GROUP BY term skips the eligibility walk entirely —
+	// the point-SELECT shape pays nothing for the feed machinery.
+	var feed *simpleAggFeed
+	if e.hasAggregates(s.Columns) || len(s.GroupBy) > 0 {
+		feed = e.compileSimpleAggFeed(s, tableEntry, colDefs)
+		if feed == nil && len(s.GroupBy) > 0 {
+			feed = e.compileGroupedAggFeed(s, tableEntry, colDefs)
+		}
 	}
 	tree := e.ctx.TableBTreePg(dbCtx.Pager, tableEntry.Name, tableEntry.RootPage, true)
 	cursor, err := tree.OpenCursor()
@@ -310,6 +318,12 @@ func (e *SelectEngine) prevalidateSelectChecks(s *sql.SelectStmt, tableEntry *sc
 // references are checked (1.130: SELECT a,b over the same table succeeds
 // because b uses the innocuous f1).
 func (e *SelectEngine) prevalidateSchemaFunctionSafety(s *sql.SelectStmt, colDefs []sql.ColumnDef) error {
+	// The check only constrains tables declaring generated columns; a table
+	// without any takes the early-out so the common shapes never pay the
+	// whole-statement column-reference collection below.
+	if !colDefsHaveGenerated(colDefs) {
+		return nil
+	}
 	refs := collectSelectColumnRefs(s)
 	for _, cd := range colDefs {
 		if cd.Generated == nil {
@@ -332,6 +346,17 @@ func (e *SelectEngine) prevalidateSchemaFunctionSafety(s *sql.SelectStmt, colDef
 		}
 	}
 	return nil
+}
+
+// colDefsHaveGenerated reports whether any column definition declares a
+// generated expression.
+func colDefsHaveGenerated(colDefs []sql.ColumnDef) bool {
+	for i := range colDefs {
+		if colDefs[i].Generated != nil {
+			return true
+		}
+	}
+	return false
 }
 
 // collectSelectColumnRefs returns the lower-cased column names referenced by a
@@ -381,7 +406,7 @@ func (e *SelectEngine) prevalidateIndexCollation(s *sql.SelectStmt, tableEntry *
 // prevalidateRowIDAndRefs validates WITHOUT-ROWID rowid references, unqualified
 // column references, and RAISE usage outside triggers.
 func (e *SelectEngine) prevalidateRowIDAndRefs(s *sql.SelectStmt, tableEntry *schema.Entry, colDefs []sql.ColumnDef) error {
-	if e.ctx.HasWithoutRowidKeyword(strings.ToUpper(tableEntry.SQL)) && !tableHasRealRowIDCol(colDefs) {
+	if e.ctx.TableIsWithoutRowidEntry(tableEntry) && !tableHasRealRowIDCol(colDefs) {
 		if ref := e.findRowIDRef(s, tableEntry.Name, s.From.As, len(s.Joins) > 0); ref != "" {
 			return fmt.Errorf("no such column: %s", ref)
 		}

@@ -526,10 +526,6 @@ func (e *Engine) CrossConnLockError(stmt sql.Stmt) error {
 	if schemaName == "" && !write {
 		return nil // statement class participates in no file lock
 	}
-	key := e.stmtLockKey(stmt, schemaName, write)
-	if key == "" {
-		return nil
-	}
 	// locking_mode=EXCLUSIVE: the first access to the database establishes a
 	// SHARED lock that is never released between transactions (pager.c keeps
 	// the pager lock while lockingMode is EXCLUSIVE), blocking every other
@@ -540,7 +536,21 @@ func (e *Engine) CrossConnLockError(stmt sql.Stmt) error {
 	if lockSchema == "" {
 		lockSchema = "MAIN"
 	}
-	if strings.EqualFold(e.schemaLockingMode(lockSchema), "exclusive") {
+	exclusiveMode := strings.EqualFold(e.schemaLockingMode(lockSchema), "exclusive")
+	// Registry-wide early-out: with no lock marks anywhere (any path, any
+	// connection), no cross-connection check can fail — every query is
+	// "held by OTHER". The statement's key resolution (a schema lookup per
+	// statement) and the whole check loop are skipped; both would answer nil.
+	// The exclusive-mode mark set below must still run, so it disables the
+	// early-out, as does the nolock style's early return.
+	if !exclusiveMode && e.lockStyle != LockStyleNone && !lockreg.Global.AnyMarks() {
+		return nil
+	}
+	key := e.stmtLockKey(stmt, schemaName, write)
+	if key == "" {
+		return nil
+	}
+	if exclusiveMode {
 		lockreg.Global.SetPersistentShared(key, e.connID, true)
 	}
 	switch e.lockStyle {

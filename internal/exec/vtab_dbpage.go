@@ -100,7 +100,20 @@ func (p enginePageSources) AllPageSources() []vtab.NamedPageSource {
 //
 // ok is false when the name is neither; err reports instance creation
 // failures for names that DO resolve to a vtab.
+//
+// The NEGATIVE result ("this name is no vtab updater target") is memoized per
+// engine: notUpdaterVtab* holds name → not-a-vtab under the folded all-schemas
+// fingerprint. A plain-table DML statement pays this probe once per statement
+// (module-registry lookup + findTable + CREATE-SQL module scan) to learn
+// nothing; the memo keeps the repeated statements at one map lookup. The
+// fingerprint moves on any schema change and RegisterVtabModule clears the
+// memo (a late-registered module can flip a negative), so a stale negative is
+// unreachable. Positive results are never cached — instances carry per-bind
+// state (BindSchema).
 func (e *Engine) VTabUpdaterInstance(name string) (vtab.VirtualTable, []sql.ColumnDef, bool, error) {
+	if e.notUpdaterVtabMemo(name) {
+		return nil, nil, false, nil
+	}
 	module, args, entry, ctx, rerr := e.resolveUpdaterVtabTarget(name)
 	if rerr != nil {
 		return nil, nil, true, rerr
@@ -109,6 +122,7 @@ func (e *Engine) VTabUpdaterInstance(name string) (vtab.VirtualTable, []sql.Colu
 		if debugUpdater {
 			fmt.Fprintf(os.Stderr, "VU DBG module nil\n")
 		}
+		e.rememberNotUpdaterVtab(name)
 		return nil, nil, false, nil
 	}
 	vt, err := createVtabModule(module, args, nil)
@@ -204,6 +218,22 @@ func applyHiddenColumnFlags(vt vtab.VirtualTable, defs []sql.ColumnDef) {
 func (e *Engine) DirectOnlyVTab(name string) bool {
 	m, ok := e.vtabs.Find(strings.ToLower(name))
 	return ok && vtab.ModuleIsEponymous(m) && vtab.ModuleIsDirectOnly(m)
+}
+
+// MayScanCreatedVTab implements execquery.DatabaseContext: it reports whether
+// name passes MaterializeCreatedVTab's eligibility early-outs (schema entry
+// with RootPage 0, module kind not scan-blocked, stored SQL naming a vtab or
+// echo module) without materializing the table or reading scan options.
+func (e *Engine) MayScanCreatedVTab(name string) bool {
+	entry, _, err := e.findTable(name)
+	if err != nil || entry == nil || entry.RootPage != 0 {
+		return false
+	}
+	modName, modArgs, isVtab, skip := createdVTabModuleKind(e, entry, name)
+	if skip {
+		return false
+	}
+	return isVtab || isEchoModule(modName, modArgs)
 }
 
 // MaterializeCreatedVTab materializes a CREATE VIRTUAL TABLE instance's rows

@@ -167,7 +167,7 @@ func (e *SelectEngine) buildAmbiguousColMap(operands []fromOperand) map[string][
 // be counted a second time or the qualified ft.rowid reads as ambiguous.
 func (e *SelectEngine) addRowidCols(colInTables map[string][]string, ref, table string, declared map[string]bool) {
 	te, _, terr := e.ctx.FindTable(table)
-	if terr != nil || !e.ctx.HasWithoutRowidKeyword(strings.ToUpper(te.SQL)) {
+	if terr != nil || !e.ctx.TableIsWithoutRowidEntry(te) {
 		for _, r := range []string{"rowid", "_rowid_", "oid"} {
 			if declared[r] {
 				continue

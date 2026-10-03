@@ -434,3 +434,22 @@ func (r *Registry) SharedTxByConn(path string, connID int64) bool {
 	defer r.mu.Unlock()
 	return r.sharedTx[path][connID]
 }
+
+// AnyMarks reports whether the registry holds any lock mark at all — for any
+// path, any connection, of any kind. A registry without marks cannot fail any
+// cross-connection check (every query is "locked/marked by OTHER"), so a
+// statement's lock gate can skip its per-statement resolution entirely. The
+// check is advisory: marks appearing after a false answer is harmless (the
+// caller then runs the full check path).
+func (r *Registry) AnyMarks() bool {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	return len(r.exclusive) > 0 ||
+		len(r.writeTx) > 0 ||
+		len(r.backupLock) > 0 ||
+		len(r.readTx) > 0 ||
+		len(r.sharedTx) > 0 ||
+		len(r.persistentShared) > 0 ||
+		len(r.pending) > 0 ||
+		len(r.dotfileRefs) > 0
+}

@@ -342,6 +342,13 @@ func (e *SelectEngine) execVTabTableFuncForm(s *sql.SelectStmt) (*Result, bool) 
 // generate_series with no arguments) with hidden-column constraints in WHERE
 // (series.c, tabfunc01-1.1).
 func (e *SelectEngine) execEponymousVTabForm(s *sql.SelectStmt) (*Result, bool) {
+	// Eligibility probe first: TryMaterializeEponymousVtab rejects a name
+	// that is not an eponymous module with the same predicate
+	// (eponymousModuleResolvable) before ever reading the scan options, so
+	// ordinary tables skip the speculative reference collection entirely.
+	if !e.eponymousModuleResolvable(s.From.Name) {
+		return nil, false
+	}
 	opts := e.vtabScanOptions(s)
 	residual := opts.Where
 	opts.Residual = &residual
@@ -359,6 +366,13 @@ func (e *SelectEngine) execEponymousVTabForm(s *sql.SelectStmt) (*Result, bool) 
 // ... USING csv etc.): RootPage 0 schema entries whose stored SQL names a
 // registered module.
 func (e *SelectEngine) execCreatedVTabForm(s *sql.SelectStmt) (*Result, bool) {
+	// Eligibility probe first: MaterializeCreatedVTab's own early-outs
+	// (no schema entry / nonzero root page / module kind skip / not a vtab)
+	// all reject without reading the scan options, so ordinary tables skip
+	// the speculative reference collection entirely.
+	if !e.ctx.MayScanCreatedVTab(s.From.Name) {
+		return nil, false
+	}
 	opts := e.vtabScanOptions(s)
 	createdResidual := opts.Where
 	opts.Residual = &createdResidual

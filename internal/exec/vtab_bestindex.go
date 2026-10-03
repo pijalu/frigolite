@@ -27,8 +27,16 @@ type vtabInSlot struct {
 // RegisterVtabModule registers a virtual-table module under the given name in
 // the engine's registry (sqlite3_create_module parity), making it available
 // to CREATE VIRTUAL TABLE ... USING <name> and FROM <name>(...) statements.
+// The per-engine negative vtab memos (VTabUpdaterInstance, echoVTabSource)
+// are cleared: a module registered AFTER a statement saw "not a vtab" for
+// that name can flip the answer, and the memo's schema fingerprint does not
+// move on registration.
 func (e *Engine) RegisterVtabModule(name string, m vtab.Module) {
 	e.vtabs.Register(name, m)
+	e.notUpdaterVtabFP = 0
+	e.notUpdaterVtabNames = nil
+	e.echoSourceFP = 0
+	e.echoSourceNames = nil
 }
 
 // readVtabWithBestIndexPlan is the runtime half of the virtual-table

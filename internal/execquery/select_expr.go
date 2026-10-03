@@ -328,7 +328,7 @@ func (e *SelectEngine) checkWhereCollations(where sql.Expr, colDefs []sql.Column
 	if from.As != "" {
 		refName = from.As
 	}
-	colByName := collationMap(colDefs)
+	colByName := e.collationMapFor(colDefs)
 	var checkErr error
 	WalkExprFull(where, func(e2 sql.Expr) {
 		if checkErr != nil {
@@ -352,6 +352,29 @@ func collationMap(colDefs []sql.ColumnDef) map[string]string {
 			m[strings.ToLower(c.Name)] = c.Collate
 		}
 	}
+	return m
+}
+
+// collationMapFor returns the WHERE-collation map for colDefs, memoized per
+// SelectEngine and guarded by the schema fingerprint plus the colDefs slice
+// identity — the seekColIndexFor pattern (rowid_seek.go). colDefs come from
+// the engine's cached table entries, so the same schema serves the identical
+// slice across statements; DDL moves the fingerprint and rebuilds the map.
+// The map is read-only after build (checkBopCollationSides only looks up), so
+// sharing it across statements is safe.
+func (e *SelectEngine) collationMapFor(colDefs []sql.ColumnDef) map[string]string {
+	if len(colDefs) == 0 {
+		return collationMap(colDefs)
+	}
+	fp := uint64(0)
+	if sm := e.ctx.Schema(); sm != nil {
+		fp = sm.SchemaFingerprint()
+	}
+	if e.collMapCache != nil && e.collMapFingerprint == fp && e.collMapDefs == &colDefs[0] && e.collMapLen == len(colDefs) {
+		return e.collMapCache
+	}
+	m := collationMap(colDefs)
+	e.collMapFingerprint, e.collMapDefs, e.collMapLen, e.collMapCache = fp, &colDefs[0], len(colDefs), m
 	return m
 }
 

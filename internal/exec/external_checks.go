@@ -16,7 +16,9 @@ import (
 // statements (schema.Manager.checkExternalMod's checkedThisStmt gate then
 // skips the redundant FileChangeCounter Pread for the rest of the statement).
 func (e *Engine) execResetExternalChecks() {
-	for _, ctx := range e.databases {
+	// dbList (a slice, ATTACH order) holds the same contexts as the databases
+	// map — the per-statement reset stays off the map-iteration path.
+	for _, ctx := range e.dbList {
 		if ctx != nil && ctx.Schema != nil {
 			ctx.Schema.ResetStatementCheck()
 		}
@@ -50,7 +52,8 @@ func (e *Engine) execDBFileChecks(stmt sql.Stmt) *Result {
 	// park a read mark and block a concurrent checkpointer where C runs the
 	// checkpoint outside any read transaction.
 	pinWAL := !stmtSkipsWalReadPin(stmt)
-	for _, ctx := range e.databases {
+	// dbList over the map: same context set, no per-statement map iteration.
+	for _, ctx := range e.dbList {
 		dbChanged, err := checkDBFileCtx(ctx, e.settings.writableSchema, pinWAL)
 		if err != nil {
 			return &Result{Error: err}

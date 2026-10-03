@@ -1,6 +1,8 @@
 package exec
 
 import (
+	"strings"
+
 	"github.com/pijalu/frigolite/internal/btree"
 	"github.com/pijalu/frigolite/internal/execexpr"
 	"github.com/pijalu/frigolite/internal/execquery"
@@ -192,6 +194,24 @@ func (e *Engine) ParseIndexColumns(sqlStr string) []string {
 
 func (e *Engine) HasWithoutRowidKeyword(upperSQL string) bool {
 	return hasWithoutRowidKeyword(upperSQL)
+}
+
+// TableIsWithoutRowidEntry implements execquery.DatabaseContext: the entry's
+// WITHOUT ROWID declaration, memoized per engine on the entry identity plus
+// the folded all-schemas fingerprint (DDL replaces schema entries and moves
+// the fingerprint, so the memo rebuilds; a schema entry's SQL is immutable
+// within one entry's lifetime).
+func (e *Engine) TableIsWithoutRowidEntry(entry *schema.Entry) bool {
+	if entry == nil {
+		return false
+	}
+	fp := e.allSchemasFingerprint()
+	if e.wrEntryMemo == entry && e.wrEntryFingerprint == fp {
+		return e.wrEntryVal
+	}
+	v := hasWithoutRowidKeyword(strings.ToUpper(entry.SQL))
+	e.wrEntryMemo, e.wrEntryFingerprint, e.wrEntryVal = entry, fp, v
+	return v
 }
 
 func (e *Engine) ReverseUnordered() bool { return e.settings.reverseUnordered }
