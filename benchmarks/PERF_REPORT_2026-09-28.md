@@ -678,3 +678,75 @@ structural facts: SQLite's register-based VM with typed values
 inherent to the pure-Go value model) and GROUP BY's per-row key
 evaluation (2.3×). Both are multi-round rewrites documented in
 FLEET-STATE rather than scoped optimizations.
+
+# PERF-PARITY2 — 2026-10-02/03: seven-tranche round (per-statement tax + streaming aggregates + btree diet)
+
+## Final table (frigolite main vs sqlite3 3.54, identical op counts, quiet machine)
+
+| phase | frigolite | sqlite3 | gap | campaign start (09-28) |
+|---|---|---|---|---|
+| insert (txn) | 385,576 ops/s | 1,521,306 | 3.9× | 10.9× |
+| point select | 493,966 ops/s | 1,077,244 | 2.2× | 1040× |
+| range scan | 21,829,361 rows/s | 53,172,634 | 2.4× | 6.5× |
+| GROUP BY | 47 q/s | 38 | **1.24× faster** | 3.9× slower |
+| update (txn) | 284,281 ops/s | 1,258,368 | 4.4× | 2049× |
+| delete (txn) | 392,290 ops/s | 1,596,764 | 4.1× | 885× |
+| file autocommit insert | 10,728 ops/s | 8,164 | **1.31× faster** | ~parity |
+
+Two phases now BEAT sqlite3: GROUP BY (streaming grouped feed —
+aggregators keyed during the scan, output per GROUP) and file-backed
+autocommit inserts. Heap at group time fell 114MB → 15.5MB; peak insert
+heap 7.5MB vs sqlite3's 6.1MB RSS (same order).
+
+## Tranches merged (all fleet/*, each gated on full suite + SOLID + quality gates)
+
+1. **perf-floor** — memoized column indexes (kill per-statement
+   buildColumnIndex ×3 packages), maphash-keyed template cache,
+   depth-indexed clone scratch, allLockKeys memo, pre-existing
+   btree.Close released-flag race fix (4 DATA RACEs on pristine main).
+2. **perf-dml2** — btree.c dropCell/freeSpace/allocateSpace/defragmentPage
+   port (O(1) freeblock delete instead of full-leaf repack),
+   OpenCursorAtRoot, DeleteCellByRowIDAt/OverwriteCellByRowIDAt (post-seek
+   write without re-descent), in-place cell overwrite via reusable cell
+   image, lazy conflict-scan tree.
+3. **perf-scanagg** — streaming GROUP BY aggregate feed (OP_AggStep/
+   AggFinal parity, typed map[int64] buckets on provable spelling
+   equality), batch range-scan leaves with seeked StartCell, planner
+   BETWEEN recognition (kills a per-query tableRowCount walk).
+4. **FIX.GROUPKEY** — INTEGER/REAL numeric group parity: SQLite compares
+   INTEGER and REAL numerically, so 1e15 and 1000000000000000 are ONE
+   GROUP BY group; collationGroupKey/typedIntGroupKey/groupKeyScalarEqual
+   unified on integralFloatKey. Oracle battery (2^53 boundary, ±2^63
+   edges, ±0.0, 9e99, text '5'): 9-group partition byte-identical.
+5. **perf-floor2** — speculative vtab dispatch (eligibility probes before
+   option-building), TableIsWithoutRowidEntry memo (ToUpper ×10/statement
+   was 16% of point CPU), preupdate per-row findTable → per-statement
+   memo, vtab negative-probe memos, lock-gate AnyMarks() short-circuit.
+6. **perf-insert2** — pooled leaf-split staging buffers, one cached write
+   tree per insert identity, insert staging diet. The finisher agent's
+   full-suite gate caught TWO latent corruption bugs the diet introduced:
+   stale storage.Cell wire fields across overflow rows ("database disk
+   image is malformed" on fts5prefix) and zeroblob tail trusting
+   zero-fill on a reused encode buffer (cross-rtree shadow corruption) —
+   both fixed (cell-field reset, explicit clear/MEM_Zero parity) and
+   pinned.
+7. **perf-point3** — OpenCursorAtRoot seek paths (leftmost descent was
+   dead), one-census validation walk (single node-kind collection gates a
+   dozen prepare validators), projection-name + output-collation memos,
+   collation-free table fast path, CTE fast exit.
+
+## Correctness fixes this round
+
+- INTEGER/REAL GROUP BY split (oracle divergence, fixed).
+- Stale TestRowidSeekRange expectation: BETWEEN ' 10 ' AND 12 = 3 rows
+  (oracle-verified; rowid affinity converts spaced text).
+- insert2's two staging-diet corruption bugs (above).
+- btree.Close pooled-cursor race (pre-existing).
+
+## Remaining structural walls (documented, multi-round)
+
+Interface-boxed value pipeline (scan 2.4×, update/delete 4.1–4.4×),
+template-clone copy-on-write floor (insert 3.9×, point 2.2×), btree
+leaf-descent cost on point lookups. All paths now carry memoized
+statement-level metadata; further movement requires the value-model
+rewrite documented in FLEET-STATE.
