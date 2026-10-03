@@ -801,6 +801,18 @@ type cachedTableEntry struct {
 type sqlTemplateEntry struct {
 	template string     // normalized SQL with ? for literals
 	ast      []sql.Stmt // cached AST (with original values)
+	slots    *templateSlots
+	live     []liveTemplateClone
+}
+
+// liveTemplateClone is one exec depth's persistent clone of the entry's AST
+// (slot-path substitution form). The clone is private to this engine and
+// rewritten in place — only at its literal leaves — by every same-depth hit;
+// a clone is reused only after the statement that consumed it at the same
+// depth finished (the clone_scratch per-depth sequentiality contract).
+type liveTemplateClone struct {
+	depth int
+	stmts []sql.Stmt
 }
 
 // maxTemplateCacheSize limits the template cache entries.

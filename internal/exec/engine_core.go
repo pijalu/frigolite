@@ -312,30 +312,80 @@ func (e *Engine) tryTemplateCache(sqlStr string, normSQL []byte, values []interf
 	// template below. Results are identical either way: a substituted AST is
 	// byte-for-byte what a fresh parse of the statement text produces, and
 	// statement execution treats AST nodes as immutable.
-	var cloned []sql.Stmt
-	var okClone bool
+	//
+	// Slot-path form (immediate-consume callers, single-statement template):
+	// rewrite the entry's live per-depth clone's literal leaves — no walk,
+	// no allocation. Retained Prepare (scratchOK=false) never takes it: a
+	// retained AST must not alias the live clone a later hit rewrites
+	// (FIX.PREPARE-ALIAS).
 	if scratchOK {
-		cloned, okClone = e.cloneStmtsValuesScratch(cached.ast, values)
-	} else {
-		c := exprClone{values: values}
-		cloned = make([]sql.Stmt, len(cached.ast))
-		okClone = true
-		for i, stmt := range cached.ast {
-			out, ok2 := c.stmt(stmt)
-			if !ok2 {
-				okClone = false
-				break
-			}
-			cloned[i] = out
+		if stmts, ok := e.trySlotPathLive(cached, values); ok {
+			return stmts, true
 		}
-		if okClone && c.idx != len(values) {
+		cloned, okClone := e.cloneStmtsValuesScratch(cached.ast, values)
+		if okClone {
+			return cloned, true
+		}
+		return nil, false
+	}
+	c := exprClone{values: values}
+	cloned := make([]sql.Stmt, len(cached.ast))
+	okClone := true
+	for i, stmt := range cached.ast {
+		out, ok2 := c.stmt(stmt)
+		if !ok2 {
 			okClone = false
+			break
 		}
+		cloned[i] = out
+	}
+	if okClone && c.idx != len(values) {
+		okClone = false
 	}
 	if !okClone {
 		return nil, false
 	}
 	return cloned, true
+}
+
+// trySlotPathLive serves a template hit through the entry's precomputed
+// slot paths: the values are gated against the slot classes (mirroring the
+// COW walkers' gates — a refusal here falls back to the COW form, which
+// refuses identically), then written into the entry's live clone for the
+
+// current exec depth. The first hit at a depth builds that clone privately
+// through the standalone COW walker (fresh allocations, exactly the
+// scratchOK=false form — the per-depth scratch is NOT used: its tenants are
+// recycled by the next substitution, while the live clone must persist).
+func (e *Engine) trySlotPathLive(cached *sqlTemplateEntry, values []interface{}) ([]sql.Stmt, bool) {
+	if cached.slots == nil || !cached.slots.validateValues(values) {
+		return nil, false
+	}
+	depth := e.tx.execDepth
+	for i := range cached.live {
+		if lc := &cached.live[i]; lc.depth == depth {
+			if !cached.slots.apply(lc.stmts[0], values) {
+				// Unreachable for a collector-produced table; fall back to
+				// the COW clone rather than serve a stale literal.
+				return nil, false
+			}
+			return lc.stmts, true
+		}
+	}
+	c := exprClone{values: values}
+	stmts := make([]sql.Stmt, len(cached.ast))
+	for i, stmt := range cached.ast {
+		out, ok := c.stmt(stmt)
+		if !ok {
+			return nil, false
+		}
+		stmts[i] = out
+	}
+	if c.idx != len(values) {
+		return nil, false
+	}
+	cached.live = append(cached.live, liveTemplateClone{depth: depth, stmts: stmts})
+	return stmts, true
 }
 
 // storeTemplateCache records a parsed statement list as a template for
@@ -356,6 +406,7 @@ func (e *Engine) storeTemplateCache(normSQL []byte, values []interface{}, stmts 
 	e.caches.templateCache[key] = &sqlTemplateEntry{
 		template: string(normSQL),
 		ast:      stmts,
+		slots:    collectTemplateSlots(stmts),
 	}
 }
 
