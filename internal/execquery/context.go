@@ -295,6 +295,13 @@ type SelectEngine struct {
 	collMapDefs        *sql.ColumnDef
 	collMapLen         int
 	collMapCache       map[string]string
+	// colNamesMemo* memoizes the result-column name lists of bare-reference
+	// projections (buildColumnNames in select_point_memo.go): schema
+	// fingerprint + template-shared slices identity guarded, flushed on DDL
+	// and at a small entry cap. A hit returns a fresh copy; only the
+	// recomputation disappears.
+	colNamesMemoFP uint64
+	colNamesMemo   map[colNamesMemoKey][]string
 	cteScopes         [][]sql.CTEDef           // CTE scopes from enclosing statements (innermost last)
 	resolvingCTEs     map[*sql.SelectStmt]bool // CTE bodies currently being resolved (circular reference detection); keyed by the CTE body AST so a same-named inner WITH shadow is a different CTE
 	currentScanTable  string                   // table name being scanned (for qualified column resolution)

@@ -303,6 +303,17 @@ func (e *SelectEngine) selectOutputCollations(s *sql.SelectStmt) []string {
 	if s == nil {
 		return nil
 	}
+	// Bare-reference single-member shape: the per-column collation reduces to
+	// the declared table collation read off the parsed colDefs — no per-column
+	// collation map, no per-member table resolution (select_point_memo.go).
+	// Bare-reference single-table shape: the per-column collation reduces to
+	// the declared table collation read off the parsed colDefs — no per-column
+	// collation map, no repeated table resolution (select_point_memo.go).
+	if outputCollationsFast(s) {
+		if colls := e.outputCollationsBare(s); colls != nil {
+			return colls
+		}
+	}
 	colls := make([]string, 0, len(s.Columns))
 	for ci := range s.Columns {
 		coll := ""

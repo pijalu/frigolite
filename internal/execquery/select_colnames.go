@@ -198,7 +198,25 @@ func tableRefAliasTarget(ref sql.TableRef, name string) string {
 	return ""
 }
 
+// buildColumnNames builds the result-column name list, behind the
+// bare-reference memo (select_point_memo.go): the memoized shapes skip the
+// per-column resolution recomputation, every other shape walks the same
+// builder as before.
 func (e *SelectEngine) buildColumnNames(columns []sql.SelectColumn, colDefs []sql.ColumnDef, sel *sql.SelectStmt) []string {
+	if columnNamesMemoizable(columns) && len(colDefs) > 0 && !e.ctx.FullColumnNames() {
+		if names, ok := e.columnNamesMemoGet(columns, colDefs); ok {
+			e.applyColumnWidthLimit(names)
+			return names
+		}
+		names := e.buildColumnNamesCompute(columns, colDefs, sel)
+		e.columnNamesMemoPut(columns, colDefs, names)
+		return names
+	}
+	return e.buildColumnNamesCompute(columns, colDefs, sel)
+}
+
+// buildColumnNamesCompute is the uncached name-list builder.
+func (e *SelectEngine) buildColumnNamesCompute(columns []sql.SelectColumn, colDefs []sql.ColumnDef, sel *sql.SelectStmt) []string {
 	var names []string
 	for _, col := range columns {
 		names = append(names, e.selectColumnName(col, colDefs, sel)...)
