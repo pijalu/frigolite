@@ -425,8 +425,14 @@ func encodeValueInto(v interface{}, buf []byte) {
 	case []byte:
 		copy(buf, val)
 	case value.ZeroBlob:
-		// buf is already zero-filled (allocated with make([]byte, n));
-		// zeroblob content needs no copy
+		// zeroblob content is all zeros. Callers encoding into a FRESH
+		// buffer (EncodeRecord's make) relied on the zero-fill; the insert
+		// path's REUSABLE record buffer (PERF.INSERT2-4's insRecBuf) keeps
+		// the previous record's bytes in exactly this tail, which then
+		// leaked onto disk as the zeroblob's content (rtree xCreate seeded
+		// each new tree's root node from the previous rtree's node blob).
+		// Expand the zeros explicitly, SQLite MEM_Zero-on-demand parity.
+		clear(buf)
 	default:
 		s := fmt.Sprintf("%v", v)
 		copy(buf, s)
