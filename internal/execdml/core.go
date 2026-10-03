@@ -137,6 +137,19 @@ type DMLExecutor struct {
 	insRecBuf  []byte
 	insIPKVals []interface{}
 
+	// insRowRes / insStmtRes are the insert path's reusable success results:
+	// insertRow's per-row {Changes:1} and execInsertTuples' per-statement
+	// change count (two heap Results per INSERT dominated the insert-phase
+	// allocation profile). Safe under trigger nesting: a nested statement's
+	// write strictly nests inside the outer row's consumption window — the
+	// outer caller reads the scratch's fields only after every nested
+	// statement has returned (each nesting consumes its fields before
+	// returning) — and every other result shape (errors, RETURNING row sets,
+	// upsert outcomes) is built fresh. Each reuse assigns a full composite
+	// literal, so no field (including the unexported flags) survives.
+	insRowRes  Result
+	insStmtRes Result
+
 	// insTree is the insert write path's cached b-tree wrapper (see
 	// insertWriteTree): one wrapper per (pager, root, kind) identity, closed
 	// and replaced on identity change, never re-armed after Close.

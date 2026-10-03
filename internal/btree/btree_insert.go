@@ -21,6 +21,19 @@ func (t *BTree) InsertCell(newCell *storage.Cell) error {
 		// the write instead of dereferencing the reset wrapper.
 		return errCursorOwnerClosed
 	}
+	// Append-cursor fast path (btree.c's rightmost-cursor reuse): a rightmost
+	// append with a trusted saved leaf is written in place, O(1) amortized.
+	// Every bail-out clears the slot, so the generic path below always runs
+	// with the slot untrusted and re-establishes it at the end.
+	if t.isTable {
+		handled, err := t.insertQuickAppend(newCell)
+		if err != nil {
+			return err
+		}
+		if handled {
+			return nil
+		}
+	}
 	// The insert walk's parse slots are pooled per InsertCell (the recursion
 	// below never re-enters InsertCell on the same wrapper).
 	t.insScratch = insertScratchPool.Get().(*[4]storage.BTreePage)
@@ -41,29 +54,38 @@ func (t *BTree) InsertCell(newCell *storage.Cell) error {
 		return err
 	}
 	if len(splits) > 0 {
-		// Root page split.
-		if t.rootPage != 1 {
-			// btree.c balance_deeper keeps the root page as the root: its
-			// page number never changes (schema entries stay valid) and the
-			// two halves move to freshly allocated pages in ascending order.
-			return t.relocateRootSplit(splits)
-		}
-		// The schema b-tree (sqlite_schema) is permanently rooted at page 1:
-		// page 1 is the database file header page and cannot be demoted to a
-		// child. When its root splits, page 1 becomes an interior page and
-		// the split halves are moved to newly allocated pages.
-		rootPg, err := t.createInteriorRoot(t.rootPage, splits[0], splits[0].pageNum)
-		if err != nil {
+		if err := t.resolveInsertRootSplits(splits); err != nil {
 			return err
 		}
-		for i := 1; i < len(splits); i++ {
-			if err := t.addInteriorCellToPage(rootPg.PageNum, splits[i-1].pageNum, splits[i], splits[i].pageNum); err != nil {
-				return err
-			}
-		}
-		t.rootPage = rootPg.PageNum
 	}
+	if t.isTable {
+		// Park the append cursor when this insert landed at the right edge
+		// (the append-cursor fast path's establishment step).
+		t.noteAppendInsert(newCell)
+	}
+	return nil
+}
 
+// resolveInsertRootSplits applies a root page's split chain. A non-schema
+// root goes through balance_deeper's relocation (the root page number never
+// changes and the halves move to fresh pages); the schema b-tree is
+// permanently rooted at page 1 — the database header page cannot be demoted
+// to a child — so its root becomes an interior page and the halves move to
+// newly allocated pages.
+func (t *BTree) resolveInsertRootSplits(splits []leafSplitResult) error {
+	if t.rootPage != 1 {
+		return t.relocateRootSplit(splits)
+	}
+	rootPg, err := t.createInteriorRoot(t.rootPage, splits[0], splits[0].pageNum)
+	if err != nil {
+		return err
+	}
+	for i := 1; i < len(splits); i++ {
+		if err := t.addInteriorCellToPage(rootPg.PageNum, splits[i-1].pageNum, splits[i], splits[i].pageNum); err != nil {
+			return err
+		}
+	}
+	t.rootPage = rootPg.PageNum
 	return nil
 }
 

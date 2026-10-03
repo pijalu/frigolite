@@ -156,6 +156,13 @@ type BTree struct {
 	// level — without two heap headers per INSERT.
 	insScratch *[4]storage.BTreePage
 	insDepth   int
+
+	// quickPageScratch backs verifyQuickLeaf's parsed leaf header
+	// (btree_append_cursor.go): the append-cursor fast path never recurses
+	// and the parsed header is not used after writeLeafCell returns, so one
+	// struct slot on the wrapper (same single-goroutine ownership contract
+	// as cellScratch/insScratch) avoids a per-insert heap escape.
+	quickPageScratch storage.BTreePage
 }
 
 // insertScratchPool recycles the insert walk's parse-slot arrays. Buffers
@@ -488,6 +495,9 @@ func (t *BTree) RootPageType() byte {
 // DELETE FROM %_segments: 72 of 187 blocks became unfindable).
 func (t *BTree) Clear() error {
 	t.saveAllCursors() // btree.c saveAllCursors on the clearTable path
+	cursorRegMu.Lock()
+	t.invalidateAppendCursorLocked() // a cleared tree has no rightmost leaf
+	cursorRegMu.Unlock()
 	pg, err := t.pager.ReadPage(t.rootPage)
 	if err != nil {
 		return err
@@ -963,6 +973,9 @@ func leafHasRoom(pg *pager.Page, page *storage.BTreePage, cellData []byte, coff 
 // (defragmentPage parity).
 func (t *BTree) DeleteCell(cellIdx int) error {
 	t.saveAllCursors() // btree.c saveAllCursors on the dropCell path
+	cursorRegMu.Lock()
+	t.invalidateAppendCursorLocked() // a delete may remove the maximum key
+	cursorRegMu.Unlock()
 	pg, err := t.pager.ReadPage(t.rootPage)
 	if err != nil {
 		return err
