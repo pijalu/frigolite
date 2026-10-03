@@ -425,6 +425,11 @@ type rangeSeekRow struct {
 	// rows step it instead of decoding the remaining columns and
 	// materializing output rows / row maps.
 	feed *simpleAggFeed
+	// typed, when non-nil, is the feed's direct-from-payload lane: under a
+	// covered WHERE the loop's only per-row consumers are the feed's own
+	// aggregate arguments, and the lane steps them straight off the record
+	// bytes (no values buffer, no boxing, no StructRow assembly).
+	typed *typedAggLane
 	// whereCovered marks a plan whose seek bounds enforce every WHERE
 	// conjunct (rowidSeekAnalysis.covers): the per-row WHERE re-evaluation
 	// is redundant and skipped.
@@ -432,6 +437,11 @@ type rangeSeekRow struct {
 
 	srow   *StructRow
 	values []interface{}
+	// whereCols/restCols are the phase-1/phase-2 decode sets by position
+	// (the maps' membership materialized once — the decode loop's per-column
+	// test is a slice index).
+	whereCols []bool
+	restCols  []bool
 	// serialTypes is the iterator's reusable record-header type buffer
 	// (parseRecordSerialTypesInto); consumed within each row's decode.
 	serialTypes []uint64
@@ -535,7 +545,13 @@ func (e *SelectEngine) newRangeSeekRow(s *sql.SelectStmt, cursor *btree.Cursor, 
 		wrapCols = nil
 		ipkIdx = filterFeedReadIPK(ipkIdx, whereIdx)
 	}
-	return &rangeSeekRow{
+	// Under the covered plan the typed lane replaces the whole per-row decode
+	// pipeline when every call can feed unboxed.
+	var typed *typedAggLane
+	if a.covers && feed != nil {
+		typed = e.compileTypedAggLane(feed, colDefs)
+	}
+	r := &rangeSeekRow{
 		e:            e,
 		s:            s,
 		cursor:       cursor,
@@ -547,10 +563,14 @@ func (e *SelectEngine) newRangeSeekRow(s *sql.SelectStmt, cursor *btree.Cursor, 
 		needMaps:     needMaps,
 		affWrapIdx:   affinityWrapIndices(colDefs, wrapCols),
 		feed:         feed,
+		typed:        typed,
 		whereCovered: a.covers,
+		whereCols:    boolDecodeSet(whereIdx, len(colDefs)),
+		restCols:     boolDecodeSet(restIdx, len(colDefs)),
 		values:       make([]interface{}, len(colDefs)),
 		srow:         &StructRow{Index: colIndex},
 	}
+	return r
 }
 
 // affinityWrapIndices lists the column indices whose values receive the
@@ -726,6 +746,9 @@ func (it *rangeSeekRow) step(payload []byte, rowID int64) (done, ok bool) {
 // passing row and emits it. ok=false marks an anomaly the scan fallback
 // re-evaluates and surfaces identically.
 func (it *rangeSeekRow) processRow(payload []byte, rowID int64) bool {
+	if it.typed != nil {
+		return it.processRowTyped(payload, rowID)
+	}
 	if !it.decodePhaseOne(payload, rowID) {
 		return false
 	}
@@ -755,6 +778,22 @@ func (it *rangeSeekRow) processRow(payload []byte, rowID int64) bool {
 	return true
 }
 
+// processRowTyped runs the direct-feed lane's row step: the lane owns the
+// covered loop, stepping the accumulators straight off the record bytes (no
+// decode, no WHERE — a covered plan has no per-row predicate). ok=false
+// falls back to the scan like every processRow anomaly.
+func (it *rangeSeekRow) processRowTyped(payload []byte, rowID int64) bool {
+	st, dataStart, err := parseRecordSerialTypesInto(payload, it.serialTypes[:0])
+	if err != nil {
+		return false
+	}
+	it.serialTypes = st
+	if err := it.typed.stepDirect(payload, dataStart, st, rowID); err != nil {
+		return false
+	}
+	return true
+}
+
 // decodePhaseOne decodes one table-leaf cell's WHERE-referenced columns into
 // the REUSED phase-1 StructRow (the scan's fillStructRowFromTypes pipeline:
 // dropped-column re-alignment, ALTER TABLE ADD COLUMN defaults, affinity
@@ -772,7 +811,7 @@ func (it *rangeSeekRow) decodePhaseOne(payload []byte, rowID int64) bool {
 	for i := range values {
 		values[i] = nil
 	}
-	storage.DecodeRecordValuesFromTypes(payload, dataStart, values, it.serialTypes, it.whereIdx)
+	storage.DecodeRecordValuesFromTypesCols(payload, dataStart, values, it.serialTypes, it.whereCols)
 	it.e.fillSeekRowPhaseOne(values, len(it.serialTypes), it.srow, it.colDefs, rowID, it.affWrapIdx, it.ipkIdx)
 	return true
 }
@@ -788,7 +827,7 @@ func (it *rangeSeekRow) refill(srow *StructRow, payload []byte) bool {
 	if err != nil {
 		return false
 	}
-	storage.DecodeRecordValuesFromTypes(payload, dataStart, srow.Values, it.serialTypes, it.restIdx)
+	storage.DecodeRecordValuesFromTypesCols(payload, dataStart, srow.Values, it.serialTypes, it.restCols)
 	it.e.applyColumnDefaults(srow.Values, it.colDefs, len(it.serialTypes))
 	for _, i := range it.ipkIdx {
 		if srow.Values[i] == nil {

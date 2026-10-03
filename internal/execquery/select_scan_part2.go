@@ -167,14 +167,14 @@ func hasIPKRowidAliasCol(colDefs []sql.ColumnDef) bool {
 // fillStructRowFromTypes fills a StructRow using pre-parsed serial types.
 // It clears all values and decodes only the columns in colIndices.
 // Unlike fillStructRow, it does not re-parse the record header.
-func (e *SelectEngine) fillStructRowFromTypes(sr *StructRow, payload []byte, dataStart int, colDefs []sql.ColumnDef, rowID int64, plan *affinityPlan, serialTypes []uint64, colIndices map[int]bool, wrOrder []int) {
+func (e *SelectEngine) fillStructRowFromTypes(sr *StructRow, payload []byte, dataStart int, colDefs []sql.ColumnDef, rowID int64, plan *affinityPlan, serialTypes []uint64, colIndices []bool, wrOrder []int) {
 	values := sr.Values
 	for i := range values {
 		values[i] = nil
 	}
 	sr.RowID = rowID
 
-	storage.DecodeRecordValuesFromTypes(payload, dataStart, values, serialTypes, colIndices)
+	storage.DecodeRecordValuesFromTypesCols(payload, dataStart, values, serialTypes, colIndices)
 
 	// WITHOUT ROWID index-leaf records are PK-first storage order: permute
 	// to declared order BEFORE defaults/affinity so every later consumer
