@@ -66,26 +66,138 @@ func (e *DMLExecutor) dmlColumnLookup(colDefs []sql.ColumnDef, hasRowid bool) ma
 //     "misuse of aggregate: NAME()".
 //
 // qualifiers lists the valid table qualifiers (the table name plus a
-// statement alias when present). WalkExprFull treats Subquery/ExistsExpr as
-// leaves, so subquery bodies are not descended into — they resolve against
-// their own scope.
+// statement alias when present). Subquery/ExistsExpr are leaves — subquery
+// bodies are not descended into, they resolve against their own scope.
+//
+// The name-resolution walk and the comparison-collation resolution
+// (validateDMLComparisonCollations) used to be two closure walks per
+// statement; they are fused into one allocation-free walk here with the
+// exact output contract: the FIRST name-resolution error in walk order
+// wins, and a collation error reports only when no resolution error exists
+// anywhere in the statement's expressions (the resolution pass used to run
+// to completion before the collation pass started).
 func (e *DMLExecutor) validateDMLExprs(qualifiers []string, colDefs []sql.ColumnDef, hasRowid bool, exprs []sql.Expr) *Result {
 	lookup := e.dmlColumnLookup(colDefs, hasRowid)
+	var collErr error
 	for _, ex := range exprs {
 		if ex == nil {
 			continue
 		}
-		if err := e.dmlExprError(lookup, qualifiers, ex); err != nil {
+		if err := e.walkDMLExprValidation(ex, lookup, qualifiers, colDefs, &collErr); err != nil {
 			return &Result{Error: err}
 		}
 	}
-	// resolve.c also prepares each expression's collation: comparison
-	// operands resolve the compared columns' declared collations and COLLATE
-	// operators name registered sequences, else "no such collation
-	// sequence: NAME" fires at prepare time (collate3-2.3/3.12 analogs in
-	// DML WHERE clauses).
-	if err := e.validateDMLComparisonCollations(colDefs, exprs); err != nil {
-		return &Result{Error: err}
+	if collErr != nil {
+		return &Result{Error: collErr}
+	}
+	return nil
+}
+
+// dmlValidationWalker is the fused validation state for one statement.
+type dmlValidationWalker struct {
+	e         *DMLExecutor
+	lookup    map[string]bool
+	quals     []string
+	colDefs   []sql.ColumnDef
+	collErr   *error
+}
+
+// walkDMLExprValidation walks one expression pre-order (the WalkExprFull /
+// ForEachExprChild order, subquery bodies excluded), resolving names and
+// functions as it goes and recording the first comparison-collation error.
+func (e *DMLExecutor) walkDMLExprValidation(ex sql.Expr, lookup map[string]bool, qualifiers []string, colDefs []sql.ColumnDef, collErr *error) error {
+	w := dmlValidationWalker{e: e, lookup: lookup, quals: qualifiers, colDefs: colDefs, collErr: collErr}
+	return w.expr(ex)
+}
+
+// expr validates one node and recurses into its children in traversal order.
+func (w *dmlValidationWalker) expr(ex sql.Expr) error {
+	if ex == nil {
+		return nil
+	}
+	switch v := ex.(type) {
+	case *sql.Subquery, *sql.ExistsExpr:
+		return nil
+	case *sql.ColumnRef:
+		if err := w.e.dmlColumnRefError(v, w.lookup, w.quals); err != nil {
+			return err
+		}
+	case *sql.FuncCall:
+		if err := w.e.dmlFuncCallError(v); err != nil {
+			return err
+		}
+	case *sql.BinaryOp:
+		if err := w.e.comparisonCollationError(ex, w.colDefs); err != nil && *w.collErr == nil {
+			*w.collErr = err
+		}
+		if err := w.expr(v.Left); err != nil {
+			return err
+		}
+		return w.expr(v.Right)
+	case *sql.IsDistinctFrom:
+		if err := w.expr(v.Left); err != nil {
+			return err
+		}
+		return w.expr(v.Right)
+	case *sql.IsNotDistinctFrom:
+		if err := w.expr(v.Left); err != nil {
+			return err
+		}
+		return w.expr(v.Right)
+	case *sql.ParenExpr:
+		return w.expr(v.Expr)
+	case *sql.Between:
+		if err := w.expr(v.Operand); err != nil {
+			return err
+		}
+		if err := w.expr(v.Low); err != nil {
+			return err
+		}
+		return w.expr(v.High)
+	case *sql.InList:
+		if err := w.expr(v.Operand); err != nil {
+			return err
+		}
+		for _, item := range v.List {
+			if err := w.expr(item); err != nil {
+				return err
+			}
+		}
+		return nil
+	case *sql.RowValue:
+		for _, item := range v.Values {
+			if err := w.expr(item); err != nil {
+				return err
+			}
+		}
+		return nil
+	case *sql.UnaryOp:
+		return w.expr(v.Operand)
+	case *sql.CastExpr:
+		return w.expr(v.Operand)
+	case *sql.IsNull:
+		return w.expr(v.Operand)
+	case *sql.IsNotNull:
+		return w.expr(v.Operand)
+	case *sql.IsTrue:
+		return w.expr(v.Operand)
+	case *sql.IsFalse:
+		return w.expr(v.Operand)
+	case *sql.RaiseExpr:
+		return w.expr(v.Message)
+	case *sql.CaseExpr:
+		if err := w.expr(v.Operand); err != nil {
+			return err
+		}
+		for i := range v.Whens {
+			if err := w.expr(v.Whens[i].When); err != nil {
+				return err
+			}
+			if err := w.expr(v.Whens[i].Then); err != nil {
+				return err
+			}
+		}
+		return w.expr(v.Else)
 	}
 	return nil
 }
@@ -104,27 +216,6 @@ func validDMLQualifier(qualifiers []string, q string) bool {
 		}
 	}
 	return false
-}
-
-// dmlExprError finds the first resolution error in one DML expression, or nil.
-// WalkExprFull treats Subquery/ExistsExpr as leaves, so subquery bodies are
-// not descended into — they resolve against their own scope.
-func (e *DMLExecutor) dmlExprError(lookup map[string]bool, qualifiers []string, ex sql.Expr) error {
-	var err error
-	execquery.WalkExprFull(ex, func(n sql.Expr) {
-		if err != nil {
-			return
-		}
-		switch v := n.(type) {
-		case *sql.Subquery, *sql.ExistsExpr:
-			return
-		case *sql.ColumnRef:
-			err = e.dmlColumnRefError(v, lookup, qualifiers)
-		case *sql.FuncCall:
-			err = e.dmlFuncCallError(v)
-		}
-	})
-	return err
 }
 
 // dmlColumnRefError validates one column reference in a DML expression

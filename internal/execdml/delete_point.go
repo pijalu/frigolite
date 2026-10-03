@@ -159,7 +159,10 @@ func (e *DMLExecutor) pointDeleteEligible(s *sql.DeleteStmt, tableEntry *schema.
 	if e.ctx.ForeignKeys() {
 		return false
 	}
-	if strings.HasSuffix(strings.ToLower(tableEntry.Name), "_content") {
+	// FTS content shadow tables are tracked by recordDeletedContentDocs; the
+	// allocation-free EqualFold form (the temp-master name check's pattern)
+	// keeps the per-statement gate off the heap.
+	if n := tableEntry.Name; len(n) >= 8 && strings.EqualFold(n[len(n)-8:], "_content") {
 		return false
 	}
 	return true

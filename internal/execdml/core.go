@@ -96,6 +96,11 @@ type DMLExecutor struct {
 	ptValues    []interface{}
 	ptOldValues []interface{}
 
+	// ptRowMap is the point-UPDATE collect's pooled name-keyed row map
+	// (pointUpdateRowMap): cleared and refilled per statement, gated to
+	// shapes whose SET evaluation cannot retain the map (no subqueries).
+	ptRowMap RowMap
+
 	// andTerms is the reusable WHERE-conjunct scratch (splitAndTermsInto):
 	// the seek planner and the point-op gates decompose WHERE clauses per
 	// statement, consuming the terms before the next decomposition.
@@ -156,6 +161,19 @@ type DMLExecutor struct {
 	atiName string
 	atiFP   uint64
 	atiDefs []indexDef
+
+	// dmlStmtSeq/fpSeq/fpCache memoize the schema fingerprint per DML
+	// statement (schemaFingerprint): the memo guards read it several times
+	// per statement and the schema is frozen mid-statement.
+	dmlStmtSeq uint64
+	fpSeq      uint64
+	fpCache    uint64
+
+	// vltFP/vltDone memoize the loaded-trigger validation walk
+	// (validateLoadedTriggers): with the schema frozen the walk re-finds
+	// only already-validated triggers.
+	vltFP   uint64
+	vltDone bool
 }
 
 // indexDefCacheKey identifies a cached index-maintenance-def list: the owning
@@ -323,16 +341,19 @@ func (e *DMLExecutor) schemaNameForPager(pg *pager.Pager) string {
 
 // Insert executes an INSERT statement.
 func (e *DMLExecutor) Insert(s *sql.InsertStmt) *Result {
+	e.bumpDMLStmtSeq()
 	return e.insert.Insert(s)
 }
 
 // Update executes an UPDATE statement.
 func (e *DMLExecutor) Update(s *sql.UpdateStmt) *Result {
+	e.bumpDMLStmtSeq()
 	return e.update.Update(s)
 }
 
 // Delete executes a DELETE statement.
 func (e *DMLExecutor) Delete(s *sql.DeleteStmt) *Result {
+	e.bumpDMLStmtSeq()
 	return e.delete.Delete(s)
 }
 

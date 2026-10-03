@@ -37,12 +37,27 @@ type updateChange struct {
 
 // schemaFingerprint is the DDL-invalidation token for per-executor caches:
 // the main schema manager's cookie/epoch fingerprint (same token the
-// index-def cache validates against).
+// index-def cache validates against). Memoized per DML statement (the fpSeq
+// statement counter): the point-op paths read it from every memo guard —
+// column index, column lookup, row plan, index defs — and each read paid a
+// pager-header lock; the schema cannot change mid-statement (no DDL inside
+// DML), so one read per statement serves the rest.
 func (e *DMLExecutor) schemaFingerprint() uint64 {
-	if sm := e.ctx.Schema(); sm != nil {
-		return sm.SchemaFingerprint()
+	if e.fpSeq == e.dmlStmtSeq {
+		return e.fpCache
 	}
-	return 0
+	var fp uint64
+	if sm := e.ctx.Schema(); sm != nil {
+		fp = sm.SchemaFingerprint()
+	}
+	e.fpSeq, e.fpCache = e.dmlStmtSeq, fp
+	return fp
+}
+
+// bumpDMLStmtSeq advances the per-statement memo epoch (called at every
+// DML statement-family entry, trigger bodies included).
+func (e *DMLExecutor) bumpDMLStmtSeq() {
+	e.dmlStmtSeq++
 }
 
 // columnIndexFor returns the column index for colDefs, memoized per DML

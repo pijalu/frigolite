@@ -75,8 +75,15 @@ func pkRowIDFromColumn(cd sql.ColumnDef, v interface{}, withoutRowid bool) (int6
 // validateLoadedTriggers checks every trigger loaded from sqlite_master for
 // schema references that no longer resolve. SQLite validates triggers at
 // schema load and reports "malformed database schema". Validated triggers
-// are cached by name to avoid re-parsing on every statement.
+// are cached by name to avoid re-parsing on every statement, and the walk
+// itself is memoized on the schema fingerprint: with the schema frozen the
+// loop can only re-find already-validated triggers (any schema change —
+// CREATE/DROP TRIGGER, a dropped table a body references — bumps the
+// fingerprint and re-runs it).
 func (e *DMLExecutor) validateLoadedTriggers() error {
+	if fp := e.schemaFingerprint(); e.vltDone && e.vltFP == fp {
+		return nil
+	}
 	e.ctx.InitValidatedTriggers()
 	for _, ctx := range e.ctx.Databases() {
 		if ctx == nil || ctx.Schema == nil {
@@ -92,6 +99,7 @@ func (e *DMLExecutor) validateLoadedTriggers() error {
 			}
 		}
 	}
+	e.vltFP, e.vltDone = e.schemaFingerprint(), true
 	return nil
 }
 
