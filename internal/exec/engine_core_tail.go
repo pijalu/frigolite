@@ -771,7 +771,10 @@ func (e *Engine) externalSchemaChanged(ctx *DatabaseContext) bool {
 	if ctx == nil || ctx.Schema == nil || ctx.Pager == nil {
 		return false
 	}
-	if strings.EqualFold(ctx.Name, "TEMP") || strings.EqualFold(ctx.Name, "TEMPORARY") {
+	// TEMP is in-memory and never tracked. ATTACH rejects the reserved
+	// temp/temporary names (attachNameGuard), so the context flag is exact —
+	// no per-statement EqualFold over the schema name.
+	if ctx.IsTemp {
 		return false
 	}
 	ctx.Schema.CheckExternalMod()
