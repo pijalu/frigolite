@@ -302,6 +302,14 @@ type SelectEngine struct {
 	// recomputation disappears.
 	colNamesMemoFP uint64
 	colNamesMemo   map[colNamesMemoKey][]string
+	// colRefMap* memoizes the lowercased column-name set the column-reference
+	// validator resolves against (colRefNameMapFor in
+	// select_agg_validate_part2.go): the same fingerprint + colDefs-identity
+	// guard as collMap*. Read-only after build.
+	colRefMapFP    uint64
+	colRefMapDefs  *sql.ColumnDef
+	colRefMapLen   int
+	colRefMapCache map[string]bool
 	cteScopes         [][]sql.CTEDef           // CTE scopes from enclosing statements (innermost last)
 	resolvingCTEs     map[*sql.SelectStmt]bool // CTE bodies currently being resolved (circular reference detection); keyed by the CTE body AST so a same-named inner WITH shadow is a different CTE
 	currentScanTable  string                   // table name being scanned (for qualified column resolution)

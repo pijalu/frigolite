@@ -125,7 +125,7 @@ func (e *SelectEngine) checkOrderByNestedAgg(s *sql.SelectStmt, c *selectExprCen
 func (e *SelectEngine) validateSelectColumnRefs(s *sql.SelectStmt, colDefs []sql.ColumnDef, tableName, fromAlias string, allowRowID bool) error {
 	v := &columnRefValidator{
 		engine:     e,
-		colByName:  buildColNameMap(colDefs),
+		colByName:  e.colRefNameMapFor(colDefs),
 		tableName:  strings.ToLower(tableName),
 		fromAlias:  strings.ToLower(fromAlias),
 		allowRowID: allowRowID,
@@ -278,6 +278,27 @@ func buildColNameMap(colDefs []sql.ColumnDef) map[string]bool {
 	for _, cd := range colDefs {
 		m[strings.ToLower(cd.Name)] = true
 	}
+	return m
+}
+
+// colRefNameMapFor returns buildColNameMap's set for colDefs, memoized per
+// SelectEngine and guarded by the schema fingerprint plus the colDefs slice
+// identity — the collationMapFor pattern (select_expr.go). The set is
+// read-only after build (the column-reference validator only looks up), so
+// sharing it across statements is safe.
+func (e *SelectEngine) colRefNameMapFor(colDefs []sql.ColumnDef) map[string]bool {
+	if len(colDefs) == 0 {
+		return buildColNameMap(colDefs)
+	}
+	fp := uint64(0)
+	if sm := e.ctx.Schema(); sm != nil {
+		fp = sm.SchemaFingerprint()
+	}
+	if e.colRefMapCache != nil && e.colRefMapFP == fp && e.colRefMapDefs == &colDefs[0] && e.colRefMapLen == len(colDefs) {
+		return e.colRefMapCache
+	}
+	m := buildColNameMap(colDefs)
+	e.colRefMapFP, e.colRefMapDefs, e.colRefMapLen, e.colRefMapCache = fp, &colDefs[0], len(colDefs), m
 	return m
 }
 
