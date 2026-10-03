@@ -70,7 +70,7 @@ func (e *Engine) ExecSelectRows(s *sql.SelectStmt) ([][]interface{}, error) {
 // as the empty string; non-SELECT statements contribute no cells. An error in
 // any statement aborts with that error.
 func (e *Engine) EvalExecSQL(sqlStr, sep string) (string, error) {
-	stmts, err := e.Prepare(sqlStr)
+	stmts, err := e.PrepareExec(sqlStr)
 	if err != nil {
 		return "", err
 	}

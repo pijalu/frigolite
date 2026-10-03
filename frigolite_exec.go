@@ -121,7 +121,7 @@ func (db *DB) Exec(sqlStr string) *Result {
 	if db == nil || db.engine == nil {
 		return &Result{Error: fmt.Errorf("frigolite: database not initialized")}
 	}
-	stmts, err := db.engine.Prepare(sqlStr)
+	stmts, err := db.engine.PrepareExec(sqlStr)
 	if err != nil && len(stmts) == 0 {
 		db.engine.SetLastErr(err.Error(), "SQLITE_ERROR")
 		return &Result{Error: err}
@@ -219,7 +219,7 @@ func (db *DB) runSingleStmt(stmt sql.Stmt, stmtText string) *exec.Result {
 // for a single statement (zero rows → nil Rows), and the last-error state
 // maintained on the connection.
 func (db *DB) runSQLText(sqlStr string) *exec.Result {
-	stmts, err := db.engine.Prepare(sqlStr)
+	stmts, err := db.engine.PrepareExec(sqlStr)
 	if err != nil && len(stmts) == 0 {
 		db.engine.SetLastErr(err.Error(), "SQLITE_ERROR")
 		return &exec.Result{Error: err}

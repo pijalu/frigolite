@@ -214,7 +214,27 @@ func (c *exprClone) insertValue(expr sql.Expr) (sql.Expr, error) {
 // string return the cached parsed statements without re-parsing.
 // Additionally, structurally identical SQL (same after replacing literal values
 // with placeholders) uses a template cache to avoid full re-parsing.
+//
+// The returned statements are RETAINED by callers (public Prepare holds the
+// AST on the Stmt for the statement's lifetime), so a template-cache hit
+// clones onto fresh allocations — never the engine's per-exec-depth clone
+// scratch, whose tenants are recycled by the next same-depth substitution
+// and would silently rewrite a retained statement's literals
+// (two prepared INSERTs of one shape executed the LAST prepared row for
+// every handle). The immediate-consume exec path uses PrepareExec.
 func (e *Engine) Prepare(sqlStr string) ([]sql.Stmt, error) {
+	return e.prepareCached(sqlStr, false)
+}
+
+// PrepareExec is Prepare for callers that consume the statements within the
+// call (Exec/Query run the returned list immediately and retain nothing):
+// template-cache hits clone onto the per-exec-depth scratch, recycling the
+// previous substitution's structs.
+func (e *Engine) PrepareExec(sqlStr string) ([]sql.Stmt, error) {
+	return e.prepareCached(sqlStr, true)
+}
+
+func (e *Engine) prepareCached(sqlStr string, scratchOK bool) ([]sql.Stmt, error) {
 	// Tokenize-time SQL length limit (tokenize.c sqlite3RunParser: mxSqlLen
 	// counts the SQL text against db->aLimit[SQLITE_LIMIT_SQL_LENGTH];
 	// exhaustion sets pParse->rc = SQLITE_TOOBIG with the default message,
@@ -235,7 +255,7 @@ func (e *Engine) Prepare(sqlStr string) ([]sql.Stmt, error) {
 	// scratch (recycled across statements; neither outlives the Prepare call).
 	normSQL, values, normBuf := normalizeSQLScratch(sqlStr, e.normBuf, e.normValues)
 	e.normBuf, e.normValues = normBuf, values
-	if stmts, ok := e.tryTemplateCache(sqlStr, normSQL, values); ok {
+	if stmts, ok := e.tryTemplateCache(sqlStr, normSQL, values, scratchOK); ok {
 		return stmts, nil
 	}
 
@@ -270,9 +290,11 @@ var templateCacheHash = maphash.MakeSeed()
 // tryTemplateCache attempts to reuse a cached AST template for structurally
 // identical SQL (same after replacing literal values). normSQL is the
 // recycled normalization scratch (nil when the statement held no literals).
-// It returns (nil, false) when there is no usable template, falling through
-// to a full parse.
-func (e *Engine) tryTemplateCache(sqlStr string, normSQL []byte, values []interface{}) ([]sql.Stmt, bool) {
+// scratchOK clones onto the engine's per-exec-depth scratch — ONLY valid when
+// the caller consumes the statements within the call; the retained form
+// (scratchOK=false) clones onto fresh allocations. It returns (nil, false)
+// when there is no usable template, falling through to a full parse.
+func (e *Engine) tryTemplateCache(sqlStr string, normSQL []byte, values []interface{}, scratchOK bool) ([]sql.Stmt, bool) {
 	if len(normSQL) == 0 || len(values) == 0 {
 		return nil, false
 	}
@@ -290,8 +312,27 @@ func (e *Engine) tryTemplateCache(sqlStr string, normSQL []byte, values []interf
 	// template below. Results are identical either way: a substituted AST is
 	// byte-for-byte what a fresh parse of the statement text produces, and
 	// statement execution treats AST nodes as immutable.
-	cloned, ok := e.cloneStmtsValuesScratch(cached.ast, values)
-	if !ok {
+	var cloned []sql.Stmt
+	var okClone bool
+	if scratchOK {
+		cloned, okClone = e.cloneStmtsValuesScratch(cached.ast, values)
+	} else {
+		c := exprClone{values: values}
+		cloned = make([]sql.Stmt, len(cached.ast))
+		okClone = true
+		for i, stmt := range cached.ast {
+			out, ok2 := c.stmt(stmt)
+			if !ok2 {
+				okClone = false
+				break
+			}
+			cloned[i] = out
+		}
+		if okClone && c.idx != len(values) {
+			okClone = false
+		}
+	}
+	if !okClone {
 		return nil, false
 	}
 	return cloned, true
