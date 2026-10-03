@@ -1,8 +1,6 @@
 package exec
 
 import (
-	"hash/maphash"
-
 	"github.com/pijalu/frigolite/internal/sql"
 )
 
@@ -208,25 +206,31 @@ func (e *Engine) trySlotPathLive(cached *sqlTemplateEntry, values []interface{})
 	return stmts, true
 }
 
-// templateCacheHash keys the template cache: a seeded AES hash of the
-// normalized text. The seed is per-process; lookups verify the candidate
-// entry's stored text against the normalized bytes before use, so a (never
-// observed) collision degrades to a full parse, never to a wrong template.
-var templateCacheHash = maphash.MakeSeed()
+// The template cache is keyed by a seeded AES hash of the normalized text,
+// computed by the engine's fused normalization scan (normalizeScan) into the
+// engine's per-statement maphash.Hash. The seed is per-engine (the zero Hash
+// chooses a random seed on first use); lookups verify the candidate entry's
+// stored text against the ORIGINAL statement bytes via the recorded literal
+// spans before use, so a (never observed) collision degrades to a full
+// parse, never to a wrong template.
 
 // tryTemplateCache attempts to reuse a cached AST template for structurally
-// identical SQL (same after replacing literal values). normSQL is the
-// recycled normalization scratch (nil when the statement held no literals).
-// scratchOK clones onto the engine's per-exec-depth scratch — ONLY valid when
-// the caller consumes the statements within the call; the retained form
-// (scratchOK=false) clones onto fresh allocations. It returns (nil, false)
-// when there is no usable template, falling through to a full parse.
-func (e *Engine) tryTemplateCache(sqlStr string, normSQL []byte, values []interface{}, scratchOK bool) ([]sql.Stmt, bool) {
-	if len(normSQL) == 0 || len(values) == 0 {
+// identical SQL (same after replacing literal values). normKey is the fused
+// scan's hash of the normalized text (normalizeScan); spans record the
+// literals' byte ranges in sqlStr, which is what the lookup verifies the
+// candidate entry's stored text against — the original bytes with every
+// span replaced by '?' — so no normalized bytes are materialized per
+// statement. scratchOK clones onto the engine's per-exec-depth scratch —
+// ONLY valid when the caller consumes the statements within the call; the
+// retained form (scratchOK=false) clones onto fresh allocations. It returns
+// (nil, false) when there is no usable template, falling through to a full
+// parse.
+func (e *Engine) tryTemplateCache(sqlStr string, normKey uint64, values []interface{}, spans []normSpan, scratchOK bool) ([]sql.Stmt, bool) {
+	if len(values) == 0 || spans == nil {
 		return nil, false
 	}
-	cached, ok := e.caches.templateCache[maphash.Bytes(templateCacheHash, normSQL)]
-	if !ok || cached.template != string(normSQL) {
+	cached, ok := e.caches.templateCache[normKey]
+	if !ok || !templateMatchesSpans(cached.template, sqlStr, spans) {
 		return nil, false
 	}
 	// Template cache hit — clone AST with new values. If the clone refuses
@@ -282,21 +286,20 @@ func cloneTemplateRetained(ast []sql.Stmt, values []interface{}) ([]sql.Stmt, bo
 }
 
 // storeTemplateCache records a parsed statement list as a template for
-// structurally identical SQL, bounded by maxTemplateCacheSize. normSQL is
-// the normalization scratch; a fresh template materializes its normalized
-// text once (the per-statement string the lookup path never pays).
-func (e *Engine) storeTemplateCache(normSQL []byte, values []interface{}, stmts []sql.Stmt) {
+// structurally identical SQL, bounded by maxTemplateCacheSize. normKey is the
+// fused scan's hash of the normalized text; normSQL is the normalized text
+// materialized once for the entry (the per-statement lookup never pays it).
+func (e *Engine) storeTemplateCache(normKey uint64, normSQL []byte, values []interface{}, stmts []sql.Stmt) {
 	if len(normSQL) == 0 || len(values) == 0 || len(e.caches.templateCache) >= maxTemplateCacheSize {
 		return
 	}
 	if e.caches.templateCache == nil {
 		e.caches.templateCache = make(map[uint64]*sqlTemplateEntry)
 	}
-	key := maphash.Bytes(templateCacheHash, normSQL)
-	if existing, ok := e.caches.templateCache[key]; ok && existing.template == string(normSQL) {
+	if existing, ok := e.caches.templateCache[normKey]; ok && existing.template == string(normSQL) {
 		return
 	}
-	e.caches.templateCache[key] = &sqlTemplateEntry{
+	e.caches.templateCache[normKey] = &sqlTemplateEntry{
 		template: string(normSQL),
 		ast:      stmts,
 		slots:    collectTemplateSlots(stmts),
