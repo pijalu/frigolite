@@ -27,6 +27,11 @@ func (e *Engine) DBList() []*DatabaseContext {
 func (e *Engine) AppendDBList(ctx *DatabaseContext) {
 	e.dbList = append(e.dbList, ctx)
 	e.invalidateAllLockKeysCache()
+	if ctx != nil {
+		// The attached pager needs the DML write-tree invalidation hook like
+		// every other database pager (see setPagerLayoutHook).
+		e.setPagerLayoutHook(ctx.Pager)
+	}
 }
 
 // RemoveDBListIndex removes the database context at index i from the

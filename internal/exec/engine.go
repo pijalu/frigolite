@@ -867,6 +867,7 @@ func NewEngine(pg *pager.Pager) *Engine {
 	// the header encoding; windowC-2.x).
 	e.funcs.SetEncoding(e.encoding)
 	e.dml = execdml.NewDMLExecutor(e)
+	e.setPagerLayoutHook(mainCtx.Pager)
 	e.ddl = execddl.NewDDLExecutor(e)
 	e.constraints = execconstraint.New(e)
 	e.triggers = exectrigger.New()
@@ -874,6 +875,7 @@ func NewEngine(pg *pager.Pager) *Engine {
 		e.databases["TEMP"] = tempCtx
 		e.databases["TEMPORARY"] = tempCtx
 		e.dbList = append(e.dbList, tempCtx)
+		e.setPagerLayoutHook(tempCtx.Pager)
 	}
 	e.registerVTabModules()
 	e.registerEngineFuncs()
@@ -891,6 +893,20 @@ func NewEngine(pg *pager.Pager) *Engine {
 		pg.SetAutoVacuum(mode > 0)
 	}
 	return e
+}
+
+// setPagerLayoutHook wires pg's page-layout change hook to the DML executor's
+// write-tree invalidation: the insert path caches one b-tree wrapper per
+// (pager, root, kind) and the wrapper snapshots the page geometry at build
+// time, so an in-place layout replacement — VACUUM's ResetToEmpty at a
+// pending page size, a backup's full-image replace, a materialized reserve
+// change — must drop it (see execdml.DMLExecutor.InvalidateWriteTree).
+// Installed for every database pager: main/temp at connection open, each
+// ATTACH'd database at AppendDBList.
+func (e *Engine) setPagerLayoutHook(pg *pager.Pager) {
+	if pg != nil {
+		pg.SetLayoutHook(e.dml.InvalidateWriteTree)
+	}
 }
 
 // newEngineSettings returns the connection defaults (src/main.c openDatabase
