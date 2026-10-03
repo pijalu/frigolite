@@ -1104,3 +1104,27 @@ In flight: fleet/perf-insert2 (btree split staging + page-buffer +
 insertRow staging diet; 5 commits, gates running). Next walls: pager
 statement-journal capture on update/delete (~33% stmtReadTouch/
 copyPageBytes), point template clone ~8%, scan/point value boxing.
+
+## PERF-PARITY2 (END, 2026-10-02) — 7 tranches merged; point 2.2x, group+file faster than sqlite3
+
+Final pair (main post-merge, vs sqlite3 3.54 same ops): insert 385,576
+ops/s (3.9x), point 493,966 (2.2x), scan 21,829,361 rows/s (2.4x), group
+47 q/s (1.24x FASTER), update 284,281 (4.4x), delete 392,290 (4.1x),
+file autocommit 10,728 (1.31x FASTER). Campaign start (2026-09-28):
+10.9x / 1040x / 6.5x / 3.9x / 2049x / 885x — every phase improved 2.6x-
+470x, two phases now FASTER than sqlite3.
+Tranches merged this round: perf-floor (memoized column indexes,
+maphash template keys, clone scratch, btree.Close race fix), perf-dml2
+(freeblock space mgmt, in-place cell overwrite, lazy conflict scan),
+perf-scanagg (streaming GROUP BY feed, batch range-scan leaves),
+FIX.GROUPKEY (INTEGER/REAL numeric group parity — oracle-verified),
+perf-floor2 (speculative vtab dispatch, preupdate/vtab/without-rowid
+memos, lock-gate short-circuit), perf-insert2 (split-staging pool,
+cached write tree, cell wire-field reset + zeroblob tail clear —
+finisher agent caught 2 latent corruption bugs from the staging diet,
+both pinned), perf-point3 (OpenCursorAtRoot seek paths, one-census
+validation walk, projection/collation memos). TestRowidSeekRange stale
+' 10 ' expectation corrected to oracle (affinity converts spaced text).
+Remaining walls (documented): interface-boxed value pipeline (scan
+2.4x, update/delete 4.1-4.4x), template-clone copy-on-write floor
+(insert 3.9x, point 2.2x), btree descent cost. Census next.
