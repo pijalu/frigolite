@@ -54,29 +54,8 @@ func (t *BTree) InsertCell(newCell *storage.Cell) error {
 		return err
 	}
 	if len(splits) > 0 {
-		// Root page split.
-		if t.rootPage != 1 {
-			// btree.c balance_deeper keeps the root page as the root: its
-			// page number never changes (schema entries stay valid) and the
-			// two halves move to freshly allocated pages in ascending order.
-			if err := t.relocateRootSplit(splits); err != nil {
-				return err
-			}
-		} else {
-			// The schema b-tree (sqlite_schema) is permanently rooted at page 1:
-			// page 1 is the database file header page and cannot be demoted to a
-			// child. When its root splits, page 1 becomes an interior page and
-			// the split halves are moved to newly allocated pages.
-			rootPg, err := t.createInteriorRoot(t.rootPage, splits[0], splits[0].pageNum)
-			if err != nil {
-				return err
-			}
-			for i := 1; i < len(splits); i++ {
-				if err := t.addInteriorCellToPage(rootPg.PageNum, splits[i-1].pageNum, splits[i], splits[i].pageNum); err != nil {
-					return err
-				}
-			}
-			t.rootPage = rootPg.PageNum
+		if err := t.resolveInsertRootSplits(splits); err != nil {
+			return err
 		}
 	}
 	if t.isTable {
@@ -84,7 +63,29 @@ func (t *BTree) InsertCell(newCell *storage.Cell) error {
 		// (the append-cursor fast path's establishment step).
 		t.noteAppendInsert(newCell)
 	}
+	return nil
+}
 
+// resolveInsertRootSplits applies a root page's split chain. A non-schema
+// root goes through balance_deeper's relocation (the root page number never
+// changes and the halves move to fresh pages); the schema b-tree is
+// permanently rooted at page 1 — the database header page cannot be demoted
+// to a child — so its root becomes an interior page and the halves move to
+// newly allocated pages.
+func (t *BTree) resolveInsertRootSplits(splits []leafSplitResult) error {
+	if t.rootPage != 1 {
+		return t.relocateRootSplit(splits)
+	}
+	rootPg, err := t.createInteriorRoot(t.rootPage, splits[0], splits[0].pageNum)
+	if err != nil {
+		return err
+	}
+	for i := 1; i < len(splits); i++ {
+		if err := t.addInteriorCellToPage(rootPg.PageNum, splits[i-1].pageNum, splits[i], splits[i].pageNum); err != nil {
+			return err
+		}
+	}
+	t.rootPage = rootPg.PageNum
 	return nil
 }
 

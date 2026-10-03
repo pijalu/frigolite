@@ -156,6 +156,13 @@ type BTree struct {
 	// level — without two heap headers per INSERT.
 	insScratch *[4]storage.BTreePage
 	insDepth   int
+
+	// quickPageScratch backs verifyQuickLeaf's parsed leaf header
+	// (btree_append_cursor.go): the append-cursor fast path never recurses
+	// and the parsed header is not used after writeLeafCell returns, so one
+	// struct slot on the wrapper (same single-goroutine ownership contract
+	// as cellScratch/insScratch) avoids a per-insert heap escape.
+	quickPageScratch storage.BTreePage
 }
 
 // insertScratchPool recycles the insert walk's parse-slot arrays. Buffers

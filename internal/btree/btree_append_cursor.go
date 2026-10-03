@@ -111,6 +111,57 @@ func InvalidateAppendCursor(pg *pager.Pager, root uint32) {
 	cursorRegMu.Unlock()
 }
 
+// dropQuickAppendSlot clears the slot's leaf trust for this tree (its
+// recorded maximum is kept: it only gates re-establishment, and every
+// engagement re-derives the truth from the page).
+func (t *BTree) dropQuickAppendSlot() {
+	cursorRegMu.Lock()
+	t.invalidateAppendCursorLocked()
+	cursorRegMu.Unlock()
+}
+
+// claimQuickAppend reads the slot for an ascending insert. ok=false means the
+// generic path must run; a true non-append sighting clears the leaf trust on
+// the way out (btree.c clears BTCF_ValidNKey on every non-append
+// positioning).
+func (t *BTree) claimQuickAppend(rowID int64) (leaf uint32, maxKey int64, ok bool) {
+	cursorRegMu.Lock()
+	defer cursorRegMu.Unlock()
+	slot := quickAppendReg[cursorTreeKey{pg: t.pager, root: t.rootPage}]
+	if slot == nil || !slot.valid {
+		return 0, 0, false
+	}
+	if rowID <= slot.maxKey {
+		slot.valid = false
+		return 0, 0, false
+	}
+	return slot.leaf, slot.maxKey, true
+}
+
+// verifyQuickLeaf re-validates the saved leaf against the slot's claim and
+// returns its page, parsed header and content offset. This is the guard that
+// stands in for btree.c's cursor state machine: a journal/savepoint rollback,
+// a page reallocated by a DROP/CREATE cycle, or any mutation the slot did not
+// observe breaks one of these conditions and the insert falls back to the
+// generic path.
+func (t *BTree) verifyQuickLeaf(leaf uint32, maxKey int64) (*pager.Page, *storage.BTreePage, int, bool) {
+	pg, err := t.pager.ReadPage(leaf)
+	if err != nil {
+		return nil, nil, 0, false
+	}
+	coff := contentOffset(pg.PageNum)
+	page := &t.quickPageScratch
+	if _, perr := storage.ParsePageInto(pg.Data, int(t.pageSize), coff, page); perr != nil {
+		return nil, nil, 0, false
+	}
+	if pg.PageNum != leaf || page.PageType != storage.PageTypeLeafTable ||
+		page.CellCount == 0 ||
+		t.tableLeafRowidAt(pg, coff, int(page.CellCount)-1) != maxKey {
+		return nil, nil, 0, false
+	}
+	return pg, page, coff, true
+}
+
 // insertQuickAppend attempts the O(1) rightmost-leaf append. It returns
 // handled=true when the cell was written (the caller is done), and
 // handled=false when the generic root-descent path must run — always after
@@ -121,83 +172,40 @@ func (t *BTree) insertQuickAppend(newCell *storage.Cell) (bool, error) {
 	if newCell.Type != storage.CellTableLeaf || newCell.RowID < 0 {
 		return false, nil
 	}
-	cursorRegMu.Lock()
-	slot := quickAppendReg[cursorTreeKey{pg: t.pager, root: t.rootPage}]
-	if slot == nil || !slot.valid {
-		cursorRegMu.Unlock()
+	leaf, maxKey, ok := t.claimQuickAppend(newCell.RowID)
+	if !ok {
 		return false, nil
 	}
-	if newCell.RowID <= slot.maxKey {
-		// Overwrite or out-of-order insert: not a rightmost append (btree.c
-		// clears BTCF_ValidNKey on every non-append positioning).
-		slot.valid = false
-		cursorRegMu.Unlock()
-		return false, nil
-	}
-	leaf, maxKey := slot.leaf, slot.maxKey
-	cursorRegMu.Unlock()
-
 	// Spilling cells need overflow allocation and usually the split
 	// machinery: bail BEFORE preparing the cell (prepareCell is a no-op for
 	// a local cell, but the bail must not leave a half-allocated chain).
 	if storage.LocalPayloadSize(len(newCell.Payload), int(t.usableSize), storage.CellTableLeaf) < len(newCell.Payload) {
-		cursorRegMu.Lock()
-		t.invalidateAppendCursorLocked()
-		cursorRegMu.Unlock()
+		t.dropQuickAppendSlot()
 		return false, nil
 	}
-
-	pg, err := t.pager.ReadPage(leaf)
-	if err != nil {
-		cursorRegMu.Lock()
-		t.invalidateAppendCursorLocked()
-		cursorRegMu.Unlock()
+	pg, page, coff, ok := t.verifyQuickLeaf(leaf, maxKey)
+	if !ok {
+		t.dropQuickAppendSlot()
 		return false, nil
 	}
-	coff := contentOffset(pg.PageNum)
-	var page storage.BTreePage
-	if _, perr := storage.ParsePageInto(pg.Data, int(t.pageSize), coff, &page); perr != nil {
-		cursorRegMu.Lock()
-		t.invalidateAppendCursorLocked()
-		cursorRegMu.Unlock()
-		return false, nil
-	}
-	// Re-verify the saved leaf against the slot's claim. This is the guard
-	// that stands in for btree.c's cursor state machine: a journal/savepoint
-	// rollback, a page reallocated by a DROP/CREATE cycle, or any mutation
-	// the slot did not observe breaks one of these conditions and the insert
-	// falls back to the generic path.
-	if pg.PageNum != leaf || page.PageType != storage.PageTypeLeafTable ||
-		page.CellCount == 0 ||
-		t.tableLeafRowidAt(pg, coff, int(page.CellCount)-1) != maxKey {
-		cursorRegMu.Lock()
-		t.invalidateAppendCursorLocked()
-		cursorRegMu.Unlock()
-		return false, nil
-	}
-
 	if perr := t.prepareCell(newCell, leaf); perr != nil {
 		return false, perr
 	}
 	cellData := t.encodeCellScratch(newCell)
-	if !leafHasRoom(pg, &page, cellData, coff, t.usableSize) {
+	if !leafHasRoom(pg, page, cellData, coff, t.usableSize) {
 		t.recycleCellScratch(cellData)
 		// The leaf filled up: the split belongs to the generic path
 		// (balance machinery), which re-establishes the slot afterwards.
-		cursorRegMu.Lock()
-		t.invalidateAppendCursorLocked()
-		cursorRegMu.Unlock()
+		t.dropQuickAppendSlot()
 		return false, nil
 	}
 
 	// In-place page mutation can move cells (defragment-on-demand): save
 	// open cursors first, exactly like the generic entry does.
 	t.saveAllCursors()
-	if werr := t.writeLeafCell(pg, &page, newCell, cellData, coff); werr != nil {
+	if werr := t.writeLeafCell(pg, page, newCell, cellData, coff); werr != nil {
 		t.recycleCellScratch(cellData)
-		cursorRegMu.Lock()
-		t.invalidateAppendCursorLocked()
-		cursorRegMu.Unlock()
+		t.dropQuickAppendSlot()
 		if werr == errLeafFull {
 			return false, nil
 		}
@@ -206,9 +214,11 @@ func (t *BTree) insertQuickAppend(newCell *storage.Cell) (bool, error) {
 	t.recycleCellScratch(cellData)
 
 	cursorRegMu.Lock()
-	slot.maxKey = newCell.RowID
-	slot.leaf = leaf
-	slot.valid = true
+	if slot := quickAppendReg[cursorTreeKey{pg: t.pager, root: t.rootPage}]; slot != nil {
+		slot.maxKey = newCell.RowID
+		slot.leaf = leaf
+		slot.valid = true
+	}
 	cursorRegMu.Unlock()
 	quickAppendHits.Add(1)
 	return true, nil

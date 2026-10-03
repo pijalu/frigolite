@@ -193,6 +193,15 @@ func (e *DMLExecutor) scanGroupForMatchWR(cursor *btree.Cursor, colDefs []sql.Co
 	}
 }
 
+// aboveCachedMaxRowID reports whether rowid provably exceeds the table's
+// largest stored rowid (the executor's bump-only-grows cache, invalidated by
+// every delete / rowid-changing update): such a rowid cannot exist, so the
+// uniqueness probe's seek is skipped (btree.c BTREE_APPEND's moveto bias).
+func (e *DMLExecutor) aboveCachedMaxRowID(tableName string, rootPage uint32, rowid int64) bool {
+	cached, ok := e.ctx.NextRowIDFor(e.dmlPager(tableName), rootPage)
+	return ok && rowid > cached
+}
+
 // ipkRowidAliasConflict uses a direct rowid seek when the only unique column
 // is an INTEGER PRIMARY KEY alias (its value IS the rowid). The probe reuses
 // the executor's cached insert write tree when the identity matches (same
@@ -213,7 +222,7 @@ func (e *DMLExecutor) ipkRowidAliasConflict(tableName string, rootPage uint32, c
 	// cache holds the tree's true maximum (bump-only-grows, invalidated by
 	// every delete / rowid-changing update), so a rowid ABOVE it cannot exist
 	// — the seek is skipped instead of descending on every row.
-	if cached, ok := e.ctx.NextRowIDFor(e.dmlPager(tableName), rootPage); ok && v > cached {
+	if e.aboveCachedMaxRowID(tableName, rootPage, v) {
 		return 0, nil, -1, false
 	}
 	tree, owned := e.uniqueScanTree(tableName, rootPage)
