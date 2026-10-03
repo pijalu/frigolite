@@ -2643,3 +2643,69 @@ reservebytes, vacuum3, vacuum6): page size stayed at the old value.
   wrapper across a root reallocation (enough prior schema/row state that the
   (pager, root, kind) key survives the reset). Reproduce from the harness
   shape first, minimize only after the mechanism is known.
+
+## PERF.UPDDEL (2026-10-03) — point UPDATE/DELETE structural round
+
+- **Slot-path template substitution** (template_slotpath*.go + clone_scratch
+  trySlotPathLive): a template-cache hit re-walked and re-cloned the whole
+  AST per statement (updateCOW 350MB/24% of the 500k-update alloc profile;
+  deleteCOW 12.5% delete CPU). Each single-statement template entry now
+  precomputes literal-slot POINTER PATHS at store time, mirroring the COW
+  walkers' field order and value gates; a PrepareExec hit rewrites only the
+  literal leaves of the entry's persistent per-execDepth live clone — zero
+  walk, zero alloc. Red lines that made it safe: the template AST stays
+  immutable (only COW-copied nodes are rewritten); retained Prepare never
+  takes the live form (FIX.PREPARE-ALIAS); dual-slot LIMIT/OFFSET,
+  folded-minInt64/hex slots, blob/RAISE, INSERT tuples with nested literals
+  and multi-statement batches stay COW-only with identical refusals.
+- **NumericLit.cached is hidden mutable state**: execution caches the parsed
+  literal ON the AST node (SetCached) on first evaluation. An in-place
+  literal rewrite MUST SetCached(nil) — a stale cache silently served the
+  PREVIOUS statement's value (INSERT k=2 executed k=1 → UNIQUE violation).
+  The COW form never hits this because its literal nodes are always fresh.
+- **Slot-node kind follows the VALUE, not the slot's parse**: INSERT tuple
+  slots accept int/float/string into either node kind (insertValue parity);
+  writeSlot swaps the node when kinds diverge and rewrites in place when
+  they match. writeSlot returning false is fail-closed (fall back to the
+  COW clone), never a silent skip.
+- **Cached point-op write trees** (updTree/delTree, the insertWriteTree
+  pattern): one wrapper per (pager, resolved root), closed+replaced on
+  identity change, invalidated by the pager layout hook, re-keyed+persisted
+  after root moves (pointWriteTreeSync = persistTreeRootPage parity), and
+  swept per statement with the new BTree.ReleaseIdleCursors — the btree
+  write primitives (seekLeafRow, DeleteCellByRowID) LEAK their internal
+  seek cursors onto the wrapper; statement-local trees swept them at Close,
+  a persistent wrapper needs the explicit per-statement sweep.
+- **Per-statement memo cluster** (execdml): schemaFingerprint memoized on a
+  statement-sequence epoch (the memo guards — column index, column lookup,
+  row plan, index defs — each paid a pager-header lock per read, several
+  reads per statement); allTableIndexes one-slot memo (three resolutions
+  per point UPDATE, each walking the databases map); loaded-trigger
+  validation walk memoized on the fingerprint. Convention: the MAIN schema
+  manager's fingerprint is THE DDL-invalidation token (matches existing
+  ciCache/lookupCache guards).
+- **Pooled point-update row map**: collectPointUpdateRow's SET-eval RowMap
+  is cleared+refilled per statement. GATE: statements whose SET expressions
+  contain subqueries must fall back to a fresh map — a correlated subquery's
+  evaluation RETAINS the row as the engine's outer-row scope
+  (SelectEngine.outerRow), and the next statement's clear() would corrupt
+  it. Same class of trap as the clone scratch's retained-Prepare alias.
+- **Paired-bench numbers** (NUPDATE=100k/NDELETE=30k, interleaved
+  main-vs-worktree runs, quiet machine): update 296k→342k ops/s vs main
+  ~266k (+28%), delete 411k→440k vs main ~364k (+20%); insert 394k→439k,
+  point 496k→525k (slot-path helps the other literal-heavy phases too);
+  scan/group/file-autocommit unchanged. Remaining walls (documented, out of
+  this round's scope): btree SeekToRowID descent (~11%), pager
+  stmtReadTouch statement-journal capture (~7%), Engine.Exec entry gates
+  (CrossConnLockError, external-mod probe, SetStmtTime time.Now ~13% on
+  delete), execPreflight's per-statement schema revalidation.
+- **Harness instability is environmental**: TestSQLiteSuite's
+  t.Parallel file-based cases collide nondeterministically under ANY
+  concurrent load (main: 148–212 file failures; quiet wt run: 0). Judge
+  root-suite failures only from a quiet machine, and only as a
+  failure-SET diff vs a same-conditions main run; testgen packages are
+  the authoritative correctness gate.
+- **Fresh worktree fixtures** (repeat): copy testdata/*conformance,
+  testdata/walconformance, testdata/recoverconformance,
+  internal/fts/testdata/ftsconformance AND tools/orafixture from the main
+  checkout before judging writer/segview/window failures.
