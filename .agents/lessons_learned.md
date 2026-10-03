@@ -2487,3 +2487,68 @@ Resumed a dead predecessor mid-tranche on P9.PERF hot-path work (base 5807a9c1e,
   tranche's obligation is to not ADD offenders: extraction helpers for new
   branching, move helpers out of near-cap files — engine_core ended UNDER
   the cap (991), strictly better than base.
+
+## PERF.INSERT2 — insert write-path staging diet + finish adjudication (fleet/perf-insert2, 2026-10-03)
+
+Landed: pooled leaf-split staging buffers (1), BTree.cursors inline array
+(2), depth-indexed page-header scratch on the insert walk (3), insert-path
+staging diet — reusable insCell/insRecBuf/insIPKVals + insertWriteTree seam
+(4), one cached write tree per insert identity + Cursor.Close (5); dead
+uniqueColIndicesWithPK helper dropped (4b).
+
+**Every "this buffer is consumed synchronously inside window X" reuse claim
+must be audited field-by-field, not struct-by-struct.** INSERT2-4's staging
+diet carried two latent reuse bugs the pins missed; both fired only on
+second-and-later rows/statement re-entry:
+
+- **Reusable storage.Cell needs EVERY wire field reset per row** — writeTableRow
+  set Type/RowID/Payload/LeftPtr/Overflow but left PayloadLen/LocalLen from a
+  prior overflow-bearing row. cellPlen/localOrFull trust those when set, so
+  the row after an overflow row encoded a wire cell with the PREVIOUS row's
+  payload length and local split → "database disk image is malformed" on
+  read (fts5prefix 4096-row doubling, %_data shadow tree). prepareCell cannot
+  clear them (its already-prepared guard must keep the chain across
+  balance_deeper re-entry) — the CELL PRODUCER owns the reset.
+- **encodeValueInto's ZeroBlob case relied on a zero-filled buffer**
+  (`make([]byte, n)`), but AppendEncodeRecord over a REUSED buffer keeps the
+  previous record's bytes in exactly the tail zeroblob does not write.
+  rtree xCreate seeds each new family's root node with
+  `INSERT OR IGNORE INTO <v>_node VALUES(1, zeroblob(820))`; the seed row
+  carried the PREVIOUS rtree's node blob, so the new tree decoded the old
+  tree's coordinates (T30 rt1 rid=1 returned t6's float-bit row) and the
+  IGNORE silently skipped the (existing-rowid) seed. Fix = `clear(buf)` —
+  MEM_Zero-on-demand parity. Rule: any encoder contract that says "caller's
+  buffer is zeroed" must be enforced by the encoder, not the allocator.
+- **Debugging payoff**: a 30-line /tmp reproducer beating the exact pin
+  shapes (12-round doubling corpus; two-rtree-family sequence) + a temporary
+  BTREE_TRACE printf in InsertCell (root, rowid, plen, first payload bytes)
+  found in minutes what profile-reading could not: the trace's payload
+  prefix showed the stale bytes verbatim. `git bisect` on ONE deterministic
+  failing test pinned the commit before any code was read.
+- **Benchmarks (NROWS=300k full env, 8 interleaved main-vs-branch rounds,
+  both run orders)**: insert_xact +11.2% (median 343,254 vs 308,694 ops/s;
+  the branch is also far more stable across rounds — 330-368k vs main's
+  228-332k), point +0.7%, scan +0.2%, update −0.1%, delete −1.1%, file
+  autocommit −0.3% — read/write parity everywhere; group −2.2% (45 vs 46
+  q/s) with identical CPU totals and no profile mechanism — treated as
+  shared-machine noise, flagged for the next round's re-measure on a quiet
+  machine. Heap at group time 15-19MB vs 51-80MB (the staging diet pays
+  for itself in resident memory).
+- **Order-bias control**: alternate binaries AND alternate which binary runs
+  first; medians over 5 rounds; group-only PHASE=select_group short runs
+  (early-return after the phase) give cheap statistical power when a
+  0.7s-phase shows a consistent small delta.
+- Process: the finish agent committed the predecessor's coherent dead-code
+  WIP (uniqueColIndicesWithPK removal, zero callers) after build+race green —
+  adjudicate by compile + call-site audit, then land separately so the fix
+  commits stay attributable.
+- **Finish-session gate reality**: TestSQLiteSuite under bare `go test ./...`
+  carries ~4.7k subtest failures on MAIN and the branch ALIKE (4689/4689,
+  case-level jitter ±12 from shared cwd file state) — the documented
+  "legacy drift (adjudicated superseded)" state; testgen is authoritative.
+  Gate = branch fails no MORE than main: after the two reuse fixes the
+  branch's 12 INSERT2-caused regressions (fts4merge4/fts5 families) are
+  green and the failure set is main-identical. Judging harness deltas
+  requires per-FILE solo runs on both sides — full-run comparisons drown
+  the signal in cwd-state jitter (vacuum-11.2, trigger1-10.x flip
+  run-to-run on BOTH sides).
