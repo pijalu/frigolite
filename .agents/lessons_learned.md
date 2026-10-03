@@ -2430,3 +2430,60 @@ Resumed a dead predecessor mid-tranche on P9.PERF hot-path work (base 5807a9c1e,
   load-sensitive (main: 26 vs 173 failing files across runs) — regression
   proof must be per-FILE, each file run individually on both sides
   (single-file runs are deterministic).
+
+## PERF.FLOOR2 — the exec-level per-statement wall, tranche 2 (fleet/perf-floor2, 2026-10-02)
+
+- **The template cache changes what "memoize the AST" means.** db.Query with
+  rendered literals normalizes to a template and CLONES per statement —
+  copy-on-write: literal nodes are fresh, every other node is SHARED with the
+  template. So memoizing collectors on `*SelectStmt` identity NEVER hits in
+  the fresh-text bench; the stable memo keys are schema-owned state (colDefs
+  slices, schema entry pointers) guarded by the schema fingerprint, exactly
+  like seekColIndexFor. Entry-pointer identity is safe because schema entries
+  are replaced, never edited, and any DDL moves the fingerprint (local
+  cookie/mutation epoch; external commits drop the cache).
+- **The biggest point-SELECT tax was speculative dispatch, not validation**:
+  FROM dispatch probes eponymous-then-created vtab forms BEFORE knowing the
+  name is a vtab, and each probe built vtabScanOptions — collectVtabRefCols
+  walked the whole statement TWICE per real-table SELECT (~450B/stmt). Probe
+  eligibility first (same predicates the materializers' own early-outs use),
+  build options only for actual vtabs. DML pays the same shape:
+  VTabUpdaterInstance + EchoVTabSource per statement — memoize the NEGATIVE
+  (name → not-a-vtab) per fingerprint; clear on RegisterVtabModule because
+  module registration moves neither schema nor fingerprint.
+- **strings.ToUpper(createSQL) per statement is a silent 16% tax.**
+  HasWithoutRowidKeyword(ToUpper(entry.SQL)) ran at ~10 call sites; the
+  answer is a constant per schema entry. Memoize on entry identity
+  (TableIsWithoutRowidEntry). Same disease: prevalidateSchemaFunctionSafety
+  built collectSelectColumnRefs' map before checking the table even HAS
+  generated columns; the agg-feed eligibility chain (incl. its own ToUpper)
+  ran for statements with no aggregate and no GROUP BY. Gate walks behind
+  cheap shape checks that decide the same outcome.
+- **applyPreupdateAffinity re-resolved the table per ROW** (FirePreupdate →
+  findTable with external-mod probe + trigger scope + cache lookup) for one
+  table per statement. Engine-side single-entry memo (folded all-schemas
+  fingerprint + name → entry); failed resolution drops the memo.
+- **allSchemasFingerprint (fold over e.dbList) is the right key when a name
+  can resolve in any attached schema** — a single-schema fingerprint can miss
+  an attached-DB DDL that changes which entry a name resolves to.
+- **lockreg marks are reference-counted per (path, connection) with empty-set
+  cleanup, so Registry.AnyMarks (one len-sweep per map) is exact**: with zero
+  marks, every "ByOther" check answers no, so CrossConnLockError can skip the
+  per-statement key resolution (a findTable) and the busy loop. Keep the
+  locking_mode=EXCLUSIVE SetPersistentShared side effect and the nolock style
+  BEFORE the early-out — the original order sets the mark even under nolock.
+- **The remaining update/delete floor is the sibling domain**: after all
+  exec-level cuts, the update profile is ~33% pager stmtReadTouch/copyPage
+  (statement-journal capture) + btree seek, ~8% template clone. execResult's
+  per-statement wrapper (~130B) is not safely poolable (public Rows are
+  caller-owned).
+- **pprof -diff_base across phases LIES at MB scale**: heap profiles are
+  cumulatively sampled; N=0 phases show hundreds of MB of phantom "delta".
+  For phase-clean CPU attribution use a focused probe whose profiler starts
+  AFTER setup; for allocs, reason from cumulative profiles of functions
+  unique to the phase.
+- **Quality gates were ALREADY red at base** (cognitive/cyclomatic offenders
+  in fts5/exec pre-existing; engine_core.go over the 1000 hard cap). The
+  tranche's obligation is to not ADD offenders: extraction helpers for new
+  branching, move helpers out of near-cap files — engine_core ended UNDER
+  the cap (991), strictly better than base.
