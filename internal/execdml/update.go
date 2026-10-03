@@ -37,12 +37,27 @@ type updateChange struct {
 
 // schemaFingerprint is the DDL-invalidation token for per-executor caches:
 // the main schema manager's cookie/epoch fingerprint (same token the
-// index-def cache validates against).
+// index-def cache validates against). Memoized per DML statement (the fpSeq
+// statement counter): the point-op paths read it from every memo guard —
+// column index, column lookup, row plan, index defs — and each read paid a
+// pager-header lock; the schema cannot change mid-statement (no DDL inside
+// DML), so one read per statement serves the rest.
 func (e *DMLExecutor) schemaFingerprint() uint64 {
-	if sm := e.ctx.Schema(); sm != nil {
-		return sm.SchemaFingerprint()
+	if e.fpSeq == e.dmlStmtSeq {
+		return e.fpCache
 	}
-	return 0
+	var fp uint64
+	if sm := e.ctx.Schema(); sm != nil {
+		fp = sm.SchemaFingerprint()
+	}
+	e.fpSeq, e.fpCache = e.dmlStmtSeq, fp
+	return fp
+}
+
+// bumpDMLStmtSeq advances the per-statement memo epoch (called at every
+// DML statement-family entry, trigger bodies included).
+func (e *DMLExecutor) bumpDMLStmtSeq() {
+	e.dmlStmtSeq++
 }
 
 // columnIndexFor returns the column index for colDefs, memoized per DML
@@ -879,109 +894,4 @@ func uniqueColValuesMatch(a, b []interface{}, colDefs []sql.ColumnDef, rowIDa, r
 		return false
 	}
 	return util.CompareValues(av, bv) == 0
-}
-
-// uniqueIndexDefNeedsRowMaps reports whether one UNIQUE index definition's
-// conflict check needs a name-keyed row map: a partial index's WHERE
-// predicate evaluates against the row, and an expression/qualified key (or a
-// rowid alias, which maps to the negative pseudo-slot) evaluates its
-// expression against the row. Plain declared-column keys read the positional
-// values directly.
-func uniqueIndexDefNeedsRowMaps(def uniqueIndexDef, colIndex map[string]int) bool {
-	if def.Where != "" {
-		return true
-	}
-	for _, cn := range def.Cols {
-		if strings.ContainsAny(cn, "(.") {
-			return true
-		}
-		if idx, ok := colIndex[strings.ToLower(cn)]; !ok || idx < 0 {
-			return true
-		}
-	}
-	return false
-}
-
-// indexDefsMatch reports whether two value sets agree on the indexed columns
-// of any UNIQUE index (full and partial). The per-definition row maps are
-// built lazily — only definitions whose predicate or keys evaluate against a
-// row ever materialize one.
-func indexDefsMatch(e *DMLExecutor, a, b []interface{}, colDefs []sql.ColumnDef, colIndex map[string]int, idxColsList []uniqueIndexDef, aRowID, bRowID int64) bool {
-	for _, def := range idxColsList {
-		var nrow, orow RowMap
-		if uniqueIndexDefNeedsRowMaps(def, colIndex) {
-			nrow = buildRowMapFromValues(b, colDefs, bRowID)
-			orow = buildRowMapFromValues(a, colDefs, aRowID)
-		}
-		if inIndex, _ := e.evalIndexWhere(def.Where, nrow); !inIndex {
-			continue
-		}
-		match := true
-		for _, cn := range def.Cols {
-			rkv, rok := e.indexKeyValue(cn, colDefs, colIndex, a, orow)
-			ckv, cok := e.indexKeyValue(cn, colDefs, colIndex, b, nrow)
-			if !rok || !cok || util.CompareValues(rkv, ckv) != 0 {
-				match = false
-				break
-			}
-		}
-		if match {
-			return true
-		}
-	}
-	return false
-}
-
-// valuesConflict reports whether two value sets conflict on any UNIQUE/PRIMARY
-// KEY column or UNIQUE index (partial-index predicates evaluated). rowIDa and
-// rowIDb are the owning rows' rowids: SQLite stores NULL in the INTEGER
-// PRIMARY KEY (rowid-alias) column of each record, so uniqueColsMatch
-// substitutes the rowid for a stored NULL — two different rows must not both
-// substitute the same placeholder (update.test: UPDATE of a 2-row table with
-// a rowid-alias PK used to self-conflict with rowID 0==0).
-func (e *DMLExecutor) valuesConflict(a, b []interface{}, rowIDa, rowIDb int64, colDefs []sql.ColumnDef, colIndex map[string]int, uniqueCols []int, idxColsList []uniqueIndexDef) bool {
-	if uniqueColsMatch(a, b, colDefs, rowIDa, rowIDb, uniqueCols) {
-		return true
-	}
-	return indexDefsMatch(e, a, b, colDefs, colIndex, idxColsList, rowIDa, rowIDb)
-}
-
-// uniqueConflictError builds a SQLite-style UNIQUE constraint error for the
-// first conflicting column.
-func (e *DMLExecutor) uniqueConflictError(tableName string, colDefs []sql.ColumnDef, colIndex map[string]int, a, b []interface{}, aRowID, bRowID int64, uniqueCols []int, idxColsList []uniqueIndexDef) error {
-	if idx := firstConflictColIdx(colDefs, a, b, aRowID, bRowID, uniqueCols); idx >= 0 {
-		return fmt.Errorf("UNIQUE constraint failed: %s.%s", tableName, colDefs[idx].Name)
-	}
-	for _, def := range idxColsList {
-		if e.valuesConflict(a, b, aRowID, bRowID, colDefs, colIndex, nil, []uniqueIndexDef{def}) {
-			return uniqueIndexColsConflictError(tableName, def)
-		}
-	}
-	return fmt.Errorf("UNIQUE constraint failed: %s", tableName)
-}
-
-// firstConflictColIdx returns the index (into colDefs) of the first
-// UNIQUE/PRIMARY KEY column on which the two value sets agree, -1 when none.
-func firstConflictColIdx(colDefs []sql.ColumnDef, a, b []interface{}, aRowID, bRowID int64, uniqueCols []int) int {
-	for _, idx := range uniqueCols {
-		// Rowid-alias convention: the INTEGER PRIMARY KEY column reads
-		// back NULL from the stored record — substitute the owning
-		// row's rowid (uniqueColsMatch parity), else the PK-conflict
-		// message degrades to the column-less form ("t5" not "t5.a",
-		// conflict-12.3).
-		if uniqueColValuesMatch(a, b, colDefs, aRowID, bRowID, idx) {
-			return idx
-		}
-	}
-	return -1
-}
-
-// uniqueIndexColsConflictError builds the error naming every column of the
-// violated UNIQUE index ("UNIQUE constraint failed: t.a, t.b").
-func uniqueIndexColsConflictError(tableName string, def uniqueIndexDef) error {
-	parts := make([]string, len(def.Cols))
-	for i, cn := range def.Cols {
-		parts[i] = tableName + "." + cn
-	}
-	return fmt.Errorf("UNIQUE constraint failed: %s", strings.Join(parts, ", "))
 }

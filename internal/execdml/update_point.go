@@ -13,12 +13,15 @@ package execdml
 // the statement runs the unmodified generic pipeline.
 
 import (
+	"fmt"
 	"strings"
 
 	"github.com/pijalu/frigolite/internal/btree"
+	"github.com/pijalu/frigolite/internal/execquery"
 	"github.com/pijalu/frigolite/internal/schema"
 	"github.com/pijalu/frigolite/internal/sql"
 	"github.com/pijalu/frigolite/internal/storage"
+	"github.com/pijalu/frigolite/internal/util"
 )
 
 // pointUpdateEligible reports the statement shape the fast path rewrites
@@ -97,8 +100,13 @@ func (e *DMLExecutor) applyPointUpdate(s *sql.UpdateStmt, tableEntry *schema.Ent
 	if plan == nil || plan.empty || plan.index != nil {
 		return nil, false
 	}
-	tree := e.dmlTableBTree(tableEntry.Name, tableEntry.RootPage)
-	defer tree.Close() // seek+write tree is function-local
+	// The point write path's cached wrapper (insertWriteTree pattern): one
+	// b-tree serves the row fetch and the write across statements (the
+	// write primitives save/restore cursors themselves; the statement's
+	// leaked internal seek cursors are released on return).
+	pg := e.dmlPager(tableEntry.Name)
+	tree := e.pointWriteTree(&e.updTree, &e.updTreeKey, pg, tableEntry.Name, tableEntry.RootPage)
+	defer tree.ReleaseIdleCursors()
 	ch, matched, res, pos := e.collectPointUpdateRow(tree, s, tableEntry, colDefs, plan.rowid)
 	if res != nil {
 		return res, true
@@ -132,6 +140,9 @@ func (e *DMLExecutor) applyPointUpdate(s *sql.UpdateStmt, tableEntry *schema.Ent
 	if wres := e.writePointUpdateRow(tableEntry.Name, tree, tableEntry.RootPage, changes[0], tableEntry, colDefs, pos); wres.Error != nil {
 		return wres, true
 	}
+	// A growth split may have moved the root: re-key the cached wrapper and
+	// persist the new root (persistTreeRootPage parity with the insert path).
+	e.pointWriteTreeSync(&e.updTreeKey, pg, tableEntry.Name, tableEntry.RootPage, tree)
 	return &Result{Changes: 1}, true
 }
 
@@ -150,13 +161,13 @@ type cellPos struct {
 // preupdate event copies them — so the next statement may reuse the storage.
 // The values slice is cleared first: slots beyond the stored record keep nil
 // unless an added-column DEFAULT fills them (updateChangeValueSlots' fresh
-// make() semantics).
-func (e *DMLExecutor) pointUpdateValueSlots(rec *storage.Record, colIndex map[string]int) ([]interface{}, []interface{}) {
+// make() semantics). maxIdx is max(len(rec.Values), len(colDefs)) — exactly
+// the map iteration's maximum (colIndex holds every column's 0-based slot
+// plus the rowid pseudo-entry -1) without walking the map per statement.
+func (e *DMLExecutor) pointUpdateValueSlots(rec *storage.Record, colDefs []sql.ColumnDef) ([]interface{}, []interface{}) {
 	maxIdx := len(rec.Values)
-	for _, idx := range colIndex {
-		if idx+1 > maxIdx {
-			maxIdx = idx + 1
-		}
+	if len(colDefs) > maxIdx {
+		maxIdx = len(colDefs)
 	}
 	if cap(e.ptValues) < maxIdx {
 		e.ptValues = make([]interface{}, maxIdx)
@@ -170,6 +181,172 @@ func (e *DMLExecutor) pointUpdateValueSlots(rec *storage.Record, colIndex map[st
 	oldValues := e.ptOldValues[:len(rec.Values)]
 	copy(oldValues, rec.Values)
 	return values, oldValues
+}
+
+// pointUpdateRowMap builds the SET-evaluation row map over the executor's
+// pooled map (one allocation ever, then clear + refill per statement —
+// buildRowMap allocated a fresh map per row, 8.3% of the point-UPDATE
+// profile). The fill mirrors execquery's buildRowMap exactly for the common
+// full-record shapes: dropped-column records and short (pre-ALTER) records
+// fall back to the shared builder; extra record values project as c<N>.
+// The pooled map is safe here and only here: the single change consumes the
+// map within the statement AND the SET expressions contain no subquery (a
+// correlated subquery's evaluation RETAINS the row as the engine's outer-row
+// scope, which a later statement's clear() would corrupt — those statements
+// fall back too).
+func (e *DMLExecutor) pointUpdateRowMap(rec *storage.Record, colDefs []sql.ColumnDef, rowID int64, assignments []sql.Assignment) RowMap {
+	if len(rec.Values) < len(colDefs) || subqueryInAssignments(assignments) {
+		return e.ctx.BuildRowMap(rec, colDefs, rowID)
+	}
+	for i := range colDefs {
+		if colDefs[i].Dropped {
+			return e.ctx.BuildRowMap(rec, colDefs, rowID)
+		}
+	}
+	row := e.ptRowMap
+	if row == nil {
+		row = make(RowMap, len(colDefs)+4)
+		e.ptRowMap = row
+	} else {
+		clear(row)
+	}
+	e.fillPointUpdateRowMap(row, rec, colDefs, rowID)
+	return row
+}
+
+// fillPointUpdateRowMap refills the pooled map from the record (the
+// buildRowMap fill: affinity/collation-wrapped declared columns, extra
+// record values projected as c<N>, rowid pseudo-aliases).
+func (e *DMLExecutor) fillPointUpdateRowMap(row RowMap, rec *storage.Record, colDefs []sql.ColumnDef, rowID int64) {
+	for i := range colDefs {
+		cd := colDefs[i]
+		if v := rec.Values[i]; v == nil && isIPKRowidAliasCol(cd) {
+			// SQLite stores NULL in the rowid-alias slot; the value is the
+			// rowid (substituted at read time, buildRowMap parity).
+			row[cd.Name] = &util.ColumnValue{Value: rowID, Affinity: 'I'}
+		} else {
+			cv := &util.ColumnValue{Value: v, Affinity: util.Affinity(cd.Type)}
+			if coll := cd.Collate; coll != "" && !strings.EqualFold(coll, "BINARY") {
+				row[cd.Name] = &execquery.CollatedValue{Value: cv, Collation: strings.ToUpper(coll)}
+			} else {
+				row[cd.Name] = cv
+			}
+		}
+	}
+	for i := len(colDefs); i < len(rec.Values); i++ {
+		row[fmt.Sprintf("c%d", i)] = rec.Values[i]
+	}
+	if !execquery.RowHasRowIDColumn(colDefs) {
+		rowidCV := &util.ColumnValue{Value: rowID, Affinity: 'I'}
+		row["rowid"] = rowidCV
+		row["_rowid_"] = rowidCV
+		row["oid"] = rowidCV
+	}
+}
+
+// subqueryInAssignments reports whether any SET expression contains a
+// Subquery/ExistsExpr node (the pooled-row-map gate).
+func subqueryInAssignments(assigns []sql.Assignment) bool {
+	for _, a := range assigns {
+		if exprHasSubqueryNode(a.Value) {
+			return true
+		}
+	}
+	return false
+}
+
+// exprHasSubqueryNode walks e for a Subquery/ExistsExpr node. The single-
+// child kinds dispatch here; the multi-child containers (function calls,
+// CASE, BETWEEN, IN lists, row values, DISTINCT pairs) recurse through
+// exprHasSubqueryMulti so each walker stays under the complexity gate.
+func exprHasSubqueryNode(e sql.Expr) bool {
+	switch e.(type) {
+	case *sql.Subquery, *sql.ExistsExpr:
+		return true
+	case *sql.BinaryOp, *sql.IsDistinctFrom, *sql.IsNotDistinctFrom:
+		return exprHasSubqueryPair(e)
+	case *sql.FuncCall, *sql.CaseExpr, *sql.Between, *sql.InList, *sql.RowValue:
+		return exprHasSubqueryMulti(e)
+	default:
+		return exprHasSubquerySingle(e)
+	}
+}
+
+// exprHasSubqueryPair walks the two-child expression nodes.
+func exprHasSubqueryPair(e sql.Expr) bool {
+	var left, right sql.Expr
+	switch v := e.(type) {
+	case *sql.BinaryOp:
+		left, right = v.Left, v.Right
+	case *sql.IsDistinctFrom:
+		left, right = v.Left, v.Right
+	case *sql.IsNotDistinctFrom:
+		left, right = v.Left, v.Right
+	}
+	return exprHasSubqueryNode(left) || exprHasSubqueryNode(right)
+}
+
+// exprHasSubquerySingle walks the single-child expression nodes.
+func exprHasSubquerySingle(e sql.Expr) bool {
+	switch v := e.(type) {
+	case *sql.UnaryOp:
+		return exprHasSubqueryNode(v.Operand)
+	case *sql.ParenExpr:
+		return exprHasSubqueryNode(v.Expr)
+	case *sql.CastExpr:
+		return exprHasSubqueryNode(v.Operand)
+	case *sql.IsNull:
+		return exprHasSubqueryNode(v.Operand)
+	case *sql.IsNotNull:
+		return exprHasSubqueryNode(v.Operand)
+	case *sql.IsTrue:
+		return exprHasSubqueryNode(v.Operand)
+	case *sql.IsFalse:
+		return exprHasSubqueryNode(v.Operand)
+	}
+	return false
+}
+
+// exprHasSubqueryMulti walks the multi-child expression containers for a
+// Subquery/ExistsExpr node (exprHasSubqueryNode's tail dispatch).
+func exprHasSubqueryMulti(e sql.Expr) bool {
+	switch v := e.(type) {
+	case *sql.FuncCall:
+		return exprListHasSubquery(v.Args) || exprHasSubqueryNode(v.Filter)
+	case *sql.CaseExpr:
+		return caseExprHasSubquery(v)
+	case *sql.Between:
+		return exprHasSubqueryNode(v.Operand) || exprHasSubqueryNode(v.Low) || exprHasSubqueryNode(v.High)
+	case *sql.InList:
+		return exprListHasSubquery(append([]sql.Expr{v.Operand}, v.List...))
+	case *sql.RowValue:
+		return exprListHasSubquery(v.Values)
+	}
+	return false
+}
+
+// caseExprHasSubquery walks a CASE expression's operand, WHEN arms and ELSE.
+func caseExprHasSubquery(v *sql.CaseExpr) bool {
+	if exprHasSubqueryNode(v.Operand) || exprHasSubqueryNode(v.Else) {
+		return true
+	}
+	for i := range v.Whens {
+		if exprHasSubqueryNode(v.Whens[i].When) || exprHasSubqueryNode(v.Whens[i].Then) {
+			return true
+		}
+	}
+	return false
+}
+
+// exprListHasSubquery reports whether any list expression holds a
+// Subquery/ExistsExpr node.
+func exprListHasSubquery(list []sql.Expr) bool {
+	for _, item := range list {
+		if exprHasSubqueryNode(item) {
+			return true
+		}
+	}
+	return false
 }
 
 // collectPointUpdateRow reads the pinned row by rowid and builds its change:
@@ -212,7 +389,7 @@ func (e *DMLExecutor) collectPointUpdateRow(tree *btree.BTree, s *sql.UpdateStmt
 	// The pooled slot pair is safe here and only here: the single change is
 	// fully consumed within this statement (the generic pipeline's changes
 	// outlive the collect loop and keep fresh allocations).
-	values, oldValues := e.pointUpdateValueSlots(rec, e.columnIndexFor(colDefs))
+	values, oldValues := e.pointUpdateValueSlots(rec, colDefs)
 	// Rows written before ALTER TABLE ADD COLUMN read their added-column
 	// DEFAULTs (buildUpdateChange parity).
 	e.applyUpdateColumnDefaults(values, colDefs, len(rec.Values))
@@ -223,7 +400,7 @@ func (e *DMLExecutor) collectPointUpdateRow(tree *btree.BTree, s *sql.UpdateStmt
 	// positional plan's fixed per-statement cost only amortizes from three
 	// candidates up (updateSeekMapPathMaxCandidates), so one pinned row
 	// keeps the map.
-	row := e.ctx.BuildRowMap(rec, colDefs, cell.RowID)
+	row := e.pointUpdateRowMap(rec, colDefs, cell.RowID, s.Assignments)
 	newRowID, aerr := e.applyUpdateAssignments(s, row, e.columnIndexFor(colDefs), colDefs, values)
 	if aerr != nil {
 		return updateChange{}, false, &Result{Error: aerr}, pos

@@ -24,7 +24,7 @@ import (
 // execPointDelete applies the rowid-pinned single-row DELETE fast path.
 // handled=false means the statement does not fit the fast path's exact shape
 // and must run the generic pipeline (collectDeleteRows → execDeleteBulk).
-func (e *DMLExecutor) execPointDelete(s *sql.DeleteStmt, tableEntry *schema.Entry, dbCtx *DatabaseContext, colDefs []sql.ColumnDef, tree *btree.BTree) (*Result, bool) {
+func (e *DMLExecutor) execPointDelete(s *sql.DeleteStmt, tableEntry *schema.Entry, dbCtx *DatabaseContext, colDefs []sql.ColumnDef) (*Result, bool) {
 	if !e.pointDeleteEligible(s, tableEntry) {
 		return nil, false
 	}
@@ -49,7 +49,16 @@ func (e *DMLExecutor) execPointDelete(s *sql.DeleteStmt, tableEntry *schema.Entr
 	// exactly as execDeleteBulk opens it for every statement.
 	stmt := dbCtx.Pager.BeginStatement()
 	defer dbCtx.Pager.EndStatement(stmt)
-	return e.finishPointDelete(tableEntry, dbCtx, colDefs, tree, plan.rowid)
+	// The point path's cached write wrapper (insertWriteTree pattern): the
+	// statement's leaked internal seek cursors are released on return, and a
+	// root-moving rebalance is re-keyed + persisted before the next hit.
+	tree := e.pointWriteTree(&e.delTree, &e.delTreeKey, dbCtx.Pager, tableEntry.Name, tableEntry.RootPage)
+	defer tree.ReleaseIdleCursors()
+	res, handled := e.finishPointDelete(tableEntry, dbCtx, colDefs, tree, plan.rowid)
+	if handled {
+		e.pointWriteTreeSync(&e.delTreeKey, dbCtx.Pager, tableEntry.Name, tableEntry.RootPage, tree)
+	}
+	return res, handled
 }
 
 // finishPointDelete seeks the pinned rowid, deletes the row, and runs the
@@ -150,7 +159,10 @@ func (e *DMLExecutor) pointDeleteEligible(s *sql.DeleteStmt, tableEntry *schema.
 	if e.ctx.ForeignKeys() {
 		return false
 	}
-	if strings.HasSuffix(strings.ToLower(tableEntry.Name), "_content") {
+	// FTS content shadow tables are tracked by recordDeletedContentDocs; the
+	// allocation-free EqualFold form (the temp-master name check's pattern)
+	// keeps the per-statement gate off the heap.
+	if n := tableEntry.Name; len(n) >= 8 && strings.EqualFold(n[len(n)-8:], "_content") {
 		return false
 	}
 	return true

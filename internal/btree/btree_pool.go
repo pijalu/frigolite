@@ -146,6 +146,34 @@ func (t *BTree) resetForPool() {
 	t.cellScratch = nil
 }
 
+// ReleaseIdleCursors releases every cursor the wrapper owns WITHOUT closing
+// the wrapper — the per-statement sweep for a PERSISTENT wrapper
+// (execdml's cached write trees). The btree write primitives' internal seek
+// cursors (seekLeafRow, DeleteCellByRowID's open) stay owned by the wrapper
+// after they return; a statement-local wrapper's Close sweeps them at
+// statement teardown, so a cached wrapper needs the explicit sweep after
+// each statement — otherwise the leaked cursors accumulate across
+// statements and every saveAllCursors pays for the list. Cursor release
+// semantics match Close exactly (registry unregistration under the
+// registry lock, pool reset with the released marker); the wrapper itself
+// stays open and serves the next statement.
+func (t *BTree) ReleaseIdleCursors() {
+	if t == nil || t.closed || len(t.cursors) == 0 {
+		return
+	}
+	owned := t.cursors
+	t.cursors = t.cursors[:0]
+	cursorRegMu.Lock()
+	for _, c := range owned {
+		if c.regKey != (cursorTreeKey{}) {
+			removeRegisteredCursor(c.regKey, c)
+			c.regKey = cursorTreeKey{}
+		}
+	}
+	cursorRegMu.Unlock()
+	t.releaseCursors(owned)
+}
+
 // landingScratch returns the cursor's reusable parsed-header scratch,
 // allocating it on first use. cachePage and cacheLandingLeaf decode into it
 // so positioning a cursor allocates once per cursor lifetime instead of once

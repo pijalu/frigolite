@@ -1,6 +1,8 @@
 package exec
 
 import (
+	"hash/maphash"
+
 	"github.com/pijalu/frigolite/internal/sql"
 )
 
@@ -164,4 +166,139 @@ func (s *cloneScratch) takeInsertStmt() *sql.InsertStmt {
 // substitution's free list.
 func (s *cloneScratch) retireInsert(st *sql.InsertStmt) {
 	s.retiredInserts = append(s.retiredInserts, st)
+}
+
+// trySlotPathLive serves a template hit through the entry's precomputed
+// slot paths: the values are gated against the slot classes (mirroring the
+// COW walkers' gates — a refusal here falls back to the COW form, which
+// refuses identically), then written into the entry's live clone for the
+
+// current exec depth. The first hit at a depth builds that clone privately
+// through the standalone COW walker (fresh allocations, exactly the
+// scratchOK=false form — the per-depth scratch is NOT used: its tenants are
+// recycled by the next substitution, while the live clone must persist).
+func (e *Engine) trySlotPathLive(cached *sqlTemplateEntry, values []interface{}) ([]sql.Stmt, bool) {
+	if cached.slots == nil || !cached.slots.validateValues(values) {
+		return nil, false
+	}
+	depth := e.tx.execDepth
+	for i := range cached.live {
+		if lc := &cached.live[i]; lc.depth == depth {
+			if !cached.slots.apply(lc.stmts[0], values) {
+				// Unreachable for a collector-produced table; fall back to
+				// the COW clone rather than serve a stale literal.
+				return nil, false
+			}
+			return lc.stmts, true
+		}
+	}
+	c := exprClone{values: values}
+	stmts := make([]sql.Stmt, len(cached.ast))
+	for i, stmt := range cached.ast {
+		out, ok := c.stmt(stmt)
+		if !ok {
+			return nil, false
+		}
+		stmts[i] = out
+	}
+	if c.idx != len(values) {
+		return nil, false
+	}
+	cached.live = append(cached.live, liveTemplateClone{depth: depth, stmts: stmts})
+	return stmts, true
+}
+
+// templateCacheHash keys the template cache: a seeded AES hash of the
+// normalized text. The seed is per-process; lookups verify the candidate
+// entry's stored text against the normalized bytes before use, so a (never
+// observed) collision degrades to a full parse, never to a wrong template.
+var templateCacheHash = maphash.MakeSeed()
+
+// tryTemplateCache attempts to reuse a cached AST template for structurally
+// identical SQL (same after replacing literal values). normSQL is the
+// recycled normalization scratch (nil when the statement held no literals).
+// scratchOK clones onto the engine's per-exec-depth scratch — ONLY valid when
+// the caller consumes the statements within the call; the retained form
+// (scratchOK=false) clones onto fresh allocations. It returns (nil, false)
+// when there is no usable template, falling through to a full parse.
+func (e *Engine) tryTemplateCache(sqlStr string, normSQL []byte, values []interface{}, scratchOK bool) ([]sql.Stmt, bool) {
+	if len(normSQL) == 0 || len(values) == 0 {
+		return nil, false
+	}
+	cached, ok := e.caches.templateCache[maphash.Bytes(templateCacheHash, normSQL)]
+	if !ok || cached.template != string(normSQL) {
+		return nil, false
+	}
+	// Template cache hit — clone AST with new values. If the clone refuses
+	// (unknown shape or value mismatch), fall through to re-parse.
+	// The clone is NOT stored in the exact-text stmtCache: a structurally
+	// identical statement with different literals has a different exact text,
+	// so the store only paid a map insert + entry churn per statement (the
+	// cache filled to its cap and was wholesale-dropped under unique-text
+	// streams) while every exact-text repeat still re-clones from the same
+	// template below. Results are identical either way: a substituted AST is
+	// byte-for-byte what a fresh parse of the statement text produces, and
+	// statement execution treats AST nodes as immutable.
+	//
+	// Slot-path form (immediate-consume callers, single-statement template):
+	// rewrite the entry's live per-depth clone's literal leaves — no walk,
+	// no allocation. Retained Prepare (scratchOK=false) never takes it: a
+	// retained AST must not alias the live clone a later hit rewrites
+	// (FIX.PREPARE-ALIAS).
+	if scratchOK {
+		if stmts, ok := e.trySlotPathLive(cached, values); ok {
+			return stmts, true
+		}
+		cloned, okClone := e.cloneStmtsValuesScratch(cached.ast, values)
+		if okClone {
+			return cloned, true
+		}
+		return nil, false
+	}
+	cloned, okClone := cloneTemplateRetained(cached.ast, values)
+	if !okClone {
+		return nil, false
+	}
+	return cloned, true
+}
+
+// cloneTemplateRetained is the retained-Prepare clone form (scratchOK=false):
+// a fresh private COW clone on every call, never the per-depth scratch and
+// never the live slot-path clone (FIX.PREPARE-ALIAS).
+func cloneTemplateRetained(ast []sql.Stmt, values []interface{}) ([]sql.Stmt, bool) {
+	c := exprClone{values: values}
+	cloned := make([]sql.Stmt, len(ast))
+	for i, stmt := range ast {
+		out, ok := c.stmt(stmt)
+		if !ok {
+			return nil, false
+		}
+		cloned[i] = out
+	}
+	if c.idx != len(values) {
+		return nil, false
+	}
+	return cloned, true
+}
+
+// storeTemplateCache records a parsed statement list as a template for
+// structurally identical SQL, bounded by maxTemplateCacheSize. normSQL is
+// the normalization scratch; a fresh template materializes its normalized
+// text once (the per-statement string the lookup path never pays).
+func (e *Engine) storeTemplateCache(normSQL []byte, values []interface{}, stmts []sql.Stmt) {
+	if len(normSQL) == 0 || len(values) == 0 || len(e.caches.templateCache) >= maxTemplateCacheSize {
+		return
+	}
+	if e.caches.templateCache == nil {
+		e.caches.templateCache = make(map[uint64]*sqlTemplateEntry)
+	}
+	key := maphash.Bytes(templateCacheHash, normSQL)
+	if existing, ok := e.caches.templateCache[key]; ok && existing.template == string(normSQL) {
+		return
+	}
+	e.caches.templateCache[key] = &sqlTemplateEntry{
+		template: string(normSQL),
+		ast:      stmts,
+		slots:    collectTemplateSlots(stmts),
+	}
 }

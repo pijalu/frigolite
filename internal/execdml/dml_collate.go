@@ -187,34 +187,6 @@ func caseExprCollationName(v *sql.CaseExpr, colDefs []sql.ColumnDef) string {
 	return exprCollationName(v.Else, colDefs)
 }
 
-// validateDMLComparisonCollations resolves the collation of comparison
-// operands and explicit COLLATE operators inside DML expressions against the
-// target table's declared column collations (resolve.c prepares WHERE/SET
-// expressions with the same collation resolution a SELECT uses).
-func (e *DMLExecutor) validateDMLComparisonCollations(colDefs []sql.ColumnDef, exprs []sql.Expr) error {
-	for _, ex := range exprs {
-		if ex == nil {
-			continue
-		}
-		if err := e.validateExprComparisonCollations(ex, colDefs); err != nil {
-			return err
-		}
-	}
-	return nil
-}
-
-// validateExprComparisonCollations checks one expression tree.
-func (e *DMLExecutor) validateExprComparisonCollations(expr sql.Expr, colDefs []sql.ColumnDef) error {
-	var err error
-	execquery.WalkExprFull(expr, func(n sql.Expr) {
-		if err != nil {
-			return
-		}
-		err = e.comparisonCollationError(n, colDefs)
-	})
-	return err
-}
-
 // comparisonCollationError returns the resolution error for one expression
 // node: a COLLATE operator's name, or a comparison operand's declared column
 // collation.
