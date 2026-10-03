@@ -137,6 +137,19 @@ func scanLazyDecodeIndices(colDefs []sql.ColumnDef, colIndex map[string]int, aff
 	return whereDecodeIndices, remainingDecodeIndices
 }
 
+// boolDecodeSet materializes an index set as a by-position bool slice sized n
+// (the storage decode loop's colIndices[i] membership test becomes a slice
+// index; keys outside [0,n) keep the map lookup's not-set answer).
+func boolDecodeSet(m map[int]bool, n int) []bool {
+	cols := make([]bool, n)
+	for i := range m {
+		if i >= 0 && i < n {
+			cols[i] = true
+		}
+	}
+	return cols
+}
+
 func (e *SelectEngine) rowPassesWhere(where sql.Expr, row Row, cursor *btree.Cursor) (bool, error) {
 	if where == nil {
 		return true, nil
@@ -386,8 +399,8 @@ func UnwrapRowMap(row RowMap) RowMap {
 // ipkIdx holds the precomputed INTEGER PRIMARY KEY rowid-alias column indices
 // (from scanState.ipkFillIdx) so the refill below skips the per-row
 // isIPKRowidAliasCol walk over all column definitions.
-func (e *SelectEngine) fillStructRowRemainingFromTypes(sr *StructRow, payload []byte, dataStart int, colDefs []sql.ColumnDef, serialTypes []uint64, indices map[int]bool, ipkIdx []int) {
-	storage.DecodeRecordValuesFromTypes(payload, dataStart, sr.Values, serialTypes, indices)
+func (e *SelectEngine) fillStructRowRemainingFromTypes(sr *StructRow, payload []byte, dataStart int, colDefs []sql.ColumnDef, serialTypes []uint64, indices []bool, ipkIdx []int) {
+	storage.DecodeRecordValuesFromTypesCols(payload, dataStart, sr.Values, serialTypes, indices)
 	// Same missing-column default handling as fillStructRowFromTypes: rows
 	// written before ALTER TABLE ADD COLUMN need the added column's DEFAULT.
 	e.applyColumnDefaults(sr.Values, colDefs, len(serialTypes))

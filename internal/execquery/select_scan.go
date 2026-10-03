@@ -552,10 +552,13 @@ type scanState struct {
 	// whereExpr is the WHERE clause this scan evaluates: s.Where with
 	// index-usable LIKE/GLOB terms decorated with their synthesized prefix
 	// range (select_like_opt.go). Identical to s.Where when no term qualifies.
-	whereExpr              sql.Expr
-	useLazyDecode          bool
-	whereDecodeIndices     map[int]bool
-	remainingDecodeIndices map[int]bool
+	whereExpr     sql.Expr
+	useLazyDecode bool
+	// whereDecodeIndices/remainingDecodeIndices are the phase-1/phase-2
+	// decode sets (the map plan's sets materialized by position — the decode
+	// loop's per-column test is a slice index).
+	whereDecodeIndices     []bool
+	remainingDecodeIndices []bool
 	isSelectStar           bool
 	activeColCount         int
 	needMaps               bool
@@ -683,8 +686,8 @@ func newScanState(e *SelectEngine, s *sql.SelectStmt, colDefs []sql.ColumnDef, n
 		ipkFillIdx:             ipkAliasIndices(colDefs),
 		reuseSRow:              &StructRow{Values: make([]interface{}, len(colDefs)), Index: colIndex},
 		useLazyDecode:          plan.useLazyDecode,
-		whereDecodeIndices:     plan.whereDecodeIndices,
-		remainingDecodeIndices: plan.remainingDecodeIndices,
+		whereDecodeIndices:     boolDecodeSet(plan.whereDecodeIndices, len(colDefs)),
+		remainingDecodeIndices: boolDecodeSet(plan.remainingDecodeIndices, len(colDefs)),
 		isSelectStar:           isSelectStar,
 		bareOutIdx:             bareSlots,
 		activeColCount:         activeColCount,

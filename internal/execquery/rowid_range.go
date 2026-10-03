@@ -437,6 +437,11 @@ type rangeSeekRow struct {
 
 	srow   *StructRow
 	values []interface{}
+	// whereCols/restCols are the phase-1/phase-2 decode sets by position
+	// (the maps' membership materialized once — the decode loop's per-column
+	// test is a slice index).
+	whereCols []bool
+	restCols  []bool
 	// serialTypes is the iterator's reusable record-header type buffer
 	// (parseRecordSerialTypesInto); consumed within each row's decode.
 	serialTypes []uint64
@@ -560,6 +565,8 @@ func (e *SelectEngine) newRangeSeekRow(s *sql.SelectStmt, cursor *btree.Cursor, 
 		feed:         feed,
 		typed:        typed,
 		whereCovered: a.covers,
+		whereCols:    boolDecodeSet(whereIdx, len(colDefs)),
+		restCols:     boolDecodeSet(restIdx, len(colDefs)),
 		values:       make([]interface{}, len(colDefs)),
 		srow:         &StructRow{Index: colIndex},
 	}
@@ -799,7 +806,7 @@ func (it *rangeSeekRow) decodePhaseOne(payload []byte, rowID int64) bool {
 	for i := range values {
 		values[i] = nil
 	}
-	storage.DecodeRecordValuesFromTypes(payload, dataStart, values, it.serialTypes, it.whereIdx)
+	storage.DecodeRecordValuesFromTypesCols(payload, dataStart, values, it.serialTypes, it.whereCols)
 	it.e.fillSeekRowPhaseOne(values, len(it.serialTypes), it.srow, it.colDefs, rowID, it.affWrapIdx, it.ipkIdx)
 	return true
 }
@@ -815,7 +822,7 @@ func (it *rangeSeekRow) refill(srow *StructRow, payload []byte) bool {
 	if err != nil {
 		return false
 	}
-	storage.DecodeRecordValuesFromTypes(payload, dataStart, srow.Values, it.serialTypes, it.restIdx)
+	storage.DecodeRecordValuesFromTypesCols(payload, dataStart, srow.Values, it.serialTypes, it.restCols)
 	it.e.applyColumnDefaults(srow.Values, it.colDefs, len(it.serialTypes))
 	for _, i := range it.ipkIdx {
 		if srow.Values[i] == nil {
