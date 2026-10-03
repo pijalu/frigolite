@@ -2602,3 +2602,44 @@ second-and-later rows/statement re-entry:
   requires per-FILE solo runs on both sides — full-run comparisons drown
   the signal in cwd-state jitter (vacuum-11.2, trigger1-10.x flip
   run-to-run on BOTH sides).
+
+## FIX.INS2-VACUUM — insert write-tree cache vs in-place pager layout replacement (fleet/fix-ins2-vacuum, 2026-10-03)
+
+INSERT2-5's executor-level cached write tree (one `btree.BTree` per
+`(pager, root, kind)` insert identity) broke the second-and-later
+`PRAGMA page_size=N; VACUUM` in a whole testgen census (vacuum, backup,
+reservebytes, vacuum3, vacuum6): page size stayed at the old value.
+
+- **Mechanism (exact)**: `btree.initFrom` SNAPSHOTSc `pageSize`/`usableSize`
+  at wrapper build (btree_pool.go). `Pager.ResetToEmpty(newSize)` replaces
+  the layout IN PLACE — same pager pointer — so `insertWriteTree`'s cache key
+  (pointer, root, kind) still matches and the copy-back's re-INSERTs
+  (frigolite_backup.go copyLocked runs DROP/CREATE/INSERT through dst.Exec)
+  write the OLD geometry into the NEW layout → "database disk image is
+  malformed" → vacuumRebuild's restore branch (`frigolite_vacuum.go`) silently
+  re-copies with keepDestPageSize=false, which resets main to the TEMP db's
+  OLD page size. The visible symptom (page_size stuck at 1024) is the restore
+  path, not the write itself. SQLite parity: the page size lives in the
+  file-shared BtShared, so a layout change is instantly visible to every
+  cursor — a per-wrapper snapshot must be invalidated when the layout is
+  replaced.
+- **Fix (option "one hook")**: `Pager.SetLayoutHook` fires (outside p.mu)
+  after SetPageSize / ResetToEmpty / ApplyReservedBytes; the Engine registers
+  `e.dml.InvalidateWriteTree` for every database pager (main/temp at open,
+  ATTACH at AppendDBList). Zero hot-path cost — the cache is untouched until
+  a layout change. Pins (TestIns2Pin) and bench parity held.
+- **Debugging payoff**: the vacuum restore branch SWALLOWS copy-back errors by
+  design, so the failing PRAGMA showed no error anywhere — a one-line printf
+  in the restore branch ("VACTRACE: copyback failed: ...") turned an invisible
+  failure into the exact error text in one run. When a caller silently
+  repairs on failure, trace the failure FIRST.
+- **Bisect caveat**: the "6/6 good vs 0/6 bad" bisect verdict was wrong for
+  capi2 — it fails IDENTICALLY (5 mismatches, capi2-6.7/6.9 row data
+  `3 4 3 4 1 2` vs `2 3 3 4 1 2`) at the good commit 45d58936a. That is a
+  pre-existing, unrelated data bug; a per-package failure-set diff at BOTH
+  bisect endpoints is cheaper than trusting a single-package verdict.
+- Minimal-repro caveat confirmed: a bare CREATE+INSERT+VACUUM probe PASSES
+  even at the bad commit — the failure needs the copy-back to REUSE a cached
+  wrapper across a root reallocation (enough prior schema/row state that the
+  (pager, root, kind) key survives the reset). Reproduce from the harness
+  shape first, minimize only after the mechanism is known.
