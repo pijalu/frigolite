@@ -236,14 +236,6 @@ func unwrapCollationWrappers(values []interface{}) {
 
 // writeTableRow encodes and inserts a table row, returning the tree (for
 // index-failure cleanup) and any write result.
-
-// writeTableRow encodes and inserts a table row, returning the tree (for
-// index-failure cleanup) and any write result.
-
-// writeTableRow encodes and inserts a table row, returning the tree (for
-// index-failure cleanup) and any write result.
-// writeTableRow encodes and inserts a table row, returning the tree (for
-// index-failure cleanup) and any write result.
 func (e *DMLExecutor) writeTableRow(pg *pager.Pager, tableEntry *schema.Entry, colDefs []sql.ColumnDef, values []interface{}, nextRowID int64) (*btree.BTree, *Result) {
 	withoutRowid := tableIsWithoutRowid(tableEntry.SQL)
 	stored := values
@@ -252,11 +244,33 @@ func (e *DMLExecutor) writeTableRow(pg *pager.Pager, tableEntry *schema.Entry, c
 		// order (index_xinfo iField layout); see wr_order.go.
 		stored = ReorderToStorage(values, WithoutRowidStorageOrder(tableEntry.SQL, colDefs))
 	}
-	record, err := storage.EncodeRecord(NullIPKAliasForWrite(colDefs, stored, withoutRowid))
+	// The on-disk record lands in the executor's reusable record buffer and
+	// the cell in the executor's reusable cell: the btree copies payload
+	// bytes into pages (or overflow chains) synchronously inside InsertCell
+	// and never retains either, and a statement owns the executor for its
+	// whole run (no trigger can interleave inside the encode+insert window).
+	record, err := e.appendEncodedInsertRecord(e.ipkAliasForWrite(colDefs, stored, withoutRowid))
 	if err != nil {
 		return nil, &Result{Error: err}
 	}
-	tree := e.ctx.TableBTreePg(pg, tableEntry.Name, tableEntry.RootPage, !withoutRowid)
+	cell := &e.insCell
+	// Reset EVERY wire-format field: prepareCell stamps PayloadLen/LocalLen on
+	// an overflow-bearing row and deliberately does not clear them when the
+	// next row's payload fits locally (cellPlen/localOrFull trust them when
+	// set). A stale PayloadLen/LocalLen leaked into the next row's cell and
+	// encoded a corrupt wire cell (fts5prefix doubling: "database disk image
+	// is malformed" on the shadow %_data tree).
+	cell.Type = storage.CellTableLeaf
+	cell.RowID = nextRowID
+	cell.Payload = record
+	cell.LeftPtr = 0
+	cell.Overflow = 0
+	cell.PayloadLen = 0
+	cell.LocalLen = 0
+	if withoutRowid {
+		cell.Type = storage.CellIndexLeaf
+	}
+	tree := e.insertWriteTree(pg, tableEntry, withoutRowid)
 	if withoutRowid {
 		// Index-leaf insertion order must follow PK value ordering, not
 		// raw record bytes (serial-type bytes break memcmp once values
@@ -269,14 +283,6 @@ func (e *DMLExecutor) writeTableRow(pg *pager.Pager, tableEntry *schema.Entry, c
 			}
 		}
 	}
-	cell := &storage.Cell{
-		Type:    storage.CellTableLeaf,
-		RowID:   nextRowID,
-		Payload: record,
-	}
-	if withoutRowid {
-		cell.Type = storage.CellIndexLeaf
-	}
 	if err := tree.InsertCell(cell); err != nil {
 		return tree, &Result{Error: err}
 	}
@@ -284,8 +290,49 @@ func (e *DMLExecutor) writeTableRow(pg *pager.Pager, tableEntry *schema.Entry, c
 	if tree.RootPage() != e.ctx.RootPagePg(pg, tableEntry.Name, tableEntry.RootPage) {
 		e.ctx.UpdateRootPagePg(pg, tableEntry.Name, tree.RootPage())
 	}
+	// The wrapper tracks its own post-split root; the cache key follows so
+	// the next row's resolved-root lookup hits the same wrapper.
+	e.insertWriteTreeSync(tree.RootPage())
 	e.ctx.BumpRowIDCache(pg, tableEntry.RootPage, nextRowID)
 	return tree, nil
+}
+
+// ipkAliasForWrite returns the values to encode for on-disk storage: the
+// INTEGER PRIMARY KEY rowid-alias column nulled (SQLite stores NULL in the
+// record for the alias — the value IS the cell rowid; btree.c, autovacuum-9.3
+// packing density). WITHOUT ROWID tables have no alias: values pass through.
+// The no-alias and already-NULL cases return values itself; the substitution
+// copies into the executor's reusable slice, consumed synchronously by the
+// record encoder (never mutated: the input slice is left untouched).
+func (e *DMLExecutor) ipkAliasForWrite(colDefs []sql.ColumnDef, values []interface{}, withoutRowid bool) []interface{} {
+	if withoutRowid {
+		return values
+	}
+	for i, cd := range colDefs {
+		if i < len(values) && isIPKRowidAliasCol(cd) {
+			if values[i] == nil {
+				return values
+			}
+			out := append(e.insIPKVals[:0], values...)
+			out[i] = nil
+			e.insIPKVals = out
+			return out
+		}
+	}
+	return values
+}
+
+// appendEncodedInsertRecord encodes a row's values into the insert path's
+// reusable record buffer (the insert twin of appendEncodedRecord): the btree
+// write path copies the payload bytes into pages synchronously and never
+// retains the slice.
+func (e *DMLExecutor) appendEncodedInsertRecord(values []interface{}) ([]byte, error) {
+	buf, err := storage.AppendEncodeRecord(e.insRecBuf[:0], values)
+	if err != nil {
+		return nil, err
+	}
+	e.insRecBuf = buf
+	return buf, nil
 }
 
 // fireAfterInsertRowTriggers fires AFTER INSERT triggers for a written row

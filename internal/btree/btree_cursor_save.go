@@ -164,6 +164,46 @@ func (t *BTree) Close() {
 	t.resetForPool()
 }
 
+// Closed reports whether the wrapper has been closed. Statement-scoped
+// wrapper reuse (execdml's insert write tree) checks it before reusing a
+// cached wrapper: a closed wrapper is never re-armed in place — the owner
+// drops it and builds a fresh one (NewBTree), keeping every Close terminal.
+func (t *BTree) Closed() bool {
+	return t == nil || t.closed
+}
+
+// Close releases one cursor deterministically WITHOUT closing its owning
+// wrapper (the mirror of BTree.Close for single-cursor lifetimes): the cursor
+// is unregistered from the cross-statement invalidation registry under the
+// key it was registered under, dropped from the owner's owned list, reset,
+// and returned to the cursor pool. Use after Close reports an error (the
+// released marker), exactly like a cursor released by its owner's Close.
+func (c *Cursor) Close() {
+	if c == nil || c.released {
+		return
+	}
+	owner := c.tx
+	if c.regKey != (cursorTreeKey{}) {
+		unregisterTreeCursor(c.regKey, c)
+		c.regKey = cursorTreeKey{}
+	}
+	if owner == nil {
+		return
+	}
+	for i, cc := range owner.cursors {
+		if cc == c {
+			owner.cursors = append(owner.cursors[:i], owner.cursors[i+1:]...)
+			break
+		}
+	}
+	// Same discipline as releaseCursors: reset FIRST, then mark released
+	// BEFORE the cursor becomes pool cargo — a write after Put would race
+	// the next acquirer's resetFor.
+	c.resetFor(owner)
+	c.released = true
+	cursorPool.Put(c)
+}
+
 // saveAllCursors saves the positions of every positioned cursor open on this
 // tree except the one being used to perform the write (btree.c
 // saveAllCursors). Called at the top of every public mutation entry point.

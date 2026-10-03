@@ -679,7 +679,7 @@ func colDefAt(colDefs []sql.ColumnDef, name string) *sql.ColumnDef {
 // scanTableForMatch iterates a table's records, invoking match for each;
 // returns the first matching cell and record, or nil when none matched.
 func (e *DMLExecutor) scanTableForMatch(tableEntry *schema.Entry, match func(rec *storage.Record, cell *storage.Cell) bool) (*storage.Cell, *storage.Record, error) {
-	tree := e.uniqueScanTree(tableEntry.Name, tableEntry.RootPage)
+	tree := e.uniqueScanTreeFresh(tableEntry.Name, tableEntry.RootPage)
 	cursor, err := tree.OpenCursor()
 	if err != nil {
 		return nil, nil, err

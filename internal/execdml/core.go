@@ -5,10 +5,13 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/pijalu/frigolite/internal/btree"
 	"github.com/pijalu/frigolite/internal/execexpr"
 	"github.com/pijalu/frigolite/internal/execquery"
 	"github.com/pijalu/frigolite/internal/pager"
+	"github.com/pijalu/frigolite/internal/schema"
 	"github.com/pijalu/frigolite/internal/sql"
+	"github.com/pijalu/frigolite/internal/storage"
 )
 
 // errRaiseIgnore is the sentinel error a RAISE(IGNORE) trigger action returns
@@ -118,6 +121,22 @@ type DMLExecutor struct {
 	// schema manager's fingerprint on every lookup, so any DDL rebuilds the
 	// affected list airtight — no explicit invalidation hooks.
 	indexDefsCache map[indexDefCacheKey]cachedIndexDefs
+
+	// INSERT-path scratch (writeTableRow): the row cell, the on-disk record
+	// buffer, and the IPK rowid-alias substitution copy. All three are
+	// consumed synchronously inside the row's encode+InsertCell window — the
+	// btree copies payload bytes into pages and no trigger can interleave
+	// there — so one executor (single-goroutine statement funnel) reuses
+	// them across rows/statements without observable aliasing.
+	insCell    storage.Cell
+	insRecBuf  []byte
+	insIPKVals []interface{}
+
+	// insTree is the insert write path's cached b-tree wrapper (see
+	// insertWriteTree): one wrapper per (pager, root, kind) identity, closed
+	// and replaced on identity change, never re-armed after Close.
+	insTree    *btree.BTree
+	insTreeKey insTreeKey
 }
 
 // indexDefCacheKey identifies a cached index-maintenance-def list: the owning
@@ -157,6 +176,53 @@ func NewDMLExecutor(ctx DMLContext) *DMLExecutor {
 	e.update = UpdateExecutor{engine: e}
 	e.delete = DeleteExecutor{engine: e}
 	return e
+}
+
+// insertWriteTree builds (or returns the cached) table b-tree a row is
+// written through — insert-path glue over the context's root resolution.
+//
+// A fresh BTree wrapper per ROW dominated the insert-phase allocation
+// profile (one NewBTree + initFrom + Close + registry churn per row, since
+// even single-row INSERTs are whole statements). The executor therefore
+// keeps ONE wrapper for the insert write path and reuses it while the
+// (pager, resolved-root, isTable) identity is unchanged: the wrapper is
+// stateless over that identity (every operation reads the current pages),
+// cursors opened on it are released explicitly (Cursor.Close), and any
+// identity change (other table, ATTACH, split-moved root re-resolved on the
+// next row) closes it and builds a fresh one — a Close stays terminal, and
+// a closed wrapper is never re-armed, only replaced (the btree_pool.go
+// contract). Ownership is the executor's: single-goroutine statement
+// funnel, like every other DMLExecutor field.
+func (e *DMLExecutor) insertWriteTree(pg *pager.Pager, tableEntry *schema.Entry, withoutRowid bool) *btree.BTree {
+	root := e.ctx.RootPagePg(pg, tableEntry.Name, tableEntry.RootPage)
+	key := insTreeKey{pg: pg, root: root, isTable: !withoutRowid}
+	if t := e.insTree; t != nil && !t.Closed() && e.insTreeKey == key {
+		return t
+	}
+	if e.insTree != nil && !e.insTree.Closed() {
+		e.insTree.Close()
+	}
+	t := btree.NewBTree(pg, root, !withoutRowid)
+	e.insTree = t
+	e.insTreeKey = key
+	return t
+}
+
+// insertWriteTreeSync re-keys the cached write tree after a split moved the
+// root (the wrapper tracks its own new root; the cache key must follow it so
+// the next row's resolved-root lookup hits).
+func (e *DMLExecutor) insertWriteTreeSync(root uint32) {
+	e.insTreeKey.root = root
+}
+
+// insTreeKey identifies the insert path's cached b-tree wrapper: the owning
+// pager, the table's current root, and the tree kind (a rowid table's b-tree
+// and a WITHOUT ROWID table's PK-keyed index b-tree are different trees even
+// at the same root).
+type insTreeKey struct {
+	pg      *pager.Pager
+	root    uint32
+	isTable bool
 }
 
 // schemaNameForPager returns the schema name ("main", "aux", ...) whose

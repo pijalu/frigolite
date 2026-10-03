@@ -334,7 +334,7 @@ func (e *DMLExecutor) checkUniqueConstraintsExcluding(tableEntry *schema.Entry, 
 // path (findRowByUniqueCols) and returns the violation error, or nil when no
 // conflicting row exists (or only the excluded row matches).
 func (e *DMLExecutor) bareUniqueConflictError(tableEntry *schema.Entry, colDefs []sql.ColumnDef, colIndex map[string]int, values []interface{}, excludeRowID int64, haveExclude bool) error {
-	if len(uniqueColIndicesWithPK(colDefs, colIndex, values)) == 0 {
+	if !hasUniqueOrPKColValue(colDefs, colIndex, values) {
 		return nil
 	}
 	rowID, vals, conflictIdx, found := e.findRowByUniqueCols(tableEntry.Name, tableEntry.RootPage, colDefs, colIndex, values, tableEntry.SQL)
@@ -424,20 +424,23 @@ func (e *DMLExecutor) checkCompositeUniqueExcluding(tableEntry *schema.Entry, co
 	return compositeUniqueError(tableEntry, colDefs, group)
 }
 
-// uniqueColIndicesWithPK gathers the unique column indices, adding any
-// single-column PRIMARY KEY columns with non-nil values. colIndex is the
-// caller's memoized column index (columnIndexFor) — rebuilding it here made
-// the per-row UNIQUE pre-check the top allocator of the point-INSERT phase.
-func uniqueColIndicesWithPK(colDefs []sql.ColumnDef, colIndex map[string]int, values []interface{}) []int {
-	uniqueCols := gatherUniqueColIndices(colDefs, colIndex, values)
+// hasUniqueOrPKColValue reports whether the per-row UNIQUE pre-check would
+// find a constrained column — the allocation-free emptiness test for the per-row UNIQUE
+// pre-check (bareUniqueConflictError). Mirrors its exact membership rules:
+// a declared-UNIQUE column present in colIndex and in bounds counts even when
+// NULL, a PRIMARY KEY column counts positionally when its value is non-NULL.
+func hasUniqueOrPKColValue(colDefs []sql.ColumnDef, colIndex map[string]int, values []interface{}) bool {
 	for i, cd := range colDefs {
-		if cd.PrimaryKey && !contains(uniqueCols, i) {
-			if i < len(values) && values[i] != nil {
-				uniqueCols = append(uniqueCols, i)
+		if cd.Unique {
+			if idx, ok := colIndex[cd.Name]; ok && idx < len(values) {
+				return true
 			}
 		}
+		if cd.PrimaryKey && i < len(values) && values[i] != nil {
+			return true
+		}
 	}
-	return uniqueCols
+	return false
 }
 
 // compositeUniqueGroups returns groups of column indices that have table-level

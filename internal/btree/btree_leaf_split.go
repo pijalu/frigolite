@@ -8,6 +8,7 @@ package btree
 import (
 	"encoding/binary"
 	"fmt"
+	"sync"
 
 	"github.com/pijalu/frigolite/internal/pager"
 	"github.com/pijalu/frigolite/internal/storage"
@@ -110,6 +111,45 @@ type splitEntry struct {
 	key      []byte // sort key for index b-trees (full payload)
 }
 
+// splitStaging is the leaf-split scratch: the decoded cell structs, their
+// re-encoded bytes, and the partition assignment. The buffers are pooled
+// (splitStagingPool) and truncated per use — a sequential-insert workload
+// splits a few hundred times, and fresh arena/slice pairs per split dominated
+// the insert-phase allocation profile. Nothing in the staging escapes
+// splitLeafMulti: the divider payload handed up to the parent is the split
+// entry's separately cloned key bytes (readCellsForSplit), never a view into
+// the pooled byte arena.
+type splitStaging struct {
+	cells []splitEntry   // decoded cells + encoded-byte views (truncated per use)
+	arena []storage.Cell // backing for the Cell structs
+	bytes []byte         // re-encoded cell bytes (cells' cellData views)
+	parts [][]splitEntry // partition assignment
+	cur   []splitEntry   // partition-in-progress
+}
+
+// splitStagingPool recycles the leaf-split scratch buffers. Buffers only —
+// unlike wrappers (btree_pool.go) a staging has no identity or lifecycle:
+// it is fully rebuilt from the page bytes on every use, so a Get always
+// yields a functionally fresh scratch.
+var splitStagingPool = sync.Pool{New: func() interface{} { return new(splitStaging) }}
+
+func acquireSplitStaging() *splitStaging {
+	return splitStagingPool.Get().(*splitStaging)
+}
+
+// releaseSplitStaging truncates every buffer (keeping capacity) and returns
+// the staging to the pool. Callers must ensure no splitEntry view is still
+// referenced — splitLeafMulti releases after writeSplitPartitions, whose
+// results carry only median rowids and cloned key bytes.
+func releaseSplitStaging(st *splitStaging) {
+	st.cells = st.cells[:0]
+	st.arena = st.arena[:0]
+	st.bytes = st.bytes[:0]
+	st.parts = st.parts[:0]
+	st.cur = st.cur[:0]
+	splitStagingPool.Put(st)
+}
+
 // splitLeafMulti splits a full leaf page's cells — plus the incoming new cell
 // — across the original page and as many newly allocated pages as needed,
 // distributing by size so every page fits (SQLite's balance_nonroot
@@ -132,13 +172,15 @@ func (t *BTree) splitLeafMulti(pg *pager.Page, page *storage.BTreePage, parentPg
 		cellType = storage.CellIndexLeaf
 	}
 
-	cells, err := t.readCellsForSplit(pg, page, coff, cellType, newCell, newCellData)
+	st := acquireSplitStaging()
+	defer releaseSplitStaging(st)
+	cells, err := t.readCellsForSplit(st, pg, page, coff, cellType, newCell, newCellData)
 	if err != nil {
 		return nil, err
 	}
 	sortSplitCells(cells, t.isTable, t.compareKey)
 
-	partitions, err := partitionSplitCells(cells, coff, int(t.usableSize))
+	partitions, err := partitionSplitCells(st, cells, coff, int(t.usableSize))
 	if err != nil {
 		return nil, err
 	}
@@ -166,32 +208,29 @@ func (t *BTree) splitLeafMulti(pg *pager.Page, page *storage.BTreePage, parentPg
 //
 // The fit test runs per cell against a RUNNING byte total (leafCellsFit's
 // only variable inputs are Σ len(cellData) and the cell count), so no probe
-// copy of the current partition is built — the naive per-cell
-// append+cellDatas probe allocated O(n²) splitEntry copies per split and
-// dominated the insert-phase allocation profile.
-func partitionSplitCells(cells []splitEntry, coff, usableSize int) ([][]splitEntry, error) {
-	var partitions [][]splitEntry
-	cur := []splitEntry{}
-	curBytes := 0 // Σ len(c.cellData) for cur
-	flush := func() {
-		if len(cur) > 0 {
-			partitions = append(partitions, cur)
-			cur = nil
-			curBytes = 0
-		}
-	}
-	for _, c := range cells {
+// copy of the current partition is built. Each partition is a CONTIGUOUS RUN
+// of the sorted cells slice, so the partitions are recorded as sub-slices of
+// `cells` (backed by the staging's pooled array) instead of copies — the
+// naive append-per-partition form allocated a fresh splitEntry array per
+// page and dominated the insert-phase allocation profile.
+func partitionSplitCells(st *splitStaging, cells []splitEntry, coff, usableSize int) ([][]splitEntry, error) {
+	partitions := st.parts[:0]
+	start, n, bytes := 0, 0, 0 // current run: cells[start:start+n], Σ len(cellData)
+	for i, c := range cells {
 		sz := len(c.cellData)
-		if len(cur) > 0 {
-			// leafCellsFit(cur+[c]) inlined: contentEnd - total >= ptrEnd.
-			if usableSize-curBytes-sz < coff+storage.CellPointerOffset+(len(cur)+1)*2+2 {
-				flush()
+		if n > 0 {
+			// leafCellsFit(run+[c]) inlined: contentEnd - total >= ptrEnd.
+			if usableSize-bytes-sz < coff+storage.CellPointerOffset+(n+1)*2+2 {
+				partitions = append(partitions, cells[start:start+n])
+				start, n, bytes = i, 0, 0
 			}
 		}
-		cur = append(cur, c)
-		curBytes += sz
+		n++
+		bytes += sz
 	}
-	flush()
+	if n > 0 {
+		partitions = append(partitions, cells[start:start+n])
+	}
 	if len(partitions) == 0 {
 		return nil, fmt.Errorf("btree: split failed: cannot balance leaf pages")
 	}
@@ -297,32 +336,35 @@ type leafSplitResult struct {
 }
 
 // readCellsForSplit decodes the existing cells on a leaf page plus the new
-// cell into a unified split-entry list, ready for redistribution.
-func (t *BTree) readCellsForSplit(pg *pager.Page, page *storage.BTreePage, coff int, cellType storage.CellType, newCell *storage.Cell, newCellData []byte) ([]splitEntry, error) {
-	// Cell structs and their encoded bytes land in two batched buffers (one
-	// backing array, one growing arena) instead of two allocations per cell:
-	// a splitting page holds hundreds of cells, so this is the difference
-	// between 2 allocations per SPLIT and 2 per CELL. The bytes are
-	// byte-identical to storage.EncodeCell (AppendEncodedCell delegates to
-	// the same wire writer). Cell payloads remain views into pg.Data exactly
-	// as storage.DecodeCell returned them.
-	cells := make([]splitEntry, 0, int(page.CellCount)+1)
-	cellArena := make([]storage.Cell, 0, int(page.CellCount)+1)
-	var arena []byte
+// cell into a unified split-entry list, ready for redistribution. The list is
+// built in the caller's pooled staging (see splitStaging): the decoded Cell
+// structs and their encoded bytes land in two batched buffers (one backing
+// array, one growing arena) instead of two allocations per cell — a splitting
+// page holds hundreds of cells, so this is the difference between 2
+// allocations per SPLIT and 2 per CELL. The bytes are byte-identical to
+// storage.EncodeCell (AppendEncodedCell delegates to the same wire writer).
+// Cell payloads remain views into pg.Data exactly as storage.DecodeCell
+// returned them.
+func (t *BTree) readCellsForSplit(st *splitStaging, pg *pager.Page, page *storage.BTreePage, coff int, cellType storage.CellType, newCell *storage.Cell, newCellData []byte) ([]splitEntry, error) {
+	cells := st.cells[:0]
+	arena := st.arena[:0]
+	bytes := st.bytes[:0]
 	for i := uint16(0); i < page.CellCount; i++ {
 		cellOff := int(storage.CellPointer(pg.Data, coff, int(i), int(t.pageSize)))
-		cellArena = append(cellArena, storage.Cell{Type: cellType})
-		c := &cellArena[len(cellArena)-1]
+		arena = append(arena, storage.Cell{Type: cellType})
+		c := &arena[len(arena)-1]
 		if err := storage.DecodeCellInto(pg.Data, cellOff, cellType, int(t.usableSize), c); err != nil {
+			st.cells, st.arena, st.bytes = cells, arena, bytes
 			return nil, err
 		}
 
-		start := len(arena)
-		arena = storage.AppendEncodedCell(arena, c)
-		e := splitEntry{c, arena[start:], nil}
+		start := len(bytes)
+		bytes = storage.AppendEncodedCell(bytes, c)
+		e := splitEntry{c, bytes[start:], nil}
 		if !t.isTable {
 			full, err := t.readOverflow(c)
 			if err != nil {
+				st.cells, st.arena, st.bytes = cells, arena, bytes
 				return nil, err
 			}
 			// Clone the sort key: it aliases pg.Data, and splitLeafMulti
@@ -346,6 +388,7 @@ func (t *BTree) readCellsForSplit(pg *pager.Page, page *storage.BTreePage, coff 
 		}
 	}
 	cells = append(cells, splitEntry{newCell, newCellData, newCell.Payload})
+	st.cells, st.arena, st.bytes = cells, arena, bytes
 	return cells, nil
 }
 

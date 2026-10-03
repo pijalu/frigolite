@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/pijalu/frigolite/internal/btree"
 	"github.com/pijalu/frigolite/internal/execquery"
 	"github.com/pijalu/frigolite/internal/pager"
 	"github.com/pijalu/frigolite/internal/schema"
@@ -539,11 +538,14 @@ func (e *DMLExecutor) insertRow(pg *pager.Pager, tableEntry *schema.Entry, colDe
 	// wrapped with its collation) so only raw values are stored.
 	unwrapCollationWrappers(values)
 
-	tree, res := e.writeTableRow(pg, tableEntry, colDefs, values, nextRowID)
+	_, res = e.writeTableRow(pg, tableEntry, colDefs, values, nextRowID)
 	if res != nil {
 		return res
 	}
-	defer tree.Close() // the row-write tree dies with this row's insert
+	// tree is the executor's cached write tree (insertWriteTree) — it is
+	// NOT closed here: its lifetime is the executor's, and a per-row Close
+	// would turn the reuse into a per-row Close+reopen. Cursors opened on
+	// it are released explicitly by their probes (Cursor.Close).
 
 	// Fire the preupdate hook (sqlite3_preupdate_hook) with the new row's
 	// values. WITHOUT ROWID tables report rowid 0 (SQLite uses the key
@@ -570,7 +572,7 @@ func (e *DMLExecutor) insertRow(pg *pager.Pager, tableEntry *schema.Entry, colDe
 	// row's index entries. On failure the just-written table row is removed
 	// (SQLite rolls the whole statement back).
 	if err := e.maintainIndexesOnInsert(tableEntry, colDefs, values, nextRowID); err != nil {
-		e.rollbackInsertedRow(pg, tableEntry, tree, nextRowID)
+		e.rollbackInsertedRow(pg, tableEntry, nextRowID)
 		return &Result{Error: err}
 	}
 
@@ -979,7 +981,13 @@ func (e *DMLExecutor) execInsertDefault(tableEntry *schema.Entry, colDefs []sql.
 
 // rollbackInsertedRow removes a just-written row after an index-maintenance
 // failure and invalidates the rowid cache (the statement rolls back).
-func (e *DMLExecutor) rollbackInsertedRow(pg *pager.Pager, tableEntry *schema.Entry, tree *btree.BTree, nextRowID int64) {
+func (e *DMLExecutor) rollbackInsertedRow(pg *pager.Pager, tableEntry *schema.Entry, nextRowID int64) {
+	// A fresh tree over the table's CURRENT root (an index-expression UDF may
+	// have run a nested statement that replaced the executor's cached
+	// wrapper, and a split may have moved the root): the rollback is a cold
+	// path, the freshness is what keeps it correct.
+	tree := e.dmlTableBTree(tableEntry.Name, e.ctx.RootPagePg(pg, tableEntry.Name, tableEntry.RootPage))
+	defer tree.Close()
 	if _, derr := tree.DeleteCellsWhere(func(cell *storage.Cell) bool {
 		return cell.RowID == nextRowID
 	}); derr == nil {

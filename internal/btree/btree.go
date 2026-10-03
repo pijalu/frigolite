@@ -6,6 +6,7 @@ import (
 	"encoding/binary"
 	"errors"
 	"fmt"
+	"sync"
 
 	"github.com/pijalu/frigolite/internal/pager"
 	"github.com/pijalu/frigolite/internal/storage"
@@ -130,9 +131,13 @@ type BTree struct {
 	// are tracked here so a single Close (statement teardown) unregisters
 	// them all from the cross-statement invalidation registry; without it
 	// the registry only ever shrank via the runtime finalizer, which made
-	// saveAllCursors O(total cursors ever opened) per mutation.
-	cursors []*Cursor
-	closed  bool
+	// saveAllCursors O(total cursors ever opened) per mutation. The inline
+	// array backs the slice for the common (few cursors per statement) case;
+	// initFrom aliases cursors onto it, and a statement opening more than
+	// len(cursorsArr) cursors just grows the slice as before.
+	cursorsArr [2]*Cursor
+	cursors    []*Cursor
+	closed     bool
 
 	// cellScratch recycles the encoded bytes of the cell currently being
 	// inserted (btree_insert.go). A BTree is built per statement over the
@@ -140,7 +145,23 @@ type BTree struct {
 	// no synchronization; the split path drops it whenever its bytes must
 	// stay stable across page rewrites.
 	cellScratch []byte
+
+	// insScratch backs the insert walk's depth-indexed page-header parses
+	// (btree_insert.go parseInsertScratch): one slot per tree level, claimed
+	// by the insertPage frame that parsed into it, acquired from
+	// insertScratchPool for the duration of one InsertCell (the recursion
+	// never re-enters InsertCell on the same wrapper). A handler's parsed
+	// page is never used after its frame recurses, so a nested insertPage
+	// reusing the NEXT slot is observably identical to a fresh ParsePage per
+	// level — without two heap headers per INSERT.
+	insScratch *[4]storage.BTreePage
+	insDepth   int
 }
+
+// insertScratchPool recycles the insert walk's parse-slot arrays. Buffers
+// only: every slot is overwritten by ParsePageInto before use, so a Get
+// always yields a functionally fresh scratch.
+var insertScratchPool = sync.Pool{New: func() interface{} { return new([4]storage.BTreePage) }}
 
 // NewBTree creates a new BTree instance.
 //

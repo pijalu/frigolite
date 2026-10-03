@@ -11,11 +11,11 @@ import (
 )
 
 func (e *DMLExecutor) pkRowID(tableName string, colDefs []sql.ColumnDef, values []interface{}, rootPage uint32, withoutRowid bool) (int64, error) {
-	if r, err := e.explicitPKRowID(tableName, colDefs, values, rootPage, withoutRowid); r != nil || err != nil {
+	if r, ok, err := e.explicitPKRowID(tableName, colDefs, values, rootPage, withoutRowid); ok || err != nil {
 		if err != nil {
 			return 0, err
 		}
-		return *r, nil
+		return r, nil
 	}
 	next := e.findNextRowID(tableName, rootPage)
 	if e.ctx.TableHasAutoIncrement(tableName) && (next == -1<<63 || next == 0) {
@@ -27,9 +27,9 @@ func (e *DMLExecutor) pkRowID(tableName string, colDefs []sql.ColumnDef, values 
 }
 
 // explicitPKRowID derives the rowid from an explicitly supplied PRIMARY KEY
-// value. Returns (nil, nil) when no PK column carries an explicit value and
-// the caller must auto-assign one.
-func (e *DMLExecutor) explicitPKRowID(tableName string, colDefs []sql.ColumnDef, values []interface{}, rootPage uint32, withoutRowid bool) (*int64, error) {
+// value. ok=false means no PK column carries an explicit value and the caller
+// must auto-assign one (no per-row *int64 escape — this ran once per INSERT).
+func (e *DMLExecutor) explicitPKRowID(tableName string, colDefs []sql.ColumnDef, values []interface{}, rootPage uint32, withoutRowid bool) (int64, bool, error) {
 	for i, cd := range colDefs {
 		if !cd.PrimaryKey || i >= len(values) || values[i] == nil {
 			continue
@@ -39,7 +39,7 @@ func (e *DMLExecutor) explicitPKRowID(tableName string, colDefs []sql.ColumnDef,
 			break
 		}
 		if err != nil {
-			return nil, err
+			return 0, false, err
 		}
 		// A WITHOUT ROWID row's synthetic rowid must not collide with an
 		// existing row's PK-derived rowid (a text-PK row may hold the
@@ -49,11 +49,11 @@ func (e *DMLExecutor) explicitPKRowID(tableName string, colDefs []sql.ColumnDef,
 		// is already taken.
 		if withoutRowid && e.rowIDExists(tableName, rootPage, r) {
 			fallback := e.findNextRowID(tableName, rootPage)
-			return &fallback, nil
+			return fallback, true, nil
 		}
-		return &r, nil
+		return r, true, nil
 	}
-	return nil, nil
+	return 0, false, nil
 }
 
 // pkRowIDFromColumn derives the rowid from one PRIMARY KEY column value, or
