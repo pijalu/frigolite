@@ -90,15 +90,15 @@ type slotField uint8
 const (
 	// SELECT statement fields (source-order walk: WITH, list, FROM, JOINs,
 	// WHERE, GROUP BY, HAVING, WINDOW, ORDER BY, LIMIT, OFFSET, compound).
-	sfSelCTE slotField = iota // CTEs[i].Select (select frame)
-	sfSelCol                  // Columns[i].Expr
-	sfSelFromSub              // From.Subquery (select frame)
-	sfSelFromArg              // From.Args[i]
-	sfSelJoinOn               // Joins[i].On
-	sfSelJoinSub              // Joins[i].Table.Subquery (select frame)
-	sfSelJoinArg              // Joins[i].Table.Args[i]
+	sfSelCTE     slotField = iota // CTEs[i].Select (select frame)
+	sfSelCol                      // Columns[i].Expr
+	sfSelFromSub                  // From.Subquery (select frame)
+	sfSelFromArg                  // From.Args[i]
+	sfSelJoinOn                   // Joins[i].On
+	sfSelJoinSub                  // Joins[i].Table.Subquery (select frame)
+	sfSelJoinArg                  // Joins[i].Table.Args[i]
 	sfSelWhere
-	sfSelGroup   // GroupBy[i]
+	sfSelGroup // GroupBy[i]
 	sfSelHaving
 	sfSelWinPart // Windows[i].Partitions[idx]
 	sfSelWinOrd  // Windows[i].OrderBy[idx].Expr
@@ -108,28 +108,28 @@ const (
 	sfSelUnion // Union (select frame)
 
 	// UPDATE statement fields.
-	sfUpdAssign   // Assignments[i].Value
-	sfUpdFromSub  // From.Subquery (select frame)
-	sfUpdFromArg  // From.Args[i]
-	sfUpdFJOn     // FromJoins[i].On
-	sfUpdFJSub    // FromJoins[i].Table.Subquery (select frame)
-	sfUpdFJArg    // FromJoins[i].Table.Args[idx]
+	sfUpdAssign  // Assignments[i].Value
+	sfUpdFromSub // From.Subquery (select frame)
+	sfUpdFromArg // From.Args[i]
+	sfUpdFJOn    // FromJoins[i].On
+	sfUpdFJSub   // FromJoins[i].Table.Subquery (select frame)
+	sfUpdFJArg   // FromJoins[i].Table.Args[idx]
 	sfUpdWhere
-	sfUpdOrder  // OrderBy[i].Expr
+	sfUpdOrder // OrderBy[i].Expr
 	sfUpdLimit
 	sfUpdOffset
 	sfUpdReturning // Returning.Expr
 
 	// DELETE statement fields.
 	sfDelWhere
-	sfDelOrder  // OrderBy[i].Expr
+	sfDelOrder // OrderBy[i].Expr
 	sfDelLimit
 	sfDelOffset
 	sfDelReturning // Returning.Expr
 
 	// INSERT statement fields (the INSERT walker's consumption contract).
-	sfInsTuple    // Values[idx1][idx2] (idx = tuple*64+item encoding is NOT
-	              // used; see sfInsTuplePair)
+	sfInsTuple // Values[idx1][idx2] (idx = tuple*64+item encoding is NOT
+	// used; see sfInsTuplePair)
 	sfInsSelect   // Select (select frame)
 	sfInsConflict // OnConflict (conflict frame)
 	sfOCTgtWhere  // OnConflict.TargetWhere
@@ -164,8 +164,8 @@ const (
 	sfCaseWhenWhen // Whens[idx].When
 	sfCaseWhenThen // Whens[idx].Then
 	sfCaseElse
-	sfSubq    // Subquery.Select (select frame)
-	sfExists  // ExistsExpr.Select (select frame)
+	sfSubq   // Subquery.Select (select frame)
+	sfExists // ExistsExpr.Select (select frame)
 )
 
 // sfInsTuplePair packs a tuple index and an item index into one step idx
@@ -173,9 +173,9 @@ const (
 // Tuple counts beyond 4096 rows or 64 items per tuple refuse the template
 // (unreachable for real statements; the COW path serves them).
 const (
-	insTupleItemBits = 6
-	insTupleItemMask = 1<<insTupleItemBits - 1
-	insTupleMaxItems = 1 << insTupleItemBits
+	insTupleItemBits  = 6
+	insTupleItemMask  = 1<<insTupleItemBits - 1
+	insTupleMaxItems  = 1 << insTupleItemBits
 	insTupleMaxTuples = 1 << (16 - insTupleItemBits)
 )
 
