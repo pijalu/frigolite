@@ -228,35 +228,42 @@ func (e *SelectEngine) validateSelectExprsOrdering(s *sql.SelectStmt, c *selectE
 func (e *SelectEngine) validateSelectColumnList(s *sql.SelectStmt, c *selectExprCensus) error {
 	for _, col := range s.Columns {
 		// Each per-column check walks col.Expr; the census skips the walks
-		// whose trigger kinds are provably absent (ORDER BY inside
-		// expressions only rides FuncCall, subqueries included via the
-		// subquery flag — WalkExprFull does not descend into subquery
-		// bodies, so those checks keep their own subquery handling).
-		if c.funcCall || c.subquery {
-			if err := e.validateExprOrderBy(col.Expr); err != nil {
-				return err
-			}
+		// whose trigger kinds are provably absent (see validateCensusedColumn).
+		if err := e.validateCensusedColumn(col.Expr, c); err != nil {
+			return err
 		}
-		if c.funcCall {
-			if err := validateOrderByLength(col.Expr, 1000); err != nil {
-				return err
-			}
+	}
+	return nil
+}
+
+// validateCensusedColumn runs one SELECT column's per-clause validators,
+// each gated on the census proving its trigger kind present.
+func (e *SelectEngine) validateCensusedColumn(expr sql.Expr, c *selectExprCensus) error {
+	// ORDER BY inside expressions only rides FuncCall; subqueries keep the
+	// walk enabled because WalkExprFull does not descend into subquery
+	// bodies and validateExprOrderBy resolves those itself.
+	if c.funcCall || c.subquery {
+		if err := e.validateExprOrderBy(expr); err != nil {
+			return err
 		}
-		if c.filter {
-			if err := e.validateFilterClause(col.Expr); err != nil {
-				return err
-			}
+	}
+	if c.funcCall {
+		if err := validateOrderByLength(expr, 1000); err != nil {
+			return err
 		}
-		if c.subquery {
-			if err := e.validateExprSubqueries(col.Expr); err != nil {
-				return err
-			}
+	}
+	if c.filter {
+		if err := e.validateFilterClause(expr); err != nil {
+			return err
 		}
-		if c.distinct {
-			if err := validateDistinctAggArgs(col.Expr); err != nil {
-				return err
-			}
+	}
+	if c.subquery {
+		if err := e.validateExprSubqueries(expr); err != nil {
+			return err
 		}
+	}
+	if c.distinct {
+		return validateDistinctAggArgs(expr)
 	}
 	return nil
 }

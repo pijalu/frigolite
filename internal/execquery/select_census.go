@@ -33,40 +33,62 @@ type selectExprCensus struct {
 	collateOp bool // explicit COLLATE operator
 }
 
-// visitExprs walks one expression with the census collector.
+// visitExprs walks one expression with the census collector (the kind
+// dispatch lives in visitNodeKind; the FuncCall and BinaryOp cases have
+// their own helpers).
 func (c *selectExprCensus) visitExprs(e *SelectEngine, expr sql.Expr) {
 	if expr == nil {
 		return
 	}
 	WalkExprFull(expr, func(n sql.Expr) {
-		switch v := n.(type) {
-		case *sql.FuncCall:
-			c.funcCall = true
-			if v.Distinct {
-				c.distinct = true
-			}
-			if v.Filter != nil {
-				c.filter = true
-			}
-			if v.Over != nil {
-				c.over = true
-			} else if !c.aggFunc {
-				if reg, ok := e.ctx.Functions().Find(v.Name); ok && reg.Type == function.TypeAggregate {
-					c.aggFunc = true
-				}
-			}
-		case *sql.Subquery, *sql.ExistsExpr:
-			c.subquery = true
-		case *sql.RowValue:
-			c.rowValue = true
-		case *sql.BinaryOp:
-			if v.Operator == "MATCH" || v.Operator == "NOT MATCH" {
-				c.matchOp = true
-			} else if strings.EqualFold(v.Operator, "COLLATE") {
-				c.collateOp = true
-			}
-		}
+		c.visitNodeKind(e, n)
 	})
+}
+
+// visitNodeKind records one node's kind contribution to the census.
+func (c *selectExprCensus) visitNodeKind(e *SelectEngine, n sql.Expr) {
+	switch v := n.(type) {
+	case *sql.FuncCall:
+		c.censusFuncCall(e, v)
+	case *sql.Subquery, *sql.ExistsExpr:
+		c.subquery = true
+	case *sql.RowValue:
+		c.rowValue = true
+	case *sql.BinaryOp:
+		c.censusBinaryOp(v)
+	}
+}
+
+// censusFuncCall records a function call's flags; an aggregate registry hit
+// (outside a window OVER) marks the statement as carrying an aggregate.
+func (c *selectExprCensus) censusFuncCall(e *SelectEngine, v *sql.FuncCall) {
+	c.funcCall = true
+	if v.Distinct {
+		c.distinct = true
+	}
+	if v.Filter != nil {
+		c.filter = true
+	}
+	if v.Over != nil {
+		c.over = true
+		return
+	}
+	if c.aggFunc {
+		return
+	}
+	if reg, ok := e.ctx.Functions().Find(v.Name); ok && reg.Type == function.TypeAggregate {
+		c.aggFunc = true
+	}
+}
+
+// censusBinaryOp records the operator kinds: MATCH/NOT MATCH (FTS
+// constraints) and explicit COLLATE.
+func (c *selectExprCensus) censusBinaryOp(v *sql.BinaryOp) {
+	if v.Operator == "MATCH" || v.Operator == "NOT MATCH" {
+		c.matchOp = true
+	} else if strings.EqualFold(v.Operator, "COLLATE") {
+		c.collateOp = true
+	}
 }
 
 // censusSelectStmt collects the census over every expression clause of one
