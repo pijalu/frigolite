@@ -1128,3 +1128,39 @@ validation walk, projection/collation memos). TestRowidSeekRange stale
 Remaining walls (documented): interface-boxed value pipeline (scan
 2.4x, update/delete 4.1-4.4x), template-clone copy-on-write floor
 (insert 3.9x, point 2.2x), btree descent cost. Census next.
+
+## PERF-PARITY2 (CLOSE, 2026-10-03) — census 1073/0/290 clean; round fully closed
+
+Post-merge correctness sweep caught and fixed three regression classes the
+tranches had introduced (all pinned):
+- FIX.DML2-MALFORMED (fleet/fix-dml2, merged 7a59417c8): 64KiB-page blob
+  growth UPDATE hit validatePageHeader's `p.FirstFree > uint16(pageSize)`
+  — u16 truncation of 65536→0 made any freeblock head "malformed" once
+  dml2's freeblock port made nonzero heads reachable. Fix: unwrapped int
+  compare (C parity: btreeInitPage does no head check; chains stay
+  validated by the usableSize-bounded walk). Pinned
+  frigolite_update_blob_growth_test.go + btree01 solo green.
+- FIX.INS2-VACUUM (fleet/fix-ins2-vacuum, merged): INSERT2-5's cached
+  write tree snapshot pageSize/usableSize per (pager,root) — VACUUM's
+  ResetToEmpty(2048) swapped the layout under an unchanged pager pointer,
+  stale-geometry writes corrupted the copy-back and the restore path
+  reverted main to the temp's 1024 (vacuum-11.2/11.3 "got 1024"). Fix:
+  pager layout-change hook (SetPageSize/ResetToEmpty/ApplyReservedBytes
+  → notifyLayoutChanged → DMLExecutor.InvalidateWriteTree). Pinned
+  frigolite_vacuumpgsz_test.go. Bench parity kept.
+- FIX.PREPARE-ALIAS (direct): Engine.Prepare's template-cache hit cloned
+  onto the per-exec-depth scratch and db.Prepare RETAINED the AST — the
+  next same-shape Prepare rotated the scratch and rewrote the held
+  literals (two prepared INSERTs (2,3)/(3,4) both executed (3,4);
+  capi2-4/6). Fix: Prepare/PrepareExec split — retained Prepare clones
+  privately (scratch=nil), the immediate-consume Exec/Query path keeps
+  PrepareExec scratch (no perf loss). Pinned
+  frigolite_prepare_alias_test.go; capi2/stmt/capi3 green.
+Harness filtered-mode artifacts also fixed (converter-leaked all-#
+comment steps skipped; incrvacuum_ioerr/backup_ioerr/autovacuum_ioerr2/
+vacuum6 reopen markers; btree01 marker). Census: 1073 pass / 0 fail /
+290 skip, audit exit 0 (savepoint2 census flake = documented contention
+class, 7.5s solo 3/3 green). Final bench (paired vs sqlite3 3.54):
+insert 362k ops/s (4.2x), point 437k (2.4x), scan 20.6M rows/s (2.6x),
+group 45 q/s (1.19x FASTER), update 267k (4.7x), delete 366k (4.4x),
+file autocommit 9.8k (1.2x FASTER).
