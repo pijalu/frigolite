@@ -451,7 +451,17 @@ func (e *SelectEngine) selectRowidRangeRows(s *sql.SelectStmt, tree *btree.BTree
 	if a.empty {
 		return [][]interface{}{}, nil, true
 	}
-	cursor, err := tree.OpenCursor()
+	// When the range has a lower bound the seek below defines the start
+	// position, so the cursor parks at the root (OpenCursor's leftmost-leaf
+	// descent is pure overhead); an upper-bound-only range starts its walk at
+	// the tree's first row and keeps the full descent.
+	var cursor *btree.Cursor
+	var err error
+	if a.loSet {
+		cursor, err = tree.OpenCursorAtRoot()
+	} else {
+		cursor, err = tree.OpenCursor()
+	}
 	if err != nil {
 		return nil, nil, false
 	}

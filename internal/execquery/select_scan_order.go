@@ -76,7 +76,7 @@ func (e *SelectEngine) rowidTableColDefs(tableName string) ([]sql.ColumnDef, boo
 	if err != nil || tableEntry == nil {
 		return nil, false
 	}
-	if e.ctx.HasWithoutRowidKeyword(strings.ToUpper(tableEntry.SQL)) {
+	if e.ctx.TableIsWithoutRowidEntry(tableEntry) {
 		return nil, false
 	}
 	return e.ctx.ParseColumnDefs(tableEntry.Name, tableEntry.SQL), true

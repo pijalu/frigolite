@@ -66,7 +66,11 @@ func (e *SelectEngine) selectRowidSeekRows(s *sql.SelectStmt, tableEntry *schema
 // StructRow. found=false with ok=true means the rowid is absent (empty
 // result); ok=false falls back to the scan.
 func (e *SelectEngine) fetchSeekStructRow(s *sql.SelectStmt, tree *btree.BTree, rowid int64, colDefs []sql.ColumnDef, needMaps bool) (cursor *btree.Cursor, srow *StructRow, found, ok bool) {
-	cursor, err := tree.OpenCursor()
+	// The seek re-descends from the root (SeekToRowID clears the path stack),
+	// so the cursor opens parked at the root: OpenCursor's leftmost-leaf
+	// descent is work a point lookup never uses (the same shape the point
+	// UPDATE/DELETE paths open through).
+	cursor, err := tree.OpenCursorAtRoot()
 	if err != nil {
 		return nil, nil, false, false
 	}
@@ -192,7 +196,7 @@ func (e *SelectEngine) selectRowidSeekPlan(s *sql.SelectStmt, tableEntry *schema
 		s.From.IndexedBy != "" || s.From.EmptyName || IsSchemaTable(tableEntry.Name) {
 		return nil
 	}
-	if e.ctx.HasWithoutRowidKeyword(strings.ToUpper(tableEntry.SQL)) {
+	if e.ctx.TableIsWithoutRowidEntry(tableEntry) {
 		return nil
 	}
 	return analyzeRowidSeek(s.Where, tableEntry.Name, s.From.As, colDefs)

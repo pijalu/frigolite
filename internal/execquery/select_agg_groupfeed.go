@@ -166,7 +166,7 @@ func (e *SelectEngine) groupFeedStatementEligible(s *sql.SelectStmt, tableEntry 
 	if IsSchemaTable(tableEntry.Name) {
 		return false
 	}
-	if e.ctx.HasWithoutRowidKeyword(strings.ToUpper(tableEntry.SQL)) {
+	if e.ctx.TableIsWithoutRowidEntry(tableEntry) {
 		return false
 	}
 	// A covering-index GROUP BY reorders the scanned rows before grouping
