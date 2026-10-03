@@ -238,6 +238,16 @@ type Engine struct {
 	wrEntryMemo        *schema.Entry
 	wrEntryFingerprint uint64
 	wrEntryVal         bool
+	// notUpdaterVtab* memoizes VTabUpdaterInstance's negative result (see
+	// vtab_dbpage.go): name → not a vtab DML target, guarded by the folded
+	// all-schemas fingerprint; RegisterVtabModule clears it.
+	notUpdaterVtabFP    uint64
+	notUpdaterVtabNames map[string]struct{}
+	// echoSource* memoizes echoVTabSource (see ddl_forward.go): lower name →
+	// echo source table (or the negative), guarded by the folded all-schemas
+	// fingerprint; RegisterVtabModule clears it.
+	echoSourceFP    uint64
+	echoSourceNames map[string]echoSourceEntry
 	// commitHook / rollbackHook / updateHook hold the sqlite3_commit_hook,
 	// sqlite3_rollback_hook, and sqlite3_update_hook callbacks.
 	commitHook   func() int

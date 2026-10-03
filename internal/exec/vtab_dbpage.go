@@ -100,7 +100,20 @@ func (p enginePageSources) AllPageSources() []vtab.NamedPageSource {
 //
 // ok is false when the name is neither; err reports instance creation
 // failures for names that DO resolve to a vtab.
+//
+// The NEGATIVE result ("this name is no vtab updater target") is memoized per
+// engine: notUpdaterVtab* holds name → not-a-vtab under the folded all-schemas
+// fingerprint. A plain-table DML statement pays this probe once per statement
+// (module-registry lookup + findTable + CREATE-SQL module scan) to learn
+// nothing; the memo keeps the repeated statements at one map lookup. The
+// fingerprint moves on any schema change and RegisterVtabModule clears the
+// memo (a late-registered module can flip a negative), so a stale negative is
+// unreachable. Positive results are never cached — instances carry per-bind
+// state (BindSchema).
 func (e *Engine) VTabUpdaterInstance(name string) (vtab.VirtualTable, []sql.ColumnDef, bool, error) {
+	if e.notUpdaterVtabMemo(name) {
+		return nil, nil, false, nil
+	}
 	module, args, entry, ctx, rerr := e.resolveUpdaterVtabTarget(name)
 	if rerr != nil {
 		return nil, nil, true, rerr
@@ -109,6 +122,7 @@ func (e *Engine) VTabUpdaterInstance(name string) (vtab.VirtualTable, []sql.Colu
 		if debugUpdater {
 			fmt.Fprintf(os.Stderr, "VU DBG module nil\n")
 		}
+		e.rememberNotUpdaterVtab(name)
 		return nil, nil, false, nil
 	}
 	vt, err := createVtabModule(module, args, nil)
@@ -142,6 +156,31 @@ func (e *Engine) VTabUpdaterInstance(name string) (vtab.VirtualTable, []sql.Colu
 		return nil, nil, true, fmt.Errorf("virtual table %s has no columns", name)
 	}
 	return vt, defs, true, nil
+}
+
+// notUpdaterVtabMemo reports whether name is memoized as a non-vtab DML
+// target (see VTabUpdaterInstance).
+func (e *Engine) notUpdaterVtabMemo(name string) bool {
+	fp := e.allSchemasFingerprint()
+	if e.notUpdaterVtabFP != fp {
+		return false
+	}
+	_, ok := e.notUpdaterVtabNames[strings.ToLower(name)]
+	return ok
+}
+
+// rememberNotUpdaterVtab records name as a non-vtab DML target under the
+// current all-schemas fingerprint (see VTabUpdaterInstance).
+func (e *Engine) rememberNotUpdaterVtab(name string) {
+	fp := e.allSchemasFingerprint()
+	if e.notUpdaterVtabFP != fp {
+		e.notUpdaterVtabFP = fp
+		e.notUpdaterVtabNames = nil
+	}
+	if e.notUpdaterVtabNames == nil {
+		e.notUpdaterVtabNames = make(map[string]struct{})
+	}
+	e.notUpdaterVtabNames[strings.ToLower(name)] = struct{}{}
 }
 
 // debugUpdater toggles verbose tracing of the vtab updater resolution path.

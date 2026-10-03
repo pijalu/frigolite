@@ -3,6 +3,8 @@ package exec
 import (
 	"encoding/binary"
 	"fmt"
+	"strings"
+
 	"github.com/pijalu/frigolite/internal/btree"
 	"github.com/pijalu/frigolite/internal/fts"
 	"github.com/pijalu/frigolite/internal/schema"
@@ -15,8 +17,38 @@ import (
 // (DML, SELECT, PRAGMA, FK checks) stay unchanged while the implementation
 // lives in the DDL sub-package.
 
+// echoSourceEntry is one echoVTabSource memo record: the resolved echo source
+// table, or the negative when name is not an echo vtab.
+type echoSourceEntry struct {
+	src string
+	ok  bool
+}
+
+// echoVTabSource resolves name to an echo module's source table (DMLContext).
+// The resolution (schema entry lookup + CREATE-SQL module scan) is a pure
+// function of the schema and the module registry, and DML statements pay it
+// once per statement to learn their target is not an echo vtab — memoize it
+// per engine under the folded all-schemas fingerprint. RegisterVtabModule
+// clears the memo (a late-registered module can flip a negative); DDL moves
+// the fingerprint.
 func (e *Engine) echoVTabSource(name string) (string, bool) {
-	return e.ddl.EchoVTabSource(name)
+	fp := e.allSchemasFingerprint()
+	if e.echoSourceFP != fp {
+		e.echoSourceFP = fp
+		e.echoSourceNames = nil
+	}
+	lower := strings.ToLower(name)
+	if e.echoSourceNames != nil {
+		if hit, ok := e.echoSourceNames[lower]; ok {
+			return hit.src, hit.ok
+		}
+	}
+	src, ok := e.ddl.EchoVTabSource(name)
+	if e.echoSourceNames == nil {
+		e.echoSourceNames = make(map[string]echoSourceEntry)
+	}
+	e.echoSourceNames[lower] = echoSourceEntry{src: src, ok: ok}
+	return src, ok
 }
 
 func (e *Engine) rewriteEchoInsert(s *sql.InsertStmt, srcName string) {
