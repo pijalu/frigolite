@@ -70,8 +70,19 @@ func (a *affinityCollector) collectSelectColumnAffinity(s *sql.SelectStmt, colDe
 }
 
 // aliasReferenced reports whether any collected column reference name is one
-// of the statement's output aliases.
+// of the statement's output aliases. Statements whose columns carry no alias
+// skip the map build entirely.
 func aliasReferenced(cols map[string]bool, s *sql.SelectStmt) bool {
+	for i := range s.Columns {
+		if s.Columns[i].As != "" {
+			return aliasReferencedSlow(cols, s)
+		}
+	}
+	return false
+}
+
+// aliasReferencedSlow builds the alias map and answers the reference check.
+func aliasReferencedSlow(cols map[string]bool, s *sql.SelectStmt) bool {
 	aliases := selectAliasMap(s)
 	if len(aliases) == 0 {
 		return false
@@ -126,13 +137,18 @@ func (a *affinityCollector) collectExpr(expr sql.Expr) {
 	if expr == nil {
 		return
 	}
-	WalkExprFull(expr, func(e sql.Expr) {
-		if cr, ok := e.(*sql.ColumnRef); ok {
-			a.cols[cr.Name] = true
-			a.seen = true
-		}
-		a.collectSubqueryCols(e)
-	})
+	WalkExprFull(expr, a.visitNode)
+}
+
+// visitNode is the per-node collector. It is installed as a single method
+// value per collector (one allocation) and shared across every clause walk
+// the statement runs.
+func (a *affinityCollector) visitNode(e sql.Expr) {
+	if cr, ok := e.(*sql.ColumnRef); ok {
+		a.cols[cr.Name] = true
+		a.seen = true
+	}
+	a.collectSubqueryCols(e)
 }
 
 // collectSubqueryCols descends into subquery and EXISTS bodies, collecting

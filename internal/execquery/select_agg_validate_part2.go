@@ -302,9 +302,21 @@ func (e *SelectEngine) colRefNameMapFor(colDefs []sql.ColumnDef) map[string]bool
 	return m
 }
 
-// collectSelectAliases gathers lower-cased output-column aliases.
+// collectSelectAliases gathers lower-cased output-column aliases. A column
+// list without aliases returns nil without building a map (the common
+// bare-reference projection).
 func collectSelectAliases(columns []sql.SelectColumn) map[string]bool {
-	aliases := make(map[string]bool)
+	hasAlias := false
+	for i := range columns {
+		if columns[i].As != "" {
+			hasAlias = true
+			break
+		}
+	}
+	if !hasAlias {
+		return nil
+	}
+	aliases := make(map[string]bool, len(columns))
 	for _, col := range columns {
 		if col.As != "" {
 			aliases[strings.ToLower(col.As)] = true

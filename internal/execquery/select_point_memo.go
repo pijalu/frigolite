@@ -37,6 +37,15 @@ type colNamesMemoKey struct {
 // already applies.
 const colNamesMemoCap = 64
 
+// collOutMemoKey identifies one memoized output-collation list: the
+// SELECT-columns slice (template-shared) plus the schema fingerprint. The
+// collations derive from the FROM table's column defs, fixed per (template,
+// schema) pair.
+type collOutMemoKey struct {
+	cols    *sql.SelectColumn
+	colsLen int
+}
+
 // columnNamesMemoizable reports whether every SELECT column is an unaliased,
 // unqualified, non-star column reference — the shape whose result names are
 // independent of the enclosing statement (short_column_names resolution reads
@@ -101,6 +110,20 @@ func (e *SelectEngine) schemaFingerprint() uint64 {
 	return 0
 }
 
+// collationsMemoPut records one output-collation list under the current
+// fingerprint (flushed on DDL and at the same entry cap as the name memo).
+func (e *SelectEngine) collationsMemoPut(key collOutMemoKey, colls []string) {
+	fp := e.schemaFingerprint()
+	if e.collOutFP != fp || e.collOutMemo == nil {
+		e.collOutFP = fp
+		e.collOutMemo = make(map[collOutMemoKey][]string)
+	}
+	if len(e.collOutMemo) >= colNamesMemoCap {
+		e.collOutMemo = make(map[collOutMemoKey][]string)
+	}
+	e.collOutMemo[key] = colls
+}
+
 // applyColumnWidthLimit applies buildColumnNames's SQLITE_LIMIT_COLUMN side
 // effect for a memoized name list (the limit check runs per statement even
 // when the names themselves are shared).
@@ -117,6 +140,27 @@ func (e *SelectEngine) applyColumnWidthLimit(names []string) {
 // FROM name does not resolve to a real table (views, pragma functions) —
 // the caller falls back to the general walk, which yields the same "" list.
 func (e *SelectEngine) outputCollationsBare(s *sql.SelectStmt) []string {
+	if len(s.Columns) > 0 {
+		key := collOutMemoKey{cols: &s.Columns[0], colsLen: len(s.Columns)}
+		if e.collOutFP == e.schemaFingerprint() && e.collOutMemo != nil {
+			if names, ok := e.collOutMemo[key]; ok {
+				out := make([]string, len(names))
+				copy(out, names)
+				return out
+			}
+		}
+		colls := e.outputCollationsBareCompute(s)
+		if colls != nil {
+			e.collationsMemoPut(key, colls)
+		}
+		return colls
+	}
+	return e.outputCollationsBareCompute(s)
+}
+
+// outputCollationsBareCompute resolves the declared collations through the
+// FROM table's parsed colDefs (uncached form).
+func (e *SelectEngine) outputCollationsBareCompute(s *sql.SelectStmt) []string {
 	entry, _, err := e.ctx.FindTable(s.From.Name)
 	if err != nil || entry == nil {
 		return nil

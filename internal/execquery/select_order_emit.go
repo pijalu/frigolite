@@ -239,7 +239,7 @@ func (e *SelectEngine) emitRowsInIndexOrder(result *Result, rowMaps []RowMap, ta
 		return true
 	}
 	if len(result.Rows) < 2 || len(rowMaps) != len(result.Rows) {
-			return false
+		return false
 	}
 	rowids, ok := e.indexStoredRowidOrder(tableName, idxName)
 	if !ok || len(rowids) == 0 {

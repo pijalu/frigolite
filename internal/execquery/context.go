@@ -310,6 +310,13 @@ type SelectEngine struct {
 	colRefMapDefs  *sql.ColumnDef
 	colRefMapLen   int
 	colRefMapCache map[string]bool
+	// collOutMemo* memoizes the output-collation lists of bare-reference
+	// single-table projections (outputCollationsBare in
+	// select_point_memo.go): fingerprint + template-shared columns-slice
+	// guarded, flushed on DDL and at the name memo's entry cap. A hit returns
+	// a fresh copy.
+	collOutFP         uint64
+	collOutMemo       map[collOutMemoKey][]string
 	cteScopes         [][]sql.CTEDef           // CTE scopes from enclosing statements (innermost last)
 	resolvingCTEs     map[*sql.SelectStmt]bool // CTE bodies currently being resolved (circular reference detection); keyed by the CTE body AST so a same-named inner WITH shadow is a different CTE
 	currentScanTable  string                   // table name being scanned (for qualified column resolution)
