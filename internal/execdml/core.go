@@ -215,6 +215,28 @@ func (e *DMLExecutor) insertWriteTreeSync(root uint32) {
 	e.insTreeKey.root = root
 }
 
+// InvalidateWriteTree drops the cached insert write tree: the open wrapper is
+// closed (terminal, per the btree_pool.go contract) and the cache key cleared,
+// so the next insertWriteTree builds a fresh wrapper at the CURRENT pager
+// geometry.
+//
+// The engine fires this from the pager's layout hook: a wrapper snapshots
+// pageSize/usableSize at build time (btree initFrom) — state SQLite keeps in
+// the file-shared BtShared, where an in-place layout replacement is instantly
+// visible to every cursor. When the pager's layout is replaced under a live
+// cached wrapper (VACUUM's ResetToEmpty at a pending page size, a backup's
+// full-image replace, a materialized reserve change), the stale wrapper would
+// keep writing the OLD geometry into the NEW layout — the vacuum-11.x
+// copy-back inserts then fail "database disk image is malformed" and the
+// rebuild's restore path silently reverts the pending page size.
+func (e *DMLExecutor) InvalidateWriteTree() {
+	if e.insTree != nil && !e.insTree.Closed() {
+		e.insTree.Close()
+	}
+	e.insTree = nil
+	e.insTreeKey = insTreeKey{}
+}
+
 // insTreeKey identifies the insert path's cached b-tree wrapper: the owning
 // pager, the table's current root, and the tree kind (a rowid table's b-tree
 // and a WITHOUT ROWID table's PK-keyed index b-tree are different trees even

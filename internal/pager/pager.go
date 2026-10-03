@@ -183,6 +183,11 @@ type Pager struct {
 	// VFS plugin system, so this hook is the narrow path through which
 	// those events are observable. Nil in production (no overhead).
 	journalFileOpHook func(op, path string)
+	// layoutHook fires after an in-place page-layout change (SetPageSize,
+	// ResetToEmpty, ApplyReservedBytes — see SetLayoutHook). The engine
+	// installs it at open/ATTACH to drop statement-scoped caches that
+	// snapshot the page geometry. Nil when unused.
+	layoutHook func()
 	// knownFileVers/knownFileSize are the file stamp this connection last
 	// observed (pager.c Pager.dbFileVers plus the file size). Refreshed at
 	// open and after every own flush; CheckExternalFile compares against it

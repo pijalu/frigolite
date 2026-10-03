@@ -23,7 +23,6 @@ import (
 // stale larger file, since flushPage only ever grows the file).
 func (p *Pager) SetPageSize(ps uint32) {
 	p.mu.Lock()
-	defer p.mu.Unlock()
 	p.pageSize = ps
 	if p.file != nil {
 		_ = p.file.Truncate(0)
@@ -57,6 +56,8 @@ func (p *Pager) SetPageSize(ps uint32) {
 		}
 		p.markDirtyLocked(1)
 	}
+	p.mu.Unlock()
+	p.notifyLayoutChanged()
 }
 
 // ResetToEmpty rewrites the database as a fresh, empty single-page database
@@ -79,7 +80,6 @@ func (p *Pager) SetPageSize(ps uint32) {
 // reservebytes-1.3.2).
 func (p *Pager) ResetToEmpty(pageSize uint32) {
 	p.mu.Lock()
-	defer p.mu.Unlock()
 	if pageSize == 0 {
 		pageSize = DefaultPageSize
 	}
@@ -106,6 +106,8 @@ func (p *Pager) ResetToEmpty(pageSize uint32) {
 			p.fileSize = end
 		}
 	}
+	p.mu.Unlock()
+	p.notifyLayoutChanged()
 }
 
 // SetAutoVacuum toggles pointer-map page reservation for subsequent
@@ -288,8 +290,8 @@ func (p *Pager) RequestedReserve() uint32 {
 // image is written back).
 func (p *Pager) ApplyReservedBytes(n uint32) {
 	p.mu.Lock()
-	defer p.mu.Unlock()
 	if uint32(p.pageSize) < n {
+		p.mu.Unlock()
 		return
 	}
 	p.reserved = n
@@ -311,6 +313,37 @@ func (p *Pager) ApplyReservedBytes(n uint32) {
 				binary.BigEndian.PutUint16(pg.Data[coff+5:coff+7], uint16(p.pageSize-n))
 			}
 		}
+	}
+	p.mu.Unlock()
+	p.notifyLayoutChanged()
+}
+
+// SetLayoutHook registers fn to fire after an in-place page-layout change —
+// SetPageSize, ResetToEmpty (VACUUM's whole-image reset, a backup's
+// full-image replace) or ApplyReservedBytes. The engine registers one so
+// statement-scoped caches that snapshot the geometry (the insert write
+// path's cached b-tree wrapper captures pageSize/usableSize at build time,
+// mirroring state SQLite keeps in the file-shared BtShared where a layout
+// change is instantly visible to every cursor) are dropped when the layout
+// is replaced under them. The hook fires synchronously AFTER the mutating
+// call returns, never under p.mu (the hook may take pager locks of its
+// own). Nil clears. Unlike the other pager hooks this one is engine
+// lifecycle wiring: it is installed at connection open / ATTACH and never
+// re-set.
+func (p *Pager) SetLayoutHook(fn func()) {
+	p.mu.Lock()
+	p.layoutHook = fn
+	p.mu.Unlock()
+}
+
+// notifyLayoutChanged invokes the registered layout hook. Callers invoke it
+// after releasing p.mu, so the hook may freely re-enter the pager.
+func (p *Pager) notifyLayoutChanged() {
+	p.mu.RLock()
+	h := p.layoutHook
+	p.mu.RUnlock()
+	if h != nil {
+		h()
 	}
 }
 
