@@ -99,8 +99,13 @@ func (e *SelectEngine) whereSubqueryOuterAggRef(expr sql.Expr) string {
 // checkOrderByNestedAgg rejects aggregates in ORDER BY when the SELECT doesn't
 // use aggregates and has no GROUP BY (catches aggregates nested inside
 // expressions like 10+max(x)).
-func (e *SelectEngine) checkOrderByNestedAgg(s *sql.SelectStmt) error {
+func (e *SelectEngine) checkOrderByNestedAgg(s *sql.SelectStmt, c *selectExprCensus) error {
 	if len(s.OrderBy) == 0 || len(s.GroupBy) > 0 || e.inCompoundMember || e.hasAggregates(s.Columns) {
+		return nil
+	}
+	// FindAggregateInExpr needs an aggregate at this level; a subquery keeps
+	// the walk enabled because its body is not censused.
+	if !c.aggFunc && !c.subquery {
 		return nil
 	}
 	for _, ob := range s.OrderBy {
@@ -120,7 +125,7 @@ func (e *SelectEngine) checkOrderByNestedAgg(s *sql.SelectStmt) error {
 func (e *SelectEngine) validateSelectColumnRefs(s *sql.SelectStmt, colDefs []sql.ColumnDef, tableName, fromAlias string, allowRowID bool) error {
 	v := &columnRefValidator{
 		engine:     e,
-		colByName:  buildColNameMap(colDefs),
+		colByName:  e.colRefNameMapFor(colDefs),
 		tableName:  strings.ToLower(tableName),
 		fromAlias:  strings.ToLower(fromAlias),
 		allowRowID: allowRowID,
@@ -276,9 +281,42 @@ func buildColNameMap(colDefs []sql.ColumnDef) map[string]bool {
 	return m
 }
 
-// collectSelectAliases gathers lower-cased output-column aliases.
+// colRefNameMapFor returns buildColNameMap's set for colDefs, memoized per
+// SelectEngine and guarded by the schema fingerprint plus the colDefs slice
+// identity — the collationMapFor pattern (select_expr.go). The set is
+// read-only after build (the column-reference validator only looks up), so
+// sharing it across statements is safe.
+func (e *SelectEngine) colRefNameMapFor(colDefs []sql.ColumnDef) map[string]bool {
+	if len(colDefs) == 0 {
+		return buildColNameMap(colDefs)
+	}
+	fp := uint64(0)
+	if sm := e.ctx.Schema(); sm != nil {
+		fp = sm.SchemaFingerprint()
+	}
+	if e.colRefMapCache != nil && e.colRefMapFP == fp && e.colRefMapDefs == &colDefs[0] && e.colRefMapLen == len(colDefs) {
+		return e.colRefMapCache
+	}
+	m := buildColNameMap(colDefs)
+	e.colRefMapFP, e.colRefMapDefs, e.colRefMapLen, e.colRefMapCache = fp, &colDefs[0], len(colDefs), m
+	return m
+}
+
+// collectSelectAliases gathers lower-cased output-column aliases. A column
+// list without aliases returns nil without building a map (the common
+// bare-reference projection).
 func collectSelectAliases(columns []sql.SelectColumn) map[string]bool {
-	aliases := make(map[string]bool)
+	hasAlias := false
+	for i := range columns {
+		if columns[i].As != "" {
+			hasAlias = true
+			break
+		}
+	}
+	if !hasAlias {
+		return nil
+	}
+	aliases := make(map[string]bool, len(columns))
 	for _, col := range columns {
 		if col.As != "" {
 			aliases[strings.ToLower(col.As)] = true
@@ -289,7 +327,13 @@ func collectSelectAliases(columns []sql.SelectColumn) map[string]bool {
 
 // validateSelectRowValues validates row-value usage across a SELECT's columns,
 // WHERE, HAVING, LIMIT, OFFSET, and ORDER BY clauses.
-func (e *SelectEngine) validateSelectRowValues(s *sql.SelectStmt) error {
+func (e *SelectEngine) validateSelectRowValues(s *sql.SelectStmt, c *selectExprCensus) error {
+	// Row-value misuse is the only error source here (an explicit COLLATE
+	// rides the same validator through validateRowValueBinaryOp); skip when
+	// the census saw neither kind.
+	if !c.rowValue && !c.collateOp {
+		return nil
+	}
 	for _, col := range s.Columns {
 		if err := e.validateRowValueUse(col.Expr, true); err != nil {
 			return err

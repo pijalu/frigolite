@@ -300,6 +300,13 @@ func (e *SelectEngine) notATabFuncError(s *sql.SelectStmt) (*Result, bool) {
 // execCTEFromForm dispatches a FROM term that matches a CTE definition,
 // directly or through its alias.
 func (e *SelectEngine) execCTEFromForm(s *sql.SelectStmt) (*Result, bool) {
+	// Fast exit for the common no-CTE statement: the findCTE results are
+	// CTEDef values whose address escapes into execSelectCTE, so every
+	// plain-table reference paid a heap-allocated CTEDef per statement even
+	// with no WITH clause anywhere in scope.
+	if len(s.CTEs) == 0 && len(e.cteScopes) == 0 {
+		return nil, false
+	}
 	if cte, ok := e.findCTE(s, s.From.Name); ok {
 		return e.execSelectCTE(s, &cte), true
 	}
@@ -738,7 +745,8 @@ func (e *SelectEngine) execFTSVtabSelect(s *sql.SelectStmt, tableEntry *schema.E
 	if len(s.Joins) > 0 && e.ftsReadsContentColumns(s, ftsTable) && e.contentBtreeCorrupt(tableEntry.Name) {
 		return &Result{Error: fmt.Errorf("database disk image is malformed")}
 	}
-	if err := e.validateMultipleFTSMatch(s); err != nil {
+	c := censusSelectStmt(e, s)
+	if err := e.validateMultipleFTSMatch(s, &c); err != nil {
 		return &Result{Error: err}
 	}
 	if len(s.Joins) == 0 {

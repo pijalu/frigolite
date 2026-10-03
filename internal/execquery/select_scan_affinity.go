@@ -70,8 +70,19 @@ func (a *affinityCollector) collectSelectColumnAffinity(s *sql.SelectStmt, colDe
 }
 
 // aliasReferenced reports whether any collected column reference name is one
-// of the statement's output aliases.
+// of the statement's output aliases. Statements whose columns carry no alias
+// skip the map build entirely.
 func aliasReferenced(cols map[string]bool, s *sql.SelectStmt) bool {
+	for i := range s.Columns {
+		if s.Columns[i].As != "" {
+			return aliasReferencedSlow(cols, s)
+		}
+	}
+	return false
+}
+
+// aliasReferencedSlow builds the alias map and answers the reference check.
+func aliasReferencedSlow(cols map[string]bool, s *sql.SelectStmt) bool {
 	aliases := selectAliasMap(s)
 	if len(aliases) == 0 {
 		return false
@@ -86,8 +97,9 @@ func aliasReferenced(cols map[string]bool, s *sql.SelectStmt) bool {
 
 // affinityCollector accumulates column names that need affinity wrappers.
 type affinityCollector struct {
-	cols map[string]bool
-	seen bool // true once any column was collected
+	cols    map[string]bool
+	seen    bool           // true once any column was collected
+	visitFn func(sql.Expr) // the once-materialized method value (visitor)
 }
 
 // skipBareSelectRef reports whether a SELECT output column's affinity
@@ -121,18 +133,33 @@ func skipBareSelectRef(expr sql.Expr, colDefs []sql.ColumnDef) bool {
 // descending into subquery SELECT bodies (their WHERE and output columns)
 // so outer scans wrap the columns a correlated subquery references. This
 // mirrors the original collectExprRefs helper the engine used before the
-// query extraction.
+// query extraction. The visitor closure is materialized once per collector
+// (visitNodeCached), not once per clause.
 func (a *affinityCollector) collectExpr(expr sql.Expr) {
 	if expr == nil {
 		return
 	}
-	WalkExprFull(expr, func(e sql.Expr) {
-		if cr, ok := e.(*sql.ColumnRef); ok {
-			a.cols[cr.Name] = true
-			a.seen = true
-		}
-		a.collectSubqueryCols(e)
-	})
+	WalkExprFull(expr, a.visitor())
+}
+
+// visitor materializes the per-node collector as a method value exactly once
+// per collector instance.
+func (a *affinityCollector) visitor() func(sql.Expr) {
+	if a.visitFn == nil {
+		a.visitFn = a.visitNode
+	}
+	return a.visitFn
+}
+
+// visitNode is the per-node collector. It is installed as a single method
+// value per collector (one allocation) and shared across every clause walk
+// the statement runs.
+func (a *affinityCollector) visitNode(e sql.Expr) {
+	if cr, ok := e.(*sql.ColumnRef); ok {
+		a.cols[cr.Name] = true
+		a.seen = true
+	}
+	a.collectSubqueryCols(e)
 }
 
 // collectSubqueryCols descends into subquery and EXISTS bodies, collecting

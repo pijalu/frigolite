@@ -262,10 +262,6 @@ func (e *SelectEngine) execRealTableSelect(s *sql.SelectStmt) *Result {
 		}
 	}
 	tree := e.ctx.TableBTreePg(dbCtx.Pager, tableEntry.Name, tableEntry.RootPage, true)
-	cursor, err := tree.OpenCursor()
-	if err != nil {
-		return &Result{Error: err}
-	}
 	prevScanTable := e.currentScanTable
 	e.currentScanTable = tableEntry.Name
 	if s.From.As != "" {
@@ -274,11 +270,18 @@ func (e *SelectEngine) execRealTableSelect(s *sql.SelectStmt) *Result {
 	defer func() { e.currentScanTable = prevScanTable }()
 	// Point-lookup short circuit (src/where.c SEARCH rowid=?): a WHERE that
 	// pins the rowid to a literal reads the single candidate row by seek.
+	// The scan cursor opens below, AFTER the seek verdict: OpenCursor
+	// descends to the leftmost leaf, work a seek-resolved statement never
+	// needs (the seek opens and positions its own cursor).
 	if rows, rowMaps, handled := e.selectRowidSeekRows(s, tableEntry, colDefs, tree, feed); handled {
 		if feed != nil {
 			return e.finishSimpleAggFeed(s, feed, colDefs)
 		}
 		return e.execSelectPostScan(s, rows, rowMaps, nil, colDefs)
+	}
+	cursor, err := tree.OpenCursor()
+	if err != nil {
+		return &Result{Error: err}
 	}
 	allRows, allRowMaps, aggRows, scanErr := e.scan.ScanTable(s, tableEntry, colDefs, cursor, feed)
 	if scanErr != nil {

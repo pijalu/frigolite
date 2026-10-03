@@ -39,7 +39,12 @@ func (e *SelectEngine) validateCompoundTermLimit(s *sql.SelectStmt) error {
 // with the name spelled exactly as in the SQL (select1-2.6 min(*), 2.9
 // MAX(), 2.14 SUM()). Only aggregates are checked here — scalar arity keeps
 // its established eval-time reporting.
-func (e *SelectEngine) validateAggregateStarArgs(s *sql.SelectStmt) error {
+func (e *SelectEngine) validateAggregateStarArgs(s *sql.SelectStmt, c *selectExprCensus) error {
+	// Only aggregate calls are checked; the clause list is built after the
+	// census proves one exists.
+	if !c.aggFunc {
+		return nil
+	}
 	clauses := make([]sql.Expr, 0, len(s.Columns)+len(s.GroupBy)+len(s.OrderBy)+2)
 	for _, col := range s.Columns {
 		if col.Expr != nil {
@@ -218,8 +223,13 @@ func clauseUnknownFunction(expr sql.Expr, fns *function.Registry) string {
 // is not an aggregate query (no GROUP BY, no aggregate in SELECT list).
 // Compound queries skip this: a trailing ORDER BY on a compound member is the
 // compound-level ORDER BY, where aggregates are permitted.
-func (e *SelectEngine) checkOrderByAggMisuse(s *sql.SelectStmt) error {
+func (e *SelectEngine) checkOrderByAggMisuse(s *sql.SelectStmt, c *selectExprCensus) error {
 	if len(s.OrderBy) == 0 || s.GroupBy != nil || e.inCompoundMember || s.Union != nil {
+		return nil
+	}
+	// Both error paths require an aggregate: one at this level, or one inside
+	// an ORDER BY subquery the census saw (its body is not censused).
+	if !(c.aggFunc || c.subquery) {
 		return nil
 	}
 	isAgg := e.hasAggregates(s.Columns)

@@ -97,7 +97,7 @@ func aggFeedSingleRowidTable(e *SelectEngine, s *sql.SelectStmt, tableEntry *sch
 	}
 	// WITHOUT ROWID tables remap PK-first records inside the scan (wrOrder);
 	// the feed reads declared-order slots from the rowid-table pipeline only.
-	return !e.ctx.HasWithoutRowidKeyword(strings.ToUpper(tableEntry.SQL))
+	return !e.ctx.TableIsWithoutRowidEntry(tableEntry)
 }
 
 // aggFeedEvaluationEligible reports the evaluation-context guards: the

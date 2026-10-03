@@ -329,6 +329,12 @@ func (e *SelectEngine) checkWhereCollations(where sql.Expr, colDefs []sql.Column
 		refName = from.As
 	}
 	colByName := e.collationMapFor(colDefs)
+	// The check only fires for a referenced column that DECLARES a collation
+	// (the lookup below keys off it); a table without any declared collation
+	// can never produce the error, so the walk is skippable.
+	if len(colByName) == 0 {
+		return nil
+	}
 	var checkErr error
 	WalkExprFull(where, func(e2 sql.Expr) {
 		if checkErr != nil {
