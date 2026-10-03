@@ -256,7 +256,15 @@ func validatePageHeader(p *BTreePage, pageData []byte, pageSize int, contentOffs
 	if len(pageData) >= pageSize && (cellContent < cellPtrEnd || cellContent > pageSize) {
 		return fmt.Errorf("database disk image is malformed")
 	}
-	if p.FirstFree > uint16(pageSize) {
+	// FirstFree is a u16 page offset; the comparison must stay in unwrapped
+	// int arithmetic: uint16(pageSize) truncates 65536 to 0, reading every
+	// valid freeblock head on a 64KiB page as corrupt (reachable since the
+	// btree.c dropCell/freeSpace port lets point deletes leave freeblocks).
+	// For pageSize <= 65535 the bound is unchanged; a 64KiB head is always
+	// in range (u16 max 65535 < 65536) and a crafted out-of-order or
+	// oversized chain is still rejected by the usableSize-bounded freeblock
+	// walk (btree.c btreeComputeFreeSpace / pageFindSlot) when used.
+	if int(p.FirstFree) > pageSize {
 		return fmt.Errorf("database disk image is malformed")
 	}
 	return nil
