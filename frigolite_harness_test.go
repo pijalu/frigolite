@@ -685,6 +685,30 @@ func dropAllHarnessTables(db *DB) {
 	db.Exec("PRAGMA foreign_keys = " + pk)
 }
 
+// stepIsCommentedArtifact reports whether a step's sql consists solely of
+// `#`-prefixed comment lines and blanks. The mini-TCL converter leaked
+// commented-out source blocks (e.g. a disabled do_ioerr_test or a stale
+// catchsql variant) into converted sql fields; no such statement ever ran in
+// the original suite, and SQLite's tokenizer rejects a leading `#` ("near
+// "#": syntax error" / "unrecognized token"), so the step plus the
+// expectation it captured is dead. Mixed steps where comment lines precede
+// live SQL are NOT artifacts: they are executed verbatim, mirroring
+// sqlite3_prepare's rejection of `#` (catchsql-typed steps tolerate it).
+func stepIsCommentedArtifact(sqlStr string) bool {
+	sawLine := false
+	for _, line := range strings.Split(sqlStr, "\n") {
+		trimmed := strings.TrimSpace(line)
+		if trimmed == "" {
+			continue
+		}
+		if !strings.HasPrefix(trimmed, "#") {
+			return false
+		}
+		sawLine = true
+	}
+	return sawLine
+}
+
 // extractSection returns the section number from a test name.
 // For example, "attach-1.15" returns 1, "attach-12.1" returns 12.
 // Returns 0 for special test names (__RESET_DB__, etc.) or unparseable names.
@@ -1083,6 +1107,16 @@ func TestSQLiteSuite(t *testing.T) {
 						return
 					}
 					for _, step := range tc.Steps {
+						if stepIsCommentedArtifact(step.SQL) {
+							// The converter leaked COMMENTED-OUT TCL (a `#`-
+							// prefixed do_test/catchsql block) into this step's
+							// sql field. The original suite never executed it
+							// and SQLite's tokenizer rejects a leading `#`
+							// ("unrecognized token"), so the step — and the
+							// expectation it carries — is an artifact. Skip it
+							// exactly as if the source lines had stayed comments.
+							continue
+						}
 						switch step.Type {
 						// "catch" steps come from catchsql / do_catchsql_test
 						// (and from statements wrapped in TCL `catch {}`, which
