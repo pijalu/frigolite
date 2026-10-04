@@ -257,6 +257,11 @@ type Engine struct {
 	echoLastName    string
 	echoLast        echoSourceEntry
 	echoLastValid   bool
+	// mayScan* memoizes MayScanCreatedVTab (see vtab_dbpage.go) under the
+	// folded all-schemas fingerprint; RegisterVtabModule clears it.
+	mayScanFP   uint64
+	mayScanName string
+	mayScanVal  bool
 	// commitHook / rollbackHook / updateHook hold the sqlite3_commit_hook,
 	// sqlite3_rollback_hook, and sqlite3_update_hook callbacks.
 	commitHook   func() int
