@@ -207,8 +207,12 @@ func (e *DMLExecutor) tupleErrorResult(err error, tableEntry *schema.Entry, colD
 func (e *DMLExecutor) insertOneTuple(dbCtx *DatabaseContext, tableEntry *schema.Entry, colDefs []sql.ColumnDef, s *sql.InsertStmt, tuple []sql.Expr) (changes int64, inserted int64, rowValues []interface{}, rowid int64, skip bool, err error) {
 	var values []interface{}
 	var evalErr error
-	if s.HasReturning {
-		// RETURNING rows escape the statement — fresh tuple slices.
+	if s.HasReturning || e.hasTriggersForTable(tableEntry.Name) || e.ctx.ForeignKeys() {
+		// RETURNING rows escape the statement, and a trigger body or an FK
+		// action (CASCADE/SET NULL insert) nests another INSERT on the SAME
+		// executor while this row's values are still in flight — the nested
+		// evalTuple would overwrite the shared scratch. Those shapes keep
+		// fresh tuple slices.
 		values, evalErr = e.evalTuple(tableEntry.Name, tuple, s.Columns, colDefs)
 	} else {
 		values, evalErr = e.evalTuplePooled(tableEntry.Name, tuple, s.Columns, colDefs)
