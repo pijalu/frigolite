@@ -882,6 +882,7 @@ func (w *walWriter) finishBackfillLocked(nTo, mxFrame uint32) error {
 			p.header = make([]byte, HeaderSize)
 		}
 		copy(p.header, pg.Data[:HeaderSize])
+		p.invalidateCookieCacheLocked()
 	}
 	if nTo == mxFrame {
 		szDb := int64(w.hdr.NPage) * int64(p.pageSize)

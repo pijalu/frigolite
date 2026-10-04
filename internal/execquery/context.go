@@ -394,6 +394,27 @@ type SelectEngine struct {
 	inCompoundMember bool
 	// selectDepth is the current SELECT nesting depth (1 = top-level statement).
 	selectDepth int
+	// stmtMemoGen is the per-invocation generation for the pure-AST memos
+	// below (hasWin*/affScan*): bumped at every execSelect entry, so a memo
+	// entry can only be served to the SAME execSelect invocation — no
+	// cross-statement or outer/subquery aliasing through recycled clone
+	// scratch addresses. The memos answer pure functions of the statement
+	// AST (and immutable schema-derived colDefs) that the aggregate/window
+	// dispatch re-asks several times per execution.
+	stmtMemoGen uint64
+	// hasWin* memoizes selectHasWindowFuncs for the current invocation's
+	// output-column slice.
+	hasWinGen  uint64
+	hasWinCols *sql.SelectColumn
+	hasWinLen  int
+	hasWinVal  bool
+	// affScan* memoizes scanTableAffinityCols for the current invocation.
+	affGen      uint64
+	affStmt     *sql.SelectStmt
+	affDefs     *sql.ColumnDef
+	affDefsLen  int
+	affNeedMaps bool
+	affRes      map[string]bool
 	// resultTooWide flags that a SELECT in the current statement expanded to
 	// more result columns than SQLITE_LIMIT_COLUMN (consumed at finalize).
 	resultTooWide bool

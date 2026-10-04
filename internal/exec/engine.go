@@ -241,14 +241,27 @@ type Engine struct {
 	wrEntryVal         bool
 	// notUpdaterVtab* memoizes VTabUpdaterInstance's negative result (see
 	// vtab_dbpage.go): name → not a vtab DML target, guarded by the folded
-	// all-schemas fingerprint; RegisterVtabModule clears it.
+	// all-schemas fingerprint; RegisterVtabModule clears it. The single-slot
+	// last entry serves the OLTP shape (one table named statement after
+	// statement) without a per-statement map hash; the map covers the rest.
 	notUpdaterVtabFP    uint64
 	notUpdaterVtabNames map[string]struct{}
+	notUpdaterLastName  string
+	notUpdaterLastOK    bool
 	// echoSource* memoizes echoVTabSource (see ddl_forward.go): lower name →
 	// echo source table (or the negative), guarded by the folded all-schemas
-	// fingerprint; RegisterVtabModule clears it.
+	// fingerprint; RegisterVtabModule clears it. Single-slot last entry, same
+	// shape as notUpdater*.
 	echoSourceFP    uint64
 	echoSourceNames map[string]echoSourceEntry
+	echoLastName    string
+	echoLast        echoSourceEntry
+	echoLastValid   bool
+	// mayScan* memoizes MayScanCreatedVTab (see vtab_dbpage.go) under the
+	// folded all-schemas fingerprint; RegisterVtabModule clears it.
+	mayScanFP   uint64
+	mayScanName string
+	mayScanVal  bool
 	// commitHook / rollbackHook / updateHook hold the sqlite3_commit_hook,
 	// sqlite3_rollback_hook, and sqlite3_update_hook callbacks.
 	commitHook   func() int
@@ -524,8 +537,10 @@ type txState struct {
 	// keeps the WRITER lock across a ROLLBACK TO (only a full COMMIT /
 	// ROLLBACK releases it), so PRAGMA lock_status reports "reserved" for a
 	// db whose pages a savepoint rollback already restored
-	// (savepoint-10.2.5→10.2.8).
-	reservedDbs map[string]bool
+	// (savepoint-10.2.5→10.2.8). Keyed by the DatabaseContext pointer: the
+	// per-statement writer (noteReservedDbs) and the lock-status reader would
+	// otherwise ToUpper the schema name on every statement.
+	reservedDbs map[*DatabaseContext]bool
 	// readDbs remembers every attached database the open transaction has
 	// READ through a statement with a btree data source: a deferred BEGIN
 	// holds no lock, the first read statement acquires SHARED

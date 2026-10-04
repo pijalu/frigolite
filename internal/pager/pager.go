@@ -53,6 +53,16 @@ type Pager struct {
 	// decide between the deferred and the immediate file shrink.
 	deferFileShrink bool
 	header          []byte
+	// cookieCache caches SchemaCookie's answer for lock-free reads
+	// (cookie+1; 0 = unknown): the schema manager folds the cookie into
+	// cache keys several times per statement (fingerprint memos), and each
+	// read paid the pager RLock. Writers maintain it: BumpSchemaCookie
+	// stores the new value, and every path that replaces or re-copies the
+	// header image (SetHeader, external reload, snapshot/journal restore,
+	// page-1 (re)materialization, serialize, AmendHeader) invalidates
+	// through invalidateCookieCacheLocked. Only cookie bytes [40:44] move
+	// through those paths — no other in-place header write touches them.
+	cookieCache atomic.Uint32
 	// fileSize caches the database file's size in bytes so flushPage can
 	// decide whether a page write needs a Truncate without an Fstat syscall
 	// per page (the dominant cost of per-commit flushes: 8000 FTS inserts
@@ -417,6 +427,7 @@ func (p *Pager) SetHeader(h []byte) {
 	p.mu.Lock()
 	defer p.mu.Unlock()
 	p.header = append([]byte(nil), h...)
+	p.invalidateCookieCacheLocked()
 }
 
 // AmendHeader applies amend to the pager's cached database-header bytes in
@@ -427,7 +438,8 @@ func (p *Pager) SetHeader(h []byte) {
 // the amended bytes into page 1 (ReadPage + copy + WritePage) so the next
 // flush persists them, and every other header holder (statement journals,
 // Snapshot/Restore) keeps its own copy, so none observes the mutation
-// unshielded.
+// unshielded. The amend may move the cookie (PRAGMA schema_version=N), so
+// the atomic fast-path cache is dropped unconditionally.
 func (p *Pager) AmendHeader(amend func([]byte)) bool {
 	p.mu.Lock()
 	defer p.mu.Unlock()
@@ -438,6 +450,7 @@ func (p *Pager) AmendHeader(amend func([]byte)) bool {
 		return false
 	}
 	amend(p.header)
+	p.invalidateCookieCacheLocked()
 	return true
 }
 func (p *Pager) Sync() error {
@@ -477,14 +490,30 @@ func (p *Pager) DirtyPageCount() int {
 // SQLite's schema-version counter, incremented whenever the schema changes
 // (btree.c OP_SetCookie semantics). The in-memory image participates in
 // Snapshot/Restore, so the cookie reverts when a DDL transaction rolls back —
-// cookie-keyed caches stay consistent across restores.
+// cookie-keyed caches stay consistent across restores. Reads take the atomic
+// cookieCache fast path and only lock when a header-mutation path has not
+// primed the cache yet.
 func (p *Pager) SchemaCookie() uint32 {
+	if v := p.cookieCache.Load(); v != 0 {
+		return v - 1
+	}
 	p.mu.RLock()
 	defer p.mu.RUnlock()
 	if len(p.header) < 44 {
 		return 0
 	}
-	return binary.BigEndian.Uint32(p.header[40:44])
+	c := binary.BigEndian.Uint32(p.header[40:44])
+	p.cookieCache.Store(c + 1)
+	return c
+}
+
+// invalidateCookieCacheLocked drops the atomic SchemaCookie fast-path cache.
+// Every path that replaces or re-copies the header image calls this (the
+// copy may carry a different cookie); the next SchemaCookie re-reads the
+// image under the lock and re-primes. Caller holds p.mu (single-writer
+// discipline — the store itself is atomic).
+func (p *Pager) invalidateCookieCacheLocked() {
+	p.cookieCache.Store(0)
 }
 
 // BumpSchemaCookie increments the schema cookie and marks page 1 dirty so the
@@ -499,6 +528,7 @@ func (p *Pager) BumpSchemaCookie() {
 	}
 	c := binary.BigEndian.Uint32(p.header[40:44]) + 1
 	binary.BigEndian.PutUint32(p.header[40:44], c)
+	p.cookieCache.Store(c + 1)
 	// Mark page 1 dirty BEFORE mirroring the header into its buffer: the
 	// statement journal captures the page's before-image at the dirty mark,
 	// so the capture must precede the in-place mirror write (a statement

@@ -35,8 +35,12 @@ func (e *Engine) RegisterVtabModule(name string, m vtab.Module) {
 	e.vtabs.Register(name, m)
 	e.notUpdaterVtabFP = 0
 	e.notUpdaterVtabNames = nil
+	e.notUpdaterLastName = ""
 	e.echoSourceFP = 0
 	e.echoSourceNames = nil
+	e.echoLastValid = false
+	e.mayScanFP = 0
+	e.mayScanName = ""
 }
 
 // readVtabWithBestIndexPlan is the runtime half of the virtual-table

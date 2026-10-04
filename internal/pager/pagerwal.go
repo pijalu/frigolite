@@ -52,6 +52,7 @@ func (p *Pager) walBeginWriteLocked(cacheDroppable bool) (bool, error) {
 			adopted = w.refreshStalePinLocked() || adopted
 			p.pages = make(map[uint32]*Page)
 			p.header = nil
+			p.invalidateCookieCacheLocked()
 			continue
 		}
 		w.walUnlockExclusive(walLockWrite, 1)

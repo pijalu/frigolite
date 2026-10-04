@@ -183,8 +183,17 @@ func (p *Pager) ReadPage(pageNum uint32) (*Page, error) {
 	// no disk to recover from) must be byte-copied BEFORE the caller can
 	// mutate the handle. Clean pages of file-backed pagers skip the copy —
 	// their first dirtying journals a from-file entry instead — so the
-	// common scan path never takes the write lock here.
+	// common scan path never takes the write lock here. A page the innermost
+	// scope already journalled needs no second capture: check under the read
+	// lock so the repeat reads of a transaction (interior pages, the root,
+	// the schema page) skip the write-lock upgrade entirely (reads see a
+	// stable journal — captures hold p.mu exclusively).
 	touch := ok && p.stmtTop != nil && (p.file == nil || p.dirty[pageNum])
+	if touch {
+		if _, journalled := p.stmtTop.stmtEntryFor(pageNum); journalled {
+			touch = false
+		}
+	}
 	p.mu.RUnlock()
 	if touch {
 		p.stmtReadTouch(pageNum)
@@ -220,6 +229,7 @@ func (p *Pager) readPageLocked(pageNum uint32) (*Page, error) {
 	if pageNum == 1 && p.header == nil && (p.wal != nil || p.file != nil) {
 		p.header = make([]byte, HeaderSize)
 		copy(p.header, pg.Data[:HeaderSize])
+		p.invalidateCookieCacheLocked()
 	}
 	p.pages[pageNum] = pg
 	p.stmtCaptureOnReadLocked(pageNum)
@@ -365,6 +375,7 @@ func (p *Pager) InvalidateCache() {
 			}
 		}
 	}
+	p.invalidateCookieCacheLocked()
 }
 
 // walIndexRefreshLocked opens the connection's WAL read transaction (the
@@ -394,6 +405,7 @@ func (p *Pager) walIndexRefreshLocked() (bool, error) {
 		// failed snapshot open must not leave snapshot-era pages cached.
 		p.pages = make(map[uint32]*Page)
 		p.header = nil
+		p.invalidateCookieCacheLocked()
 		return false, err
 	}
 	// Adopt the shared state ONLY when the header moved (another
@@ -414,6 +426,7 @@ func (p *Pager) walIndexRefreshLocked() (bool, error) {
 		// page 1 after walIndexReadHdr reports a change).
 		p.pages = make(map[uint32]*Page)
 		p.header = nil
+		p.invalidateCookieCacheLocked()
 		if p.numPages > 0 {
 			if _, err := p.readPageLocked(1); err != nil {
 				// The wal-index may reference frames the -wal lost to an

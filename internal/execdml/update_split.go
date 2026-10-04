@@ -494,9 +494,17 @@ type notNullResolution struct {
 
 // resolveChangeNotNullConflicts validates one change, re-validating after
 // every DEFAULT substitution until the row passes or its outcome is decided.
+// The name-keyed row exists only for CHECK-expression evaluation (NOT NULL
+// checks read the positional values), so it is built only when the table
+// declares a CHECK — the insert path's checkConstraints gate — and rebuilt
+// after each DEFAULT substitution (a rebuilt values slice must re-project).
 func (e *DMLExecutor) resolveChangeNotNullConflicts(ch updateChange, tableEntry *schema.Entry, colDefs []sql.ColumnDef, withoutRowid bool, pkCols map[int]bool, stmtClause string) notNullResolution {
+	hasChecks := e.tableHasCheckConstraint(tableEntry, colDefs)
 	for {
-		row := buildRowMapFromValues(ch.values, colDefs, ch.rowID)
+		var row RowMap
+		if hasChecks {
+			row = buildRowMapFromValues(ch.values, colDefs, ch.rowID)
+		}
 		res := e.checkRowUpdateConstraints(ch.values, row, tableEntry, colDefs, withoutRowid, pkCols)
 		if res.Error == nil {
 			return notNullResolution{keep: &ch}

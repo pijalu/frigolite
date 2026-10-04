@@ -212,6 +212,43 @@ func (e *DMLExecutor) evalTuple(tableName string, tuple []sql.Expr, columns []st
 		}
 		values[i] = v
 	}
+	return e.finishTupleValues(tableName, values, columns, colDefs)
+}
+
+// evalTuplePooled is evalTuple over the executor's reusable VALUES scratch
+// (one allocation ever for the common shape). Only the single-VALUES-list
+// INSERT without RETURNING may use it: the tuple is fully consumed within
+// its row's insert (constraint checks copy what they retain; the preupdate
+// event copies; the RETURNING row set — which escapes the statement — is
+// the one consumer that needs a fresh slice, and it is gated by the caller).
+func (e *DMLExecutor) evalTuplePooled(tableName string, tuple []sql.Expr, columns []string, colDefs []sql.ColumnDef) ([]interface{}, error) {
+	values := e.insTupleVals
+	if cap(values) < len(tuple) {
+		values = make([]interface{}, 0, len(tuple)+4)
+	}
+	values = values[:len(tuple)]
+	for i, expr := range tuple {
+		v, err := e.ctx.EvalExpr(expr, nil)
+		if err != nil {
+			e.insTupleVals = values
+			return nil, err
+		}
+		values[i] = v
+	}
+	e.insTupleVals = values
+	out, err := e.finishTupleValues(tableName, values, columns, colDefs)
+	if err != nil || len(out) == 0 || len(values) == 0 || &out[0] == &values[0] {
+		return out, err
+	}
+	// A re-mapped (generated/hidden-column) row allocated fresh; keep the
+	// scratch pointing at the identity-shaped buffer.
+	e.insTupleVals = values
+	return out, err
+}
+
+// finishTupleValues applies the arity/shape tail shared by evalTuple and
+// evalTuplePooled (the column-list and view cases, then the positional map).
+func (e *DMLExecutor) finishTupleValues(tableName string, values []interface{}, columns []string, colDefs []sql.ColumnDef) ([]interface{}, error) {
 	if len(columns) > 0 {
 		// The VALUES list must supply exactly one value per named column.
 		if len(values) != len(columns) {

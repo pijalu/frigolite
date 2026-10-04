@@ -145,8 +145,10 @@ func (db *DB) Exec(sqlStr string) *Result {
 	// The whole-batch BEGIN EXCLUSIVE check is a property of the batch TEXT,
 	// not of any single statement: compute it once (a per-statement
 	// EqualFold over the whole batch made multi-statement batches O(n^2) in
-	// the batch length).
-	wholeBatchBeginExclusive := strings.EqualFold(strings.TrimSpace(strings.TrimSuffix(sqlStr, ";")), "BEGIN EXCLUSIVE")
+	// the batch length). The length screen rejects every real statement
+	// before the fold.
+	batchText := strings.TrimSpace(strings.TrimSuffix(sqlStr, ";"))
+	wholeBatchBeginExclusive := len(batchText) == 15 && strings.EqualFold(batchText, "BEGIN EXCLUSIVE")
 	var lastResult *exec.Result
 	for si, stmt := range stmts {
 		res := db.execPrepared(stmt, stmtTextAt(sqlStr, texts, si))

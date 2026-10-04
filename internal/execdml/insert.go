@@ -276,8 +276,21 @@ func (e *DMLExecutor) indexKeyValue(cn string, colDefs []sql.ColumnDef, colIndex
 // PRIMARY KEY DESC as an ordinary (non-rowid) column (build.c
 // sqlite3AddPrimaryKey checks pCol->sortOrder), so DESC columns get a
 // separate autoindex and their own rowid.
+//
+// The type screen runs per row on the point-DML paths (insertRow / the
+// update eligibility gate), so the length test short-circuits the trim+fold
+// for every non-INTEGER declaration.
 func isIPKRowidAliasCol(cd sql.ColumnDef) bool {
-	return cd.PrimaryKey && !cd.PKDesc && strings.EqualFold(strings.TrimSpace(cd.Type), "INTEGER")
+	if !cd.PrimaryKey || cd.PKDesc {
+		return false
+	}
+	t := cd.Type
+	if len(t) != 7 {
+		if t = strings.TrimSpace(t); len(t) != 7 {
+			return false
+		}
+	}
+	return util.EqualFoldASCII(t, "INTEGER")
 }
 
 // rowIDConflictError builds the UNIQUE error for a rowid conflict. SQLite

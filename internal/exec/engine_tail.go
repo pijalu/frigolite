@@ -17,6 +17,7 @@ import (
 	"github.com/pijalu/frigolite/internal/pager"
 	"github.com/pijalu/frigolite/internal/schema"
 	"github.com/pijalu/frigolite/internal/sql"
+	"github.com/pijalu/frigolite/internal/util"
 )
 
 func (e *Engine) getDB(name string) *DatabaseContext {
@@ -56,6 +57,15 @@ func (e *Engine) isNonModifiableTable(entry *schema.Entry) bool {
 	if entry == nil {
 		return false
 	}
+	// Screen on the first byte: every reserved name starts with 's'/'S'
+	// (sqlite_*) or 'p'/'P' (pragma_*) — an O(1) reject for ordinary tables
+	// (this gate runs per statement on the DML paths).
+	if len(entry.Name) == 0 {
+		return false
+	}
+	if c := entry.Name[0]; c != 's' && c != 'S' && c != 'p' && c != 'P' {
+		return false
+	}
 	switch {
 	case strings.EqualFold(entry.Name, "sqlite_master"),
 		strings.EqualFold(entry.Name, "sqlite_schema"),
@@ -71,7 +81,7 @@ func (e *Engine) isNonModifiableTable(entry *schema.Entry) bool {
 // without module-backed row storage (rtree, echo, dbstat, ...). Such tables
 // accept writes as no-ops; FTS tables have real storage and are excluded.
 func (e *Engine) isStoragelessVirtualTable(entry *schema.Entry) bool {
-	if entry == nil || !strings.HasPrefix(strings.ToUpper(entry.SQL), "CREATE VIRTUAL TABLE") {
+	if entry == nil || !util.HasPrefixFoldASCII(entry.SQL, "CREATE VIRTUAL TABLE") {
 		return false
 	}
 	if _, isFTS := e.ftsTables[entry.Name]; isFTS {
@@ -372,7 +382,11 @@ func (e *Engine) stmtFTSShadowOwner(stmt sql.Stmt) string {
 // can undo FTS writes the pager journal does not cover.
 func (e *Engine) snapshotAllPagers() []pagerSnap {
 	var snaps []pagerSnap
-	for _, ctx := range e.databases {
+	// dbList (ATTACH order) holds the same contexts as the databases map —
+	// iterate the slice to keep this per-statement scope open off the map-
+	// iteration path (the external-mod probe made the same switch for the
+	// same reason).
+	for _, ctx := range e.dbList {
 		if ctx == nil || ctx.Pager == nil {
 			continue
 		}
@@ -395,9 +409,14 @@ func (e *Engine) snapshotAllPagers() []pagerSnap {
 	// the pager restore loop ignores entries whose pg is nil, and the FTS
 	// restore below runs alongside the pager restore in execRollbackOnError
 	// (restoreAllPagers restores only pager entries; the FTS entries are
-	// consumed by restoreFTSAll).
-	e.ftsSnapshots = e.snapshotAllFTS()
-	e.fts5Snapshots = e.snapshotAllFTS5()
+	// consumed by restoreFTSAll). The empty-registry scans cost a map-
+	// iterator setup per statement on FTS-less workloads — skip them.
+	if len(e.ftsTables) > 0 {
+		e.ftsSnapshots = e.snapshotAllFTS()
+	}
+	if len(e.fts5Tables) > 0 {
+		e.fts5Snapshots = e.snapshotAllFTS5()
+	}
 	return snaps
 }
 

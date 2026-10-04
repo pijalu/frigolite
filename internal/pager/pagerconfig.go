@@ -89,6 +89,7 @@ func (p *Pager) ResetToEmpty(pageSize uint32) {
 	hdr := storage.DefaultHeader(pageSize).Encode()
 	hdr[20] = byte(p.reserved)
 	p.header = hdr
+	p.invalidateCookieCacheLocked()
 	p.numPages = 1
 	pg := &Page{PageNum: 1, Data: make([]byte, pageSize)}
 	copy(pg.Data[:HeaderSize], hdr)

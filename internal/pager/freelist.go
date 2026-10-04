@@ -413,6 +413,7 @@ func (p *Pager) FreePage(pageNum uint32) error {
 	if len(p.header) < 40 {
 		p.header = make([]byte, HeaderSize)
 		copy(p.header, storage.DefaultHeader(p.pageSize).Encode())
+		p.invalidateCookieCacheLocked()
 	}
 	if err := p.openRollbackJournalLocked(); err != nil {
 		return err

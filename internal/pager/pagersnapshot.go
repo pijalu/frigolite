@@ -112,6 +112,7 @@ func (p *Pager) Restore(s *PagerState) {
 	if s.header != nil {
 		p.header = append([]byte(nil), s.header...)
 	}
+	p.invalidateCookieCacheLocked()
 	// In WAL mode the main database file is updated ONLY by Checkpoint
 	// (wal.c: "the main database is updated only by checkpointing"): a
 	// rollback rewinds the log's mxFrame (sqlite3WalSavepointUndo) or plays
@@ -168,6 +169,7 @@ func (p *Pager) restoreFileImageLocked(s *PagerState) {
 	if s.header != nil {
 		p.header = append([]byte(nil), s.header...)
 	}
+	p.invalidateCookieCacheLocked()
 	// P8.INCRVACUUM.phase16: persist the restored header bytes too.
 	// truncatePages writes the shrunken header directly to offset 0
 	// mid-transaction (the next statement's HeaderBeyondFile check

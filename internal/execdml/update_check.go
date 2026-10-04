@@ -256,8 +256,14 @@ func (e *DMLExecutor) checkUpdateConstraints(tableEntry *schema.Entry, colDefs [
 	prevDML := e.currentDMLTable
 	e.currentDMLTable = tableEntry.Name
 	defer func() { e.currentDMLTable = prevDML }()
+	// The name-keyed row is read only by CHECK expressions — build it per
+	// change only when the table declares a CHECK (checkConstraints parity).
+	hasChecks := e.tableHasCheckConstraint(tableEntry, colDefs)
 	for _, ch := range changes {
-		row := buildRowMapFromValues(ch.values, colDefs, ch.rowID)
+		var row RowMap
+		if hasChecks {
+			row = buildRowMapFromValues(ch.values, colDefs, ch.rowID)
+		}
 		if res := e.checkRowUpdateConstraints(ch.values, row, tableEntry, colDefs, withoutRowid, pkCols); res.Error != nil {
 			return res
 		}

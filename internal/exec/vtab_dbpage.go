@@ -223,8 +223,27 @@ func (e *Engine) DirectOnlyVTab(name string) bool {
 // MayScanCreatedVTab implements execquery.DatabaseContext: it reports whether
 // name passes MaterializeCreatedVTab's eligibility early-outs (schema entry
 // with RootPage 0, module kind not scan-blocked, stored SQL naming a vtab or
-// echo module) without materializing the table or reading scan options.
+// echo module) without materializing the table or reading scan options. The
+// answer is a pure function of the schema and the module registry, and every
+// SELECT pays it per FROM term — memoize per engine under the folded
+// all-schemas fingerprint with a single-slot last answer (the OLTP shape
+// names the same table statement after statement); RegisterVtabModule clears
+// it (a late-registered module can flip the verdict).
 func (e *Engine) MayScanCreatedVTab(name string) bool {
+	fp := e.allSchemasFingerprint()
+	if e.mayScanFP != fp {
+		e.mayScanFP = fp
+		e.mayScanName = ""
+	}
+	if e.mayScanName == name {
+		return e.mayScanVal
+	}
+	res := e.mayScanCreatedVTabUncached(name)
+	e.mayScanName, e.mayScanVal = name, res
+	return res
+}
+
+func (e *Engine) mayScanCreatedVTabUncached(name string) bool {
 	entry, _, err := e.findTable(name)
 	if err != nil || entry == nil || entry.RootPage != 0 {
 		return false

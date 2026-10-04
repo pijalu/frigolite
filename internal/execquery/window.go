@@ -26,14 +26,32 @@ type winRow struct {
 }
 
 // selectHasWindowFuncs reports whether any select column expression contains a
-// window function (a function call with an OVER clause).
+// window function (a function call with an OVER clause). Statement-memoized:
+// the aggregate/window dispatch asks this up to six times per execution over
+// the same slice (each miss walks every output expression). Keyed by the
+// per-invocation generation + the slice header, so only this execSelect
+// invocation's statement can hit.
 func (e *SelectEngine) selectHasWindowFuncs(columns []sql.SelectColumn) bool {
+	if e.hasWinGen == e.stmtMemoGen && e.hasWinLen == len(columns) &&
+		(len(columns) == 0 || e.hasWinCols == &columns[0]) {
+		return e.hasWinVal
+	}
+	res := false
 	for _, col := range columns {
 		if e.exprHasWindowFunc(col.Expr) {
-			return true
+			res = true
+			break
 		}
 	}
-	return false
+	e.hasWinGen = e.stmtMemoGen
+	e.hasWinLen = len(columns)
+	if len(columns) > 0 {
+		e.hasWinCols = &columns[0]
+	} else {
+		e.hasWinCols = nil
+	}
+	e.hasWinVal = res
+	return res
 }
 
 // collectWindowChildren returns an expression node's child expressions in the
