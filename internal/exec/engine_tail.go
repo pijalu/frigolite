@@ -60,6 +60,9 @@ func (e *Engine) isNonModifiableTable(entry *schema.Entry) bool {
 	// Screen on the first byte: every reserved name starts with 's'/'S'
 	// (sqlite_*) or 'p'/'P' (pragma_*) — an O(1) reject for ordinary tables
 	// (this gate runs per statement on the DML paths).
+	if len(entry.Name) == 0 {
+		return false
+	}
 	if c := entry.Name[0]; c != 's' && c != 'S' && c != 'p' && c != 'P' {
 		return false
 	}
