@@ -310,6 +310,19 @@ type SelectEngine struct {
 	colRefMapDefs  *sql.ColumnDef
 	colRefMapLen   int
 	colRefMapCache map[string]bool
+	// prevalidateMemo* memoizes the pre-scan validation verdict of a
+	// real-table SELECT (cachedPrevalidateChecks in select_exec.go), keyed by
+	// the statement's template-shared AST node and guarded by the schema
+	// fingerprint — the seekCI*/colRefMap* pattern. Gated to the
+	// runtime-independent execution form (no outer rows, no alias scopes, no
+	// compound-member context, no trigger depth), the checks' verdicts depend
+	// only on statement structure and schema, so a template clone revisited
+	// under the same schema skips the whole-statement column walks. The map
+	// RETAINS the keyed statement ASTs (a dead pointer's address must never
+	// be served for a different statement), so the entry count is capped and
+	// the map recycled wholesale past the cap.
+	prevalidateMemoFP uint64
+	prevalidateMemo   map[*sql.SelectStmt]prevalidateMemoEntry
 	// collOutMemo* memoizes the output-collation lists of bare-reference
 	// single-table projections (outputCollationsBare in
 	// select_point_memo.go): fingerprint + template-shared columns-slice
