@@ -183,8 +183,17 @@ func (p *Pager) ReadPage(pageNum uint32) (*Page, error) {
 	// no disk to recover from) must be byte-copied BEFORE the caller can
 	// mutate the handle. Clean pages of file-backed pagers skip the copy —
 	// their first dirtying journals a from-file entry instead — so the
-	// common scan path never takes the write lock here.
+	// common scan path never takes the write lock here. A page the innermost
+	// scope already journalled needs no second capture: check under the read
+	// lock so the repeat reads of a transaction (interior pages, the root,
+	// the schema page) skip the write-lock upgrade entirely (reads see a
+	// stable journal — captures hold p.mu exclusively).
 	touch := ok && p.stmtTop != nil && (p.file == nil || p.dirty[pageNum])
+	if touch {
+		if _, journalled := p.stmtTop.stmtEntryFor(pageNum); journalled {
+			touch = false
+		}
+	}
 	p.mu.RUnlock()
 	if touch {
 		p.stmtReadTouch(pageNum)
