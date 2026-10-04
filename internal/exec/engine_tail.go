@@ -382,7 +382,11 @@ func (e *Engine) stmtFTSShadowOwner(stmt sql.Stmt) string {
 // can undo FTS writes the pager journal does not cover.
 func (e *Engine) snapshotAllPagers() []pagerSnap {
 	var snaps []pagerSnap
-	for _, ctx := range e.databases {
+	// dbList (ATTACH order) holds the same contexts as the databases map —
+	// iterate the slice to keep this per-statement scope open off the map-
+	// iteration path (the external-mod probe made the same switch for the
+	// same reason).
+	for _, ctx := range e.dbList {
 		if ctx == nil || ctx.Pager == nil {
 			continue
 		}
@@ -405,9 +409,14 @@ func (e *Engine) snapshotAllPagers() []pagerSnap {
 	// the pager restore loop ignores entries whose pg is nil, and the FTS
 	// restore below runs alongside the pager restore in execRollbackOnError
 	// (restoreAllPagers restores only pager entries; the FTS entries are
-	// consumed by restoreFTSAll).
-	e.ftsSnapshots = e.snapshotAllFTS()
-	e.fts5Snapshots = e.snapshotAllFTS5()
+	// consumed by restoreFTSAll). The empty-registry scans cost a map-
+	// iterator setup per statement on FTS-less workloads — skip them.
+	if len(e.ftsTables) > 0 {
+		e.ftsSnapshots = e.snapshotAllFTS()
+	}
+	if len(e.fts5Tables) > 0 {
+		e.fts5Snapshots = e.snapshotAllFTS5()
+	}
 	return snaps
 }
 

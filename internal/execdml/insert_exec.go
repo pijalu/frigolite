@@ -205,7 +205,14 @@ func (e *DMLExecutor) tupleErrorResult(err error, tableEntry *schema.Entry, colD
 // insertOneTuple evaluates, writes, and (for RETURNING) projects one VALUES
 // tuple. skip reports an OR IGNORE row that must not count.
 func (e *DMLExecutor) insertOneTuple(dbCtx *DatabaseContext, tableEntry *schema.Entry, colDefs []sql.ColumnDef, s *sql.InsertStmt, tuple []sql.Expr) (changes int64, inserted int64, rowValues []interface{}, rowid int64, skip bool, err error) {
-	values, evalErr := e.evalTuple(tableEntry.Name, tuple, s.Columns, colDefs)
+	var values []interface{}
+	var evalErr error
+	if s.HasReturning {
+		// RETURNING rows escape the statement — fresh tuple slices.
+		values, evalErr = e.evalTuple(tableEntry.Name, tuple, s.Columns, colDefs)
+	} else {
+		values, evalErr = e.evalTuplePooled(tableEntry.Name, tuple, s.Columns, colDefs)
+	}
 	if evalErr != nil {
 		return 0, 0, nil, 0, false, evalErr
 	}

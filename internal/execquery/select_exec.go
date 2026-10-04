@@ -126,6 +126,12 @@ func (e *SelectEngine) execSelect(s *sql.SelectStmt) *Result {
 		e.resultTooWide = false // per-statement state
 	}
 	e.aggPendingErr = nil // per-statement state: a prior aborted SELECT must not leak its aggregate error
+	// Per-invocation memo generation: the pure-AST queries (window-function
+	// scan, affinity-column scan) memoize under this generation, so a hit is
+	// always the SAME execSelect invocation's statement — nested subqueries
+	// and recycled clone-scratch addresses can never alias into each other's
+	// entries.
+	e.stmtMemoGen++
 	defer func() { e.selectDepth-- }()
 	// SQLite resolves TVF arguments against every FROM term of the query:
 	// a top-level table-valued function whose arguments reference columns of

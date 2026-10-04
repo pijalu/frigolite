@@ -36,10 +36,18 @@ func (e *Engine) echoVTabSource(name string) (string, bool) {
 	if e.echoSourceFP != fp {
 		e.echoSourceFP = fp
 		e.echoSourceNames = nil
+		e.echoLastValid = false
+	}
+	// Single-slot last entry: the OLTP shape names the same table statement
+	// after statement, so the raw-name compare answers without the ToLower
+	// allocation or the map hash.
+	if e.echoLastValid && e.echoLastName == name {
+		return e.echoLast.src, e.echoLast.ok
 	}
 	lower := strings.ToLower(name)
 	if e.echoSourceNames != nil {
 		if hit, ok := e.echoSourceNames[lower]; ok {
+			e.echoLastName, e.echoLast, e.echoLastValid = name, hit, true
 			return hit.src, hit.ok
 		}
 	}
@@ -47,7 +55,9 @@ func (e *Engine) echoVTabSource(name string) (string, bool) {
 	if e.echoSourceNames == nil {
 		e.echoSourceNames = make(map[string]echoSourceEntry)
 	}
-	e.echoSourceNames[lower] = echoSourceEntry{src: src, ok: ok}
+	hit := echoSourceEntry{src: src, ok: ok}
+	e.echoSourceNames[lower] = hit
+	e.echoLastName, e.echoLast, e.echoLastValid = name, hit, true
 	return src, ok
 }
 

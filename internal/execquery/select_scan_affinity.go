@@ -14,7 +14,14 @@ import (
 // scanTableAffinityCols collects the column names that need affinity wrappers
 // from the WHERE clause, SELECT columns, ORDER BY, and join ON/USING/NATURAL
 // references (columns compared with affinity must wrap their values).
+// Statement-memoized (per-invocation generation + argument identities): the
+// rowid-seek and range planners each ask per execution, and the answer is a
+// pure function of the statement AST and the schema-derived colDefs.
 func (e *SelectEngine) scanTableAffinityCols(s *sql.SelectStmt, colDefs []sql.ColumnDef, needMaps bool) map[string]bool {
+	if e.affGen == e.stmtMemoGen && e.affStmt == s && e.affDefsLen == len(colDefs) &&
+		(len(colDefs) == 0 || e.affDefs == &colDefs[0]) && e.affNeedMaps == needMaps {
+		return e.affRes
+	}
 	a := &affinityCollector{cols: make(map[string]bool)}
 	// Collect column references from the consuming clauses first (WHERE,
 	// ORDER BY, GROUP BY, HAVING, joins): their union decides whether the
@@ -43,7 +50,18 @@ func (e *SelectEngine) scanTableAffinityCols(s *sql.SelectStmt, colDefs []sql.Co
 		e.collectJoinAffinity(a, &s.Joins[i], s.From.Name)
 	}
 	a.collectSelectColumnAffinity(s, colDefs)
-	return a.result(colDefs, needMaps)
+	res := a.result(colDefs, needMaps)
+	e.affGen = e.stmtMemoGen
+	e.affStmt = s
+	e.affDefsLen = len(colDefs)
+	if len(colDefs) > 0 {
+		e.affDefs = &colDefs[0]
+	} else {
+		e.affDefs = nil
+	}
+	e.affNeedMaps = needMaps
+	e.affRes = res
+	return res
 }
 
 // collectSelectColumnAffinity collects the SELECT output columns' affinity

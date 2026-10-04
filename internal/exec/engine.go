@@ -241,14 +241,22 @@ type Engine struct {
 	wrEntryVal         bool
 	// notUpdaterVtab* memoizes VTabUpdaterInstance's negative result (see
 	// vtab_dbpage.go): name → not a vtab DML target, guarded by the folded
-	// all-schemas fingerprint; RegisterVtabModule clears it.
+	// all-schemas fingerprint; RegisterVtabModule clears it. The single-slot
+	// last entry serves the OLTP shape (one table named statement after
+	// statement) without a per-statement map hash; the map covers the rest.
 	notUpdaterVtabFP    uint64
 	notUpdaterVtabNames map[string]struct{}
+	notUpdaterLastName  string
+	notUpdaterLastOK    bool
 	// echoSource* memoizes echoVTabSource (see ddl_forward.go): lower name →
 	// echo source table (or the negative), guarded by the folded all-schemas
-	// fingerprint; RegisterVtabModule clears it.
+	// fingerprint; RegisterVtabModule clears it. Single-slot last entry, same
+	// shape as notUpdater*.
 	echoSourceFP    uint64
 	echoSourceNames map[string]echoSourceEntry
+	echoLastName    string
+	echoLast        echoSourceEntry
+	echoLastValid   bool
 	// commitHook / rollbackHook / updateHook hold the sqlite3_commit_hook,
 	// sqlite3_rollback_hook, and sqlite3_update_hook callbacks.
 	commitHook   func() int

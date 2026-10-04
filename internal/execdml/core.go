@@ -138,6 +138,12 @@ type DMLExecutor struct {
 	insCell    storage.Cell
 	insRecBuf  []byte
 	insIPKVals []interface{}
+	// insTupleVals is the VALUES-tuple scratch (evalTuplePooled): one
+	// allocation ever for the identity-mapped shape, reused per row. Only
+	// the no-RETURNING single-VALUES-list INSERT drives it (the RETURNING
+	// row set escapes the statement and keeps fresh slices; the preupdate
+	// event and the constraint machinery copy what they retain).
+	insTupleVals []interface{}
 
 	// insRowRes / insStmtRes are the insert path's reusable success results:
 	// insertRow's per-row {Changes:1} and execInsertTuples' per-statement
