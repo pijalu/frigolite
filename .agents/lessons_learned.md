@@ -2922,3 +2922,86 @@ skips the WHERE re-eval, single-bare-ref output slot read) bought ~+2%.
   .db files are NOT in git). Copy both trees from main before a full
   `go test ./...`, or btree/fts fail with "database disk image is
   malformed"/"oracle fixture missing" spuriously.
+
+## PERF.DMLCORE (2026-10-04) — point-DML glue diet final tranche (fleet/perf-dmlcore)
+
+Paired interleaved vs main @624667e5a (same harness, 3 rounds, machine under
+fleet load — only deltas mean anything): insert +11-13%, delete +11-12%,
+update +7.5%, point +2.5-3.5%, scan +0.5-2%, group ±0, file unchanged.
+Mission stretch targets (insert 800k / update 600k / delete 800k / point
+750k ops/s) NOT reached at this machine's load; all landed cuts are real and
+stable. Commits: 453e0e1bf (glue diet), fccd1cea6 (+empty-name guard),
+e27ed2d32 (per-exec glue), 2fca3240d (mayScan memo), 304ce1411 (touch lock
+skip), 5adadcc37 (pool gate fix).
+
+- **The statement glue tax is real and cheap to collect**: per-statement
+  ToUpper over whole schema SQL (isStoragelessVirtualTable) was 22% of
+  insert alloc_space via strings.Builder; EqualFold(TrimSpace(type),
+  "INTEGER") per row (isIPKRowidAliasCol) ~80ns/row; ToUpper(ctx.Name) per
+  statement (noteReservedDbs); ToUpper per locking-mode resolve. All now
+  length/first-byte screened or pointer-keyed. Lesson: profile the FLAT top
+  of the alloc profile per phase — the glue frames (execResult, ToUpper,
+  EqualFold) outrank the "algorithmic" frames.
+- **strings.ToUpper already returns the input unchanged for all-ASCII-uppercased
+  strings** — the cost only shows on lowercase input ("main" → "MAIN"
+  allocates). Cache at the context (DatabaseContext pointer keys) or screen
+  before folding.
+- **Pager.SchemaCookie is read several times per statement** (allSchemasFingerprint
+  folds it for every memo gate); an atomic cookieCache (cookie+1, 0=unknown)
+  with invalidation at EVERY p.header replacement/copy site killed the
+  per-read RLock. Do NOT memoize the folded key at the schema.Manager level:
+  `PRAGMA schema_version=N` moves the cookie WITHOUT a mutation epoch, so an
+  epoch-keyed memo serves a stale key (GetEntries' cache key must track the
+  real cookie). The atomic cache is exact because only BumpSchemaCookie writes
+  [40:44] in place; every other path replaces the whole image and invalidates.
+- **Journal skip under RLock**: ReadPage's stmt-touch probe upgraded to the
+  exclusive lock per read inside a statement scope; checking
+  stmtTop.stmtEntryFor under the READ lock (stable — captures hold p.mu)
+  removes the upgrade for already-journalled pages (interior/root/schema
+  re-reads). Neutral-to-positive; strictly fewer lock ops.
+- **e.databases vs e.dbList**: per-statement loops must use dbList (ATTACH
+  order slice); mapIterStart over the databases map was 50% of
+  snapshotAllPagers' samples. Empty-registry scans (ftsTables/fts5Tables)
+  skip too — map-iterator setup per statement on FTS-less workloads.
+- **AST-pure per-exec queries memoize under a per-invocation generation**:
+  selectHasWindowFuncs (asked up to 6× per exec) and scanTableAffinityCols
+  (rowid-seek + range planners each ask). Key = execSelect-entry generation
+  bump + argument identity — the generation is what makes recycled
+  clone-scratch addresses safe (outer/subquery can never alias entries).
+  Same single-slot + fingerprint pattern for schema-pure verdicts
+  (MayScanCreatedVTab, echoVTabSource, notUpdaterVtabMemo).
+- **VALUES-tuple pooling hazard (the round's only regression)**: pooling the
+  per-row VALUES slice on the executor is only safe when NOTHING nests
+  another statement while the row is in flight. BEFORE INSERT trigger
+  bodies (tkt3832) and FK actions insert on the SAME executor — the nested
+  evalTuple overwrote the scratch and the outer row wrote the nested row's
+  values ("UNIQUE constraint failed" on insert 2). Gate: no triggers on the
+  table AND foreign_keys off; RETURNING rows stay fresh (they escape).
+  Pinned by TestInsertTuplePoolNestedInsertPin. Corollary: the existing
+  insCell/insRecBuf pools are safe because their consumption window
+  (encode+InsertCell) cannot interleave a nested statement.
+- **Point-phase profiling on macOS is distortion-heavy**: idle Ps park in
+  kevent and steal SIGPROF samples (69-93% of samples at kevent while
+  /usr/bin/time shows user≈wall). Sample COUNTS per function are wrong;
+  only relative order within frigolite frames is usable. Decompose with
+  wall-clock variants instead: db.Query full vs prepared-Stmt bound vs
+  Prepare-only (point: parse ≈580ns of ~1.6μs; engine exec dominates).
+- **Page-parse memo for the rowid-seek descent: SKIPPED** — parsePageInto is
+  O(1) (header fields + validation, no cell walk), so the per-level saving
+  is ~50-80ns against a generation-counter invalidation surface across
+  every pager write path (markDirty, statement rollback replay, Restore,
+  serialize). Not worth the risk this round; SeekToRowID descent remains
+  4-19% of point/update/delete.
+- **Column-targeted decode for narrow tables stays gated OFF** (<4 cols,
+  re-measured neutral-to-negative with the new surroundings).
+- **Harness adjudication (confirmed prior precedent)**: full-suite
+  TestSQLiteSuite failures in a worktree are dominated by shared-CWD
+  attach-file jitter (test.db1/test.db2 survive cleanupTestDBFiles — it
+  only globs *.db* not *.db1/*.db2 — and parallel file scheduling decides
+  who pollutes whom). Adjudicate per-file SOLO (FRIGOLITE_TEST=^file.json$):
+  all jitter files pass solo on both branches; the serial-mode failure sets
+  are also nondeterministic (main isolated: 0-377 across runs). A branch's
+  serial failure set being a SUBSET of main's is the clean bill; plus the
+  per-file solo green.
+- **isNonModifiableTable first-byte screen**: guard len==0 — schema entries
+  with empty names exist (tkt_78e04e52ea panicked).
