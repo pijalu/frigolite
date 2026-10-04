@@ -32,6 +32,18 @@ func NewConnID() int64 {
 // concurrent use (backup steps may run while another connection commits).
 type Registry struct {
 	mu sync.Mutex
+	// connMarks / markConns / onlyConn maintain a per-connection count of
+	// the connection-attributed lock marks it currently holds (every
+	// Set* transition keeps them in step). ForeignMarks answers from the
+	// counters — no per-statement walk of the mark maps. onlyConn is the
+	// sole marked connection while markConns == 1.
+	connMarks map[int64]int
+	markConns int
+	onlyConn  int64
+	// anonMarks counts connection-less marks (backup locks, dotfile
+	// sentinel refs), which ForeignMarks attributes to OTHER
+	// conservatively.
+	anonMarks int
 	// exclusive maps a file path to the connection ID holding an EXCLUSIVE
 	// lock (BEGIN EXCLUSIVE). Only one connection can hold it.
 	exclusive map[string]int64
@@ -68,6 +80,7 @@ type Registry struct {
 // New returns an empty registry.
 func New() *Registry {
 	return &Registry{
+		connMarks:        make(map[int64]int),
 		exclusive:        make(map[string]int64),
 		writeTx:          make(map[string]map[int64]bool),
 		backupLock:       make(map[string]int),
@@ -79,17 +92,54 @@ func New() *Registry {
 	}
 }
 
+// markOn records one mark now held by connID (Registry.connMarks bookkeeping;
+// see ForeignMarks).
+func (r *Registry) markOn(connID int64) {
+	r.connMarks[connID]++
+	if r.connMarks[connID] == 1 {
+		r.markConns++
+		if r.markConns == 1 {
+			r.onlyConn = connID
+		}
+	}
+}
+
+// markOff records one mark no longer held by connID.
+func (r *Registry) markOff(connID int64) {
+	switch n := r.connMarks[connID]; {
+	case n <= 1:
+		delete(r.connMarks, connID)
+		r.markConns--
+		if r.markConns == 1 {
+			for c := range r.connMarks {
+				r.onlyConn = c
+				break
+			}
+		}
+	default:
+		r.connMarks[connID] = n - 1
+	}
+}
+
 // SetExclusive records (on=true) or clears (on=false) an exclusive lock on
 // path held by connID.
 func (r *Registry) SetExclusive(path string, connID int64, on bool) {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 	if on {
+		if holder, ok := r.exclusive[path]; ok {
+			if holder == connID {
+				return
+			}
+			r.markOff(holder)
+		}
 		r.exclusive[path] = connID
+		r.markOn(connID)
 		return
 	}
 	if holder, ok := r.exclusive[path]; ok && holder == connID {
 		delete(r.exclusive, path)
+		r.markOff(connID)
 	}
 }
 
@@ -99,14 +149,20 @@ func (r *Registry) SetWriteTx(path string, connID int64, on bool) {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 	if on {
-		if r.writeTx[path] == nil {
-			r.writeTx[path] = make(map[int64]bool)
+		set := r.writeTx[path]
+		if set == nil {
+			set = make(map[int64]bool)
+			r.writeTx[path] = set
 		}
-		r.writeTx[path][connID] = true
+		if !set[connID] {
+			set[connID] = true
+			r.markOn(connID)
+		}
 		return
 	}
-	if set := r.writeTx[path]; set != nil {
+	if set := r.writeTx[path]; set != nil && set[connID] {
 		delete(set, connID)
+		r.markOff(connID)
 		if len(set) == 0 {
 			delete(r.writeTx, path)
 		}
@@ -118,6 +174,7 @@ func (r *Registry) AddBackupLock(path string) {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 	r.backupLock[path]++
+	r.anonMarks++
 }
 
 // RemoveBackupLock decrements the backup lock count for path.
@@ -125,6 +182,7 @@ func (r *Registry) RemoveBackupLock(path string) {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 	if n, ok := r.backupLock[path]; ok {
+		r.anonMarks--
 		if n <= 1 {
 			delete(r.backupLock, path)
 			return
@@ -178,17 +236,23 @@ func (r *Registry) SetReadTx(path string, connID int64, on bool) {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 	if on {
-		if r.readTx[path] == nil {
-			r.readTx[path] = make(map[int64]int)
+		set := r.readTx[path]
+		if set == nil {
+			set = make(map[int64]int)
+			r.readTx[path] = set
 		}
-		r.readTx[path][connID]++
+		if set[connID] == 0 {
+			r.markOn(connID)
+		}
+		set[connID]++
 		return
 	}
-	if set := r.readTx[path]; set != nil {
-		if set[connID] > 1 {
-			set[connID]--
-		} else {
+	if set := r.readTx[path]; set != nil && set[connID] > 0 {
+		if set[connID] == 1 {
 			delete(set, connID)
+			r.markOff(connID)
+		} else {
+			set[connID]--
 		}
 		if len(set) == 0 {
 			delete(r.readTx, path)
@@ -231,6 +295,18 @@ func (r *Registry) ClearConn(connID int64) {
 	dropConnFromSets(r.readTx, connID)
 	dropConnFromSets(r.sharedTx, connID)
 	dropConnFromSets(r.persistentShared, connID)
+	// Every mark class above was connection-attributed, so the walk removed
+	// exactly connMarks[connID] of them.
+	if n := r.connMarks[connID]; n > 0 {
+		r.markConns--
+		delete(r.connMarks, connID)
+		if r.markConns == 1 {
+			for c := range r.connMarks {
+				r.onlyConn = c
+				break
+			}
+		}
+	}
 }
 
 // dropExclusiveHolder removes a single-holder map entry held by connID; see
@@ -260,14 +336,20 @@ func (r *Registry) SetSharedTx(path string, connID int64, on bool) {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 	if on {
-		if r.sharedTx[path] == nil {
-			r.sharedTx[path] = make(map[int64]bool)
+		set := r.sharedTx[path]
+		if set == nil {
+			set = make(map[int64]bool)
+			r.sharedTx[path] = set
 		}
-		r.sharedTx[path][connID] = true
+		if !set[connID] {
+			set[connID] = true
+			r.markOn(connID)
+		}
 		return
 	}
-	if set := r.sharedTx[path]; set != nil {
+	if set := r.sharedTx[path]; set != nil && set[connID] {
 		delete(set, connID)
+		r.markOff(connID)
 		if len(set) == 0 {
 			delete(r.sharedTx, path)
 		}
@@ -281,14 +363,20 @@ func (r *Registry) SetPersistentShared(path string, connID int64, on bool) {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 	if on {
-		if r.persistentShared[path] == nil {
-			r.persistentShared[path] = make(map[int64]bool)
+		set := r.persistentShared[path]
+		if set == nil {
+			set = make(map[int64]bool)
+			r.persistentShared[path] = set
 		}
-		r.persistentShared[path][connID] = true
+		if !set[connID] {
+			set[connID] = true
+			r.markOn(connID)
+		}
 		return
 	}
-	if set := r.persistentShared[path]; set != nil {
+	if set := r.persistentShared[path]; set != nil && set[connID] {
 		delete(set, connID)
+		r.markOff(connID)
 		if len(set) == 0 {
 			delete(r.persistentShared, path)
 		}
@@ -327,11 +415,19 @@ func (r *Registry) SetPending(path string, connID int64, on bool) {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 	if on {
+		if holder, ok := r.pending[path]; ok {
+			if holder == connID {
+				return
+			}
+			r.markOff(holder)
+		}
 		r.pending[path] = connID
+		r.markOn(connID)
 		return
 	}
 	if holder, ok := r.pending[path]; ok && holder == connID {
 		delete(r.pending, path)
+		r.markOff(connID)
 	}
 }
 
@@ -400,8 +496,10 @@ func (r *Registry) SetDotfileHeld(path string, connID int64, on bool) bool {
 	defer r.mu.Unlock()
 	if on {
 		r.dotfileRefs[path]++
+		r.anonMarks++
 	} else {
 		r.dotfileRefs[path]--
+		r.anonMarks--
 		if r.dotfileRefs[path] <= 0 {
 			delete(r.dotfileRefs, path)
 		}
@@ -465,52 +563,19 @@ func (r *Registry) AnyMarks() bool {
 // full check path, which then applies their actual rules). The check is
 // advisory: marks appearing after a false answer is harmless (the caller
 // then runs the full check path on its next statement).
+//
+// The answer reads the per-connection mark counters (Registry.connMarks /
+// markConns / onlyConn / anonMarks, kept in step by every Set* transition),
+// so the common single-connection case pays two integer compares instead of
+// a walk of the mark maps.
 func (r *Registry) ForeignMarks(self int64) bool {
 	r.mu.Lock()
 	defer r.mu.Unlock()
-	for _, conn := range r.exclusive {
-		if conn != self {
-			return true
-		}
-	}
-	for _, conns := range r.writeTx {
-		for conn := range conns {
-			if conn != self {
-				return true
-			}
-		}
-	}
-	if len(r.backupLock) > 0 {
+	if r.anonMarks > 0 || r.markConns > 1 {
 		return true
 	}
-	for _, conns := range r.readTx {
-		for conn := range conns {
-			if conn != self {
-				return true
-			}
-		}
-	}
-	for _, conns := range r.sharedTx {
-		for conn := range conns {
-			if conn != self {
-				return true
-			}
-		}
-	}
-	for _, conns := range r.persistentShared {
-		for conn := range conns {
-			if conn != self {
-				return true
-			}
-		}
-	}
-	for _, conn := range r.pending {
-		if conn != self {
-			return true
-		}
-	}
-	if len(r.dotfileRefs) > 0 {
-		return true
+	if r.markConns == 1 {
+		return r.onlyConn != self
 	}
 	return false
 }
