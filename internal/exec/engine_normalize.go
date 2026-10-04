@@ -79,30 +79,13 @@ func normalizeScan(s string, values []interface{}, spans []normSpan, h *maphash.
 			continue
 		}
 		if !started {
-			started = true
-			if values == nil {
-				values = make([]interface{}, 0, 4)
-			} else {
-				values = values[:0]
-			}
-			if spans == nil {
-				spans = make([]normSpan, 0, 4)
-			} else {
-				spans = spans[:0]
-			}
+			values, spans = resetNormScratch(values, spans)
 			if h != nil {
 				h.Reset()
 			}
+			started = true
 		}
-		if h != nil {
-			// Hash the normalized form's segments as they are cut (WriteString
-			// copies into the hash's internal buffer — no per-segment copy of
-			// the SQL text remains).
-			h.WriteString(s[last:i])
-			h.WriteByte('?')
-		}
-		values = append(values, val)
-		spans = append(spans, normSpan{start: i, end: next})
+		values, spans = emitNormLiteral(s, values, spans, h, normSpan{start: i, end: next}, last, val)
 		i = next
 		last = i
 	}
@@ -113,6 +96,36 @@ func normalizeScan(s string, values []interface{}, spans []normSpan, h *maphash.
 		h.WriteString(s[last:])
 	}
 	return values, spans, true
+}
+
+// resetNormScratch readies the recycled value/span buffers for a statement
+// that turned out to carry literals.
+func resetNormScratch(values []interface{}, spans []normSpan) ([]interface{}, []normSpan) {
+	if values == nil {
+		values = make([]interface{}, 0, 4)
+	} else {
+		values = values[:0]
+	}
+	if spans == nil {
+		spans = make([]normSpan, 0, 4)
+	} else {
+		spans = spans[:0]
+	}
+	return values, spans
+}
+
+// emitNormLiteral records one found literal: its value, its span, and the
+// normalized-form segments up to it (a hash of them when h is non-nil —
+// WriteString copies into the hash's internal buffer, no per-segment copy of
+// the SQL text remains).
+func emitNormLiteral(s string, values []interface{}, spans []normSpan, h *maphash.Hash, sp normSpan, last int, val interface{}) ([]interface{}, []normSpan) {
+	if h != nil {
+		h.WriteString(s[last:sp.start])
+		h.WriteByte('?')
+	}
+	values = append(values, val)
+	spans = append(spans, sp)
+	return values, spans
 }
 
 // materializeNorm rebuilds the normalized text from the original and its
