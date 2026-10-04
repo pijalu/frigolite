@@ -382,20 +382,12 @@ type Engine struct {
 	normBuf    []byte
 	normValues []interface{}
 	// execPreflight's single-entry statement memos. pfAST* memoizes the
-	// AST-only checks (the RAISE() walk and the FROM-term count) keyed by the
-	// statement pointer; pfDML* memoizes the schema-dependent DML checks
-	// (embedded-subquery arity + the fk.c prepare-time FK resolution) keyed
-	// by (statement pointer, folded all-schemas fingerprint, foreign_keys
-	// setting). Both hold the statement reference, so the pointer key cannot
-	// be recycled to a different AST while memoized; the template cache's
-	// per-depth live clones (and the prepared-statement cache) hand the same
-	// pointer back for structurally identical statements, which turns the
-	// checks into pointer compares on the repeated-statement floor. Literal
-	// values are the only thing slot substitution rewrites, and none of the
-	// memoized checks reads a literal (RAISE detection is function-name
-	// shaped, the FROM count and subquery arity are structural, FK
-	// resolution reads declarations), so a substituted clone answers exactly
-	// as its template would.
+	// AST-only checks (RAISE() walk, FROM-term count) by statement pointer;
+	// pfDML* memoizes the schema-dependent DML checks (subquery arity, fk.c
+	// FK resolution) by (statement pointer, schema fingerprint, foreign_keys).
+	// Both slots RETAIN the statement reference (a pointer key cannot address
+	// a recycled AST); the caches hand identical statements the same pointer
+	// back, and substitution rewrites literal leaves only.
 	pfASTStmt   sql.Stmt
 	pfASTRaise  error
 	pfASTFromOK bool
@@ -657,12 +649,10 @@ func (e *Engine) SetPendingByteMain(byteOffset uint32) uint32 {
 
 // StmtHooksActive reports whether any statement trace/profile hook is
 // registered (sqlite3_trace, sqlite3_profile, or sqlite3_trace_v2). The
-// statement-execution entry uses it to skip the per-statement trace gate —
-// the elapsed-time clock and the Begin/End/FireTraceRow calls — entirely
-// when no hook could observe them. A zero-mask trace_v2 registration keeps
-// the hook non-nil, so it still takes the traced path (the mask is cheap to
-// consult there and the hook may be re-armed by SetTraceV2Hook's mask
-// argument alone).
+// statement-execution entry skips the whole per-statement trace gate — the
+// elapsed-time clock and the Begin/End/FireTraceRow calls — when no hook
+// could observe them; a zero-mask trace_v2 registration keeps the hook
+// non-nil and takes the traced path.
 func (e *Engine) StmtHooksActive() bool {
 	return e.traceHook != nil || e.profileHook != nil || e.traceV2Hook != nil
 }

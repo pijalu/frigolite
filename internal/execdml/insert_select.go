@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/pijalu/frigolite/internal/execquery"
 	"github.com/pijalu/frigolite/internal/parse"
+	"github.com/pijalu/frigolite/internal/pager"
 	"github.com/pijalu/frigolite/internal/schema"
 	"github.com/pijalu/frigolite/internal/sql"
 	"github.com/pijalu/frigolite/internal/storage"
@@ -63,6 +64,29 @@ func (e *DMLExecutor) insertSelectWrittenRow(tableEntry *schema.Entry, colDefs [
 
 	// Handle RETURNING clause — evaluate against the row that was written.
 	return e.evalInsertSelectReturning(s, tableEntry, colDefs, values, rowID)
+}
+
+// fireInsertRowPreupdate is insertRow's per-row preupdate event (the
+// sqlite3_preupdate_hook's INSERT event): the new row's values, with WITHOUT
+// ROWID tables reporting the synthetic rowid 0. A no-op when no hook consumes
+// the event (PreupdateNeeded) — the per-row New copy stays off the un-hooked
+// insert floor.
+func (e *DMLExecutor) fireInsertRowPreupdate(pg *pager.Pager, tableEntry *schema.Entry, nextRowID int64, values []interface{}) *Result {
+	if !e.ctx.PreupdateNeeded() {
+		return nil
+	}
+	rowID := nextRowID
+	if tableIsWithoutRowid(tableEntry.SQL) {
+		rowID = 0
+	}
+	return e.ctx.FirePreupdate(PreupdateEvent{
+		Type:  "INSERT",
+		DB:    e.schemaNameForPager(pg),
+		Table: tableEntry.Name,
+		RowID: rowID, RowID2: rowID,
+		RowidTable: !tableIsWithoutRowid(tableEntry.SQL),
+		New:        append([]interface{}(nil), values...),
+	})
 }
 
 // fireInsertPreupdate fires the preupdate INSERT hook with the new row's

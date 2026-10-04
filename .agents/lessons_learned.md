@@ -2806,3 +2806,62 @@ skips the WHERE re-eval, single-bare-ref output slot read) bought ~+2%.
   TestSQLiteSuite/select1$` fails "no such table: test1" on MAIN and branch
   alike — filtered-mode skips the fixture setup step. Full-suite or
   per-FILE solo runs only.
+
+## PERF.EXECENTRY — the exec-entry gate diet (fleet/perf-execentry, 2026-10-03)
+
+- **The per-statement entry tax after upddel/insquick was still ~20-27% on
+  DML**: two unconditional wall-clock reads in execPrepared (t0 +
+  time.Since, feeding hooks nobody registered), the preupdate event build
+  (Old/New value copies + the WITHOUT-ROWID rowid resolution + applyPreupdate
+  Affinity's per-row allSchemasFingerprint probe) on every DML row, the
+  cross-connection lock resolution (stmtLockKey → findTable → ValidateHeader
+  ×2 + six registry lookups) whenever ANY marks existed — including this
+  connection's OWN write-tx marks, which no *ByOther check can ever satisfy
+  — and execPreflight's two full expression-tree walks (FROM-term counter +
+  RAISE() checker) plus the FK-prepare FindTable per statement. All four
+  gates are now zero-cost when their feature is absent, which is the
+  default: StmtHooksActive, DMLContext.PreupdateNeeded,
+  lockreg.ForeignMarks, and the pfAST*/pfDML* preflight memos.
+- **ForeignMarks v1 walked the mark maps per statement — map iteration is
+  the cost, not the mutex.** Iter.Init + Next + the iterator's chacha8
+  reseed cost ~7% CPU on the update floor, more than the checks it
+  replaced. The fix is counters: every Set* transition keeps a
+  per-connection mark count (connMarks/markConns/onlyConn; backup/dotfile
+  marks count as anonymous and stay conservative), so "any foreign marks?"
+  answers from two integer compares. General lesson: a registry fast path
+  must not itself iterate; maintain the summary incrementally.
+- **execPreflight memoization is safe by AST identity, not by content
+  hashing**: the template cache's per-depth live clones hand structurally
+  identical statements the same pointer back, slot substitution rewrites
+  LITERAL LEAVES only, and none of the memoized checks reads a literal
+  (RAISE detection is function-name-shaped, FROM count / subquery arity are
+  structural, FK resolution reads declarations). The memo slot RETAINS the
+  statement reference, so the pointer key can never address a recycled AST
+  — the single-entry memo doubles as the GC pin. Guards: folded
+  all-schemas fingerprint + the foreign_keys setting for the DML half.
+- **BTree wrapper reuse (lever 4) measured ZERO and was dropped.** A
+  full engine-scoped rent/release slot (the insertWriteTree pattern:
+  identity-keyed, Closed() drop-never-rearm, layout-hook invalidation,
+  ReleaseIdleCursors at frame exit, execDepth-guarded release) was
+  implemented, passed btree/exec/execdml suites, and then measured
+  noise-equal to no-slot in three interleaved rounds. The 28.5MB of
+  NewBTree allocs is cheap tiny-object churn; the real per-statement cost
+  is the cursor lifecycle + registry work, which happens EITHER WAY
+  (ReleaseIdleCursors ≈ Close's sweep, and the pooled cursor's resetFor
+  runs on every acquisition). Patch preserved at /tmp/perf/execentry_
+  treeslot.patch for whoever attacks the point path next — the pattern is
+  proven safe but must buy something to keep.
+- **Interleaved A/B or nothing**: in one window main measured insert
+  523.8k/552.2k, update 376.0k/336.4k, delete 486.9k/449.0k across two
+  rounds (±12% swings on MAIN itself); single absolute comparisons would
+  have "proven" a 13% point regression that a denoised NSCAN=30 A/B showed
+  to be ≤1%. Ratios from interleaved same-window rounds are the only
+  signal.
+- **Out-of-lane residue left on the floor** (for the next tranche):
+  function.SetStmtTime's per-statement RWMutex pair + Now() (function pkg),
+  noteReservedDbs' per-statement ToUpper + map assign inside open
+  transactions (transaction.go), execSnapshotDML's pager BeginStatement +
+  snapshot growslice (engine_tail.go + pagerstmt.go), and the point path's
+  execquery allocators (affinityCollector 34MB, ParseRecordHeader 27.5MB,
+  fetchSeekStructRow 99MB cum per 200k queries). The point target (700k)
+  is unreachable from the entry-gate lane; it lives in execquery.

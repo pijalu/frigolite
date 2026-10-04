@@ -100,52 +100,22 @@ func duplicateCTENameExec(ctes []sql.CTEDef) string {
 
 // execPreflight runs statement-level validations that happen only at the
 // outermost statement (trigger bodies skip them). Returns a non-nil Result on
-// validation failure.
-//
-// The checks are memoized on the engine's single-entry statement slots
-// (Engine.pfAST* / Engine.pfDML*): the AST-only checks (FROM-term count,
-// RAISE() walk) by statement pointer, the schema-dependent DML checks
-// (embedded-subquery arity, fk.c prepare-time FK resolution) by (statement
-// pointer, folded all-schemas fingerprint, foreign_keys setting). Both
-// memo slots retain the statement reference — a pointer key can never
-// address a recycled AST — and the prepared-statement/template caches hand
-// structurally identical statements the same pointer back, so a repeated
-// statement pays pointer compares instead of two full expression-tree
-// walks and a table resolution. The fingerprint guard rebuilds the DML
-// slot on any schema change (the same contract as the engine's other
-// fingerprint memos: preAff*, wrEntry*, echoSource*).
+// validation failure. The AST-only checks (execPreflightASTChecks) and the
+// schema-dependent DML checks (execPreflightDMLChecks) are memoized on the
+// engine's single-entry statement slots (Engine.pfAST* / Engine.pfDML*): both
+// slots retain the statement reference — a pointer key can never address a
+// recycled AST — and the prepared-statement/template caches hand structurally
+// identical statements the same pointer back, so a repeated statement pays
+// pointer compares instead of two full expression-tree walks and a table
+// resolution. The fingerprint guard rebuilds the DML slot on any schema
+// change (the same contract as the engine's other fingerprint memos:
+// preAff*, wrEntry*, echoSource*).
 func (e *Engine) execPreflight(stmt sql.Stmt) *Result {
 	if e.triggers.Depth() != 0 {
 		return nil
 	}
-	// SQLite's SrcList grows across the whole statement (including nested
-	// subqueries and CTE bodies), so the FROM-clause term limit counts all
-	// of them (with1 22.1's five-level nesting hits "too many FROM clause
-	// terms, max: 200").
-	// RAISE() is only valid inside a trigger program. SQLite rejects it at
-	// prepare time; the engine's runtime evaluation would miss it when the
-	// containing expression never executes (e.g. GROUP BY/HAVING over an
-	// empty table), so validate the whole statement here. SELECT statements
-	// are validated inside execSelect AFTER name resolution, because SQLite
-	// resolves column names first — SELECT RAISE(abort,a) with an undefined
-	// column a reports "no such column: a", not the RAISE error. Both
-	// checks read only the statement AST (RAISE detection is shaped by the
-	// function name, the FROM count by the clause structure — no literal
-	// value participates), so they memoize by statement identity.
-	if stmt != e.pfASTStmt {
-		e.pfASTStmt = stmt
-		e.pfASTFromOK = countStatementFromTerms(stmt) < 200
-		if !shouldDeferRaiseCheck(stmt) {
-			e.pfASTRaise = e.validateNoRaiseOutsideTrigger(stmt)
-		} else {
-			e.pfASTRaise = nil
-		}
-	}
-	if !e.pfASTFromOK {
-		return &Result{Error: fmt.Errorf("too many FROM clause terms, max: %d", 200)}
-	}
-	if e.pfASTRaise != nil {
-		return &Result{Error: e.pfASTRaise}
+	if res := e.execPreflightASTChecks(stmt); res != nil {
+		return res
 	}
 	// Triggers loaded from sqlite_master may reference objects that no
 	// longer resolve (reopen with different attachments); SQLite reports
@@ -162,36 +132,79 @@ func (e *Engine) execPreflight(stmt sql.Stmt) *Result {
 	if err := e.validateLoadedSchema(stmt); err != nil {
 		return &Result{Error: err}
 	}
-	// Stored schema validation is performed by schema-loading operations; do
-	// not mask ordinary SELECT semantic errors during statement preflight.
-	// DML statements validate their embedded subquery arity (INSERT/UPDATE/
-	// DELETE SET/WHERE/VALUES expressions) — SELECT does this inside
-	// execSelect after name resolution — and resolve their target table's
-	// FK relationships (fk.c sqlite3FkCheck at compilation). Both depend
-	// only on the statement AST and the schema, so they share the
-	// fingerprint-guarded DML memo slot; the foreign_keys setting joins the
-	// key because it gates the FK half (ValidateDMLTableFKs early-outs when
-	// PRAGMA foreign_keys is OFF).
-	if shouldValidateDMLSubqueries(stmt) {
-		fp := e.allSchemasFingerprint()
-		if stmt != e.pfDMLStmt || fp != e.pfDMLFP || e.pfDMLFKOn != e.settings.foreignKeys {
-			err := e.validateDMLSubqueries(stmt)
-			if err == nil {
-				// fk.c sqlite3FkCheck runs at statement compilation: an FK whose
-				// parent table or parent key cannot be located fails an
-				// INSERT/UPDATE/DELETE regardless of the rows involved
-				// (e_fkey-20.x: an UPDATE of an empty child reports "no such
-				// table: main.X"; a parent DELETE reports the child's
-				// "foreign key mismatch"). Subquery errors keep precedence.
-				if res := e.validateDMLFKPrepare(stmt); res != nil {
-					err = res.Error
-				}
+	return e.execPreflightDMLChecks(stmt)
+}
+
+// execPreflightASTChecks runs the two AST-only prepare-time checks: the
+// FROM-clause term limit and the RAISE()-outside-trigger rejection. Both read
+// only the statement AST (RAISE detection is shaped by the function name, the
+// FROM count by the clause structure — no literal value participates), so
+// they memoize by statement identity.
+func (e *Engine) execPreflightASTChecks(stmt sql.Stmt) *Result {
+	if stmt == e.pfASTStmt {
+		return e.pfASTCheckResult()
+	}
+	e.pfASTStmt = stmt
+	// SQLite's SrcList grows across the whole statement (including nested
+	// subqueries and CTE bodies), so the FROM-clause term limit counts all
+	// of them (with1 22.1's five-level nesting hits "too many FROM clause
+	// terms, max: 200").
+	e.pfASTFromOK = countStatementFromTerms(stmt) < 200
+	// RAISE() is only valid inside a trigger program. SQLite rejects it at
+	// prepare time; the engine's runtime evaluation would miss it when the
+	// containing expression never executes (e.g. GROUP BY/HAVING over an
+	// empty table), so validate the whole statement here. SELECT statements
+	// are validated inside execSelect AFTER name resolution, because SQLite
+	// resolves column names first — SELECT RAISE(abort,a) with an undefined
+	// column a reports "no such column: a", not the RAISE error.
+	if !shouldDeferRaiseCheck(stmt) {
+		e.pfASTRaise = e.validateNoRaiseOutsideTrigger(stmt)
+	} else {
+		e.pfASTRaise = nil
+	}
+	return e.pfASTCheckResult()
+}
+
+// pfASTCheckResult renders the memoized AST-check state: a non-nil Result
+// when a check fails, nil when both passed.
+func (e *Engine) pfASTCheckResult() *Result {
+	if !e.pfASTFromOK {
+		return &Result{Error: fmt.Errorf("too many FROM clause terms, max: %d", 200)}
+	}
+	if e.pfASTRaise != nil {
+		return &Result{Error: e.pfASTRaise}
+	}
+	return nil
+}
+
+// execPreflightDMLChecks runs the schema-dependent DML prepare-time checks:
+// the embedded-subquery arity validation and the fk.c FK resolution. Both
+// depend only on the statement AST and the schema, so they share the
+// fingerprint-guarded DML memo slot; the foreign_keys setting joins the key
+// because it gates the FK half (ValidateDMLTableFKs early-outs when PRAGMA
+// foreign_keys is OFF).
+func (e *Engine) execPreflightDMLChecks(stmt sql.Stmt) *Result {
+	if !shouldValidateDMLSubqueries(stmt) {
+		return nil
+	}
+	fp := e.allSchemasFingerprint()
+	if stmt != e.pfDMLStmt || fp != e.pfDMLFP || e.pfDMLFKOn != e.settings.foreignKeys {
+		err := e.validateDMLSubqueries(stmt)
+		if err == nil {
+			// fk.c sqlite3FkCheck runs at statement compilation: an FK whose
+			// parent table or parent key cannot be located fails an
+			// INSERT/UPDATE/DELETE regardless of the rows involved
+			// (e_fkey-20.x: an UPDATE of an empty child reports "no such
+			// table: main.X"; a parent DELETE reports the child's
+			// "foreign key mismatch"). Subquery errors keep precedence.
+			if res := e.validateDMLFKPrepare(stmt); res != nil {
+				err = res.Error
 			}
-			e.pfDMLStmt, e.pfDMLFP, e.pfDMLFKOn, e.pfDMLErr = stmt, fp, e.settings.foreignKeys, err
 		}
-		if e.pfDMLErr != nil {
-			return &Result{Error: e.pfDMLErr}
-		}
+		e.pfDMLStmt, e.pfDMLFP, e.pfDMLFKOn, e.pfDMLErr = stmt, fp, e.settings.foreignKeys, err
+	}
+	if e.pfDMLErr != nil {
+		return &Result{Error: e.pfDMLErr}
 	}
 	return nil
 }
