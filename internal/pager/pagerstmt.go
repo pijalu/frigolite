@@ -124,6 +124,77 @@ func (p *Pager) putStmtImageBuf(b []byte) {
 	}
 }
 
+// stmtListMax bounds the linear-scan statement-journal list. A writing
+// statement touches a handful of pages (table leaf + interior + page 1), so
+// the common scope journals 2-6 entries: a small slice scanned linearly beats
+// a map on every access (no hashing on capture, no bucket clear at scope
+// open, no map-iteration at close). Scopes past the bound spill into the map,
+// which then serves lookups directly.
+const stmtListMax = 16
+
+// stmtSlot is one linear-list statement-journal record.
+type stmtSlot struct {
+	pgno uint32
+	ent  stmtEntry
+}
+
+// stmtEntryFor returns the before-image recorded for pgno (ok=false when the
+// scope has none). Caller holds p.mu.
+func (j *StmtJournal) stmtEntryFor(pgno uint32) (stmtEntry, bool) {
+	if j.entries == nil {
+		for i := range j.list {
+			if j.list[i].pgno == pgno {
+				return j.list[i].ent, true
+			}
+		}
+		return stmtEntry{}, false
+	}
+	e, ok := j.entries[pgno]
+	return e, ok
+}
+
+// stmtEntryPut records pgno's before-image, spilling from the linear list to
+// the map past stmtListMax (the list's records move once, in order). Caller
+// holds p.mu.
+func (j *StmtJournal) stmtEntryPut(pgno uint32, e stmtEntry) {
+	if j.entries == nil {
+		if len(j.list) < stmtListMax {
+			j.list = append(j.list, stmtSlot{pgno: pgno, ent: e})
+			return
+		}
+		j.entries = make(map[uint32]stmtEntry, stmtListMax*2)
+		for _, s := range j.list {
+			j.entries[s.pgno] = s.ent
+		}
+		j.list = j.list[:0]
+	}
+	j.entries[pgno] = e
+}
+
+// stmtEntryCount reports how many pages the scope has journalled.
+func (j *StmtJournal) stmtEntryCount() int {
+	if j.entries == nil {
+		return len(j.list)
+	}
+	return len(j.entries)
+}
+
+// eachStmtEntry calls f for every journalled page (list or map form; map
+// order, which is as irrelevant as it is for pager.c's pagerPlayback). If f
+// records entries into ANOTHER scope (EndStatement's splice), that is safe —
+// only the receiving scope's storage is written.
+func (j *StmtJournal) eachStmtEntry(f func(pgno uint32, e stmtEntry)) {
+	if j.entries == nil {
+		for i := range j.list {
+			f(j.list[i].pgno, j.list[i].ent)
+		}
+		return
+	}
+	for pgno, e := range j.entries {
+		f(pgno, e)
+	}
+}
+
 // StmtJournal is a statement-scoped rollback scope handed out by
 // BeginStatement. Callers close it with exactly one of EndStatement
 // (statement succeeded — entries splice into the parent scope) or
@@ -133,9 +204,12 @@ func (p *Pager) putStmtImageBuf(b []byte) {
 type StmtJournal struct {
 	p      *Pager
 	parent *StmtJournal
-	// entries maps page number to its before-image, captured at the page's
+	// The scope's before-images, keyed by page number, captured at the page's
 	// first modification inside the scope (pager.c pagerAddPageToSubjournal's
 	// once-per-page rule: a page rewritten N times keeps its FIRST image).
+	// Small scopes keep them in list (linear scan, see stmtListMax); the map
+	// takes over when a statement journals more than stmtListMax pages.
+	list    []stmtSlot
 	entries map[uint32]stmtEntry
 	// begin metadata: page count, file size, header bytes and the deferred
 	// file-shrink flag as they stood at BeginStatement (pager.c nStmtSize /
@@ -184,9 +258,10 @@ func (p *Pager) BeginStatement() *StmtJournal {
 		j = p.stmtFree[n-1]
 		p.stmtFree[n-1] = nil
 		p.stmtFree = p.stmtFree[:n-1]
+		j.list = j.list[:0]
 		clear(j.entries)
 	} else {
-		j = &StmtJournal{entries: make(map[uint32]stmtEntry)}
+		j = &StmtJournal{}
 	}
 	j.p = p
 	j.parent = p.stmtTop
@@ -242,21 +317,24 @@ func (p *Pager) EndStatement(j *StmtJournal) {
 	p.unlinkStmtLocked(j)
 	defer p.recycleStmtLocked(j)
 	if j.parent != nil && !j.parent.done {
-		for pgno, e := range j.entries {
-			if _, ok := j.parent.entries[pgno]; !ok {
-				j.parent.entries[pgno] = e
-				continue
+		// Splice this scope's entries into the parent, keeping the parent's
+		// OLDER image for pages it already journalled.
+		parent := j.parent
+		j.eachStmtEntry(func(pgno uint32, e stmtEntry) {
+			if _, ok := parent.stmtEntryFor(pgno); !ok {
+				parent.stmtEntryPut(pgno, e)
+				return
 			}
 			// The parent keeps its older image; this one is dead.
 			p.dropStmtEntry(e)
-		}
+		})
 		return
 	}
 	// No parent to splice into (outermost scope, or the parent already
 	// closed): every entry dies here.
-	for _, e := range j.entries {
+	j.eachStmtEntry(func(_ uint32, e stmtEntry) {
 		p.dropStmtEntry(e)
-	}
+	})
 }
 
 // dropStmtEntry releases a dead statement-journal entry: memory before-images
@@ -337,7 +415,7 @@ func (p *Pager) RollbackStatement(j *StmtJournal) {
 // ReadPage before the statement may outlive the scope) — GC reclaims them.
 // Caller holds p.mu.
 func (p *Pager) replayStmtEntriesLocked(j *StmtJournal) {
-	for pgno, e := range j.entries {
+	j.eachStmtEntry(func(pgno uint32, e stmtEntry) {
 		switch e.kind {
 		case stmtEntMemory:
 			if cap(e.data) >= int(p.pageSize) && len(e.data) >= int(p.pageSize) {
@@ -355,7 +433,7 @@ func (p *Pager) replayStmtEntriesLocked(j *StmtJournal) {
 			delete(p.pages, pgno)
 			delete(p.dirty, pgno)
 		}
-	}
+	})
 }
 
 // stmtJournalPageLocked captures pgno's before-image into the innermost open
@@ -371,10 +449,10 @@ func (p *Pager) stmtJournalPageLocked(pgno uint32) {
 	if top == nil {
 		return
 	}
-	if _, ok := top.entries[pgno]; ok {
+	if _, ok := top.stmtEntryFor(pgno); ok {
 		return
 	}
-	top.entries[pgno] = p.stmtCaptureEntryLocked(pgno, top)
+	top.stmtEntryPut(pgno, p.stmtCaptureEntryLocked(pgno, top))
 }
 
 // stmtCaptureEntryLocked classifies pgno's before-image for the scope.
@@ -436,7 +514,7 @@ func (p *Pager) stmtReadTouchLocked(pgno uint32) {
 	if top == nil {
 		return
 	}
-	if _, ok := top.entries[pgno]; ok {
+	if _, ok := top.stmtEntryFor(pgno); ok {
 		return
 	}
 	if p.file != nil && !p.dirty[pgno] {
@@ -445,7 +523,7 @@ func (p *Pager) stmtReadTouchLocked(pgno uint32) {
 		// is actually written.
 		return
 	}
-	top.entries[pgno] = p.stmtCaptureEntryLocked(pgno, top)
+	top.stmtEntryPut(pgno, p.stmtCaptureEntryLocked(pgno, top))
 }
 
 // unlinkStmtLocked removes j from the open-scope chain. Caller holds p.mu.
