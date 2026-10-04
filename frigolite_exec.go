@@ -96,7 +96,21 @@ func stmtTextAt(sqlStr string, texts []string, si int) string {
 // internal tracing enabled, any other statement goes through engine.Exec
 // with one trace-row event per result row (the sqlite3_trace/profile hook
 // call sequence, shared by Exec and Query).
+//
+// With no trace/profile hook registered (the default) the whole gate — the
+// elapsed-time clock and the Begin/End/FireTraceRow calls — is skipped: it
+// would otherwise cost two wall-clock reads and three calls per statement
+// on every statement the connection runs.
 func (db *DB) execPrepared(stmt sql.Stmt, stmtText string) *exec.Result {
+	if !db.engine.StmtHooksActive() {
+		if vs, ok := stmt.(*sql.VacuumStmt); ok {
+			db.engine.SetTraceInternal(true)
+			res := db.execVacuumStmt(vs)
+			db.engine.SetTraceInternal(false)
+			return res
+		}
+		return db.engine.Exec(stmt)
+	}
 	t0 := time.Now()
 	db.engine.BeginStmtTrace(stmtText)
 	if vs, ok := stmt.(*sql.VacuumStmt); ok {

@@ -282,6 +282,12 @@ func (e *Engine) walBeginStmtWrite(stmt sql.Stmt) error {
 	if p, ok := stmt.(*sql.PragmaStmt); ok && strings.EqualFold(p.Name, "wal_checkpoint") {
 		return nil
 	}
+	// No attached database is in WAL mode: the pager-side WALBeginWrite would
+	// no-op for every target, so the statement's key resolution (a schema
+	// lookup per writing statement) is skipped entirely.
+	if !e.anyWALModePager() {
+		return nil
+	}
 	write, schemaName := lockAccessForStmt(stmt)
 	if !write {
 		return nil
@@ -307,6 +313,18 @@ func (e *Engine) walBeginStmtWrite(stmt sql.Stmt) error {
 		}
 	}
 	return nil
+}
+
+// anyWALModePager reports whether any attached database's pager runs in WAL
+// mode. The statement-entry WAL write gate uses it to skip the per-statement
+// target resolution on connections that use no WAL database at all.
+func (e *Engine) anyWALModePager() bool {
+	for _, ctx := range e.dbList {
+		if ctx != nil && ctx.Pager != nil && ctx.Pager.WALMode() {
+			return true
+		}
+	}
+	return false
 }
 
 // noteStmtReadLock records the SHARED lock a read statement takes on its
@@ -440,10 +458,15 @@ func (e *Engine) SetPreparedReadLock(name string, on bool) {
 }
 
 // WriteBlockedByPreparedRead reports whether stmt is a write blocked by a
-// prepared SELECT on another connection.
+// prepared SELECT on another connection. With no foreign marks in the lock
+// registry no other connection can hold a prepared read, so the key
+// resolution (a lock-key lookup) and the registry query are skipped.
 func (e *Engine) WriteBlockedByPreparedRead(stmt sql.Stmt) bool {
 	switch stmt.(type) {
 	case *sql.InsertStmt, *sql.UpdateStmt, *sql.DeleteStmt:
+		if !lockreg.Global.ForeignMarks(e.connID) {
+			return false
+		}
 		return e.ReadLockedByOther("main")
 	default:
 		return false
@@ -537,13 +560,16 @@ func (e *Engine) CrossConnLockError(stmt sql.Stmt) error {
 		lockSchema = "MAIN"
 	}
 	exclusiveMode := strings.EqualFold(e.schemaLockingMode(lockSchema), "exclusive")
-	// Registry-wide early-out: with no lock marks anywhere (any path, any
-	// connection), no cross-connection check can fail — every query is
-	// "held by OTHER". The statement's key resolution (a schema lookup per
-	// statement) and the whole check loop are skipped; both would answer nil.
-	// The exclusive-mode mark set below must still run, so it disables the
-	// early-out, as does the nolock style's early return.
-	if !exclusiveMode && e.lockStyle != LockStyleNone && !lockreg.Global.AnyMarks() {
+	// Registry-wide early-out: with no lock marks held by ANOTHER connection
+	// (any path, any mark kind — including the case of no marks at all), no
+	// cross-connection check can fail — every query is "held by OTHER". The
+	// statement's key resolution (a schema lookup per statement) and the
+	// whole check loop are skipped; both would answer nil. This connection's
+	// own marks — the write-transaction tracker, a shared read transaction,
+	// PENDING — cannot satisfy a *ByOther check, so they do not disable the
+	// early-out. The exclusive-mode mark set below must still run, so it
+	// disables the early-out, as does the nolock style's early return.
+	if !exclusiveMode && e.lockStyle != LockStyleNone && !lockreg.Global.ForeignMarks(e.connID) {
 		return nil
 	}
 	key := e.stmtLockKey(stmt, schemaName, write)

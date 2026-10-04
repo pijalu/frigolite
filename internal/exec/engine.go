@@ -381,6 +381,20 @@ type Engine struct {
 	// statements. Neither outlives a Prepare call.
 	normBuf    []byte
 	normValues []interface{}
+	// execPreflight's single-entry statement memos. pfAST* memoizes the
+	// AST-only checks (RAISE() walk, FROM-term count) by statement pointer;
+	// pfDML* memoizes the schema-dependent DML checks (subquery arity, fk.c
+	// FK resolution) by (statement pointer, schema fingerprint, foreign_keys).
+	// Both slots RETAIN the statement reference (a pointer key cannot address
+	// a recycled AST); the caches hand identical statements the same pointer
+	// back, and substitution rewrites literal leaves only.
+	pfASTStmt   sql.Stmt
+	pfASTRaise  error
+	pfASTFromOK bool
+	pfDMLStmt   sql.Stmt
+	pfDMLFP     uint64
+	pfDMLFKOn   bool
+	pfDMLErr    error
 }
 
 // engineSettings groups the PRAGMA/config flags and limits that previously
@@ -631,6 +645,16 @@ func (e *Engine) SetPendingByteMain(byteOffset uint32) uint32 {
 		return e.mainDB.Pager.SetPendingByte(byteOffset)
 	}
 	return 0x40000000
+}
+
+// StmtHooksActive reports whether any statement trace/profile hook is
+// registered (sqlite3_trace, sqlite3_profile, or sqlite3_trace_v2). The
+// statement-execution entry skips the whole per-statement trace gate — the
+// elapsed-time clock and the Begin/End/FireTraceRow calls — when no hook
+// could observe them; a zero-mask trace_v2 registration keeps the hook
+// non-nil and takes the traced path.
+func (e *Engine) StmtHooksActive() bool {
+	return e.traceHook != nil || e.profileHook != nil || e.traceV2Hook != nil
 }
 
 // authorize checks whether an operation is allowed by the authorizer.

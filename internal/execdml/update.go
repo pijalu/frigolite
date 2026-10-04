@@ -771,8 +771,12 @@ func (e *DMLExecutor) fireUpdatePreupdate(tableName string, c updateChange) *Res
 // fireUpdatePreupdateEntry is fireUpdatePreupdate with the target table's
 // schema entry already in hand — the per-row FindTable (applyPreupdateAffinity
 // re-resolves the table again inside the engine) stays out of the point
-// write path.
+// write path. A no-op when no hook consumes the event (PreupdateNeeded):
+// the per-row Old/New copies stay off the un-hooked UPDATE floor.
 func (e *DMLExecutor) fireUpdatePreupdateEntry(entry *schema.Entry, c updateChange) *Result {
+	if !e.ctx.PreupdateNeeded() {
+		return nil
+	}
 	rowidTable := !tableIsWithoutRowid(entry.SQL)
 	rowID := c.rowID
 	if !rowidTable {
@@ -796,6 +800,9 @@ func (e *DMLExecutor) fireUpdatePreupdateEntry(entry *schema.Entry, c updateChan
 // pipeline (RowMap-based, update hook NOT suppressed). WITHOUT ROWID tables
 // report rowid 0 (SQLite uses the key columns instead).
 func (e *DMLExecutor) fireConflictDeletePreupdate(tableEntry *schema.Entry, rowID int64, oldValues []interface{}) *Result {
+	if !e.ctx.PreupdateNeeded() {
+		return nil
+	}
 	tableName := tableEntry.Name
 	wr := tableIsWithoutRowid(tableEntry.SQL)
 	delRowID := rowID
