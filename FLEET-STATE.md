@@ -1164,3 +1164,23 @@ class, 7.5s solo 3/3 green). Final bench (paired vs sqlite3 3.54):
 insert 362k ops/s (4.2x), point 437k (2.4x), scan 20.6M rows/s (2.6x),
 group 45 q/s (1.19x FASTER), update 267k (4.7x), delete 366k (4.4x),
 file autocommit 9.8k (1.2x FASTER).
+
+## PERF-PARITY3 (2026-10-03, milestone) — R4+R5 merged; gaps 1.34-2.8x
+
+R4 tranches: perf-upddel (slot-path template substitution — updateCOW 0,
+cached DML write trees, fused validation walk, pooled rowmap), perf-
+scanbox (typed aggregate lane off raw payload, covered-seek WHERE skip,
+[]bool decode sets, column-targeted point decode), perf-insquick (btree
+append-cursor balance_quick port 98.8% engagement, IPK conflict-probe
+gating, result staging). R5 tranches: perf-execentry (StmtHooksActive
+trace gate, preflight memos, preupdate copy gate, O(1) ForeignMarks),
+perf-stmtprep (fused normalize+hash one-scan pipeline, bounded linear
+journal list, prevalidate memo). Milestone bench (main 9951a3f96 vs
+sqlite3 3.54 same ops): insert 655,704 ops/s (2.4x), point 613,286
+(1.76x), scan 39.4M rows/s (1.34x), group 50 q/s (1.28x FASTER), update
+453,102 (2.8x), delete 639,158 (2.3x), file autocommit 11,197 (1.12x
+FASTER). Campaign start: 10.9x/1040x/6.5x/3.9x/2049x/885x.
+Correctness note: /tmp/perf/frigo harness go.mod replace was found
+pointing at a stale agent worktree (fix-ins2-vacuum) — 2026-10-02/03
+"main" benches in that window measured that branch, not main; all
+merged-main numbers re-established after fixing the replace.
