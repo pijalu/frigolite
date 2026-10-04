@@ -249,13 +249,20 @@ func (e *Engine) prepareCached(sqlStr string, scratchOK bool) ([]sql.Stmt, error
 		e.caches.stmtCache = make(map[string][]sql.Stmt)
 	}
 
-	// Check template cache — normalize SQL and see if we've seen this structure.
-	// The substitution buffer and value slice are the engine's per-statement
-	// scratch (recycled across statements; neither outlives the Prepare call).
-	normSQL, values, normBuf := normalizeSQLScratch(sqlStr, e.normBuf, e.normValues)
-	e.normBuf, e.normValues = normBuf, values
-	if stmts, ok := e.tryTemplateCache(sqlStr, normSQL, values, scratchOK); ok {
-		return stmts, nil
+	// Check template cache — normalize SQL and see if we've seen this
+	// structure. The fused scan extracts the literal values, records their
+	// spans, and hashes the normalized text in ONE pass (no normalized bytes
+	// are materialized per statement). The value/span slices are the engine's
+	// per-statement scratch (recycled across statements; neither outlives the
+	// Prepare call).
+	values, spans, hasLits := normalizeScan(sqlStr, e.normValues, e.normSpans, &e.normHash)
+	e.normValues, e.normSpans = values, spans
+	var normKey uint64
+	if hasLits {
+		normKey = e.normHash.Sum64()
+		if stmts, ok := e.tryTemplateCache(sqlStr, normKey, values, spans, scratchOK); ok {
+			return stmts, nil
+		}
 	}
 
 	// Full parse using go-lemon generated parser
@@ -276,7 +283,12 @@ func (e *Engine) prepareCached(sqlStr string, scratchOK bool) ([]sql.Stmt, error
 		return stmts, perr
 	}
 	e.caches.stmtCache[sqlStr] = stmts
-	e.storeTemplateCache(normSQL, values, stmts)
+	if hasLits {
+		// The normalized text is materialized once, on the store path only
+		// (the per-statement lookup verifies via the spans instead).
+		normSQL := materializeNorm(sqlStr, spans, &e.normBuf)
+		e.storeTemplateCache(normKey, normSQL, values, stmts)
+	}
 	return stmts, nil
 }
 

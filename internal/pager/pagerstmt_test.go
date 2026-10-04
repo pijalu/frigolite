@@ -17,6 +17,7 @@
 package pager
 
 import (
+	"crypto/sha256"
 	"encoding/binary"
 	"os"
 	"path/filepath"
@@ -79,8 +80,8 @@ func TestStmtJournalZeroPageStatement(t *testing.T) {
 	if _, err := p.ReadPage(1); err != nil {
 		t.Fatalf("read: %v", err)
 	}
-	if len(stmt.entries) != 0 {
-		t.Fatalf("read-only statement journalled %d pages, want 0", len(stmt.entries))
+	if stmt.stmtEntryCount() != 0 {
+		t.Fatalf("read-only statement journalled %d pages, want 0", stmt.stmtEntryCount())
 	}
 	p.EndStatement(stmt)
 
@@ -116,7 +117,7 @@ func TestStmtJournalNPageRollback(t *testing.T) {
 	if err := p.WritePage(newPg); err != nil {
 		t.Fatalf("WritePage(new): %v", err)
 	}
-	if len(stmt.entries) == 0 {
+	if stmt.stmtEntryCount() == 0 {
 		t.Fatalf("statement with writes journalled nothing")
 	}
 	p.RollbackStatement(stmt)
@@ -328,6 +329,86 @@ func TestStmtJournalWALModeInMemoryRollback(t *testing.T) {
 	}
 	if info.Size() != sizeBefore {
 		t.Fatalf("WAL mode: main file size changed by statement rollback: %d -> %d", sizeBefore, info.Size())
+	}
+}
+
+// TestStmtJournalMixedReadWriteExactRestore pins the journal's exactness
+// contract end-to-end: a statement that READS and WRITES a mix of pages
+// (clean pages, pages already dirty at statement start, freshly allocated
+// pages — spanning both the linear-list and the map-overflow journal forms)
+// restores every page's EXACT bytes on rollback. Whole page images are
+// hashed before and after, not just spot-checked.
+func TestStmtJournalMixedReadWriteExactRestore(t *testing.T) {
+	for _, mode := range []string{"memory", "file"} {
+		t.Run(mode, func(t *testing.T) {
+			var p *Pager
+			if mode == "memory" {
+				p = OpenInMemory(512)
+			} else {
+				p, _ = openStmtFilePager(t)
+			}
+			defer p.Close()
+			const nPages = 30 // past stmtListMax: the journal spills to its map
+			allocPagesLocked(p, nPages)
+			for pgno := uint32(1); pgno <= nPages; pgno++ {
+				writePage(t, p, pgno, byte(pgno)) // commit-dirty every page
+			}
+			if err := p.Flush(); err != nil {
+				t.Fatalf("Flush: %v", err)
+			}
+			// Make page 2 dirty at statement start (an earlier statement's
+			// uncommitted write the rollback must keep).
+			writePage(t, p, 2, 0xEE)
+
+			hashPages := func() map[uint32][32]byte {
+				t.Helper()
+				out := make(map[uint32][32]byte)
+				for pgno := uint32(1); pgno <= nPages; pgno++ {
+					pg, err := p.ReadPage(pgno)
+					if err != nil {
+						t.Fatalf("ReadPage(%d): %v", pgno, err)
+					}
+					out[pgno] = sha256.Sum256(pg.Data)
+				}
+				return out
+			}
+			before := hashPages()
+
+			stmt := p.BeginStatement()
+			// Mixed reads and writes: rewrite a spread of pages, read others,
+			// allocate pages past the statement's starting count.
+			for pgno := uint32(3); pgno <= nPages; pgno += 2 {
+				pg, err := p.ReadPage(pgno) // read first, then overwrite
+				if err != nil {
+					t.Fatalf("ReadPage(%d): %v", pgno, err)
+				}
+				pg.Data[10] ^= 0xFF
+				if err := p.WritePage(pg); err != nil {
+					t.Fatalf("WritePage(%d): %v", pgno, err)
+				}
+			}
+			for pgno := uint32(4); pgno <= nPages; pgno += 2 {
+				if _, err := p.ReadPage(pgno); err != nil { // reads only
+					t.Fatalf("ReadPage(%d): %v", pgno, err)
+				}
+			}
+			extra := p.AllocatePage()
+			extra.Data[0] = 0x99
+			if err := p.WritePage(extra); err != nil {
+				t.Fatalf("WritePage(extra): %v", err)
+			}
+			p.RollbackStatement(stmt)
+
+			after := hashPages()
+			for pgno := uint32(1); pgno <= nPages; pgno++ {
+				if before[pgno] != after[pgno] {
+					t.Fatalf("page %d bytes changed by statement rollback (exact-restore pin)", pgno)
+				}
+			}
+			if _, err := p.ReadPage(extra.PageNum); err == nil {
+				t.Fatalf("allocated page %d survived rollback", extra.PageNum)
+			}
+		})
 	}
 }
 

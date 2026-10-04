@@ -9,6 +9,7 @@ package exec
 
 import (
 	"fmt"
+	"hash/maphash"
 	"strings"
 	"sync"
 
@@ -376,10 +377,19 @@ type Engine struct {
 	// executing; the engine's single-goroutine statement funnel makes the
 	// per-depth lifecycle strictly sequential.
 	cloneScratches []*cloneScratch
-	// normBuf / normValues are Prepare's substitution scratch (the normalized
-	// SQL text buffer and the extracted literal values), recycled across
-	// statements. Neither outlives a Prepare call.
-	normBuf    []byte
+	// normBuf / normValues / normSpans are Prepare's substitution scratch
+	// (the normalized SQL text buffer, the extracted literal values, and the
+	// literals' byte spans in the original text), recycled across statements.
+	// Neither the values nor the spans outlive a Prepare call; normBuf is
+	// materialized only on the template-store path.
+	normBuf   []byte
+	normSpans []normSpan
+	// normHash is the fused normalization scan's running hash of the
+	// normalized text (normalizeScan): it turns the per-statement normalize +
+	// maphash double pass into one scan and keys the template cache. Engine
+	// execution is single-goroutine (the same model every unsynchronized
+	// per-engine cache relies on).
+	normHash maphash.Hash
 	normValues []interface{}
 	// execPreflight's single-entry statement memos. pfAST* memoizes the
 	// AST-only checks (RAISE() walk, FROM-term count) by statement pointer;

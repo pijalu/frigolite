@@ -1,6 +1,7 @@
 package exec
 
 import (
+	"hash/maphash"
 	"strconv"
 	"strings"
 )
@@ -37,63 +38,163 @@ func continuesIdentToken(s string, i int) bool {
 	return i > 0 && identContTable[s[i-1]]
 }
 
+// normSpan is one literal's [start, end) byte range in the ORIGINAL sql
+// text. The span list is the normalized form's recipe: the normalized text
+// is the original with every span replaced by a single '?', which lets the
+// template-cache lookup verify a candidate entry against the original bytes
+// (and the store path materialize the normalized text) without a second
+// rewrite pass per statement.
+type normSpan struct {
+	start, end int
+}
+
+// normalizeScan is the one-pass text pipeline behind Prepare's template
+// cache: it extracts the literal values, records each literal's span, and —
+// when h is non-nil — hashes the normalized form (the original with every
+// literal replaced by '?') into h incrementally, so the per-statement path
+// never materializes the normalized bytes. The scan itself skips bytes that
+// cannot start a literal with a tight class test, and each candidate is
+// resolved by the same nextLiteral the scratch form uses, so the extracted
+// values (and the implied normalized text) are byte-identical to
+// normalizeSQLScratch's.
+//
+// ok=false reports no literals (values/spans are nil): the value count gates
+// every template-cache use. The values and spans slices are the caller's
+// recycled scratch (the engine's per-statement buffers); callers must not
+// retain them past the statement.
+func normalizeScan(s string, values []interface{}, spans []normSpan, h *maphash.Hash) (outValues []interface{}, outSpans []normSpan, ok bool) {
+	started := false
+	i, last := 0, 0
+	for i < len(s) {
+		c := s[i]
+		// Fast screen: only a quote, a digit, or a dot can start a literal
+		// (nextLiteral's three cases). Everything else advances one byte.
+		if c != '\'' && c != '.' && (c < '0' || c > '9') {
+			i++
+			continue
+		}
+		next, val, isLit := nextLiteral(s, i)
+		if !isLit {
+			i++
+			continue
+		}
+		if !started {
+			values, spans = resetNormScratch(values, spans)
+			if h != nil {
+				h.Reset()
+			}
+			started = true
+		}
+		values, spans = emitNormLiteral(s, values, spans, h, normSpan{start: i, end: next}, last, val)
+		i = next
+		last = i
+	}
+	if !started {
+		return nil, nil, false
+	}
+	if h != nil {
+		h.WriteString(s[last:])
+	}
+	return values, spans, true
+}
+
+// resetNormScratch readies the recycled value/span buffers for a statement
+// that turned out to carry literals.
+func resetNormScratch(values []interface{}, spans []normSpan) ([]interface{}, []normSpan) {
+	if values == nil {
+		values = make([]interface{}, 0, 4)
+	} else {
+		values = values[:0]
+	}
+	if spans == nil {
+		spans = make([]normSpan, 0, 4)
+	} else {
+		spans = spans[:0]
+	}
+	return values, spans
+}
+
+// emitNormLiteral records one found literal: its value, its span, and the
+// normalized-form segments up to it (a hash of them when h is non-nil —
+// WriteString copies into the hash's internal buffer, no per-segment copy of
+// the SQL text remains).
+func emitNormLiteral(s string, values []interface{}, spans []normSpan, h *maphash.Hash, sp normSpan, last int, val interface{}) ([]interface{}, []normSpan) {
+	if h != nil {
+		h.WriteString(s[last:sp.start])
+		h.WriteByte('?')
+	}
+	values = append(values, val)
+	spans = append(spans, sp)
+	return values, spans
+}
+
+// materializeNorm rebuilds the normalized text from the original and its
+// literal spans into buf (appending, reusing cap). Only the cache-store path
+// pays this — once per unique template.
+func materializeNorm(s string, spans []normSpan, buf *[]byte) []byte {
+	b := *buf
+	if b == nil {
+		b = make([]byte, 0, len(s))
+	} else {
+		b = b[:0]
+	}
+	last := 0
+	for _, sp := range spans {
+		b = append(b, s[last:sp.start]...)
+		b = append(b, '?')
+		last = sp.end
+	}
+	b = append(b, s[last:]...)
+	*buf = b
+	return b
+}
+
+// templateMatchesSpans verifies that template equals the normalized form of
+// s implied by spans: the original text with every span replaced by a single
+// '?'. Substring compares only — no normalized bytes are materialized — so
+// the per-statement lookup's verification never allocates.
+func templateMatchesSpans(template, s string, spans []normSpan) bool {
+	ti := 0
+	last := 0
+	for _, sp := range spans {
+		seg := s[last:sp.start]
+		if ti+len(seg) > len(template) || template[ti:ti+len(seg)] != seg {
+			return false
+		}
+		ti += len(seg)
+		if ti >= len(template) || template[ti] != '?' {
+			return false
+		}
+		ti++
+		last = sp.end
+	}
+	return template[ti:] == s[last:]
+}
+
 // normalizeSQLScratch replaces all numeric and string literals in a SQL
 // string with '?', returning the normalized text and the extracted literal
 // values. This is a fast pre-parse scan — it does NOT use the full parser.
 // Only handles simple quoted strings and decimal integers/floats.
 //
+// The scan shares normalizeScan's single pass; the normalized text is
+// materialized here (the legacy form). The exec path uses the fused
+// normalizeScan directly and materializes only on the template-store path.
+//
 // Literal-free input is returned unchanged (no copy): the template and
 // statement caches compare the normalized text with the input for identity.
 //
-// Bytes that continue an identifier or parameter token (digits after a
-// letter, as in "t1" or "u2", or after a parameter sigil) are NOT literal
-// starts: treating them as literals would merge unrelated statements into
-// one template-cache key with phantom values, and the substitution walk
-// would then refuse every such statement (forcing a full parse).
-//
-// The caller's byte and value buffers are reused as scratch (the engine's
-// per-statement buffers: the substitution buffer alone is one SQL-text-sized
-// allocation per statement otherwise). It returns the substituted text AS
-// SCRATCH BYTES (nil when the input held no literals — the value count gates
-// every template-cache use), the values, and the (possibly grown) scratch
-// buffers for the next statement. Callers must not retain the returned bytes
-// or values slice past the statement — they are the recycled scratch; the
-// template cache keys on the bytes' hash and verifies against the entry's
-// stored text, so no per-statement normalized-string allocation remains.
+// The caller's byte and value buffers are reused as scratch. It returns the
+// substituted text AS SCRATCH BYTES (nil when the input held no literals —
+// the value count gates every template-cache use), the values, and the
+// (possibly grown) scratch buffers for the next statement. Callers must not
+// retain the returned bytes or values slice past the statement.
 func normalizeSQLScratch(s string, buf []byte, values []interface{}) (norm []byte, outValues []interface{}, outBuf []byte) {
-	last := 0
-	i := 0
-	started := false
-	for i < len(s) {
-		next, val, ok := nextLiteral(s, i)
-		if !ok {
-			i++
-			continue
-		}
-		if !started {
-			started = true
-			if buf == nil {
-				buf = make([]byte, 0, len(s))
-			} else {
-				buf = buf[:0]
-			}
-			if values == nil {
-				values = make([]interface{}, 0, 4)
-			} else {
-				values = values[:0]
-			}
-		}
-		buf = append(buf, s[last:i]...)
-		buf = append(buf, '?')
-		values = append(values, val)
-		i = next
-		last = i
-	}
-	if !started {
+	spans := make([]normSpan, 0, 4)
+	vals, spans, ok := normalizeScan(s, values, spans, nil)
+	if !ok {
 		return nil, nil, buf
 	}
-	buf = append(buf, s[last:]...)
-	return buf, values, buf
+	return materializeNorm(s, spans, &buf), vals, buf
 }
 
 // nextLiteral scans the literal starting at i (if any), returning the index

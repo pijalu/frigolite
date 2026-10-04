@@ -298,21 +298,6 @@ func (e *SelectEngine) execRealTableSelect(s *sql.SelectStmt) *Result {
 // references, RAISE-in-select, and the OR-index optimization. It also handles
 // the virtual-table branch. Returns a non-nil Result when execution completed
 // early, otherwise the (possibly module-augmented) column defs.
-// prevalidateSelectChecks runs the INDEXED BY, WHERE collation, WITHOUT ROWID
-// rowid-ref, column-reference, and RAISE validations. Returns an error Result
-// when a check fails, nil to continue.
-func (e *SelectEngine) prevalidateSelectChecks(s *sql.SelectStmt, tableEntry *schema.Entry, colDefs []sql.ColumnDef) *Result {
-	if err := e.prevalidateIndexCollation(s, tableEntry, colDefs); err != nil {
-		return &Result{Error: err}
-	}
-	if err := e.prevalidateRowIDAndRefs(s, tableEntry, colDefs); err != nil {
-		return &Result{Error: err}
-	}
-	if err := e.prevalidateSchemaFunctionSafety(s, colDefs); err != nil {
-		return &Result{Error: err}
-	}
-	return nil
-}
 
 // prevalidateSchemaFunctionSafety rejects SELECTs over tables whose generated
 // columns use functions unsafe under PRAGMA trusted_schema=OFF
@@ -428,7 +413,7 @@ func (e *SelectEngine) prevalidateRowIDAndRefs(s *sql.SelectStmt, tableEntry *sc
 }
 
 func (e *SelectEngine) execSelectPrevalidate(s *sql.SelectStmt, tableEntry *schema.Entry, dbCtx *DatabaseContext, colDefs []sql.ColumnDef) (*Result, []sql.ColumnDef) {
-	if result := e.prevalidateSelectChecks(s, tableEntry, colDefs); result != nil {
+	if result := e.cachedPrevalidateChecks(s, tableEntry, colDefs); result != nil {
 		return result, colDefs
 	}
 	if tableEntry.RootPage == 0 {
@@ -442,6 +427,9 @@ func (e *SelectEngine) execSelectPrevalidate(s *sql.SelectStmt, tableEntry *sche
 	}
 	return nil, colDefs
 }
+
+// prevalidateMemoEntry, prevalidateMemoCap, cachedPrevalidateChecks and the
+// memo helpers live in select_prevalidate_memo.go.
 
 // finalizeSelectResult applies DISTINCT, ORDER BY, LIMIT, and UNION.
 func (e *SelectEngine) finalizeSelectResult(result *Result, s *sql.SelectStmt, rowMaps []RowMap) *Result {

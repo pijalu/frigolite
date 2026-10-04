@@ -2865,3 +2865,60 @@ skips the WHERE re-eval, single-bare-ref output slot read) bought ~+2%.
   execquery allocators (affinityCollector 34MB, ParseRecordHeader 27.5MB,
   fetchSeekStructRow 99MB cum per 200k queries). The point target (700k)
   is unreachable from the entry-gate lane; it lives in execquery.
+## PERF.STMTPREP (2026-10-04) — fused normalize+hash scan, statement-journal list, prevalidate memo (fleet/perf-stmtprep)
+
+- **Adjudicating a dead agent's WIP by measuring, not reading**: the
+  uncommitted diff looked destructive (−97 lines from select_exec.go, a
+  pointer to a select_prevalidate_memo.go that did not exist) — discard
+  material. It was in fact the QUALITY-GATE REMEDIATION for the tranche's own
+  commits: 7ae2d7a3f pushed normalizeScan to gocognit 24 / gocyclo 14 and
+  519409c1f pushed select_exec.go to 1013 lines (hard 1000 fail). Run
+  `gocognit -over 15` on the BASE commit first: violations present at base are
+  pre-existing (do not fix), violations absent at base are YOUR tranche's debt
+  (must fix). With that lens the WIP is a coherent half-move: re-apply it and
+  finish the missing file. Committing the remediation separately keeps the
+  perf commits attributable.
+- **Finish-session gate math**: quality_gate.sh on staged perf files fails
+  even when your tranche is innocent — insertStmtValues (gocognit 22 /
+  gocyclo 15) and execRealTableSelect (13) pre-exist on main. Gate = ZERO
+  violations absent at base (`comm -23 branch_violations base_violations`
+  after normalizing the ./ path prefixes gocognit/gocyclo print). This
+  tranche ended with 0 new and 3 removed (normalizeScan, the memo fn, the
+  1000-line file).
+- **cachedPrevalidateChecks decomposition pattern** (gocognit 22 → ≤15 with
+  semantics frozen): split by PHASE, not by condition — the runtime-dependent
+  consulted-form gate (prevalidateRuntimeDependent), the schema-fingerprint
+  read (prevalidateMemoGen), the registry-relevant bypass
+  (colDefsTouchRegistries), memo hit/store (prevalidateMemoLookup /
+  prevalidateMemoStore), and the direct-walk wrapper (prevalidateDirectly,
+  the `err != nil → &Result{Error: err}}` shape that repeated three times).
+  Each helper keeps its original comment block; the dispatcher reads as the
+  original function's outline.
+- **Statement-rollback exactness now has a whole-page pin**: page-hash digest
+  (sha256 over header + page-number-sorted page bytes via db.pager.Pages(),
+  reachable from root-package tests through the unexported field) around an
+  INSERT OR FAIL that fails UNIQUE with an AFTER-INSERT trigger armed —
+  the strongest shape because the failing statement dirties OTHER tables'
+  pages before aborting. Gotcha: seed rows fire the trigger too — assert the
+  side-table count is the SEED count, not zero.
+- **Bench harness loss and reconstruction**: the paired-bench scratch
+  (/tmp/perf/frigo + /tmp/frigo_main) does not survive host tmp cleanup.
+  Absolute ops/s from a RECONSTRUCTED harness are not comparable to a prior
+  session's reference numbers (phase shapes differ: my scan does
+  count+sum+min+max → 4.4M rows/s vs their 39.7M lighter scan) — only the
+  SAME-harness interleaved branch-vs-main ratios mean anything. Rebuild cost
+  was ~80 lines; keep the harness under /tmp/perf/stmtprep and expect to
+  rebuild per session.
+- **Paired medians, full env, 3 interleaved rounds (alternate run order)**:
+  point +6.2%, delete +7.1%, update +3.9%, insert +0.7%, scan +2.3%, group
+  ±0, file −0.4% — wins exactly on the prep+journal lanes, no regression
+  outside noise. Suite parity: branch 4079 vs main 4069 case-level failures
+  in the full TestSQLiteSuite run, delta ±12 = documented shared-cwd jitter
+  (all differing files pass SOLO on both sides via FRIGOLITE_TEST=^file.json$);
+  per-FILE solo runs remain the only deterministic adjudication.
+- **Fixture drift bites full suites**: worktrees lack gitignored
+  oracle-generated fixtures (testdata/*conformance AND
+  internal/fts/testdata/ftsconformance/*.db — the four WriterConformance
+  .db files are NOT in git). Copy both trees from main before a full
+  `go test ./...`, or btree/fts fail with "database disk image is
+  malformed"/"oracle fixture missing" spuriously.
