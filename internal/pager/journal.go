@@ -192,6 +192,7 @@ func replayHotJournalPages(p *Pager, pages []JournalPage) {
 				p.header = make([]byte, HeaderSize)
 			}
 			copy(p.header, pg.Data[:HeaderSize])
+			p.invalidateCookieCacheLocked()
 		}
 	}
 }

@@ -76,6 +76,7 @@ func (p *Pager) Deserialize(img []byte, maxSize int64, readOnly bool) error {
 		p.clearDirtySetLocked()
 		p.numPages = n
 		p.header = append([]byte(nil), hdr...)
+		p.invalidateCookieCacheLocked()
 		p.headerCorrupt = true
 		p.readOnly = readOnly
 		// A corrupt image must fail the NEXT schema read, not the
@@ -92,6 +93,7 @@ func (p *Pager) Deserialize(img []byte, maxSize int64, readOnly bool) error {
 	p.clearDirtySetLocked()
 	p.numPages = n
 	p.header = append([]byte(nil), hdr...)
+	p.invalidateCookieCacheLocked()
 	if len(hdr) > 20 {
 		p.reserved = uint32(hdr[20])
 	}

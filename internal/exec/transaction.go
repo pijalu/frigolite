@@ -504,22 +504,18 @@ type savepointEntry struct {
 // dirty pages (i.e. took the WRITER/RESERVED lock) as locked-for-the-
 // transaction. A later savepoint rollback may clean the pages, but C's pager
 // keeps the lock until COMMIT / full ROLLBACK (see txState.reservedDbs).
+// This runs per statement inside a writing transaction, so the marks are the
+// context pointers — no per-statement name folding.
 func (e *Engine) noteReservedDbs() {
-	marked := false
 	for _, ctx := range e.dbList {
 		if ctx == nil || ctx.Pager == nil || !ctx.Pager.HasDirtyPages() {
 			continue
 		}
 		if e.tx.reservedDbs == nil {
-			e.tx.reservedDbs = make(map[string]bool)
+			e.tx.reservedDbs = make(map[*DatabaseContext]bool)
 		}
-		key := strings.ToUpper(ctx.Name)
-		if !e.tx.reservedDbs[key] {
-			e.tx.reservedDbs[key] = true
-			marked = true
-		}
+		e.tx.reservedDbs[ctx] = true
 	}
-	_ = marked
 }
 
 // clearReservedDbs releases the per-transaction RESERVED marks (COMMIT /

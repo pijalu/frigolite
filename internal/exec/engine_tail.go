@@ -17,6 +17,7 @@ import (
 	"github.com/pijalu/frigolite/internal/pager"
 	"github.com/pijalu/frigolite/internal/schema"
 	"github.com/pijalu/frigolite/internal/sql"
+	"github.com/pijalu/frigolite/internal/util"
 )
 
 func (e *Engine) getDB(name string) *DatabaseContext {
@@ -56,6 +57,12 @@ func (e *Engine) isNonModifiableTable(entry *schema.Entry) bool {
 	if entry == nil {
 		return false
 	}
+	// Screen on the first byte: every reserved name starts with 's'/'S'
+	// (sqlite_*) or 'p'/'P' (pragma_*) — an O(1) reject for ordinary tables
+	// (this gate runs per statement on the DML paths).
+	if c := entry.Name[0]; c != 's' && c != 'S' && c != 'p' && c != 'P' {
+		return false
+	}
 	switch {
 	case strings.EqualFold(entry.Name, "sqlite_master"),
 		strings.EqualFold(entry.Name, "sqlite_schema"),
@@ -71,7 +78,7 @@ func (e *Engine) isNonModifiableTable(entry *schema.Entry) bool {
 // without module-backed row storage (rtree, echo, dbstat, ...). Such tables
 // accept writes as no-ops; FTS tables have real storage and are excluded.
 func (e *Engine) isStoragelessVirtualTable(entry *schema.Entry) bool {
-	if entry == nil || !strings.HasPrefix(strings.ToUpper(entry.SQL), "CREATE VIRTUAL TABLE") {
+	if entry == nil || !util.HasPrefixFoldASCII(entry.SQL, "CREATE VIRTUAL TABLE") {
 		return false
 	}
 	if _, isFTS := e.ftsTables[entry.Name]; isFTS {

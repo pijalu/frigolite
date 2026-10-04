@@ -61,3 +61,18 @@ func HasPrefixFoldASCII(s, prefix string) bool {
 	}
 	return true
 }
+
+// EqualFoldASCII reports whether s and t are equal under ASCII case folding
+// (strings.EqualFold without the unicode tables: bytes >= 0x80 compare
+// literally, which is exact for the ASCII keywords the callers fold).
+func EqualFoldASCII(s, t string) bool {
+	if len(s) != len(t) {
+		return false
+	}
+	for i := 0; i < len(s); i++ {
+		if asciiLower(s[i]) != asciiLower(t[i]) {
+			return false
+		}
+	}
+	return true
+}

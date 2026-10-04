@@ -401,6 +401,7 @@ func (p *Pager) RollbackStatement(j *StmtJournal) {
 		if j.header != nil {
 			p.header = append([]byte(nil), j.header...)
 		}
+		p.invalidateCookieCacheLocked()
 		p.fileSize = j.fileSize
 	}
 }

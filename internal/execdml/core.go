@@ -12,6 +12,7 @@ import (
 	"github.com/pijalu/frigolite/internal/schema"
 	"github.com/pijalu/frigolite/internal/sql"
 	"github.com/pijalu/frigolite/internal/storage"
+	"github.com/pijalu/frigolite/internal/util"
 )
 
 // errRaiseIgnore is the sentinel error a RAISE(IGNORE) trigger action returns
@@ -22,9 +23,10 @@ var errRaiseIgnore = execexpr.ErrRaiseIgnore
 
 // isSQLiteSequenceName reports whether a table name refers to the
 // sqlite_sequence AUTOINCREMENT tracking table (case-insensitive, matching
-// SQLite's name resolution).
+// SQLite's name resolution). A length screen skips the fold for every other
+// name (per-row calls on the DML paths).
 func isSQLiteSequenceName(name string) bool {
-	return strings.EqualFold(name, "sqlite_sequence")
+	return len(name) == 15 && util.EqualFoldASCII(name, "sqlite_sequence")
 }
 
 // DMLExecutor executes INSERT/UPDATE/DELETE statements. It composes the three

@@ -102,6 +102,7 @@ func (p *Pager) applyExternalChangeLocked(vers [fileVersLen]byte, size int64) {
 			}
 		}
 	}
+	p.invalidateCookieCacheLocked()
 }
 
 // adoptHeaderPageSizeLocked re-reads the page size and reserved-space count
@@ -260,6 +261,7 @@ func (p *Pager) DecrementFreelistCount(n uint32) {
 			return
 		}
 		p.header = h
+		p.invalidateCookieCacheLocked()
 	}
 	cur := binary.BigEndian.Uint32(h[36:40])
 	if n > cur {

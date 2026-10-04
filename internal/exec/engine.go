@@ -524,8 +524,10 @@ type txState struct {
 	// keeps the WRITER lock across a ROLLBACK TO (only a full COMMIT /
 	// ROLLBACK releases it), so PRAGMA lock_status reports "reserved" for a
 	// db whose pages a savepoint rollback already restored
-	// (savepoint-10.2.5→10.2.8).
-	reservedDbs map[string]bool
+	// (savepoint-10.2.5→10.2.8). Keyed by the DatabaseContext pointer: the
+	// per-statement writer (noteReservedDbs) and the lock-status reader would
+	// otherwise ToUpper the schema name on every statement.
+	reservedDbs map[*DatabaseContext]bool
 	// readDbs remembers every attached database the open transaction has
 	// READ through a statement with a btree data source: a deferred BEGIN
 	// holds no lock, the first read statement acquires SHARED

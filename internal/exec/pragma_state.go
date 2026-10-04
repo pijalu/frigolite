@@ -11,6 +11,7 @@ import (
 	"github.com/pijalu/frigolite/internal/pager"
 	"github.com/pijalu/frigolite/internal/schema"
 	"github.com/pijalu/frigolite/internal/sql"
+	"github.com/pijalu/frigolite/internal/util"
 
 	"github.com/pijalu/frigolite/internal/execdml"
 )
@@ -286,14 +287,17 @@ func (e *Engine) setSchemaLockingMode(schema string, m string) {
 // exclusive; an explicitly set schema reports its value; anything else
 // (including databases attached after the last bare set) reports the
 // connection default dfltLockMode — the pager.c model where a new pager
-// starts at db->dfltLockMode.
+// starts at db->dfltLockMode. The fold is ASCII and allocation-free (this
+// resolves per statement on the DML paths); the per-schema map is consulted
+// only when some locking mode was ever set.
 func (e *Engine) schemaLockingMode(schema string) string {
-	upper := strings.ToUpper(schema)
-	if upper == "TEMP" || upper == "TEMPORARY" {
+	if util.EqualFoldASCII(schema, "TEMP") || util.EqualFoldASCII(schema, "TEMPORARY") {
 		return "exclusive"
 	}
-	if m, ok := e.settings.lockingModes[upper]; ok {
-		return m
+	if len(e.settings.lockingModes) > 0 {
+		if m, ok := e.settings.lockingModes[strings.ToUpper(schema)]; ok {
+			return m
+		}
 	}
 	return e.currentLockingMode("")
 }
