@@ -3181,3 +3181,75 @@ paired ratio is signal.
   replace → worktree, profile outputs renamed arena_*); always `go version
   -m <bin> | grep '=>'` before trusting a number; measure.sh runs main and
   arena interleaved per phase so ambient load cancels.
+
+## PERF.BTREEUSE — ownership-token btree wrapper reuse (fleet/perf-btreeuse, 2026-10-05)
+
+Mission: stop the per-statement BTree wrapper allocation (129B/stmt + init,
+~0.95 wrappers per point SELECT, 190,083 of 5.89M alloc objects = 3.23% of
+the point-phase census). Base main 8375084d3 (includes PERF.ARENA).
+
+- **The first wrapper pooling failed for a STRUCTURAL reason; the fix is a
+  token, not more discipline.** Zero-arg `Close` can never distinguish "my
+  double close" from "the new owner's state": any scheme where re-arm
+  clears an open/closed flag lets a stale second Close proceed against the
+  live successor (this is exactly what removed the global sync.Pool
+  attempt — PERF.FLOOR). The workable design: the ownership token lives
+  with the OWNER. `BTree.gen` bumps on every Reinit; the tracker records
+  `TreeLease{Tree, Gen}` at acquire; release re-checks gen BEFORE Close
+  and no-ops on mismatch. Stale releases become provably dead code paths,
+  not careful assumptions.
+- **Scope the free list to ONE owner and ONE goroutine; Put only where
+  ownership is provably dead.** The engine's statement funnel
+  (releaseStatementTrees) and the DML executor's write-tree cache are the
+  only Put sites — both single-goroutine, both putting wrappers they
+  closed themselves in the same call. A wrapper that is Closed at funnel
+  entry (function-local `defer tree.Close()` fired mid-statement) is
+  NEVER Put — its late-Close hazard stays the pre-pooling story (closed
+  forever, GC reclaims). Engine-scoped lists also mean wrappers never
+  migrate across connections, unlike the old global pool.
+- **Reinit must have fresh-NewBTree PARITY, not fresh-NewBTree+more.** The
+  first draft invalidated the append-cursor slot on Reinit; a fresh
+  wrapper never does (initFrom doesn't touch quickAppendReg) — the slot
+  is keyed by (pager, root) identity, its trust re-derives from page
+  truth on every engagement, and the extra invalidation cost a registry
+  lock per acquire for nothing. Rule: a re-armed wrapper must be
+  observably identical to a new one, including what it does NOT reset.
+  Buffers with capacity (cursorsArr, insScratch, quickPageScratch) are
+  kept — same discipline as the cursor pool's kept path/buffer capacity.
+- **Close's two registry critical sections merged into one** (append-slot
+  drop + owned-cursor unregister under a single cursorRegMu window): same
+  semantics, one lock pair less per statement teardown. Also: removing a
+  registry entry leaves the (now empty) slice in the map, so the next
+  statement's register appends into existing capacity — no bucket churn.
+- **Layout-replacement discipline**: the pager layout hook now purges BOTH
+  free lists (engine's + DML's) in addition to the cached-write-tree
+  drop. A pooled wrapper's snapshot geometry (pageSize/usableSize) is
+  stale after an in-place layout change; Purge is cheaper than proving
+  which pagers the change touched (Reinit re-snapshots anyway, so this is
+  belt-and-suspenders with a hard cap: maxTreeFreeList=64).
+- **Results (paired interleaved medians, 7 reps, loaded fleet box —
+  absolute levels ~20% below quiet-box; only paired ratios are signal)**:
+  point +2.7%, update +5.0%, delete +1.6%, scan +1.0%, insert/group ~0%
+  (insert's cached insTree never misses identity in steady state — the
+  free list only pays on identity churn, where it now also avoids the
+  alloc). Alloc census: btree.NewBTree 190,083 objects → ZERO in the
+  point-phase profile. vtabD-1.3/1.4/1.5/1.8 harness subtests fail
+  IDENTICALLY on main@8375084d3 solo (pre-existing; failure-set parity
+  vs main: worktree set is a strict subset — only the documented
+  TestP8IncrVacuum3OracleSequence flake differs).
+- **Gates passed**: full go test ./... failure-set parity vs main; testgen
+  capi2/btree01/savepoint2/update + FRIGOLITE_TEST=btree01 solo;
+  TestSOLID_ + TestSeekSaved; -race: TestPoolStressConcurrentOpenCloseDDL
+  (4 conns x open/close x DDL x page-size VACUUM layout churn — the exact
+  scenario that killed the first pooling) + the WAL/thread concurrency
+  natives; generation-stale-Close pins (TestTreeFreeListGenerationLease,
+  TestTreeFreeListPurge, TestReinitFullReset). engine.go shrank 1027→983
+  (funnel moved to stmt_btree_funnel.go) — do not grow files already over
+  the soft target.
+- **Remaining point-SELECT wall (profile, out of scope)**: harness-side
+  render/strconv (~40% of census), execquery bareRefSeekOutput/
+  columnNamesMemoGet (~2+1.6 obj/stmt), pager ParsedBTree memo atomic
+  loads, and the seek descent itself. btree-scope per-statement tax after
+  this tranche: free-list Get+Reinit (no alloc, no lock), one registry
+  lock pair at register + one merged pair at Close, cursor pool
+  Get/resetFor. The 720k point target needs execquery/parse-side work.
