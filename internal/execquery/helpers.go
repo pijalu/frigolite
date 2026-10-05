@@ -554,3 +554,25 @@ func constraintColumnNames(tc sql.TableConstraint, colIndex map[string]int, colD
 	}
 	return names
 }
+
+// whereHasOrConjunct reports whether the WHERE's top-level AND chain contains
+// an OR conjunct — the only shape the OR-index optimization (planOrIndexScan)
+// can plan. The walk mirrors splitAnd's traversal (AND operands, with
+// parentheses peeled) without materializing the conjunct list, so a
+// point-lookup WHERE skips the planner's allocation-bearing pre-analysis
+// entirely; an OR the walk cannot see (one nested inside a non-boolean
+// sub-expression) is exactly an OR the planner never selects on.
+func whereHasOrConjunct(expr sql.Expr) bool {
+	conjunct := unwrapParenExpr(expr)
+	bin, ok := conjunct.(*sql.BinaryOp)
+	if !ok {
+		return false
+	}
+	if strings.EqualFold(bin.Operator, "OR") {
+		return true
+	}
+	if !strings.EqualFold(bin.Operator, "AND") {
+		return false
+	}
+	return whereHasOrConjunct(bin.Left) || whereHasOrConjunct(bin.Right)
+}

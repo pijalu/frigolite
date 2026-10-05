@@ -425,8 +425,11 @@ func (e *SelectEngine) execSelectPrevalidate(s *sql.SelectStmt, tableEntry *sche
 	if tableEntry.RootPage == 0 {
 		return e.execSelectVtab(s, tableEntry, colDefs), colDefs
 	}
-	// OR-index optimization.
-	if len(s.Joins) == 0 && s.Where != nil && e.outerRow == nil && len(e.OuterRows()) == 0 && !e.ctx.ReverseUnordered() {
+	// OR-index optimization. whereHasOrConjunct mirrors planOrIndexScan's own
+	// first gate (an OR conjunct in the top-level AND chain) without the
+	// planner's allocation-bearing pre-analysis — a point-lookup WHERE
+	// ("id=?") never has one and skips the walk entirely.
+	if len(s.Joins) == 0 && s.Where != nil && e.outerRow == nil && len(e.OuterRows()) == 0 && !e.ctx.ReverseUnordered() && whereHasOrConjunct(s.Where) {
 		if branches, ok := e.ctx.PlanOrIndexScan(s.Where, tableEntry.Name, colDefs, dbCtx); ok {
 			return e.ctx.ExecSelectWithOrPlan(s, tableEntry, dbCtx, colDefs, branches), colDefs
 		}
