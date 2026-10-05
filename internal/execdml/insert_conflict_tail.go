@@ -90,13 +90,25 @@ func pkRowIDFromColumn(cd sql.ColumnDef, v interface{}, withoutRowid bool) (int6
 // fingerprint is mixed through the splitmix64 finalizer and summed
 // (commutative, so the databases map's random iteration order cannot
 // destabilize the stamp).
+//
+// The contexts are read from the executor's dbList cache (core.go), not the
+// map: the per-statement map iteration dominated this helper's cost. The
+// cache refreshes whenever the map's length moves — an ATTACH/DETACH always
+// moves it — so a schema added by an ATTACH is seen by the very next
+// statement.
 func (e *DMLExecutor) databasesSchemaStamp() uint64 {
-	stamp := uint64(0)
-	n := uint64(0)
-	for _, ctx := range e.ctx.Databases() {
-		if ctx == nil || ctx.Schema == nil {
-			continue
+	if e.dbListN != len(e.ctx.Databases()) {
+		e.dbList = e.dbList[:0]
+		for _, ctx := range e.ctx.Databases() {
+			if ctx == nil || ctx.Schema == nil {
+				continue
+			}
+			e.dbList = append(e.dbList, ctx)
 		}
+		e.dbListN = len(e.ctx.Databases())
+	}
+	stamp := uint64(0)
+	for _, ctx := range e.dbList {
 		fp := ctx.Schema.SchemaFingerprint()
 		fp ^= fp >> 30
 		fp *= 0xbf58476d1ce4e5b9
@@ -104,9 +116,8 @@ func (e *DMLExecutor) databasesSchemaStamp() uint64 {
 		fp *= 0x94d049bb133111eb
 		fp ^= fp >> 31
 		stamp += fp
-		n++
 	}
-	return stamp + n
+	return stamp + uint64(len(e.dbList))
 }
 
 // validateLoadedTriggers checks every trigger loaded from sqlite_master for

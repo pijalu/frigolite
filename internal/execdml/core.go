@@ -65,6 +65,16 @@ type DMLExecutor struct {
 	ipkIdxLen         int
 	ipkIdxCache       int
 
+	// dbList caches the non-nil, schema-bearing database contexts of
+	// e.ctx.Databases() for per-statement walks over all databases
+	// (databasesSchemaStamp, validateLoadedTriggers), refreshed when the
+	// map's length moves: an ATTACH or DETACH always changes it (a same-length
+	// context replacement would need a DETACH and an ATTACH in ONE statement,
+	// which the engine never runs), and a lower length forces the rebuild the
+	// next statement's ATTACH would need anyway.
+	dbList  []*DatabaseContext
+	dbListN int
+
 	// Statement-family executors composing this engine. They share this
 	// DMLExecutor so inter-statement calls resolve through promoted methods.
 	insert InsertExecutor
