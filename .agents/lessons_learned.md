@@ -3181,3 +3181,61 @@ paired ratio is signal.
   replace → worktree, profile outputs renamed arena_*); always `go version
   -m <bin> | grep '=>'` before trusting a number; measure.sh runs main and
   arena interleaved per phase so ambient load cancels.
+
+## PERF.STORAGEDIET (2026-10-05, fleet/perf-storagediet @ 8375084d3) — per-row record-decode alloc cuts in internal/storage
+
+- **ParseRecordHeader's stack buffer never was on the stack**: the returned
+  `serialTypes` slice aliases the local `[16]uint64`, so escape analysis
+  moves the array to the heap on EVERY call (`-gcflags -m`: `moved to heap:
+  stackSerialTypes`) — 128B/point-seek. A returned slice can never keep its
+  backing array on the caller's frame; "stack buffer + return" is always a
+  heap alloc. The fix is a caller-owned buffer: `ParseRecordHeaderInto(data,
+  buf)` appends into `buf` and ParseRecordHeader wraps it with nil.
+- **`DecodeRecordValuesInto` fuses the point decode**: header varints parsed
+  inline into a NON-escaping stack buffer (no return → stays on stack, ≤16
+  cols zero heap; append spills beyond, parse identical) + the
+  DecodeRecordValuesFromTypesCols fill verbatim, returning the stored-column
+  count (the two-call form's `len(serialTypes)`) for phase-one row assembly.
+  Value start = the post-header-loop pos, NOT `int(hdrSize)` — a final
+  header varint can straddle hdrSize and land dataStart past hdrEnd
+  (ParseRecordHeader's exact dataStart). Contract parity pinned by
+  TestDecodeRecordValuesInto* (equivalence, selection, corrupt: oversized
+  header errors, unknown type/truncated values stop early WITHOUT error
+  with the full count — the two-call form's behavior, which fetchSeekStructRow's
+  malformed-record fallback and partial-fill semantics depend on).
+- **Point-seek plumbing**: fetchSeekStructRow now calls
+  DecodeRecordValuesInto(payload, values, decodeCols) — per-point allocs
+  drop ~145B/query (point profile: DB.Query cum allocs 134MB→105MB for
+  200k point queries; ParseRecordHeader leaves the top alloc sites).
+  Paired-interleaved point: +5.2%/+1.8% median across two 7-rep runs and
+  +1.6% median / +4.0% mean (6/9 wins) in a point-only 9-rep run —
+  17/23 paired wins overall; ambient fleet load makes single runs ±10%
+  (observed main reps 435k-549k) and compresses the relative gain, so
+  pairwise medians are the only trustworthy number.
+- **Narrow-table decode gate re-measured post-arena, still loses**: dropping
+  `len(colDefs) < 4` to `< 2` in seekDecodeCols adds a per-query
+  `make([]bool, n)` for exactly the tables that amortize nothing (2-col
+  point: the only other column is the IPK alias, whose stored NULL costs
+  zero bytes). No win → reverted; the gate stays at 4.
+- **indexRecordRowID** (index-seek walk) decoded the FULL record to read the
+  trailing rowid; now parses the header into a non-escaping stack buffer,
+  skips leading elements by length, DecodeSerialInt64's only the last
+  (SerialZero/One spelled out — decodeValue boxes them as int64 and the old
+  unwrap accepted them). Corrupt contract narrowed but equivalent at the
+  rowid read: malformed header, unknown type, value overrun, empty list,
+  non-integer tail (floats included) → ErrIndexRecordCorrupt.
+- **readOverflow left alone (lever 4)**: its `make([]byte,0,PayloadLen)`
+  result payload is RETAINED by callers (cells/rows escape), so cursor-scope
+  buffer reuse would alias retained rows without a copy-on-retain audit of
+  ~15 call sites; zero overflow traffic in the bench shapes. Not paid.
+- **Deferred (still the biggest remaining engine-side allocs, all outside
+  this tranche's scope)**: execdml collectPointUpdateRow's DecodeRecord
+  (9MB/200k update+delete) — execdml frozen here; execResult row wrapper
+  (32MB/200k point); bareRefSeekOutput 1-row slice (8MB); NewBTree
+  per-statement handle (33MB) — needs btree-side Reset-on-Close;
+  harness-side render/Sprintf excluded from engine accounting.
+- **Updated deferred note**: the arena tranche's "storage
+  ParseRecordHeader/DecodeRecord ~220B point" item is now PAID for the point
+  seek (this tranche); the remaining decode mass sits in execdml's
+  DecodeRecord call sites and the boxed-value API itself (unavoidable
+  through []interface{}).
