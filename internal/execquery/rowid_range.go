@@ -55,9 +55,20 @@ type rowidSeekAnalysis struct {
 // bound. A nil result keeps the scan: no rowid conjunct, or a range conjunct
 // whose bound is not a literal (subquery, function, column reference).
 func analyzeRowidSeek(where sql.Expr, tableName, alias string, colDefs []sql.ColumnDef) *rowidSeekAnalysis {
-	a := &rowidSeekAnalysis{planned: true, covers: true}
+	return analyzeRowidSeekInto(nil, nil, where, tableName, alias, colDefs)
+}
+
+// analyzeRowidSeekInto is analyzeRowidSeek over caller-provided scratch: a
+// recycled analysis struct (nil = allocate) and conjunct slice (nil = splitAnd's
+// own). The engine's per-selectDepth slots pass both on the hot point/range
+// paths; the analysis reads its inputs and never escapes the statement.
+func analyzeRowidSeekInto(a *rowidSeekAnalysis, conjuncts []sql.Expr, where sql.Expr, tableName, alias string, colDefs []sql.ColumnDef) *rowidSeekAnalysis {
+	if a == nil {
+		a = &rowidSeekAnalysis{}
+	}
+	*a = rowidSeekAnalysis{planned: true, covers: true}
 	rangeBad := false
-	conjuncts := splitAnd(where)
+	conjuncts = splitAndInto(conjuncts[:0], where)
 	for i, conj := range conjuncts {
 		done, bad, consumed := analyzeRowidConjunct(a, unwrapParenExpr(conj), tableName, alias, colDefs)
 		if !consumed {
@@ -82,6 +93,36 @@ func analyzeRowidSeek(where sql.Expr, tableName, alias string, colDefs []sql.Col
 		return nil
 	}
 	return a
+}
+
+// seekAnalysisScratchFor returns this depth's reusable seek-plan pair
+// (analysis struct + conjunct slice) for analyzeRowidSeekInto.
+func (e *SelectEngine) seekAnalysisScratchFor() (*rowidSeekAnalysis, []sql.Expr) {
+	d := e.selectDepth
+	if d >= len(e.seekAnalysisScratch) {
+		e.seekAnalysisScratch = append(e.seekAnalysisScratch, make([]*rowidSeekAnalysis, d+1-len(e.seekAnalysisScratch))...)
+		e.seekConjScratch = append(e.seekConjScratch, make([][]sql.Expr, d+1-len(e.seekConjScratch))...)
+	}
+	a := e.seekAnalysisScratch[d]
+	if a == nil {
+		a = &rowidSeekAnalysis{}
+		e.seekAnalysisScratch[d] = a
+	}
+	c := e.seekConjScratch[d]
+	return a, c
+}
+
+// splitAndInto appends splitAnd's conjuncts onto dst (reused across
+// statements through seekAnalysisScratchFor's slot).
+func splitAndInto(dst []sql.Expr, expr sql.Expr) []sql.Expr {
+	if expr == nil {
+		return dst
+	}
+	if bin, ok := expr.(*sql.BinaryOp); ok && strings.EqualFold(bin.Operator, "AND") {
+		dst = splitAndInto(dst, bin.Left)
+		return splitAndInto(dst, bin.Right)
+	}
+	return append(dst, expr)
 }
 
 // analyzeRowidConjunct folds one WHERE conjunct into the analysis. done

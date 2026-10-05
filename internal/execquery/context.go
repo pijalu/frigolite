@@ -427,6 +427,18 @@ type SelectEngine struct {
 	// returned (single-goroutine per connection).
 	affScratch     []*affinityCollector
 	seekRefScratch []*affinityCollector
+	// seekRowScratch/seekSRowScratch are the point fetch's per-selectDepth
+	// decode buffers (fetchSeekStructRow): the values slice and StructRow a
+	// rowid-pinned SELECT fills once per statement. Reset-on-acquire (all
+	// slots nil), consumption-before-release (the row's consumers copy the
+	// values out — bare-ref output, star append, buildOutputRow, row maps,
+	// aggregate steps), and depth slots for nested SELECT re-entry are the
+	// same discipline as affScratch; the analysis struct + conjunct slice
+	// (seekAnalysisScratch/seekConjScratch) follow it for the seek plan.
+	seekRowScratch      [][]interface{}
+	seekSRowScratch     []*StructRow
+	seekAnalysisScratch []*rowidSeekAnalysis
+	seekConjScratch     [][]sql.Expr
 	// resultTooWide flags that a SELECT in the current statement expanded to
 	// more result columns than SQLITE_LIMIT_COLUMN (consumed at finalize).
 	resultTooWide bool

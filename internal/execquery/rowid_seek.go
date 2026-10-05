@@ -102,12 +102,56 @@ func (e *SelectEngine) fetchSeekStructRow(s *sql.SelectStmt, tree *btree.BTree, 
 	if perr != nil {
 		return nil, nil, false, false // DecodeRecord's malformed-record fallback
 	}
-	values := make([]interface{}, len(colDefs))
+	// Depth-slot scratch: the decode buffer and StructRow recycle per
+	// selectDepth (seekRowScratchFor). Every slot is fully rewritten below —
+	// the decode fills its targeted slots, applyColumnDefaults/shift
+	// normalize the rest, and fillSeekRowPhaseOne sets Values/RowID — so no
+	// stale value from a previous statement at this depth can leak.
+	values := e.seekRowScratchFor(len(colDefs))
 	decodeCols := e.seekDecodeCols(s, colDefs, affinityCols, needMaps, whereCovered)
 	storage.DecodeRecordValuesFromTypesCols(payload, dataStart, values, serialTypes, decodeCols)
-	srow = &StructRow{Index: colIndex}
+	srow = e.seekSRowScratchFor()
+	srow.Index = colIndex
 	e.fillSeekRowPhaseOne(values, len(serialTypes), srow, colDefs, realRowID, affinityWrapIndices(colDefs, affinityCols), ipkAliasIndices(colDefs))
 	return cursor, srow, true, true
+}
+
+// seekRowScratchFor returns this depth's reusable decode buffer sized for
+// want slots: grown when a wider table needs it, otherwise the same backing
+// array. Every element is re-nil'd — the decode writes only its targeted
+// slots, so a stale value from a previous statement at this depth would
+// otherwise survive in an undecoded slot.
+func (e *SelectEngine) seekRowScratchFor(want int) []interface{} {
+	d := e.selectDepth
+	if d >= len(e.seekRowScratch) {
+		e.seekRowScratch = append(e.seekRowScratch, make([][]interface{}, d+1-len(e.seekRowScratch))...)
+	}
+	v := e.seekRowScratch[d]
+	if cap(v) < want {
+		v = make([]interface{}, want)
+		e.seekRowScratch[d] = v
+	} else {
+		v = v[:want]
+		for i := range v {
+			v[i] = nil
+		}
+	}
+	return v
+}
+
+// seekSRowScratchFor returns this depth's reusable StructRow; fillSeekRowPhaseOne
+// (and the Index assignment above) rewrite every field before any read.
+func (e *SelectEngine) seekSRowScratchFor() *StructRow {
+	d := e.selectDepth
+	if d >= len(e.seekSRowScratch) {
+		e.seekSRowScratch = append(e.seekSRowScratch, make([]*StructRow, d+1-len(e.seekSRowScratch))...)
+	}
+	sr := e.seekSRowScratch[d]
+	if sr == nil {
+		sr = &StructRow{}
+		e.seekSRowScratch[d] = sr
+	}
+	return sr
 }
 
 // seekDecodeCols builds the point fetch's column-targeted decode set
@@ -249,7 +293,8 @@ func (e *SelectEngine) selectRowidSeekPlan(s *sql.SelectStmt, tableEntry *schema
 	if e.ctx.TableIsWithoutRowidEntry(tableEntry) {
 		return nil
 	}
-	return analyzeRowidSeek(s.Where, tableEntry.Name, s.From.As, colDefs)
+	a, conjuncts := e.seekAnalysisScratchFor()
+	return analyzeRowidSeekInto(a, conjuncts, s.Where, tableEntry.Name, s.From.As, colDefs)
 }
 
 // seekRowOutput builds the single row's output (SELECT * flat path or
