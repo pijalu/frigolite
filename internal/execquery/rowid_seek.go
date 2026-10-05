@@ -127,7 +127,7 @@ func (e *SelectEngine) seekDecodeCols(s *sql.SelectStmt, colDefs []sql.ColumnDef
 	if needMaps || len(colDefs) < 4 || !projectionIsBareRefs(s) {
 		return nil
 	}
-	projRefs := &affinityCollector{cols: make(map[string]bool)}
+	projRefs := e.affCollectorFor(&e.seekRefScratch)
 	for i := range s.Columns {
 		projRefs.collectExpr(s.Columns[i].Expr)
 	}

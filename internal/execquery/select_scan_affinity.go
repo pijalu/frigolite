@@ -22,7 +22,7 @@ func (e *SelectEngine) scanTableAffinityCols(s *sql.SelectStmt, colDefs []sql.Co
 		(len(colDefs) == 0 || e.affDefs == &colDefs[0]) && e.affNeedMaps == needMaps {
 		return e.affRes
 	}
-	a := &affinityCollector{cols: make(map[string]bool)}
+	a := e.affCollectorFor(&e.affScratch)
 	// Collect column references from the consuming clauses first (WHERE,
 	// ORDER BY, GROUP BY, HAVING, joins): their union decides whether the
 	// SELECT columns may take the bare-reference exemption below.
@@ -118,6 +118,36 @@ type affinityCollector struct {
 	cols    map[string]bool
 	seen    bool           // true once any column was collected
 	visitFn func(sql.Expr) // the once-materialized method value (visitor)
+}
+
+// affCollectorFor returns this depth's recycled collector from the given
+// per-selectDepth slot array, resetting it for a new statement: the name set
+// clears (Go's clear keeps the map's buckets allocated, so steady-state
+// statements stop paying the bucket churn) and the seen flag drops. The
+// bound visitFn method value survives — it targets the collector itself, so
+// it stays valid for every reuse. Slots are indexed by selectDepth, so a
+// nested SELECT uses a different slot and can never clear a map an
+// enclosing statement is still reading; a slot is reset only when its own
+// depth's previous statement has returned (single-goroutine per
+// connection). Nothing reachable from a returned set outlives its
+// statement: consumers copy the wrapped values out (row slots, row maps),
+// and a caller that kept the map past its statement would already be
+// reading freed statement state today (the fresh-map contract is the
+// public one).
+func (e *SelectEngine) affCollectorFor(slots *[]*affinityCollector) *affinityCollector {
+	d := e.selectDepth
+	if d >= len(*slots) {
+		*slots = append(*slots, make([]*affinityCollector, d+1-len(*slots))...)
+	}
+	a := (*slots)[d]
+	if a == nil {
+		a = &affinityCollector{cols: make(map[string]bool)}
+		(*slots)[d] = a
+		return a
+	}
+	clear(a.cols)
+	a.seen = false
+	return a
 }
 
 // skipBareSelectRef reports whether a SELECT output column's affinity
