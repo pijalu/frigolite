@@ -266,6 +266,18 @@ func (db *DB) runSQLText(sqlStr string) *exec.Result {
 
 	db.engine.SetLastErr("", "")
 
+	if !multi {
+		// Single statement: hand the engine's own result through — the
+		// fold's pass-through contract made the trailing copy a field-for-
+		// field duplicate (Rows/Columns verbatim; zero rows normalized to
+		// nil Rows). `last` is engine-internal and dead once the caller has
+		// read it, so the copy bought nothing on this path.
+		if len(last.Rows) == 0 {
+			last.Rows = nil
+		}
+		last.Columns = allColumns
+		return last
+	}
 	out := *last
 	out.Rows, out.Columns = allRows, allColumns
 	return &out
