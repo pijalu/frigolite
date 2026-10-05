@@ -50,6 +50,13 @@ type PreupdateEvent struct {
 type DMLContext interface {
 	// Statement execution (trigger bodies run Engine.Exec).
 	Exec(stmt sql.Stmt) *Result
+	// ExecDepth reports the current nested-Exec depth (Engine.Exec entry
+	// counting; trigger bodies and eval() run one level deeper). The DML
+	// executor's per-depth statement scratch (recycled results, seek plans,
+	// equality-side name sets) keys its slots on it: a nested statement
+	// always allocates a fresh slot and can never reset state an enclosing
+	// DML statement is still reading.
+	ExecDepth() int
 	// OuterOrConflict reports the ON CONFLICT policy of the outermost DML
 	// statement currently executing (SQLite's pParse->eOrconf inheritance:
 	// trigger-body steps without an explicit OR clause inherit the firing

@@ -380,6 +380,13 @@ func (e *Engine) OuterOrConflict() string {
 	return e.triggers.OuterOrConflict()
 }
 
+// ExecDepth reports the current nested-Exec depth (0 outside any Engine.Exec
+// frame; trigger bodies and eval() run one level deeper per nesting). The
+// DML executor's per-depth scratch slots key off it.
+func (e *Engine) ExecDepth() int {
+	return e.tx.execDepth
+}
+
 // SetOuterOrConflict records the ON CONFLICT policy of the outermost DML
 // statement currently executing.
 func (e *Engine) SetOuterOrConflict(policy string) {

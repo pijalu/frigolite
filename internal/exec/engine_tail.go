@@ -379,9 +379,17 @@ func (e *Engine) stmtFTSShadowOwner(stmt sql.Stmt) string {
 // that modifies nothing journals nothing — so the per-statement cost is O(1)
 // instead of the O(database) deep copy the previous PagerState snapshot took.
 // It also snapshots every FTS table's in-memory index so a failed statement
-// can undo FTS writes the pager journal does not cover.
+// can undo FTS writes the pager journal does not cover. The entry slice
+// recycles through a per-execDepth slot: a statement's list dies at its
+// restore (restoreAllPagers / the FTS restores consume the entries within
+// the same Exec frame), and a nested statement's snapshot lives on a deeper
+// slot, so the reset-on-acquire never clobbers an enclosing scope's list.
 func (e *Engine) snapshotAllPagers() []pagerSnap {
-	var snaps []pagerSnap
+	d := e.tx.execDepth
+	if d >= len(e.snapBufs) {
+		e.snapBufs = append(e.snapBufs, make([][]pagerSnap, d+1-len(e.snapBufs))...)
+	}
+	snaps := e.snapBufs[d][:0]
 	// dbList (ATTACH order) holds the same contexts as the databases map —
 	// iterate the slice to keep this per-statement scope open off the map-
 	// iteration path (the external-mod probe made the same switch for the
@@ -417,6 +425,7 @@ func (e *Engine) snapshotAllPagers() []pagerSnap {
 	if len(e.fts5Tables) > 0 {
 		e.fts5Snapshots = e.snapshotAllFTS5()
 	}
+	e.snapBufs[d] = snaps
 	return snaps
 }
 

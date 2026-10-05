@@ -390,6 +390,11 @@ type Engine struct {
 	// executing; the engine's single-goroutine statement funnel makes the
 	// per-depth lifecycle strictly sequential.
 	cloneScratches []*cloneScratch
+	// snapBufs holds the statement-journal entry lists (snapshotAllPagers)
+	// per execDepth: the entries die at the same frame's restore, and a
+	// nested statement's list lives on a deeper slot, so the slice resets on
+	// acquire without clobbering an enclosing statement's scope.
+	snapBufs [][]pagerSnap
 	// normBuf / normValues / normSpans are Prepare's substitution scratch
 	// (the normalized SQL text buffer, the extracted literal values, and the
 	// literals' byte spans in the original text), recycled across statements.

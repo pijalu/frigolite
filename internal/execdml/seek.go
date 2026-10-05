@@ -58,10 +58,7 @@ func (e *DMLExecutor) planDMLSeek(tableEntry *schema.Entry, colDefs []sql.Column
 	if tableIsWithoutRowid(tableEntry.SQL) {
 		return nil
 	}
-	outerCols := make(map[string]bool, len(colDefs))
-	for _, cd := range colDefs {
-		outerCols[cd.Name] = true
-	}
+	outerCols := e.outerColsFor()
 	colIndex := e.columnIndexFor(colDefs)
 	rowidTable := !execquery.RowHasRowIDColumn(colDefs)
 	for _, conj := range e.splitAndTermsInto(where) {
@@ -74,9 +71,9 @@ func (e *DMLExecutor) planDMLSeek(tableEntry *schema.Entry, colDefs []sql.Column
 			if !rowidTable {
 				continue
 			}
-			return dmlRowidSeekPlan(val)
+			return e.dmlRowidSeekPlan(e.seekPlanFor(), val)
 		}
-		plan := e.dmlIndexedSeekPlan(tableEntry, colDefs, colIndex, col, val, owning)
+		plan := e.dmlIndexedSeekPlan(tableEntry, colDefs, colIndex, col, val, owning, e.seekPlanFor())
 		if plan != nil {
 			return plan
 		}
@@ -84,47 +81,50 @@ func (e *DMLExecutor) planDMLSeek(tableEntry *schema.Entry, colDefs []sql.Column
 	return nil
 }
 
-// dmlRowidSeekPlan resolves a `rowid = <const>` conjunct to a plan.
-func dmlRowidSeekPlan(val interface{}) *dmlSeekPlan {
+// dmlRowidSeekPlan resolves a `rowid = <const>` conjunct to a plan (over the
+// caller's recycled plan struct).
+func (e *DMLExecutor) dmlRowidSeekPlan(plan *dmlSeekPlan, val interface{}) *dmlSeekPlan {
 	rowid, matches, planned := dmlRowidConst(val)
 	if !planned {
 		return nil // unhandled constant shape: keep the scan
 	}
 	if !matches {
-		return &dmlSeekPlan{empty: true}
+		plan.empty = true
+		return plan
 	}
-	return &dmlSeekPlan{rowid: rowid}
+	plan.rowid = rowid
+	return plan
 }
 
 // dmlIndexedSeekPlan resolves a `col = <const>` conjunct to an index-driven
-// plan. It returns nil when the conjunct does not qualify (the caller keeps
-// scanning for other candidates).
-func (e *DMLExecutor) dmlIndexedSeekPlan(tableEntry *schema.Entry, colDefs []sql.ColumnDef, colIndex map[string]int, col string, val interface{}, owning *DatabaseContext) *dmlSeekPlan {
+// plan (over the caller's recycled plan struct). It returns nil when the
+// conjunct does not qualify (the caller keeps scanning for other candidates).
+func (e *DMLExecutor) dmlIndexedSeekPlan(tableEntry *schema.Entry, colDefs []sql.ColumnDef, colIndex map[string]int, col string, val interface{}, owning *DatabaseContext, plan *dmlSeekPlan) *dmlSeekPlan {
 	ci, ok := colIndex[strings.ToLower(col)]
 	if !ok || ci < 0 || ci >= len(colDefs) {
 		return nil
 	}
 	if val == nil {
 		// col = NULL matches nothing (NULL comparison is UNKNOWN).
-		return &dmlSeekPlan{empty: true}
+		plan.empty = true
+		return plan
 	}
 	// An INTEGER PRIMARY KEY column IS the rowid (rowid-alias): the
 	// equality pins the btree key exactly like rowid = <const>.
 	if isIPKRowidAliasCol(colDefs[ci]) {
-		return dmlRowidSeekPlan(val)
+		return e.dmlRowidSeekPlan(plan, val)
 	}
 	def := e.seekIndexFor(tableEntry.Name, col, ci, colDefs, owning)
 	if def == nil {
 		return nil
 	}
 	typ := colDefs[ci].Type
-	return &dmlSeekPlan{
-		index: def,
-		probe: [2]interface{}{
-			util.ApplyColumnAffinity(util.UnwrapColumnValue(val), typ),
-			util.UnwrapColumnValue(val),
-		},
+	plan.index = def
+	plan.probe = [2]interface{}{
+		util.ApplyColumnAffinity(util.UnwrapColumnValue(val), typ),
+		util.UnwrapColumnValue(val),
 	}
+	return plan
 }
 
 // dmlQualifierMatches reports whether an equality conjunct's column reference

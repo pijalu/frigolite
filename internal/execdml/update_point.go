@@ -114,7 +114,7 @@ func (e *DMLExecutor) applyPointUpdate(s *sql.UpdateStmt, tableEntry *schema.Ent
 	if !matched {
 		// The pinned rowid has no row: the generic pipeline collects zero
 		// changes and the statement is a no-op.
-		return &Result{}, true
+		return e.emptyResultFor(), true
 	}
 	changes := []updateChange{ch}
 	// NOT NULL/CHECK pre-check — preCheckUpdate exactly (the OR-clause and
@@ -143,7 +143,9 @@ func (e *DMLExecutor) applyPointUpdate(s *sql.UpdateStmt, tableEntry *schema.Ent
 	// A growth split may have moved the root: re-key the cached wrapper and
 	// persist the new root (persistTreeRootPage parity with the insert path).
 	e.pointWriteTreeSync(&e.updTreeKey, pg, tableEntry.Name, tableEntry.RootPage, tree)
-	return &Result{Changes: 1}, true
+	done := e.emptyResultFor()
+	done.Changes = 1
+	return done, true
 }
 
 // cellPos is the leaf position a seek established for one pinned row
@@ -373,7 +375,7 @@ func (e *DMLExecutor) collectPointUpdateRow(tree *btree.BTree, s *sql.UpdateStmt
 		return updateChange{}, false, nil, pos // anomaly: generic pipeline
 	}
 	if !found {
-		return updateChange{}, false, &Result{}, pos
+		return updateChange{}, false, e.emptyResultFor(), pos
 	}
 	pos = cellPos{leaf: cursor.PageNum(), idx: cursor.CellIdx()}
 	cell, rerr := cursor.ReadCell()
@@ -460,7 +462,7 @@ func (e *DMLExecutor) writePointUpdateRow(tableName string, tree *btree.BTree, r
 	// applyUpdateChanges invalidates the rowid cache after the re-insert loop
 	// (SQLite recomputes the rowid counter after any DELETE/UPDATE).
 	e.ctx.InvalidateRowIDCache(e.dmlPager(tableName), rootPage)
-	return &Result{}
+	return e.emptyResultFor()
 }
 
 // appendEncodedCell encodes a table-leaf cell image (rowid + record payload)
