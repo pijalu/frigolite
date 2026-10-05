@@ -55,14 +55,16 @@ type rowidSeekAnalysis struct {
 // bound. A nil result keeps the scan: no rowid conjunct, or a range conjunct
 // whose bound is not a literal (subquery, function, column reference).
 func analyzeRowidSeek(where sql.Expr, tableName, alias string, colDefs []sql.ColumnDef) *rowidSeekAnalysis {
-	return analyzeRowidSeekInto(nil, nil, where, tableName, alias, colDefs)
+	a, _ := analyzeRowidSeekInto(nil, nil, where, tableName, alias, colDefs)
+	return a
 }
 
 // analyzeRowidSeekInto is analyzeRowidSeek over caller-provided scratch: a
 // recycled analysis struct (nil = allocate) and conjunct slice (nil = splitAnd's
-// own). The engine's per-selectDepth slots pass both on the hot point/range
-// paths; the analysis reads its inputs and never escapes the statement.
-func analyzeRowidSeekInto(a *rowidSeekAnalysis, conjuncts []sql.Expr, where sql.Expr, tableName, alias string, colDefs []sql.ColumnDef) *rowidSeekAnalysis {
+// own; the grown slice comes back so a slot-backed caller can store it). The
+// engine's per-selectDepth slots pass both on the hot point/range paths; the
+// analysis reads its inputs and never escapes the statement.
+func analyzeRowidSeekInto(a *rowidSeekAnalysis, conjuncts []sql.Expr, where sql.Expr, tableName, alias string, colDefs []sql.ColumnDef) (*rowidSeekAnalysis, []sql.Expr) {
 	if a == nil {
 		a = &rowidSeekAnalysis{}
 	}
@@ -87,12 +89,12 @@ func analyzeRowidSeekInto(a *rowidSeekAnalysis, conjuncts []sql.Expr, where sql.
 		}
 	}
 	if a.eq {
-		return a // the equality's literal resolution owns planned
+		return a, conjuncts // the equality's literal resolution owns planned
 	}
 	if rangeBad || (!a.hasLo && !a.hasHi) {
-		return nil
+		return nil, conjuncts
 	}
-	return a
+	return a, conjuncts
 }
 
 // seekAnalysisScratchFor returns this depth's reusable seek-plan pair
@@ -110,6 +112,15 @@ func (e *SelectEngine) seekAnalysisScratchFor() (*rowidSeekAnalysis, []sql.Expr)
 	}
 	c := e.seekConjScratch[d]
 	return a, c
+}
+
+// storeSeekConjuncts writes the (possibly grown) conjunct scratch back to
+// this depth's slot after analyzeRowidSeekInto.
+func (e *SelectEngine) storeSeekConjuncts(conjuncts []sql.Expr) {
+	d := e.selectDepth
+	if d < len(e.seekConjScratch) {
+		e.seekConjScratch[d] = conjuncts
+	}
 }
 
 // splitAndInto appends splitAnd's conjuncts onto dst (reused across

@@ -284,17 +284,50 @@ func exprHasSubquery(expr sql.Expr) bool {
 	if isSubqueryNode(expr) {
 		return true
 	}
-	for _, c := range exprHasSubqueryChildren(expr) {
-		if exprHasSubquery(c) {
+	switch v := expr.(type) {
+	case *sql.BinaryOp:
+		return exprHasSubquery(v.Left) || exprHasSubquery(v.Right)
+	case *sql.UnaryOp:
+		return exprHasSubquery(v.Operand)
+	case *sql.ParenExpr:
+		return exprHasSubquery(v.Expr)
+	case *sql.InList:
+		if exprHasSubquery(v.Operand) {
 			return true
 		}
+		for _, item := range v.List {
+			if exprHasSubquery(item) {
+				return true
+			}
+		}
+		return false
+	case *sql.Between:
+		return exprHasSubquery(v.Operand) || exprHasSubquery(v.Low) || exprHasSubquery(v.High)
+	case *sql.FuncCall:
+		// Historical coverage: the arguments only (OrderBy/Filter excluded).
+		for _, arg := range v.Args {
+			if exprHasSubquery(arg) {
+				return true
+			}
+		}
+		return false
+	case *sql.CaseExpr:
+		// Historical coverage: WHEN/THEN arms and ELSE (the operand excluded).
+		for _, w := range v.Whens {
+			if exprHasSubquery(w.When) || exprHasSubquery(w.Then) {
+				return true
+			}
+		}
+		return exprHasSubquery(v.Else)
 	}
 	return false
 }
 
 // exprHasSubqueryChildren returns the sub-expressions that exprHasSubquery
 // descends into, preserving its historical traversal coverage (ParenExpr but
-// not CastExpr/CaseExpr.Operand/FuncCall.OrderBy).
+// not CastExpr/CaseExpr.Operand/FuncCall.OrderBy). exprHasSubquery now walks
+// the same coverage without materializing the per-node child slices — this
+// helper remains for callers that need the child list itself.
 func exprHasSubqueryChildren(e sql.Expr) []sql.Expr {
 	switch v := e.(type) {
 	case *sql.BinaryOp:
