@@ -9,6 +9,7 @@ import (
 	"github.com/pijalu/frigolite/internal/btree"
 	"github.com/pijalu/frigolite/internal/execdml"
 	"github.com/pijalu/frigolite/internal/execquery"
+	"github.com/pijalu/frigolite/internal/exectrigger"
 	"github.com/pijalu/frigolite/internal/fts"
 	"github.com/pijalu/frigolite/internal/pager"
 	"github.com/pijalu/frigolite/internal/schema"
@@ -425,21 +426,14 @@ func (e *Engine) InitValidatedTriggers() {
 	e.triggers.InitValidatedTriggers()
 }
 
-// ResetValidatedTriggers drops every validated-trigger mark: the schema
-// state they were validated against is gone (ATTACH/DETACH, DDL, an
-// external commit), so every loaded trigger re-validates.
-func (e *Engine) ResetValidatedTriggers() {
-	e.triggers.ResetValidatedTriggers()
-}
-
 // IsTriggerValidated reports whether a trigger was already validated.
-func (e *Engine) IsTriggerValidated(key string) bool {
-	return e.triggers.IsTriggerValidated(key)
+func (e *Engine) IsTriggerValidated(mark exectrigger.ValidatedTriggerMark) bool {
+	return e.triggers.IsTriggerValidated(mark)
 }
 
 // MarkTriggerValidated records a trigger as validated.
-func (e *Engine) MarkTriggerValidated(key string) {
-	e.triggers.MarkTriggerValidated(key)
+func (e *Engine) MarkTriggerValidated(mark exectrigger.ValidatedTriggerMark) {
+	e.triggers.MarkTriggerValidated(mark)
 }
 
 // InitUniqueIdxCache ensures the unique-index cache is non-nil.

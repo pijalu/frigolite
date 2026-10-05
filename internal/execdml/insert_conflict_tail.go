@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/pijalu/frigolite/internal/exectrigger"
 	"github.com/pijalu/frigolite/internal/schema"
 	"github.com/pijalu/frigolite/internal/sql"
 	"github.com/pijalu/frigolite/internal/util"
@@ -106,21 +107,17 @@ func (e *DMLExecutor) databasesSchemaStamp() uint64 {
 // validateLoadedTriggers checks every trigger loaded from sqlite_master for
 // schema references that no longer resolve. SQLite validates triggers at
 // schema load and reports "malformed database schema". Validated triggers
-// are cached by name to avoid re-parsing on every statement, and the walk
-// itself is memoized on the cross-database schema stamp: with every schema
-// frozen the loop can only re-find already-validated triggers. The stamp
-// covers every database the walk visits — main alone is not enough, or an
-// ATTACH of a schema holding a malformed trigger (triggerupfrom-2.4) or a
-// DETACH/re-ATTACH of different content under one name would inherit the
-// previous verdict. When the stamp moves, the name-keyed validated-trigger
-// cache describes the previous schema state and is dropped with it.
+// are cached per (schema-manager instance, name) to avoid re-parsing on
+// every statement, and the walk itself is memoized on the cross-database
+// schema stamp: with every schema frozen the loop can only re-find
+// already-validated triggers. The stamp covers every database the walk
+// visits — MAIN alone is not enough, or an ATTACH of a schema holding a
+// malformed trigger (triggerupfrom-2.4) would inherit a verdict computed
+// before the schema existed.
 func (e *DMLExecutor) validateLoadedTriggers() error {
 	stamp := e.databasesSchemaStamp()
 	if e.vltDone && e.vltStamp == stamp {
 		return nil
-	}
-	if e.vltDone {
-		e.ctx.ResetValidatedTriggers()
 	}
 	e.ctx.InitValidatedTriggers()
 	for _, ctx := range e.ctx.Databases() {
@@ -142,7 +139,11 @@ func (e *DMLExecutor) validateLoadedTriggers() error {
 }
 
 // validateLoadedTrigger validates one trigger's schema references, skipping
-// TEMP triggers and already-validated ones.
+// TEMP triggers and already-validated ones. The mark is keyed by the
+// trigger's OWNING schema manager instance, so it survives ordinary DDL in
+// that schema (SQLite validates a loaded body once, at schema load) while a
+// DETACH/re-ATTACH of a different file under one schema name — which opens
+// a fresh manager — re-validates from scratch.
 func (e *DMLExecutor) validateLoadedTrigger(t *schema.Entry, ctx *DatabaseContext) (bool, error) {
 	if t == nil {
 		return false, nil
@@ -152,14 +153,14 @@ func (e *DMLExecutor) validateLoadedTrigger(t *schema.Entry, ctx *DatabaseContex
 	if ctx == e.ctx.GetDB("temp") {
 		return false, nil
 	}
-	key := strings.ToUpper(ctx.Name + "." + t.Name)
-	if e.ctx.IsTriggerValidated(key) {
+	mark := exectrigger.ValidatedTriggerMark{Mgr: ctx.Schema, Name: strings.ToUpper(t.Name)}
+	if e.ctx.IsTriggerValidated(mark) {
 		return false, nil
 	}
 	if err := e.validateLoadedTriggerSchemaCtx(t, ctx); err != nil {
 		return false, err
 	}
-	e.ctx.MarkTriggerValidated(key)
+	e.ctx.MarkTriggerValidated(mark)
 	return true, nil
 }
 
