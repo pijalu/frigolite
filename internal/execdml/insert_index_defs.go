@@ -119,17 +119,25 @@ func (e *DMLExecutor) allTableIndexes(tableName string) []indexDef {
 	// resolves the table's index list three times per statement (the
 	// collation validation, the OLD-entry removal and the NEW-entry write),
 	// and each resolution walks the engine's database-context map. The defs
-	// are a pure function of the schema, so the fingerprint guard makes one
-	// map walk per statement serve the rest.
-	fp := e.schemaFingerprint()
-	if e.atiName == tableName && e.atiFP == fp {
+	// are a pure function of the schema, so a schema stamp makes one map
+	// walk per statement serve the rest.
+	//
+	// The stamp folds EVERY database's fingerprint (databasesSchemaStamp),
+	// not MAIN's alone: the list aggregates the table's indexes across all
+	// schemas, so a DDL in an ATTACHed database (backup-2.x drops and
+	// recreates the destination's tables mid-copy) moves the input while
+	// MAIN's fingerprint stands still — a MAIN-keyed slot would serve the
+	// dropped schema's root pages and write new index cells into freed
+	// pages ("database disk image is malformed").
+	stamp := e.databasesSchemaStamp()
+	if e.atiName == tableName && e.atiStamp == stamp {
 		return e.atiDefs
 	}
 	var result []indexDef
 	for _, ctx := range e.ctx.Databases() {
 		result = append(result, e.indexDefsInCached(ctx, tableName)...)
 	}
-	e.atiName, e.atiFP, e.atiDefs = tableName, fp, result
+	e.atiName, e.atiStamp, e.atiDefs = tableName, stamp, result
 	return result
 }
 

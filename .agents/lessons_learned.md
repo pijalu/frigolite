@@ -3069,3 +3069,50 @@ PASS at a pre-tranche commit first to confirm regression vs pre-existing).
   the documented env sizes). Only fix-vs-main deltas on the SAME harness,
   interleaved on an idle machine, mean anything — absolute ops/s compared
   against FLEET-STATE numbers from an idle run are meaningless.
+## FIX.MISCREG (2026-10-05) — two attached-schema memo regressions from PERF.UPDDEL (fleet/fix-miscreg)
+
+Both regressions came from the SAME root pattern: PERF.UPDDEL memos keyed on
+MAIN's schema fingerprint (DMLExecutor.schemaFingerprint) guarding inputs that
+aggregate over ALL database contexts (e.ctx.Databases()). MAIN's fingerprint
+stands still across ATTACH/DETACH and attached-schema DDL, so the memo served
+verdicts computed before the attached schema existed or after it changed.
+Commits: BUG1 = 661902335 (L2-L4 loaded-trigger walk memo), BUG2 = 76e92640a
+(L5 allTableIndexes one-slot memo).
+
+- **BUG1 triggerupfrom-2.4**: `ATTACH 'test.db' AS yyy; SELECT * FROM t1;`
+  must report `malformed database schema (tr3)` (trigger in yyy references
+  main.* objects unresolvable in the new main). The vlt memo skipped the
+  loaded-trigger walk because MAIN's fp was unchanged by the ATTACH. Fix:
+  walk memo keyed on databasesSchemaStamp — commutative fold (splitmix64
+  finalizer + sum) of every context's fingerprint plus the context count.
+  Sum (not xor-then-multiply chains) because the databases map iterates in
+  random order; a fold whose result depends on order makes the stamp
+  nondeterministic and the memo useless.
+- **Validated-trigger marks are a schema-LOAD property**: first fix cleared
+  the marks whenever the stamp moved — that re-runs body validation at DDL
+  time and trigger2 fails with `no such table: rlog` (a trigger referencing a
+  table the test recreates between sections errors at the wrong moment;
+  SQLite validates a loaded body once, at schema load). Correct model: key
+  the marks by the owning schema.Manager INSTANCE (pointer) + trigger name
+  (exectrigger.ValidatedTriggerMark). Fresh ATTACH opens a fresh manager →
+  re-validates; DDL keeps the manager → marks survive; DETACH/re-ATTACH of a
+  different file under one schema name cannot inherit verdicts.
+- **BUG2 backup-2.x**: backup into an ATTACHed POPULATED destination (rows>0)
+  whose page size ≠ source. Dest populate-phase INSERTs filled the
+  allTableIndexes slot with bak.i1's defs (old root page); the backup's DROP
+  TABLE + CREATE TABLE moved only bak's fingerprint, so the copy-phase INSERTs
+  reused the dropped index's root page and wrote index cells into freed pages
+  → later reads: `database disk image is malformed`. pgsz==1024 and rows==0
+  combos passed by luck (allocation patterns / cold memo). Same fix:
+  databasesSchemaStamp.
+- **Bisect note**: the "pre-R4 baseline" f42fa5da0 sits ON the upddel branch
+  (post-L5 lessons commit) — it already contains the R4 work. The true
+  pre-R4 base is the FIRST PARENT of the merge (688d2a149^1 = b8f6bae1c).
+  Merge-commit tranches bisect on ^1, never on the branch tip's tail.
+- **Generated-test debug trick**: transpiled testgen failures print only
+  got/want; add a temporary DEBUG line into the generated _test.go (git
+  checkout -- afterwards) to surface harness-local variables (which combo
+  shape failed) plus engine-side detail like Backup.ErrMsg().
+- **Bench harness**: /tmp/perf/frigo was lost to tmp cleanup again; rebuilt
+  as /tmp/perf/miscreg (+ miscregmain with the replace flipped to main).
+  Only interleaved same-harness branch-vs-main ratios are meaningful.

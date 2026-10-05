@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/pijalu/frigolite/internal/exectrigger"
 	"github.com/pijalu/frigolite/internal/schema"
 	"github.com/pijalu/frigolite/internal/sql"
 	"github.com/pijalu/frigolite/internal/util"
@@ -72,16 +73,50 @@ func pkRowIDFromColumn(cd sql.ColumnDef, v interface{}, withoutRowid bool) (int6
 	return 0, false, nil
 }
 
+// databasesSchemaStamp folds the schema fingerprints of EVERY database
+// context (main, temp and attached) into one order-independent stamp, plus
+// the context count: any ATTACH/DETACH, any DDL in ANY schema — and any
+// external commit to an attached schema — moves it, while a fingerprint of
+// MAIN alone stands still. Memos whose input aggregates over all databases
+// (the loaded-trigger validation walk, the allTableIndexes list) must key
+// on this stamp, not on MAIN's fingerprint: triggerupfrom-2.4 (an ATTACH
+// adding a malformed trigger) and backup-2.x (an ATTACHed destination whose
+// schema is dropped/recreated mid-copy) both break otherwise. Each
+// fingerprint is mixed through the splitmix64 finalizer and summed
+// (commutative, so the databases map's random iteration order cannot
+// destabilize the stamp).
+func (e *DMLExecutor) databasesSchemaStamp() uint64 {
+	stamp := uint64(0)
+	n := uint64(0)
+	for _, ctx := range e.ctx.Databases() {
+		if ctx == nil || ctx.Schema == nil {
+			continue
+		}
+		fp := ctx.Schema.SchemaFingerprint()
+		fp ^= fp >> 30
+		fp *= 0xbf58476d1ce4e5b9
+		fp ^= fp >> 27
+		fp *= 0x94d049bb133111eb
+		fp ^= fp >> 31
+		stamp += fp
+		n++
+	}
+	return stamp + n
+}
+
 // validateLoadedTriggers checks every trigger loaded from sqlite_master for
 // schema references that no longer resolve. SQLite validates triggers at
 // schema load and reports "malformed database schema". Validated triggers
-// are cached by name to avoid re-parsing on every statement, and the walk
-// itself is memoized on the schema fingerprint: with the schema frozen the
-// loop can only re-find already-validated triggers (any schema change —
-// CREATE/DROP TRIGGER, a dropped table a body references — bumps the
-// fingerprint and re-runs it).
+// are cached per (schema-manager instance, name) to avoid re-parsing on
+// every statement, and the walk itself is memoized on the cross-database
+// schema stamp: with every schema frozen the loop can only re-find
+// already-validated triggers. The stamp covers every database the walk
+// visits — MAIN alone is not enough, or an ATTACH of a schema holding a
+// malformed trigger (triggerupfrom-2.4) would inherit a verdict computed
+// before the schema existed.
 func (e *DMLExecutor) validateLoadedTriggers() error {
-	if fp := e.schemaFingerprint(); e.vltDone && e.vltFP == fp {
+	stamp := e.databasesSchemaStamp()
+	if e.vltDone && e.vltStamp == stamp {
 		return nil
 	}
 	e.ctx.InitValidatedTriggers()
@@ -99,12 +134,16 @@ func (e *DMLExecutor) validateLoadedTriggers() error {
 			}
 		}
 	}
-	e.vltFP, e.vltDone = e.schemaFingerprint(), true
+	e.vltStamp, e.vltDone = stamp, true
 	return nil
 }
 
 // validateLoadedTrigger validates one trigger's schema references, skipping
-// TEMP triggers and already-validated ones.
+// TEMP triggers and already-validated ones. The mark is keyed by the
+// trigger's OWNING schema manager instance, so it survives ordinary DDL in
+// that schema (SQLite validates a loaded body once, at schema load) while a
+// DETACH/re-ATTACH of a different file under one schema name — which opens
+// a fresh manager — re-validates from scratch.
 func (e *DMLExecutor) validateLoadedTrigger(t *schema.Entry, ctx *DatabaseContext) (bool, error) {
 	if t == nil {
 		return false, nil
@@ -114,14 +153,14 @@ func (e *DMLExecutor) validateLoadedTrigger(t *schema.Entry, ctx *DatabaseContex
 	if ctx == e.ctx.GetDB("temp") {
 		return false, nil
 	}
-	key := strings.ToUpper(ctx.Name + "." + t.Name)
-	if e.ctx.IsTriggerValidated(key) {
+	mark := exectrigger.ValidatedTriggerMark{Mgr: ctx.Schema, Name: strings.ToUpper(t.Name)}
+	if e.ctx.IsTriggerValidated(mark) {
 		return false, nil
 	}
 	if err := e.validateLoadedTriggerSchemaCtx(t, ctx); err != nil {
 		return false, err
 	}
-	e.ctx.MarkTriggerValidated(key)
+	e.ctx.MarkTriggerValidated(mark)
 	return true, nil
 }
 

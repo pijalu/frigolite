@@ -9,6 +9,7 @@ import (
 	"github.com/pijalu/frigolite/internal/btree"
 	"github.com/pijalu/frigolite/internal/execdml"
 	"github.com/pijalu/frigolite/internal/execquery"
+	"github.com/pijalu/frigolite/internal/exectrigger"
 	"github.com/pijalu/frigolite/internal/fts"
 	"github.com/pijalu/frigolite/internal/pager"
 	"github.com/pijalu/frigolite/internal/schema"
@@ -426,13 +427,13 @@ func (e *Engine) InitValidatedTriggers() {
 }
 
 // IsTriggerValidated reports whether a trigger was already validated.
-func (e *Engine) IsTriggerValidated(key string) bool {
-	return e.triggers.IsTriggerValidated(key)
+func (e *Engine) IsTriggerValidated(mark exectrigger.ValidatedTriggerMark) bool {
+	return e.triggers.IsTriggerValidated(mark)
 }
 
 // MarkTriggerValidated records a trigger as validated.
-func (e *Engine) MarkTriggerValidated(key string) {
-	e.triggers.MarkTriggerValidated(key)
+func (e *Engine) MarkTriggerValidated(mark exectrigger.ValidatedTriggerMark) {
+	e.triggers.MarkTriggerValidated(mark)
 }
 
 // InitUniqueIdxCache ensures the unique-index cache is non-nil.

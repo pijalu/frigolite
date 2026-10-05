@@ -10,11 +10,23 @@ package exectrigger
 
 import (
 	"github.com/pijalu/frigolite/internal/execquery"
+	"github.com/pijalu/frigolite/internal/schema"
 )
 
 // Row provides column value lookup for expression evaluation (alias of the
 // query engine's row abstraction).
 type Row = execquery.Row
+
+// ValidatedTriggerMark identifies one validated loaded trigger: the owning
+// schema manager instance (a fresh ATTACH opens a fresh manager, so its
+// triggers re-validate; DDL keeps the manager, so marks survive it) plus
+// the trigger name.
+type ValidatedTriggerMark struct {
+	// Mgr is the owning schema manager instance.
+	Mgr *schema.Manager
+	// Name is the trigger's name (upper-cased by the caller).
+	Name string
+}
 
 // Manager owns trigger execution state that previously lived on the Engine.
 type Manager struct {
@@ -34,8 +46,13 @@ type Manager struct {
 	// hasTriggersCache caches trigger existence per table name.
 	hasTriggersCache map[string]bool
 	// validatedTriggers records triggers whose loaded-body schema refs were
-	// validated.
-	validatedTriggers map[string]bool
+	// validated, keyed by the OWNING schema manager instance plus the
+	// trigger name: the marks are a schema-LOAD property (SQLite validates
+	// a loaded trigger body once, when its schema is parsed), so they live
+	// and die with the manager — a DETACH/re-ATTACH of a different file
+	// under one schema name opens a fresh manager and re-validates, while
+	// ordinary DDL keeps the manager (and the marks) intact.
+	validatedTriggers map[ValidatedTriggerMark]bool
 	// outerOrConflict is the ON CONFLICT policy of the outermost DML
 	// statement currently executing (SQLite's pParse->eOrconf: trigger-body
 	// steps without an explicit OR clause inherit the firing statement's
@@ -114,18 +131,18 @@ func (m *Manager) ResetHasTriggersCache() {
 // InitValidatedTriggers ensures the validated-trigger cache is non-nil.
 func (m *Manager) InitValidatedTriggers() {
 	if m.validatedTriggers == nil {
-		m.validatedTriggers = make(map[string]bool)
+		m.validatedTriggers = make(map[ValidatedTriggerMark]bool)
 	}
 }
 
 // IsTriggerValidated reports whether a trigger was already validated.
-func (m *Manager) IsTriggerValidated(key string) bool {
-	return m.validatedTriggers[key]
+func (m *Manager) IsTriggerValidated(mark ValidatedTriggerMark) bool {
+	return m.validatedTriggers[mark]
 }
 
 // MarkTriggerValidated records a trigger as validated.
-func (m *Manager) MarkTriggerValidated(key string) {
-	m.validatedTriggers[key] = true
+func (m *Manager) MarkTriggerValidated(mark ValidatedTriggerMark) {
+	m.validatedTriggers[mark] = true
 }
 
 // OuterOrConflict returns the ON CONFLICT policy of the outermost DML

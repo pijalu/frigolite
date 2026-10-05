@@ -185,12 +185,14 @@ type DMLExecutor struct {
 	delTree    *btree.BTree
 	delTreeKey insTreeKey
 
-	// ati* is the allTableIndexes one-slot memo (schema fingerprint-guarded):
-	// the point-op paths resolve the same table's index list several times
-	// per statement, and each resolution walks the databases map.
-	atiName string
-	atiFP   uint64
-	atiDefs []indexDef
+	// ati* is the allTableIndexes one-slot memo (guarded by the
+	// cross-database schema stamp): the point-op paths resolve the same
+	// table's index list several times per statement, and each resolution
+	// walks the databases map. The stamp covers every database because the
+	// list aggregates indexes across all of them.
+	atiName  string
+	atiStamp uint64
+	atiDefs  []indexDef
 
 	// dmlStmtSeq/fpSeq/fpCache memoize the schema fingerprint per DML
 	// statement (schemaFingerprint): the memo guards read it several times
@@ -199,11 +201,13 @@ type DMLExecutor struct {
 	fpSeq      uint64
 	fpCache    uint64
 
-	// vltFP/vltDone memoize the loaded-trigger validation walk
-	// (validateLoadedTriggers): with the schema frozen the walk re-finds
-	// only already-validated triggers.
-	vltFP   uint64
-	vltDone bool
+	// vltStamp/vltDone memoize the loaded-trigger validation walk
+	// (validateLoadedTriggers): with every schema frozen the walk re-finds
+	// only already-validated triggers. The stamp folds every database's
+	// schema fingerprint (loadedTriggerSchemaStamp) — ATTACH/DETACH move it
+	// even though MAIN's own fingerprint stands still.
+	vltStamp uint64
+	vltDone  bool
 }
 
 // indexDefCacheKey identifies a cached index-maintenance-def list: the owning

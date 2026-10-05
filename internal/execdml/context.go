@@ -4,6 +4,7 @@ import (
 	"github.com/pijalu/frigolite/internal/auth"
 	"github.com/pijalu/frigolite/internal/btree"
 	"github.com/pijalu/frigolite/internal/execquery"
+	"github.com/pijalu/frigolite/internal/exectrigger"
 	"github.com/pijalu/frigolite/internal/fts"
 	"github.com/pijalu/frigolite/internal/fts5"
 	"github.com/pijalu/frigolite/internal/pager"
@@ -280,8 +281,8 @@ type DMLContext interface {
 	CachedTriggerFlag(tableName string) (has bool, ok bool)
 	SetCachedTriggerFlag(tableName string, has bool)
 	InitValidatedTriggers()
-	IsTriggerValidated(key string) bool
-	MarkTriggerValidated(key string)
+	IsTriggerValidated(mark exectrigger.ValidatedTriggerMark) bool
+	MarkTriggerValidated(mark exectrigger.ValidatedTriggerMark)
 	InitUniqueIdxCache()
 	CachedUniqueIdx(tableName string) ([]execquery.UniqueIndexDef, bool)
 	SetCachedUniqueIdx(tableName string, defs []execquery.UniqueIndexDef)
