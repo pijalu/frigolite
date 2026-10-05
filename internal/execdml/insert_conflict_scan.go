@@ -219,9 +219,11 @@ func (e *DMLExecutor) ipkRowidAliasConflict(tableName string, rootPage uint32, c
 		return 0, nil, -1, false
 	}
 	// Append-bias parity (btree.c BTREE_APPEND): the executor's largest-rowid
-	// cache holds the tree's true maximum (bump-only-grows, invalidated by
-	// every delete / rowid-changing update), so a rowid ABOVE it cannot exist
-	// — the seek is skipped instead of descending on every row.
+	// cache holds the tree's true maximum (seeded by a max scan, then bumped
+	// only upward — see bumpRowIDCache), so a rowid ABOVE it cannot exist —
+	// the seek is skipped instead of descending on every row. A missing
+	// entry (after an invalidation: delete, rowid-changing update, schema
+	// change) cannot prove absence, so the probe runs.
 	if e.aboveCachedMaxRowID(tableName, rootPage, v) {
 		return 0, nil, -1, false
 	}
@@ -236,6 +238,16 @@ func (e *DMLExecutor) ipkRowidAliasConflict(tableName string, rootPage uint32, c
 	defer cursor.Close() // release without closing a cached tree
 	found, err := cursor.SeekToRowID(v)
 	if err != nil || !found {
+		if err == nil && !e.hasCachedMaxRowID(tableName, rootPage) {
+			// Clean miss with no cache entry: re-arm the append bias by
+			// seeding the cache with the tree's true maximum (scanMaxRowID,
+			// once per invalidation window). The remaining rows of a bulk
+			// explicit-rowid load then skip their probes again, and a rowid
+			// below the true maximum can never seed the cache (spellfix
+			// 7.4.2: a low explicit rowid recorded into an empty cache entry
+			// made the gate accept a later duplicate).
+			e.ctx.SetNextRowIDFor(e.dmlPager(tableName), rootPage, e.scanMaxRowID(tree))
+		}
 		return 0, nil, -1, false
 	}
 	cell, err := cursor.ReadCell()
@@ -247,6 +259,13 @@ func (e *DMLExecutor) ipkRowidAliasConflict(tableName string, rootPage uint32, c
 		return 0, nil, -1, false
 	}
 	return cell.RowID, rec.Values, idx, true
+}
+
+// hasCachedMaxRowID reports whether the largest-rowid cache holds an entry
+// for the table (a proven base the append-bias gate may trust).
+func (e *DMLExecutor) hasCachedMaxRowID(tableName string, rootPage uint32) bool {
+	_, ok := e.ctx.NextRowIDFor(e.dmlPager(tableName), rootPage)
+	return ok
 }
 
 // scanForConflict iterates through all rows and looks for a value match
