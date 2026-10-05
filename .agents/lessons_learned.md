@@ -3181,3 +3181,56 @@ paired ratio is signal.
   replace → worktree, profile outputs renamed arena_*); always `go version
   -m <bin> | grep '=>'` before trusting a number; measure.sh runs main and
   arena interleaved per phase so ambient load cancels.
+
+## PERF.LITCACHE — INSERT literal triple killed via slot-path value stash (fleet/perf-litcache, 2026-10-05)
+
+Closes PERF.ARENA's deferred "INSERT literal triple" (scan→format→re-parse,
+~67B/stmt): the template slot-path apply rewrote literal TEXT per hit and
+execution re-parsed it (evalNumericLit box on a cache that writeSlot must
+clear every statement).
+
+- **Mechanism**: `templateSlots.tupSlot` records which slots are INSERT
+  VALUES-tuple items (collector knows (tuple,item) via the sfInsTuple path
+  terminal). apply() writes the parsed value into the live clone's
+  `sql.InsertStmt.InsLitVals` (parallel to Values; nil for non-literal items
+  like NULL/column refs) IN THE SAME PASS as the text rewrite — text and
+  stash can never diverge. execdml's evalTuple/evalTuplePooled read non-nil
+  stash entries instead of EvalExpr: re-parse, boxing AND the dispatch walk
+  disappear. evalNumericLit vanished from the insert alloc profile (was #1).
+- **Kind safety is inherited, not re-proven**: only slot values that passed
+  validateValues (int64 digit-slot, float64 'g'+".0", string) are stashed,
+  and those are exactly what EvalExpr would return for the rewritten node —
+  the stash is the same truth, one copy earlier. Refusals (negative folded
+  minus, hex, 2^63, blob, expressions, RETURNING literals) keep templates
+  COW-only → full parse → no stash (parity corpus proves all of these).
+- **First-build parity**: trySlotPathLive's COW-built clone gets the stash
+  via slots.stashValues (no node rewrite — COW nodes already carry the
+  values' text); a false there (unreachable) discards the clone → COW path.
+  COW walker MUST reset InsLitVals=nil (recycled-tenant full-overwrite rule
+  — insertStmtValues assigns every field).
+- **Paired-diet levers that paid alongside** (all measured interleaved vs
+  main): pkRowIDFromColumn int64 fast path (NUMERIC affinity never changes
+  an int64 — skip ApplyColumnAffinity); applyColumnAffinities over memoized
+  per-column affinity classes (BLOB/none class 0 skips the wrap; memo keyed
+  fingerprint+colDefs-identity like columnIndexFor); fillIPKRowID via
+  memoized IPK index; databasesSchemaStamp over a cached filtered db-list
+  (refresh on map-length move — ATTACH/DETACH always moves len; a
+  same-length context replacement needs DETACH+ATTACH in ONE statement,
+  which the engine never runs). ~100ns/stmt of map iteration alone.
+- **Results** (paired interleaved, mission env, this box): insert 749-762k
+  vs main 632-639k ops/s (+18.5-19.3%; target ≥750k met), point +4-12%,
+  update +6.5-10.4%, delete +5.7-9.1%, scan/group parity.
+- **Pins**: TestInsLitParityCorpus (13 shapes × fast-engine slot path vs
+  full-parse control — control uses round-odd UPPER-CASE table spellings:
+  same table for SQLite, different template key bytes → control never
+  template-hits while accumulating identically; single control engine per
+  shape, not per-round, or accumulator shapes like upsert diverge) +
+  white-box TestPinSlotPathInsertStash/MixedSlotsNoStash/StashValuesFirst
+  Build; COW parity pin neutralizes InsLitVals before its deep-equal (the
+  stash is slot-path-only by design).
+- **Harness flake note (updated)**: TestSQLiteSuite at full GOMAXPROCS
+  (14 cores) fails ~377 subtests with cross-file "already exists" pollution
+  — IDENTICAL count on main; GOMAXPROCS=4 is green on both. Parallel file-
+  backed ATTACH races (cleanupTestDBFiles vs t.Parallel), not engine bugs;
+  gate the suite at GOMAXPROCS=4. Also: zsh does not word-split `env $E`
+  — bench env vars must be passed explicitly.
