@@ -3005,3 +3005,60 @@ skip), 5adadcc37 (pool gate fix).
   per-file solo green.
 - **isNonModifiableTable first-byte screen**: guard len==0 — schema entries
   with empty names exist (tkt_78e04e52ea panicked).
+
+## FIX.INSREG (2026-10-05) — R4-R6 insert-tranche regressions: result-staging nesting + rowid-cache truth (fleet/fix-insreg)
+
+Both testgen regressions from the perf tranches bisected to ONE commit —
+2b3683c31 (PERF.INSQUICK-2: IPK-conflict append gate + reusable success
+results) — via `git bisect run` with the testgen package as probe (verify
+PASS at a pre-tranche commit first to confirm regression vs pre-existing).
+
+- **Reusable executor-scratch Results are only safe at INSERT nesting depth
+  1** (bug 1, fts5lastrowid): an INSERT statement's own SIDE WORK issues
+  nested INSERTs through the same executor AFTER execInsertTuples staged
+  the statement Result — the fts5 statement-end shadow flush (each
+  autocommit INSERT into an fts5 table writes the %_data structure block
+  via Engine.ExecSQLUntracked), trigger bodies, FK actions, sqlite_sequence
+  upkeep. The nested statement restaged the shared insStmtRes with ITS
+  change count / rowid; the engine's execTrackChanges (which runs only
+  after the whole statement returns) then published the NESTED rowid —
+  last_insert_rowid() read the %_data block id (10) instead of the fts5
+  rowid (3 / explicit -22). The commit's own safety argument ("nested
+  writes consume their fields strictly inside the outer consumption
+  window") was wrong about the window: staging happens at statement build,
+  consumption at statement END. Fix: execInsert tracks insDepth; scratch
+  handed out only at depth 1, depth >= 2 builds fresh. Bulk INSERT — the
+  hot path — stays on the scratch. Same shape as the PERF.DMLCORE
+  VALUES-tuple pooling hazard: ANY executor-scratch result/staging must be
+  depth-gated, not "consumed before next reuse" argued.
+- **A bump-only-grows cache needs a PROVEN base** (bug 2, spellfix): the
+  append-bias gate (skip the IPK uniqueness probe when rowid > cachedMax)
+  trusted a cache that bumpRowIDCache seeded from nothing — an EMPTY entry
+  was set to the just-inserted rowid, even when that rowid sat BELOW the
+  tree's true max. Sequence: CREATE TABLE resets the cache mid-scenario →
+  explicit insert of rowid 5 re-seeds cache=5 while the shadow table still
+  holds 10/20/30 → rows 20/30 skip the probe → duplicate rowids accepted
+  (spellfix 7.4.2 "constraint failed" lost). Fix is two-part: (1) engine
+  invariant — bumpRowIDCache grows only over an EXISTING entry; entries
+  are created solely by proven max scans (plainNextRowID) or the probe's
+  re-arm; the AUTOINCREMENT sequence keeps its unconditional bump (largest
+  EVER used, sqlite_sequence + max-scan fallback keeps it correct); (2)
+  the IPK probe, on a clean miss with no cache entry, re-arms the gate by
+  seeking to the right edge (SeekToRowID(MaxInt64) → AtEnd → Prev) and
+  seeding the TRUE max — one O(log n) descent restores the skip for the
+  remaining rows of a bulk explicit-rowid load. Lesson: any "skip the
+  check when X > cached" fast path needs its cache invariant enforced at
+  EVERY writer, not just documented at the reader; "invalidate on delete"
+  is not enough when other writers can seed low.
+- **Bisect hygiene**: `git bisect start <bad-sha> <good-sha>` — branch
+  names fail in worktrees ('main' used by the primary checkout). Probe =
+  the failing testgen package; a grep for ^FAIL disambiguates build
+  failures from test failures when old trees lack helpers.
+- **Oracle discipline**: fts5lastrowid oracle-checked directly with the
+  sqlite3 CLI (fts5 ships in the system binary: 3 then -22). spellfix1 is
+  NOT in the system sqlite3 — the TCL expectations are the contract there.
+- **Bench under fleet load is pair-only**: /tmp/perf was wiped; harness
+  reconstructed (txn-insert/point/scan/group/update/delete/file-auto at
+  the documented env sizes). Only fix-vs-main deltas on the SAME harness,
+  interleaved on an idle machine, mean anything — absolute ops/s compared
+  against FLEET-STATE numbers from an idle run are meaningless.
