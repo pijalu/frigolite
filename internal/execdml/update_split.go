@@ -331,14 +331,24 @@ func (e *DMLExecutor) updateOnMissingTable(s *sql.UpdateStmt, err error) *Result
 
 // pushUpdateSetColumns records the SET-clause column names on the engine so
 // UPDATE OF <cols> triggers fire only when a listed column is in the set. It
-// returns a closure that restores the previous value on return.
+// returns a closure that restores the previous value on return. The
+// outermost push (updateSetColumns == nil) reuses the executor's setColsBuf
+// backing instead of growing a fresh slice per statement; a nested push (an
+// UPDATE inside a trigger body while an outer UPDATE is active) allocates
+// fresh — the outer statement's list must stay intact until its restore
+// closure runs.
 func (e *DMLExecutor) pushUpdateSetColumns(s *sql.UpdateStmt) func() {
 	prev := e.updateSetColumns
-	e.updateSetColumns = nil
+	if prev == nil {
+		e.updateSetColumns = e.setColsBuf[:0]
+	}
 	for _, a := range s.Assignments {
 		e.updateSetColumns = append(e.updateSetColumns, a.Column)
 	}
 	e.updateSetColumns = append(e.updateSetColumns, s.SetParenColumns...)
+	if prev == nil {
+		e.setColsBuf = e.updateSetColumns
+	}
 	return func() { e.updateSetColumns = prev }
 }
 
@@ -424,7 +434,7 @@ func (e *DMLExecutor) validateUpdateFromTarget(s *sql.UpdateStmt, targetTable st
 // applied or returned via RETURNING.
 func (e *DMLExecutor) preCheckUpdate(s *sql.UpdateStmt, tableEntry *schema.Entry, colDefs []sql.ColumnDef, changes []updateChange) ([]updateChange, *Result) {
 	if strings.EqualFold(s.OnConflict, "IGNORE") {
-		return changes, &Result{}
+		return changes, e.emptyResultFor()
 	}
 	// Only materialize deferred SET values when there are constraints to
 	// check: the check needs the new values, but materializing here would
@@ -450,7 +460,7 @@ func (e *DMLExecutor) preCheckUpdate(s *sql.UpdateStmt, tableEntry *schema.Entry
 // {1 2 3 4 5} — the whole update of that row is skipped).
 func (e *DMLExecutor) resolveUpdateNotNullConflicts(s *sql.UpdateStmt, tableEntry *schema.Entry, colDefs []sql.ColumnDef, changes []updateChange) ([]updateChange, *Result) {
 	if !hasNotNullOrCheckConstraint(colDefs) && len(e.ctx.TableConstraints(tableEntry.Name, tableEntry.SQL)) == 0 {
-		return changes, &Result{}
+		return changes, e.emptyResultFor()
 	}
 	withoutRowid := tableIsWithoutRowid(tableEntry.SQL)
 	var pkCols map[int]bool

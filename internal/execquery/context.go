@@ -415,6 +415,30 @@ type SelectEngine struct {
 	affDefsLen  int
 	affNeedMaps bool
 	affRes      map[string]bool
+	// affScratch/seekRefScratch hold one recycled affinityCollector per
+	// selectDepth (affCollectorFor): the statement's affinity-reference set
+	// and the point fetch's projection-reference set each build a fresh
+	// name map per statement; recycling the collector (and its map buckets)
+	// per nesting level removes the per-statement bucket churn. Slots make
+	// the reuse aliasing-safe: a nested SELECT (subquery / view body /
+	// trigger-body statement) executes at a deeper selectDepth, so it can
+	// never clear a map an enclosing statement's scan is still reading, and
+	// a slot is only reset when its own depth's previous statement has
+	// returned (single-goroutine per connection).
+	affScratch     []*affinityCollector
+	seekRefScratch []*affinityCollector
+	// seekRowScratch/seekSRowScratch are the point fetch's per-selectDepth
+	// decode buffers (fetchSeekStructRow): the values slice and StructRow a
+	// rowid-pinned SELECT fills once per statement. Reset-on-acquire (all
+	// slots nil), consumption-before-release (the row's consumers copy the
+	// values out — bare-ref output, star append, buildOutputRow, row maps,
+	// aggregate steps), and depth slots for nested SELECT re-entry are the
+	// same discipline as affScratch; the analysis struct + conjunct slice
+	// (seekAnalysisScratch/seekConjScratch) follow it for the seek plan.
+	seekRowScratch      [][]interface{}
+	seekSRowScratch     []*StructRow
+	seekAnalysisScratch []*rowidSeekAnalysis
+	seekConjScratch     [][]sql.Expr
 	// resultTooWide flags that a SELECT in the current statement expanded to
 	// more result columns than SQLITE_LIMIT_COLUMN (consumed at finalize).
 	resultTooWide bool

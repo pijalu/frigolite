@@ -14,7 +14,7 @@ import (
 // --- UPDATE constraint checks ---
 func (e *DMLExecutor) checkUpdateConflicts(tableEntry *schema.Entry, colDefs []sql.ColumnDef, changes []updateChange) *Result {
 	colIndex := e.columnIndexFor(colDefs)
-	uniqueCols := uniqueColsForTable(colDefs)
+	uniqueCols := e.uniqColsFor(colDefs)
 	idxColsList := e.updateConstrainedDefs(tableEntry, colDefs)
 	// WITHOUT ROWID tables store PK-first records; rowid tables have no
 	// storage reordering, so skip the layout computation for them (it is
@@ -33,7 +33,7 @@ func (e *DMLExecutor) checkUpdateConflicts(tableEntry *schema.Entry, colDefs []s
 	}
 
 	if len(uniqueCols) == 0 && len(idxColsList) == 0 && len(wrOrder) == 0 {
-		return &Result{}
+		return e.emptyResultFor()
 	}
 
 	// Resolved once per statement: whether the change-detection gate needs
@@ -70,7 +70,7 @@ func (e *DMLExecutor) checkUpdateConflicts(tableEntry *schema.Entry, colDefs []s
 			return res
 		}
 	}
-	return &Result{}
+	return e.emptyResultFor()
 }
 
 // rowidMoveConflict reports the index of the first re-keying change
@@ -121,7 +121,7 @@ func (e *DMLExecutor) checkEarlierChanges(changes []updateChange, i int, c updat
 			return &Result{Error: e.uniqueConflictError(tableName, colDefs, colIndex, changes[j].values, c.values, changes[j].rowID, c.rowID, uniqueCols, idxColsList)}
 		}
 	}
-	return &Result{}
+	return e.emptyResultFor()
 }
 
 // checkLiveTableConflictsWR scans the table for rows whose ORIGINAL values

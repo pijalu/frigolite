@@ -386,10 +386,12 @@ type Engine struct {
 	// any per-context key recompute; shared read-only with callers.
 	allKeysCache []string
 	// cloneScratches holds one transient-AST-clone scratch per execDepth
-	// (clone_scratch.go). Slots are borrowed only while the depth is not
-	// executing; the engine's single-goroutine statement funnel makes the
-	// per-depth lifecycle strictly sequential.
+	// (clone_scratch.go); slots are borrowed only while the depth is not
+	// executing (single-goroutine statement funnel = strictly sequential).
 	cloneScratches []*cloneScratch
+	// snapBufs: the statement-journal entry list (snapshotAllPagers) per
+	// execDepth, same slot pattern.
+	snapBufs [][]pagerSnap
 	// normBuf / normValues / normSpans are Prepare's substitution scratch
 	// (the normalized SQL text buffer, the extracted literal values, and the
 	// literals' byte spans in the original text), recycled across statements.
@@ -402,7 +404,7 @@ type Engine struct {
 	// maphash double pass into one scan and keys the template cache. Engine
 	// execution is single-goroutine (the same model every unsynchronized
 	// per-engine cache relies on).
-	normHash maphash.Hash
+	normHash   maphash.Hash
 	normValues []interface{}
 	// execPreflight's single-entry statement memos. pfAST* memoizes the
 	// AST-only checks (RAISE() walk, FROM-term count) by statement pointer;

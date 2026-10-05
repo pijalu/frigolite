@@ -98,6 +98,41 @@ type DMLExecutor struct {
 	ptValues    []interface{}
 	ptOldValues []interface{}
 
+	// resultScratch holds one recycled *Result per execDepth
+	// (emptyResultFor): the DML hot paths' no-error control-flow markers
+	// ("no conflict", "no match", the 1-change statement result) allocate a
+	// fresh Result struct per statement today. The slot resets on acquire
+	// (*r = Result{}), so only the current statement's fields survive; a
+	// nested statement (trigger body, eval()) takes a deeper slot and can
+	// never clobber a result an enclosing statement still reads. Every
+	// converted site's result is dead before the next same-depth acquire
+	// (each is checked for Error and dropped, or copied out by the statement
+	// boundary before the next statement runs).
+	resultScratch []*Result
+
+	// seekPlanScratch holds one recycled *dmlSeekPlan per execDepth
+	// (seekPlanFor): the point UPDATE/DELETE planner builds one plan struct
+	// per statement and consumes it within the statement's collection loop.
+	seekPlanScratch []*dmlSeekPlan
+
+	// outerColScratch holds one recycled equality-side name set per execDepth
+	// (outerColsFor): planDMLSeek's column-name membership map, cleared and
+	// refilled per statement.
+	outerColScratch []map[string]bool
+
+	// uniqColsScratch holds one recycled UNIQUE/PK column-index list per
+	// execDepth (uniqColsFor): checkUpdateConflicts' per-statement column
+	// scan. Only call sites whose list dies before a nested same-depth call
+	// may take the slot.
+	uniqColsScratch [][]int
+
+	// setColsBuf backs pushUpdateSetColumns's SET-column name list: the
+	// outermost push (updateSetColumns == nil) reuses it instead of growing
+	// a fresh slice per statement. A nested push (an UPDATE inside a trigger
+	// body while an outer UPDATE is active) allocates fresh — the outer
+	// statement's list must stay intact until its restore runs.
+	setColsBuf []string
+
 	// ptRowMap is the point-UPDATE collect's pooled name-keyed row map
 	// (pointUpdateRowMap): cleared and refilled per statement, gated to
 	// shapes whose SET evaluation cannot retain the map (no subqueries).
@@ -562,3 +597,77 @@ type orBranchPlan = execquery.OrBranchPlan
 
 // collatedValue aliases the collation-wrapping value type.
 type collatedValue = execquery.CollatedValue
+
+// emptyResultFor returns this depth's recycled no-error Result marker,
+// zeroed for a new statement. See resultScratch for the slot/lifetime
+// contract: the marker is dead before the next same-depth acquire (checked
+// for Error and dropped, or copied out at the statement boundary), and a
+// nested DML statement always takes a deeper slot.
+func (e *DMLExecutor) emptyResultFor() *Result {
+	d := e.ctx.ExecDepth()
+	if d >= len(e.resultScratch) {
+		e.resultScratch = append(e.resultScratch, make([]*Result, d+1-len(e.resultScratch))...)
+	}
+	r := e.resultScratch[d]
+	if r == nil {
+		r = &Result{}
+		e.resultScratch[d] = r
+		return r
+	}
+	*r = Result{}
+	return r
+}
+
+// seekPlanFor returns this depth's recycled point-lookup plan struct
+// (planDMLSeek / dmlIndexedSeekPlan / dmlRowidSeekPlan fill it; the caller
+// consumes the plan within the statement's collection loop).
+func (e *DMLExecutor) seekPlanFor() *dmlSeekPlan {
+	d := e.ctx.ExecDepth()
+	if d >= len(e.seekPlanScratch) {
+		e.seekPlanScratch = append(e.seekPlanScratch, make([]*dmlSeekPlan, d+1-len(e.seekPlanScratch))...)
+	}
+	p := e.seekPlanScratch[d]
+	if p == nil {
+		p = &dmlSeekPlan{}
+		e.seekPlanScratch[d] = p
+		return p
+	}
+	*p = dmlSeekPlan{}
+	return p
+}
+
+// outerColsFor returns this depth's recycled equality-side name set,
+// cleared for a new statement (planDMLSeek refills it from colDefs).
+func (e *DMLExecutor) outerColsFor() map[string]bool {
+	d := e.ctx.ExecDepth()
+	if d >= len(e.outerColScratch) {
+		e.outerColScratch = append(e.outerColScratch, make([]map[string]bool, d+1-len(e.outerColScratch))...)
+	}
+	m := e.outerColScratch[d]
+	if m == nil {
+		m = make(map[string]bool, 8)
+		e.outerColScratch[d] = m
+		return m
+	}
+	clear(m)
+	return m
+}
+
+// uniqColsFor is uniqueColsForTable over this depth's recycled index list.
+// Only for call sites whose list dies before a nested same-depth call
+// (checkUpdateConflicts' list is consumed within the conflict gate).
+func (e *DMLExecutor) uniqColsFor(colDefs []sql.ColumnDef) []int {
+	d := e.ctx.ExecDepth()
+	if d >= len(e.uniqColsScratch) {
+		e.uniqColsScratch = append(e.uniqColsScratch, make([][]int, d+1-len(e.uniqColsScratch))...)
+	}
+	u := e.uniqColsScratch[d]
+	u = u[:0]
+	for i := range colDefs {
+		if colDefs[i].Unique || colDefs[i].PrimaryKey {
+			u = append(u, i)
+		}
+	}
+	e.uniqColsScratch[d] = u
+	return u
+}
