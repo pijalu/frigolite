@@ -3044,12 +3044,19 @@ PASS at a pre-tranche commit first to confirm regression vs pre-existing).
   re-arm; the AUTOINCREMENT sequence keeps its unconditional bump (largest
   EVER used, sqlite_sequence + max-scan fallback keeps it correct); (2)
   the IPK probe, on a clean miss with no cache entry, re-arms the gate by
-  seeking to the right edge (SeekToRowID(MaxInt64) → AtEnd → Prev) and
-  seeding the TRUE max — one O(log n) descent restores the skip for the
-  remaining rows of a bulk explicit-rowid load. Lesson: any "skip the
-  check when X > cached" fast path needs its cache invariant enforced at
-  EVERY writer, not just documented at the reader; "invalidate on delete"
-  is not enough when other writers can seed low.
+  seeding the cache with the tree's TRUE maximum (scanMaxRowID — the same
+  helper plainNextRowID uses), once per invalidation window; a bulk
+  ascending load seeds at its second row (tree size 1) and skips probes
+  from the third row on, matching the pre-fix skip pattern. Lesson: any
+  "skip the check when X > cached" fast path needs its cache invariant
+  enforced at EVERY writer, not just documented at the reader; "invalidate
+  on delete" is not enough when other writers can seed low.
+- **Cursor gotcha: Prev() from the seek-past-end position does NOT clear
+  endOfBTree** — ReadCell then refuses with "btree: cursor at end". A
+  "seek past the right edge, Prev, ReadCell" recipe silently never reads
+  (establishment via that recipe seeded NOTHING, and every explicit-rowid
+  INSERT re-probed: -13-15% on the insert phase). Use scanMaxRowID or seek
+  to a key you know exists.
 - **Bisect hygiene**: `git bisect start <bad-sha> <good-sha>` — branch
   names fail in worktrees ('main' used by the primary checkout). Probe =
   the failing testgen package; a grep for ^FAIL disambiguates build
