@@ -19,15 +19,30 @@ import (
 // and OpenCursor hands out a Reset one, so a busy connection reuses cursor
 // objects instead of allocating them per statement.
 //
-// WRAPPERS are deliberately NOT pooled: a pooled wrapper is re-armed for
-// whichever statement Gets it next, so any Close that races a statement
-// still holding the wrapper (the engine's funnel assumes statements nest
-// strictly; concurrent Exec frames or a mis-attributed segment mark) turns
-// "a closed wrapper" into "a live statement's pager pointer vanished" —
-// a nil-pager SIGSEGV deep in the pager. A closed wrapper that is NOT
-// recycled degrades to the pre-pooling behavior (reads through it report
-// errors; the object is simply garbage). The per-wrapper cursorFree list is
-// therefore dead weight; the global cursorPool replaces it.
+// WRAPPERS are reused through OWNERSHIP-TOKEN free lists (TreeFreeList
+// below), never through a global pool. The first wrapper-pooling attempt
+// (a global sync.Pool) was removed: a pooled wrapper is re-armed for
+// whichever statement Gets it next, so any Close that fires after the
+// re-arm — a late second Close from the previous owner — proceeded against
+// the NEW owner's live wrapper (the old `closed bool` idempotency cannot
+// tell "my close" from "the new owner's state"). The free-list discipline
+// closes that hazard structurally:
+//
+//   - A free list is scoped to ONE owner (an engine's statement funnel, a
+//     DML executor's write-tree cache) and is touched only by that owner's
+//     single-goroutine statement path. Wrappers never migrate across
+//     engines or goroutines.
+//   - A wrapper is Put ONLY after Close, at a point where its ownership is
+//     provably dead (statement teardown / cache invalidation).
+//   - Every acquire bumps the wrapper's arm generation (gen); the tracker
+//     records the generation it acquired under (TreeLease). A release whose
+//     lease generation no longer matches the wrapper's current generation
+//     is STALE — ownership moved — and no-ops: no Close, no Put. This is
+//     the belt-and-suspenders gate: even a mis-attributed segment mark or a
+//     future double-release cannot close or pool a live successor.
+//
+// A closed wrapper that is never recycled degrades to the pre-pooling
+// behavior (reads through it report errors; the object is simply garbage).
 
 // cursorPool recycles cursors across statements and wrappers. A recycled
 // cursor's registry finalizer is installed once at allocation (acquireCursor)
@@ -58,6 +73,101 @@ func (t *BTree) initFrom(pg *pager.Pager, rootPage uint32, isTable, isSchema boo
 	// per-wrapper heap slice allocation (NewBTree runs once per statement —
 	// one INSERT — so the make showed up verbatim in the insert profile).
 	t.cursors = t.cursorsArr[:0]
+	return t
+}
+
+// TreeFreeList is a single-owner free list of CLOSED BTree wrappers. See the
+// file header for the ownership-token discipline; in short: one owner, one
+// goroutine (the statement funnel), Put only after Close at a provably-dead
+// ownership point, and every Get re-arms through BTree.Reinit (full state
+// reset + generation bump). Not synchronized — like the engine's other
+// per-statement scratches (cloneScratches, snapBufs), it relies on the
+// strictly sequential statement funnel of its owning engine.
+type TreeFreeList struct {
+	free []*BTree
+}
+
+// maxTreeFreeList caps the free list: a statement touches a bounded number
+// of trees (its tables + indexes); 64 absorbs every realistic shape while
+// bounding idle memory.
+const maxTreeFreeList = 64
+
+// Get pops the most recently closed wrapper, or returns nil when the list
+// is empty (the caller builds a fresh one via NewBTree).
+func (p *TreeFreeList) Get() *BTree {
+	if n := len(p.free); n > 0 {
+		t := p.free[n-1]
+		p.free[n-1] = nil
+		p.free = p.free[:n-1]
+		return t
+	}
+	return nil
+}
+
+// Put returns a CLOSED wrapper to the free list. Callers must have closed t
+// at a point where its ownership is provably dead; Put tolerates an open
+// wrapper only by ignoring it (defensive: never pool a live wrapper).
+func (p *TreeFreeList) Put(t *BTree) {
+	if t == nil || !t.closed || len(p.free) >= maxTreeFreeList {
+		return
+	}
+	p.free = append(p.free, t)
+}
+
+// Purge drops every pooled wrapper (without closing them — they are already
+// closed), leaving the list empty. Fired on pager layout replacement: a
+// pooled wrapper's snapshot geometry (pageSize/usableSize) is stale after an
+// in-place layout change, and dropping the cargo is cheaper than reasoning
+// about which pagers the change touched. The next Get builds fresh.
+func (p *TreeFreeList) Purge() {
+	for i := range p.free {
+		p.free[i] = nil
+	}
+	p.free = p.free[:0]
+}
+
+// TreeLease is the ownership token for a statement-tracked wrapper: the
+// wrapper plus the arm generation its acquirer saw. releaseStatementTrees
+// compares the lease against the wrapper's CURRENT generation; a mismatch
+// means ownership moved since tracking (a recycled wrapper re-armed for
+// someone else) and the release no-ops instead of closing the live owner's
+// wrapper. See the file header.
+type TreeLease struct {
+	Tree *BTree
+	Gen  uint64
+}
+
+// Generation returns the wrapper's arm generation: bumped by every Reinit
+// (and unique per NewBTree lease by construction — 0 for a never-re-armed
+// wrapper). Callers that track wrappers across an ownership window record
+// it at acquire and re-check at release.
+func (t *BTree) Generation() uint64 {
+	if t == nil {
+		return 0
+	}
+	return t.gen
+}
+
+// Reinit re-arms a CLOSED wrapper for a new (pager, rootPage) ownership —
+// the acquire half of the free-list discipline. The reset is FULL: every
+// per-ownership field is re-initialized exactly as a fresh NewBTree would
+// leave it (geometry re-snapshotted from the CURRENT pager layout, cursor
+// registry emptied onto the inline array, key comparator cleared, insert
+// scratch depth reset, closed flag cleared); only stateless capacity is
+// kept (cursorsArr, insScratch parse slots, quickPageScratch — all
+// rewritten before use, mirroring the cursor pool's kept path/buffer
+// capacity; cellScratch arrives nil because Close's resetForPool drops it —
+// its lifetime is a single insert). No append-cursor invalidation here on
+// purpose: the slot is keyed by (pager, root) identity and its trust
+// re-derives from page truth on every engagement, so a re-armed wrapper
+// must behave exactly like a fresh NewBTree — and initFrom never touches
+// the slot. The arm generation bump is what makes a stale lease detectable.
+func (t *BTree) Reinit(pg *pager.Pager, rootPage uint32, isTable bool) *BTree {
+	t.gen++
+	t.initFrom(pg, rootPage, isTable, false)
+	t.keyCompare = nil
+	t.insDepth = 0
+	t.closed = false
 	return t
 }
 
@@ -128,11 +238,12 @@ func (c *Cursor) resetFor(t *BTree) {
 	c.regKey = cursorTreeKey{}
 }
 
-// resetForPool clears the wrapper's per-tree state before it becomes
-// garbage. The wrapper is NOT returned to a pool (see the file header): a
-// recycled wrapper re-armed under a racing Close is the crash this package
-// guards against. It stays closed until a NewBTree reset re-arms a FRESH
-// wrapper. Kept name for the call sites' wording.
+// resetForPool clears the wrapper's per-tree state at Close. A funnel-owned
+// wrapper then goes to its owner's TreeFreeList, whose next Get re-arms it
+// through Reinit (generation bump + full reset); any other wrapper stays
+// closed until GC. The wrapper itself never re-arms in place at Close: only
+// an explicit acquire (Reinit) may revive it, so every Close stays terminal.
+// Kept name for the call sites' wording.
 func (t *BTree) resetForPool() {
 	t.pager = nil
 	t.rootPage = 0

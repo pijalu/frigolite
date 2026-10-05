@@ -208,6 +208,15 @@ type DMLExecutor struct {
 	insTree    *btree.BTree
 	insTreeKey insTreeKey
 
+	// treeFree recycles the write-tree cache's CLOSED wrappers
+	// (btree.TreeFreeList, executor-scoped, statement-funnel goroutine
+	// only): an identity change or a layout-hook invalidation closes the
+	// old wrapper and returns it here, so the next miss re-arms it via
+	// btree.Reinit instead of allocating. Same ownership discipline as the
+	// engine's funnel list — single owner, single goroutine, Put only after
+	// Close at a provably-dead ownership point.
+	treeFree btree.TreeFreeList
+
 	// updTree/delTree are the point-UPDATE and point-DELETE write paths'
 	// cached b-tree wrappers — the insertWriteTree pattern extended to the
 	// other point-op families (one NewBTree + track + Close per statement
@@ -298,7 +307,9 @@ func NewDMLExecutor(ctx DMLContext) *DMLExecutor {
 // next row) closes it and builds a fresh one — a Close stays terminal, and
 // a closed wrapper is never re-armed, only replaced (the btree_pool.go
 // contract). Ownership is the executor's: single-goroutine statement
-// funnel, like every other DMLExecutor field.
+// funnel, like every other DMLExecutor field. A replaced wrapper goes to
+// the executor's TreeFreeList, so the next identity-change miss re-arms it
+// (btree.Reinit) instead of allocating.
 func (e *DMLExecutor) insertWriteTree(pg *pager.Pager, tableEntry *schema.Entry, withoutRowid bool) *btree.BTree {
 	root := e.ctx.RootPagePg(pg, tableEntry.Name, tableEntry.RootPage)
 	key := insTreeKey{pg: pg, root: root, isTable: !withoutRowid}
@@ -307,8 +318,14 @@ func (e *DMLExecutor) insertWriteTree(pg *pager.Pager, tableEntry *schema.Entry,
 	}
 	if e.insTree != nil && !e.insTree.Closed() {
 		e.insTree.Close()
+		e.treeFree.Put(e.insTree)
 	}
-	t := btree.NewBTree(pg, root, !withoutRowid)
+	var t *btree.BTree
+	if recycled := e.treeFree.Get(); recycled != nil {
+		t = recycled.Reinit(pg, root, !withoutRowid)
+	} else {
+		t = btree.NewBTree(pg, root, !withoutRowid)
+	}
 	e.insTree = t
 	e.insTreeKey = key
 	return t
@@ -350,6 +367,12 @@ func (e *DMLExecutor) InvalidateWriteTree() {
 		*slot.key = insTreeKey{}
 	}
 	e.insTree, e.updTree, e.delTree = nil, nil, nil
+	// The whole free list is purged, not fed: a layout replacement staled
+	// EVERY pooled wrapper's snapshot geometry (btree.TreeFreeList cargo is
+	// closed wrappers), whichever pager the change touched. The engine's
+	// funnel list is purged by the same hook (Engine.setPagerLayoutHook);
+	// the next acquire rebuilds fresh via NewBTree.
+	e.treeFree.Purge()
 }
 
 // pointWriteTree returns the cached slot's b-tree wrapper for a point-op
@@ -367,8 +390,14 @@ func (e *DMLExecutor) pointWriteTree(slot **btree.BTree, key *insTreeKey, pg *pa
 	}
 	if t := *slot; t != nil && !t.Closed() {
 		t.Close()
+		e.treeFree.Put(t)
 	}
-	t := btree.NewBTree(pg, root, true)
+	var t *btree.BTree
+	if recycled := e.treeFree.Get(); recycled != nil {
+		t = recycled.Reinit(pg, root, true)
+	} else {
+		t = btree.NewBTree(pg, root, true)
+	}
 	*slot = t
 	*key = k
 	return t
