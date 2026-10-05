@@ -2,7 +2,6 @@ package execdml
 
 import (
 	"fmt"
-	"math"
 	"strings"
 
 	"github.com/pijalu/frigolite/internal/btree"
@@ -241,13 +240,13 @@ func (e *DMLExecutor) ipkRowidAliasConflict(tableName string, rootPage uint32, c
 	if err != nil || !found {
 		if err == nil && !e.hasCachedMaxRowID(tableName, rootPage) {
 			// Clean miss with no cache entry: re-arm the append bias by
-			// seeding the cache with the tree's true maximum (one seek to
-			// the right edge). The remaining rows of a bulk explicit-rowid
-			// load then skip their probes again, and a rowid below the true
-			// maximum can never seed the cache (spellfix 7.4.2: a low
-			// explicit rowid recorded into an empty cache entry made the
-			// gate accept a later duplicate).
-			e.cacheMaxRowIDFromTree(tableName, rootPage, cursor)
+			// seeding the cache with the tree's true maximum (scanMaxRowID,
+			// once per invalidation window). The remaining rows of a bulk
+			// explicit-rowid load then skip their probes again, and a rowid
+			// below the true maximum can never seed the cache (spellfix
+			// 7.4.2: a low explicit rowid recorded into an empty cache entry
+			// made the gate accept a later duplicate).
+			e.ctx.SetNextRowIDFor(e.dmlPager(tableName), rootPage, e.scanMaxRowID(tree))
 		}
 		return 0, nil, -1, false
 	}
@@ -267,32 +266,6 @@ func (e *DMLExecutor) ipkRowidAliasConflict(tableName string, rootPage uint32, c
 func (e *DMLExecutor) hasCachedMaxRowID(tableName string, rootPage uint32) bool {
 	_, ok := e.ctx.NextRowIDFor(e.dmlPager(tableName), rootPage)
 	return ok
-}
-
-// cacheMaxRowIDFromTree seeds the largest-rowid cache with the tree's actual
-// maximum: seek past the right edge, then step back to the last cell — one
-// O(log n) descent re-establishes the cache's bump-only-grows base after an
-// invalidation. An empty tree leaves the cache unset (the probe keeps
-// running; the auto-rowid path re-scans as before).
-func (e *DMLExecutor) cacheMaxRowIDFromTree(tableName string, rootPage uint32, cursor *btree.Cursor) {
-	found, err := cursor.SeekToRowID(math.MaxInt64)
-	if err != nil {
-		return // unknown state: leave the cache empty (probes stay on)
-	}
-	if !found {
-		if !cursor.AtEnd() {
-			return // unknown position: leave the cache empty (probes stay on)
-		}
-		hasPrev, err := cursor.Prev()
-		if err != nil || !hasPrev {
-			return // empty tree (or I/O error): nothing proven to seed
-		}
-	}
-	cell, err := cursor.ReadCell()
-	if err != nil || cell == nil {
-		return
-	}
-	e.ctx.SetNextRowIDFor(e.dmlPager(tableName), rootPage, cell.RowID)
 }
 
 // scanForConflict iterates through all rows and looks for a value match
