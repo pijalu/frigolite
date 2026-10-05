@@ -278,3 +278,144 @@ func TestClosedOwnerReadContract(t *testing.T) {
 		t.Fatalf("ReadCellData error = %v, want a closed-cursor contract error", err)
 	}
 }
+
+// TestTreeFreeListGenerationLease pins the ownership-token discipline that
+// makes wrapper reuse safe (btree_pool.go file header): every Reinit bumps
+// the arm generation, a release whose lease generation no longer matches the
+// wrapper's current generation is STALE and must no-op — no Close, no Put —
+// leaving the live successor untouched and functional. This is the
+// structural fix for the A-late-Close/B-reuse hazard that removed the first
+// wrapper pooling.
+func TestTreeFreeListGenerationLease(t *testing.T) {
+	pg, root := buildPoolTestTree(t, 10)
+
+	var fl TreeFreeList
+	tree := NewBTree(pg, root, true)
+	firstGen := tree.Generation()
+	lease := TreeLease{Tree: tree, Gen: firstGen}
+
+	tree.Close()
+	fl.Put(tree)
+
+	// The next owner re-arms the SAME wrapper object.
+	var got *BTree
+	for {
+		candidate := fl.Get()
+		if candidate == nil {
+			t.Fatal("free list empty, want the just-closed wrapper")
+		}
+		if candidate == tree {
+			got = candidate
+			break
+		}
+	}
+	if got.Generation() != firstGen {
+		t.Fatalf("closed wrapper gen = %d, want %d (bump happens at Reinit)", got.Generation(), firstGen)
+	}
+	got.Reinit(pg, root, true)
+	if got.Closed() {
+		t.Fatal("Reinit left the wrapper closed")
+	}
+	if got.Generation() != firstGen+1 {
+		t.Fatalf("Reinit gen = %d, want %d", got.Generation(), firstGen+1)
+	}
+
+	// The FIRST owner's stale release (lease gen no longer matches) must
+	// no-op: the live successor keeps working.
+	if lease.Gen == lease.Tree.Generation() {
+		t.Fatal("stale lease unexpectedly matches the re-armed generation")
+	}
+	if lease.Tree.Closed() {
+		t.Fatal("re-armed wrapper reported closed before the stale release")
+	}
+	// (The stale release itself is the caller's gen check skipping Close+Put
+	// — the same comparison releaseStatementTrees runs. Pin the comparison.)
+	staleReleaseNoOp := lease.Tree.Closed() || lease.Tree.Generation() != lease.Gen
+	if !staleReleaseNoOp {
+		t.Fatal("stale lease release would close the live successor")
+	}
+	cur, err := got.OpenCursor()
+	if err != nil {
+		t.Fatalf("OpenCursor after stale release: %v", err)
+	}
+	found, err := cur.SeekToRowID(7)
+	if err != nil || !found {
+		t.Fatalf("SeekToRowID(7) after stale release: found=%v err=%v", found, err)
+	}
+	cur.Close()
+	got.Close()
+	// The LIVE owner's release still recycles: Put accepts the closed
+	// wrapper and a later Get hands it back.
+	fl.Put(got)
+	if again := fl.Get(); again != got {
+		t.Fatal("live owner's release did not return the wrapper to the free list")
+	}
+	// Put refuses open wrappers (defensive: never pool a live wrapper).
+	live := NewBTree(pg, root, true)
+	defer live.Close()
+	fl.Put(live)
+	if n := len(fl.free); n != 0 {
+		t.Fatalf("free list holds %d wrappers after Put of an open wrapper, want 0", n)
+	}
+}
+
+// TestTreeFreeListPurge pins the layout-hook contract: Purge drops every
+// pooled wrapper without closing them (they are already closed) and the
+// next Get builds nothing.
+func TestTreeFreeListPurge(t *testing.T) {
+	pg, root := buildPoolTestTree(t, 4)
+	var fl TreeFreeList
+	for i := 0; i < 3; i++ {
+		tree := NewBTree(pg, root, true)
+		tree.Close()
+		fl.Put(tree)
+	}
+	if n := len(fl.free); n != 3 {
+		t.Fatalf("free list holds %d wrappers, want 3", n)
+	}
+	fl.Purge()
+	if n := len(fl.free); n != 0 {
+		t.Fatalf("free list holds %d wrappers after Purge, want 0", n)
+	}
+	if fl.Get() != nil {
+		t.Fatal("Get after Purge returned a wrapper, want nil")
+	}
+}
+
+// TestReinitFullReset pins the acquire-side reset contract: a re-armed
+// wrapper is observably a fresh NewBTree over the new identity — no
+// inherited key comparator (WITHOUT ROWID tenant -> rowid tenant), no
+// inherited cursors, geometry from the CURRENT pager.
+func TestReinitFullReset(t *testing.T) {
+	pg, root := buildPoolTestTree(t, 4)
+	tree := NewBTree(pg, root, true)
+	tree.SetKeyCompare(func(a, b []byte) int { return 1 })
+	tree.Close()
+
+	var fl TreeFreeList
+	fl.Put(tree)
+	re := fl.Get()
+	if re == nil {
+		t.Fatal("free list empty, want the closed wrapper")
+	}
+	re.Reinit(pg, root, true)
+	defer re.Close()
+	if re.keyCompare != nil {
+		t.Fatal("Reinit inherited the previous tenant's key comparator")
+	}
+	if len(re.cursors) != 0 {
+		t.Fatalf("Reinit inherited %d cursors", len(re.cursors))
+	}
+	if re.pageSize != pg.PageSize() || re.usableSize != pg.UsableSize() || re.rootPage != root || re.pager != pg {
+		t.Fatal("Reinit did not re-snapshot the geometry from the given pager")
+	}
+	cur, err := re.OpenCursor()
+	if err != nil {
+		t.Fatalf("OpenCursor on re-armed wrapper: %v", err)
+	}
+	found, err := cur.SeekToRowID(3)
+	if err != nil || !found {
+		t.Fatalf("SeekToRowID(3) on re-armed wrapper: found=%v err=%v", found, err)
+	}
+	cur.Close()
+}
