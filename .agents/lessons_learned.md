@@ -3116,3 +3116,68 @@ Commits: BUG1 = 661902335 (L2-L4 loaded-trigger walk memo), BUG2 = 76e92640a
 - **Bench harness**: /tmp/perf/frigo was lost to tmp cleanup again; rebuilt
   as /tmp/perf/miscreg (+ miscregmain with the replace flipped to main).
   Only interleaved same-harness branch-vs-main ratios are meaningful.
+
+## PERF.ARENA — statement-scoped allocation elimination (fleet/perf-arena, 2026-10-05)
+
+Mission: cut per-statement allocations via statement-scoped structure reuse.
+Base 91c5be1be; branch fleet/perf-arena. All measurements paired interleaved
+(main binary vs arena binary, same /tmp/perf harness script, 3 reps) —
+absolute numbers drift with machine load from sibling agents; only the
+paired ratio is signal.
+
+- **Census first (alloc_space, not just cum CPU)**: point SELECT was ~1.46KB
+  engine allocs/stmt, literal INSERT ~234B, point UPDATE ~1.46KB. Top
+  classes: per-statement affinity name-map churn (~270B point), the internal
+  control-flow &Result{} markers (2-3 obj/stmt update), the runSQLText
+  single-statement result copy (124B, ALL shapes), the OR-index planner's
+  pre-analysis on every WHERE'd SELECT (60B), the point-fetch decode buffer
+  + StructRow + dead IPK rowid wrap (~140B point), the DML seek-plan struct
+  + equality-side name set + UNIQUE/PK column scan (~110B update/delete).
+- **No-aliasing discipline that worked**: per-selectDepth (execquery) /
+  per-execDepth (execdml/exec) slot arrays; reset-on-acquire (clear(map)
+  keeps buckets; *r = Result{} bulk-zero; decode buffer re-nils every
+  element because the column-targeted decode writes only its slots);
+  consumption-before-release (every converted site's value is dead before
+  the next same-depth acquire — checked for Error and dropped, or copied
+  out at the statement boundary); nested statements always take a deeper
+  slot, so an enclosing statement's in-flight state can never be clobbered.
+  Engine.ExecDepth exposed on DMLContext for the execdml slot index
+  (execquery already had selectDepth). Pins: frigolite_arena_pins_test.go
+  (six nesting pins, -race clean).
+- **W-ladder (each measured before commit)**: W2 OR-gate whereHasOrConjunct
+  (+4% point); W3 affinityCollector slots (+4% more point); W4/W5 seek
+  scratch (values/StructRow/analysis/conjuncts) (+~1%); W6/W7 execdml
+  result/plan/outerCols/uniqCols slots + pushUpdateSetColumns outermost-only
+  buffer + snapBufs (+8% update, +3% delete); W8 single-statement result
+  pass-through (+5% point, all shapes); W9 alloc-free exprHasSubquery walk +
+  conjunct store-back + dead-IPK-fill gate (stable point, +2-3% scan).
+  Cumulative: point 604k→681k ops/s (+13%), update 447k→490k (+10%), delete
+  645k→672k (+4%), insert ~674k→684k (+1.5%), scan 38M→39.8M rows/s.
+- **runSQLText copy subtlety**: the fold's single-statement branch passes
+  Rows/Columns through verbatim, so `out := *last` was a field-for-field
+  duplicate; returning `last` directly (with the zero-rows→nil Rows
+  normalization done in place) preserves the public contract because the
+  public boundary copy happens in execResult/DB.Query either way.
+- **Full JSON suite is RED on main @ 91c5be1be (~4454 failing subtests with
+  fixtures copied)**: types3-1.1 (`SELECT typeof(:V)`) etc. fail on main in
+  isolation AND in the full run — pre-existing. The practical gate is
+  failure-SET parity: comm both directions vs main_fail.txt; the flaky band
+  (alter/temptrigger/trigger1-10.x/e_update/e_blobopen/incrblob/vacuum/
+  pragma2, TestP8IncrVacuum3OracleSequence, TestRtreeStressChurn) shifts
+  between runs on BOTH sides under machine load. Verify any suspicious
+  subtest serially, then on the main checkout, before believing a
+  regression.
+- **Deferred (real cuts, out of scope or structural)**: btree.NewBTree
+  wrapper per statement (129B point/stmt) — needs a btree-side Reset-on-
+  Close; storage.ParseRecordHeader + DecodeRecord/decodeValue (~230B update,
+  ~220B point) — storage pkg not in this tranche's scope; public *Result
+  wrapper (78-210B/statement, the biggest remaining engine-side alloc) —
+  needs an API change (value Result or pooled caller contract); INSERT
+  literal triple-handling (scanNumericLiteral → int64Text template write →
+  evalNumericLit box, ~67B/stmt) — needs a parsed-value cache on the
+  template slot path; columnNamesMemoGet hit-path copy (19B) — public
+  ownership.
+- **Harness protocol**: /tmp/perf/arena (copy of frigo harness, go.mod
+  replace → worktree, profile outputs renamed arena_*); always `go version
+  -m <bin> | grep '=>'` before trusting a number; measure.sh runs main and
+  arena interleaved per phase so ambient load cancels.
