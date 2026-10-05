@@ -94,28 +94,25 @@ func (e *DMLExecutor) fillIPKRowID(colDefs []sql.ColumnDef, values []interface{}
 	// SQLite's BEFORE INSERT trigger sees new.<ipk> as -1 for an auto-assigned
 	// rowid (the value is not set until the row is written), so the trigger
 	// must not see the pre-assigned rowid (tkt3832).
-	ipkWasNil := false
-	ipkIndex := -1
-	for i, cd := range colDefs {
-		if !withoutRowid && isIPKRowidAliasCol(cd) &&
-			i < len(values) && values[i] == nil {
-			// A NULL INTEGER PRIMARY KEY is always auto-filled with the
-			// assigned rowid — even when the column declares NOT NULL or the
-			// table is STRICT. For a rowid-alias column the value IS the
-			// rowid, so the auto-assigned rowid satisfies NOT NULL (verified
-			// against sqlite3 3.51: INSERT INTO t(id INTEGER PRIMARY KEY
-			// AUTOINCREMENT NOT NULL, x) VALUES('a') auto-assigns; explicit
-			// NULL likewise). The e_createtable-4.5.5/4.5.6/4.5.7 NOT NULL
-			// rejections use INT PRIMARY KEY (a regular PK column, not a
-			// rowid alias) or STRICT non-rowid columns, which this branch
-			// does not reach.
-			ipkWasNil = true
-			ipkIndex = i
-			values[i] = nextRowID
-			break
-		}
+	if withoutRowid {
+		return false, -1
 	}
-	return ipkWasNil, ipkIndex
+	ipkIndex := e.ipkAliasIndex(colDefs)
+	if ipkIndex < 0 || ipkIndex >= len(values) || values[ipkIndex] != nil {
+		return false, -1
+	}
+	// A NULL INTEGER PRIMARY KEY is always auto-filled with the
+	// assigned rowid — even when the column declares NOT NULL or the
+	// table is STRICT. For a rowid-alias column the value IS the
+	// rowid, so the auto-assigned rowid satisfies NOT NULL (verified
+	// against sqlite3 3.51: INSERT INTO t(id INTEGER PRIMARY KEY
+	// AUTOINCREMENT NOT NULL, x) VALUES('a') auto-assigns; explicit
+	// NULL likewise). The e_createtable-4.5.5/4.5.6/4.5.7 NOT NULL
+	// rejections use INT PRIMARY KEY (a regular PK column, not a
+	// rowid alias) or STRICT non-rowid columns, which this branch
+	// does not reach.
+	values[ipkIndex] = nextRowID
+	return true, ipkIndex
 }
 
 // strictCheckAndAffinity runs the STRICT pre/post-affinity value checks and
@@ -138,7 +135,7 @@ func (e *DMLExecutor) strictCheckAndAffinity(tableEntry *schema.Entry, colDefs [
 			return &Result{Error: err}
 		}
 	}
-	applyColumnAffinities(values, colDefs)
+	applyColumnAffinities(e, values, colDefs)
 	// In STRICT mode, affinity may have converted the value — re-check that
 	// the converted value still matches the declared type (e.g. integer '42'
 	// was accepted as a string but affinity converted it to int64 42).
@@ -151,22 +148,66 @@ func (e *DMLExecutor) strictCheckAndAffinity(tableEntry *schema.Entry, colDefs [
 }
 
 // applyColumnAffinities applies each column's type affinity to its value.
-
-// applyColumnAffinities applies each column's type affinity to its value.
-
-// applyColumnAffinities applies each column's type affinity to its value.
-// applyColumnAffinities applies each column's type affinity to its value.
-func applyColumnAffinities(values []interface{}, colDefs []sql.ColumnDef) {
+// The per-column affinity classes come memoized (columnAffinityClasses);
+// a class-0 column (BLOB / no declared type) stores its values as-is and
+// skips the conversion entirely.
+func applyColumnAffinities(e *DMLExecutor, values []interface{}, colDefs []sql.ColumnDef) {
 	// Apply type affinity to each value based on column type. This must run
 	// BEFORE the constraint checks so UNIQUE/PRIMARY KEY index comparisons
 	// (which may involve expressions over the columns, e.g. "a GLOB b") see
 	// the stored, affinity-converted values — SQLite applies affinity when
 	// writing the row, before validating constraints.
+	affs := e.columnAffinityClasses(colDefs)
 	for i, v := range values {
-		if i < len(colDefs) {
+		if i < len(affs) {
+			if affs[i] != 0 {
+				values[i] = util.ApplyColumnAffinityClass(v, rune(affs[i]))
+			}
+		} else if i < len(colDefs) {
 			values[i] = util.ApplyColumnAffinity(v, colDefs[i].Type)
 		}
 	}
+}
+
+// columnAffinityClasses returns the memoized affinity class per column of
+// colDefs ('I','R','T','N', or 0 for BLOB/none), keyed on the schema
+// fingerprint + colDefs identity like columnIndexFor's cache.
+func (e *DMLExecutor) columnAffinityClasses(colDefs []sql.ColumnDef) []byte {
+	if len(colDefs) == 0 {
+		return nil
+	}
+	fp := e.schemaFingerprint()
+	if e.affClassCache != nil && e.affClassFingerprint == fp && e.affClassDefs == &colDefs[0] && e.affClassLen == len(colDefs) {
+		return e.affClassCache
+	}
+	affs := make([]byte, len(colDefs))
+	for i := range colDefs {
+		affs[i] = byte(util.Affinity(colDefs[i].Type))
+	}
+	e.affClassFingerprint, e.affClassDefs, e.affClassLen, e.affClassCache = fp, &colDefs[0], len(colDefs), affs
+	return affs
+}
+
+// ipkAliasIndex returns the memoized index of the table's INTEGER PRIMARY KEY
+// rowid-alias column (-1 when none), keyed on the schema fingerprint +
+// colDefs identity like columnIndexFor's cache.
+func (e *DMLExecutor) ipkAliasIndex(colDefs []sql.ColumnDef) int {
+	if len(colDefs) == 0 {
+		return -1
+	}
+	fp := e.schemaFingerprint()
+	if e.ipkIdxDefs != nil && e.ipkIdxFingerprint == fp && e.ipkIdxDefs == &colDefs[0] && e.ipkIdxLen == len(colDefs) {
+		return e.ipkIdxCache
+	}
+	idx := -1
+	for i := range colDefs {
+		if isIPKRowidAliasCol(colDefs[i]) {
+			idx = i
+			break
+		}
+	}
+	e.ipkIdxFingerprint, e.ipkIdxDefs, e.ipkIdxLen, e.ipkIdxCache = fp, &colDefs[0], len(colDefs), idx
+	return idx
 }
 
 // strictCheckGenerated enforces STRICT type checking on generated column

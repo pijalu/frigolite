@@ -135,8 +135,8 @@ func (e *DMLExecutor) execInsertTuples(dbCtx *DatabaseContext, tableEntry *schem
 	var totalInserted int64
 	var returningRows [][]interface{}
 	var lastRowID int64
-	for _, tuple := range s.Values {
-		changes, inserted, rowValues, rowid, skip, err := e.insertOneTuple(dbCtx, tableEntry, colDefs, s, tuple)
+	for ti, tuple := range s.Values {
+		changes, inserted, rowValues, rowid, skip, err := e.insertOneTuple(dbCtx, tableEntry, colDefs, s, tuple, insertTupleLits(s, ti))
 		if err != nil {
 			return e.tupleErrorResult(err, tableEntry, colDefs)
 		}
@@ -200,16 +200,10 @@ func (e *DMLExecutor) tupleErrorResult(err error, tableEntry *schema.Entry, colD
 }
 
 // insertOneTuple evaluates, writes, and (for RETURNING) projects one VALUES
-// tuple. skip reports an OR IGNORE row that must not count.
-
-// insertOneTuple evaluates, writes, and (for RETURNING) projects one VALUES
-// tuple. skip reports an OR IGNORE row that must not count.
-
-// insertOneTuple evaluates, writes, and (for RETURNING) projects one VALUES
-// tuple. skip reports an OR IGNORE row that must not count.
-// insertOneTuple evaluates, writes, and (for RETURNING) projects one VALUES
-// tuple. skip reports an OR IGNORE row that must not count.
-func (e *DMLExecutor) insertOneTuple(dbCtx *DatabaseContext, tableEntry *schema.Entry, colDefs []sql.ColumnDef, s *sql.InsertStmt, tuple []sql.Expr) (changes int64, inserted int64, rowValues []interface{}, rowid int64, skip bool, err error) {
+// tuple. skip reports an OR IGNORE row that must not count. lits is the
+// template slot-path value stash for the tuple (nil when absent; see
+// sql.InsertStmt.InsLitVals).
+func (e *DMLExecutor) insertOneTuple(dbCtx *DatabaseContext, tableEntry *schema.Entry, colDefs []sql.ColumnDef, s *sql.InsertStmt, tuple []sql.Expr, lits []interface{}) (changes int64, inserted int64, rowValues []interface{}, rowid int64, skip bool, err error) {
 	var values []interface{}
 	var evalErr error
 	if s.HasReturning || e.hasTriggersForTable(tableEntry.Name) || e.ctx.ForeignKeys() {
@@ -218,9 +212,9 @@ func (e *DMLExecutor) insertOneTuple(dbCtx *DatabaseContext, tableEntry *schema.
 		// executor while this row's values are still in flight — the nested
 		// evalTuple would overwrite the shared scratch. Those shapes keep
 		// fresh tuple slices.
-		values, evalErr = e.evalTuple(tableEntry.Name, tuple, s.Columns, colDefs)
+		values, evalErr = e.evalTuple(tableEntry.Name, tuple, s.Columns, colDefs, lits)
 	} else {
-		values, evalErr = e.evalTuplePooled(tableEntry.Name, tuple, s.Columns, colDefs)
+		values, evalErr = e.evalTuplePooled(tableEntry.Name, tuple, s.Columns, colDefs, lits)
 	}
 	if evalErr != nil {
 		return 0, 0, nil, 0, false, evalErr
@@ -247,6 +241,15 @@ func (e *DMLExecutor) insertOneTuple(dbCtx *DatabaseContext, tableEntry *schema.
 		ins = res.Changes
 	}
 	return res.Changes, ins, rowValues, res.LastInsertRowID, false, nil
+}
+
+// insertTupleLits returns the template slot-path value stash for tuple ti of
+// s (nil when the statement carries no stash or the index is out of range).
+func insertTupleLits(s *sql.InsertStmt, ti int) []interface{} {
+	if s.InsLitVals == nil || ti >= len(s.InsLitVals) {
+		return nil
+	}
+	return s.InsLitVals[ti]
 }
 
 // evalInsertReturningRow evaluates RETURNING against the row that was actually

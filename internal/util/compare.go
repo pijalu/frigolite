@@ -611,7 +611,17 @@ func ApplyColumnAffinity(val interface{}, typeName string) interface{} {
 	if val == nil {
 		return nil
 	}
-	aff := Affinity(typeName)
+	return ApplyColumnAffinityClass(val, Affinity(typeName))
+}
+
+// ApplyColumnAffinityClass coerces a Go value by a PRE-COMPUTED affinity
+// class (the Affinity(typeName) result, memoized by callers that wrap the
+// same columns per row). A nil value passes through; class 0 (no affinity)
+// and BLOB store the value unchanged.
+func ApplyColumnAffinityClass(val interface{}, aff rune) interface{} {
+	if val == nil {
+		return nil
+	}
 	switch aff {
 	case 'I': // INTEGER
 		return applyIntAffinity(val)

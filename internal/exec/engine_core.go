@@ -78,6 +78,10 @@ func (c *exprClone) insertStmtValues(s *sql.InsertStmt) (*sql.InsertStmt, error)
 	clone.OrFail = s.OrFail
 	clone.OrConflict = s.OrConflict
 	clone.RawSQL = s.RawSQL
+	// The slot-path value stash is owned by the slot-path apply on the live
+	// clone (template_slotpath_apply.go); a COW clone — fresh or recycled
+	// tenant — never serves one (full-tenant overwrite, clone_scratch.go).
+	clone.InsLitVals = nil
 	if cteChanged {
 		clone.CTEs = ctes
 	} else {

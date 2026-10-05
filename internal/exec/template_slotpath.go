@@ -64,6 +64,9 @@ const (
 type templateSlots struct {
 	paths   []slotPath  // one per literal slot, in value-consumption order
 	classes []slotClass // parallel gate per slot
+	tupSlot []int32     // parallel INSERT-tuple slot encoding (-1 = not a tuple
+	// slot; otherwise insTupleIdx(tuple,item)): the value-stash map execdml's
+	// tuple evaluation reads (sql.InsertStmt.InsLitVals).
 }
 
 // slotPath addresses one literal slot: the root statement index plus the
@@ -199,7 +202,7 @@ func collectTemplateSlots(stmts []sql.Stmt) *templateSlots {
 	if !sc.ok || len(sc.paths) == 0 {
 		return nil
 	}
-	return &templateSlots{paths: sc.paths, classes: sc.classes}
+	return &templateSlots{paths: sc.paths, classes: sc.classes, tupSlot: sc.tupSlot}
 }
 
 // slotCollector accumulates slot paths while mirroring the COW walkers'
@@ -207,6 +210,7 @@ func collectTemplateSlots(stmts []sql.Stmt) *templateSlots {
 type slotCollector struct {
 	paths   []slotPath
 	classes []slotClass
+	tupSlot []int32
 	steps   []slotStep
 	curRoot int
 	ok      bool
@@ -218,6 +222,7 @@ func (sc *slotCollector) slot(class slotClass) {
 	copy(p.steps, sc.steps)
 	sc.paths = append(sc.paths, p)
 	sc.classes = append(sc.classes, class)
+	sc.tupSlot = append(sc.tupSlot, -1)
 }
 
 // collectStmt dispatches one statement family. root is the template AST
@@ -482,10 +487,13 @@ func (sc *slotCollector) collectConflict(oc *sql.OnConflictClause) {
 	}
 }
 
-// slotTuple records a VALUES tuple slot (two-level index).
+// slotTuple records a VALUES tuple slot (two-level index). The encoding is
+// kept on the slot table (tupSlot) so the apply can stash the parsed value
+// into the clone's InsLitVals for execdml's tuple evaluation.
 func (sc *slotCollector) slotTuple(tuple, item int, class slotClass) {
 	sc.steps = append(sc.steps, slotStep{field: sfInsTuple, idx: insTupleIdx(tuple, item)})
 	sc.slot(class)
+	sc.tupSlot[len(sc.tupSlot)-1] = int32(insTupleIdx(tuple, item))
 	sc.steps = sc.steps[:len(sc.steps)-1]
 }
 

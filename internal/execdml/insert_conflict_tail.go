@@ -61,6 +61,11 @@ func (e *DMLExecutor) explicitPKRowID(tableName string, colDefs []sql.ColumnDef,
 // reports that no rowid was derivable from it.
 func pkRowIDFromColumn(cd sql.ColumnDef, v interface{}, withoutRowid bool) (int64, bool, error) {
 	if !withoutRowid && isIPKRowidAliasCol(cd) {
+		if iv, ok := v.(int64); ok {
+			// NUMERIC affinity never changes an int64 (applyNumericAffinity's
+			// default arm) — the rowid reads it directly.
+			return iv, true, nil
+		}
 		vv := util.ApplyColumnAffinity(v, "NUMERIC")
 		if iv, ok := vv.(int64); ok {
 			return iv, true, nil

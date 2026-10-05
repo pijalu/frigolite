@@ -60,7 +60,15 @@ func isAmbiguousReal(v float64) bool {
 // It returns false when a path cannot be followed (unreachable for a
 // collector-produced table — belt and braces: the caller falls back to the
 // COW clone rather than serve a stale literal).
+//
+// INSERT tuple slots additionally stash their parsed values into the clone's
+// InsLitVals (sql.InsertStmt): execdml's tuple evaluation reads the stashed
+// value instead of re-parsing the rewritten literal text. The stash is
+// refreshed by every successful apply together with the text — before the
+// statement executes — so the two can never diverge (a failed apply falls
+// back to a clone whose stash is nil).
 func (ts *templateSlots) apply(stmt sql.Stmt, values []interface{}) bool {
+	ins, hasStash := ts.stashTarget(stmt)
 	for i, p := range ts.paths {
 		var cur any = stmt
 		for si := 0; si < len(p.steps)-1; si++ {
@@ -73,8 +81,69 @@ func (ts *templateSlots) apply(stmt sql.Stmt, values []interface{}) bool {
 		if !ts.writeSlot(cur, p.steps[len(p.steps)-1], values[i]) {
 			return false
 		}
+		if hasStash {
+			if enc := ts.tupSlot[i]; enc >= 0 {
+				ins.InsLitVals[insTupleOf(int(enc))][insItemOf(int(enc))] = values[i]
+			}
+		}
 	}
 	return true
+}
+
+// stashValues fills the clone's InsLitVals from values WITHOUT rewriting any
+// node — the first-hit form, where the live clone was just built by the COW
+// walker with the values already substituted (fresh literal nodes carry the
+// text). validateValues MUST have passed. Returns false when the slot table
+// holds tuple slots but the root is not an InsertStmt (unreachable for a
+// collector-produced table; the caller discards the clone).
+func (ts *templateSlots) stashValues(stmt sql.Stmt, values []interface{}) bool {
+	ins, ok := ts.stashTarget(stmt)
+	if !ok {
+		// Nothing to stash when the table holds no tuple slots; a table WITH
+		// tuple slots over a non-INSERT root is unreachable for a
+		// collector-produced table (the caller discards the clone).
+		for _, enc := range ts.tupSlot {
+			if enc >= 0 {
+				return false
+			}
+		}
+		return true
+	}
+	for i, enc := range ts.tupSlot {
+		if enc >= 0 {
+			ins.InsLitVals[insTupleOf(int(enc))][insItemOf(int(enc))] = values[i]
+		}
+	}
+	return true
+}
+
+// stashTarget reports whether this slot table feeds an InsLitVals stash, and
+// readies the InsertStmt clone's stash to the Values shape (allocated once
+// per live clone; every successful apply or stashValues rewrites every slot
+// entry, so per-statement refresh needs no clearing — non-slot entries stay
+// nil forever).
+func (ts *templateSlots) stashTarget(stmt sql.Stmt) (*sql.InsertStmt, bool) {
+	hasTuple := false
+	for _, t := range ts.tupSlot {
+		if t >= 0 {
+			hasTuple = true
+			break
+		}
+	}
+	if !hasTuple {
+		return nil, false
+	}
+	ins, ok := stmt.(*sql.InsertStmt)
+	if !ok {
+		return nil, false
+	}
+	if len(ins.InsLitVals) != len(ins.Values) {
+		ins.InsLitVals = make([][]interface{}, len(ins.Values))
+		for ti, tuple := range ins.Values {
+			ins.InsLitVals[ti] = make([]interface{}, len(tuple))
+		}
+	}
+	return ins, true
 }
 
 // writeSlot rewrites one literal slot through its parent node and terminal
