@@ -118,6 +118,14 @@ func (m *Manager) InitValidatedTriggers() {
 	}
 }
 
+// ResetValidatedTriggers drops every validated-trigger mark. The marks are
+// keyed by schema + trigger NAME, not content: a DETACH/re-ATTACH of a
+// different file under the same schema name would otherwise inherit the
+// previous file's verdicts.
+func (m *Manager) ResetValidatedTriggers() {
+	m.validatedTriggers = make(map[string]bool)
+}
+
 // IsTriggerValidated reports whether a trigger was already validated.
 func (m *Manager) IsTriggerValidated(key string) bool {
 	return m.validatedTriggers[key]

@@ -280,6 +280,7 @@ type DMLContext interface {
 	CachedTriggerFlag(tableName string) (has bool, ok bool)
 	SetCachedTriggerFlag(tableName string, has bool)
 	InitValidatedTriggers()
+	ResetValidatedTriggers()
 	IsTriggerValidated(key string) bool
 	MarkTriggerValidated(key string)
 	InitUniqueIdxCache()
