@@ -110,15 +110,25 @@ func (e *Engine) tableHasAutoIncrement(tableName string) bool {
 }
 
 // bumpRowIDCache records a row with the given rowid as present in the table.
-// The cache always holds the largest rowid seen so far; explicit-rowid inserts
-// must bump it so later auto-rowid inserts do not collide. Keyed by (pager,
-// root page) so tables in different databases with the same root page do not
-// share rowid state.
+// The largest-rowid cache only ever grows over a KNOWN base: the entry is
+// seeded by a true max scan (plainNextRowID / the IPK probe's re-arm) and
+// then bumped only upward. Recording a just-inserted explicit rowid into an
+// EMPTY entry would claim max=rowid even when the tree still holds larger
+// rowids, and every later "rowid > cached" append-bias decision (IPK
+// conflict probe skip, auto-rowid alloc) would sit below the true maximum —
+// spellfix 7.4.2 accepted a duplicate shadow-table rowid exactly this way
+// after a schema change reset the cache. Keyed by (pager, root page) so
+// tables in different databases with the same root page do not share rowid
+// state.
 func (e *Engine) bumpRowIDCache(pg *pager.Pager, rootPage uint32, rowID int64) {
 	key := e.rowidCacheKey(pg, rootPage)
-	if cur, ok := e.caches.nextRowIDCache[key]; !ok || rowID > cur {
+	if cur, ok := e.caches.nextRowIDCache[key]; ok && rowID > cur {
 		e.caches.nextRowIDCache[key] = rowID
 	}
+	// The AUTOINCREMENT sequence records the largest rowid EVER used: it
+	// never decreases and every inserted rowid is a proven lower bound, so
+	// it bumps unconditionally (its fallback — sqlite_sequence + a max scan
+	// — keeps it correct across cache resets).
 	if cur, ok := e.caches.autoIncSeq[key]; !ok || rowID > cur {
 		e.caches.autoIncSeq[key] = rowID
 	}
