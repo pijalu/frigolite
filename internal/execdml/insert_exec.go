@@ -165,11 +165,16 @@ func (e *DMLExecutor) execInsertTuples(dbCtx *DatabaseContext, tableEntry *schem
 		}
 		return res
 	}
-	// Reusable per-statement result (executor scratch — consumed by the
-	// engine's result conversion before any nested/next statement reuses it;
-	// see insStmtRes). RETURNING statements return a row-set result built
+	// Reusable per-statement result (executor scratch — only at depth 1: the
+	// engine's execTrackChanges consumes the fields after the whole statement
+	// returns, so a nested INSERT (trigger body, FK action, vtab shadow
+	// write, fts5 statement-end flush) must not restage the shared scratch;
+	// see insDepth). RETURNING statements return a row-set result built
 	// fresh above.
 	res := &e.insStmtRes
+	if e.insDepth > 1 {
+		res = &Result{}
+	}
 	*res = Result{Changes: totalChanges, InsertedChanges: totalInserted, LastInsertRowID: lastRowID}
 	return res
 }

@@ -17,6 +17,15 @@ import (
 // prefix (test8.c echoError: xUpdate reports the failed source write as
 // "echo-vtab-error: %s", vtab1.12-2).
 func (e *DMLExecutor) execInsert(s *sql.InsertStmt) *Result {
+	// Track INSERT nesting (trigger bodies, FK actions, vtab shadow-table
+	// writes and the fts5 statement-end flush all re-enter execInsert through
+	// Engine.Exec while the outer statement is still running). The reusable
+	// success results (insRowRes/insStmtRes) are only staged at depth 1 —
+	// at depth >= 2 the outer statement's staged Result is still pending the
+	// engine's execTrackChanges, and reusing the scratch here would clobber
+	// its change count / last-insert-rowid (fts5lastrowid 1.1/1.3).
+	e.insDepth++
+	defer func() { e.insDepth-- }()
 	// resolve.c: a VALUES tuple has no source row, so any column reference
 	// in it is a prepare-time "no such column" error (bare or
 	// table-qualified alike; trigger NEW./OLD. rows excepted). Subqueries
@@ -579,8 +588,13 @@ func (e *DMLExecutor) insertRow(pg *pager.Pager, tableEntry *schema.Entry, colDe
 		}
 	}
 	// Reusable per-row success result (executor scratch — the fields are
-	// consumed by insertOneTuple before the next row; see insRowRes).
+	// consumed by insertOneTuple before the next row; see insRowRes). At
+	// INSERT nesting depth >= 2 the outer statement's row staging may still
+	// be pending, so the nested row builds fresh (see insDepth).
 	res = &e.insRowRes
+	if e.insDepth > 1 {
+		res = &Result{}
+	}
 	*res = Result{Changes: 1, LastInsertRowID: nextRowID}
 	return res
 }

@@ -148,13 +148,22 @@ type DMLExecutor struct {
 	// insRowRes / insStmtRes are the insert path's reusable success results:
 	// insertRow's per-row {Changes:1} and execInsertTuples' per-statement
 	// change count (two heap Results per INSERT dominated the insert-phase
-	// allocation profile). Safe under trigger nesting: a nested statement's
-	// write strictly nests inside the outer row's consumption window — the
-	// outer caller reads the scratch's fields only after every nested
-	// statement has returned (each nesting consumes its fields before
-	// returning) — and every other result shape (errors, RETURNING row sets,
+	// allocation profile). The scratch is only handed out at INSERT nesting
+	// depth 1 (see insDepth): an outer statement's staged Result is still
+	// unconsumed while the statement's own side work runs — the fts5
+	// statement-end shadow flush, FK actions, sqlite_sequence upkeep and
+	// trigger bodies all issue nested INSERTs through this same executor
+	// AFTER the outer execInsertTuples has staged its result, and the
+	// engine's execTrackChanges reads the fields only once the whole
+	// statement has returned. A nested statement (insDepth >= 2) therefore
+	// builds its Result fresh instead of overwriting the outer staging
+	// (fts5lastrowid 1.1/1.3: an autocommit INSERT into an fts5 table
+	// flushed %_data block id 10 mid-statement; reusing the scratch let the
+	// outer execTrackChanges publish 10 as last_insert_rowid instead of the
+	// fts5 rowid). Every other result shape (errors, RETURNING row sets,
 	// upsert outcomes) is built fresh. Each reuse assigns a full composite
 	// literal, so no field (including the unexported flags) survives.
+	insDepth   int
 	insRowRes  Result
 	insStmtRes Result
 
