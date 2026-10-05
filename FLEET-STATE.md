@@ -1184,3 +1184,35 @@ Correctness note: /tmp/perf/frigo harness go.mod replace was found
 pointing at a stale agent worktree (fix-ins2-vacuum) — 2026-10-02/03
 "main" benches in that window measured that branch, not main; all
 merged-main numbers re-established after fixing the replace.
+
+## PERF-PARITY3 (CLOSE, 2026-10-03) — R6 merged, 4 tranche regressions fixed, census 1073/0/290
+
+perf-dmlcore merged b5d70be74 (ASCII-fold screens, atomic SchemaCookie,
+conditional rowmaps, generation memos, journal-skip reads, pooled tuple
+with nested-insert pin). Post-merge census caught 4 tranche regressions,
+all root-caused + fixed + pinned:
+- FIX.INSREG (fleet/fix-insreg, merged 44cadaf00 lineage): both from
+  PERF.INSQUICK-2 2b3683c31. fts5lastrowid — reusable insStmtRes scratch
+  restaged by nested Engine.ExecSQLUntracked (%_data flush) leaked its
+  rowid into execTrackChanges → last_insert_rowid wrong; fix: insDepth
+  gate (scratch staged only at depth 1). spellfix — bumpRowIDCache
+  seeded EMPTY nextRowIDCache with a low explicit rowid → append-bias
+  gate skipped conflict probes → duplicate shadow rowids accepted; fix:
+  cache grows only over existing entry + clean-miss re-seed of true max
+  via scanMaxRowID (parity kept: insert −0.2% paired).
+- FIX.MISCREG (fleet/fix-miscreg, merged 44cadaf00): memoized trigger
+  validation + allTableIndexes keyed without the ATTACHed-schema state —
+  trigger tr3 "cannot reference objects in database main" never fired;
+  backup-2.9/2.10 SQLITE_ERROR. Fix: cross-database schema stamp keys
+  both memos; validated-trigger marks per schema-manager instance;
+  re-ATTACH revalidation pinned.
+Final census: 1073 pass / 0 fail / 290 skip, audit exit 0. Final bench
+(main, canonical harness, vs sqlite3 3.54 same ops): insert 673,633
+ops/s (2.4x), point 605,507 (1.78x), scan 38.1M rows/s (1.39x), group
+51 q/s (1.31x FASTER), update 444,020 (2.84x), delete 637,184 (2.35x),
+file autocommit 10,217 (~1.03x FASTER). Campaign start 2026-09-28:
+10.9x/1040x/6.5x/3.9x/2049x/885x. Remaining gap owned by per-statement
+lex+normalize+dispatch floor (Go vs C parse cost) — documented, no
+single hotspot left (profiles flat across tranches).
+Cleanup: /Users/muaddib/dev/frigolite-wt (46 worktrees, 18G) removed —
+all branches pushed; disk freed.
