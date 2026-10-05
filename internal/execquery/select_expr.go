@@ -276,80 +276,65 @@ func exprAggregateChildren(e sql.Expr) []sql.Expr {
 	return nil
 }
 
-// exprHasSubquery checks if an expression tree contains a Subquery or ExistsExpr.
+// exprHasSubquery checks if an expression tree contains a Subquery or
+// ExistsExpr. It walks the historical child coverage (ParenExpr, but not
+// CastExpr / CaseExpr.Operand / FuncCall.OrderBy) without materializing
+// per-node child slices; the walk splits across single-child, pair, and
+// multi-child helpers the way the DML subquery walkers do, so each stays
+// under the complexity gate.
 func exprHasSubquery(expr sql.Expr) bool {
-	if expr == nil {
-		return false
-	}
-	if isSubqueryNode(expr) {
-		return true
+	if expr == nil || isSubqueryNode(expr) {
+		return expr != nil
 	}
 	switch v := expr.(type) {
-	case *sql.BinaryOp:
-		return exprHasSubquery(v.Left) || exprHasSubquery(v.Right)
 	case *sql.UnaryOp:
 		return exprHasSubquery(v.Operand)
 	case *sql.ParenExpr:
 		return exprHasSubquery(v.Expr)
-	case *sql.InList:
-		if exprHasSubquery(v.Operand) {
-			return true
-		}
-		for _, item := range v.List {
-			if exprHasSubquery(item) {
-				return true
-			}
-		}
-		return false
+	default:
+		return exprHasSubqueryPair(expr)
+	}
+}
+
+// exprHasSubqueryPair walks the two-child (or list-tail-dispatched) nodes.
+func exprHasSubqueryPair(e sql.Expr) bool {
+	switch v := e.(type) {
+	case *sql.BinaryOp:
+		return exprHasSubquery(v.Left) || exprHasSubquery(v.Right)
 	case *sql.Between:
 		return exprHasSubquery(v.Operand) || exprHasSubquery(v.Low) || exprHasSubquery(v.High)
+	case *sql.InList:
+		return exprHasSubquery(v.Operand) || exprListHasSubqueryExpr(v.List)
 	case *sql.FuncCall:
 		// Historical coverage: the arguments only (OrderBy/Filter excluded).
-		for _, arg := range v.Args {
-			if exprHasSubquery(arg) {
-				return true
-			}
-		}
-		return false
+		return exprListHasSubqueryExpr(v.Args)
 	case *sql.CaseExpr:
 		// Historical coverage: WHEN/THEN arms and ELSE (the operand excluded).
-		for _, w := range v.Whens {
-			if exprHasSubquery(w.When) || exprHasSubquery(w.Then) {
-				return true
-			}
-		}
-		return exprHasSubquery(v.Else)
+		return caseExprHasSubqueryExpr(v)
 	}
 	return false
 }
 
-// exprHasSubqueryChildren returns the sub-expressions that exprHasSubquery
-// descends into, preserving its historical traversal coverage (ParenExpr but
-// not CastExpr/CaseExpr.Operand/FuncCall.OrderBy). exprHasSubquery now walks
-// the same coverage without materializing the per-node child slices — this
-// helper remains for callers that need the child list itself.
-func exprHasSubqueryChildren(e sql.Expr) []sql.Expr {
-	switch v := e.(type) {
-	case *sql.BinaryOp:
-		return []sql.Expr{v.Left, v.Right}
-	case *sql.UnaryOp:
-		return []sql.Expr{v.Operand}
-	case *sql.ParenExpr:
-		return []sql.Expr{v.Expr}
-	case *sql.InList:
-		return append([]sql.Expr{v.Operand}, v.List...)
-	case *sql.Between:
-		return []sql.Expr{v.Operand, v.Low, v.High}
-	case *sql.FuncCall:
-		return append([]sql.Expr{}, v.Args...)
-	case *sql.CaseExpr:
-		kids := []sql.Expr{}
-		for _, w := range v.Whens {
-			kids = append(kids, w.When, w.Then)
+// caseExprHasSubqueryExpr walks a CASE expression's WHEN arms and ELSE (the
+// operand excluded — the historical exprHasSubquery coverage).
+func caseExprHasSubqueryExpr(v *sql.CaseExpr) bool {
+	for _, w := range v.Whens {
+		if exprHasSubquery(w.When) || exprHasSubquery(w.Then) {
+			return true
 		}
-		return append(kids, v.Else)
 	}
-	return nil
+	return exprHasSubquery(v.Else)
+}
+
+// exprListHasSubqueryExpr reports whether any list element holds a
+// Subquery/ExistsExpr.
+func exprListHasSubqueryExpr(list []sql.Expr) bool {
+	for _, item := range list {
+		if exprHasSubquery(item) {
+			return true
+		}
+	}
+	return false
 }
 
 // checkWhereCollations walks a WHERE expression and raises "no such collation
