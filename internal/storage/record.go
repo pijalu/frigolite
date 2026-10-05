@@ -117,11 +117,26 @@ func DecodeRecord(data []byte) (*Record, error) {
 // ParseRecordHeader parses a SQLite record header and returns the serial type
 // codes for each column and the byte offset where the value data begins.
 // The value data starts at the returned dataStart offset within the data slice.
-// Serial types are allocated on a stack buffer when there are ≤16 columns.
 // The header must lie within the record's own bytes (vdbe.c OP_Column
 // op_column_corrupt parity) — a corrupt record reports
 // "database disk image is malformed".
+//
+// The returned slice is freshly allocated: callers that parse per row should
+// use ParseRecordHeaderInto with a reused buffer instead (the per-row form
+// allocates — the buffer backing the returned slice cannot stay on the
+// caller's stack because it escapes through the return).
 func ParseRecordHeader(data []byte) (serialTypes []uint64, dataStart int, err error) {
+	return ParseRecordHeaderInto(data, nil)
+}
+
+// ParseRecordHeaderInto is ParseRecordHeader appending into a caller-owned
+// buffer: serialTypes = append(buf, ...) — pass buf[:0] (or a retained slice
+// re-sliced to [:0]) to reuse one buffer across every row of a scan or the
+// statements of a cursor. The parse (varint boundaries, the corrupt-header
+// check, the returned dataStart) is byte-identical to ParseRecordHeader's.
+// The result is scratch: no callee retains it, and callers must not retain it
+// past the next call that reuses the buffer.
+func ParseRecordHeaderInto(data []byte, buf []uint64) ([]uint64, int, error) {
 	pos := 0
 
 	// Header size (varint)
@@ -132,19 +147,13 @@ func ParseRecordHeader(data []byte) (serialTypes []uint64, dataStart int, err er
 		return nil, 0, fmt.Errorf("database disk image is malformed")
 	}
 
-	// Decode serial type codes. Use a stack-allocated array for common
-	// column counts (≤16) to avoid heap allocation per row.
-	var stackSerialTypes [16]uint64
-	if hdrEnd-pos <= len(stackSerialTypes)*9 { // rough upper bound: each varint ≤ 9 bytes
-		serialTypes = stackSerialTypes[:0]
-	}
 	for pos < hdrEnd {
 		st, n := util.GetVarint(data[pos:])
 		pos += n
-		serialTypes = append(serialTypes, st)
+		buf = append(buf, st)
 	}
 
-	return serialTypes, pos, nil
+	return buf, pos, nil
 }
 
 // DecodeRecordValuesFromTypes decodes record values into target using pre-parsed
@@ -184,6 +193,75 @@ func DecodeRecordValuesFromTypesCols(data []byte, dataStart int, target []interf
 		pos += int(valLen)
 	}
 	return count
+}
+
+// DecodeRecordValuesInto decodes a record's values straight into target in
+// one call — the header walk and the value fill of the
+// ParseRecordHeaderInto + DecodeRecordValuesFromTypesCols pair — with no
+// intermediate serial-type slice on the heap (a stack buffer serves the
+// common ≤16-column records; append spills to the heap beyond it, parse
+// identical) and no Record struct. cols[i] selects on-disk column i for
+// decoding (nil = all); a selected column decodes into target[i] directly,
+// a skipped column advances past its data leaving target[i] nil.
+//
+// Returns the record's stored-column count — the header's serial-type count,
+// the value the phase-one row assembly needs — even when target is narrower
+// than the record or the value data is truncated; a truncation or an unknown
+// serial type stops the fill early WITHOUT error (DecodeRecordValuesFromTypesCols
+// semantics — the pre-filled target slots and the count are exactly what the
+// two-call form produces). Only a header extending past the record's own
+// bytes errors ("database disk image is malformed", op_column_corrupt
+// parity), the same condition ParseRecordHeader reports.
+func DecodeRecordValuesInto(data []byte, target []interface{}, cols []bool) (int, error) {
+	pos := 0
+
+	// Header size (varint)
+	hdrSize, n := util.GetVarint(data[pos:])
+	pos += n
+	hdrEnd := int(hdrSize)
+	if hdrEnd < pos || hdrEnd > len(data) {
+		return 0, fmt.Errorf("database disk image is malformed")
+	}
+
+	// Serial type codes. types does not outlive this call, so the stack
+	// buffer stays on the stack for the common column counts.
+	var stackSerialTypes [16]uint64
+	types := stackSerialTypes[:0]
+	for pos < hdrEnd {
+		st, n := util.GetVarint(data[pos:])
+		pos += n
+		types = append(types, st)
+	}
+	// dataStart is the post-header pos, exactly ParseRecordHeader's: a final
+	// header varint straddling hdrSize leaves it past hdrEnd, and the value
+	// walk starts there (the two-call form's dataStart).
+	dataStart := pos
+
+	// Values — the DecodeRecordValuesFromTypesCols fill, verbatim.
+	pos = dataStart
+	count := len(types)
+	if count > len(target) {
+		count = len(target)
+	}
+	decodeAll := cols == nil
+	for i := 0; i < count; i++ {
+		valLen, err := SerialTypeLength(types[i])
+		if err != nil {
+			return len(types), nil
+		}
+		// bounds check (safety: skip instead of panic for corrupted data)
+		if pos+int(valLen) > len(data) {
+			// truncated record — stop decoding
+			return len(types), nil
+		}
+		if decodeAll || cols[i] {
+			target[i] = decodeValue(types[i], data[pos:pos+int(valLen)])
+		}
+		// For skipped columns (not selected), advance past the data but
+		// leave target[i] as its zero value (nil).
+		pos += int(valLen)
+	}
+	return len(types), nil
 }
 
 // DecodeSerialInt64 decodes an integer serial type's (st ∈ [SerialInt8,
