@@ -101,6 +101,9 @@ func (t *BTree) unlinkChildlessFromParent(pnum uint32) (uint32, error) {
 	if err != nil {
 		return 0, err
 	}
+	// Write-intent barrier: the unlink paths below rewrite the parent's
+	// divider slots / rightmost pointer in place.
+	t.pager.PrepareWrite(parentPg)
 	idx, err := t.findLeafIndexInParent(parentPg, pnum)
 	if err != nil {
 		return 0, nil
@@ -164,6 +167,9 @@ func (t *BTree) cascadeLiveSingleChild(pg *pager.Page, coff int, pnum, rmp uint3
 // dead into an empty leaf of the matching kind (zeroPage header: content
 // area at the usable end, no freeblock, no fragmentation).
 func (t *BTree) rewriteRootAsEmptyLeaf(rootPg *pager.Page, coff int, pageType byte) error {
+	// Write-intent barrier: capture the root's before-image before the
+	// empty-leaf rewrite.
+	t.pager.PrepareWrite(rootPg)
 	if pageType == storage.PageTypeInteriorTable {
 		rootPg.Data[coff] = storage.PageTypeLeafTable
 	} else {

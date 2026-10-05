@@ -122,6 +122,9 @@ func (t *BTree) overwriteLeafCellAtDecoded(pg *pager.Page, page *storage.BTreePa
 	if err := overwriteBoundsError(oldOff, coff, len(cellData), int(t.pageSize)); err != nil {
 		return false, err
 	}
+	// Write-intent barrier (sqlite3PagerWrite parity): capture the leaf's
+	// statement-journal before-image before the in-place memcpy.
+	t.pager.PrepareWrite(pg)
 	// memcpy(oldCell, newCell, szNew) — the cell pointer array, content
 	// start and free-space accounting stay byte-identical.
 	copy(pg.Data[oldOff:oldOff+len(cellData)], cellData)

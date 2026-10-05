@@ -63,6 +63,9 @@ func (t *BTree) balanceAllEmptyWindow(ctx *balanceNonrootContext, parent *storag
 	// and a surviving d_c1 was the stale-reference bug) and the rightmost
 	// pointer when the window holds it, the parent still holds at least
 	// one divider. Free every emptied window child.
+	// Write-intent barrier: the partial-window path below rewrites the
+	// parent's rightmost pointer and drops its dividers in place.
+	t.pager.PrepareWrite(ctx.parent)
 	dropCount := c1 - c0 + 1
 	if c1 >= nOrig {
 		dropCount = c1 - c0
@@ -94,6 +97,9 @@ func (t *BTree) emptyWindowAbsorbRoot(ctx *balanceNonrootContext, parent *storag
 			return err
 		}
 	}
+	// Write-intent barrier: capture the root's before-image before the
+	// wholesale rewrite to an empty leaf.
+	t.pager.PrepareWrite(ctx.parent)
 	coff := parentCo
 	if parent.PageType == storage.PageTypeInteriorTable {
 		ctx.parent.Data[coff] = storage.PageTypeLeafTable
@@ -119,6 +125,9 @@ func (t *BTree) emptyWindowFreeAllChildren(ctx *balanceNonrootContext, parentCo 
 			return err
 		}
 	}
+	// Write-intent barrier: capture the parent's before-image before the
+	// divider drop rewrites it.
+	t.pager.PrepareWrite(ctx.parent)
 	binary.BigEndian.PutUint32(ctx.parent.Data[parentCo+8:parentCo+12], 0)
 	binary.BigEndian.PutUint16(ctx.parent.Data[parentCo+3:parentCo+5], 0)
 	if err := t.pager.WritePage(ctx.parent); err != nil {

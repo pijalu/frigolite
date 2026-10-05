@@ -171,11 +171,14 @@ func freeSpaceLink(data []byte, hdr, iPtr, iStart, iSize, next int) {
 // bytes return to the free space, the pointer slot is unlinked, and an
 // emptied page is reinitialized (nFree reset, content pointer at the
 // usable end). The parsed header struct is kept in sync.
-func dropCellFromLeafPage(pg *pager.Page, page *storage.BTreePage, coff, idx, cellOff, sz int, usableSize uint32) error {
+func dropCellFromLeafPage(p *pager.Pager, pg *pager.Page, page *storage.BTreePage, coff, idx, cellOff, sz int, usableSize uint32) error {
 	data := pg.Data
 	if cellOff+sz > int(usableSize) {
 		return storage.ErrMalformedImage
 	}
+	// Write-intent barrier (sqlite3PagerWrite parity): capture the page's
+	// statement-journal before-image before the first byte moves.
+	p.PrepareWrite(pg)
 	if err := freeSpaceOnPage(data, coff, int(usableSize), cellOff, sz); err != nil {
 		return err
 	}
@@ -226,13 +229,17 @@ func dropCellShiftPointers(data []byte, coff, idx, cellCount int) {
 // defragment when that gap alone is too small. ok=false reports the page
 // cannot hold the cell even after defragmentation — the caller must split.
 // The parsed header struct is kept in sync with any header mutation.
-func allocateSpaceOnPage(pg *pager.Page, page *storage.BTreePage, coff, nByte int, usableSize uint32) (off int, ok bool, err error) {
+func allocateSpaceOnPage(p *pager.Pager, pg *pager.Page, page *storage.BTreePage, coff, nByte int, usableSize uint32) (off int, ok bool, err error) {
 	data := pg.Data
 	gap := coff + storage.CellPointerOffset + 2*int(page.CellCount)
 	top, err := leafContentTop(page, coff, int(usableSize))
 	if err != nil {
 		return 0, false, err
 	}
+	// Write-intent barrier: every branch below may edit the page's free
+	// space (pageUseSlot, defragmentPackSpans, the content pointer) —
+	// capture the statement-journal before-image first.
+	p.PrepareWrite(pg)
 	// Freeblock search — btree.c consults the chain whenever one exists
 	// and the pointer array has headroom for the cell's new pointer, even
 	// when the content-area gap would also fit (keeping allocations out of

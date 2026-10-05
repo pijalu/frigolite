@@ -214,6 +214,9 @@ func (t *BTree) insertQuickDivider(pParent, newPg *pager.Page, pSpace []byte, di
 	if dividerStart < parentCo+cellPtrOffset(parentPage.PageType)+2*int(parentPage.CellCount)+2 {
 		return fmt.Errorf("btree: balanceQuick: not enough room for divider cell on pParent %d", pParent.PageNum)
 	}
+	// Write-intent barrier: capture the parent's statement-journal
+	// before-image before the divider bytes land.
+	t.pager.PrepareWrite(pParent)
 	copy(pParent.Data[dividerStart:dividerStart+dividerSize], pSpace[:dividerSize])
 	// Cell pointer array: insert at position parentPage.CellCount.
 	// cellPtrOffset is the header-relative array base; the raw buffer

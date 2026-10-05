@@ -21,8 +21,12 @@ func poolPager(t *testing.T) *Pager {
 	return p
 }
 
-// pageStamp writes a recognizable pattern into a page's bytes.
-func pageStamp(pg *Page, gen uint32) {
+// pageStamp announces write intent for pg (the statement-journal
+// write-intent barrier) and then writes a recognizable pattern into its
+// bytes — the pager-level equivalent of the btree layer's
+// PrepareWrite-before-edit discipline.
+func pageStamp(p *Pager, pg *Page, gen uint32) {
+	p.PrepareWrite(pg)
 	for off := 0; off+4 <= len(pg.Data); off += 4 {
 		binary.BigEndian.PutUint32(pg.Data[off:], gen)
 	}
@@ -55,7 +59,7 @@ func TestStmtJournalPoolRollbackExactness(t *testing.T) {
 		if err != nil {
 			t.Fatalf("read %d: %v", pgno, err)
 		}
-		pageStamp(pg, 1)
+		pageStamp(p, pg, 1)
 		p.WritePage(pg)
 	}
 	p.EndStatement(j)
@@ -70,7 +74,7 @@ func TestStmtJournalPoolRollbackExactness(t *testing.T) {
 			if err != nil {
 				t.Fatalf("read %d: %v", pgno, err)
 			}
-			pageStamp(pg, gen)
+			pageStamp(p, pg, gen)
 			p.WritePage(pg)
 		}
 		p.RollbackStatement(j)
@@ -95,13 +99,13 @@ func TestStmtJournalPoolRollbackExactness(t *testing.T) {
 		if err != nil {
 			t.Fatalf("read: %v", err)
 		}
-		pageStamp(pg, gen)
+		pageStamp(p, pg, gen)
 		p.WritePage(pg)
 		p.EndStatement(j)
 	}
 	j = p.BeginStatement()
 	pg, _ := p.ReadPage(2)
-	pageStamp(pg, 100)
+	pageStamp(p, pg, 100)
 	p.WritePage(pg)
 	p.RollbackStatement(j)
 	pg, _ = p.ReadPage(2)
@@ -121,7 +125,7 @@ func TestStmtJournalPoolNestedSpliceKeepsOldest(t *testing.T) {
 	// Committed base: generation 1.
 	j := p.BeginStatement()
 	pg, _ := p.ReadPage(2)
-	pageStamp(pg, 1)
+	pageStamp(p, pg, 1)
 	p.WritePage(pg)
 	p.EndStatement(j)
 
@@ -129,7 +133,7 @@ func TestStmtJournalPoolNestedSpliceKeepsOldest(t *testing.T) {
 	// EndStatement — the outermost scope IS the parent here).
 	outer := p.BeginStatement()
 	pg, _ = p.ReadPage(2)
-	pageStamp(pg, 2)
+	pageStamp(p, pg, 2)
 	p.WritePage(pg)
 
 	// Inner statement: generation 3, commits — its image is discarded
@@ -137,7 +141,7 @@ func TestStmtJournalPoolNestedSpliceKeepsOldest(t *testing.T) {
 	// must not end up shared between the discarded and kept entries.
 	inner := p.BeginStatement()
 	pg, _ = p.ReadPage(2)
-	pageStamp(pg, 3)
+	pageStamp(p, pg, 3)
 	p.WritePage(pg)
 	p.EndStatement(inner)
 
@@ -145,7 +149,7 @@ func TestStmtJournalPoolNestedSpliceKeepsOldest(t *testing.T) {
 	// the restored page; the outer image must be untouched.
 	inner2 := p.BeginStatement()
 	pg, _ = p.ReadPage(2)
-	pageStamp(pg, 4)
+	pageStamp(p, pg, 4)
 	p.WritePage(pg)
 	p.RollbackStatement(inner2)
 	pg, _ = p.ReadPage(2)
@@ -175,20 +179,20 @@ func TestStmtJournalPoolBufferNotShared(t *testing.T) {
 
 	j := p.BeginStatement()
 	pg1, _ := p.ReadPage(2)
-	pageStamp(pg1, 1)
+	pageStamp(p, pg1, 1)
 	p.WritePage(pg1)
 	pg2, _ := p.ReadPage(3)
-	pageStamp(pg2, 2)
+	pageStamp(p, pg2, 2)
 	p.WritePage(pg2)
 	p.EndStatement(j)
 
 	for round := 0; round < 50; round++ {
 		j := p.BeginStatement()
 		pg1, _ := p.ReadPage(2)
-		pageStamp(pg1, uint32(100+round))
+		pageStamp(p, pg1, uint32(100+round))
 		p.WritePage(pg1)
 		pg2, _ := p.ReadPage(2)
-		pageStamp(pg2, uint32(200+round))
+		pageStamp(p, pg2, uint32(200+round))
 		p.WritePage(pg2)
 		p.RollbackStatement(j)
 		pg1, _ = p.ReadPage(2)
@@ -215,10 +219,10 @@ func TestStmtJournalScopeRecycleClean(t *testing.T) {
 	// Baseline content: pages 2 and 3 stamped with generation 1.
 	j := p.BeginStatement()
 	pg2, _ := p.ReadPage(2)
-	pageStamp(pg2, 1)
+	pageStamp(p, pg2, 1)
 	p.WritePage(pg2)
 	pg3, _ := p.ReadPage(3)
-	pageStamp(pg3, 1)
+	pageStamp(p, pg3, 1)
 	p.WritePage(pg3)
 	p.EndStatement(j)
 
@@ -226,7 +230,7 @@ func TestStmtJournalScopeRecycleClean(t *testing.T) {
 	// scope (with its entries map) recycles into the free list.
 	j = p.BeginStatement()
 	pg2, _ = p.ReadPage(2)
-	pageStamp(pg2, 2)
+	pageStamp(p, pg2, 2)
 	p.WritePage(pg2)
 	p.EndStatement(j)
 
@@ -236,7 +240,7 @@ func TestStmtJournalScopeRecycleClean(t *testing.T) {
 	// stay at generation 2 while page 3 returns to generation 1.
 	j = p.BeginStatement()
 	pg3, _ = p.ReadPage(3)
-	pageStamp(pg3, 3)
+	pageStamp(p, pg3, 3)
 	p.WritePage(pg3)
 	p.RollbackStatement(j)
 	pg2, _ = p.ReadPage(2)
@@ -253,7 +257,7 @@ func TestStmtJournalScopeRecycleClean(t *testing.T) {
 	// exactly its own writes.
 	j = p.BeginStatement()
 	pg2, _ = p.ReadPage(2)
-	pageStamp(pg2, 9)
+	pageStamp(p, pg2, 9)
 	p.WritePage(pg2)
 	p.RollbackStatement(j)
 	pg2, _ = p.ReadPage(2)
@@ -275,7 +279,7 @@ func TestStmtJournalImageFreeListRecycle(t *testing.T) {
 	j := p.BeginStatement()
 	for _, pgno := range []uint32{2, 3} {
 		pg, _ := p.ReadPage(pgno)
-		pageStamp(pg, 1)
+		pageStamp(p, pg, 1)
 		p.WritePage(pg)
 	}
 	p.EndStatement(j)
@@ -287,21 +291,21 @@ func TestStmtJournalImageFreeListRecycle(t *testing.T) {
 	// (the outer's kept page-2 image must restore exactly).
 	outer := p.BeginStatement()
 	pg2, _ := p.ReadPage(2)
-	pageStamp(pg2, 2) // outer's first write captures page 2 at generation 1→2 boundary
+	pageStamp(p, pg2, 2) // outer's first write captures page 2 at generation 1→2 boundary
 	p.WritePage(pg2)
 	inner := p.BeginStatement()
 	pg2, _ = p.ReadPage(2)
-	pageStamp(pg2, 3)
+	pageStamp(p, pg2, 3)
 	p.WritePage(pg2)
 	pg3, _ := p.ReadPage(3)
-	pageStamp(pg3, 3)
+	pageStamp(p, pg3, 3)
 	p.WritePage(pg3)
 	p.EndStatement(inner)
 	// More commits: their captures recycle the dropped buffer.
 	for gen := uint32(4); gen <= 20; gen++ {
 		jc := p.BeginStatement()
 		pg3, _ := p.ReadPage(3)
-		pageStamp(pg3, gen)
+		pageStamp(p, pg3, gen)
 		p.WritePage(pg3)
 		p.EndStatement(jc)
 	}

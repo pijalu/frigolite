@@ -39,7 +39,7 @@ func (t *BTree) deleteSingleTableRowID(leafNum uint32, idx int, rowID int64) (ha
 	if serr != nil {
 		return false, 0, nil // malformed size: the generic path re-decodes and reports
 	}
-	if derr := dropCellFromLeafPage(pg, page, coff, idx, delOff, sz, t.usableSize); derr != nil {
+	if derr := dropCellFromLeafPage(t.pager, pg, page, coff, idx, delOff, sz, t.usableSize); derr != nil {
 		// The page image rejected the O(1) removal (corrupt free space):
 		// the generic path rebuilds the page wholesale and owns the error.
 		return false, 0, nil

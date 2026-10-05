@@ -172,33 +172,22 @@ func (p *Pager) AllocateRootpage() *Page {
 }
 
 // ReadPage reads a page. Data is always pageSize bytes.
+//
+// The read path performs NO statement-journal work: a read hands out bytes
+// the caller may only read; pages a caller intends to mutate must go
+// through PrepareWrite first (pager.c sqlite3PagerWrite's contract), which
+// captures the before-image pre-mutation. Capturing on read would byte-copy
+// every interior page of every seek — pages the vast majority of statements
+// never mutate.
 func (p *Pager) ReadPage(pageNum uint32) (*Page, error) {
 	if pageNum == 0 {
 		return nil, fmt.Errorf("database disk image is malformed")
 	}
 	p.mu.RLock()
 	pg, ok := p.pages[pageNum]
-	// Statement-journal probe: pages whose statement-start image is
-	// memory-only (already dirty at statement start, or a memory pager with
-	// no disk to recover from) must be byte-copied BEFORE the caller can
-	// mutate the handle. Clean pages of file-backed pagers skip the copy —
-	// their first dirtying journals a from-file entry instead — so the
-	// common scan path never takes the write lock here. A page the innermost
-	// scope already journalled needs no second capture: check under the read
-	// lock so the repeat reads of a transaction (interior pages, the root,
-	// the schema page) skip the write-lock upgrade entirely (reads see a
-	// stable journal — captures hold p.mu exclusively).
-	touch := ok && p.stmtTop != nil && (p.file == nil || p.dirty[pageNum])
-	if touch {
-		if _, journalled := p.stmtTop.stmtEntryFor(pageNum); journalled {
-			touch = false
-		}
-	}
 	p.mu.RUnlock()
-	if touch {
-		p.stmtReadTouch(pageNum)
-	}
 	if ok {
+		p.auditReadTouch(pg)
 		return pg, nil
 	}
 
@@ -232,7 +221,7 @@ func (p *Pager) readPageLocked(pageNum uint32) (*Page, error) {
 		p.invalidateCookieCacheLocked()
 	}
 	p.pages[pageNum] = pg
-	p.stmtCaptureOnReadLocked(pageNum)
+	p.auditRecordReadLocked(pg)
 	return pg, nil
 }
 
@@ -264,17 +253,6 @@ func (p *Pager) loadPageFromDiskLocked(pg *Page, pageNum uint32) error {
 		return fmt.Errorf("pager: read page %d: %w", pageNum, err)
 	}
 	return nil
-}
-
-// stmtCaptureOnReadLocked records the loaded page's statement-journal
-// before-image before it is handed to the caller: internal helpers (freelist
-// trunk rewrites, ptrmap maintenance) mutate the returned bytes right after
-// this call. The capture itself skips clean pages of file-backed pagers —
-// their markDirty path journals a from-file entry instead. Caller holds p.mu.
-func (p *Pager) stmtCaptureOnReadLocked(pageNum uint32) {
-	if p.stmtTop != nil {
-		p.stmtReadTouchLocked(pageNum)
-	}
 }
 
 // readPageWALLocked fills pg from the connection's WAL snapshot: the newest
@@ -451,8 +429,13 @@ func (p *Pager) WritePage(pg *Page) error {
 	if p.readOnly {
 		return fmt.Errorf("pager: read-only")
 	}
-	// For page 1, ensure the header is preserved in Data[0:HeaderSize]
+	// For page 1, ensure the header is preserved in Data[0:HeaderSize].
+	// The statement journal must see the page's PRE-mirror bytes: capture
+	// before the header copy, exactly as a PrepareWrite caller would.
 	if pg.PageNum == 1 && p.header != nil {
+		p.mu.Lock()
+		p.stmtJournalPageLocked(1)
+		p.mu.Unlock()
 		copy(pg.Data[:HeaderSize], p.header)
 	}
 	p.mu.Lock()

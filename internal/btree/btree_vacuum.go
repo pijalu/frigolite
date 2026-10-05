@@ -146,6 +146,9 @@ func (t *BTree) RelocatePage(to, from uint32) (relocated bool, err error) {
 	if err != nil {
 		return false, fmt.Errorf("btree: RelocatePage: re-read page %d: %w", to, err)
 	}
+	// Write-intent barrier: capture `to`'s free-page content as the
+	// statement-journal before-image BEFORE the copy overwrites it.
+	t.pager.PrepareWrite(toPg)
 	copy(toPg.Data, fromPg.Data)
 	// Mark `to` as dirty so the copy is written back on commit
 	// (and journaled for ROLLBACK).
@@ -336,6 +339,9 @@ func (t *BTree) updateOvfl2ParentPtr(parentPgno, oldChild, newChild uint32) erro
 	if got := binary.BigEndian.Uint32(parentPg.Data[0:4]); got != oldChild {
 		return fmt.Errorf("btree: updateParentChildPtr: overflow page %d chains to %d, not %d", parentPgno, got, oldChild)
 	}
+	// Write-intent barrier: capture the overflow page's before-image before
+	// the chain-pointer rewrite.
+	t.pager.PrepareWrite(parentPg)
 	binary.BigEndian.PutUint32(parentPg.Data[0:4], newChild)
 	pager.MarkPageDirtyForVacuum(t.pager, parentPgno)
 	return nil
@@ -364,6 +370,8 @@ func (t *BTree) updateBtreeParentPtr(parentPgno, oldChild, newChild uint32) erro
 	// translates to a CellPointer offset of coff+4 (CellPointer
 	// adds 8 internally).
 	ptrBase := coff + cellPtrOffset(page.PageType) - 8
+	// Write-intent barrier: the repoint paths below edit the parent's bytes.
+	t.pager.PrepareWrite(parentPg)
 	for i := 0; i < int(page.CellCount); i++ {
 		cellOff := int(storage.CellPointer(parentPg.Data, ptrBase, i, int(t.pageSize)))
 		if cellOff+4 > len(parentPg.Data) {

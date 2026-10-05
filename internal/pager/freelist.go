@@ -110,6 +110,10 @@ func (p *Pager) writeFreelistTrunkLocked(t freelistTrunk) {
 	if err != nil {
 		return
 	}
+	// Write-intent barrier: capture the trunk's statement-scope before-image
+	// BEFORE the field rewrite below (readPageLocked no longer captures on
+	// read — the read grants no mutation rights).
+	p.prepareWriteLocked(pg)
 	binary.BigEndian.PutUint32(pg.Data[0:4], t.next)
 	binary.BigEndian.PutUint32(pg.Data[4:8], uint32(len(t.leaves)))
 	for i, leaf := range t.leaves {
@@ -174,6 +178,9 @@ func (p *Pager) writePtrmapLocked(pgno uint32, parentType byte, parentPgno uint3
 	if err != nil {
 		return
 	}
+	// Write-intent barrier: capture the ptrmap page's statement-scope
+	// before-image BEFORE the entry rewrite below.
+	p.prepareWriteLocked(pg)
 	if _, err := storage.WritePtrmapEntry(pg.Data, pgno, p.pageSize, parentType, parentPgno); err != nil {
 		return
 	}

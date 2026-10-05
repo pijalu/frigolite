@@ -530,6 +530,9 @@ func (t *BTree) rebalancePartialWindow(ctx *balanceNonrootContext, parent *stora
 		}
 	}
 	// (4) Repoint the child pointer that followed the window.
+	// Write-intent barrier: this step edits the parent in place and the
+	// steps above may not have journalled it (empty window edits).
+	t.pager.PrepareWrite(ctx.parent)
 	last := siblings[nNewFull-1].PageNum
 	followIdx := c0 + nNewFull - 1
 	if followIdx < int(parent.CellCount) {
@@ -565,6 +568,8 @@ func (t *BTree) removeInteriorCellRange(pg *pager.Page, page *storage.BTreePage,
 	if start < 0 || start+count > int(page.CellCount) {
 		return fmt.Errorf("btree: removeInteriorCellRange: range [%d,%d) outside 0..%d", start, start+count, page.CellCount)
 	}
+	// Write-intent barrier: the pointer-shift loop below rewrites the page.
+	t.pager.PrepareWrite(pg)
 	coff := contentOffset(pg.PageNum)
 	ptrBase := coff + cellPtrOffset(page.PageType)
 	if !t.isTable {
@@ -607,6 +612,9 @@ func (t *BTree) insertInteriorDividerAt(pg *pager.Page, page *storage.BTreePage,
 	if idx < 0 || idx > int(page.CellCount) {
 		return fmt.Errorf("btree: insertInteriorDividerAt: index %d outside 0..%d", idx, page.CellCount)
 	}
+	// Write-intent barrier: the divider write below edits the page (and may
+	// defragment it first).
+	t.pager.PrepareWrite(pg)
 	coff := contentOffset(pg.PageNum)
 	ptrBase := coff + cellPtrOffset(page.PageType)
 	// Build the divider cell: 4-byte child + varint key. The varint must
@@ -669,6 +677,8 @@ func (t *BTree) insertInteriorDividerAt(pg *pager.Page, page *storage.BTreePage,
 // src/btree.c:2205). Cell order and pointer-array order are preserved;
 // CellContent is reset to the new lowest cell offset.
 func (t *BTree) defragmentInterior(pg *pager.Page, page *storage.BTreePage) error {
+	// Write-intent barrier: the compaction below moves the page's bytes.
+	t.pager.PrepareWrite(pg)
 	coff := contentOffset(pg.PageNum)
 	ptrBase := coff + cellPtrOffset(page.PageType)
 	cnt := int(page.CellCount)
