@@ -104,28 +104,48 @@ func (e *SelectEngine) execSelectPostScan(s *sql.SelectStmt, allRows [][]interfa
 	return e.finalizeSelectResult(result, s, allRowMaps)
 }
 
-// pooledSelectResult returns this selectDepth's reusable SELECT result
-// struct, zeroed for a fresh statement. Every nested execution (compound
-// members, subqueries, view bodies, trigger statements) runs through its own
-// execSelect at a strictly deeper selectDepth, so a slot is only ever
-// reacquired after the statement that took it has fully returned and every
-// consumer has copied the fields it keeps — the public boundary (DB.Query /
-// DB.Exec / Stmt) copies Columns/Rows/Changes/LastInsertRowID/Error into the
-// caller's own Result, and the engine-internal readers (foldQueryResult, the
-// trigger executor, the vtab helpers) read theirs before the next Exec. The
+// pooledSelectResult returns the current statement frame's reusable SELECT
+// result struct, zeroed for a fresh statement. Two coordinates make a slot
+// safe to serve:
+//
+//   - selectDepth: every nested execution INSIDE one statement (compound
+//     members, subqueries, view bodies) runs through its own execSelect at a
+//     strictly deeper selectDepth, so it can never take the enclosing
+//     statement's slot.
+//   - statement frame (the engine's execDepth, SetResultFrame per Exec
+//     entry): a NESTED engine.Exec — a vtab module's shadow SQL (rtree's
+//     %_rowid aux read under INSERT INTO rt SELECT ...), an eval() UDF, a
+//     trigger statement — restarts selectDepth at 1 while its caller still
+//     iterates ITS result's Rows (execdml's insert-select write loop holds
+//     the source SELECT's result across the per-row vtab writes). One
+//     depth-slot array collided those two; the per-frame array keeps the
+//     caller's slot untouched for the whole nested execution.
+//
+// A frame's slots are only ever reacquired after the statement that took
+// them has fully returned and every consumer has copied the fields it keeps
+// — the public boundary (DB.Query / DB.Exec / Stmt) copies
+// Columns/Rows/Changes/LastInsertRowID/Error into the caller's own Result,
+// and the engine-internal readers (foldQueryResult, the trigger executor,
+// the vtab helpers) read theirs before the next same-frame Exec. The
 // Rows/Columns ARRAYS stay fresh per statement (allRows from the scan or the
 // seek's output rows; the name lists are per-statement copies), so a caller
 // that holds its copied slice headers never observes a later statement's
 // rows — the scanbox reuse-pin contract.
 func (e *SelectEngine) pooledSelectResult() *Result {
-	d := e.selectDepth
-	if d >= len(e.resultScratch) {
-		e.resultScratch = append(e.resultScratch, make([]*Result, d+1-len(e.resultScratch))...)
+	frame := e.resultFrame
+	if frame >= len(e.resultFrames) {
+		e.resultFrames = append(e.resultFrames, make([][]*Result, frame+1-len(e.resultFrames))...)
 	}
-	r := e.resultScratch[d]
+	slots := e.resultFrames[frame]
+	d := e.selectDepth
+	if d >= len(slots) {
+		slots = append(slots, make([]*Result, d+1-len(slots))...)
+		e.resultFrames[frame] = slots
+	}
+	r := slots[d]
 	if r == nil {
 		r = &Result{}
-		e.resultScratch[d] = r
+		slots[d] = r
 	} else {
 		*r = Result{}
 	}

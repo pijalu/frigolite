@@ -445,10 +445,20 @@ type SelectEngine struct {
 	// aggregate steps), and depth slots for nested SELECT re-entry are the
 	// same discipline as affScratch; the analysis struct + conjunct slice
 	// (seekAnalysisScratch/seekConjScratch) follow it for the seek plan.
-	seekRowScratch      [][]interface{}
-	seekSRowScratch     []*StructRow
-	seekIPKScratch      [][]int
-	resultScratch       []*Result
+	seekRowScratch  [][]interface{}
+	seekSRowScratch []*StructRow
+	seekIPKScratch  [][]int
+	// resultFrames is the SELECT result-struct pool: one slot array per
+	// statement frame (the engine's execDepth, tagged per Exec entry via
+	// SetResultFrame), each indexed by selectDepth. Two coordinates, because
+	// a nested engine.Exec (vtab module shadow SQL, eval() UDFs, trigger
+	// statements) restarts selectDepth at 1 while its caller still iterates
+	// its OWN pooled result — execdml's insert-select write loop holds the
+	// source SELECT's result across the per-row vtab writes (the rtreeE
+	// INSERT INTO rt2 SELECT corruption). See pooledSelectResult in
+	// select_exec.go. Frame 0 serves entries that bypass the engine's Exec.
+	resultFrames        [][]*Result
+	resultFrame         int
 	seekAnalysisScratch []*rowidSeekAnalysis
 	seekConjScratch     [][]sql.Expr
 	// resultTooWide flags that a SELECT in the current statement expanded to
@@ -663,6 +673,16 @@ func (e *SelectEngine) ResetStatementCorrelatedScope() {
 	e.outerRows = nil
 	e.outerRowsSrc = nil
 	e.outerRowsMaps = nil
+}
+
+// SetResultFrame tags the statement frame (the engine's execDepth) whose
+// selectDepth slot array pooledSelectResult serves. Engine.Exec calls it on
+// every entry — root and nested — so a nested execution (vtab module shadow
+// SQL, eval() UDFs, trigger statements) lands in its OWN frame while its
+// caller's statement keeps its slot for the whole nested execution. Frame 0
+// is the default for entries that bypass the engine's Exec.
+func (e *SelectEngine) SetResultFrame(frame int) {
+	e.resultFrame = frame
 }
 
 func (e *SelectEngine) ExecSelect(s *sql.SelectStmt) *Result {
