@@ -393,29 +393,55 @@ func (c *Cursor) seekTableLeafWithPath(pageNum uint32, rowID int64) (bool, error
 // separator convention. A crafted cell pointer aimed at the page tail
 // reports corruption (Go slices panic where SQLite's masked in-page
 // addressing stays in-bounds).
+//
+// The probe loop addresses the cell pointer array directly: it sits at a
+// fixed stride from the page header, so each probe is one u16 load + mask,
+// one varint, one u32 load. storage.CellPointer re-derived the content
+// offset and re-took the pageSize conversion on every probe — measurable on
+// the point-seek descent. The checks are the same corruption reports (a
+// corrupt pointer-array index reports malformed one layer lower instead of
+// slicing out of bounds).
 func (c *Cursor) routeInteriorTable(pg *pager.Page, page *storage.BTreePage, rowID int64) (int, uint32, error) {
 	lo, hi := 0, int(page.CellCount)-1
 	childPage := page.RightmostPtr
+	base := contentOffset(pg.PageNum) + cellPtrOffset(page.PageType)
+	mask := uint16(c.tx.pageSize - 1)
+	data := pg.Data
 	for lo <= hi {
 		mid := (lo + hi) / 2
-		cellOff := int(storage.CellPointer(pg.Data, contentOffset(pg.PageNum)+cellPtrOffset(page.PageType)-8, mid, int(c.tx.pageSize)))
-		if cellOff < 0 || cellOff+4 > len(pg.Data) {
+		p := base + mid*2
+		if p+2 > len(data) {
 			return 0, 0, fmt.Errorf("database disk image is malformed")
 		}
-		midRowID, _ := util.GetVarint(pg.Data[cellOff+4:])
+		cellOff := int(binary.BigEndian.Uint16(data[p : p+2]) & mask)
+		if cellOff < 0 || cellOff+4 > len(data) {
+			return 0, 0, fmt.Errorf("database disk image is malformed")
+		}
+		// Separator rowid varint: the 1-byte form (rowid < 128) skips
+		// GetVarint's multi-byte loop — the overwhelmingly common separator.
+		var midRowID uint64
+		if cellOff+5 <= len(data) && data[cellOff+4] < 0x80 {
+			midRowID = uint64(data[cellOff+4])
+		} else {
+			midRowID, _ = util.GetVarint(data[cellOff+4:])
+		}
 		if int64(midRowID) < rowID {
 			lo = mid + 1
 		} else {
-			childPage = binary.BigEndian.Uint32(pg.Data[cellOff : cellOff+4])
+			childPage = binary.BigEndian.Uint32(data[cellOff : cellOff+4])
 			hi = mid - 1
 		}
 	}
 	if lo < int(page.CellCount) {
-		cellOff := int(storage.CellPointer(pg.Data, contentOffset(pg.PageNum)+cellPtrOffset(page.PageType)-8, lo, int(c.tx.pageSize)))
-		if cellOff < 0 || cellOff+4 > len(pg.Data) {
+		p := base + lo*2
+		if p+2 > len(data) {
 			return 0, 0, fmt.Errorf("database disk image is malformed")
 		}
-		childPage = binary.BigEndian.Uint32(pg.Data[cellOff : cellOff+4])
+		cellOff := int(binary.BigEndian.Uint16(data[p : p+2]) & mask)
+		if cellOff < 0 || cellOff+4 > len(data) {
+			return 0, 0, fmt.Errorf("database disk image is malformed")
+		}
+		childPage = binary.BigEndian.Uint32(data[cellOff : cellOff+4])
 	}
 	if childPage == 0 {
 		childPage = page.RightmostPtr

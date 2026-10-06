@@ -811,6 +811,11 @@ func (e *Engine) dirtyDatabases(dst []*DatabaseContext) []*DatabaseContext {
 // over the exact lengths replaces strings.ToUpper, which allocated a new
 // string per statement per database on the point-op floor.
 func (e *Engine) flushAttachedPagers() {
+	if len(e.dbList) <= 1 {
+		// No ATTACH: the list's only context is main (temp rides the same
+		// list and is skipped below) — nothing this loop flushes.
+		return
+	}
 	for _, ctx := range e.dbList {
 		if ctx == nil || ctx.Pager == nil {
 			continue
