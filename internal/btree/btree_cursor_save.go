@@ -350,18 +350,21 @@ func (c *Cursor) restoreIfNeeded() error {
 // seekTableLeafWithPath is SeekToRowID with the cursor path stack maintained
 // (btree.c sqlite3BtreeTableMoveto): interior levels push
 // {pageNum, childIdx} entries so navigateToNextChild can continue the scan
-// into the following leaves after the restore. Page headers parse into a
-// stack scratch — the parsed page only feeds the read-only
-// seekInLeafTable/routeInteriorTable helpers and never outlives the level.
+// into the following leaves after the restore. Each level's header goes
+// through the pager's validated parse memo (Page.ParsedBTree): a point
+// lookup re-descends the SAME interior/leaf images millions of times across
+// a workload, and the memo hit (byte-compare of the header span) replaces
+// the full parse+validate — the same contract readTreePage uses on the
+// index side. The returned *BTreePage is memo-owned and read-only; the
+// seek helpers read header fields only.
 func (c *Cursor) seekTableLeafWithPath(pageNum uint32, rowID int64) (bool, error) {
-	var sp storage.BTreePage
 	for {
 		pg, err := c.tx.pager.ReadPage(pageNum)
 		if err != nil {
 			c.endOfBTree = true
 			return false, err
 		}
-		page, err := storage.ParsePageInto(pg.Data, int(c.tx.pageSize), contentOffset(pg.PageNum), &sp)
+		page, err := pg.ParsedBTree(int(c.tx.pageSize), contentOffset(pg.PageNum))
 		if err != nil {
 			c.endOfBTree = true
 			return false, err
