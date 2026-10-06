@@ -263,7 +263,11 @@ func (c *Cursor) saveCursorPosition() {
 	c.skipNext = 0
 	c.state = cursorRequireSeek
 	c.clearPageCache()
-	c.path = nil
+	// Keep the path stack's capacity: the save fires once per statement on
+	// the point-op paths (saveAllCursors), and dropping the slice here turned
+	// the next resetFor/seek into a fresh make per statement. The stack is at
+	// most the tree's depth deep, so the retained capacity is a few words.
+	c.path = c.path[:0]
 }
 
 // currentKey extracts the seek key at the cursor position: the rowid for
@@ -324,7 +328,7 @@ func (c *Cursor) restoreIfNeeded() error {
 	c.savedKey = nil
 	c.savedRowID = 0
 	c.clearPageCache()
-	c.path = nil
+	c.path = c.path[:0] // capacity kept — see saveCursorPosition
 	c.state = cursorValid
 	c.skipNext = 0
 	var found bool
