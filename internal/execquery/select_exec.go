@@ -460,7 +460,15 @@ func (e *SelectEngine) finalizeSelectResult(result *Result, s *sql.SelectStmt, r
 	}
 	// The collation of each result column of a compound query comes from the
 	// leftmost SELECT member (SQLite's compound column collation rule).
-	colls := e.selectOutputCollations(s)
+	// DISTINCT, the compound merge, and ORDER BY resolution are the collation
+	// list's only consumers; a statement with none of them (the dominant
+	// point-lookup shape) skips the per-column walk entirely.
+	colls := func() []string {
+		if !s.Distinct && s.Union == nil && len(s.OrderBy) == 0 {
+			return nil
+		}
+		return e.selectOutputCollations(s)
+	}()
 	if s.Distinct {
 		result.Rows, rowMaps = e.distinctRows(result.Rows, rowMaps, colls, s)
 	}
