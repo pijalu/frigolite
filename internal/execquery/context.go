@@ -448,6 +448,7 @@ type SelectEngine struct {
 	seekRowScratch      [][]interface{}
 	seekSRowScratch     []*StructRow
 	seekIPKScratch      [][]int
+	resultScratch       []*Result
 	seekAnalysisScratch []*rowidSeekAnalysis
 	seekConjScratch     [][]sql.Expr
 	// resultTooWide flags that a SELECT in the current statement expanded to
