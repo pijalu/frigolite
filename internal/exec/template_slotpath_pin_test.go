@@ -180,23 +180,37 @@ func TestPinSlotPathParityWithCOW(t *testing.T) {
 				}
 				live[i] = out
 			}
-			for i := range tc.stmts {
-				if !slots.validateValues(tc.values[i]) {
-					t.Fatalf("%s stmt %d: slot gate refused values %v", tc.name, i, tc.values[i])
-				}
-				slots.apply(live[0], tc.values[i])
-				cow := exprClone{values: tc.values[i]}
-				ref := make([]sql.Stmt, len(templateAST))
-				for k, st := range templateAST {
-					out, ok := cow.stmt(st)
-					if !ok {
-						t.Fatalf("%s stmt %d: COW reference refused", tc.name, i)
+				for i := range tc.stmts {
+					if !slots.validateValues(tc.values[i]) {
+						t.Fatalf("%s stmt %d: slot gate refused values %v", tc.name, i, tc.values[i])
 					}
-					ref[k] = out
-				}
-				if !reflect.DeepEqual(live, ref) {
-					t.Fatalf("%s stmt %d: slot-path AST diverged from COW reference", tc.name, i)
-				}
+					slots.apply(live[0], tc.values[i])
+					cow := exprClone{values: tc.values[i]}
+					ref := make([]sql.Stmt, len(templateAST))
+					for k, st := range templateAST {
+						out, ok := cow.stmt(st)
+						if !ok {
+							t.Fatalf("%s stmt %d: COW reference refused", tc.name, i)
+						}
+						ref[k] = out
+					}
+					// The slot-path form additionally stashes the INSERT
+					// tuple values on the clone (sql.InsertStmt.InsLitVals —
+					// execdml's re-parse skip); the COW form never carries
+					// one. Neutralize the stash on both sides: the pinned
+					// contract is that the rewritten AST — the nodes — stay
+					// identical; the stash is compared by the stash pins
+					// (TestPinSlotPathInsertStash) and end-to-end by the
+					// literal-parity suite.
+					if len(live) == len(ref) {
+						for k := range live {
+							clearStashForParity(live[k])
+							clearStashForParity(ref[k])
+						}
+					}
+					if !reflect.DeepEqual(live, ref) {
+						t.Fatalf("%s stmt %d: slot-path AST diverged from COW reference", tc.name, i)
+					}
 				// The template AST itself must stay untouched throughout:
 				// still DeepEqual to a fresh parse of the same text.
 				if fresh, err := parse.ParseSQL(tc.template); err != nil || !reflect.DeepEqual(templateAST, fresh) {
@@ -294,5 +308,14 @@ func TestPinSlotPathValueGates(t *testing.T) {
 	}
 	if mk(slotInt).validateValues([]interface{}{nil}) {
 		t.Error("nil value accepted")
+	}
+}
+
+// clearStashForParity drops the slot-path value stash from a statement clone
+// so the COW-parity deep-equal compares only the rewritten AST nodes (see
+// TestPinSlotPathParityWithCOW).
+func clearStashForParity(stmt sql.Stmt) {
+	if ins, ok := stmt.(*sql.InsertStmt); ok {
+		ins.InsLitVals = nil
 	}
 }

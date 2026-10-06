@@ -12,19 +12,31 @@ import (
 )
 
 func (e *DMLExecutor) pkRowID(tableName string, colDefs []sql.ColumnDef, values []interface{}, rootPage uint32, withoutRowid bool) (int64, error) {
+	r, _, err := e.pkRowIDSource(tableName, colDefs, values, rootPage, withoutRowid)
+	return r, err
+}
+
+// pkRowIDSource is pkRowID that also reports whether the rowid came from an
+// EXPLICIT PK/rowid value (true) or was auto-assigned (false). The
+// distinction outlives fillIPKRowID: fillIPK overwrites an auto IPK with the
+// assigned rowid and reports ipkIndex -1 for an explicit one, so callers
+// downstream of the fill can no longer tell the two apart from (values,
+// ipkIndex) alone — and only an AUTO rowid may be re-allocated after a
+// BEFORE trigger consumed the pre-computed one.
+func (e *DMLExecutor) pkRowIDSource(tableName string, colDefs []sql.ColumnDef, values []interface{}, rootPage uint32, withoutRowid bool) (int64, bool, error) {
 	if r, ok, err := e.explicitPKRowID(tableName, colDefs, values, rootPage, withoutRowid); ok || err != nil {
 		if err != nil {
-			return 0, err
+			return 0, false, err
 		}
-		return r, nil
+		return r, true, nil
 	}
 	next := e.findNextRowID(tableName, rootPage)
 	if e.ctx.TableHasAutoIncrement(tableName) && (next == -1<<63 || next == 0) {
 		// AUTOINCREMENT sequence exhausted: SQLite reports "database or
 		// disk is full" rather than wrapping the rowid.
-		return 0, fmt.Errorf("database or disk is full")
+		return 0, false, fmt.Errorf("database or disk is full")
 	}
-	return next, nil
+	return next, false, nil
 }
 
 // explicitPKRowID derives the rowid from an explicitly supplied PRIMARY KEY
@@ -61,6 +73,11 @@ func (e *DMLExecutor) explicitPKRowID(tableName string, colDefs []sql.ColumnDef,
 // reports that no rowid was derivable from it.
 func pkRowIDFromColumn(cd sql.ColumnDef, v interface{}, withoutRowid bool) (int64, bool, error) {
 	if !withoutRowid && isIPKRowidAliasCol(cd) {
+		if iv, ok := v.(int64); ok {
+			// NUMERIC affinity never changes an int64 (applyNumericAffinity's
+			// default arm) — the rowid reads it directly.
+			return iv, true, nil
+		}
 		vv := util.ApplyColumnAffinity(v, "NUMERIC")
 		if iv, ok := vv.(int64); ok {
 			return iv, true, nil
@@ -85,13 +102,25 @@ func pkRowIDFromColumn(cd sql.ColumnDef, v interface{}, withoutRowid bool) (int6
 // fingerprint is mixed through the splitmix64 finalizer and summed
 // (commutative, so the databases map's random iteration order cannot
 // destabilize the stamp).
+//
+// The contexts are read from the executor's dbList cache (core.go), not the
+// map: the per-statement map iteration dominated this helper's cost. The
+// cache refreshes whenever the map's length moves — an ATTACH/DETACH always
+// moves it — so a schema added by an ATTACH is seen by the very next
+// statement.
 func (e *DMLExecutor) databasesSchemaStamp() uint64 {
-	stamp := uint64(0)
-	n := uint64(0)
-	for _, ctx := range e.ctx.Databases() {
-		if ctx == nil || ctx.Schema == nil {
-			continue
+	if e.dbListN != len(e.ctx.Databases()) {
+		e.dbList = e.dbList[:0]
+		for _, ctx := range e.ctx.Databases() {
+			if ctx == nil || ctx.Schema == nil {
+				continue
+			}
+			e.dbList = append(e.dbList, ctx)
 		}
+		e.dbListN = len(e.ctx.Databases())
+	}
+	stamp := uint64(0)
+	for _, ctx := range e.dbList {
 		fp := ctx.Schema.SchemaFingerprint()
 		fp ^= fp >> 30
 		fp *= 0xbf58476d1ce4e5b9
@@ -99,9 +128,8 @@ func (e *DMLExecutor) databasesSchemaStamp() uint64 {
 		fp *= 0x94d049bb133111eb
 		fp ^= fp >> 31
 		stamp += fp
-		n++
 	}
-	return stamp + n
+	return stamp + uint64(len(e.dbList))
 }
 
 // validateLoadedTriggers checks every trigger loaded from sqlite_master for

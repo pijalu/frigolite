@@ -3380,3 +3380,108 @@ the point-phase census). Base main 8375084d3 (includes PERF.ARENA).
   seek (this tranche); the remaining decode mass sits in execdml's
   DecodeRecord call sites and the boxed-value API itself (unavoidable
   through []interface{}).
+## PERF.LITCACHE — INSERT literal triple killed via slot-path value stash (fleet/perf-litcache, 2026-10-05)
+
+Closes PERF.ARENA's deferred "INSERT literal triple" (scan→format→re-parse,
+~67B/stmt): the template slot-path apply rewrote literal TEXT per hit and
+execution re-parsed it (evalNumericLit box on a cache that writeSlot must
+clear every statement).
+
+- **Mechanism**: `templateSlots.tupSlot` records which slots are INSERT
+  VALUES-tuple items (collector knows (tuple,item) via the sfInsTuple path
+  terminal). apply() writes the parsed value into the live clone's
+  `sql.InsertStmt.InsLitVals` (parallel to Values; nil for non-literal items
+  like NULL/column refs) IN THE SAME PASS as the text rewrite — text and
+  stash can never diverge. execdml's evalTuple/evalTuplePooled read non-nil
+  stash entries instead of EvalExpr: re-parse, boxing AND the dispatch walk
+  disappear. evalNumericLit vanished from the insert alloc profile (was #1).
+- **Kind safety is inherited, not re-proven**: only slot values that passed
+  validateValues (int64 digit-slot, float64 'g'+".0", string) are stashed,
+  and those are exactly what EvalExpr would return for the rewritten node —
+  the stash is the same truth, one copy earlier. Refusals (negative folded
+  minus, hex, 2^63, blob, expressions, RETURNING literals) keep templates
+  COW-only → full parse → no stash (parity corpus proves all of these).
+- **First-build parity**: trySlotPathLive's COW-built clone gets the stash
+  via slots.stashValues (no node rewrite — COW nodes already carry the
+  values' text); a false there (unreachable) discards the clone → COW path.
+  COW walker MUST reset InsLitVals=nil (recycled-tenant full-overwrite rule
+  — insertStmtValues assigns every field).
+- **Paired-diet levers that paid alongside** (all measured interleaved vs
+  main): pkRowIDFromColumn int64 fast path (NUMERIC affinity never changes
+  an int64 — skip ApplyColumnAffinity); applyColumnAffinities over memoized
+  per-column affinity classes (BLOB/none class 0 skips the wrap; memo keyed
+  fingerprint+colDefs-identity like columnIndexFor); fillIPKRowID via
+  memoized IPK index; databasesSchemaStamp over a cached filtered db-list
+  (refresh on map-length move — ATTACH/DETACH always moves len; a
+  same-length context replacement needs DETACH+ATTACH in ONE statement,
+  which the engine never runs). ~100ns/stmt of map iteration alone.
+- **Results** (paired interleaved, mission env, this box): insert 749-762k
+  vs main 632-639k ops/s (+18.5-19.3%; target ≥750k met), point +4-12%,
+  update +6.5-10.4%, delete +5.7-9.1%, scan/group parity.
+- **Pins**: TestInsLitParityCorpus (13 shapes × fast-engine slot path vs
+  full-parse control — control uses round-odd UPPER-CASE table spellings:
+  same table for SQLite, different template key bytes → control never
+  template-hits while accumulating identically; single control engine per
+  shape, not per-round, or accumulator shapes like upsert diverge) +
+  white-box TestPinSlotPathInsertStash/MixedSlotsNoStash/StashValuesFirst
+  Build; COW parity pin neutralizes InsLitVals before its deep-equal (the
+  stash is slot-path-only by design).
+- **Harness flake note (updated)**: TestSQLiteSuite at full GOMAXPROCS
+  (14 cores) fails ~377 subtests with cross-file "already exists" pollution
+  — IDENTICAL count on main; GOMAXPROCS=4 is green on both. Parallel file-
+  backed ATTACH races (cleanupTestDBFiles vs t.Parallel), not engine bugs;
+  gate the suite at GOMAXPROCS=4. Also: zsh does not word-split `env $E`
+  — bench env vars must be passed explicitly.
+
+## PERF.LITCACHE — finisher session: bind-path stash, oracle-parity fixes, adjudications (2026-10-06)
+
+Completes the slot-path stash across the PREPARED-STMT (bind) path and fixes
+two oracle gaps the new pins exposed. Commits 1ebf195ce/23ac19099/a24c338b6
+(+ f1e4b86a1 lessons, edf6e06b0 bind stash, b7e101812 REPLACE triggers).
+
+- **Bind-path stash**: `bindStashFor` readies the recycled INSERT tenant's
+  `InsLitVals` (reuse when the shape matches — allocate-once like the
+  template path's stashTarget), `insertValue` (3-value form) fills EVERY
+  entry per substitution (nil for non-param items) — full overwrite, no
+  stale. Kind gates mirror the slot path: int families/finite
+  floats/strings stash verbatim (serve the caller's interface word —
+  re-boxing costs an alloc/slot/exec); blob/NULL/NaN/uint64>MaxInt64 stay
+  evaluated. TestStmtRepeatExecNoReparse: bound 336→204-209 B/op vs
+  literal 261-266 — the prepared path now BEATS literal.
+- **In-place literal rewrite is UNSAFE on the bind path** (tried, reverted):
+  rewriteSameKindLiteral(prev) corrupted SHARED AST nodes — a recycled
+  tenant's slot can hold a template/Stmt-shared literal kept by a previous
+  non-param substitution, and a later same-kind bind rewrite mutates the
+  shared node (observed: q5's literal `1` read as 100001 after qa reused
+  the tenant). The template slot path is safe because its live clone is
+  per-(entry,depth) and never shared; bind tenants rotate across shapes.
+  Fresh nodes per bind stay mandatory.
+- **fillIPKRowID returns ipkIndex -1 for an EXPLICIT IPK** — its return
+  cannot distinguish explicit from no-IPK downstream. pkRowIDSource now
+  returns (rowid, explicit, err) decided PRE-fill; fireInsertRowBefore-
+  Triggers gates the post-BEFORE-trigger rowid re-allocation on !explicit
+  (oracle 3.51: explicit ids are stored as given; a BEFORE trigger
+  consuming the next rowid still pushes the AUTO row up).
+- **INSERT OR REPLACE fires NO delete triggers with recursive_triggers OFF**
+  (insert.c OE_Replace — the UPDATE OR REPLACE path already gated this;
+  the INSERT path didn't). Oracle: REPLACE of a child-referenced parent
+  SUCCEEDS (FK counter nets out in-statement) with side tables empty, and
+  with recursive_triggers=ON the delete triggers fire exactly once.
+  TestPerfStmtJournalReplaceFKTriggerRollback rewritten to those oracle
+  end-states (it had pinned the accidental pre-fix behavior: explicit id
+  re-alloc made the child FK check fail).
+- **Gate adjudications**: TestSQLiteSuite full-suite fails ~4443-4450
+  subtests at ANY parallelism on base AND branch (pristine git-archive
+  export of 8375084d3 identical) — pre-existing rot amplified by
+  cleanupTestDBFiles racing t.Parallel files; rotating solo-green flakes:
+  TestWindowCGroupConcatBlobUTF16, TestP8IncrVacuum3OracleSequence,
+  TestNativeThreadConcurrentWritersSerialize. FRIGOLITE_TEST is a
+  Contains-match (probing `8_3_names` also runs `f_8_3_names`). The
+  allocs/op pin measures BYTES (TotalAlloc), not objects. Live-main
+  checkout re-confirmed as non-baseline; pristine export in
+  /tmp/perf/basecheck is the reference. Quality-gate hard fails (engine.go
+  1027 lines etc.) are pre-existing at base; branch files pass
+  gocognit/gocyclo/staticcheck.
+- **Bench**: paired interleaved 3 rounds (mission env) — see final report;
+  run scripts /tmp/perf/litcache/paired3.sh. zsh: do not `env $E`
+  (no word-splitting) — pass env inline.

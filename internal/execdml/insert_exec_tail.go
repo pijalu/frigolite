@@ -17,13 +17,18 @@ func (e *DMLExecutor) prepareInsertRowValues(tableEntry *schema.Entry, colDefs [
 	// Determine rowID: if an INTEGER PRIMARY KEY column has an explicit non-nil
 	// value, use that value as the rowid (the column IS the rowid). Otherwise
 	// auto-assign the next available rowid. REPLACE passes a rowid computed
-	// before its conflict deletes (SQLite keeps it through the retry).
-	nextRowID, err := e.pkRowID(tableEntry.Name, colDefs, values, tableEntry.RootPage, tableIsWithoutRowid(tableEntry.SQL))
+	// before its conflict deletes (SQLite keeps it through the retry). The
+	// explicit/auto source is remembered for the BEFORE-trigger realloc: only
+	// an AUTO rowid may be re-allocated when a trigger consumes it — decided
+	// on the PRE-fill values (fillIPKRowID overwrites an auto IPK below, and
+	// reports -1 for an explicit one, erasing the distinction).
+	nextRowID, rowidExplicit, err := e.pkRowIDSource(tableEntry.Name, colDefs, values, tableEntry.RootPage, tableIsWithoutRowid(tableEntry.SQL))
 	if err != nil {
 		return 0, &Result{Error: err}
 	}
 	if fixedRowID != nil {
 		nextRowID = *fixedRowID
+		rowidExplicit = true
 	}
 	e.ctx.SetLastRowID(nextRowID)
 
@@ -32,7 +37,9 @@ func (e *DMLExecutor) prepareInsertRowValues(tableEntry *schema.Entry, colDefs [
 	// the column to contain the auto-generated rowid.
 	withoutRowid := tableIsWithoutRowid(tableEntry.SQL)
 	isStrict := isStrictTable(tableEntry.SQL)
-	ipkWasNil, ipkIndex := e.fillIPKRowID(colDefs, values, nextRowID, withoutRowid, isStrict)
+	// fillIdx: the auto-filled IPK's index, or -1 for an explicit IPK / no
+	// IPK column — exactly what explicitTriggerRowid has always consumed.
+	_, fillIdx := e.fillIPKRowID(colDefs, values, nextRowID, withoutRowid, isStrict)
 
 	if res := e.strictCheckAndAffinity(tableEntry, colDefs, values, isStrict); res != nil {
 		return 0, res
@@ -54,7 +61,6 @@ func (e *DMLExecutor) prepareInsertRowValues(tableEntry *schema.Entry, colDefs [
 	} else if !write {
 		return 0, &Result{Changes: 0}
 	}
-
 	if res := e.strictCheckGenerated(tableEntry, colDefs, values, isStrict); res != nil {
 		return 0, res
 	}
@@ -68,8 +74,8 @@ func (e *DMLExecutor) prepareInsertRowValues(tableEntry *schema.Entry, colDefs [
 	// only build the row map when triggers exist for this table. The
 	// trigger-visible new.rowid is the EXPLICIT rowid (statement rowid
 	// column or explicit IPK value); an auto-assigned rowid reads -1.
-	expRowID := explicitTriggerRowid(fixedRowID, values, ipkIndex, withoutRowid)
-	if res := e.fireInsertBeforeTriggersSafe(tableEntry, colDefs, values, &nextRowID, withoutRowid, ipkWasNil, ipkIndex, expRowID); res != nil {
+	expRowID := explicitTriggerRowid(fixedRowID, values, fillIdx, withoutRowid)
+	if res := e.fireInsertBeforeTriggersSafe(tableEntry, colDefs, values, &nextRowID, withoutRowid, rowidExplicit, expRowID); res != nil {
 		return 0, res
 	}
 	return nextRowID, nil
@@ -94,28 +100,25 @@ func (e *DMLExecutor) fillIPKRowID(colDefs []sql.ColumnDef, values []interface{}
 	// SQLite's BEFORE INSERT trigger sees new.<ipk> as -1 for an auto-assigned
 	// rowid (the value is not set until the row is written), so the trigger
 	// must not see the pre-assigned rowid (tkt3832).
-	ipkWasNil := false
-	ipkIndex := -1
-	for i, cd := range colDefs {
-		if !withoutRowid && isIPKRowidAliasCol(cd) &&
-			i < len(values) && values[i] == nil {
-			// A NULL INTEGER PRIMARY KEY is always auto-filled with the
-			// assigned rowid — even when the column declares NOT NULL or the
-			// table is STRICT. For a rowid-alias column the value IS the
-			// rowid, so the auto-assigned rowid satisfies NOT NULL (verified
-			// against sqlite3 3.51: INSERT INTO t(id INTEGER PRIMARY KEY
-			// AUTOINCREMENT NOT NULL, x) VALUES('a') auto-assigns; explicit
-			// NULL likewise). The e_createtable-4.5.5/4.5.6/4.5.7 NOT NULL
-			// rejections use INT PRIMARY KEY (a regular PK column, not a
-			// rowid alias) or STRICT non-rowid columns, which this branch
-			// does not reach.
-			ipkWasNil = true
-			ipkIndex = i
-			values[i] = nextRowID
-			break
-		}
+	if withoutRowid {
+		return false, -1
 	}
-	return ipkWasNil, ipkIndex
+	ipkIndex := e.ipkAliasIndex(colDefs)
+	if ipkIndex < 0 || ipkIndex >= len(values) || values[ipkIndex] != nil {
+		return false, -1
+	}
+	// A NULL INTEGER PRIMARY KEY is always auto-filled with the
+	// assigned rowid — even when the column declares NOT NULL or the
+	// table is STRICT. For a rowid-alias column the value IS the
+	// rowid, so the auto-assigned rowid satisfies NOT NULL (verified
+	// against sqlite3 3.51: INSERT INTO t(id INTEGER PRIMARY KEY
+	// AUTOINCREMENT NOT NULL, x) VALUES('a') auto-assigns; explicit
+	// NULL likewise). The e_createtable-4.5.5/4.5.6/4.5.7 NOT NULL
+	// rejections use INT PRIMARY KEY (a regular PK column, not a
+	// rowid alias) or STRICT non-rowid columns, which this branch
+	// does not reach.
+	values[ipkIndex] = nextRowID
+	return true, ipkIndex
 }
 
 // strictCheckAndAffinity runs the STRICT pre/post-affinity value checks and
@@ -138,7 +141,7 @@ func (e *DMLExecutor) strictCheckAndAffinity(tableEntry *schema.Entry, colDefs [
 			return &Result{Error: err}
 		}
 	}
-	applyColumnAffinities(values, colDefs)
+	applyColumnAffinities(e, values, colDefs)
 	// In STRICT mode, affinity may have converted the value — re-check that
 	// the converted value still matches the declared type (e.g. integer '42'
 	// was accepted as a string but affinity converted it to int64 42).
@@ -151,22 +154,66 @@ func (e *DMLExecutor) strictCheckAndAffinity(tableEntry *schema.Entry, colDefs [
 }
 
 // applyColumnAffinities applies each column's type affinity to its value.
-
-// applyColumnAffinities applies each column's type affinity to its value.
-
-// applyColumnAffinities applies each column's type affinity to its value.
-// applyColumnAffinities applies each column's type affinity to its value.
-func applyColumnAffinities(values []interface{}, colDefs []sql.ColumnDef) {
+// The per-column affinity classes come memoized (columnAffinityClasses);
+// a class-0 column (BLOB / no declared type) stores its values as-is and
+// skips the conversion entirely.
+func applyColumnAffinities(e *DMLExecutor, values []interface{}, colDefs []sql.ColumnDef) {
 	// Apply type affinity to each value based on column type. This must run
 	// BEFORE the constraint checks so UNIQUE/PRIMARY KEY index comparisons
 	// (which may involve expressions over the columns, e.g. "a GLOB b") see
 	// the stored, affinity-converted values — SQLite applies affinity when
 	// writing the row, before validating constraints.
+	affs := e.columnAffinityClasses(colDefs)
 	for i, v := range values {
-		if i < len(colDefs) {
+		if i < len(affs) {
+			if affs[i] != 0 {
+				values[i] = util.ApplyColumnAffinityClass(v, rune(affs[i]))
+			}
+		} else if i < len(colDefs) {
 			values[i] = util.ApplyColumnAffinity(v, colDefs[i].Type)
 		}
 	}
+}
+
+// columnAffinityClasses returns the memoized affinity class per column of
+// colDefs ('I','R','T','N', or 0 for BLOB/none), keyed on the schema
+// fingerprint + colDefs identity like columnIndexFor's cache.
+func (e *DMLExecutor) columnAffinityClasses(colDefs []sql.ColumnDef) []byte {
+	if len(colDefs) == 0 {
+		return nil
+	}
+	fp := e.schemaFingerprint()
+	if e.affClassCache != nil && e.affClassFingerprint == fp && e.affClassDefs == &colDefs[0] && e.affClassLen == len(colDefs) {
+		return e.affClassCache
+	}
+	affs := make([]byte, len(colDefs))
+	for i := range colDefs {
+		affs[i] = byte(util.Affinity(colDefs[i].Type))
+	}
+	e.affClassFingerprint, e.affClassDefs, e.affClassLen, e.affClassCache = fp, &colDefs[0], len(colDefs), affs
+	return affs
+}
+
+// ipkAliasIndex returns the memoized index of the table's INTEGER PRIMARY KEY
+// rowid-alias column (-1 when none), keyed on the schema fingerprint +
+// colDefs identity like columnIndexFor's cache.
+func (e *DMLExecutor) ipkAliasIndex(colDefs []sql.ColumnDef) int {
+	if len(colDefs) == 0 {
+		return -1
+	}
+	fp := e.schemaFingerprint()
+	if e.ipkIdxDefs != nil && e.ipkIdxFingerprint == fp && e.ipkIdxDefs == &colDefs[0] && e.ipkIdxLen == len(colDefs) {
+		return e.ipkIdxCache
+	}
+	idx := -1
+	for i := range colDefs {
+		if isIPKRowidAliasCol(colDefs[i]) {
+			idx = i
+			break
+		}
+	}
+	e.ipkIdxFingerprint, e.ipkIdxDefs, e.ipkIdxLen, e.ipkIdxCache = fp, &colDefs[0], len(colDefs), idx
+	return idx
 }
 
 // strictCheckGenerated enforces STRICT type checking on generated column
@@ -198,14 +245,14 @@ func (e *DMLExecutor) strictCheckGenerated(tableEntry *schema.Entry, colDefs []s
 // triggers exist, mapping RAISE(IGNORE) to a zero-change skip.
 
 // fireInsertBeforeTriggersSafe fires BEFORE INSERT triggers for a row when
-// triggers exist, mapping RAISE(IGNORE) to a zero-change skip.
-// fireInsertBeforeTriggersSafe fires BEFORE INSERT triggers for a row when
-// triggers exist, mapping RAISE(IGNORE) to a zero-change skip.
-func (e *DMLExecutor) fireInsertBeforeTriggersSafe(tableEntry *schema.Entry, colDefs []sql.ColumnDef, values []interface{}, nextRowID *int64, withoutRowid, ipkWasNil bool, ipkIndex int, explicitRowID *int64) *Result {
+// triggers exist, mapping RAISE(IGNORE) to a zero-change skip. rowidExplicit
+// is the pkRowIDSource verdict (an explicit PK/rowid value) and gates the
+// post-trigger rowid re-allocation in fireInsertRowBeforeTriggers.
+func (e *DMLExecutor) fireInsertBeforeTriggersSafe(tableEntry *schema.Entry, colDefs []sql.ColumnDef, values []interface{}, nextRowID *int64, withoutRowid, rowidExplicit bool, explicitRowID *int64) *Result {
 	if !e.hasTriggersForTable(tableEntry.Name) {
 		return nil
 	}
-	if res := e.fireInsertRowBeforeTriggers(tableEntry, colDefs, values, nextRowID, withoutRowid, ipkWasNil, ipkIndex, explicitRowID); res != nil {
+	if res := e.fireInsertRowBeforeTriggers(tableEntry, colDefs, values, nextRowID, withoutRowid, rowidExplicit, explicitRowID); res != nil {
 		if res.Error == errRowSkipped {
 			return &Result{Changes: 0}
 		}

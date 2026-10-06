@@ -202,6 +202,11 @@ func (e *Engine) trySlotPathLive(cached *sqlTemplateEntry, values []interface{})
 	if c.idx != len(values) {
 		return nil, false
 	}
+	if !cached.slots.stashValues(stmts[0], values) {
+		// Unreachable for a collector-produced table; discard the clone and
+		// fall back to the COW form rather than serve an unstashable tuple.
+		return nil, false
+	}
 	cached.live = append(cached.live, liveTemplateClone{depth: depth, stmts: stmts})
 	return stmts, true
 }

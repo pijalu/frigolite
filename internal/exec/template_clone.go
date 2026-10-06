@@ -141,7 +141,10 @@ func (c *exprClone) expr(e sql.Expr) (_ sql.Expr, ok bool) {
 func (c *exprClone) bindExpr(e sql.Expr) (sql.Expr, bool) {
 	switch v := e.(type) {
 	case *sql.ParameterExpr:
-		return c.bindParam(v)
+		// Outside an INSERT VALUES tuple the stash has no consumer; the node
+		// alone carries the substitution (evalTuple reads tuple stashes only).
+		node, _, ok := c.bindParam(v)
+		return node, ok
 	case *sql.NumericLit, *sql.StringLit, *sql.NullLit, *sql.ColumnRef, *sql.BlobLit, *sql.RaiseExpr:
 		return e, true
 	case *sql.FuncCall:

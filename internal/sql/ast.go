@@ -232,6 +232,21 @@ type InsertStmt struct {
 	Returning    SelectColumn
 	HasReturning bool
 	RawSQL       string // original statement text (for post-parse fixups)
+
+	// InsLitVals holds the per-tuple literal values the template slot-path
+	// substitution parsed for THIS clone (exec's precomputed slot paths; see
+	// internal/exec/template_slotpath.go). It is parallel to Values — one
+	// entry per tuple, one entry per tuple item — with a non-nil entry only
+	// where the item is a direct NumericLit/StringLit slot whose parsed value
+	// (int64/float64/string, exactly what EvalExpr returns for the rewritten
+	// node) is stashed; every other item is nil and evaluates normally.
+	// Written by exec's slot-path apply (the stash is refreshed together with
+	// the rewritten literal text, before the statement executes) and read by
+	// execdml's tuple evaluation to skip the per-literal re-parse. Clones
+	// built without the slot-path form carry nil (the COW walker clears the
+	// field on recycled tenants), and the template AST itself never carries
+	// one.
+	InsLitVals [][]interface{}
 }
 
 func (s *InsertStmt) stmt() {}

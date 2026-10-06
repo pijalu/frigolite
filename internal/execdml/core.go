@@ -49,6 +49,32 @@ type DMLExecutor struct {
 	delPlanLen         int
 	delPlan            *execquery.DMLRowPlan
 
+	// affClass* memoize the per-column affinity classes of one colDefs slice
+	// under the schema fingerprint (same guard as ciCache): applyColumnAffinities
+	// reads the precomputed classes instead of re-classifying each declared
+	// type name per row.
+	affClassFingerprint uint64
+	affClassDefs        *sql.ColumnDef
+	affClassLen         int
+	affClassCache       []byte
+
+	// ipkIdx* memoizes the INTEGER PRIMARY KEY rowid-alias column index of
+	// one colDefs slice (-1 none) under the schema fingerprint (same guard).
+	ipkIdxFingerprint uint64
+	ipkIdxDefs        *sql.ColumnDef
+	ipkIdxLen         int
+	ipkIdxCache       int
+
+	// dbList caches the non-nil, schema-bearing database contexts of
+	// e.ctx.Databases() for per-statement walks over all databases
+	// (databasesSchemaStamp, validateLoadedTriggers), refreshed when the
+	// map's length moves: an ATTACH or DETACH always changes it (a same-length
+	// context replacement would need a DETACH and an ATTACH in ONE statement,
+	// which the engine never runs), and a lower length forces the rebuild the
+	// next statement's ATTACH would need anyway.
+	dbList  []*DatabaseContext
+	dbListN int
+
 	// Statement-family executors composing this engine. They share this
 	// DMLExecutor so inter-statement calls resolve through promoted methods.
 	insert InsertExecutor

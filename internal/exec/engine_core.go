@@ -55,6 +55,43 @@ func (c *exprClone) insertStmtValues(s *sql.InsertStmt) (*sql.InsertStmt, error)
 	if !ok {
 		return nil, fmt.Errorf("template clone: WITH clause refused")
 	}
+	clone := c.takeInsertTenant(s)
+	if cteChanged {
+		clone.CTEs = ctes
+	} else {
+		clone.CTEs = s.CTEs
+	}
+	clone.Select = nil
+	if err := c.cloneInsertTuples(s, clone); err != nil {
+		return nil, err
+	}
+	// Clone Select for INSERT ... SELECT
+	if s.Select != nil {
+		sel, _, ok := c.selectStmt(s.Select)
+		if !ok {
+			return nil, fmt.Errorf("template clone: INSERT-SELECT refused")
+		}
+		clone.Select = sel
+	}
+	// Clone ON CONFLICT (upsert) expressions
+	conflict, conflictChanged, ok := c.conflictClause(s.OnConflict)
+	if !ok {
+		return nil, fmt.Errorf("template clone: ON CONFLICT refused")
+	}
+	if conflictChanged {
+		clone.OnConflict = conflict
+	}
+	if c.scratch != nil {
+		c.scratch.retireInsert(clone)
+	}
+	return clone, nil
+}
+
+// takeInsertTenant takes the depth scratch's recycled INSERT tenant (or a
+// fresh one) and performs the full-tenant field overwrite: every field of a
+// recycled struct is assigned on every substitution (clone_scratch.go), so
+// a refused substitution's partially built tenant is never observed.
+func (c *exprClone) takeInsertTenant(s *sql.InsertStmt) *sql.InsertStmt {
 	var clone *sql.InsertStmt
 	if c.scratch != nil {
 		clone = c.scratch.takeInsertStmt()
@@ -78,14 +115,33 @@ func (c *exprClone) insertStmtValues(s *sql.InsertStmt) (*sql.InsertStmt, error)
 	clone.OrFail = s.OrFail
 	clone.OrConflict = s.OrConflict
 	clone.RawSQL = s.RawSQL
-	if cteChanged {
-		clone.CTEs = ctes
-	} else {
-		clone.CTEs = s.CTEs
+	// The slot-path value stash in template mode is owned by the slot-path
+	// apply on the live clone (template_slotpath_apply.go); a COW clone —
+	// fresh or recycled tenant — never serves one (full-tenant overwrite,
+	// clone_scratch.go), so template mode nils the field outright. Bind mode
+	// keeps a recycled tenant's stash arrays: bindStashFor (called from
+	// cloneInsertTuples) re-shapes and fully overwrites them every
+	// substitution.
+	if c.bind == nil {
+		clone.InsLitVals = nil
 	}
-	clone.Select = nil
-	// Clone values tuples (a recycled tenant's backing arrays are reused in
-	// place when the shape fits; every element is rewritten below).
+	return clone
+}
+
+// cloneInsertTuples clones the VALUES tuples into the recycled tenant's
+// backing arrays, filling the bind-mode stash (stash nil in template mode)
+// entry-by-entry as each item is substituted.
+func (c *exprClone) cloneInsertTuples(s *sql.InsertStmt, clone *sql.InsertStmt) error {
+	// Bind mode fills the clone's InsLitVals with every substituted
+	// parameter's parsed value (mirroring the template slot-path stash):
+	// execdml's tuple evaluation reads a non-nil entry instead of re-parsing
+	// the rewritten literal node — same truth, one evaluation earlier. Every
+	// entry is written on every substitution (nil when the item is not a
+	// stashed parameter), so a recycled tenant can never serve a stale value.
+	var stash [][]interface{}
+	if c.bind != nil && len(s.Values) > 0 {
+		stash = bindStashFor(clone, s.Values)
+	}
 	for vi, tuple := range s.Values {
 		tup := clone.Values[vi][:0]
 		if cap(tup) < len(tuple) {
@@ -95,33 +151,17 @@ func (c *exprClone) insertStmtValues(s *sql.InsertStmt) (*sql.InsertStmt, error)
 		}
 		clone.Values[vi] = tup
 		for vj, expr := range tuple {
-			cloned, err := c.insertValue(expr)
+			cloned, sval, err := c.insertValue(expr)
 			if err != nil {
-				return nil, err
+				return err
 			}
 			clone.Values[vi][vj] = cloned
+			if stash != nil {
+				stash[vi][vj] = sval
+			}
 		}
 	}
-	// Clone Select for INSERT ... SELECT
-	if s.Select != nil {
-		sel, _, ok := c.selectStmt(s.Select)
-		if !ok {
-			return nil, fmt.Errorf("template clone: INSERT-SELECT refused")
-		}
-		clone.Select = sel
-	}
-	// Clone ON CONFLICT (upsert) expressions
-	conflict, conflictChanged, ok := c.conflictClause(s.OnConflict)
-	if !ok {
-		return nil, fmt.Errorf("template clone: ON CONFLICT refused")
-	}
-	if conflictChanged {
-		clone.OnConflict = conflict
-	}
-	if c.scratch != nil {
-		c.scratch.retireInsert(clone)
-	}
-	return clone, nil
+	return nil
 }
 
 // conflictClause substitutes an ON CONFLICT (upsert) clause chain, returning
@@ -169,44 +209,49 @@ func (c *exprClone) conflictClause(oc *sql.OnConflictClause) (*sql.OnConflictCla
 // to INTEGER through the template cache (INSERT ... VALUES(8.0) repeated
 // persisted typeof=integer; the first, uncached execution stored real —
 // oracle: real|8.0).
-func (c *exprClone) insertValue(expr sql.Expr) (sql.Expr, error) {
+//
+// The second return is the bind-mode tuple stash: for a substituted
+// parameter whose value can serve InsLitVals verbatim (see bindStashValue)
+// it is the parsed SQL value evalTuple would otherwise re-derive from the
+// rewritten node; for every other item it is nil ("evaluate the node").
+func (c *exprClone) insertValue(expr sql.Expr) (sql.Expr, interface{}, error) {
 	if c.bind != nil {
 		switch e := expr.(type) {
 		case *sql.ParameterExpr:
-			cloned, ok := c.bindParam(e)
+			cloned, sval, ok := c.bindParam(e)
 			if !ok {
-				return nil, fmt.Errorf("bind: parameter substitution refused")
+				return nil, nil, fmt.Errorf("bind: parameter substitution refused")
 			}
-			return cloned, nil
+			return cloned, sval, nil
 		default:
 			// Statement literal or expression — immutable text, keep original
-			return expr, nil
+			return expr, nil, nil
 		}
 	}
 	switch expr.(type) {
 	case *sql.NumericLit, *sql.StringLit:
 	default:
 		// Non-value expression — keep original
-		return expr, nil
+		return expr, nil, nil
 	}
 	if c.idx >= len(c.values) {
-		return nil, fmt.Errorf("template cache: not enough values (need %d, have %d)", len(c.values), c.idx+1)
+		return nil, nil, fmt.Errorf("template cache: not enough values (need %d, have %d)", len(c.values), c.idx+1)
 	}
 	val := c.values[c.idx]
 	c.idx++
 	switch v := val.(type) {
 	case int64:
-		return &sql.NumericLit{Value: strconv.FormatInt(v, 10)}, nil
+		return &sql.NumericLit{Value: strconv.FormatInt(v, 10)}, nil, nil
 	case float64:
 		s := strconv.FormatFloat(v, 'g', -1, 64)
 		if !strings.ContainsAny(s, ".eE") {
 			s += ".0" // 'g' drops the decimal point: keep the REAL kind
 		}
-		return &sql.NumericLit{Value: s}, nil
+		return &sql.NumericLit{Value: s}, nil, nil
 	case string:
-		return &sql.StringLit{Value: v}, nil
+		return &sql.StringLit{Value: v}, nil, nil
 	}
-	return expr, nil // keep original
+	return expr, nil, nil // keep original
 }
 
 // Prepare parses and caches a SQL statement. Repeated calls with the same SQL

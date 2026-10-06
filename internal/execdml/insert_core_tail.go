@@ -203,9 +203,18 @@ func (e *DMLExecutor) triggerGuardError(t *schema.Entry) *Result {
 // CREATE TRIGGER SQL text. Returns nil when the trigger has no WHEN clause.
 // parseTriggerWhen extracts and parses the WHEN expression of a trigger's
 // CREATE TRIGGER SQL text. Returns nil when the trigger has no WHEN clause.
-func (e *DMLExecutor) evalTuple(tableName string, tuple []sql.Expr, columns []string, colDefs []sql.ColumnDef) ([]interface{}, error) {
+// evalTuple evaluates one VALUES tuple. lits is the template slot-path value
+// stash for the tuple (nil when absent): a non-nil entry is the parsed
+// literal value the substitution wrote (identical kind and content to what
+// EvalExpr produces for the rewritten node), read instead of re-evaluating
+// the AST leaf.
+func (e *DMLExecutor) evalTuple(tableName string, tuple []sql.Expr, columns []string, colDefs []sql.ColumnDef, lits []interface{}) ([]interface{}, error) {
 	values := make([]interface{}, len(tuple))
 	for i, expr := range tuple {
+		if i < len(lits) && lits[i] != nil {
+			values[i] = lits[i]
+			continue
+		}
 		v, err := e.ctx.EvalExpr(expr, nil)
 		if err != nil {
 			return nil, err
@@ -221,13 +230,17 @@ func (e *DMLExecutor) evalTuple(tableName string, tuple []sql.Expr, columns []st
 // its row's insert (constraint checks copy what they retain; the preupdate
 // event copies; the RETURNING row set — which escapes the statement — is
 // the one consumer that needs a fresh slice, and it is gated by the caller).
-func (e *DMLExecutor) evalTuplePooled(tableName string, tuple []sql.Expr, columns []string, colDefs []sql.ColumnDef) ([]interface{}, error) {
+func (e *DMLExecutor) evalTuplePooled(tableName string, tuple []sql.Expr, columns []string, colDefs []sql.ColumnDef, lits []interface{}) ([]interface{}, error) {
 	values := e.insTupleVals
 	if cap(values) < len(tuple) {
 		values = make([]interface{}, 0, len(tuple)+4)
 	}
 	values = values[:len(tuple)]
 	for i, expr := range tuple {
+		if i < len(lits) && lits[i] != nil {
+			values[i] = lits[i]
+			continue
+		}
 		v, err := e.ctx.EvalExpr(expr, nil)
 		if err != nil {
 			e.insTupleVals = values

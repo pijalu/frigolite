@@ -90,8 +90,8 @@ func (e *DMLExecutor) insertViewSelect(s *sql.InsertStmt, viewEntry *schema.Entr
 // INSERT ... VALUES whose target is a view. The view insert itself counts 0
 // changes (the trigger body's DML counts via its own Exec).
 func (e *DMLExecutor) insertViewValues(s *sql.InsertStmt, viewEntry *schema.Entry, viewCols []string) *Result {
-	for _, tuple := range s.Values {
-		values, evalErr := e.evalTuple(viewEntry.Name, tuple, s.Columns, nil)
+	for ti, tuple := range s.Values {
+		values, evalErr := e.evalTuple(viewEntry.Name, tuple, s.Columns, nil, insertTupleLits(s, ti))
 		if evalErr != nil {
 			return &Result{Error: evalErr}
 		}

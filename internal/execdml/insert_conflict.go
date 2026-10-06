@@ -217,7 +217,17 @@ func fixedRowIDFor(haveReplaceRowID bool, replaceRowID int64, explicitRowID *int
 // column or explicit IPK value), nil when the rowid is auto-assigned.
 // Returns a non-nil Result on trigger failure (errRowSkipped for
 // RAISE(IGNORE)).
-func (e *DMLExecutor) fireInsertRowBeforeTriggers(tableEntry *schema.Entry, colDefs []sql.ColumnDef, values []interface{}, nextRowID *int64, withoutRowid, ipkWasNil bool, ipkIndex int, explicitRowID *int64) *Result {
+func (e *DMLExecutor) fireInsertRowBeforeTriggers(tableEntry *schema.Entry, colDefs []sql.ColumnDef, values []interface{}, nextRowID *int64, withoutRowid, rowidExplicit bool, explicitRowID *int64) *Result {
+	// buildBeforeTriggerRow's auto-IPK marker: an AUTO-filled INTEGER
+	// PRIMARY KEY reads -1 in a BEFORE INSERT trigger (tkt3832) — the
+	// source was auto AND the table declares an IPK column. (explicitRowID
+	// cannot carry the distinction: explicitTriggerRowid reads the
+	// POST-fill values, so an auto IPK already holds the assigned rowid.)
+	ipkWasNil := !rowidExplicit && e.ipkAliasIndex(colDefs) >= 0
+	ipkIndex := -1
+	if ipkWasNil {
+		ipkIndex = e.ipkAliasIndex(colDefs)
+	}
 	newRow := buildBeforeTriggerRow(colDefs, values, ipkWasNil, ipkIndex, withoutRowid, explicitRowID)
 	if trigResult := e.fireBeforeInsertTriggers(tableEntry.Name, newRow); trigResult.Error != nil {
 		// RAISE(IGNORE) in a BEFORE trigger aborts the insert (the row is
@@ -230,8 +240,12 @@ func (e *DMLExecutor) fireInsertRowBeforeTriggers(tableEntry *schema.Entry, colD
 	// A BEFORE trigger may have inserted rows into this same table,
 	// consuming the rowid we pre-allocated. SQLite assigns the
 	// statement's rowid after the BEFORE triggers run, so re-allocate
-	// when the pre-computed rowid is no longer the next free one.
-	if !withoutRowid {
+	// when the pre-computed rowid is no longer the next free one — an
+	// AUTO-ASSIGNED rowid only (oracle 3.51.0: a BEFORE trigger that
+	// claims the next rowid pushes the auto row to a higher one, while an
+	// EXPLICIT rowid/IPK value is the user's contract: it is stored as
+	// given and collides with UNIQUE, never silently re-numbered).
+	if !withoutRowid && !rowidExplicit {
 		e.reallocRowIDAfterTrigger(tableEntry, colDefs, values, nextRowID)
 	}
 	return nil
