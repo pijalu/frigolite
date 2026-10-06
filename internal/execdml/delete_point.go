@@ -77,6 +77,13 @@ func (e *DMLExecutor) finishPointDelete(tableEntry *schema.Entry, dbCtx *Databas
 	if err != nil {
 		return nil, false // anomaly: generic pipeline
 	}
+	// The decoded row is consumed by exactly two consumers — index
+	// maintenance and the preupdate hook (RETURNING, triggers and FK
+	// enforcement are excluded by pointDeleteEligible). When neither is
+	// present the cell's values are dead on arrival: skip the record decode
+	// entirely, the way vdbe.c's OP_Delete reads only the rowid when no
+	// index-key extraction is scheduled for the statement.
+	needValues := e.ctx.PreupdateNeeded() || len(e.allTableIndexes(tableEntry.Name)) > 0
 	found, serr := cursor.SeekToRowID(rowID)
 	if serr != nil {
 		return nil, false // anomaly: generic pipeline
@@ -87,20 +94,28 @@ func (e *DMLExecutor) finishPointDelete(tableEntry *schema.Entry, dbCtx *Databas
 		e.ctx.InvalidateRowIDCache(e.dmlPager(tableEntry.Name), tableEntry.RootPage)
 		return &Result{}, true
 	}
-	row, ok := e.decodePointDeleteRow(tableEntry, colDefs, cursor)
-	if !ok {
-		return nil, false // anomaly: generic pipeline
+	// When needValues the seek's exact hit pins the stored rowid to rowID
+	// (seekInLeafTable matches only on equality), so the undecoded delete
+	// below addresses the very cell the decode would have named.
+	var row *dmlRow
+	if needValues {
+		var ok bool
+		if row, ok = e.decodePointDeleteRow(tableEntry, colDefs, cursor); !ok {
+			return nil, false // anomaly: generic pipeline
+		}
 	}
 	// The seek established the row's leaf position; delete through it
 	// (DeleteCellByRowID's post-seek half) instead of descending again.
-	if _, err := tree.DeleteCellByRowIDAt(row.rowID, cursor.PageNum(), cursor.CellIdx(), cursor.PathParent()); err != nil {
+	if _, err := tree.DeleteCellByRowIDAt(rowID, cursor.PageNum(), cursor.CellIdx(), cursor.PathParent()); err != nil {
 		return &Result{Error: err}, true
 	}
-	if err := e.maintainIndexesOnDelete(tableEntry, colDefs, []*dmlRow{row}); err != nil {
-		return &Result{Error: err}, true
-	}
-	if res := e.fireDeletePreupdate(tableEntry, dbCtx, colDefs, row); res != nil {
-		return res, true
+	if row != nil {
+		if err := e.maintainIndexesOnDelete(tableEntry, colDefs, []*dmlRow{row}); err != nil {
+			return &Result{Error: err}, true
+		}
+		if res := e.fireDeletePreupdate(tableEntry, dbCtx, colDefs, row); res != nil {
+			return res, true
+		}
 	}
 	e.ctx.InvalidateRowIDCache(e.dmlPager(tableEntry.Name), tableEntry.RootPage)
 	return &Result{Changes: 1}, true
