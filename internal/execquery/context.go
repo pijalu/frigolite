@@ -447,6 +447,7 @@ type SelectEngine struct {
 	// (seekAnalysisScratch/seekConjScratch) follow it for the seek plan.
 	seekRowScratch      [][]interface{}
 	seekSRowScratch     []*StructRow
+	seekIPKScratch      [][]int
 	seekAnalysisScratch []*rowidSeekAnalysis
 	seekConjScratch     [][]sql.Expr
 	// resultTooWide flags that a SELECT in the current statement expanded to

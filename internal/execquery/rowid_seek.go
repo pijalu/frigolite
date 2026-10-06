@@ -38,7 +38,7 @@ func (e *SelectEngine) selectRowidSeekRows(s *sql.SelectStmt, tableEntry *schema
 	if !a.eqMatch {
 		return [][]interface{}{}, nil, true
 	}
-	cursor, srow, found, ok := e.fetchSeekStructRow(s, tree, a.eqRowid, colDefs, needMaps, a.covers)
+	cursor, srow, found, ok := e.fetchSeekStructRow(s, tree, a.eqRowid, colDefs, needMaps, a.covers, feed != nil)
 	if !ok {
 		return nil, nil, false
 	}
@@ -75,8 +75,9 @@ func (e *SelectEngine) selectRowidSeekRows(s *sql.SelectStmt, tableEntry *schema
 // references from the decode set (a covered plan never re-evaluates the
 // predicate); the decode is column-targeted either way when the row's
 // consumers are known (no row maps, bare projections) — the point path reads
-// one row, so every undecoded column saves its box.
-func (e *SelectEngine) fetchSeekStructRow(s *sql.SelectStmt, tree *btree.BTree, rowid int64, colDefs []sql.ColumnDef, needMaps, whereCovered bool) (cursor *btree.Cursor, srow *StructRow, found, ok bool) {
+// one row, so every undecoded column saves its box. hasFeed (an aggregate
+// feed steps the fetched row) keeps the full affinity walk.
+func (e *SelectEngine) fetchSeekStructRow(s *sql.SelectStmt, tree *btree.BTree, rowid int64, colDefs []sql.ColumnDef, needMaps, whereCovered, hasFeed bool) (cursor *btree.Cursor, srow *StructRow, found, ok bool) {
 	// The seek re-descends from the root (SeekToRowID clears the path stack),
 	// so the cursor opens parked at the root: OpenCursor's leftmost-leaf
 	// descent is work a point lookup never uses (the same shape the point
@@ -96,7 +97,7 @@ func (e *SelectEngine) fetchSeekStructRow(s *sql.SelectStmt, tree *btree.BTree, 
 	if err != nil {
 		return nil, nil, false, false
 	}
-	affinityCols := e.scanTableAffinityCols(s, colDefs, needMaps)
+	affinityCols := e.seekAffinityCols(s, colDefs, needMaps, whereCovered, hasFeed)
 	colIndex := e.seekColIndexFor(colDefs)
 	// Depth-slot scratch: the decode buffer and StructRow recycle per
 	// selectDepth (seekRowScratchFor). Every slot is fully rewritten below —
@@ -120,6 +121,27 @@ func (e *SelectEngine) fetchSeekStructRow(s *sql.SelectStmt, tree *btree.BTree, 
 	return cursor, srow, true, true
 }
 
+// seekAffinityCols computes the point fetch's affinity-reference set, or nil
+// when the shape provably never reads a wrapper off a decoded slot: the seek
+// covered every WHERE conjunct (no per-row predicate re-evaluates), no row
+// maps are built, no aggregate feed steps the fetched row, and every output
+// column is a bare reference over an uncollated/BINARY column. Each such
+// value is unwrapped on its way out (appendOutputExpr's peel, the fused slot
+// read's peel), so the wrapper never reaches a comparison; a declared
+// non-BINARY collation keeps the marker alive for the GROUP BY key
+// computation and takes the full walk (skipBareSelectRef's rule).
+func (e *SelectEngine) seekAffinityCols(s *sql.SelectStmt, colDefs []sql.ColumnDef, needMaps, whereCovered, hasFeed bool) map[string]bool {
+	if !whereCovered || needMaps || hasFeed || !projectionIsBareRefs(s) {
+		return e.scanTableAffinityCols(s, colDefs, needMaps)
+	}
+	for i := range s.Columns {
+		if !skipBareSelectRef(unwrapParenExpr(s.Columns[i].Expr), colDefs) {
+			return e.scanTableAffinityCols(s, colDefs, needMaps)
+		}
+	}
+	return nil
+}
+
 // seekIPKFillIndices lists the INTEGER PRIMARY KEY rowid-alias slots the
 // point fetch must fill with its affinity-wrapped rowid. The fill runs for
 // every alias slot whenever the row's consumers are not statically known
@@ -134,17 +156,34 @@ func (e *SelectEngine) seekIPKFillIndices(s *sql.SelectStmt, colDefs []sql.Colum
 	if !whereCovered || needMaps || !projectionIsBareRefs(s) {
 		return ipkAliasIndices(colDefs)
 	}
-	projRefs := e.affCollectorFor(&e.seekRefScratch)
+	// Covered + bare: the projection's references were just verified bare, so
+	// read them directly instead of paying the recycled collector's map walk
+	// for an answer that is usually one slot.
+	fill := e.seekIPKFillScratchFor()
 	for i := range s.Columns {
-		projRefs.collectExpr(s.Columns[i].Expr)
-	}
-	var fill []int
-	for i := range colDefs {
-		if isIPKRowidAliasCol(colDefs[i]) && needsAffinity(projRefs.cols, colDefs[i].Name) {
-			fill = append(fill, i)
+		name := unwrapParenExpr(s.Columns[i].Expr).(*sql.ColumnRef).Name
+		for j := range colDefs {
+			if isIPKRowidAliasCol(colDefs[j]) && (colDefs[j].Name == name || strings.EqualFold(colDefs[j].Name, name)) {
+				fill = append(fill, j)
+				break
+			}
 		}
 	}
 	return fill
+}
+
+// seekIPKFillScratchFor returns this depth's reusable fill-index buffer.
+// seekIPKFillIndices's answer is consumed immediately by the same statement's
+// fillSeekRowPhaseOne and never retained, so the per-depth slot (the
+// seekRowScratch discipline) recycles it allocation-free.
+func (e *SelectEngine) seekIPKFillScratchFor() []int {
+	d := e.selectDepth
+	if d >= len(e.seekIPKScratch) {
+		e.seekIPKScratch = append(e.seekIPKScratch, make([][]int, d+1-len(e.seekIPKScratch))...)
+	}
+	v := e.seekIPKScratch[d][:0]
+	e.seekIPKScratch[d] = v
+	return v
 }
 
 // seekRowScratchFor returns this depth's reusable decode buffer sized for
