@@ -891,6 +891,13 @@ func uniqueColValuesMatch(a, b []interface{}, colDefs []sql.ColumnDef, rowIDa, r
 	av, bv := a[idx], b[idx]
 	if isIPKRowidAliasCol(colDefs[idx]) {
 		if av == nil {
+			if bv == nil {
+				// Both slots NULL (the IPK storage rule): the value is the
+				// rowid on both sides — compare directly, no boxing (the
+				// per-row int64→interface{} conversions dominated this
+				// gate's allocation profile on rowid-pinned updates).
+				return rowIDa == rowIDb
+			}
 			av = rowIDa
 		}
 		if bv == nil {

@@ -136,6 +136,14 @@ type DMLExecutor struct {
 	laneOps     [8]setLaneOp
 	laneResults [8]interface{}
 
+	// wrFlag* memoizes the point-UPDATE path's WITHOUT ROWID flag
+	// (withoutRowidCached) under the schema fingerprint + entry identity —
+	// the same guard pattern as ciCache: one resolve per table instead of a
+	// CREATE TABLE tail scan at each of the path's 3-4 per-statement gates.
+	wrFlagFp    uint64
+	wrFlagEntry *schema.Entry
+	wrFlagVal   bool
+
 	// resultScratch holds one recycled *Result per execDepth
 	// (emptyResultFor): the DML hot paths' no-error control-flow markers
 	// ("no conflict", "no match", the 1-change statement result) allocate a

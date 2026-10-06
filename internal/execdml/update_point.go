@@ -31,6 +31,23 @@ func (e *DMLExecutor) pointUpdateEligible(s *sql.UpdateStmt, tableEntry *schema.
 		e.pointUpdateTargetOK(s, tableEntry, colDefs)
 }
 
+// withoutRowidCached is tableIsWithoutRowid over one memoized slot: the
+// point-UPDATE path resolves the flag for the same table 3-4 times per
+// statement (the shape gate, the conflict gate's layout skip, the
+// constrained-def walk, the CHECK walk) and each resolve scanned the CREATE
+// TABLE tail (strip + LastIndex + fold-contains). The guard is the ciCache
+// pattern: schema fingerprint + entry identity — any DDL replaces the entry
+// or moves the fingerprint, so a stale flag cannot survive.
+func (e *DMLExecutor) withoutRowidCached(tableEntry *schema.Entry) bool {
+	fp := e.schemaFingerprint()
+	if e.wrFlagEntry == tableEntry && e.wrFlagFp == fp {
+		return e.wrFlagVal
+	}
+	v := tableIsWithoutRowid(tableEntry.SQL)
+	e.wrFlagEntry, e.wrFlagFp, e.wrFlagVal = tableEntry, fp, v
+	return v
+}
+
 // pointUpdateStatementShapeOK reports the clause-level shape: a plain
 // statement (no OR clause, no RETURNING, no ORDER BY/LIMIT) over the target
 // table only (no FROM), with the single SET list form.
@@ -48,7 +65,7 @@ func pointUpdateStatementShapeOK(s *sql.UpdateStmt) bool {
 // table without triggers, FK enforcement, per-constraint ON CONFLICT
 // clauses, or generated columns, whose SET targets are ordinary columns.
 func (e *DMLExecutor) pointUpdateTargetOK(s *sql.UpdateStmt, tableEntry *schema.Entry, colDefs []sql.ColumnDef) bool {
-	if tableIsWithoutRowid(tableEntry.SQL) {
+	if e.withoutRowidCached(tableEntry) {
 		return false
 	}
 	if e.hasTriggersForTable(tableEntry.Name) || e.ctx.ForeignKeys() {
