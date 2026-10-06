@@ -1266,3 +1266,22 @@ insert 760,244 ops/s (2.0x), point 775,664 (1.39x), scan 38.7M rows/s
 committed + pushed through this entry. Machine-pressure mitigation:
 census heavy packages (fts4merge4, fts5bigpl — multi-GB GC transients)
 now serialized (tools/status).
+
+## PERF-PARITY6 (2026-10-03, milestone) — R9 three-lane round merged; point 1.10x, insert 1.61x
+
+fleet/r9-delete (collect decode-skip when no consumer, cursor path-stack
+reuse across save/restore, scratch Result, redundant per-statement
+journal scope drop, parse-memo delete header — delete ns/op −20-23%),
+fleet/r9-insert (LEAF-SPLIT SORTEDNESS PROBE: bubble sort ran O(n²) on
+already-sorted cells; statement-end hooks off named-return heap alloc;
+insert-shape fingerprint memo; append-path probe elision; GetVarint
+3-byte fast path — ALSO caught fts5 flush error dropped by value-passed
+Result, fixed), fleet/r9-point (shape-stable identity gating — found
+pointer-keyed memos serving stale verdicts from recycled COW AST
+addresses, correctness bug fixed + pinned; shape memo replacing 6
+per-statement walks; flush fast path; lazy statement clock; btree probe
+loops — point ns budget 950→600). Milestone bench (main 940120bb8 vs
+sqlite3 3.54 same ops): insert 1,031,927 ops/s (1.61x), point 939,964
+(1.10x), scan 38.0M rows/s (1.36x), group 48 q/s (1.26x FASTER), update
+684,758 (1.78x), delete 869,258 (1.85x), file autocommit 11,105 (1.11x
+FASTER). Campaign start: 10.9x/1040x/6.5x/3.9x/2049x/885x.
