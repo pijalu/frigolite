@@ -398,6 +398,10 @@ type Engine struct {
 	// snapBufs: the statement-journal entry list (snapshotAllPagers) per
 	// execDepth, same slot pattern.
 	snapBufs [][]pagerSnap
+	// flushDirtyScratch is execFlushAutocommit's dirty-database list buffer
+	// (dirtyDatabases): recycled across statements, never retained past the
+	// flush.
+	flushDirtyScratch []*DatabaseContext
 	// normBuf / normValues / normSpans are Prepare's substitution scratch
 	// (the normalized SQL text buffer, the extracted literal values, and the
 	// literals' byte spans in the original text), recycled across statements.

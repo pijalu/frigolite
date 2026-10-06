@@ -46,7 +46,7 @@ func (e *SelectEngine) execSelectScanPhase(s *sql.SelectStmt, cursor *btree.Curs
 // index-order reorder sorts by the index key through the scan's row maps, so
 // they must be built even for star outputs when it applies.
 func (e *SelectEngine) prepareScanOutputs(s *sql.SelectStmt, tableEntry *schema.Entry, colDefs []sql.ColumnDef) (needMaps bool, withoutRowidPKCols []string) {
-	needMaps = SelectNeedsRowMaps(e, s, tableEntry.Name)
+	needMaps = e.selectNeedsRowMapsCached(s, tableEntry.Name)
 	if e.indexScanOrderIndex(s) != "" {
 		needMaps = true
 	}
@@ -69,7 +69,7 @@ func (e *SelectEngine) prepareScanOutputs(s *sql.SelectStmt, tableEntry *schema.
 // positional-aggregate mode; the aggregate passes take them in preference to
 // the row maps).
 func (e *SelectEngine) execSelectPostScan(s *sql.SelectStmt, allRows [][]interface{}, allRowMaps []RowMap, aggRows []Row, colDefs []sql.ColumnDef) *Result {
-	if len(e.OuterRows()) > 0 && e.hasAggregates(s.Columns) {
+	if len(e.OuterRows()) > 0 && e.hasAggregatesCachedStmt(s) {
 		if result := e.execSelectOuterAgg(s, allRowMaps, colDefs); result != nil {
 			return result
 		}
@@ -189,8 +189,13 @@ func (e *SelectEngine) execSelect(s *sql.SelectStmt) *Result {
 	// executes as a correlated nested loop with the referenced table as the
 	// outer loop. Promote that table to head position and demote the function
 	// to a correlated comma-join operand before any dispatch/validation.
-	if ns, ok := e.promoteCorrelatedTVFFrom(s); ok {
-		s = ns
+	// (promoteCorrelatedTVFFrom's own first gate is len(From.Args) > 0; the
+	// inline check skips the call for every argument-free FROM — the
+	// point-SELECT shape.)
+	if len(s.From.Args) > 0 {
+		if ns, ok := e.promoteCorrelatedTVFFrom(s); ok {
+			s = ns
+		}
 	}
 	// SQLite resolves TVF arguments against the function's own FROM scope
 	// only, and forbids references past an OUTER join (tabfunc01-1410/1420,
@@ -204,7 +209,7 @@ func (e *SelectEngine) execSelect(s *sql.SelectStmt) *Result {
 	if len(s.CTEs) > 0 {
 		defer func() { e.cteScopes = e.cteScopes[:len(e.cteScopes)-1] }()
 	}
-	if err := e.validateSelectPreDispatch(s); err != nil {
+	if err := e.validateSelectPreDispatchCached(s); err != nil {
 		return &Result{Error: err}
 	}
 	if res := e.indexedByOnViewError(s); res != nil {
@@ -311,7 +316,7 @@ func (e *SelectEngine) execRealTableSelect(s *sql.SelectStmt) *Result {
 	// aggregate nor a GROUP BY term skips the eligibility walk entirely —
 	// the point-SELECT shape pays nothing for the feed machinery.
 	var feed *simpleAggFeed
-	if e.hasAggregates(s.Columns) || len(s.GroupBy) > 0 {
+	if e.hasAggregatesCachedStmt(s) || len(s.GroupBy) > 0 {
 		feed = e.compileSimpleAggFeed(s, tableEntry, colDefs)
 		if feed == nil && len(s.GroupBy) > 0 {
 			feed = e.compileGroupedAggFeed(s, tableEntry, colDefs)

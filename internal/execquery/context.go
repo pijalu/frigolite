@@ -335,6 +335,14 @@ type SelectEngine struct {
 	// owns the identity discipline); every memo consult in this package
 	// gates on it.
 	shapeStable bool
+	// shapeMemo* memoizes the per-template SELECT shape verdicts
+	// (select_shape_memo.go): pre-dispatch validation, row-map requirement,
+	// aggregate presence, bare-reference projection, and the rowid-seek
+	// equality shape. Keyed by the template-stable statement pointer and
+	// guarded by the schema fingerprint (the prevalidateMemo pattern);
+	// flushed on DDL and at the entry cap.
+	shapeMemoFP uint64
+	shapeMemo   map[*sql.SelectStmt]*selectShapeEntry
 	// collOutMemo* memoizes the output-collation lists of bare-reference
 	// single-table projections (outputCollationsBare in
 	// select_point_memo.go): fingerprint + template-shared columns-slice

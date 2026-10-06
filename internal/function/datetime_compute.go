@@ -842,15 +842,41 @@ func SetStmtTime(t time.Time) {
 	}
 }
 
+// BeginStmtTime opens one SQL statement's 'now' window WITHOUT reading the
+// clock. SQLite computes the statement time lazily — sqlite3StmtCurrentTime
+// runs on the first date/time function that needs it, and a statement that
+// never touches 'now' (the dominant statement shapes) never reads the clock.
+// The engine opens the window at statement start and closes it with
+// ClearStmtTime at statement end; while the window is open, the FIRST 'now'
+// consumption pins the instant (currentTime) and every later one in the same
+// statement reuses it.
+func BeginStmtTime() {
+	stmtTimeMu.Lock()
+	stmtTimeSet = false
+	stmtTimeMu.Unlock()
+}
+
+// ClearStmtTime closes the statement's 'now' window (SetStmtTime's zero
+// form, without the interface conversion at the call site).
+func ClearStmtTime() {
+	stmtTimeMu.Lock()
+	stmtTimeSet = false
+	stmtTimeMu.Unlock()
+}
+
 func currentTime() time.Time {
-	stmtTimeMu.RLock()
-	cached := stmtTimeSet
-	t := stmtTime
-	stmtTimeMu.RUnlock()
-	if cached {
-		return t
+	stmtTimeMu.Lock()
+	defer stmtTimeMu.Unlock()
+	if stmtTimeSet {
+		return stmtTime
 	}
-	return Now()
+	// Lazy pin: first 'now' consumption inside the open window reads the
+	// clock and fixes the statement's instant. Now() honors the test clock
+	// hook (its own lock — no ordering with stmtTimeMu's).
+	t := Now()
+	stmtTimeSet = true
+	stmtTime = t
+	return t
 }
 
 // Now returns the current wall-clock time, honoring a test-installed

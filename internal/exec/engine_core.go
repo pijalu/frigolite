@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"strconv"
 	"strings"
-	"time"
 
 	"github.com/pijalu/frigolite/internal/function"
 	"github.com/pijalu/frigolite/internal/parse"
@@ -803,11 +802,15 @@ func (e *Engine) Exec(stmt sql.Stmt) *Result {
 
 	// Pin 'now' for the whole statement (SQLite sqlite3StmtCurrentTime): all
 	// date/time functions using 'now' within this statement return the same
-	// instant, even when a user function sleeps in between. Use the
-	// hookable clock so the test harness's sqlite_current_time override
-	// (function.SetNowFunc) takes effect.
-	function.SetStmtTime(function.Now())
-	defer function.SetStmtTime(time.Time{})
+	// instant, even when a user function sleeps in between. The clock is
+	// read LAZILY (SQLite computes the statement time on the first date/time
+	// function that needs it), so a statement that never touches 'now' — the
+	// dominant shapes — never pays a clock read; the pin engages on the
+	// window's first consumption. Use the hookable clock so the test
+	// harness's sqlite_current_time override (function.SetNowFunc) takes
+	// effect.
+	function.BeginStmtTime()
+	defer function.ClearStmtTime()
 
 	// SQLite guarantees statement atomicity: when a statement fails (a
 	// constraint violation, a trigger error, etc.) every change it made is
