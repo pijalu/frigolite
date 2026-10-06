@@ -44,6 +44,23 @@ func (e *Engine) execDBFileChecks(stmt sql.Stmt) *Result {
 	if !stmtTouchesDatabase(stmt) {
 		return nil
 	}
+	// OP_Transaction inside an open transaction is a no-op (btree.c
+	// sqlite3BtreeBeginTrans early-returns when pBt->inTransaction already
+	// matches): SQLite re-runs sqlite3PagerSharedLock + lockBtree once per
+	// transaction — at the first b-tree statement — never per statement.
+	// Once this transaction's validation ran clean, later statements skip
+	// the change-stamp fstat+pread entirely (POSIX locking makes a
+	// mid-transaction re-check unobservable in C: our SHARED lock pins the
+	// image until COMMIT / ROLLBACK). A failed validation does not latch the
+	// flag: the next statement re-runs the checks and reports the corruption
+	// again, like C's repeated OP_Transaction failure.
+	firstInTx := false
+	if e.tx.inTransaction {
+		if e.tx.fileChecksDone {
+			return nil
+		}
+		firstInTx = true
+	}
 	changed := false
 	// pinWAL: file-backed WAL databases open their read transaction (the
 	// read-mark pin, sqlite3WalBeginReadTransaction parity) as part of the
@@ -62,6 +79,9 @@ func (e *Engine) execDBFileChecks(stmt sql.Stmt) *Result {
 	}
 	if changed {
 		e.clearExternalCaches()
+	}
+	if firstInTx {
+		e.tx.fileChecksDone = true
 	}
 	return nil
 }

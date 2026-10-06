@@ -136,6 +136,7 @@ func (e *Engine) commitInterruptCountdown() (res *Result, ok bool) {
 func (e *Engine) commitClearTxState() {
 	e.tx.txSchemaChanged = false
 	e.tx.inTransaction = false
+	e.tx.fileChecksDone = false
 	e.settings.deferForeignKeys = false
 	e.constraints.ResetFKDirty()
 	e.dml.ClearTxnWrittenFiles()
@@ -315,6 +316,7 @@ func (e *Engine) execBegin(stmt *sql.BeginStmt) *Result {
 		}
 	}
 	e.tx.inTransaction = true
+	e.tx.fileChecksDone = false
 	e.constraints.ResetFKDirty()
 	e.tx.ddlBuffer = nil
 	// Snapshot every attached database's pager so ROLLBACK can undo DML
@@ -422,6 +424,7 @@ func (e *Engine) execRollback() *Result {
 	}
 	e.tx.txSchemaChanged = false
 	e.tx.inTransaction = false
+	e.tx.fileChecksDone = false
 	e.settings.deferForeignKeys = false
 	e.constraints.ResetFKDirty()
 	// Release cross-connection lock marks (write transactions and BEGIN
@@ -575,6 +578,7 @@ func (e *Engine) execSavepointCreate(s *sql.SavepointStmt) *Result {
 	// A SAVEPOINT outside BEGIN implicitly starts a transaction.
 	if !e.tx.inTransaction {
 		e.tx.inTransaction = true
+		e.tx.fileChecksDone = false
 		e.constraints.ResetFKDirty()
 	}
 	return &Result{}
@@ -631,6 +635,7 @@ func (e *Engine) releaseImplicitTxSavepoint(popped []savepointEntry) *Result {
 		return &Result{Error: err}
 	}
 	e.tx.inTransaction = false
+	e.tx.fileChecksDone = false
 	e.settings.deferForeignKeys = false
 	e.constraints.ResetFKDirty()
 	e.tx.ddlBuffer = nil
