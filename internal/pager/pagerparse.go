@@ -99,9 +99,21 @@ func (pg *Page) ParsedBTree(pageSize, contentOffset int) (*storage.BTreePage, er
 		}
 	}
 	// Miss (or first touch): parse fresh — full validation included — then
-	// snapshot the parse's source bytes. The memo struct is allocated before
-	// the parse so the parsed header lands in it directly (no second copy).
+	// snapshot the parse's source bytes. Every miss allocates a FRESH memo
+	// generation (the canary and invalidation contracts hand out a new
+	// pointer per generation) but reuses the PREVIOUS generation's hdrSnap
+	// capacity: the point-op paths (point UPDATE/DELETE/INSERT) rewrite their
+	// leaf page every statement, so the next statement's seek misses again
+	// and would otherwise churn a fresh snapshot buffer per statement. The
+	// old generation is dead once the new one is stored — its only other
+	// consumer, the canary check, runs through pg.parseMemo, which by then
+	// holds the new memo — and a torn capture still self-heals (the canary
+	// re-derives the fields from the freshly written snapshot).
+	old := pg.parseMemo.Load()
 	mp := &pageParseMemo{pageSize: pageSize, coff: contentOffset}
+	if old != nil && old.pageSize == pageSize && old.coff == contentOffset {
+		mp.hdrSnap = old.hdrSnap[:0]
+	}
 	if _, err := storage.ParsePageInto(pg.Data, pageSize, contentOffset, &mp.parsed); err != nil {
 		return nil, err
 	}
@@ -116,8 +128,7 @@ func (pg *Page) ParsedBTree(pageSize, contentOffset int) (*storage.BTreePage, er
 		// header fields, so bytes beyond it cannot change the parse result.
 		end = len(pg.Data)
 	}
-	mp.hdrSnap = make([]byte, end-contentOffset)
-	copy(mp.hdrSnap, pg.Data[contentOffset:end])
+	mp.hdrSnap = append(mp.hdrSnap[:0], pg.Data[contentOffset:end]...)
 	if !mp.parsedMatchesSnapshot() {
 		// Torn capture: the page bytes changed between the parse and the
 		// snapshot, so the parsed header and hdrSnap disagree (impossible
