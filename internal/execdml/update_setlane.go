@@ -75,10 +75,10 @@ func (e *DMLExecutor) applyTypedPointUpdateSet(s *sql.UpdateStmt, colDefs []sql.
 	for i := range ops {
 		op := &ops[i]
 		switch op.kind {
-		case laneCol:
-			results[i] = laneSlotValue(values, colDefs, op.refA, rowID)
 		case laneLit:
-			results[i] = op.litA
+			// A lone operand store: column slot (with the IPK rowid-alias
+			// substitution), the rowid pseudo-reference, or the literal.
+			results[i] = laneOperandValue(values, colDefs, op.refA, op.litA, rowID)
 		default: // laneArith
 			l := laneOperandValue(values, colDefs, op.refA, op.litA, rowID)
 			r := laneOperandValue(values, colDefs, op.refB, op.litB, rowID)
