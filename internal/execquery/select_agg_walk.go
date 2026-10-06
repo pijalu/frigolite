@@ -290,6 +290,20 @@ func (e *SelectEngine) exprHasCorrelatedSubquery(expr sql.Expr) bool {
 // hasSubqueryWithCorrelatedAgg checks if any SELECT column contains a subquery
 // that has a correlated aggregate at any nesting depth.
 func (e *SelectEngine) hasSubqueryWithCorrelatedAgg(columns []sql.SelectColumn) bool {
+	// All-bare-reference projection: the walk over a column reference (any
+	// spelling) visits a single node and can never meet a Subquery — the
+	// common point-lookup/scan shape skips the per-column closure walk
+	// entirely. The statement pipelines ask this several times per execution.
+	bare := len(columns) > 0
+	for i := range columns {
+		if _, ok := unwrapParenExpr(columns[i].Expr).(*sql.ColumnRef); !ok {
+			bare = false
+			break
+		}
+	}
+	if bare {
+		return false
+	}
 	for _, col := range columns {
 		found := false
 		WalkExprFull(col.Expr, func(en sql.Expr) {

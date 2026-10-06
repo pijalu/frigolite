@@ -95,11 +95,41 @@ func (e *SelectEngine) execSelectPostScan(s *sql.SelectStmt, allRows [][]interfa
 		winResult := e.execWindowPass(s, allRowMaps, colDefs)
 		return e.finalizeSelectResult(winResult, s, winResult.rowMaps)
 	}
-	result := &Result{Columns: e.buildColumnNames(s.Columns, colDefs, s), Rows: allRows}
+	result := e.pooledSelectResult()
+	result.Columns = e.buildColumnNames(s.Columns, colDefs, s)
+	result.Rows = allRows
 	if len(s.Joins) > 0 && selectProjectsPlainColumns(s.Columns) {
 		result.rowMaps = allRowMaps
 	}
 	return e.finalizeSelectResult(result, s, allRowMaps)
+}
+
+// pooledSelectResult returns this selectDepth's reusable SELECT result
+// struct, zeroed for a fresh statement. Every nested execution (compound
+// members, subqueries, view bodies, trigger statements) runs through its own
+// execSelect at a strictly deeper selectDepth, so a slot is only ever
+// reacquired after the statement that took it has fully returned and every
+// consumer has copied the fields it keeps — the public boundary (DB.Query /
+// DB.Exec / Stmt) copies Columns/Rows/Changes/LastInsertRowID/Error into the
+// caller's own Result, and the engine-internal readers (foldQueryResult, the
+// trigger executor, the vtab helpers) read theirs before the next Exec. The
+// Rows/Columns ARRAYS stay fresh per statement (allRows from the scan or the
+// seek's output rows; the name lists are per-statement copies), so a caller
+// that holds its copied slice headers never observes a later statement's
+// rows — the scanbox reuse-pin contract.
+func (e *SelectEngine) pooledSelectResult() *Result {
+	d := e.selectDepth
+	if d >= len(e.resultScratch) {
+		e.resultScratch = append(e.resultScratch, make([]*Result, d+1-len(e.resultScratch))...)
+	}
+	r := e.resultScratch[d]
+	if r == nil {
+		r = &Result{}
+		e.resultScratch[d] = r
+	} else {
+		*r = Result{}
+	}
+	return r
 }
 
 // validateOrderGroupByTerms enforces SQLITE_LIMIT_COLUMN on the ORDER BY and
@@ -460,7 +490,15 @@ func (e *SelectEngine) finalizeSelectResult(result *Result, s *sql.SelectStmt, r
 	}
 	// The collation of each result column of a compound query comes from the
 	// leftmost SELECT member (SQLite's compound column collation rule).
-	colls := e.selectOutputCollations(s)
+	// DISTINCT, the compound merge, and ORDER BY resolution are the collation
+	// list's only consumers; a statement with none of them (the dominant
+	// point-lookup shape) skips the per-column walk entirely.
+	colls := func() []string {
+		if !s.Distinct && s.Union == nil && len(s.OrderBy) == 0 {
+			return nil
+		}
+		return e.selectOutputCollations(s)
+	}()
 	if s.Distinct {
 		result.Rows, rowMaps = e.distinctRows(result.Rows, rowMaps, colls, s)
 	}

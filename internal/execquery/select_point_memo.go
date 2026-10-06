@@ -46,6 +46,11 @@ type collOutMemoKey struct {
 	colsLen int
 }
 
+// bareRefPlanKey identifies one memoized bare-reference slot plan: the
+// SELECT-columns slice and the colDefs slice the references resolve against,
+// both by first-element address and length (the colNamesMemoKey pattern).
+type bareRefPlanKey = colNamesMemoKey
+
 // columnNamesMemoizable reports whether every SELECT column is an unaliased,
 // unqualified, non-star column reference — the shape whose result names are
 // independent of the enclosing statement (short_column_names resolution reads

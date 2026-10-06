@@ -494,6 +494,12 @@ func (e *SelectEngine) execValuesGroup(head *sql.SelectStmt) *Result {
 	if res.Error != nil {
 		return res
 	}
+	// res is the selectDepth's pooled result struct: every later member's
+	// execSelect reuses the same slot at this depth, so carry the rows and
+	// columns (fresh per-statement arrays) in locals across the chain and
+	// rebuild the result once the last member has executed.
+	rows := res.Rows
+	columns := res.Columns
 	cur := head
 	for cur.Union != nil && cur.SetOp == sql.SetUnion && cur.UnionAll {
 		next := cur.Union
@@ -503,9 +509,11 @@ func (e *SelectEngine) execValuesGroup(head *sql.SelectStmt) *Result {
 		if nres.Error != nil {
 			return nres
 		}
-		res.Rows = append(res.Rows, nres.Rows...)
+		rows = append(rows, nres.Rows...)
 		cur = next
 	}
+	res.Columns = columns
+	res.Rows = rows
 	return res
 }
 

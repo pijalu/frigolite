@@ -38,7 +38,7 @@ func (e *SelectEngine) selectRowidSeekRows(s *sql.SelectStmt, tableEntry *schema
 	if !a.eqMatch {
 		return [][]interface{}{}, nil, true
 	}
-	cursor, srow, found, ok := e.fetchSeekStructRow(s, tree, a.eqRowid, colDefs, needMaps, a.covers)
+	cursor, srow, found, ok := e.fetchSeekStructRow(s, tree, a.eqRowid, colDefs, needMaps, a.covers, feed != nil)
 	if !ok {
 		return nil, nil, false
 	}
@@ -75,8 +75,9 @@ func (e *SelectEngine) selectRowidSeekRows(s *sql.SelectStmt, tableEntry *schema
 // references from the decode set (a covered plan never re-evaluates the
 // predicate); the decode is column-targeted either way when the row's
 // consumers are known (no row maps, bare projections) — the point path reads
-// one row, so every undecoded column saves its box.
-func (e *SelectEngine) fetchSeekStructRow(s *sql.SelectStmt, tree *btree.BTree, rowid int64, colDefs []sql.ColumnDef, needMaps, whereCovered bool) (cursor *btree.Cursor, srow *StructRow, found, ok bool) {
+// one row, so every undecoded column saves its box. hasFeed (an aggregate
+// feed steps the fetched row) keeps the full affinity walk.
+func (e *SelectEngine) fetchSeekStructRow(s *sql.SelectStmt, tree *btree.BTree, rowid int64, colDefs []sql.ColumnDef, needMaps, whereCovered, hasFeed bool) (cursor *btree.Cursor, srow *StructRow, found, ok bool) {
 	// The seek re-descends from the root (SeekToRowID clears the path stack),
 	// so the cursor opens parked at the root: OpenCursor's leftmost-leaf
 	// descent is work a point lookup never uses (the same shape the point
@@ -96,7 +97,7 @@ func (e *SelectEngine) fetchSeekStructRow(s *sql.SelectStmt, tree *btree.BTree, 
 	if err != nil {
 		return nil, nil, false, false
 	}
-	affinityCols := e.scanTableAffinityCols(s, colDefs, needMaps)
+	affinityCols := e.seekAffinityCols(s, colDefs, needMaps, whereCovered, hasFeed)
 	colIndex := e.seekColIndexFor(colDefs)
 	// Depth-slot scratch: the decode buffer and StructRow recycle per
 	// selectDepth (seekRowScratchFor). Every slot is fully rewritten below —
@@ -116,8 +117,35 @@ func (e *SelectEngine) fetchSeekStructRow(s *sql.SelectStmt, tree *btree.BTree, 
 	}
 	srow = e.seekSRowScratchFor()
 	srow.Index = colIndex
-	e.fillSeekRowPhaseOne(values, valueCount, srow, colDefs, realRowID, affinityWrapIndices(colDefs, affinityCols), e.seekIPKFillIndices(s, colDefs, needMaps, whereCovered))
+	// The targeted covered+bare fill leaves the alias slot unwrapped (every
+	// consumer peels; the covered plan never compares) — the same predicate
+	// seekIPKFillIndices's targeted branch uses.
+	e.fillSeekRowPhaseOne(values, valueCount, srow, colDefs, realRowID,
+		affinityWrapIndices(colDefs, affinityCols),
+		e.seekIPKFillIndices(s, colDefs, needMaps, whereCovered),
+		!(whereCovered && !needMaps && projectionIsBareRefs(s)))
 	return cursor, srow, true, true
+}
+
+// seekAffinityCols computes the point fetch's affinity-reference set, or nil
+// when the shape provably never reads a wrapper off a decoded slot: the seek
+// covered every WHERE conjunct (no per-row predicate re-evaluates), no row
+// maps are built, no aggregate feed steps the fetched row, and every output
+// column is a bare reference over an uncollated/BINARY column. Each such
+// value is unwrapped on its way out (appendOutputExpr's peel, the fused slot
+// read's peel), so the wrapper never reaches a comparison; a declared
+// non-BINARY collation keeps the marker alive for the GROUP BY key
+// computation and takes the full walk (skipBareSelectRef's rule).
+func (e *SelectEngine) seekAffinityCols(s *sql.SelectStmt, colDefs []sql.ColumnDef, needMaps, whereCovered, hasFeed bool) map[string]bool {
+	if !whereCovered || needMaps || hasFeed || !projectionIsBareRefs(s) {
+		return e.scanTableAffinityCols(s, colDefs, needMaps)
+	}
+	for i := range s.Columns {
+		if !skipBareSelectRef(unwrapParenExpr(s.Columns[i].Expr), colDefs) {
+			return e.scanTableAffinityCols(s, colDefs, needMaps)
+		}
+	}
+	return nil
 }
 
 // seekIPKFillIndices lists the INTEGER PRIMARY KEY rowid-alias slots the
@@ -134,17 +162,34 @@ func (e *SelectEngine) seekIPKFillIndices(s *sql.SelectStmt, colDefs []sql.Colum
 	if !whereCovered || needMaps || !projectionIsBareRefs(s) {
 		return ipkAliasIndices(colDefs)
 	}
-	projRefs := e.affCollectorFor(&e.seekRefScratch)
+	// Covered + bare: the projection's references were just verified bare, so
+	// read them directly instead of paying the recycled collector's map walk
+	// for an answer that is usually one slot.
+	fill := e.seekIPKFillScratchFor()
 	for i := range s.Columns {
-		projRefs.collectExpr(s.Columns[i].Expr)
-	}
-	var fill []int
-	for i := range colDefs {
-		if isIPKRowidAliasCol(colDefs[i]) && needsAffinity(projRefs.cols, colDefs[i].Name) {
-			fill = append(fill, i)
+		name := unwrapParenExpr(s.Columns[i].Expr).(*sql.ColumnRef).Name
+		for j := range colDefs {
+			if isIPKRowidAliasCol(colDefs[j]) && (colDefs[j].Name == name || strings.EqualFold(colDefs[j].Name, name)) {
+				fill = append(fill, j)
+				break
+			}
 		}
 	}
 	return fill
+}
+
+// seekIPKFillScratchFor returns this depth's reusable fill-index buffer.
+// seekIPKFillIndices's answer is consumed immediately by the same statement's
+// fillSeekRowPhaseOne and never retained, so the per-depth slot (the
+// seekRowScratch discipline) recycles it allocation-free.
+func (e *SelectEngine) seekIPKFillScratchFor() []int {
+	d := e.selectDepth
+	if d >= len(e.seekIPKScratch) {
+		e.seekIPKScratch = append(e.seekIPKScratch, make([][]int, d+1-len(e.seekIPKScratch))...)
+	}
+	v := e.seekIPKScratch[d][:0]
+	e.seekIPKScratch[d] = v
+	return v
 }
 
 // seekRowScratchFor returns this depth's reusable decode buffer sized for
@@ -290,7 +335,7 @@ func buildSeekColIndex(colDefs []sql.ColumnDef) map[string]int {
 // affinity wrap indices' wrappers (skipping stored NULLs exactly like the
 // scan's affinityPlan.apply), and the INTEGER PRIMARY KEY rowid-alias
 // substitution.
-func (e *SelectEngine) fillSeekRowPhaseOne(values []interface{}, valueCount int, srow *StructRow, colDefs []sql.ColumnDef, rowID int64, affWrapIdx []int, ipkIdx []int) {
+func (e *SelectEngine) fillSeekRowPhaseOne(values []interface{}, valueCount int, srow *StructRow, colDefs []sql.ColumnDef, rowID int64, affWrapIdx []int, ipkIdx []int, wrapRowID bool) {
 	shiftDroppedColumns(values, colDefs)
 	e.applyColumnDefaults(values, colDefs, valueCount)
 	srow.Values = values
@@ -300,9 +345,20 @@ func (e *SelectEngine) fillSeekRowPhaseOne(values []interface{}, valueCount int,
 			srow.Values[i] = wrapValueForRowMap(values[i], colDefs[i])
 		}
 	}
+	if wrapRowID {
+		for _, i := range ipkIdx {
+			if srow.Values[i] == nil {
+				srow.Values[i] = wrapAffinityCollated(colDefs[i], rowID)
+			}
+		}
+		return
+	}
+	// Targeted covered+bare fill: every consumer of the listed slots peels
+	// the wrapper (the fused slot read, appendOutputExpr) and the plan
+	// covered the WHERE, so the alias slots take the raw rowid.
 	for _, i := range ipkIdx {
 		if srow.Values[i] == nil {
-			srow.Values[i] = wrapAffinityCollated(colDefs[i], rowID)
+			srow.Values[i] = rowID
 		}
 	}
 }
@@ -333,6 +389,12 @@ func (e *SelectEngine) selectRowidSeekPlan(s *sql.SelectStmt, tableEntry *schema
 // seekRowOutput builds the single row's output (SELECT * flat path or
 // buildOutputRow projection) plus its row map when needed.
 func (e *SelectEngine) seekRowOutput(s *sql.SelectStmt, colDefs []sql.ColumnDef, srow *StructRow, affinity, needMaps bool) ([][]interface{}, []RowMap, bool) {
+	// All-bare-reference projection: read every output column's slot directly
+	// (the plan memo resolves names to slots once per template), skipping the
+	// per-column expression-evaluation walk buildOutputRow runs.
+	if rows, ok := e.bareRefsSeekOutput(s, colDefs, srow, needMaps); ok {
+		return rows, nil, true
+	}
 	if len(s.Columns) == 1 {
 		if ref, ok := s.Columns[0].Expr.(*sql.ColumnRef); ok {
 			if ref.Name == "*" && ref.Table == "" {
@@ -349,6 +411,100 @@ func (e *SelectEngine) seekRowOutput(s *sql.SelectStmt, colDefs []sql.ColumnDef,
 		return nil, nil, false
 	}
 	return finishSeekRowOutput([][]interface{}{row}, needMaps, srow)
+}
+
+// bareRefsSeekOutput projects every bare-reference output column directly
+// from the fetched row's slots: for `SELECT a, b FROM t WHERE id=?` the
+// generic route evaluates each reference through the expression walker
+// (appendOutputExpr) even though the value is exactly the slot's — the same
+// identity the single-column bareRefSeekOutput exploits. The slot plan
+// resolves names to indices once per (template, schema) pair; per statement
+// only the fresh output row's copies remain. ok=false keeps the generic
+// route: row-map consumers, star/keyword/qualified/rowid shapes, and any
+// reference the colDefs cannot resolve (its "no such column" error path).
+func (e *SelectEngine) bareRefsSeekOutput(s *sql.SelectStmt, colDefs []sql.ColumnDef, srow *StructRow, needMaps bool) ([][]interface{}, bool) {
+	if needMaps || len(srow.Values) != len(colDefs) {
+		return nil, false
+	}
+	slots := e.bareRefSlotsFor(s, colDefs)
+	if slots == nil {
+		return nil, false
+	}
+	out := make([]interface{}, len(slots))
+	for i, slot := range slots {
+		out[i] = util.UnwrapColumnValue(unwrapCollatedValue(srow.Values[slot]))
+	}
+	return [][]interface{}{out}, true
+}
+
+// bareRefSlotsFor returns the memoized slot index per output column for an
+// all-bare-reference projection, or nil when the shape keeps the generic
+// output route. Resolution mirrors StructRow.Get exactly: an exact
+// declared-name hit first, then a case-insensitive scan; a reference neither
+// resolves (including the implicit rowid names, which Get answers from the
+// row's RowID rather than a slot) keeps the generic path.
+func (e *SelectEngine) bareRefSlotsFor(s *sql.SelectStmt, colDefs []sql.ColumnDef) []int {
+	if len(colDefs) == 0 || !projectionIsBareRefs(s) {
+		return nil
+	}
+	for i := range s.Columns {
+		ref := unwrapParenExpr(s.Columns[i].Expr).(*sql.ColumnRef)
+		if IsRowIDName(ref.Name) {
+			return nil
+		}
+	}
+	key := bareRefPlanKey{cols: &s.Columns[0], colsLen: len(s.Columns), defs: &colDefs[0], defsLen: len(colDefs)}
+	fp := e.schemaFingerprint()
+	if e.bareRefPlanFP == fp && e.bareRefPlanMemo != nil {
+		if slots, ok := e.bareRefPlanMemo[key]; ok {
+			return slots
+		}
+	}
+	slots := buildBareRefSlots(s, colDefs)
+	if slots == nil {
+		return nil
+	}
+	if e.bareRefPlanFP != fp || e.bareRefPlanMemo == nil {
+		e.bareRefPlanFP = fp
+		e.bareRefPlanMemo = make(map[bareRefPlanKey][]int)
+	}
+	if len(e.bareRefPlanMemo) >= colNamesMemoCap {
+		e.bareRefPlanMemo = make(map[bareRefPlanKey][]int)
+	}
+	e.bareRefPlanMemo[key] = slots
+	return slots
+}
+
+// buildBareRefSlots resolves every bare reference of the projection against
+// colDefs (exact name, then case-insensitive) and returns the slot list, or
+// nil when any reference stays unresolved. Purely a function of the AST
+// shape and colDefs. Resolution mirrors StructRow.Get's map semantics: the
+// LAST same-named colDef wins (buildSeekColIndex's map overwrite), and the
+// case-insensitive fallback keeps Get's scan shape.
+func buildBareRefSlots(s *sql.SelectStmt, colDefs []sql.ColumnDef) []int {
+	slots := make([]int, len(s.Columns))
+	for i := range s.Columns {
+		ref := unwrapParenExpr(s.Columns[i].Expr).(*sql.ColumnRef)
+		idx := -1
+		for j := range colDefs {
+			if colDefs[j].Name == ref.Name {
+				idx = j // no break: the map the generic path reads keeps the last entry
+			}
+		}
+		if idx < 0 {
+			for j := range colDefs {
+				if strings.EqualFold(colDefs[j].Name, ref.Name) {
+					idx = j
+					break
+				}
+			}
+		}
+		if idx < 0 {
+			return nil
+		}
+		slots[i] = idx
+	}
+	return slots
 }
 
 // finishSeekRowOutput pairs the built row with its row map when the caller
