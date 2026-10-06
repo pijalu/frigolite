@@ -27,13 +27,29 @@ func runPackages(repo string, pkgs []*pkgInfo, workers int, timeout time.Duratio
 		workers = defaultConcurrency
 	}
 
+	// Heavyweight packages (multi-GB transient working sets on big FTS
+	// merges: fts4merge4, fts5bigpl) run EXCLUSIVELY — one at a time, no
+	// sibling — so two of them never peak together. Their Go heap transient
+	// (GOGC doubling over a 2GB live merge) plus a concurrent worker's own
+	// footprint pushed total memory to 9GB+ and made the machine unusable
+	// during the run (2026-10-03); results were unaffected, the wall clock
+	// and RAM were not. Serialize them through the same worker pool by
+	// gating every other job behind a mutex held only for their duration.
 	jobs := make(chan *pkgInfo)
 	var wg sync.WaitGroup
+	var heavyMu sync.Mutex
+	heavy := heavyPackages()
 	for i := 0; i < workers; i++ {
 		wg.Add(1)
 		go func() {
 			defer wg.Done()
 			for p := range jobs {
+				if heavy[p.name] {
+					heavyMu.Lock()
+					runOne(repo, p, timeout)
+					heavyMu.Unlock()
+					continue
+				}
 				runOne(repo, p, timeout)
 			}
 		}()
@@ -44,6 +60,15 @@ func runPackages(repo string, pkgs []*pkgInfo, workers int, timeout time.Duratio
 	close(jobs)
 	wg.Wait()
 	return pkgs, nil
+}
+
+// heavyPackages names the census packages whose transient working set
+// reaches multiple GB (large FTS merge corpora). They run one at a time.
+func heavyPackages() map[string]bool {
+	return map[string]bool{
+		"fts4merge4": true,
+		"fts5bigpl":  true,
+	}
 }
 
 // runOne executes go test for a single package and records pass/fail,
