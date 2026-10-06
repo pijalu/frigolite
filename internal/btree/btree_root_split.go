@@ -147,6 +147,9 @@ func (t *BTree) writeInteriorRootAt(dst uint32, children []uint32, seps []leafSp
 	if err != nil {
 		return err
 	}
+	// Write-intent barrier: capture the page's before-image before the
+	// wholesale wipe.
+	t.pager.PrepareWrite(pg)
 	coff := contentOffset(dst)
 	for i := range pg.Data {
 		pg.Data[i] = 0
@@ -272,6 +275,9 @@ func (t *BTree) createInteriorRootAtPage1(divider leafSplitResult, rightChild ui
 
 	// Convert page 1 into an interior page: one cell {newLeft, divider}
 	// and rightmostChild = rightChild. Keep the 100-byte file header.
+	// Write-intent barrier: capture page 1's before-image before the
+	// conversion wipes its b-tree content.
+	t.pager.PrepareWrite(pg1)
 	rootCoff := contentOffset(1)
 	if t.isTable {
 		pg1.Data[rootCoff] = storage.PageTypeInteriorTable

@@ -86,6 +86,10 @@ func (t *BTree) balanceDeeperRootLeaf(pg *pager.Page, page *storage.BTreePage, n
 // the evidence. Moved cells keep their overflow chains: each chain's first
 // page is re-parented to the child (ptrmapPutOvflPtr, src/btree.c:8025).
 func (t *BTree) copyLeafRootToChild(child, root *pager.Page, page *storage.BTreePage, coff int) error {
+	// Write-intent barrier: the memcpys below overwrite the child's bytes —
+	// capture its statement-journal before-image first (the root's own
+	// rewrite captures in rewriteRootLeafAsInterior).
+	t.pager.PrepareWrite(child)
 	usable := int(t.usableSize)
 	// memcpy(&aTo[iData], &aFrom[iData], pBt->usableSize-iData): the cell
 	// content area, verbatim.
@@ -113,6 +117,9 @@ func (t *BTree) copyLeafRootToChild(child, root *pager.Page, page *storage.BTree
 // src/btree.c:9037-9039). The rewrite starts at the b-tree header offset,
 // so page 1 keeps its 100-byte database file header.
 func (t *BTree) rewriteRootLeafAsInterior(root *pager.Page, rightmost uint32, coff int) error {
+	// Write-intent barrier: capture the root's statement-journal before-image
+	// before the zeroing wipe.
+	t.pager.PrepareWrite(root)
 	for i := coff; i < int(t.pageSize); i++ {
 		root.Data[i] = 0
 	}

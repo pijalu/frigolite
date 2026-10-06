@@ -59,7 +59,7 @@ func (t *BTree) writeLeafCell(pg *pager.Page, page *storage.BTreePage, newCell *
 
 	// Allocate the cell's bytes (freeblock reuse, defragment-on-demand, or
 	// the content-area gap — allocateSpace parity).
-	cellStart, ok, err := allocateSpaceOnPage(pg, page, coff, len(cellData), t.usableSize)
+	cellStart, ok, err := allocateSpaceOnPage(t.pager, pg, page, coff, len(cellData), t.usableSize)
 	if err != nil {
 		return err
 	}
@@ -186,6 +186,9 @@ func (t *BTree) splitLeafMulti(pg *pager.Page, page *storage.BTreePage, parentPg
 	}
 
 	// Clear original leaf content (except page type)
+	// Write-intent barrier: capture the original leaf's statement-journal
+	// before-image before the clear wipes its bytes.
+	t.pager.PrepareWrite(pg)
 	for i := coff + 1; i < int(t.pageSize); i++ {
 		pg.Data[i] = 0
 	}

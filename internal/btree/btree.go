@@ -503,6 +503,9 @@ func (t *BTree) Clear() error {
 		return err
 	}
 	coff := contentOffset(pg.PageNum)
+	// Write-intent barrier: capture the root's before-image before the
+	// empty-leaf reinitialization.
+	t.pager.PrepareWrite(pg)
 	data := pg.Data
 	pageType := storage.PageTypeLeafTable
 	if !t.isTable {

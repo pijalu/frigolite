@@ -1,5 +1,75 @@
 # Lessons Learned — Frigolite
 
+## PERF.JOURNAL (2026-10-05) — statement-journal capture moved to write intent (fleet/perf-journal)
+
+- **Read-time before-image capture taxed every seek for pages that are
+  never written.** The P5 journal captured at READ (stmtReadTouch in
+  ReadPage): on a memory pager EVERY page read under an open statement
+  scope was byte-copied (4KB), so a point UPDATE's root->interior->leaf
+  descent paid 3 copies + 3 lock upgrades + 3 journal entries to mutate
+  ONE page. Profiled: stmtReadTouch 15.5% of update CPU — the whole
+  ReadPage cost inside seekTableLeafWithPath (8.8%) was journal capture,
+  not the map lookup or descent itself. After the move: capture frames
+  vanish from both update and delete profiles.
+- **The fix is sqlite3PagerWrite's contract, not a new scheme**: btree
+  mutators call `pager.PrepareWrite(pg)` BEFORE the first in-place edit;
+  the journal captures there (pre-mutation, correct for every
+  before-image kind). markDirtyLocked stays as capture point for the
+  pages no PrepareWrite covers: fresh allocations (stmtEntAbsent), clean
+  file pages (stmtEntFromFile), and pager-internal mutators that already
+  dirty-before-edit (grabPageLocked, mirrorHeaderToPage1Locked,
+  BumpSchemaCookie — their pre-mutation markDirty ordering was load-
+  bearing; WritePage's page-1 header mirror needed an explicit capture
+  added BEFORE the copy). NO mid-txn dirty spill exists (flushPage runs
+  only in the commit path), so file-backed begin-dirty pages never needed
+  read-time copies at all — eviction-restore reaches their txn-start disk
+  image.
+- **Proving exhaustiveness mechanically: the audit build.** ~30 btree
+  functions mutate page bytes in place. Rather than trusting the
+  enumeration, `go build -tags frigolite_journal_audit` turns the read
+  path into a witness: every page handed out under an open statement
+  scope is FNV-1a-64 hashed (package-level map keyed by pager, cleared
+  when the outermost scope closes), and markDirtyLocked PANICS if a
+  page's bytes differ from the read-time hash without a journal entry —
+  mutation without write intent, i.e. a rollback-corruption bug. Full
+  pager+btree+root suites pass under the tag; production builds inline
+  the hooks to nothing (journal_noaudit.go). This pattern is reusable for
+  any "every site covered" invariant.
+- **Pins that hash the pager must not assume residency**: from-file
+  journal entries restore by cache EVICTION, so after a statement
+  rollback the previously-cached page set SHRINKS (correct — the disk
+  image is the statement-start state). A whole-cache sha256 before/after
+  "pin" then fails on RESIDENCY, not bytes (burned twice: digest diff
+  with zero per-page byte diffs). Hash a STABLE universe — the before-map
+  page numbers — re-reading each page after the rollback.
+- **Pager-level journal unit tests are btree clients**: pagerstmt_test.go
+  wrote page handles from ReadPage directly, which the new contract
+  forbids; they now call PrepareWrite before mutating (the same discipline
+  the btree layer follows). Test-helper mutation = production mutation.
+- **Numbers** (paired interleaved vs main @91c5be1be, machine under fleet
+  load, only deltas mean anything): update_xact +6.6% (401.7k vs 376.9k
+  ops/s); delete +0.5-1% (delete is dominated by exec-layer gates —
+  execPointDelete 26% cum — and scheduler noise on a 30k-op phase);
+  insert/point/scan/group/file unchanged. Mission targets (update 620k,
+  delete 850k on the quiet-machine scale) are NOT reachable from the
+  journal path on current main: after this round the journal is ~1-2% of
+  statement CPU. The walls moved to exec-layer per-statement gates
+  (execPreflight, snapshotAllPagers 4%, normalizeScan, Exec entry) —
+  sibling scope.
+- **EndStatement diet: already at floor** — post-move profile shows
+  ~1.5% flat (Lock/unlock + LIFO unlink + 1-2-entry discard loop);
+  further pooling measured nothing beyond noise.
+- **Update single-seek verified (read-only)**: applyPointUpdate's collect
+  establishes cellPos{leaf,idx} ONCE; writePointUpdateRow re-addresses
+  via OverwriteCellByRowIDAt with a stale-fallback full seek; delete uses
+  DeleteCellByRowIDAt with hintParent. No second descent exists — nothing
+  to fuse.
+- **Fleet-load testgen timeouts reproduce on demand**: savepoint2 timed
+  out at 600s when run concurrently with the full suite + race + audit
+  runs, then passed SOLO in 8.1s. Never adjudicate a suite on a loaded
+  machine (third reproduction of this lesson — PERF.P5, PERF.DMLCORE,
+  now here).
+
 ## PERF.INSQUICK — insert append-cursor + staging (fleet/perf-insquick, 2026-10-03)
 
 - **The b-tree root descent was NOT the insert hot cost.** The

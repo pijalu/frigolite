@@ -128,6 +128,8 @@ func (t *BTree) rebuildPage(pg *pager.Page, b *balanceCellArray, iFirst, nCell i
 	}
 	// Place each cell from the END of the cell content area
 	// downward; write the cell pointers in cell-index order.
+	// Write-intent barrier: the placement loop below writes the page.
+	t.pager.PrepareWrite(pg)
 	pos := usableStart
 	for k := 0; k < nCell; k++ {
 		c := b.cells[iFirst+k]
@@ -164,6 +166,8 @@ func (t *BTree) editPage(pg *pager.Page, iOld, iNew, nNew int, b *balanceCellArr
 	if nNew < 0 {
 		return fmt.Errorf("btree: editPage: nNew must be >= 0 (got %d)", nNew)
 	}
+	// Write-intent barrier: both branches rewrite the page's bytes.
+	t.pager.PrepareWrite(pg)
 	if nNew == 0 {
 		coff := contentOffset(pg.PageNum)
 		usableStart := int(t.usableSize)

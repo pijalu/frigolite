@@ -10,22 +10,27 @@
 // statement that modifies nothing rolls back nothing and costs nothing
 // beyond the O(1) scope open.
 //
-// Capture is ordered before mutation through two coordinated paths:
+// Capture is ordered before mutation through the write-intent barrier
+// (pager.c sqlite3PagerWrite, ported as PrepareWrite):
 //
+//   - The btree layer calls PrepareWrite(page) BEFORE its first in-place
+//     edit of a handle, mirroring sqlite3BtreeInsert/balanceNonroot's
+//     sqlite3PagerWrite(pPg) calls. The capture there sees pre-mutation
+//     bytes for every kind of before-image (memory pagers and pages already
+//     dirty at scope begin byte-copy; clean file pages journal a from-file
+//     entry with no bytes).
 //   - markDirtyLocked (the single choke point every dirty-flag set goes
-//     through) captures the before-image of a page at its first dirtying
-//     inside the scope. The btree layer mutates page bytes through handles
-//     obtained from ReadPage/AllocatePage and flushes them afterwards via
-//     WritePage, so capture there is ordered after mutation; it is still
-//     correct for pages that were CLEAN at statement start because their
-//     pre-statement image lives on the disk/WAL (pages reach the file only
-//     at commit), and is captured lazily by re-read at rollback time
-//     (stmtEntFromFile entries restore by cache eviction, not by byte copy).
-//   - stmtReadTouch (ReadPage / readPageLocked) captures IN MEMORY before
-//     the caller can mutate: pages that were already dirty at statement
-//     start (an earlier statement of the same transaction modified them, so
-//     the disk image is stale) and pages of memory pagers (no disk to fall
-//     back to) are byte-copied at first read inside the scope.
+//     through) journals pages whose entry PrepareWrite did not already
+//     record: freshly allocated pages (stmtEntAbsent — no image exists) and
+//     clean file-backed pages (stmtEntFromFile — the disk/WAL still holds
+//     the statement-start image; restore by cache eviction, no bytes).
+//     Pager-internal mutators (freelist trunk rewrites, header mirrors)
+//     mark the page dirty BEFORE editing, so their markDirty capture is
+//     also pre-mutation.
+//
+// The read path (ReadPage) performs no journal work: a read grants no
+// mutation rights, so capturing there would byte-copy every interior page
+// of every seek — pages most statements never mutate.
 //
 // Nested scopes compose like SQLite's nested statement transactions
 // (trigger bodies firing inside an outer statement): each scope journals
@@ -315,7 +320,10 @@ func (p *Pager) EndStatement(j *StmtJournal) {
 	}
 	j.done = true
 	p.unlinkStmtLocked(j)
-	defer p.recycleStmtLocked(j)
+	defer func() {
+		p.recycleStmtLocked(j)
+		p.auditClearLocked()
+	}()
 	if j.parent != nil && !j.parent.done {
 		// Splice this scope's entries into the parent, keeping the parent's
 		// OLDER image for pages it already journalled.
@@ -369,6 +377,7 @@ func (p *Pager) RollbackStatement(j *StmtJournal) {
 	p.unlinkStmtLocked(j)
 	p.replayStmtEntriesLocked(j)
 	p.recycleStmtLocked(j)
+	p.auditClearLocked()
 	// Drop cache pages above the restored count: allocations the statement
 	// made (and any bookkeeping pages created after its begin) are undone by
 	// the page-count restore, mirroring Restore's eviction of unknown pages.
@@ -438,13 +447,11 @@ func (p *Pager) replayStmtEntriesLocked(j *StmtJournal) {
 }
 
 // stmtJournalPageLocked captures pgno's before-image into the innermost open
-// statement scope at its first modification inside the scope. This is the
-// single choke point for page dirtying: every dirty-flag set in the pager
-// goes through markDirtyLocked, which calls here first. Caller holds p.mu.
-//
-// Callers that mutate a page's bytes BEFORE marking it dirty must invoke
-// stmtJournalPageLocked themselves before the mutation (the read path does
-// this for every page it hands out, which covers the btree layer).
+// statement scope at its first write-intent or dirtying inside the scope.
+// The btree layer reaches it through PrepareWrite (BEFORE its first edit);
+// markDirtyLocked calls it for pages no PrepareWrite covered (fresh
+// allocations, clean file pages, pager-internal mutators that dirty before
+// they edit). Caller holds p.mu.
 func (p *Pager) stmtJournalPageLocked(pgno uint32) {
 	top := p.stmtTop
 	if top == nil {
@@ -496,35 +503,39 @@ func (p *Pager) copyPageBytesLocked(pgno uint32) []byte {
 	return buf
 }
 
-// stmtReadTouch captures the before-image of a page being handed out by the
-// read path, BEFORE the caller can mutate it. Only pages whose statement-
-// start image is memory-only need the copy: pages already dirty at scope
-// begin, and every page of a memory pager. Clean pages of file-backed
-// pagers skip the copy — their first dirtying journals a from-file entry at
-// the markDirty choke point instead.
-func (p *Pager) stmtReadTouch(pgno uint32) {
-	p.mu.Lock()
-	defer p.mu.Unlock()
-	p.stmtReadTouchLocked(pgno)
-}
-
-// stmtReadTouchLocked is stmtReadTouch for callers already holding p.mu.
-// Caller holds p.mu.
-func (p *Pager) stmtReadTouchLocked(pgno uint32) {
+// PrepareWrite is the b-tree layer's write-intent barrier (pager.c
+// sqlite3PagerWrite): the caller announces it is about to edit pg's bytes in
+// place, and the statement journal captures the page's before-image while
+// the bytes are still pre-mutation. sqlite3BtreeInsert/balanceNonroot call
+// sqlite3PagerWrite(pPg) BEFORE the first edit for exactly this reason; the
+// capture cannot happen later (markDirtyLocked runs from WritePage, after
+// the caller has already rewritten the cell bytes).
+//
+// Pages whose statement-start image the disk/WAL still holds (file-backed
+// and clean) need no byte copy here — their first dirtying journals a
+// from-file entry at the markDirty choke point. Memory-only images (memory
+// pagers, pages already dirty when the scope began) are byte-copied NOW,
+// once, before the first mutation.
+func (p *Pager) PrepareWrite(pg *Page) {
+	if pg == nil {
+		return
+	}
 	top := p.stmtTop
 	if top == nil {
 		return
 	}
-	if _, ok := top.stmtEntryFor(pgno); ok {
+	p.mu.Lock()
+	p.stmtJournalPageLocked(pg.PageNum)
+	p.mu.Unlock()
+}
+
+// prepareWriteLocked is PrepareWrite for pager-internal callers already
+// holding p.mu (freelist trunk rewrites). Caller holds p.mu.
+func (p *Pager) prepareWriteLocked(pg *Page) {
+	if pg == nil || p.stmtTop == nil {
 		return
 	}
-	if p.file != nil && !p.dirty[pgno] {
-		// File-backed and clean: the disk image is the before-image; the
-		// dirty-mark path records the from-file entry when (and if) the page
-		// is actually written.
-		return
-	}
-	top.stmtEntryPut(pgno, p.stmtCaptureEntryLocked(pgno, top))
+	p.stmtJournalPageLocked(pg.PageNum)
 }
 
 // unlinkStmtLocked removes j from the open-scope chain. Caller holds p.mu.
@@ -546,6 +557,9 @@ func (p *Pager) unlinkStmtLocked(j *StmtJournal) {
 // in the pager goes through this method — it is the statement journal's
 // capture choke point. Caller holds p.mu.
 func (p *Pager) markDirtyLocked(pgno uint32) {
+	// Audit build only: panic when the page's bytes were already mutated
+	// without a PrepareWrite (production: empty).
+	p.auditDirtyCheckLocked(pgno)
 	// Fast path: no open scope and no stale dirty stamps (dirtyMark is
 	// empty outside transactions — clearDirtySetLocked clears it at every
 	// commit boundary) — the statement journal needs nothing here, so keep

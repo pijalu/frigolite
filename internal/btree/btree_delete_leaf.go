@@ -293,6 +293,9 @@ func (t *BTree) finishLeafDelete(pg *pager.Page, page *storage.BTreePage, encode
 	// addresses, ending at usableSize — btree.c defragmentPage packs from
 	// cbrk=usableSize, src/btree.c:2205; no bytes are reserved at the page
 	// end, so the flushed image leaves no untracked tail).
+	// Write-intent barrier: capture the page's statement-journal before-image
+	// before the rewrite moves the first byte.
+	t.pager.PrepareWrite(pg)
 	start := int(t.usableSize)
 	newPtrs := make([]uint16, len(keep))
 	for pos, ci := range keep {
@@ -358,6 +361,9 @@ func (t *BTree) deleteCellOnPage(pg *pager.Page, page *storage.BTreePage, cellId
 			return err
 		}
 	}
+	// Write-intent barrier: capture the page's statement-journal before-image
+	// before the pointer shift moves the first byte.
+	t.pager.PrepareWrite(pg)
 	for i := cellIdx; i < int(page.CellCount)-1; i++ {
 		src := ptrBase + (i+1)*2
 		dst := ptrBase + i*2

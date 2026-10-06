@@ -32,6 +32,9 @@ func writePage(t *testing.T, p *Pager, pgno uint32, fill byte) {
 	if err != nil {
 		t.Fatalf("ReadPage(%d): %v", pgno, err)
 	}
+	// Write-intent barrier (the btree layer's PrepareWrite-before-edit
+	// discipline, applied at the pager API level).
+	p.PrepareWrite(pg)
 	for i := range pg.Data {
 		pg.Data[i] = fill
 	}
@@ -382,6 +385,7 @@ func TestStmtJournalMixedReadWriteExactRestore(t *testing.T) {
 				if err != nil {
 					t.Fatalf("ReadPage(%d): %v", pgno, err)
 				}
+				p.PrepareWrite(pg) // write-intent barrier before the overwrite
 				pg.Data[10] ^= 0xFF
 				if err := p.WritePage(pg); err != nil {
 					t.Fatalf("WritePage(%d): %v", pgno, err)

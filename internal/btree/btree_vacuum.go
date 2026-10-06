@@ -71,26 +71,14 @@ func (t *BTree) RelocatePage(to, from uint32) (relocated bool, err error) {
 		// returned to the freelist (signal relocated=false).
 		return false, nil
 	}
-	// 1. Read `from`'s data into a temporary buffer.
-	// 2. Read `to`'s page (loads it into cache; its current content
-	//    is the free-page content the pager saved when the page
-	//    was added to the freelist).
-	// 3. Update the parent's child pointer from `from` → `to` in
-	//    memory (journaled via MarkPageDirtyForVacuum).
-	// 4. If the parent update fails (parent not an interior btree
-	//    page, child pointer not found, etc.), return error
-	//    WITHOUT touching `toPg.Data` or `fromPg.Data`. The
-	//    caller's `IncrVacuumStep` will see `relocated=false` and
-	//    skip the file truncation, leaving the btree and file
-	//    consistent: parent still points to `from`, `to` still
-	//    holds its free-page content (recyclable by the next
-	//    AllocatePageLE call), `from` still holds its btree
-	//    content.
-	// 5. If the parent update succeeds, copy `from` → `to` in
-	//    `toPg.Data`, mark `to` dirty (journaled), write the
-	//    ptrmap entry for `to` (same parent as `from` had), and
-	//    update the child ptrmaps so future vacuum steps can find
-	//    the moved page as their parent.
+	// Steps: (1) read `from`'s bytes; (2) load `to` into cache (its
+	// content is the free-page image saved when it was freed); (3) update
+	// the parent's child pointer `from` -> `to` in memory; (4) a failed
+	// parent update returns WITHOUT touching `toPg.Data`/`fromPg.Data` —
+	// the caller's IncrVacuumStep sees relocated=false, the parent still
+	// points at `from`, and `to` keeps its recyclable free-page content;
+	// (5) on success, copy `from` -> `to` in `toPg.Data`, mark `to` dirty,
+	// and write `to`'s ptrmap entry with `from`'s parent.
 	//
 	// Why parent-first, not copy-first: a failed parent update
 	// after a copy corrupts `to` with `from`'s content while the
@@ -146,6 +134,8 @@ func (t *BTree) RelocatePage(to, from uint32) (relocated bool, err error) {
 	if err != nil {
 		return false, fmt.Errorf("btree: RelocatePage: re-read page %d: %w", to, err)
 	}
+	// Write-intent barrier: capture `to`'s free-page content before the copy.
+	t.pager.PrepareWrite(toPg)
 	copy(toPg.Data, fromPg.Data)
 	// Mark `to` as dirty so the copy is written back on commit
 	// (and journaled for ROLLBACK).
@@ -336,6 +326,8 @@ func (t *BTree) updateOvfl2ParentPtr(parentPgno, oldChild, newChild uint32) erro
 	if got := binary.BigEndian.Uint32(parentPg.Data[0:4]); got != oldChild {
 		return fmt.Errorf("btree: updateParentChildPtr: overflow page %d chains to %d, not %d", parentPgno, got, oldChild)
 	}
+	// Write-intent barrier: before-image before the chain-pointer rewrite.
+	t.pager.PrepareWrite(parentPg)
 	binary.BigEndian.PutUint32(parentPg.Data[0:4], newChild)
 	pager.MarkPageDirtyForVacuum(t.pager, parentPgno)
 	return nil
@@ -363,6 +355,8 @@ func (t *BTree) updateBtreeParentPtr(parentPgno, oldChild, newChild uint32) erro
 	// Interior pages have the cell pointer array at coff+12, which
 	// translates to a CellPointer offset of coff+4 (CellPointer
 	// adds 8 internally).
+	// Write-intent barrier: the repoint paths below edit the parent's bytes.
+	t.pager.PrepareWrite(parentPg)
 	ptrBase := coff + cellPtrOffset(page.PageType) - 8
 	for i := 0; i < int(page.CellCount); i++ {
 		cellOff := int(storage.CellPointer(parentPg.Data, ptrBase, i, int(t.pageSize)))

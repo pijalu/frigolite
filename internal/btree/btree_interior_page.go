@@ -159,6 +159,9 @@ func (t *BTree) dividerLess(pg *pager.Page, cellOff int, newSplit leafSplitResul
 // carry record payloads, so the relocated cells re-encode with the split's
 // separator payload and the new sibling cell carries carrierPayload.
 func (t *BTree) rekeyCarrierChainIndex(pg *pager.Page, page *storage.BTreePage, coff, ptroff, ptrBase, idx int, origChild uint32, carrierPayload []byte, splits []leafSplitResult) (int, error) {
+	// Write-intent barrier: the re-key loop relocates divider cells —
+	// capture the statement-journal before-image before the first write.
+	t.pager.PrepareWrite(pg)
 	deadBytes := 0
 	for si, cs := range splits {
 		curLeft := origChild
@@ -308,6 +311,9 @@ func (t *BTree) applyIndexChildSplits(pg *pager.Page, page *storage.BTreePage, c
 // finishChildSplits repacks the abandoned divider bytes and persists the
 // re-keyed page.
 func (t *BTree) finishChildSplits(pg *pager.Page, page *storage.BTreePage, deadBytes int) error {
+	// Write-intent barrier: the defragment rewrite below moves the page's
+	// bytes — capture the statement-journal before-image first.
+	t.pager.PrepareWrite(pg)
 	if deadBytes > 0 {
 		// Every re-key RELOCATED a divider, abandoning its old bytes above
 		// the new content start. Those bytes are inside the content area but
@@ -362,6 +368,9 @@ func (t *BTree) applyChildSplitsRightmost(pg *pager.Page, page *storage.BTreePag
 	if page.CellContent == 0 || int(page.CellContent)-dataNeed < ptrNeed {
 		return errInteriorFull
 	}
+	// Write-intent barrier: the atomic precheck above passed — the append
+	// loop below writes the page's bytes. Capture the before-image first.
+	t.pager.PrepareWrite(pg)
 	for si := 0; si < len(splits); si++ {
 		leftOfCell := origChild
 		if si > 0 {
@@ -437,6 +446,9 @@ func (t *BTree) childSplitsHaveRoom(pg *pager.Page, page *storage.BTreePage, cof
 // divider bytes (for the defragment pass) and errInteriorFull when a write
 // would not fit.
 func (t *BTree) rekeyCarrierChain(pg *pager.Page, page *storage.BTreePage, coff, ptroff, ptrBase, idx int, origChild uint32, carrierKey uint64, splits []leafSplitResult) (int, error) {
+	// Write-intent barrier: the re-key loop relocates divider cells —
+	// capture the statement-journal before-image before the first write.
+	t.pager.PrepareWrite(pg)
 	deadBytes := 0
 	for si, cs := range splits {
 		// Re-key the current cell: it now bounds curLeft by cs.medianKey.
@@ -542,6 +554,9 @@ func (t *BTree) addInteriorCell(pg *pager.Page, page *storage.BTreePage, leftChi
 	}
 
 	// Shift cells at [insertIdx..CellCount) right by one slot.
+	// Write-intent barrier: capture the statement-journal before-image
+	// before the pointer shift moves the first byte.
+	t.pager.PrepareWrite(pg)
 	shiftCellPtrsRight(pg.Data, ptrBase, insertIdx, int(page.CellCount))
 
 	copy(pg.Data[cellStart:], cellData)
@@ -651,6 +666,9 @@ func (t *BTree) splitInteriorPage(pg *pager.Page, page *storage.BTreePage, paren
 	newPg.Data[newCoff] = page.PageType // same interior type
 
 	// Clear original interior page content (except page type)
+	// Write-intent barrier: capture the original page's statement-journal
+	// before-image before the clear wipes its bytes.
+	t.pager.PrepareWrite(pg)
 	for i := coff + 1; i < int(t.pageSize); i++ {
 		pg.Data[i] = 0
 	}

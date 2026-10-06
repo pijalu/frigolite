@@ -158,6 +158,8 @@ func (t *BTree) clearEmptyRootRightmost() error {
 	// No live children: rewrite the root as an empty leaf of the matching
 	// kind (interior table -> leaf table, interior index -> leaf index),
 	// with the cell-content pointer at the usable end and no fragmentation.
+	// Write-intent barrier: capture the root's before-image first.
+	t.pager.PrepareWrite(rootPg)
 	if page.PageType == storage.PageTypeInteriorTable {
 		rootPg.Data[coff] = storage.PageTypeLeafTable
 	} else {
