@@ -92,7 +92,7 @@ func (e *DMLExecutor) finishPointDelete(tableEntry *schema.Entry, dbCtx *Databas
 		// No-match point DELETE: execDeleteBulk still invalidates the rowid
 		// cache on its way out.
 		e.ctx.InvalidateRowIDCache(e.dmlPager(tableEntry.Name), tableEntry.RootPage)
-		return &Result{}, true
+		return e.stageDelResult(Result{}), true
 	}
 	// When needValues the seek's exact hit pins the stored rowid to rowID
 	// (seekInLeafTable matches only on equality), so the undecoded delete
@@ -107,18 +107,31 @@ func (e *DMLExecutor) finishPointDelete(tableEntry *schema.Entry, dbCtx *Databas
 	// The seek established the row's leaf position; delete through it
 	// (DeleteCellByRowID's post-seek half) instead of descending again.
 	if _, err := tree.DeleteCellByRowIDAt(rowID, cursor.PageNum(), cursor.CellIdx(), cursor.PathParent()); err != nil {
-		return &Result{Error: err}, true
+		return e.stageDelResult(Result{Error: err}), true
 	}
 	if row != nil {
 		if err := e.maintainIndexesOnDelete(tableEntry, colDefs, []*dmlRow{row}); err != nil {
-			return &Result{Error: err}, true
+			return e.stageDelResult(Result{Error: err}), true
 		}
 		if res := e.fireDeletePreupdate(tableEntry, dbCtx, colDefs, row); res != nil {
 			return res, true
 		}
 	}
 	e.ctx.InvalidateRowIDCache(e.dmlPager(tableEntry.Name), tableEntry.RootPage)
-	return &Result{Changes: 1}, true
+	return e.stageDelResult(Result{Changes: 1}), true
+}
+
+// stageDelResult stages the point-DELETE fast path's statement result in the
+// executor's scratch slot (the encBuf pooling pattern): the fast path handed
+// out a fresh &Result per statement — one heap allocation per delete. The
+// staged value is consumed synchronously: Engine.Exec's funnel reads
+// Error/Changes/LastInsertRowID and the frigolite boundary copies the fields
+// out, and no holder keeps the pointer across the next statement, so one
+// slot serves them all. Hook-produced results bypass this slot — they are
+// the hook machinery's own allocation and must survive it.
+func (e *DMLExecutor) stageDelResult(res Result) *Result {
+	e.delRes = res
+	return &e.delRes
 }
 
 // pointDeleteRowPlan returns the point-delete row plan for colDefs, memoized
