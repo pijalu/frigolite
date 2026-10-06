@@ -258,13 +258,44 @@ func (t *BTree) fullIndexCellPayload(local []byte, fullLen int, ovfl uint32) ([]
 }
 
 // indexRecordRowID decodes an index record's trailing rowid element (the
-// last record element of every index entry).
+// last record element of every index entry). Only the header and the final
+// value are read: no boxes for the leading key columns a full DecodeRecord
+// would build, and no heap serial-type slice (a stack buffer serves the
+// common ≤16-column index keys; the buffer never escapes this call — append
+// spills to the heap beyond it, parse identical). The corrupt-record contract
+// is DecodeRecord's, narrowed to what the rowid read can observe: malformed
+// header, unknown serial type, value data running past the record, an empty
+// element list, or a trailing element that does not decode to an integer
+// (a float, like DecodeRecord's int64 unwrap, is corrupt here too).
 func indexRecordRowID(payload []byte) (int64, error) {
-	rec, err := storage.DecodeRecord(payload)
-	if err != nil || rec == nil || len(rec.Values) == 0 {
+	var stackTypes [16]uint64
+	serialTypes, pos, err := storage.ParseRecordHeaderInto(payload, stackTypes[:0])
+	if err != nil || len(serialTypes) == 0 {
 		return 0, ErrIndexRecordCorrupt
 	}
-	id, ok := util.UnwrapColumnValue(rec.Values[len(rec.Values)-1]).(int64)
+	last := len(serialTypes) - 1
+	for i := 0; i < last; i++ {
+		valLen, err := storage.SerialTypeLength(serialTypes[i])
+		if err != nil {
+			return 0, ErrIndexRecordCorrupt
+		}
+		pos += int(valLen)
+		if pos > len(payload) {
+			return 0, ErrIndexRecordCorrupt
+		}
+	}
+	valLen, err := storage.SerialTypeLength(serialTypes[last])
+	if err != nil || pos+int(valLen) > len(payload) {
+		return 0, ErrIndexRecordCorrupt
+	}
+	data := payload[pos : pos+int(valLen)]
+	switch serialTypes[last] {
+	case storage.SerialZero:
+		return 0, nil
+	case storage.SerialOne:
+		return 1, nil
+	}
+	id, ok := storage.DecodeSerialInt64(serialTypes[last], data)
 	if !ok {
 		return 0, ErrIndexRecordCorrupt
 	}

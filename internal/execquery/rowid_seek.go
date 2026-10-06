@@ -98,10 +98,6 @@ func (e *SelectEngine) fetchSeekStructRow(s *sql.SelectStmt, tree *btree.BTree, 
 	}
 	affinityCols := e.scanTableAffinityCols(s, colDefs, needMaps)
 	colIndex := e.seekColIndexFor(colDefs)
-	serialTypes, dataStart, perr := storage.ParseRecordHeader(payload)
-	if perr != nil {
-		return nil, nil, false, false // DecodeRecord's malformed-record fallback
-	}
 	// Depth-slot scratch: the decode buffer and StructRow recycle per
 	// selectDepth (seekRowScratchFor). Every slot is fully rewritten below —
 	// the decode fills its targeted slots, applyColumnDefaults/shift
@@ -109,10 +105,18 @@ func (e *SelectEngine) fetchSeekStructRow(s *sql.SelectStmt, tree *btree.BTree, 
 	// stale value from a previous statement at this depth can leak.
 	values := e.seekRowScratchFor(len(colDefs))
 	decodeCols := e.seekDecodeCols(s, colDefs, affinityCols, needMaps, whereCovered)
-	storage.DecodeRecordValuesFromTypesCols(payload, dataStart, values, serialTypes, decodeCols)
+	// Single-call decode (header walk + value fill, no per-row serial-type
+	// slice): the ParseRecordHeader + DecodeRecordValuesFromTypesCols pair
+	// fused. valueCount = the record's stored-column count — the two-call
+	// form's len(serialTypes); only a corrupt header errors (the scan
+	// fallback's malformed-record route).
+	valueCount, perr := storage.DecodeRecordValuesInto(payload, values, decodeCols)
+	if perr != nil {
+		return nil, nil, false, false // DecodeRecord's malformed-record fallback
+	}
 	srow = e.seekSRowScratchFor()
 	srow.Index = colIndex
-	e.fillSeekRowPhaseOne(values, len(serialTypes), srow, colDefs, realRowID, affinityWrapIndices(colDefs, affinityCols), e.seekIPKFillIndices(s, colDefs, needMaps, whereCovered))
+	e.fillSeekRowPhaseOne(values, valueCount, srow, colDefs, realRowID, affinityWrapIndices(colDefs, affinityCols), e.seekIPKFillIndices(s, colDefs, needMaps, whereCovered))
 	return cursor, srow, true, true
 }
 

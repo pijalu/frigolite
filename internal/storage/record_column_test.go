@@ -255,3 +255,175 @@ func TestDecodeRecordColumnsPrefixShortRecord(t *testing.T) {
 		t.Fatalf("count=%d err=%v, want 2/nil", count, err)
 	}
 }
+
+// TestDecodeRecordValuesIntoMatchesTwoCallForm pins the fused decode against
+// the ParseRecordHeaderInto + DecodeRecordValuesFromTypesCols pair it
+// replaces: identical filled slots, identical stored-column count — over
+// every serial-type family and a wider-than-stack record (heap spill).
+func TestDecodeRecordValuesIntoMatchesTwoCallForm(t *testing.T) {
+	wide := make([]interface{}, 20)
+	for i := range wide {
+		switch i % 5 {
+		case 0:
+			wide[i] = int64(i * 7919)
+		case 1:
+			wide[i] = float64(i) + 0.5
+		case 2:
+			wide[i] = nil
+		case 3:
+			wide[i] = "s"
+		case 4:
+			wide[i] = []byte{byte(i)}
+		}
+	}
+	cases := [][]interface{}{
+		{int64(-5), int64(300), int64(70000), int64(1 << 30), int64(1 << 45), int64(1 << 60)},
+		{3.25, int64(0), int64(1), nil, "hello", []byte{0xde, 0xad}, "", []byte{}},
+		{int64(7), "text", 1.5, nil, []byte{1, 2}, int64(1), "x"},
+		wide,
+	}
+	for _, values := range cases {
+		data := mustRecord(t, values)
+		// Two-call reference.
+		types, dataStart, err := ParseRecordHeaderInto(data, nil)
+		if err != nil {
+			t.Fatalf("ParseRecordHeaderInto: %v", err)
+		}
+		ref := make([]interface{}, len(data)) // wider than the record
+		DecodeRecordValuesFromTypesCols(data, dataStart, ref, types, nil)
+		// Fused form into an equally wide target.
+		got := make([]interface{}, len(data))
+		count, err := DecodeRecordValuesInto(data, got, nil)
+		if err != nil {
+			t.Fatalf("DecodeRecordValuesInto: %v", err)
+		}
+		if count != len(types) {
+			t.Errorf("count = %d, want %d", count, len(types))
+		}
+		for i := 0; i < len(values); i++ {
+			if !reflect.DeepEqual(got[i], ref[i]) {
+				t.Errorf("values %v col %d: fused %#v, two-call %#v", values, i, got[i], ref[i])
+			}
+		}
+		// Target narrower than the record: the fill stops at the target,
+		// the count still reports the record's stored columns.
+		if len(values) > 1 {
+			narrow := make([]interface{}, 1)
+			n, err := DecodeRecordValuesInto(data, narrow, nil)
+			if err != nil || n != len(types) {
+				t.Errorf("narrow target: count=%d err=%v, want %d/nil", n, err, len(types))
+			}
+			if !reflect.DeepEqual(narrow[0], ref[0]) {
+				t.Errorf("narrow target slot: %#v, want %#v", narrow[0], ref[0])
+			}
+		}
+	}
+}
+
+// TestDecodeRecordValuesIntoSelection pins the cols selection: selected
+// columns fill, skipped columns leave nil while their bytes are skipped.
+func TestDecodeRecordValuesIntoSelection(t *testing.T) {
+	data := mustRecord(t, []interface{}{int64(7), "text", 1.5, []byte{1, 2}})
+	cols := []bool{false, true, false, true}
+	got := make([]interface{}, 4)
+	count, err := DecodeRecordValuesInto(data, got, cols)
+	if err != nil || count != 4 {
+		t.Fatalf("count=%d err=%v, want 4/nil", count, err)
+	}
+	if got[0] != nil || got[2] != nil {
+		t.Errorf("skipped slots not nil: %#v %#v", got[0], got[2])
+	}
+	if got[1] != "text" {
+		t.Errorf("selected text: %#v", got[1])
+	}
+	if !reflect.DeepEqual(got[3], []byte{1, 2}) {
+		t.Errorf("selected blob: %#v", got[3])
+	}
+}
+
+// TestDecodeRecordValuesIntoCorrupt pins the error contract against the
+// two-call form: an oversized header errors (both forms), while an unknown
+// serial type or truncated value bytes stop the fill early WITHOUT error,
+// reporting the full stored-column count (the two-call form's behavior —
+// ParseRecordHeader succeeds, the fill stops).
+func TestDecodeRecordValuesIntoCorrupt(t *testing.T) {
+	good := mustRecord(t, []interface{}{int64(1), "abcdef", 2.0})
+
+	// Header size extending past the payload: both forms error.
+	bad := append([]byte(nil), good...)
+	bad[0] = 0x20
+	if _, _, err := ParseRecordHeaderInto(bad, nil); err == nil {
+		t.Error("oversized header (ParseRecordHeaderInto): expected error")
+	}
+	if _, err := DecodeRecordValuesInto(bad, make([]interface{}, 3), nil); err == nil {
+		t.Error("oversized header (DecodeRecordValuesInto): expected error")
+	}
+
+	// Unknown serial type 10: header parses, the fill stops before it.
+	unknown := []byte{0x03, 0x01, 0x0A, 0x2D}
+	types, _, err := ParseRecordHeaderInto(unknown, nil)
+	if err != nil {
+		t.Fatalf("ParseRecordHeaderInto: %v", err)
+	}
+	ref := make([]interface{}, 2)
+	stopped := DecodeRecordValuesFromTypesCols(unknown, 3, ref, types, nil)
+	got := make([]interface{}, 2)
+	count, err := DecodeRecordValuesInto(unknown, got, nil)
+	if err != nil {
+		t.Errorf("unknown serial type: fused errored (%v), two-call stops early", err)
+	}
+	if count != len(types) {
+		t.Errorf("unknown serial type: count=%d, want %d", count, len(types))
+	}
+	for i := 0; i < stopped; i++ {
+		if !reflect.DeepEqual(got[i], ref[i]) {
+			t.Errorf("unknown serial type slot %d: fused %#v, two-call %#v", i, got[i], ref[i])
+		}
+	}
+
+	// Truncated value bytes: col 1 declares 6 text bytes, payload has 2.
+	short := []byte{0x03, 0x01, 0x19, 0x41, 0x42}
+	typesS, _, err := ParseRecordHeaderInto(short, nil)
+	if err != nil {
+		t.Fatalf("ParseRecordHeaderInto: %v", err)
+	}
+	gotS := make([]interface{}, 2)
+	countS, err := DecodeRecordValuesInto(short, gotS, nil)
+	if err != nil || countS != len(typesS) {
+		t.Errorf("truncated: count=%d err=%v, want %d/nil", countS, err, len(typesS))
+	}
+	if gotS[0] != int64(0x41) {
+		t.Errorf("truncated: first slot %#v, want int64(65)", gotS[0])
+	}
+	if gotS[1] != nil {
+		t.Errorf("truncated: second slot %#v, want nil", gotS[1])
+	}
+}
+
+// TestParseRecordHeaderIntoReuse pins the caller-buffer contract: one buffer
+// refilled across parses grows in place and reports the right dataStart.
+func TestParseRecordHeaderIntoReuse(t *testing.T) {
+	buf := make([]uint64, 0, 8) // caps both parses: no growth realloc
+	a := mustRecord(t, []interface{}{int64(1), "one", 2.0})
+	types, dataStart, err := ParseRecordHeaderInto(a, buf[:0])
+	if err != nil {
+		t.Fatalf("first: %v", err)
+	}
+	if len(types) != 3 || dataStart != 4 { // hdr varint + 3 type varints
+		t.Fatalf("first: types=%v dataStart=%d len=%d", types, dataStart, len(a))
+	}
+	b := mustRecord(t, []interface{}{int64(2), "two", 3.0, nil, "extra"})
+	types2, dataStart2, err := ParseRecordHeaderInto(b, types[:0])
+	if err != nil {
+		t.Fatalf("second: %v", err)
+	}
+	if len(types2) != 5 {
+		t.Fatalf("second: types=%v", types2)
+	}
+	if dataStart2 != 6 { // hdr varint + 5 type varints
+		t.Fatalf("second: dataStart=%d len=%d", dataStart2, len(b))
+	}
+	if &types2[0] != &types[0] {
+		t.Error("buffer did not grow in place from the caller's slice")
+	}
+}
