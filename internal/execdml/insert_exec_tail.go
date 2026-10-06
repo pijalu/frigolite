@@ -14,6 +14,12 @@ import (
 )
 
 func (e *DMLExecutor) prepareInsertRowValues(tableEntry *schema.Entry, colDefs []sql.ColumnDef, values []interface{}, fixedRowID *int64, orConflict string) (int64, *Result) {
+	// The table-shape memo carries the WITHOUT ROWID / STRICT flags (pure
+	// functions of the CREATE text) so a bulk load does not re-scan the same
+	// declaration once per row.
+	sh := e.insertShapeFor(tableEntry, colDefs)
+	withoutRowid := sh != nil && sh.withoutRowid
+	isStrict := sh != nil && sh.strict
 	// Determine rowID: if an INTEGER PRIMARY KEY column has an explicit non-nil
 	// value, use that value as the rowid (the column IS the rowid). Otherwise
 	// auto-assign the next available rowid. REPLACE passes a rowid computed
@@ -22,7 +28,7 @@ func (e *DMLExecutor) prepareInsertRowValues(tableEntry *schema.Entry, colDefs [
 	// an AUTO rowid may be re-allocated when a trigger consumes it — decided
 	// on the PRE-fill values (fillIPKRowID overwrites an auto IPK below, and
 	// reports -1 for an explicit one, erasing the distinction).
-	nextRowID, rowidExplicit, err := e.pkRowIDSource(tableEntry.Name, colDefs, values, tableEntry.RootPage, tableIsWithoutRowid(tableEntry.SQL))
+	nextRowID, rowidExplicit, err := e.pkRowIDSource(tableEntry.Name, colDefs, values, tableEntry.RootPage, withoutRowid)
 	if err != nil {
 		return 0, &Result{Error: err}
 	}
@@ -35,8 +41,6 @@ func (e *DMLExecutor) prepareInsertRowValues(tableEntry *schema.Entry, colDefs [
 	// If INTEGER PRIMARY KEY column value is nil, set it to the auto-assigned rowid.
 	// SQLite behavior: inserting NULL into an INTEGER PRIMARY KEY column causes
 	// the column to contain the auto-generated rowid.
-	withoutRowid := tableIsWithoutRowid(tableEntry.SQL)
-	isStrict := isStrictTable(tableEntry.SQL)
 	// fillIdx: the auto-filled IPK's index, or -1 for an explicit IPK / no
 	// IPK column — exactly what explicitTriggerRowid has always consumed.
 	_, fillIdx := e.fillIPKRowID(colDefs, values, nextRowID, withoutRowid, isStrict)
@@ -284,7 +288,8 @@ func unwrapCollationWrappers(values []interface{}) {
 // writeTableRow encodes and inserts a table row, returning the tree (for
 // index-failure cleanup) and any write result.
 func (e *DMLExecutor) writeTableRow(pg *pager.Pager, tableEntry *schema.Entry, colDefs []sql.ColumnDef, values []interface{}, nextRowID int64) (*btree.BTree, *Result) {
-	withoutRowid := tableIsWithoutRowid(tableEntry.SQL)
+	sh := e.insertShapeFor(tableEntry, colDefs)
+	withoutRowid := sh != nil && sh.withoutRowid
 	stored := values
 	if withoutRowid {
 		// WITHOUT ROWID rows live in an index btree in PK-first storage
