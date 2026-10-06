@@ -1248,3 +1248,21 @@ memoized WITHOUT ROWID flag). Milestone bench (main vs sqlite3 3.54
 same ops): insert 782,873 ops/s (1.95x), point 813,237 (1.33x), scan
 38.9M rows/s (1.35x), group 50 q/s (1.32x FASTER), update 653,110
 (1.90x), delete 724,208 (2.24x), file autocommit 10,896 (1.10x FASTER).
+
+## PERF-PARITY5 (CLOSE, 2026-10-03) — rtree pool regression fixed; census 1073/0/290
+
+Post-R8 census caught rtree1/rtreeE (1071/2): the r8-point result-pool
+(selectDepth-indexed slot) was zeroed mid-iteration — INSERT..SELECT
+holds the source SELECT's pooled result while rtree xUpdates issue
+shadow SQL through nested engine.Exec at the same selectDepth.
+Fix (fleet/fix-r8point 89f8b2433): pool slots indexed per STATEMENT
+FRAME (execDepth, SetResultFrame/execDepthLeave) — nested Exec gets its
+own frame. Pinned frigolite_r8point_frame_pin_test.go. Point perf kept
+(+0.6% paired). Final: census 1073 pass / 0 fail / 290 skip, audit
+exit 0; suite green; bench (canonical harness vs sqlite3 same ops):
+insert 760,244 ops/s (2.0x), point 775,664 (1.39x), scan 38.7M rows/s
+(1.36x), group 49 q/s (1.26x FASTER), update 642,188 (1.93x), delete
+712,877 (2.27x), file autocommit 10,747 (1.08x FASTER). Every milestone
+committed + pushed through this entry. Machine-pressure mitigation:
+census heavy packages (fts4merge4, fts5bigpl — multi-GB GC transients)
+now serialized (tools/status).
