@@ -1,5 +1,63 @@
 # Lessons Learned — Frigolite
 
+## R9.DELETE (2026-10-06) — point-DELETE statement diet (fleet/r9-delete)
+
+- **Dead-on-arrival decode**: the point-DELETE fast path decoded every
+  cell into a dmlRow snapshot although only index maintenance and the
+  preupdate hook read the values (RETURNING/triggers/FK are excluded by
+  eligibility). Gate the decode on `PreupdateNeeded() ||
+  len(allTableIndexes())>0` — vdbe.c's OP_Delete likewise reads only the
+  rowid when no index-key extraction is scheduled. The seek's exact hit
+  pins the stored rowid, so the undecoded delete addresses the same cell.
+  +7.6% alone.
+- **Write-only journal scope**: execDeleteBulk opens a pager statement
+  scope for its FK-failure rollback; the point path (FK-free by
+  eligibility) NEVER replayed its scope — every failure exit defers to
+  the ENGINE's statement scope (execSnapshotDML → undoFailedDML). The
+  innermost open scope takes exactly one before-image either way, so
+  dropping the redundant Begin/End round-trip is behavior-neutral and
+  matches SQLite's can't-abort statement handling (no OP_Statement for a
+  trigger-free FK-free rowid DELETE). ~4% wall.
+- **Second parse of the same leaf**: pointDeleteTarget ran a full
+  storage.ParsePage although the statement's seek had just memoized the
+  leaf (nothing writes between). Serve from Page.ParsedBTree + hand
+  dropCellFromLeafPage a BY-VALUE copy — dropCell keeps its parsed copy
+  in step with its byte writes and the memo's struct is shared
+  read-only; handing it the memo-owned pointer would trip the canary and
+  force a self-heal re-parse (i.e. cost what the memo saved).
+- **Path-stack nil drops**: saveCursorPosition/restoreIfNeeded set
+  `c.path = nil`; the next resetFor re-made the slice per statement
+  (point ops save their seek cursor every statement via saveAllCursors).
+  Keep capacity with `c.path = c.path[:0]` — the stack is at most tree
+  depth deep. Same discipline SeekToRowID already used.
+- **Result-per-statement**: the fast path returned a fresh &Result per
+  delete. One executor scratch slot (the encBuf pooling pattern) serves
+  them all — the value is consumed synchronously (Engine.Exec funnel →
+  frigolite boundary copy) and nothing retains the pointer across
+  statements. Hook-produced results bypass the slot.
+- **Memo generation contract is load-bearing**: TestParsedBTree*
+  pin "a NEW pointer per generation" (invalidation + canary self-heal).
+  In-place memo reuse (re-parse into the existing memo) FAILS four tests
+  — the mutant struct must be abandoned, not repaired in place. Only the
+  hdrSnap buffer's capacity is safely carryable (measured NEUTRAL —
+  reverted; keep the fresh generation).
+- **Noise discipline**: fleet machines are shared — wall-clock A/B
+  batches drift >5% between minutes. Pair main-vs-worktree runs
+  back-to-back and compare MEDIANS of paired ratios; for engine work
+  prefer CPU-seconds/op (record()'s cpu field) — GC/sys time distorts
+  wall. Statement-journal capture, Begin/End and ParsedBTree misses are
+  all visible in the 300k-delete CPU profile (~20 samples/percent).
+- **Remaining gap is out of scope from execdml**: after this round the
+  point-DELETE statement spends most of its CPU in layers this fleet
+  contract does not own — per-statement parse (scanNumericLiteral + AST,
+  ~10%), the Engine.Exec statement funnel (withDMLCTEs, snapshot scopes),
+  execResult/public-Result per Exec, and GC pressure driven by harness
+  render() strings. The single biggest engine-side follow-up: extend
+  Engine.dmlCanSkipSnapshot (internal/exec/engine_tail.go) to the
+  can't-abort point DELETE/UPDATE shapes — that kills the engine-level
+  per-statement scope AND its 4KB before-image capture per statement
+  (sqlite pays ~zero there; we measured the execdml-level half at ~4%).
+
 ## R8.UPDATE (2026-10-06) — point-UPDATE collect diet + typed SET fast lane (fleet/r8-update)
 
 - **The collect path's hidden no-op**: `RemapWRRecordToDeclared` re-parsed

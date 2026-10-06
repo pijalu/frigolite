@@ -275,6 +275,15 @@ type DMLExecutor struct {
 	delTree    *btree.BTree
 	delTreeKey insTreeKey
 
+	// delRes is the point-DELETE path's reusable statement-result slot (the
+	// encBuf pooling pattern): every fast-path hit returned a fresh
+	// &Result{Changes: 1} per statement, one allocation per delete. The
+	// staged value is consumed synchronously — Engine.Exec's funnel reads
+	// Error/Changes/LastInsertRowID and the frigolite boundary copies the
+	// fields out — and no holder keeps the pointer across the next
+	// statement, so one slot serves them all.
+	delRes Result
+
 	// ati* is the allTableIndexes one-slot memo (guarded by the
 	// cross-database schema stamp): the point-op paths resolve the same
 	// table's index list several times per statement, and each resolution

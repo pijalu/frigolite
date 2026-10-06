@@ -62,10 +62,17 @@ func (t *BTree) pointDeleteTarget(leafNum uint32, idx int, rowID int64) (*pager.
 		return nil, nil, 0, delCell, 0, false // the generic path re-reads and surfaces the error
 	}
 	coff := contentOffset(pg.PageNum)
-	page, err := storage.ParsePage(pg.Data, int(t.pageSize), coff)
+	// The seek that positioned this statement already parsed this leaf (the
+	// statement writes nothing before its delete), so the memo serves the
+	// header here. dropCellFromLeafPage keeps its parsed copy in step with
+	// its byte writes, and the memo's page is shared read-only — hand it a
+	// by-value copy to mutate instead.
+	memoPage, err := pg.ParsedBTree(int(t.pageSize), coff)
 	if err != nil {
 		return nil, nil, 0, delCell, 0, false
 	}
+	pageOwn := *memoPage
+	page := &pageOwn
 	if page.PageType != storage.PageTypeLeafTable {
 		return nil, nil, 0, delCell, 0, false
 	}

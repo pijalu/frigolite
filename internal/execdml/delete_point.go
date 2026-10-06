@@ -45,10 +45,16 @@ func (e *DMLExecutor) execPointDelete(s *sql.DeleteStmt, tableEntry *schema.Entr
 	if e.ctx.InFTSFlush() {
 		return nil, false
 	}
-	// Statement journal for the FK-failure rollback (pager.c sub-journal),
-	// exactly as execDeleteBulk opens it for every statement.
-	stmt := dbCtx.Pager.BeginStatement()
-	defer dbCtx.Pager.EndStatement(stmt)
+	// NO per-path statement journal here: execDeleteBulk opens one for its
+	// FK-failure rollback (RollbackPagerStatement on the bulk path), but this
+	// fast path excludes FK enforcement and never replays the scope — its
+	// only failure exits (seek anomalies, delete/rebalance errors) return
+	// handled=false or a plain error Result, and the ENGINE's statement
+	// scope (Engine.execSnapshotDML, opened around every DML statement)
+	// carries the before-images that Engine.undoFailedDML replays. Dropping
+	// the redundant scope removes one Begin/End round-trip per statement;
+	// capture semantics are unchanged (the innermost scope — this one or the
+	// engine's — takes exactly one before-image either way).
 	// The point path's cached write wrapper (insertWriteTree pattern): the
 	// statement's leaked internal seek cursors are released on return, and a
 	// root-moving rebalance is re-keyed + persisted before the next hit.
@@ -77,6 +83,13 @@ func (e *DMLExecutor) finishPointDelete(tableEntry *schema.Entry, dbCtx *Databas
 	if err != nil {
 		return nil, false // anomaly: generic pipeline
 	}
+	// The decoded row is consumed by exactly two consumers — index
+	// maintenance and the preupdate hook (RETURNING, triggers and FK
+	// enforcement are excluded by pointDeleteEligible). When neither is
+	// present the cell's values are dead on arrival: skip the record decode
+	// entirely, the way vdbe.c's OP_Delete reads only the rowid when no
+	// index-key extraction is scheduled for the statement.
+	needValues := e.ctx.PreupdateNeeded() || len(e.allTableIndexes(tableEntry.Name)) > 0
 	found, serr := cursor.SeekToRowID(rowID)
 	if serr != nil {
 		return nil, false // anomaly: generic pipeline
@@ -85,25 +98,46 @@ func (e *DMLExecutor) finishPointDelete(tableEntry *schema.Entry, dbCtx *Databas
 		// No-match point DELETE: execDeleteBulk still invalidates the rowid
 		// cache on its way out.
 		e.ctx.InvalidateRowIDCache(e.dmlPager(tableEntry.Name), tableEntry.RootPage)
-		return &Result{}, true
+		return e.stageDelResult(Result{}), true
 	}
-	row, ok := e.decodePointDeleteRow(tableEntry, colDefs, cursor)
-	if !ok {
-		return nil, false // anomaly: generic pipeline
+	// When needValues the seek's exact hit pins the stored rowid to rowID
+	// (seekInLeafTable matches only on equality), so the undecoded delete
+	// below addresses the very cell the decode would have named.
+	var row *dmlRow
+	if needValues {
+		var ok bool
+		if row, ok = e.decodePointDeleteRow(tableEntry, colDefs, cursor); !ok {
+			return nil, false // anomaly: generic pipeline
+		}
 	}
 	// The seek established the row's leaf position; delete through it
 	// (DeleteCellByRowID's post-seek half) instead of descending again.
-	if _, err := tree.DeleteCellByRowIDAt(row.rowID, cursor.PageNum(), cursor.CellIdx(), cursor.PathParent()); err != nil {
-		return &Result{Error: err}, true
+	if _, err := tree.DeleteCellByRowIDAt(rowID, cursor.PageNum(), cursor.CellIdx(), cursor.PathParent()); err != nil {
+		return e.stageDelResult(Result{Error: err}), true
 	}
-	if err := e.maintainIndexesOnDelete(tableEntry, colDefs, []*dmlRow{row}); err != nil {
-		return &Result{Error: err}, true
-	}
-	if res := e.fireDeletePreupdate(tableEntry, dbCtx, colDefs, row); res != nil {
-		return res, true
+	if row != nil {
+		if err := e.maintainIndexesOnDelete(tableEntry, colDefs, []*dmlRow{row}); err != nil {
+			return e.stageDelResult(Result{Error: err}), true
+		}
+		if res := e.fireDeletePreupdate(tableEntry, dbCtx, colDefs, row); res != nil {
+			return res, true
+		}
 	}
 	e.ctx.InvalidateRowIDCache(e.dmlPager(tableEntry.Name), tableEntry.RootPage)
-	return &Result{Changes: 1}, true
+	return e.stageDelResult(Result{Changes: 1}), true
+}
+
+// stageDelResult stages the point-DELETE fast path's statement result in the
+// executor's scratch slot (the encBuf pooling pattern): the fast path handed
+// out a fresh &Result per statement — one heap allocation per delete. The
+// staged value is consumed synchronously: Engine.Exec's funnel reads
+// Error/Changes/LastInsertRowID and the frigolite boundary copies the fields
+// out, and no holder keeps the pointer across the next statement, so one
+// slot serves them all. Hook-produced results bypass this slot — they are
+// the hook machinery's own allocation and must survive it.
+func (e *DMLExecutor) stageDelResult(res Result) *Result {
+	e.delRes = res
+	return &e.delRes
 }
 
 // pointDeleteRowPlan returns the point-delete row plan for colDefs, memoized
