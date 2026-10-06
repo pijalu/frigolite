@@ -46,9 +46,9 @@ type setLaneOp struct {
 type setLaneKind uint8
 
 const (
-	laneCol setLaneKind = iota // copy one slot (with rowid-alias substitution)
-	laneLit                    // store a literal
-	laneArith                  // binary arithmetic over two operands
+	laneCol   setLaneKind = iota // copy one slot (with rowid-alias substitution)
+	laneLit                      // store a literal
+	laneArith                    // binary arithmetic over two operands
 )
 
 // laneRefRowID marks an operand reading the row's rowid (the unaliased
@@ -181,60 +181,81 @@ func compileLaneOperandRef(expr sql.Expr, op *setLaneOp, colIndex map[string]int
 	op.kind, op.refA, op.litA = laneLit, laneRefLit, nil
 	switch v := expr.(type) {
 	case *sql.ColumnRef:
-		if v.Table != "" {
-			return false // qualified reference: the row map's resolution
-		}
-		ci, ok := colIndex[strings.ToLower(v.Name)]
-		if ok && ci >= 0 {
-			op.refA = ci
-			return true
-		}
-		// An unqualified rowid/oid/_rowid_ reads the row's rowid — only
-		// when no declared column shadows the name (the row map's rule).
-		if !hasRowIDColumnName(colDefs) && execquery.IsRowIDName(v.Name) {
-			op.refA = laneRefRowID
-			return true
-		}
-		return false // unresolvable name: generic path reports the error
+		return compileLaneColumnRef(v, op, colIndex, colDefs)
 	case *sql.NumericLit:
-		lit := v.Cached()
-		if lit == nil {
-			// Plain decimal integers and simple decimals only; hex, sign-
-			// folded magnitudes and exponents keep the generic evaluator.
-			if i, err := strconv.ParseInt(v.Value, 10, 64); err == nil {
-				lit = i
-			} else if f, err := strconv.ParseFloat(v.Value, 64); err == nil && !strings.ContainsAny(v.Value, "xXeEpP") {
-				lit = f
-			} else {
-				return false
-			}
+		lit, ok := laneNumericLit(v)
+		if !ok {
+			return false
 		}
-		switch lit.(type) {
-		case int64, float64:
-			op.litA = lit
-			return true
-		}
-		return false
+		op.litA = lit
+		return true
 	case *sql.UnaryOp:
-		// A negated numeric literal ("-1"): the parser's separate-sign form.
-		if v.Operator != "-" {
-			return false
-		}
-		var sub setLaneOp
-		if !compileLaneOperandRef(unwrapLaneParens(v.Operand), &sub, colIndex, colDefs, slot) {
-			return false
-		}
-		switch n := sub.litA.(type) {
-		case int64:
-			op.litA = -n
-			return true
-		case float64:
-			op.litA = -n
-			return true
-		}
-		return false
+		return compileLaneNegatedLit(v, op, colIndex, colDefs, slot)
 	}
 	return false
+}
+
+// compileLaneColumnRef resolves one column-reference operand: a declared
+// column slot, or the rowid pseudo-reference when nothing shadows the name.
+func compileLaneColumnRef(v *sql.ColumnRef, op *setLaneOp, colIndex map[string]int, colDefs []sql.ColumnDef) bool {
+	if v.Table != "" {
+		return false // qualified reference: the row map's resolution
+	}
+	ci, ok := colIndex[strings.ToLower(v.Name)]
+	if ok && ci >= 0 {
+		op.refA = ci
+		return true
+	}
+	// An unqualified rowid/oid/_rowid_ reads the row's rowid — only
+	// when no declared column shadows the name (the row map's rule).
+	if !hasRowIDColumnName(colDefs) && execquery.IsRowIDName(v.Name) {
+		op.refA = laneRefRowID
+		return true
+	}
+	return false // unresolvable name: generic path reports the error
+}
+
+// laneNumericLit parses one numeric literal operand: plain decimal integers
+// and simple decimals only — hex, sign-folded magnitudes and exponents keep
+// the generic evaluator (its evalNumericLit semantics own those forms).
+func laneNumericLit(v *sql.NumericLit) (interface{}, bool) {
+	if lit := v.Cached(); lit != nil {
+		switch lit.(type) {
+		case int64, float64:
+			return lit, true
+		}
+		return nil, false
+	}
+	if i, err := strconv.ParseInt(v.Value, 10, 64); err == nil {
+		return i, true
+	}
+	if f, err := strconv.ParseFloat(v.Value, 64); err == nil && !strings.ContainsAny(v.Value, "xXeEpP") {
+		return f, true
+	}
+	return nil, false
+}
+
+// compileLaneNegatedLit folds a negated numeric literal ("-1", the parser's
+// separate-sign form) into one literal operand.
+func compileLaneNegatedLit(v *sql.UnaryOp, op *setLaneOp, colIndex map[string]int, colDefs []sql.ColumnDef, slot int) bool {
+	if v.Operator != "-" {
+		return false
+	}
+	sub, ok := unwrapLaneParens(v.Operand).(*sql.NumericLit)
+	if !ok {
+		return false
+	}
+	lit, ok := laneNumericLit(sub)
+	if !ok {
+		return false
+	}
+	switch n := lit.(type) {
+	case int64:
+		op.litA = -n
+	case float64:
+		op.litA = -n
+	}
+	return true
 }
 
 // laneOperandValue reads one compiled operand's value: a slot's raw value
@@ -311,21 +332,30 @@ func laneIntArith(op byte, l, r int64) interface{} {
 		return diff
 	case '*':
 		return int64(float64(l)) * int64(float64(r))
-	case '/':
+	default: // '/' and '%' (laneIntDivMod)
+		return laneIntDivMod(op, l, r)
+	}
+}
+
+// laneIntDivMod is the integer division/modulo arm: NULL for a zero divisor
+// (SQLite), the same float64-converted integer arithmetic (fastIntArith
+// parity), and % casting the divisor to int64 first with the minInt64 % -1
+// wrap to 0.
+func laneIntDivMod(op byte, l, r int64) interface{} {
+	if op == '/' {
 		if r == 0 {
 			return nil
 		}
 		return int64(float64(l)) / int64(float64(r))
-	default: // '%'
-		ri := int64(float64(r))
-		if ri == 0 {
-			return nil
-		}
-		if ri == -1 {
-			return int64(0) // minInt64 % -1 overflows int64 in Go; SQLite wraps to 0
-		}
-		return int64(float64(l)) % ri
 	}
+	ri := int64(float64(r))
+	if ri == 0 {
+		return nil
+	}
+	if ri == -1 {
+		return int64(0) // minInt64 % -1 overflows int64 in Go; SQLite wraps to 0
+	}
+	return int64(float64(l)) % ri
 }
 
 // laneFloatArith is the at-least-one-REAL arm (fastFloatArith's semantics:
