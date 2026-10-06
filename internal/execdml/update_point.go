@@ -158,16 +158,17 @@ type cellPos struct {
 }
 
 // pointUpdateValueSlots is updateChangeValueSlots over the executor's pooled
-// slot pair (two slices per point UPDATE instead of two allocations). The
-// returned slices are consumed entirely within the calling statement — the
-// preupdate event copies them — so the next statement may reuse the storage.
-// The values slice is cleared first: slots beyond the stored record keep nil
-// unless an added-column DEFAULT fills them (updateChangeValueSlots' fresh
-// make() semantics). maxIdx is max(len(rec.Values), len(colDefs)) — exactly
-// the map iteration's maximum (colIndex holds every column's 0-based slot
-// plus the rowid pseudo-entry -1) without walking the map per statement.
-func (e *DMLExecutor) pointUpdateValueSlots(rec *storage.Record, colDefs []sql.ColumnDef) ([]interface{}, []interface{}) {
-	maxIdx := len(rec.Values)
+// slot pair (two slices per point UPDATE instead of two allocations),
+// copying out of the pooled decode buffer. The returned slices are consumed
+// entirely within the calling statement — the preupdate event copies them —
+// so the next statement may reuse the storage. The values slice is cleared
+// first: slots beyond the stored record keep nil unless an added-column
+// DEFAULT fills them (updateChangeValueSlots' fresh make() semantics).
+// maxIdx is max(recCount, len(colDefs)) — exactly the map iteration's
+// maximum (colIndex holds every column's 0-based slot plus the rowid
+// pseudo-entry -1) without walking the map per statement.
+func (e *DMLExecutor) pointUpdateValueSlots(recCount int, colDefs []sql.ColumnDef) ([]interface{}, []interface{}) {
+	maxIdx := recCount
 	if len(colDefs) > maxIdx {
 		maxIdx = len(colDefs)
 	}
@@ -176,33 +177,34 @@ func (e *DMLExecutor) pointUpdateValueSlots(rec *storage.Record, colDefs []sql.C
 	}
 	values := e.ptValues[:maxIdx]
 	clear(values)
-	copy(values, rec.Values)
-	if cap(e.ptOldValues) < len(rec.Values) {
-		e.ptOldValues = make([]interface{}, len(rec.Values))
+	copy(values, e.ptDecode[:recCount])
+	if cap(e.ptOldValues) < recCount {
+		e.ptOldValues = make([]interface{}, recCount)
 	}
-	oldValues := e.ptOldValues[:len(rec.Values)]
-	copy(oldValues, rec.Values)
+	oldValues := e.ptOldValues[:recCount]
+	copy(oldValues, e.ptDecode[:recCount])
 	return values, oldValues
 }
 
-// pointUpdateRowMap builds the SET-evaluation row map over the executor's
-// pooled map (one allocation ever, then clear + refill per statement —
-// buildRowMap allocated a fresh map per row, 8.3% of the point-UPDATE
-// profile). The fill mirrors execquery's buildRowMap exactly for the common
-// full-record shapes: dropped-column records and short (pre-ALTER) records
-// fall back to the shared builder; extra record values project as c<N>.
-// The pooled map is safe here and only here: the single change consumes the
-// map within the statement AND the SET expressions contain no subquery (a
-// correlated subquery's evaluation RETAINS the row as the engine's outer-row
-// scope, which a later statement's clear() would corrupt — those statements
-// fall back too).
-func (e *DMLExecutor) pointUpdateRowMap(rec *storage.Record, colDefs []sql.ColumnDef, rowID int64, assignments []sql.Assignment) RowMap {
-	if len(rec.Values) < len(colDefs) || subqueryInAssignments(assignments) {
-		return e.ctx.BuildRowMap(rec, colDefs, rowID)
+// pointUpdateRowMapFromSlots builds the SET-evaluation row map over the
+// executor's pooled map (one allocation ever, then clear + refill per
+// statement — buildRowMap allocated a fresh map per row, 8.3% of the
+// point-UPDATE profile), fed from the pooled value slots instead of a
+// decoded Record. The fill mirrors execquery's buildRowMap exactly for the
+// common full-record shapes: dropped-column records and short (pre-ALTER)
+// records fall back to the shared builder; extra record values project as
+// c<N>. The pooled map is safe here and only here: the single change
+// consumes the map within the statement AND the SET expressions contain no
+// subquery (a correlated subquery's evaluation RETAINS the row as the
+// engine's outer-row scope, which a later statement's clear() would corrupt
+// — those statements fall back too).
+func (e *DMLExecutor) pointUpdateRowMapFromSlots(values []interface{}, colDefs []sql.ColumnDef, recCount int, rowID int64, assignments []sql.Assignment) RowMap {
+	if recCount < len(colDefs) || subqueryInAssignments(assignments) {
+		return e.ctx.BuildRowMap(&storage.Record{Values: values[:recCount]}, colDefs, rowID)
 	}
 	for i := range colDefs {
 		if colDefs[i].Dropped {
-			return e.ctx.BuildRowMap(rec, colDefs, rowID)
+			return e.ctx.BuildRowMap(&storage.Record{Values: values[:recCount]}, colDefs, rowID)
 		}
 	}
 	row := e.ptRowMap
@@ -212,17 +214,19 @@ func (e *DMLExecutor) pointUpdateRowMap(rec *storage.Record, colDefs []sql.Colum
 	} else {
 		clear(row)
 	}
-	e.fillPointUpdateRowMap(row, rec, colDefs, rowID)
+	e.fillPointUpdateRowMapFromSlots(row, values, colDefs, recCount, rowID)
 	return row
 }
 
-// fillPointUpdateRowMap refills the pooled map from the record (the
-// buildRowMap fill: affinity/collation-wrapped declared columns, extra
-// record values projected as c<N>, rowid pseudo-aliases).
-func (e *DMLExecutor) fillPointUpdateRowMap(row RowMap, rec *storage.Record, colDefs []sql.ColumnDef, rowID int64) {
+// fillPointUpdateRowMapFromSlots refills the pooled map from the value
+// slots (the buildRowMap fill: affinity/collation-wrapped declared columns,
+// extra record values projected as c<N>, rowid pseudo-aliases). The caller
+// guarantees recCount == len(colDefs) here — shorter records and dropped
+// columns take the shared builder.
+func (e *DMLExecutor) fillPointUpdateRowMapFromSlots(row RowMap, values []interface{}, colDefs []sql.ColumnDef, recCount int, rowID int64) {
 	for i := range colDefs {
 		cd := colDefs[i]
-		if v := rec.Values[i]; v == nil && isIPKRowidAliasCol(cd) {
+		if v := values[i]; v == nil && isIPKRowidAliasCol(cd) {
 			// SQLite stores NULL in the rowid-alias slot; the value is the
 			// rowid (substituted at read time, buildRowMap parity).
 			row[cd.Name] = &util.ColumnValue{Value: rowID, Affinity: 'I'}
@@ -235,8 +239,8 @@ func (e *DMLExecutor) fillPointUpdateRowMap(row RowMap, rec *storage.Record, col
 			}
 		}
 	}
-	for i := len(colDefs); i < len(rec.Values); i++ {
-		row[fmt.Sprintf("c%d", i)] = rec.Values[i]
+	for i := len(colDefs); i < recCount; i++ {
+		row[fmt.Sprintf("c%d", i)] = values[i]
 	}
 	if !execquery.RowHasRowIDColumn(colDefs) {
 		rowidCV := &util.ColumnValue{Value: rowID, Affinity: 'I'}
@@ -378,31 +382,49 @@ func (e *DMLExecutor) collectPointUpdateRow(tree *btree.BTree, s *sql.UpdateStmt
 		return updateChange{}, false, e.emptyResultFor(), pos
 	}
 	pos = cellPos{leaf: cursor.PageNum(), idx: cursor.CellIdx()}
-	cell, rerr := cursor.ReadCell()
+	// ReadCellData (the delete path's fetch): payload + rowid straight off
+	// the cached leaf page — no Cell struct, no overflow re-boxing between
+	// the page bytes and the decode.
+	payload, realRowID, rerr := cursor.ReadCellData()
 	if rerr != nil {
 		return updateChange{}, false, nil, pos // anomaly: generic pipeline
 	}
-	rec, derr := storage.DecodeRecord(cell.Payload)
-	if derr != nil || rec == nil {
+	// Decode straight into the executor's pooled slot buffer
+	// (DecodeRecordValuesInto): no intermediate Record struct, no fresh
+	// values slice per row. The gates (pointUpdateTargetOK) exclude WITHOUT
+	// ROWID tables, so the record arrives in declared order — the former
+	// RemapWRRecordToDeclared call was a structurally-guaranteed no-op here
+	// (its PK-first permutation only applies to WITHOUT ROWID layouts; it
+	// re-parsed the CREATE TABLE text per row to decide that). A malformed
+	// record falls back to the generic pipeline, whose decode reports the
+	// error exactly as before.
+	recCount, derr := e.decodePointUpdateRecord(payload, colDefs)
+	if derr != nil {
 		return updateChange{}, false, nil, pos // anomaly: generic pipeline
 	}
-	e.ctx.RemapWRRecordToDeclared(rec, tableEntry.SQL, colDefs)
 
 	// The pooled slot pair is safe here and only here: the single change is
 	// fully consumed within this statement (the generic pipeline's changes
 	// outlive the collect loop and keep fresh allocations).
-	values, oldValues := e.pointUpdateValueSlots(rec, colDefs)
+	values, oldValues := e.pointUpdateValueSlots(recCount, colDefs)
 	// Rows written before ALTER TABLE ADD COLUMN read their added-column
 	// DEFAULTs (buildUpdateChange parity).
-	e.applyUpdateColumnDefaults(values, colDefs, len(rec.Values))
-	e.applyUpdateColumnDefaults(oldValues, colDefs, len(rec.Values))
+	e.applyUpdateColumnDefaults(values, colDefs, recCount)
+	e.applyUpdateColumnDefaults(oldValues, colDefs, recCount)
 
-	// SET evaluation against the collected row map — the exact evaluation
-	// row seekUpdateChangesMaps uses for single-candidate collects: the
-	// positional plan's fixed per-statement cost only amortizes from three
-	// candidates up (updateSeekMapPathMaxCandidates), so one pinned row
-	// keeps the map.
-	row := e.pointUpdateRowMap(rec, colDefs, cell.RowID, s.Assignments)
+	// SET evaluation: the typed fast lane rewrites the common arithmetic/
+	// literal SET shape directly over the value slots (no row map, no boxed
+	// evaluation); every other shape keeps the row-map path — the exact
+	// evaluation row seekUpdateChangesMaps uses for single-candidate
+	// collects (the positional plan's fixed per-statement cost only
+	// amortizes from three candidates up, so one pinned row keeps the map).
+	if e.applyTypedPointUpdateSet(s, colDefs, values, realRowID) {
+		if gerr := e.recomputeUpdateGenerated(colDefs, values); gerr != nil {
+			return updateChange{}, false, &Result{Error: gerr}, pos
+		}
+		return updateChange{rowID: realRowID, values: values, oldValues: oldValues}, true, nil, pos
+	}
+	row := e.pointUpdateRowMapFromSlots(values, colDefs, recCount, realRowID, s.Assignments)
 	newRowID, aerr := e.applyUpdateAssignments(s, row, e.columnIndexFor(colDefs), colDefs, values)
 	if aerr != nil {
 		return updateChange{}, false, &Result{Error: aerr}, pos
@@ -413,7 +435,40 @@ func (e *DMLExecutor) collectPointUpdateRow(tree *btree.BTree, s *sql.UpdateStmt
 	if gerr := e.recomputeUpdateGenerated(colDefs, values); gerr != nil {
 		return updateChange{}, false, &Result{Error: gerr}, pos
 	}
-	return updateChange{rowID: cell.RowID, values: values, oldValues: oldValues}, true, nil, pos
+	return updateChange{rowID: realRowID, values: values, oldValues: oldValues}, true, nil, pos
+}
+
+// decodePointUpdateRecord decodes the seeked cell's record into the pooled
+// ptDecode buffer and returns the record's stored-column count. The buffer
+// keeps its backing storage across statements; undecoded slots are cleared
+// first, so a short record's trailing slots read as NULL until
+// applyUpdateColumnDefaults fills them. error reports a malformed record
+// header (the generic pipeline's fallback re-reads and reports it exactly).
+func (e *DMLExecutor) decodePointUpdateRecord(payload []byte, colDefs []sql.ColumnDef) (int, error) {
+	size := len(colDefs)
+	if size < 8 {
+		size = 8
+	}
+	if cap(e.ptDecode) < size {
+		e.ptDecode = make([]interface{}, size)
+	}
+	target := e.ptDecode[:size]
+	clear(target)
+	count, err := storage.DecodeRecordValuesInto(payload, target, nil)
+	if err != nil {
+		return 0, err
+	}
+	if count > len(target) {
+		// The record stores more values than the declared column list
+		// (pre-ALTER columns projected as c<N>): grow once and re-decode —
+		// the rare shape pays the second parse, the common one never runs.
+		e.ptDecode = make([]interface{}, count)
+		count, err = storage.DecodeRecordValuesInto(payload, e.ptDecode, nil)
+		if err != nil {
+			return 0, err
+		}
+	}
+	return count, nil
 }
 
 // writePointUpdateRow writes one same-rowid change: the in-place overwrite

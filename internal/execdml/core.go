@@ -121,8 +121,20 @@ type DMLExecutor struct {
 
 	// ptValues/ptOldValues are the point-UPDATE collect's pooled value-slot
 	// pair (pointUpdateValueSlots), fully consumed within one statement.
+	// ptDecode is the collect's pooled decode target (decodePointUpdateRecord):
+	// storage.DecodeRecordValuesInto fills it straight from the cell payload,
+	// no intermediate Record struct per row.
 	ptValues    []interface{}
 	ptOldValues []interface{}
+	ptDecode    []interface{}
+
+	// laneOps/laneResults are the typed SET fast lane's compile + evaluation
+	// scratch (compileTypedPointUpdateSet/applyTypedPointUpdateSet): the
+	// assignment list compiles into at most len(laneOps) slot operations and
+	// the results stage before the first store, all within one statement —
+	// a longer SET list takes the generic row-map path.
+	laneOps     [8]setLaneOp
+	laneResults [8]interface{}
 
 	// resultScratch holds one recycled *Result per execDepth
 	// (emptyResultFor): the DML hot paths' no-error control-flow markers
