@@ -1233,3 +1233,18 @@ oracle-verified). Milestone bench (main a94f07463 vs sqlite3 3.54 same
 ops): insert 790,737 ops/s (2.0x), point 718,823 (1.59x), scan 40.4M
 rows/s (1.33x), group 53 q/s (1.33x FASTER), update 539,633 (2.43x),
 delete 749,831 (2.24x), file autocommit 9,664 (1.31x FASTER).
+
+## PERF-PARITY5 (2026-10-03, milestone) — R8 three-lane round merged; point 1.33x, update 1.90x
+
+User-focus round (insert/select/update): fleet/r8-insert (per-txn
+external-file validation latch — sqlite OP_Transaction no-op-in-txn
+parity; bind-stash placeholder diet; stash-aware rowid paths; insert
+alloc 468→145B/stmt), fleet/r8-point (bare-ref slot fusion + (template,
+schema) slot memo, covered-bare fill, result pooling per selectDepth,
+parse-memo seek; point alloc −33%), fleet/r8-update (collect decode
+need-set diet, typed SET fast lane — unboxed integer arithmetic with
+NULL/overflow/affinity oracle pins, 18-shape engagement-parity pin,
+memoized WITHOUT ROWID flag). Milestone bench (main vs sqlite3 3.54
+same ops): insert 782,873 ops/s (1.95x), point 813,237 (1.33x), scan
+38.9M rows/s (1.35x), group 50 q/s (1.32x FASTER), update 653,110
+(1.90x), delete 724,208 (2.24x), file autocommit 10,896 (1.10x FASTER).
