@@ -333,6 +333,12 @@ func (e *SelectEngine) selectRowidSeekPlan(s *sql.SelectStmt, tableEntry *schema
 // seekRowOutput builds the single row's output (SELECT * flat path or
 // buildOutputRow projection) plus its row map when needed.
 func (e *SelectEngine) seekRowOutput(s *sql.SelectStmt, colDefs []sql.ColumnDef, srow *StructRow, affinity, needMaps bool) ([][]interface{}, []RowMap, bool) {
+	// All-bare-reference projection: read every output column's slot directly
+	// (the plan memo resolves names to slots once per template), skipping the
+	// per-column expression-evaluation walk buildOutputRow runs.
+	if rows, ok := e.bareRefsSeekOutput(s, colDefs, srow, needMaps); ok {
+		return rows, nil, true
+	}
 	if len(s.Columns) == 1 {
 		if ref, ok := s.Columns[0].Expr.(*sql.ColumnRef); ok {
 			if ref.Name == "*" && ref.Table == "" {
@@ -349,6 +355,100 @@ func (e *SelectEngine) seekRowOutput(s *sql.SelectStmt, colDefs []sql.ColumnDef,
 		return nil, nil, false
 	}
 	return finishSeekRowOutput([][]interface{}{row}, needMaps, srow)
+}
+
+// bareRefsSeekOutput projects every bare-reference output column directly
+// from the fetched row's slots: for `SELECT a, b FROM t WHERE id=?` the
+// generic route evaluates each reference through the expression walker
+// (appendOutputExpr) even though the value is exactly the slot's — the same
+// identity the single-column bareRefSeekOutput exploits. The slot plan
+// resolves names to indices once per (template, schema) pair; per statement
+// only the fresh output row's copies remain. ok=false keeps the generic
+// route: row-map consumers, star/keyword/qualified/rowid shapes, and any
+// reference the colDefs cannot resolve (its "no such column" error path).
+func (e *SelectEngine) bareRefsSeekOutput(s *sql.SelectStmt, colDefs []sql.ColumnDef, srow *StructRow, needMaps bool) ([][]interface{}, bool) {
+	if needMaps || len(srow.Values) != len(colDefs) {
+		return nil, false
+	}
+	slots := e.bareRefSlotsFor(s, colDefs)
+	if slots == nil {
+		return nil, false
+	}
+	out := make([]interface{}, len(slots))
+	for i, slot := range slots {
+		out[i] = util.UnwrapColumnValue(unwrapCollatedValue(srow.Values[slot]))
+	}
+	return [][]interface{}{out}, true
+}
+
+// bareRefSlotsFor returns the memoized slot index per output column for an
+// all-bare-reference projection, or nil when the shape keeps the generic
+// output route. Resolution mirrors StructRow.Get exactly: an exact
+// declared-name hit first, then a case-insensitive scan; a reference neither
+// resolves (including the implicit rowid names, which Get answers from the
+// row's RowID rather than a slot) keeps the generic path.
+func (e *SelectEngine) bareRefSlotsFor(s *sql.SelectStmt, colDefs []sql.ColumnDef) []int {
+	if len(colDefs) == 0 || !projectionIsBareRefs(s) {
+		return nil
+	}
+	for i := range s.Columns {
+		ref := unwrapParenExpr(s.Columns[i].Expr).(*sql.ColumnRef)
+		if IsRowIDName(ref.Name) {
+			return nil
+		}
+	}
+	key := bareRefPlanKey{cols: &s.Columns[0], colsLen: len(s.Columns), defs: &colDefs[0], defsLen: len(colDefs)}
+	fp := e.schemaFingerprint()
+	if e.bareRefPlanFP == fp && e.bareRefPlanMemo != nil {
+		if slots, ok := e.bareRefPlanMemo[key]; ok {
+			return slots
+		}
+	}
+	slots := buildBareRefSlots(s, colDefs)
+	if slots == nil {
+		return nil
+	}
+	if e.bareRefPlanFP != fp || e.bareRefPlanMemo == nil {
+		e.bareRefPlanFP = fp
+		e.bareRefPlanMemo = make(map[bareRefPlanKey][]int)
+	}
+	if len(e.bareRefPlanMemo) >= colNamesMemoCap {
+		e.bareRefPlanMemo = make(map[bareRefPlanKey][]int)
+	}
+	e.bareRefPlanMemo[key] = slots
+	return slots
+}
+
+// buildBareRefSlots resolves every bare reference of the projection against
+// colDefs (exact name, then case-insensitive) and returns the slot list, or
+// nil when any reference stays unresolved. Purely a function of the AST
+// shape and colDefs. Resolution mirrors StructRow.Get's map semantics: the
+// LAST same-named colDef wins (buildSeekColIndex's map overwrite), and the
+// case-insensitive fallback keeps Get's scan shape.
+func buildBareRefSlots(s *sql.SelectStmt, colDefs []sql.ColumnDef) []int {
+	slots := make([]int, len(s.Columns))
+	for i := range s.Columns {
+		ref := unwrapParenExpr(s.Columns[i].Expr).(*sql.ColumnRef)
+		idx := -1
+		for j := range colDefs {
+			if colDefs[j].Name == ref.Name {
+				idx = j // no break: the map the generic path reads keeps the last entry
+			}
+		}
+		if idx < 0 {
+			for j := range colDefs {
+				if strings.EqualFold(colDefs[j].Name, ref.Name) {
+					idx = j
+					break
+				}
+			}
+		}
+		if idx < 0 {
+			return nil
+		}
+		slots[i] = idx
+	}
+	return slots
 }
 
 // finishSeekRowOutput pairs the built row with its row map when the caller

@@ -328,8 +328,18 @@ type SelectEngine struct {
 	// select_point_memo.go): fingerprint + template-shared columns-slice
 	// guarded, flushed on DDL and at the name memo's entry cap. A hit returns
 	// a fresh copy.
-	collOutFP         uint64
-	collOutMemo       map[collOutMemoKey][]string
+	collOutFP   uint64
+	collOutMemo map[collOutMemoKey][]string
+	// bareRefPlan* memoizes the point fetch's direct slot projection plan
+	// (bareRefSlotsFor in rowid_seek.go): per output column, the StructRow
+	// slot its bare reference reads. The same schema-fingerprint +
+	// template-shared-slice identity guard as colNamesMemo* (a changed
+	// projection, a different table, or DDL never collides), flushed at the
+	// name memo's entry cap. The resolved slot list is read-only after build
+	// and shared across statements — the per-statement output row copies the
+	// values out.
+	bareRefPlanFP   uint64
+	bareRefPlanMemo map[bareRefPlanKey][]int
 	cteScopes         [][]sql.CTEDef           // CTE scopes from enclosing statements (innermost last)
 	resolvingCTEs     map[*sql.SelectStmt]bool // CTE bodies currently being resolved (circular reference detection); keyed by the CTE body AST so a same-named inner WITH shadow is a different CTE
 	currentScanTable  string                   // table name being scanned (for qualified column resolution)
