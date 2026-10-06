@@ -83,6 +83,12 @@ func GetVarint(buf []byte) (uint64, int) {
 	if len(buf) > 1 && buf[0] >= 0x80 && buf[1] < 0x80 {
 		return uint64(buf[0]&0x7f)<<7 | uint64(buf[1]), 2
 	}
+	// Fast path: 3-byte varint (values 16384-2097151). Bulk loads allocate
+	// rowids well into this range; every b-tree probe and cell decode paid
+	// the byte-at-a-time slow loop for them.
+	if len(buf) > 2 && buf[0] >= 0x80 && buf[1] >= 0x80 && buf[2] < 0x80 {
+		return uint64(buf[0]&0x7f)<<14 | uint64(buf[1]&0x7f)<<7 | uint64(buf[2]), 3
+	}
 	return getVarintSlow(buf)
 }
 

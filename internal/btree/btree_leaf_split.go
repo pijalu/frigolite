@@ -24,7 +24,7 @@ var errLeafFull = fmt.Errorf("btree: page is full")
 // Returns errLeafFull when the page cannot hold the cell (the caller
 // splits). Space comes from allocateSpaceOnPage's btree.c precedence:
 // freeblock slot, then (defragmented) content-area gap.
-func (t *BTree) writeLeafCell(pg *pager.Page, page *storage.BTreePage, newCell *storage.Cell, cellData []byte, coff int) error {
+func (t *BTree) writeLeafCell(pg *pager.Page, page *storage.BTreePage, newCell *storage.Cell, cellData []byte, coff int, dupAlreadyDropped bool) error {
 	if page == nil {
 		var err error
 		page, err = storage.ParsePage(pg.Data, int(t.pageSize), coff)
@@ -49,12 +49,17 @@ func (t *BTree) writeLeafCell(pg *pager.Page, page *storage.BTreePage, newCell *
 	// makes DELETE/UPDATE/seek hit the wrong row and duplicates appear in
 	// scans — fts4merge4 2.2.x: the L0 flush and L2 output re-used rowids
 	// 33/34, creating duplicate %_segdir rows).
-	if t.isTable {
-		if err := t.dropTableLeafDuplicateRowid(pg, page, newCell.RowID); err != nil {
+	if t.isTable && !dupAlreadyDropped {
+		dropped, err := t.dropTableLeafDuplicateRowid(pg, page, newCell.RowID)
+		if err != nil {
 			return err
 		}
-		// Recompute the insertion position after a possible deletion.
-		insertIdx = t.findInsertPositionTable(pg, page, newCell.RowID)
+		// Recompute the insertion position only after an actual deletion
+		// (the search is a leaf-wide binary walk; a plain insert that dropped
+		// nothing reuses the position it just computed).
+		if dropped {
+			insertIdx = t.findInsertPositionTable(pg, page, newCell.RowID)
+		}
 	}
 
 	// Allocate the cell's bytes (freeblock reuse, defragment-on-demand, or

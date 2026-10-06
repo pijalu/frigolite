@@ -165,8 +165,11 @@ func (t *BTree) insertLeafPage(pg *pager.Page, page *storage.BTreePage, parentPg
 	// for writeLeafCell only meant a full page redistributed the old cell
 	// AND the new cell via splitLeafMulti, duplicating the rowid
 	// (fts4merge4 2.2.x: duplicate %_segdir rows).
+	dropped := false
 	if t.isTable {
-		if err := t.dropTableLeafDuplicateRowid(pg, page, newCell.RowID); err != nil {
+		var err error
+		dropped, err = t.dropTableLeafDuplicateRowid(pg, page, newCell.RowID)
+		if err != nil {
 			return nil, err
 		}
 	}
@@ -175,7 +178,7 @@ func (t *BTree) insertLeafPage(pg *pager.Page, page *storage.BTreePage, parentPg
 		// Try the in-place write: freeblock reuse, defragment-on-demand, or
 		// the content-area gap (allocateSpace parity). errLeafFull means the
 		// page truly cannot hold the cell — fall through to the split.
-		werr := t.writeLeafCell(pg, page, newCell, cellData, coff)
+		werr := t.writeLeafCell(pg, page, newCell, cellData, coff, dropped)
 		if werr == nil {
 			t.recycleCellScratch(cellData)
 			return nil, nil
@@ -221,17 +224,18 @@ func (t *BTree) recycleCellScratch(cellData []byte) {
 
 // dropTableLeafDuplicateRowid deletes an existing table-leaf cell with the
 // same rowid as the incoming cell (a no-op when the cell at the insert
-// position has a different rowid).
-func (t *BTree) dropTableLeafDuplicateRowid(pg *pager.Page, page *storage.BTreePage, rowID int64) error {
+// position has a different rowid). dropped reports whether a cell was
+// removed — the caller re-runs its insert-position search only then.
+func (t *BTree) dropTableLeafDuplicateRowid(pg *pager.Page, page *storage.BTreePage, rowID int64) (bool, error) {
 	coff := contentOffset(pg.PageNum)
 	idx := t.findInsertPositionTable(pg, page, rowID)
 	if idx >= int(page.CellCount) {
-		return nil
+		return false, nil
 	}
 	if t.tableLeafRowidAt(pg, coff, idx) != rowID {
-		return nil
+		return false, nil
 	}
-	return t.deleteCellOnPage(pg, page, idx)
+	return true, t.deleteCellOnPage(pg, page, idx)
 }
 
 // splitFullLeaf handles a full leaf: a ROOT leaf reconciles through
