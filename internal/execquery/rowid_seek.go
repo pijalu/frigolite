@@ -490,7 +490,11 @@ func (e *SelectEngine) bareRefsSeekOutput(s *sql.SelectStmt, colDefs []sql.Colum
 // resolves (including the implicit rowid names, which Get answers from the
 // row's RowID rather than a slot) keeps the generic path.
 func (e *SelectEngine) bareRefSlotsFor(s *sql.SelectStmt, colDefs []sql.ColumnDef) []int {
-	if len(colDefs) == 0 || !e.projectionIsBareRefsCached(s) {
+	// Per-row call on the seek/range output paths: the direct column walk
+	// (one or two ColumnRef nodes on the point shapes) is cheaper than a
+	// shape-memo map lookup, and bareRefPlanMemo below already memoizes the
+	// resolution itself.
+	if len(colDefs) == 0 || !projectionIsBareRefs(s) {
 		return nil
 	}
 	for i := range s.Columns {
