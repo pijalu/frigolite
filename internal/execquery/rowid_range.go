@@ -864,7 +864,7 @@ func (it *rangeSeekRow) decodePhaseOne(payload []byte, rowID int64) bool {
 		values[i] = nil
 	}
 	storage.DecodeRecordValuesFromTypesCols(payload, dataStart, values, it.serialTypes, it.whereCols)
-	it.e.fillSeekRowPhaseOne(values, len(it.serialTypes), it.srow, it.colDefs, rowID, it.affWrapIdx, it.ipkIdx)
+		it.e.fillSeekRowPhaseOne(values, len(it.serialTypes), it.srow, it.colDefs, rowID, it.affWrapIdx, it.ipkIdx, true)
 	return true
 }
 

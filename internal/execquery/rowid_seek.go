@@ -117,7 +117,13 @@ func (e *SelectEngine) fetchSeekStructRow(s *sql.SelectStmt, tree *btree.BTree, 
 	}
 	srow = e.seekSRowScratchFor()
 	srow.Index = colIndex
-	e.fillSeekRowPhaseOne(values, valueCount, srow, colDefs, realRowID, affinityWrapIndices(colDefs, affinityCols), e.seekIPKFillIndices(s, colDefs, needMaps, whereCovered))
+	// The targeted covered+bare fill leaves the alias slot unwrapped (every
+	// consumer peels; the covered plan never compares) — the same predicate
+	// seekIPKFillIndices's targeted branch uses.
+	e.fillSeekRowPhaseOne(values, valueCount, srow, colDefs, realRowID,
+		affinityWrapIndices(colDefs, affinityCols),
+		e.seekIPKFillIndices(s, colDefs, needMaps, whereCovered),
+		!(whereCovered && !needMaps && projectionIsBareRefs(s)))
 	return cursor, srow, true, true
 }
 
@@ -329,7 +335,7 @@ func buildSeekColIndex(colDefs []sql.ColumnDef) map[string]int {
 // affinity wrap indices' wrappers (skipping stored NULLs exactly like the
 // scan's affinityPlan.apply), and the INTEGER PRIMARY KEY rowid-alias
 // substitution.
-func (e *SelectEngine) fillSeekRowPhaseOne(values []interface{}, valueCount int, srow *StructRow, colDefs []sql.ColumnDef, rowID int64, affWrapIdx []int, ipkIdx []int) {
+func (e *SelectEngine) fillSeekRowPhaseOne(values []interface{}, valueCount int, srow *StructRow, colDefs []sql.ColumnDef, rowID int64, affWrapIdx []int, ipkIdx []int, wrapRowID bool) {
 	shiftDroppedColumns(values, colDefs)
 	e.applyColumnDefaults(values, colDefs, valueCount)
 	srow.Values = values
@@ -339,9 +345,20 @@ func (e *SelectEngine) fillSeekRowPhaseOne(values []interface{}, valueCount int,
 			srow.Values[i] = wrapValueForRowMap(values[i], colDefs[i])
 		}
 	}
+	if wrapRowID {
+		for _, i := range ipkIdx {
+			if srow.Values[i] == nil {
+				srow.Values[i] = wrapAffinityCollated(colDefs[i], rowID)
+			}
+		}
+		return
+	}
+	// Targeted covered+bare fill: every consumer of the listed slots peels
+	// the wrapper (the fused slot read, appendOutputExpr) and the plan
+	// covered the WHERE, so the alias slots take the raw rowid.
 	for _, i := range ipkIdx {
 		if srow.Values[i] == nil {
-			srow.Values[i] = wrapAffinityCollated(colDefs[i], rowID)
+			srow.Values[i] = rowID
 		}
 	}
 }
