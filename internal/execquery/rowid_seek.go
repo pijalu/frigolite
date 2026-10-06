@@ -31,7 +31,7 @@ func (e *SelectEngine) selectRowidSeekRows(s *sql.SelectStmt, tableEntry *schema
 	if a == nil || !a.planned {
 		return nil, nil, false
 	}
-	needMaps := SelectNeedsRowMaps(e, s, tableEntry.Name)
+	needMaps := e.selectNeedsRowMapsCached(s, tableEntry.Name)
 	if !a.eq {
 		return e.selectRowidRangeRows(s, tree, colDefs, a, needMaps, feed)
 	}
@@ -123,7 +123,7 @@ func (e *SelectEngine) fetchSeekStructRow(s *sql.SelectStmt, tree *btree.BTree, 
 	e.fillSeekRowPhaseOne(values, valueCount, srow, colDefs, realRowID,
 		affinityWrapIndices(colDefs, affinityCols),
 		e.seekIPKFillIndices(s, colDefs, needMaps, whereCovered),
-		!(whereCovered && !needMaps && projectionIsBareRefs(s)))
+		!(whereCovered && !needMaps && e.projectionIsBareRefsCached(s)))
 	return cursor, srow, true, true
 }
 
@@ -137,7 +137,7 @@ func (e *SelectEngine) fetchSeekStructRow(s *sql.SelectStmt, tree *btree.BTree, 
 // non-BINARY collation keeps the marker alive for the GROUP BY key
 // computation and takes the full walk (skipBareSelectRef's rule).
 func (e *SelectEngine) seekAffinityCols(s *sql.SelectStmt, colDefs []sql.ColumnDef, needMaps, whereCovered, hasFeed bool) map[string]bool {
-	if !whereCovered || needMaps || hasFeed || !projectionIsBareRefs(s) {
+	if !whereCovered || needMaps || hasFeed || !e.projectionIsBareRefsCached(s) {
 		return e.scanTableAffinityCols(s, colDefs, needMaps)
 	}
 	for i := range s.Columns {
@@ -159,7 +159,7 @@ func (e *SelectEngine) seekAffinityCols(s *sql.SelectStmt, colDefs []sql.ColumnD
 // output reader peels the wrapper). This is the common point-lookup shape's
 // dead work: "SELECT c FROM t WHERE id=?" filled the id slot no one read.
 func (e *SelectEngine) seekIPKFillIndices(s *sql.SelectStmt, colDefs []sql.ColumnDef, needMaps, whereCovered bool) []int {
-	if !whereCovered || needMaps || !projectionIsBareRefs(s) {
+	if !whereCovered || needMaps || !e.projectionIsBareRefsCached(s) {
 		return ipkAliasIndices(colDefs)
 	}
 	// Covered + bare: the projection's references were just verified bare, so
@@ -244,7 +244,7 @@ func (e *SelectEngine) seekSRowScratchFor() *StructRow {
 // KEY alias slots stay out: their stored NULL substitutes the rowid at fill
 // time, and a projected alias reference rides that fill.
 func (e *SelectEngine) seekDecodeCols(s *sql.SelectStmt, colDefs []sql.ColumnDef, affinityCols map[string]bool, needMaps, whereCovered bool) []bool {
-	if needMaps || len(colDefs) < 4 || !projectionIsBareRefs(s) {
+	if needMaps || len(colDefs) < 4 || !e.projectionIsBareRefsCached(s) {
 		return nil
 	}
 	projRefs := e.affCollectorFor(&e.seekRefScratch)
@@ -380,10 +380,56 @@ func (e *SelectEngine) selectRowidSeekPlan(s *sql.SelectStmt, tableEntry *schema
 	if e.ctx.TableIsWithoutRowidEntry(tableEntry) {
 		return nil
 	}
+	// Single-equality shape memo (select_shape_memo.go): the WHERE is
+	// exactly one rowid-pinned equality conjunct — the dominant point-lookup
+	// plan. The template's decision (bin, literal side) is stable; only the
+	// literal VALUE is per-statement, and the analysis re-resolves it here
+	// (eqMatch/planned are value-dependent: NULL and out-of-range reals
+	// match no rowid). Every other shape walks analyzeRowidSeekInto as
+	// before.
+	if ent := e.cachedShapeEntry(s); ent != nil && ent.seekDone {
+		if !ent.seekEq {
+			return nil
+		}
+		a, conjuncts := e.seekAnalysisScratchFor()
+		*a = rowidSeekAnalysis{planned: true, covers: true, eq: true}
+		a.eqRowid, a.eqMatch, a.planned = selectRowidLiteral(ent.seekLitExpr)
+		e.storeSeekConjuncts(conjuncts)
+		return a
+	}
 	a, conjuncts := e.seekAnalysisScratchFor()
 	plan, conjuncts := analyzeRowidSeekInto(a, conjuncts, s.Where, tableEntry.Name, s.From.As, colDefs)
 	e.storeSeekConjuncts(conjuncts)
+	e.maybeMemoSeekShape(s, tableEntry, colDefs, plan, conjuncts)
 	return plan
+}
+
+// maybeMemoSeekShape records the single-equality seek shape on the
+// statement's shape-memo entry: one conjunct (a lone equality, no AND
+// wrapper — analyzeRowidSeekInto's conjunct list has length one), an
+// equality that consumed it, and the literal side expression (a
+// template-stable node the live clone rewrites in place). The memo consult
+// reconstructs the same analysis the direct walk produced, with the literal
+// value re-resolved. Range shapes, multi-conjunct WHEREs, and equality
+// misses stay unmemoized (their plans are literal-value-dependent beyond the
+// equality's single scalar).
+func (e *SelectEngine) maybeMemoSeekShape(s *sql.SelectStmt, tableEntry *schema.Entry, colDefs []sql.ColumnDef, plan *rowidSeekAnalysis, conjuncts []sql.Expr) {
+	if plan == nil || !plan.eq || len(conjuncts) != 1 {
+		return
+	}
+	ent := e.shapeEntryFor(s)
+	if ent == nil {
+		return
+	}
+	bin, ok := unwrapParenExpr(conjuncts[0]).(*sql.BinaryOp)
+	if !ok || (bin.Operator != "=" && bin.Operator != "==") {
+		return
+	}
+	lit, ok := rowidEqualitySides(bin, tableEntry.Name, s.From.As, colDefs)
+	if !ok {
+		return
+	}
+	ent.seekDone, ent.seekEq, ent.seekLitExpr = true, true, lit
 }
 
 // seekRowOutput builds the single row's output (SELECT * flat path or
@@ -444,6 +490,10 @@ func (e *SelectEngine) bareRefsSeekOutput(s *sql.SelectStmt, colDefs []sql.Colum
 // resolves (including the implicit rowid names, which Get answers from the
 // row's RowID rather than a slot) keeps the generic path.
 func (e *SelectEngine) bareRefSlotsFor(s *sql.SelectStmt, colDefs []sql.ColumnDef) []int {
+	// Per-row call on the seek/range output paths: the direct column walk
+	// (one or two ColumnRef nodes on the point shapes) is cheaper than a
+	// shape-memo map lookup, and bareRefPlanMemo below already memoizes the
+	// resolution itself.
 	if len(colDefs) == 0 || !projectionIsBareRefs(s) {
 		return nil
 	}

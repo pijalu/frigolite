@@ -20,6 +20,20 @@ type prevalidateMemoEntry struct {
 	err error
 }
 
+// SetShapeStable marks the statement about to execute as carrying (or not
+// carrying) a template-stable AST pointer (the shapeStable field's identity
+// contract in context.go). The exec engine's prepare paths call it per
+// statement; every shape-verdict memo in this package gates on it.
+func (e *SelectEngine) SetShapeStable(v bool) {
+	e.shapeStable = v
+}
+
+// ShapeStable reports the current statement's AST-pointer stability verdict
+// (SetShapeStable).
+func (e *SelectEngine) ShapeStable() bool {
+	return e.shapeStable
+}
+
 // prevalidateMemoCap bounds cachedPrevalidateChecks's memo. The keys retain
 // their statement ASTs, so the cap keeps the worst-case retention bounded
 // (a stream of full-parsed unique texts recycles the map wholesale).
@@ -46,7 +60,12 @@ const prevalidateMemoCap = 64
 // walks directly — unmeasured statements (subqueries, views, trigger bodies)
 // behave exactly as before.
 func (e *SelectEngine) cachedPrevalidateChecks(s *sql.SelectStmt, tableEntry *schema.Entry, colDefs []sql.ColumnDef) *Result {
-	if e.prevalidateRuntimeDependent() {
+	// The memo keys on the statement pointer, which is only meaningful for a
+	// template-STABLE AST (shapeStable): the COW scratch clone recycles
+	// per-depth structs across TEMPLATES, so a recycled address would serve
+	// a stale verdict for a different statement (the R9 point shape-memo
+	// identity pin). Unstable statements always run the walks directly.
+	if !e.shapeStable || e.prevalidateRuntimeDependent() {
 		return e.prevalidateDirectly(s, tableEntry, colDefs)
 	}
 	gen := e.prevalidateMemoGen()

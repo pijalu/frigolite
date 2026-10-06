@@ -398,6 +398,10 @@ type Engine struct {
 	// snapBufs: the statement-journal entry list (snapshotAllPagers) per
 	// execDepth, same slot pattern.
 	snapBufs [][]pagerSnap
+	// flushDirtyScratch is execFlushAutocommit's dirty-database list buffer
+	// (dirtyDatabases): recycled across statements, never retained past the
+	// flush.
+	flushDirtyScratch []*DatabaseContext
 	// normBuf / normValues / normSpans are Prepare's substitution scratch
 	// (the normalized SQL text buffer, the extracted literal values, and the
 	// literals' byte spans in the original text), recycled across statements.
@@ -436,6 +440,34 @@ type Engine struct {
 	aiMemoFp    uint64
 	aiMemoTable string
 	aiMemoHas   bool
+	// pfDMLStable: the pfDML slot's statement was memoized under a
+	// template-stable AST pointer (pfASTStable's rule — the COW scratch
+	// clone recycles addresses across templates).
+	pfDMLStable bool
+	// pfASTStable records whether the statement in pfASTStmt was memoized
+	// under a template-STABLE AST pointer (setStmtShapeStable): a COW scratch
+	// clone's address recycles across TEMPLATES, so a pointer-equality hit
+	// against an unstable memoized statement could serve another template's
+	// verdict. Unstable statements never enter the slot (they recompute
+	// directly, leaving a previously memoized stable statement untouched).
+	pfASTStable bool
+	// stmtShapeStable mirrors selectEngine.shapeStable (see context.go): the
+	// statement about to execute carries a template-stable AST pointer. Set
+	// per statement at prepare time; the shape-verdict memos on both sides of
+	// the package boundary gate on it.
+	stmtShapeStable bool
+}
+
+// setStmtShapeStable marks the statement about to execute as carrying (or not
+// carrying) a template-stable AST pointer. Called from the prepare/substitution
+// paths (prepareCached, BindStmtValuesScratch) — the only producers of
+// executed statements — before the statement is dispatched; the shape-verdict
+// memos (exec's pfAST slot and execquery's prevalidate/shape memo family)
+// consult it. Single-goroutine statement funnel, like every unsynchronized
+// per-engine cache.
+func (e *Engine) setStmtShapeStable(v bool) {
+	e.stmtShapeStable = v
+	e.selectEngine.SetShapeStable(v)
 }
 
 // engineSettings groups the PRAGMA/config flags and limits that previously

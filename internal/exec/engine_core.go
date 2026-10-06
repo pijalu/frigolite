@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"strconv"
 	"strings"
-	"time"
 
 	"github.com/pijalu/frigolite/internal/function"
 	"github.com/pijalu/frigolite/internal/parse"
@@ -279,6 +278,10 @@ func (e *Engine) PrepareExec(sqlStr string) ([]sql.Stmt, error) {
 }
 
 func (e *Engine) prepareCached(sqlStr string, scratchOK bool) ([]sql.Stmt, error) {
+	// Every returned statement carries the producing path's shape-stability
+	// verdict (setStmtShapeStable): exact-text cache, slot-path live clone,
+	// and fresh parse are stable; the COW scratch clone is not.
+	e.setStmtShapeStable(false)
 	// Tokenize-time SQL length limit (tokenize.c sqlite3RunParser: mxSqlLen
 	// counts the SQL text against db->aLimit[SQLITE_LIMIT_SQL_LENGTH];
 	// exhaustion sets pParse->rc = SQLITE_TOOBIG with the default message,
@@ -301,13 +304,18 @@ func (e *Engine) prepareCached(sqlStr string, scratchOK bool) ([]sql.Stmt, error
 	var normKey uint64
 	if hasLits {
 		normKey = e.normHash.Sum64()
-		if stmts, ok := e.tryTemplateCache(sqlStr, normKey, values, spans, scratchOK); ok {
+		if stmts, hit := e.tryTemplateCache(sqlStr, normKey, values, spans, scratchOK); hit {
+			// Stability verdict set by the producing path (live clone =
+			// stable, COW scratch = not).
 			return stmts, nil
 		}
 	}
 
 	// Check exact match cache (literal-free statements and template misses)
 	if cached, ok := e.caches.stmtCache[sqlStr]; ok {
+		// Retained by the exact-text cache: stable identity for the
+		// pointer-keyed memos.
+		e.setStmtShapeStable(true)
 		return cached, nil
 	}
 	if len(e.caches.stmtCache) >= maxStmtCacheSize {
@@ -332,6 +340,9 @@ func (e *Engine) prepareCached(sqlStr string, scratchOK bool) ([]sql.Stmt, error
 		return stmts, perr
 	}
 	e.caches.stmtCache[sqlStr] = stmts
+	// Retained by the exact-text cache: stable identity (the memos hold their
+	// keyed ASTs alive, so a freed address can never alias a stale entry).
+	e.setStmtShapeStable(true)
 	if hasLits {
 		// The normalized text is materialized once, on the store path only
 		// (the per-statement lookup verifies via the spans instead).
@@ -793,11 +804,15 @@ func (e *Engine) Exec(stmt sql.Stmt) *Result {
 
 	// Pin 'now' for the whole statement (SQLite sqlite3StmtCurrentTime): all
 	// date/time functions using 'now' within this statement return the same
-	// instant, even when a user function sleeps in between. Use the
-	// hookable clock so the test harness's sqlite_current_time override
-	// (function.SetNowFunc) takes effect.
-	function.SetStmtTime(function.Now())
-	defer function.SetStmtTime(time.Time{})
+	// instant, even when a user function sleeps in between. The clock is
+	// read LAZILY (SQLite computes the statement time on the first date/time
+	// function that needs it), so a statement that never touches 'now' — the
+	// dominant shapes — never pays a clock read; the pin engages on the
+	// window's first consumption. Use the hookable clock so the test
+	// harness's sqlite_current_time override (function.SetNowFunc) takes
+	// effect.
+	function.BeginStmtTime()
+	defer function.ClearStmtTime()
 
 	// SQLite guarantees statement atomicity: when a statement fails (a
 	// constraint violation, a trigger error, etc.) every change it made is

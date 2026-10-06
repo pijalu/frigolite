@@ -141,10 +141,21 @@ func (e *Engine) execPreflight(stmt sql.Stmt) *Result {
 // FROM count by the clause structure — no literal value participates), so
 // they memoize by statement identity.
 func (e *Engine) execPreflightASTChecks(stmt sql.Stmt) *Result {
-	if stmt == e.pfASTStmt {
+	// The slot only ever holds a template-STABLE statement (see pfASTStable):
+	// a COW scratch clone's address recycles across templates, so serving a
+	// recycled pointer from the slot would apply another template's verdict.
+	// An unstable statement recomputes directly and leaves the slot (and the
+	// stable statement it retains) untouched.
+	if stmt == e.pfASTStmt && e.pfASTStable {
 		return e.pfASTCheckResult()
 	}
+	if !e.stmtShapeStable {
+		// Recompute without memoizing; the slot's retained stable statement
+		// stays valid for its next stable revisit.
+		return e.pfASTChecksUncached(stmt)
+	}
 	e.pfASTStmt = stmt
+	e.pfASTStable = true
 	// SQLite's SrcList grows across the whole statement (including nested
 	// subqueries and CTE bodies), so the FROM-clause term limit counts all
 	// of them (with1 22.1's five-level nesting hits "too many FROM clause
@@ -163,6 +174,22 @@ func (e *Engine) execPreflightASTChecks(stmt sql.Stmt) *Result {
 		e.pfASTRaise = nil
 	}
 	return e.pfASTCheckResult()
+}
+
+// pfASTChecksUncached runs the two AST-only prepare-time checks without
+// touching the memo slot (the unstable-identity form of execPreflightASTChecks).
+func (e *Engine) pfASTChecksUncached(stmt sql.Stmt) *Result {
+	fromOK := countStatementFromTerms(stmt) < 200
+	if !fromOK {
+		return &Result{Error: fmt.Errorf("too many FROM clause terms, max: %d", 200)}
+	}
+	if shouldDeferRaiseCheck(stmt) {
+		return nil // SELECT/CTAS statements validate RAISE inside execSelect
+	}
+	if rerr := e.validateNoRaiseOutsideTrigger(stmt); rerr != nil {
+		return &Result{Error: rerr}
+	}
+	return nil
 }
 
 // pfASTCheckResult renders the memoized AST-check state: a non-nil Result
@@ -188,23 +215,35 @@ func (e *Engine) execPreflightDMLChecks(stmt sql.Stmt) *Result {
 		return nil
 	}
 	fp := e.allSchemasFingerprint()
-	if stmt != e.pfDMLStmt || fp != e.pfDMLFP || e.pfDMLFKOn != e.settings.foreignKeys {
-		err := e.validateDMLSubqueries(stmt)
-		if err == nil {
-			// fk.c sqlite3FkCheck runs at statement compilation: an FK whose
-			// parent table or parent key cannot be located fails an
-			// INSERT/UPDATE/DELETE regardless of the rows involved
-			// (e_fkey-20.x: an UPDATE of an empty child reports "no such
-			// table: main.X"; a parent DELETE reports the child's
-			// "foreign key mismatch"). Subquery errors keep precedence.
-			if res := e.validateDMLFKPrepare(stmt); res != nil {
-				err = res.Error
-			}
+	// The slot only serves template-STABLE statements (pfASTStable's rule):
+	// a COW scratch clone's address recycles across templates, and a recycled
+	// pointer with a matching fingerprint would apply another statement's
+	// FK/subquery verdict. Unstable statements recompute without touching
+	// the slot.
+	if stmt == e.pfDMLStmt && e.pfDMLStable && fp == e.pfDMLFP && e.pfDMLFKOn == e.settings.foreignKeys {
+		if e.pfDMLErr != nil {
+			return &Result{Error: e.pfDMLErr}
 		}
-		e.pfDMLStmt, e.pfDMLFP, e.pfDMLFKOn, e.pfDMLErr = stmt, fp, e.settings.foreignKeys, err
+		return nil
 	}
-	if e.pfDMLErr != nil {
-		return &Result{Error: e.pfDMLErr}
+	err := e.validateDMLSubqueries(stmt)
+	if err == nil {
+		// fk.c sqlite3FkCheck runs at statement compilation: an FK whose
+		// parent table or parent key cannot be located fails an
+		// INSERT/UPDATE/DELETE regardless of the rows involved
+		// (e_fkey-20.x: an UPDATE of an empty child reports "no such
+		// table: main.X"; a parent DELETE reports the child's
+		// "foreign key mismatch"). Subquery errors keep precedence.
+		if res := e.validateDMLFKPrepare(stmt); res != nil {
+			err = res.Error
+		}
+	}
+	if e.stmtShapeStable {
+		e.pfDMLStmt, e.pfDMLFP, e.pfDMLFKOn, e.pfDMLErr = stmt, fp, e.settings.foreignKeys, err
+		e.pfDMLStable = true
+	}
+	if err != nil {
+		return &Result{Error: err}
 	}
 	return nil
 }
@@ -618,34 +657,45 @@ func (e *Engine) execFlushAutocommit(stmt sql.Stmt, res *Result, isDML bool) *Re
 	if res := e.autocommitCommitHook(stmt, res, isDML); res != nil {
 		return res
 	}
-	// PRAGMA count_changes: a DML statement returns a single row with the
-	// changed-row count (SQLite's legacy behavior when the pragma is on). For
-	// INSERT ... ON CONFLICT, count_changes counts only rows actually written
-	// as new inserts (upsert DO UPDATE / DO NOTHING rows are excluded).
-	e.applyCountChanges(res, isDML)
-	// Autocommit statement: bump the change counter of every database that
-	// was written so other connections observe the change.
-	e.bumpChangeCounters()
-	// Auto-vacuum on commit (P8.INCRVACUUM phase 4, btree.c autoVacuumCommit
-	// ~line 4174): for FULL mode, drain the on-disk freelist BEFORE flushing
-	// the pager, so the pager flush writes the already-shrunken file. Without
-	// this, autocommit statements (which don't go through execCommit) leave
-	// the freelist to grow without ever shrinking the file. This block is
-	// only enabled for FULL mode (mode==1) and the pager's AutoVacuum()
-	// flag; INCREMENTAL mode is opt-in via PRAGMA incremental_vacuum and
-	// skips this path.
-	//
-	// The drain fires only when the statement actually wrote pages:
-	// btree.c autoVacuumCommit runs from sqlite3BtreeCommitPhaseOne, which
-	// a read-only transaction never enters. Without the dirty gate, every
-	// subsequent read-only statement (PRAGMA page_count, integrity_check,
-	// ...) would drain another callback-capped batch — the
-	// sqlite3_autovacuum_pages callback would keep firing once per read
-	// until the freelist ran dry (autovacuum2-1.3 expects exactly one
-	// callback invocation for BEGIN/DELETE/COMMIT).
-	if err := e.autovacuumDrainIfDirty(); err != nil {
-		return &Result{Error: err}
-	}
+		// PRAGMA count_changes: a DML statement returns a single row with the
+		// changed-row count (SQLite's legacy behavior when the pragma is on). For
+		// INSERT ... ON CONFLICT, count_changes counts only rows actually written
+		// as new inserts (upsert DO UPDATE / DO NOTHING rows are excluded).
+		e.applyCountChanges(res, isDML)
+		// One dirty-scan pass over the attach list feeds BOTH the change-counter
+		// bump and the auto-vacuum drain: each previously walked the list and
+		// re-took the pager's dirty lock separately — a per-statement cost every
+		// read-only statement (the point-op floor) paid for nothing. The bump
+		// precedes the drain exactly as before: the drain's freed pages must not
+		// inherit the bump (the bump stamps the PRE-drain dirty set).
+		dirty := e.dirtyDatabases(e.flushDirtyScratch[:0])
+		if len(dirty) > 0 {
+			// Autocommit statement: bump the change counter of every database
+			// that was written so other connections observe the change.
+			for _, dbCtx := range dirty {
+				e.updateFileChangeCounter(dbCtx)
+			}
+			// Auto-vacuum on commit (P8.INCRVACUUM phase 4, btree.c autoVacuumCommit
+			// ~line 4174): for FULL mode, drain the on-disk freelist BEFORE flushing
+			// the pager, so the pager flush writes the already-shrunken file. Without
+			// this, autocommit statements (which don't go through execCommit) leave
+			// the freelist to grow without ever shrinking the file. This block is
+			// only enabled for FULL mode (mode==1) and the pager's AutoVacuum()
+			// flag; INCREMENTAL mode is opt-in via PRAGMA incremental_vacuum and
+			// skips this path.
+			//
+			// The drain fires only when the statement actually wrote pages:
+			// btree.c autoVacuumCommit runs from sqlite3BtreeCommitPhaseOne, which
+			// a read-only transaction never enters. The gate re-walks the attach
+			// list from POST-BUMP state: the bump itself dirties a header page
+			// (updateFileChangeCounter), so a database clean before the bump may
+			// still owe the drain (the incr-vacuum oracle sequence pins this).
+			// Read-only statements (nothing dirty) skip the walk entirely — the
+			// point-op floor's dominant shape.
+			if err := e.autovacuumDrainIfDirty(); err != nil {
+				return &Result{Error: err}
+			}
+		}
 	// Flush attached database pagers so a later connection on the attached
 	// file sees the writes immediately. The MAIN pager is flushed only for
 	// DDL (a schema change another connection may observe); per-DML main
@@ -741,28 +791,53 @@ func (e *Engine) statementWrote(stmt sql.Stmt, res *Result, isDML bool) bool {
 	return false
 }
 
-// bumpChangeCounters increments the file change counter of every database
-// whose pager has dirty pages, so other connections observe the change.
-func (e *Engine) bumpChangeCounters() {
+// dirtyDatabases appends every attached database whose pager has unflushed
+// dirty pages to dst (a caller-owned scratch, recycled per engine): one walk
+// of the attach list and one dirty-lock acquisition per dirty pager feeds the
+// change-counter bump and the auto-vacuum drain.
+func (e *Engine) dirtyDatabases(dst []*DatabaseContext) []*DatabaseContext {
 	for _, dbCtx := range e.dbList {
 		if dbCtx != nil && dbCtx.Pager != nil && dbCtx.Pager.HasDirtyPages() {
-			e.updateFileChangeCounter(dbCtx)
+			dst = append(dst, dbCtx)
 		}
 	}
+	return dst
 }
 
 // flushAttachedPagers flushes the pagers of all attached (non-main, non-temp)
-// databases.
+// databases. The attach-order list (dbList) holds the same contexts as the
+// databases map (whose TEMP/TEMPORARY aliases the name skips below reject);
+// iterating the slice replaces per-statement map iteration, and EqualFold
+// over the exact lengths replaces strings.ToUpper, which allocated a new
+// string per statement per database on the point-op floor.
 func (e *Engine) flushAttachedPagers() {
-	for name, ctx := range e.databases {
-		upper := strings.ToUpper(name)
-		if upper == "MAIN" || upper == "TEMP" || upper == "TEMPORARY" {
+	if len(e.dbList) <= 1 {
+		// No ATTACH: the list's only context is main (temp rides the same
+		// list and is skipped below) — nothing this loop flushes.
+		return
+	}
+	for _, ctx := range e.dbList {
+		if ctx == nil || ctx.Pager == nil {
 			continue
 		}
-		if ctx.Pager != nil {
-			_ = ctx.Pager.Flush()
+		if ctx.IsTemp || attachedSchemaName(ctx.Name) {
+			continue
 		}
+		_ = ctx.Pager.Flush()
 	}
+}
+
+// attachedSchemaName reports whether a schema name is one the attached-pager
+// flush must skip (main, temp, temporary — case-insensitive, the exact
+// spellings the databases map registers under).
+func attachedSchemaName(name string) bool {
+	switch len(name) {
+	case 4:
+		return strings.EqualFold(name, "MAIN") || strings.EqualFold(name, "TEMP")
+	case 9:
+		return strings.EqualFold(name, "TEMPORARY")
+	}
+	return false
 }
 
 // stmtWritesDatabase reports whether a statement writes to the database:

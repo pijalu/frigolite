@@ -580,25 +580,39 @@ func (c *Cursor) AtEnd() bool {
 }
 
 func (c *Cursor) seekInLeafTable(pg *pager.Page, page *storage.BTreePage, rowID int64) (bool, error) {
-	// Binary search on row IDs
-	// Leaf table cells store rowID after payload length
+	// Binary search on row IDs; leaf table cells store rowID after payload
+	// length. The probe loop addresses the cell pointer array directly
+	// (storage.CellPointer re-derived the content offset per probe) and
+	// takes a 1-byte fast path for the payload-length varint. Corruption
+	// reports are unchanged.
 	lo, hi := 0, int(page.CellCount)-1
+	base := contentOffset(pg.PageNum) + 8
+	mask := uint16(c.tx.pageSize - 1)
+	data := pg.Data
 	for lo <= hi {
 		mid := (lo + hi) / 2
-		cellOff := int(storage.CellPointer(pg.Data, contentOffset(pg.PageNum), mid, int(c.tx.pageSize)))
-		if cellOff < 0 || cellOff >= len(pg.Data) {
+		p := base + mid*2
+		if p > len(data) {
+			return false, fmt.Errorf("database disk image is malformed")
+		}
+		cellOff := int(binary.BigEndian.Uint16(data[p : p+2]) & mask)
+		if cellOff < 0 || cellOff >= len(data) {
 			return false, fmt.Errorf("database disk image is malformed")
 		}
 		// Skip payload length varint
-		_, n := util.GetVarint(pg.Data[cellOff:])
-		cellOff += n
-		if cellOff >= len(pg.Data) {
-			// A crafted cell whose payload-length varint runs off the page
-			// tail must error, not slice past the buffer.
-			return false, fmt.Errorf("database disk image is malformed")
+		if data[cellOff] < 0x80 {
+			cellOff++
+		} else {
+			_, n := util.GetVarint(data[cellOff:])
+			cellOff += n
+			if cellOff >= len(data) {
+				// A crafted cell whose payload-length varint runs off the
+				// page tail must error, not slice past the buffer.
+				return false, fmt.Errorf("database disk image is malformed")
+			}
 		}
 		// Read rowID
-		midRowID, _ := util.GetVarint(pg.Data[cellOff:])
+		midRowID, _ := util.GetVarint(data[cellOff:])
 		switch {
 		case int64(midRowID) < rowID:
 			lo = mid + 1
