@@ -3706,3 +3706,88 @@ its slot across the whole nested Exec.
   misprojection; "which fused path engaged on vtab" was the wrong question.
 - **total(x) returns float64** (SQLite REAL aggregate) — a pin asserting
   int64 via type assertion reads 0; use sum(x) for integer totals in pins.
+
+## R9.POINT — point-SELECT close-out tranche (fleet/r9-point, 2026-10-06)
+
+Branch @ b3b3ef189 (commits 2a091c8eb shape-stable identity, 2cb4fd18b
+flush/clock/shape-memo, 510aabe73 btree probe loops, b3b3ef189 trims).
+Paired interleaved vs main @830dcd76b (binaries /tmp/perf/r9pt{,-main},
+same session, alternating): **point ≈ 1.20× main** (main 754-768k vs
+branch 864-922k ops/s medians; mission-day main baseline 775,664 at
+1.39× sqlite3 1,082,134). Same-session single-branch bands swing ±15%
+(thermal) — session-over-session absolute numbers are noise; ONLY the
+paired interleaved ratio decides.
+
+- **Template-clone identity has exactly two stable forms** — the
+  prevalidate memo (R8) silently relied on one and could alias: the
+  slot-path LIVE clone (one persistent SelectStmt per (template,
+  execDepth), literal leaves rewritten IN PLACE → pointer stable) and the
+  retained exact-text/fresh-parse forms (retained by the cache). The COW
+  scratch clone (multi-statement templates, unsupported slot shapes)
+  recycles per-depth structs ACROSS TEMPLATES — LIFO free-list rotation
+  hands template B the struct template A was memoized under. Reproduced:
+  two bad templates with different abort depths + a good one shuffle the
+  free list so a valid `SELECT c FROM t WHERE id=1; SELECT 6` inherited
+  "no such column: badx". Fix: Engine.setStmtShapeStable published by the
+  producing prepare path (prepareCached entry=false; true on stmtCache
+  hit / fresh parse / trySlotPathLive hit; BindStmtValuesScratch true only
+  when nothing substituted); EVERY pointer-keyed verdict memo gates on it
+  (prevalidateMemo, pfAST slot, pfDML slot — the pfDML gate was a latent
+  second instance). Unstable statements walk directly and never enter a
+  slot. Pin: TestR9PointShapeMemoStableIdentity.
+- **Memoize the SHAPE, re-resolve the VALUE**: the rowid-seek plan's
+  structure (single equality conjunct, which side is the rowid ref,
+  covers) is template-constant; eqRowid/eqMatch/planned are literal-
+  value-dependent (NULL and out-of-range reals match no rowid) and MUST
+  re-resolve per statement through selectRowidLiteral. Store the literal
+  NODE (stable pointer, rewritten in place), never the resolved int64.
+  The census gate (no FuncCall / COLLATE / MATCH / subquery in the whole
+  statement) is what makes ValidateExprs/hasAggregates verdicts registry-
+  independent — RegisterFunction moves no schema fingerprint.
+- **Runtime-dependent verdicts need the same gate at every memo**: the
+  pre-dispatch walks consult outerRow/aliasStack/inCompoundMember/
+  triggerDepth (correlated subqueries reach execSelect with outerRow
+  set); validateSelectPreDispatchCached reuses prevalidateRuntime-
+  Dependent, or a subquery memoizes its verdict and the outer statement's
+  later hit serves the wrong context.
+- **The autocommit flush was three avoidable passes per read statement**:
+  bumpChangeCounters + autovacuumDrainIfDirty each walked the attach list
+  taking the pager dirty lock (2 mutex round-trips), and
+  flushAttachedPagers iterated the databases MAP with a strings.ToUpper
+  ALLOCATION per database per statement. One dirty-scan pass (scratch
+  slice) now feeds bump+drain; the drain KEEPS its own post-bump walk —
+  updateFileChangeCounter dirties a header page, so a pre-bump dirty
+  snapshot misses a db that owes the drain (P8 incr-vacuum oracle
+  sequence caught it in the first attempt). Reads skip the drain walk
+  entirely; flushAttachedPagers iterates dbList with EqualFold name
+  checks and returns outright when nothing is attached.
+- **SQLite's statement clock is LAZY** (sqlite3StmtCurrentTime computes
+  on the first date/time function that needs it): function.BeginStmtTime
+  opens the window, currentTime pins on first consumption,
+  ClearStmtTime closes it — a statement that never touches 'now' stops
+  paying two clock reads + mutex ops per statement. Nested-statement pin
+  pollution (inner Exec clears mid-outer) is unchanged from the eager
+  form — equally wrong before and after, single-connection exact.
+- **The btree probe loops paid a function call per separator**:
+  routeInteriorTable/seekInLeafTable addressed probes through
+  storage.CellPointer (re-deriving contentOffset + pageSize conversion
+  per probe). Hoisting the pointer-array base + page mask (one u16 load +
+  mask per probe) plus 1-byte varint fast paths for the leaf payload
+  length and interior separator rowid took the paired ratio from ~1.16×
+  to ~1.20×. Semantics: corrupt pointer-array indexes now report
+  malformed one layer lower instead of slicing out of bounds (strictly
+  closer to SQLite than the panic). Watch the ±8 offset when inlining —
+  CellPointer's contract is (arg + 8 + i*2); the first draft double-
+  counted it and benching a knowingly-wrong build wastes a cycle.
+- **Machine noise dwarfs micro-wins**: the SAME commit benched 835k,
+  then 670k, then 780k across three sessions (thermal/sibling load).
+  Keep TWO scratch modules (replace → worktree, replace → main), build
+  both binaries once, interleave A/B/A/B and compare medians only.
+- **Suite adjudication (unchanged from R8)**: the full TestSQLiteSuite
+  has a PRE-EXISTING failing-file band (378 files identical on main and
+  branch; zero branch-only), t.Parallel files race cleanupTestDBFiles
+  (`*.db` glob) — TestWindowCGroupConcatBlobUTF16 and TestRtreeStress-
+  Churn are full-suite-only flakes passing solo on both branches;
+  TestP8IncrVacuum3OracleSequence is randomblob-nondeterministic and
+  fails solo on main too. -race harness subtest expectations differ
+  identically on main. Gates: solo per-FILE on both branches.
