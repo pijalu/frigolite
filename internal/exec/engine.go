@@ -534,7 +534,18 @@ func (m *schemaMemo[V]) put(table, createSQL string, value V) {
 
 // txState groups transaction state (BEGIN/COMMIT/ROLLBACK/SAVEPOINT).
 type txState struct {
-	inTransaction   bool                         // tracks if we're inside a BEGIN/COMMIT block
+	inTransaction bool // tracks if we're inside a BEGIN/COMMIT block
+	// fileChecksDone records that the open transaction already ran its
+	// per-statement external-file validation (pager.c sqlite3PagerSharedLock +
+	// btree.c lockBtree emulation). SQLite re-runs those checks once per
+	// transaction — inside an open transaction vdbe's OP_Transaction is a
+	// no-op (sqlite3BtreeBeginTrans early-returns when pBt->inTransaction
+	// already matches), so the change-stamp fstat+pread repeat only at the
+	// transaction's first b-tree statement, not on every statement. Set by
+	// execDBFileChecks after a clean in-transaction run; cleared at BEGIN /
+	// implicit-savepoint transaction start and at COMMIT / ROLLBACK / the
+	// implicit-savepoint commit.
+	fileChecksDone  bool                         // transaction's shared-lock validation ran
 	ddlBuffer       []func()                     // DDL undo operations for transaction rollback
 	txSnapshots     map[string]*pager.PagerState // pager snapshots per database at BEGIN (for ROLLBACK undo)
 	txFTSnapshots   []ftsSnap                    // FTS in-memory index snapshots at BEGIN (for ROLLBACK undo)

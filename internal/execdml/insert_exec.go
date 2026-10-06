@@ -219,7 +219,7 @@ func (e *DMLExecutor) insertOneTuple(dbCtx *DatabaseContext, tableEntry *schema.
 	if evalErr != nil {
 		return 0, 0, nil, 0, false, evalErr
 	}
-	res, writtenRow := e.execInsertRow(dbCtx, tableEntry, colDefs, tuple, values, s)
+	res, writtenRow := e.execInsertRow(dbCtx, tableEntry, colDefs, tuple, values, s, lits)
 	if res.Error != nil {
 		// INSERT OR IGNORE: silently skip UNIQUE / NOT NULL / CHECK
 		// constraint violations (SQLite's OR IGNORE applies to any
@@ -250,6 +250,17 @@ func insertTupleLits(s *sql.InsertStmt, ti int) []interface{} {
 		return nil
 	}
 	return s.InsLitVals[ti]
+}
+
+// tupleLit returns the bound-value stash entry for slot i of lits (nil when
+// absent): a non-nil entry IS the slot's evaluated value per the
+// bindStashValue contract, read instead of evaluating the (placeholder)
+// AST leaf.
+func tupleLit(lits []interface{}, i int) interface{} {
+	if i < 0 || i >= len(lits) {
+		return nil
+	}
+	return lits[i]
 }
 
 // evalInsertReturningRow evaluates RETURNING against the row that was actually

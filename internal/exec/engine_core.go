@@ -218,7 +218,7 @@ func (c *exprClone) insertValue(expr sql.Expr) (sql.Expr, interface{}, error) {
 	if c.bind != nil {
 		switch e := expr.(type) {
 		case *sql.ParameterExpr:
-			cloned, sval, ok := c.bindParam(e)
+			cloned, sval, ok := c.bindParamTuple(e)
 			if !ok {
 				return nil, nil, fmt.Errorf("bind: parameter substitution refused")
 			}

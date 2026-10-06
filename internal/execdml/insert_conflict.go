@@ -22,8 +22,8 @@ import (
 // handles REPLACE conflict deletes, dispatches to the ON CONFLICT (UPSERT) or
 // insertRow path, and returns the write result plus the actually-written row
 // (for RETURNING).
-func (e *DMLExecutor) execInsertRow(dbCtx *DatabaseContext, tableEntry *schema.Entry, colDefs []sql.ColumnDef, tuple []sql.Expr, values []interface{}, s *sql.InsertStmt) (*Result, []interface{}) {
-	explicitRowID, res := e.explicitRowIDFromColumns(tableEntry, s, tuple)
+func (e *DMLExecutor) execInsertRow(dbCtx *DatabaseContext, tableEntry *schema.Entry, colDefs []sql.ColumnDef, tuple []sql.Expr, values []interface{}, s *sql.InsertStmt, lits []interface{}) (*Result, []interface{}) {
+	explicitRowID, res := e.explicitRowIDFromColumns(tableEntry, s, tuple, lits)
 	if res != nil {
 		return res, nil
 	}
@@ -73,7 +73,7 @@ func (e *DMLExecutor) execInsertRow(dbCtx *DatabaseContext, tableEntry *schema.E
 // explicitRowIDFromColumns scans the INSERT column list for a rowid alias
 // column (rowid/_rowid_/oid, plus docid for FTS tables) and evaluates its
 // tuple value.
-func (e *DMLExecutor) explicitRowIDFromColumns(tableEntry *schema.Entry, s *sql.InsertStmt, tuple []sql.Expr) (*int64, *Result) {
+func (e *DMLExecutor) explicitRowIDFromColumns(tableEntry *schema.Entry, s *sql.InsertStmt, tuple []sql.Expr, lits []interface{}) (*int64, *Result) {
 	// An explicit rowid/_rowid_/oid column in the INSERT list sets the
 	// new row's rowid (SQLite allows INSERT INTO t(rowid, ...) VALUES).
 	// FTS virtual tables also accept docid as the rowid alias
@@ -89,7 +89,7 @@ func (e *DMLExecutor) explicitRowIDFromColumns(tableEntry *schema.Entry, s *sql.
 		if i >= len(tuple) {
 			continue
 		}
-		iv, isRowidAlias, res := e.rowidAliasColumnValue(col, tuple[i], isFTS)
+		iv, isRowidAlias, res := e.rowidAliasColumnValue(col, tuple[i], isFTS, tupleLit(lits, i))
 		if res != nil {
 			return nil, res
 		}
@@ -117,14 +117,23 @@ func (e *DMLExecutor) explicitRowIDFromColumns(tableEntry *schema.Entry, s *sql.
 // rowid write; fts3/4's fts3UpdateMethod reports it for docid; fts5 binds the
 // raw value to the %_content INTEGER PRIMARY KEY, where the core raises it —
 // fts5blob 4.1: rowid 4.5/'xyz'/blob). res != nil aborts the statement.
-func (e *DMLExecutor) rowidAliasColumnValue(col string, expr sql.Expr, isFTS bool) (*int64, bool, *Result) {
+// lit is the tuple slot's bound-value stash entry (nil when absent): a
+// non-nil lit IS the slot's evaluated value (bindStashValue contract) and is
+// read directly — the stash's placeholder node must never be evaluated.
+func (e *DMLExecutor) rowidAliasColumnValue(col string, expr sql.Expr, isFTS bool, lit interface{}) (*int64, bool, *Result) {
 	isRowIDCol := execquery.IsRowIDName(col) || (isFTS && strings.EqualFold(col, "docid"))
 	if !isRowIDCol {
 		return nil, false, nil
 	}
-	v, err := e.ctx.EvalExpr(expr, nil)
-	if err != nil {
-		return nil, false, &Result{Error: err}
+	var v interface{}
+	if lit != nil {
+		v = lit
+	} else {
+		ve, err := e.ctx.EvalExpr(expr, nil)
+		if err != nil {
+			return nil, false, &Result{Error: err}
+		}
+		v = ve
 	}
 	if v == nil {
 		return nil, false, nil

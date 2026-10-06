@@ -3485,3 +3485,50 @@ two oracle gaps the new pins exposed. Commits 1ebf195ce/23ac19099/a24c338b6
 - **Bench**: paired interleaved 3 rounds (mission env) — see final report;
   run scripts /tmp/perf/litcache/paired3.sh. zsh: do not `env $E`
   (no word-splitting) — pass env inline.
+
+## R8.INSERT (fleet/r8-insert, 2026-10-06)
+
+- **The per-statement external-file validation was THE insert cost** —
+  execEntry ran execDBFileChecks (pager fstat + 16-byte pread) on every
+  outermost statement: 70% of insert_xact CPU and 38% of its allocs
+  (os.File.Stat FileInfo boxes) at 600k rows. SQLite re-runs
+  sqlite3PagerSharedLock + lockBtree ONCE per transaction: vdbe's
+  OP_Transaction is a no-op when pBt->inTransaction already matches
+  (btree.c sqlite3BtreeBeginTrans early-return). Fix: txState.fileChecksDone
+  latches after the open transaction's first clean validation; cleared at
+  BEGIN / implicit-SAVEPOINT tx start / COMMIT / ROLLBACK / implicit-release.
+  A FAILED validation must NOT latch (next statement re-reports the
+  corruption, like C's repeated OP_Transaction failure). Autocommit keeps
+  per-statement checks (each statement is its own transaction). +38% insert.
+- **Stashed bind slots must never build their literal node** — a VALUES
+  tuple slot whose value passes bindStashValue is never evaluated (evalTuple
+  reads the stash), yet bindLiteral still paid FormatInt + node alloc per
+  slot per Exec (29% of insert allocs). bindParamTuple (VALUES tuples ONLY)
+  returns a shared immutable placeholder (bindStashNode, a NullLit); ALL
+  other parameter positions (upsert DO UPDATE SET, RETURNING, WHERE) keep
+  bindParam's real node — the testgen corpus caught the first draft
+  sentinel-ing the upsert-assignment position (fast=NULL, ctrl='U13').
+- **Two execdml consumers evaluated VALUES nodes outside evalTuple** — the
+  explicit-rowid scan (INSERT INTO t(rowid,...) / IPK column list, shared by
+  the echo vtab pre-check) and the echo write-through rowid validation. Both
+  now read the tuple stash when non-nil; kind parity pinned in
+  TestInsBindRowidStashPin (int lands exactly, NULL auto-assigns, float/text
+  raise 'datatype mismatch', echo vtab covered).
+- **Per-txn schema external-mod reset** (execResetExternalChecks /
+  checkExternalMod checkedThisStmt) still Preads the change counter once per
+  statement via the first schema lookup — NOT cut in R8 (riskier: mid-txn
+  same-process second-connection commits are observable without POSIX
+  locks); candidate for a later tranche with lockreg-aware gating.
+- **Remaining insert costs are OFF the insert-agent scope** (report items):
+  (1) pager flushPage issues os.File.Truncate PER flushed page at COMMIT
+  (24% of remaining CPU; C truncates once via bDoTruncate) — pager owner;
+  (2) pager allocateExtendLocked 23% of remaining allocs; (3) btree
+  splitLeafMulti/writeSplitPartitions/encodeCellScratch ~30MB/600k; (4)
+  public *Result 128B/stmt (53% of remaining allocs) is caller-owned and
+  off-limits by design; (5) runtime.madvise 26% of remaining CPU = GC
+  pressure from pager/btree page caches.
+- **Harness reconstruction**: /tmp/perf/frigo did not survive; rebuilt at
+  /tmp/perf/r8ins (two module dirs, replace → main vs worktree, PHASE env,
+  CPUOUT/MEMOUT pprof hooks, `go build -mod=mod`). Paired interleaved
+  main-vs-worktree on ONE scratch binary pair is the protocol; positional
+  args are NOT PHASE — pass PHASE=insert as env.

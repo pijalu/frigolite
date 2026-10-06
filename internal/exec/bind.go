@@ -136,28 +136,73 @@ func BindStmtValues(stmts []sql.Stmt, plan *BindPlan, values []interface{}) ([]s
 	return out, true
 }
 
-// bindParam substitutes one parameter marker: it consumes the next
-// occurrence slot, cross-checks numbered/named tokens against the node's
-// own text, and builds the literal node for the slot's bound value. The
-// second return is the InsLitVals stash value (nil when the value kind is
-// not stashed verbatim — see bindStashValue).
-func (c *exprClone) bindParam(node *sql.ParameterExpr) (sql.Expr, interface{}, bool) {
+// bindSlot consumes the next parameter occurrence and returns the bound
+// value: it cross-checks numbered/named tokens against the node's own text
+// and reads the plan's slot table. Both substitution forms (bindParam for
+// general expression positions, bindParamTuple for VALUES tuples) advance
+// the same walk state, exactly once per occurrence.
+func (c *exprClone) bindSlot(node *sql.ParameterExpr) (interface{}, bool) {
 	if c.bindOccI >= len(c.bind.occ) {
-		return nil, nil, false
+		return nil, false
 	}
 	slot := c.bind.occ[c.bindOccI]
 	if want, checkable := bindTokenSlot(node.Name, c.bind.names); checkable && want != slot {
-		return nil, nil, false
+		return nil, false
 	}
 	c.bindOccI++
 	if slot < 1 || slot > len(c.bindValues) {
-		return nil, nil, false
+		return nil, false
 	}
-	return bindLiteralStash(c.bindValues[slot-1])
+	return c.bindValues[slot-1], true
 }
 
+// bindParam substitutes one parameter marker with a literal node carrying
+// the bound value (the node is the only carrier outside INSERT VALUES
+// tuples). The second return is the InsLitVals stash candidate (see
+// bindLiteralStash) — callers outside the tuple path ignore it.
+func (c *exprClone) bindParam(node *sql.ParameterExpr) (sql.Expr, interface{}, bool) {
+	v, ok := c.bindSlot(node)
+	if !ok {
+		return nil, nil, false
+	}
+	return bindLiteralStash(v)
+}
+
+// bindParamTuple is the INSERT VALUES-tuple form: when the bound value can
+// serve the tuple stash verbatim (bindStashValue), the shared placeholder
+// node replaces the literal — the stash IS the substitution, and the node is
+// never evaluated (a FormatInt render plus node allocation per slot per
+// execution dropped from the dominant insert path). Refusal kinds keep the
+// real literal node.
+func (c *exprClone) bindParamTuple(node *sql.ParameterExpr) (sql.Expr, interface{}, bool) {
+	v, ok := c.bindSlot(node)
+	if !ok {
+		return nil, nil, false
+	}
+	if stash, ok := bindStashValue(v); ok {
+		return bindStashNode, stash, true
+	}
+	return bindLiteralStash(v)
+}
+
+// bindStashNode is the placeholder expression node for a VALUES-tuple bind
+// slot whose value is served from the InsLitVals stash instead of the AST
+// (bindParamTuple). The stash entry is by contract identical in kind and
+// content to EvalExpr's result for the real literal node (bindStashValue),
+// so execdml's tuple evaluation never touches this node. A shared immutable
+// NULL keeps the node non-nil for the structural walkers (arity checks, the
+// DML validator) while costing no per-execution allocation; if any
+// unforeseen path ever evaluated it, a NULL would surface immediately rather
+// than a silently wrong value. Only the INSERT VALUES tuple path returns it
+// — parameters elsewhere (upsert assignments, RETURNING, WHERE) evaluate
+// through a real literal node.
+var bindStashNode sql.Expr = &sql.NullLit{}
+
 // bindLiteralStash builds the literal node for one bound value and reports
-// whether the value itself can serve as the tuple stash entry.
+// whether the value itself can serve as the tuple stash entry. Callers that
+// consume the stash (the VALUES-tuple path) may replace the node with
+// bindStashNode; callers that discard it must keep the node — it is the
+// only carrier of the substitution.
 func bindLiteralStash(v interface{}) (sql.Expr, interface{}, bool) {
 	node, ok := bindLiteral(v)
 	if !ok {
