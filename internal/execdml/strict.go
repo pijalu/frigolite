@@ -6,6 +6,7 @@ import (
 	"strconv"
 	"strings"
 	"sync"
+	"sync/atomic"
 
 	"github.com/pijalu/frigolite/internal/util"
 )
@@ -143,16 +144,26 @@ var stripCTASMu sync.Mutex
 // CREATE time on the Table object.
 var stripCTASCache = make(map[string]string)
 
+// stripCTASLast is the single-entry front memo for stripCTASSelect: a bulk
+// load inserts one table's rows, so every row re-derives the flags from the
+// SAME CREATE text — the mutex-guarded map probe below costs a global
+// lock/unlock pair per call (4-5 calls per INSERT row across the
+// WITHOUT ROWID / STRICT / table-flag checks). The atomic slot answers the
+// repeated-text case lock-free; callers whose text differs (the general
+// multi-table case) fall through to the map unchanged. The entry's strings
+// are compared by value, so a schema cache handing out a DIFFERENT table's
+// CREATE text simply misses.
+type stripCTASEntry struct{ in, out string }
+
+var stripCTASLast atomic.Pointer[stripCTASEntry]
+
 // stripCTASSelect returns the CREATE TABLE text up to (but not including) an
 // "AS SELECT" clause. Table options such as STRICT and WITHOUT ROWID only
 // appear before AS SELECT, and the closing parenthesis of the column list
 // must not be confused with parentheses inside the SELECT body.
 func stripCTASSelect(createSQL string) string {
-	stripCTASMu.Lock()
-	cached, ok := stripCTASCache[createSQL]
-	stripCTASMu.Unlock()
-	if ok {
-		return cached
+	if e := stripCTASLast.Load(); e != nil && e.in == createSQL {
+		return e.out
 	}
 	upper := strings.ToUpper(createSQL)
 	idx := strings.Index(upper, " AS SELECT")
@@ -168,6 +179,7 @@ func stripCTASSelect(createSQL string) string {
 	} else {
 		stripped = createSQL[:idx]
 	}
+	stripCTASLast.Store(&stripCTASEntry{in: createSQL, out: stripped})
 	stripCTASMu.Lock()
 	if len(stripCTASCache) >= stripCTASCacheSize {
 		stripCTASCache = make(map[string]string)

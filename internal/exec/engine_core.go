@@ -286,20 +286,16 @@ func (e *Engine) prepareCached(sqlStr string, scratchOK bool) ([]sql.Stmt, error
 	if e.settings.sqlLengthLimit != 0 && len(sqlStr) > e.settings.sqlLengthLimit {
 		return nil, fmt.Errorf("string or blob too big")
 	}
-	// Check exact match cache first (fastest)
-	if cached, ok := e.caches.stmtCache[sqlStr]; ok {
-		return cached, nil
-	}
-	if len(e.caches.stmtCache) >= maxStmtCacheSize {
-		e.caches.stmtCache = make(map[string][]sql.Stmt)
-	}
-
-	// Check template cache — normalize SQL and see if we've seen this
-	// structure. The fused scan extracts the literal values, records their
-	// spans, and hashes the normalized text in ONE pass (no normalized bytes
-	// are materialized per statement). The value/span slices are the engine's
-	// per-statement scratch (recycled across statements; neither outlives the
-	// Prepare call).
+	// Template cache first for literal-bearing statements: a unique-text
+	// stream (rendered literals — the bulk-load shape) misses the exact-text
+	// probe on EVERY statement, paying a string-keyed map hash per statement
+	// and churning stmtCache toward its wholesale reset. The fused scan below
+	// is one pass over the text; the template hit then serves the statement
+	// with no parse and no stmtCache traffic. An exact-text repeat with the
+	// same literals is also a template hit (identical structure), and a
+	// template MISS still falls through to the exact-text probe before
+	// parsing, so statements stored before the template cache filled keep
+	// their fast path.
 	values, spans, hasLits := normalizeScan(sqlStr, e.normValues, e.normSpans, &e.normHash)
 	e.normValues, e.normSpans = values, spans
 	var normKey uint64
@@ -308,6 +304,14 @@ func (e *Engine) prepareCached(sqlStr string, scratchOK bool) ([]sql.Stmt, error
 		if stmts, ok := e.tryTemplateCache(sqlStr, normKey, values, spans, scratchOK); ok {
 			return stmts, nil
 		}
+	}
+
+	// Check exact match cache (literal-free statements and template misses)
+	if cached, ok := e.caches.stmtCache[sqlStr]; ok {
+		return cached, nil
+	}
+	if len(e.caches.stmtCache) >= maxStmtCacheSize {
+		e.caches.stmtCache = make(map[string][]sql.Stmt)
 	}
 
 	// Full parse using go-lemon generated parser

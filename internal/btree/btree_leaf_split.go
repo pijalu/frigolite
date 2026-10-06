@@ -396,8 +396,19 @@ func (t *BTree) readCellsForSplit(st *splitStaging, pg *pager.Page, page *storag
 }
 
 // sortSplitCells orders cells by key (rowid for tables, full payload for
-// indexes).
+// indexes). A leaf page's cells are ALREADY in key order (the b-tree
+// invariant the insert walk maintains); the split only interleaves the one
+// incoming cell. SQLite's balance_leaf exploits that order and never
+// re-sorts (src/btree.c distributes cells in stored order); the historical
+// unconditional bubble sort here paid O(n²) comparisons per split —
+// ~60k compares for a 350-cell leaf — with ZERO swaps on the common
+// sequential-load/append shape (the new cell is the largest key). One
+// linear sortedness probe (n compares) now bypasses the sort; a probe miss
+// falls back to the stable bubble unchanged.
 func sortSplitCells(cells []splitEntry, isTable bool, cmp func(a, b []byte) int) {
+	if splitCellsSorted(cells, isTable, cmp) {
+		return
+	}
 	if isTable {
 		bubbleSortSplitCells(cells, func(a, b splitEntry) bool {
 			return a.cell.RowID > b.cell.RowID
@@ -407,6 +418,23 @@ func sortSplitCells(cells []splitEntry, isTable bool, cmp func(a, b []byte) int)
 	bubbleSortSplitCells(cells, func(a, b splitEntry) bool {
 		return cmp(a.key, b.key) > 0
 	})
+}
+
+// splitCellsSorted reports whether cells are already in ascending key order
+// (rowids for table b-trees, key bytes for index b-trees).
+func splitCellsSorted(cells []splitEntry, isTable bool, cmp func(a, b []byte) int) bool {
+	for i := 1; i < len(cells); i++ {
+		if isTable {
+			if cells[i-1].cell.RowID > cells[i].cell.RowID {
+				return false
+			}
+			continue
+		}
+		if cmp(cells[i-1].key, cells[i].key) > 0 {
+			return false
+		}
+	}
+	return true
 }
 
 // bubbleSortSplitCells sorts cells in place using a "greater than"
