@@ -20,7 +20,7 @@ func (e *DMLExecutor) checkUpdateConflicts(tableEntry *schema.Entry, colDefs []s
 	// storage reordering, so skip the layout computation for them (it is
 	// nil for rowid tables either way).
 	var wrOrder []int
-	if tableIsWithoutRowid(tableEntry.SQL) {
+	if e.withoutRowidCached(tableEntry) {
 		wrOrder = e.ctx.WRStorageOrder(tableEntry.SQL, colDefs)
 	}
 
@@ -245,7 +245,7 @@ func (e *DMLExecutor) checkUpdateConstraints(tableEntry *schema.Entry, colDefs [
 	if !hasNotNullOrCheckConstraint(colDefs) && len(e.ctx.TableConstraints(tableEntry.Name, tableEntry.SQL)) == 0 {
 		return &Result{}
 	}
-	withoutRowid := tableIsWithoutRowid(tableEntry.SQL)
+	withoutRowid := e.withoutRowidCached(tableEntry)
 	var pkCols map[int]bool
 	if withoutRowid {
 		pkCols = e.primaryKeyColIndices(tableEntry.Name, tableEntry.SQL, colDefs)
