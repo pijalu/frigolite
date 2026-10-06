@@ -1216,3 +1216,20 @@ lex+normalize+dispatch floor (Go vs C parse cost) — documented, no
 single hotspot left (profiles flat across tranches).
 Cleanup: /Users/muaddib/dev/frigolite-wt (46 worktrees, 18G) removed —
 all branches pushed; disk freed.
+
+## PERF-PARITY4 (2026-10-03, milestone) — R7 four-lane round merged; gaps 1.33-2.43x
+
+Four parallel fleet tranches (max-parallel directive): perf-journal
+(write-intent statement-journal capture — sqlite3PagerWrite port;
+before-images at the write barrier, pooled buffers, exactness pins),
+perf-btreeuse (gen-token btree free list + Reinit + stmt funnel —
+NewBTree-per-stmt 190k objects → 0; stale-lease Close structurally
+harmless), perf-storagediet (ParseRecordHeader's escaping "stack buffer"
+root-caused — 128B heap array per call; fused DecodeRecordValuesInto),
+perf-litcache (slot-path VALUE stash — literal INSERT rows read typed
+values instead of re-walking AST; bind-path stash; ALSO fixed
+explicit-IPK realloc bug + OR REPLACE recursive-trigger gate,
+oracle-verified). Milestone bench (main a94f07463 vs sqlite3 3.54 same
+ops): insert 790,737 ops/s (2.0x), point 718,823 (1.59x), scan 40.4M
+rows/s (1.33x), group 53 q/s (1.33x FASTER), update 539,633 (2.43x),
+delete 749,831 (2.24x), file autocommit 9,664 (1.31x FASTER).
