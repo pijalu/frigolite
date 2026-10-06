@@ -3485,3 +3485,78 @@ two oracle gaps the new pins exposed. Commits 1ebf195ce/23ac19099/a24c338b6
 - **Bench**: paired interleaved 3 rounds (mission env) — see final report;
   run scripts /tmp/perf/litcache/paired3.sh. zsh: do not `env $E`
   (no word-splitting) — pass env inline.
+
+## R8.POINT — point-SELECT tranche (fleet/r8-point, 2026-10-06)
+
+Paired interleaved vs main @32253d08d (own scratch harness /tmp/perf/r8pt,
+3 rounds alternating run order, machine under sibling fleet load — only
+deltas mean anything): **point +20.1%** (581,076 -> 697,595 medians ops/s);
+insert +1.8%, update +2.5%, delete +2.6%, scan +0.7%, group ±0, file +2.9%
+(all noise-or-positive; C5/C7 also serve scan/update/delete paths).
+alloc_space per point statement −33% (412MB -> 275MB per 600k queries incl.
+setup; engine-side ~500B -> ~330B/stmt). Commits: 7e066429e (C1 fusion),
+32180dc3d (C2 scaffolding), 8ff2cd2ca (C3 collations), 635bc74d1 (C4 result
+pool), 6880d90c6 (C5 parse memo), 9d61e22ad (C6 raw rowid), 88095aea1 (C7
+agg-walk fast path).
+
+- **Output-projection fusion is the big point win (+7.6%)**: the all-bare-ref
+  projection evaluated every column through the expression walker although
+  the value IS the StructRow slot. `bareRefsSeekOutput` + a
+  (columns-slice, colDefs-slice, fingerprint) memo of resolved slots kills
+  the walker per statement. Critical semantics: resolution must mirror
+  StructRow.Get EXACTLY — exact declared-name first, then case-insensitive,
+  and LAST same-named colDef wins (map-overwrite semantics: frigolite ACCEPTS
+  duplicate column names at CREATE, unlike sqlite3's "duplicate column
+  name"). IsRowIDName refs keep the generic route (Get answers them from
+  StructRow.RowID, not a slot).
+- **Dead-affinity gating (+9.9% with the IPK-fill diet)**: on the covered
+  bare shape (seek bounds cover every WHERE conjunct, no row maps, no feed,
+  every output col passes skipBareSelectRef) the affinity-reference walk
+  CANNOT influence anything — the WHERE never re-evaluates and every output
+  reader peels the wrapper. Gate it to nil instead of walking. The covered+
+  bare IPK fill read the projection refs directly instead of rebuilding the
+  recycled collector's name map; fill indices live in a per-selectDepth
+  scratch consumed immediately by fillSeekRowPhaseOne.
+- **Collations have exactly three consumers** (DISTINCT, compound merge,
+  ORDER BY): finalizeSelectResult computed selectOutputCollations
+  unconditionally; a statement with none passes nil (C3, ~+1.5% with C4).
+- **Pooling the execquery.Result STRUCT per selectDepth (+5%)**: ~160B/stmt
+  of the point path's allocs was the result struct. Contract that makes it
+  safe: (a) every nested execution (compound member, subquery, view body,
+  trigger stmt) runs through its own execSelect at a STRICTLY deeper
+  selectDepth; (b) the public boundary (DB.Query/DB.Exec/Stmt) copies fields
+  SYNCHRONOUSLY; (c) Rows/Columns ARRAYS stay fresh per statement (the
+  scanbox pin). Trap found by the suite: execValuesGroup held the head
+  member's result struct ACROSS later same-depth execSelect calls — carry
+  rows/columns in locals and rebuild after the last member. Full-suite
+  adjudication: the non-solo TestSQLiteSuite failure band (4463 cases on
+  main vs 4455 on branch, identical file profile) is PRE-EXISTING
+  shared-cwd drift; per-FILE solo (FRIGOLITE_TEST=^file.json$) passes on
+  both branches and is the only deterministic gate.
+- **The table seek was not taking the page-parse memo (+2.0%)**: the index
+  seek's readTreePage used Page.ParsedBTree (validated byte-compare memo)
+  but seekTableLeafWithPath re-parsed + re-validated each level with a fresh
+  ParsePageInto. One-line switch; header is memo-owned read-only, which is
+  all seekInLeafTable/routeInteriorTable do with it.
+- **Wrapper-peeling argument legitimizes raw fills (+4.6%)**: on the
+  targeted covered+bare fill, EVERY consumer peels (fused slot read,
+  appendOutputExpr) and the covered plan compares nothing, so the alias
+  slot takes the raw rowid; the every-alias fill (uncovered WHERE, row
+  maps, non-bare projections) KEEPS wrapAffinityCollated (WHERE re-eval
+  needs the affinity wrapper for comparisons like id > '4').
+- **Gate fast paths that read like a walk can cost more than the walk**:
+  hasSubqueryWithCorrelatedAgg's closure walk measured only ~13ns/call
+  (5 asks/stmt); the bare-projection pre-check measured +0.2% (noise).
+  Profile before assuming the closure is the cost — it usually isn't.
+- **Measurement discipline on a contended machine**: main's own median
+  swings ±15% between sessions (548k-658k). Session-over-session deltas of
+  the SAME branch are meaningless; only same-session paired interleaved
+  medians (alternate run order per round) decide. Keep a second scratch
+  module + detached worktree of the PREVIOUS commit to A/B a candidate
+  against its actual predecessor in one session.
+- **Remaining point-path floors (report-only)**: public Result (~107B),
+  fresh output row + rows slice (~73B), fresh Columns names copy (~27B),
+  decode boxes (~28B) — all caller-owned. Parse (~16% CPU) and the literal
+  substitution (exec.nextLiteral) are outside this tranche's scope
+  (template/clone + parse owned elsewhere). Pager exposes no cheap dirty
+  generation — the validation-based ParsedBTree memo makes one unnecessary.
