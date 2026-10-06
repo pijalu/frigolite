@@ -279,6 +279,11 @@ func (e *Engine) PrepareExec(sqlStr string) ([]sql.Stmt, error) {
 }
 
 func (e *Engine) prepareCached(sqlStr string, scratchOK bool) ([]sql.Stmt, error) {
+	// Every statement this call returns carries the shape-stability verdict of
+	// the path that produced it (setStmtShapeStable): exact-text cache, slot-
+	// path live clone, and fresh parse are template-stable; the COW scratch
+	// clone is not (its structs recycle across templates).
+	e.setStmtShapeStable(false)
 	// Tokenize-time SQL length limit (tokenize.c sqlite3RunParser: mxSqlLen
 	// counts the SQL text against db->aLimit[SQLITE_LIMIT_SQL_LENGTH];
 	// exhaustion sets pParse->rc = SQLITE_TOOBIG with the default message,
@@ -288,6 +293,7 @@ func (e *Engine) prepareCached(sqlStr string, scratchOK bool) ([]sql.Stmt, error
 	}
 	// Check exact match cache first (fastest)
 	if cached, ok := e.caches.stmtCache[sqlStr]; ok {
+		e.setStmtShapeStable(true)
 		return cached, nil
 	}
 	if len(e.caches.stmtCache) >= maxStmtCacheSize {
@@ -305,7 +311,11 @@ func (e *Engine) prepareCached(sqlStr string, scratchOK bool) ([]sql.Stmt, error
 	var normKey uint64
 	if hasLits {
 		normKey = e.normHash.Sum64()
-		if stmts, ok := e.tryTemplateCache(sqlStr, normKey, values, spans, scratchOK); ok {
+		stmts, hit := e.tryTemplateCache(sqlStr, normKey, values, spans, scratchOK)
+		if hit {
+			// A slot-path live-clone hit is template-stable (one persistent
+			// clone per (template, depth)); a COW scratch hit is not. The
+			// stability verdict was set by whichever path produced the list.
 			return stmts, nil
 		}
 	}
@@ -328,6 +338,10 @@ func (e *Engine) prepareCached(sqlStr string, scratchOK bool) ([]sql.Stmt, error
 		return stmts, perr
 	}
 	e.caches.stmtCache[sqlStr] = stmts
+	// A fresh parse is retained by the exact-text cache: stable identity (the
+	// memos hold their keyed ASTs alive, so a freed-and-reused address can
+	// never alias a stale entry).
+	e.setStmtShapeStable(true)
 	if hasLits {
 		// The normalized text is materialized once, on the store path only
 		// (the per-statement lookup verifies via the spans instead).

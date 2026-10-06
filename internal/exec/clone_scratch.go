@@ -104,8 +104,14 @@ func (e *Engine) BindStmtValuesScratch(stmts []sql.Stmt, plan *BindPlan, values 
 		return nil, false
 	}
 	if len(plan.occ) == 0 {
+		// No substitution: the retained AST itself executes — stable identity.
+		e.setStmtShapeStable(true)
 		return stmts, true
 	}
+	// Substitution rewrites a per-depth scratch clone whose structs recycle
+	// across templates: unstable identity (the shape memos must not key on
+	// it). prepareCached's entry default already set false; keep it explicit.
+	e.setStmtShapeStable(false)
 	s := e.cloneScratchFor()
 	s.rotate()
 	if cap(s.stmts) < len(stmts) {
@@ -187,6 +193,11 @@ func (e *Engine) trySlotPathLive(cached *sqlTemplateEntry, values []interface{})
 				// the COW clone rather than serve a stale literal.
 				return nil, false
 			}
+			// The live clone is ONE persistent statement per (template,
+			// depth): its AST pointer is template-stable, so the shape
+			// memos may key on it (the COW scratch below recycles structs
+			// across templates and must not).
+			e.setStmtShapeStable(true)
 			return lc.stmts, true
 		}
 	}

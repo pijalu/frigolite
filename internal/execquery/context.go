@@ -323,6 +323,18 @@ type SelectEngine struct {
 	// the map recycled wholesale past the cap.
 	prevalidateMemoFP uint64
 	prevalidateMemo   map[*sql.SelectStmt]prevalidateMemoEntry
+	// shapeStable reports whether the statement ABOUT TO EXECUTE carries a
+	// template-STABLE AST pointer: the slot-path live clone (one persistent
+	// clone per (template, exec depth), literal leaves rewritten in place),
+	// the exact-text statement cache, or a fresh parse (retained by the
+	// cache). Only stable pointers may key shape-verdict memos
+	// (prevalidateMemo* and the R9 shape memo family): the COW scratch clone
+	// recycles per-exec-depth structs across TEMPLATES, so a recycled
+	// address would alias a stale verdict for a different statement. The
+	// exec engine sets it per statement at prepare time (clone_scratch.go
+	// owns the identity discipline); every memo consult in this package
+	// gates on it.
+	shapeStable bool
 	// collOutMemo* memoizes the output-collation lists of bare-reference
 	// single-table projections (outputCollationsBare in
 	// select_point_memo.go): fingerprint + template-shared columns-slice

@@ -141,10 +141,21 @@ func (e *Engine) execPreflight(stmt sql.Stmt) *Result {
 // FROM count by the clause structure — no literal value participates), so
 // they memoize by statement identity.
 func (e *Engine) execPreflightASTChecks(stmt sql.Stmt) *Result {
-	if stmt == e.pfASTStmt {
+	// The slot only ever holds a template-STABLE statement (see pfASTStable):
+	// a COW scratch clone's address recycles across templates, so serving a
+	// recycled pointer from the slot would apply another template's verdict.
+	// An unstable statement recomputes directly and leaves the slot (and the
+	// stable statement it retains) untouched.
+	if stmt == e.pfASTStmt && e.pfASTStable {
 		return e.pfASTCheckResult()
 	}
+	if !e.stmtShapeStable {
+		// Recompute without memoizing; the slot's retained stable statement
+		// stays valid for its next stable revisit.
+		return e.pfASTChecksUncached(stmt)
+	}
 	e.pfASTStmt = stmt
+	e.pfASTStable = true
 	// SQLite's SrcList grows across the whole statement (including nested
 	// subqueries and CTE bodies), so the FROM-clause term limit counts all
 	// of them (with1 22.1's five-level nesting hits "too many FROM clause
@@ -163,6 +174,22 @@ func (e *Engine) execPreflightASTChecks(stmt sql.Stmt) *Result {
 		e.pfASTRaise = nil
 	}
 	return e.pfASTCheckResult()
+}
+
+// pfASTChecksUncached runs the two AST-only prepare-time checks without
+// touching the memo slot (the unstable-identity form of execPreflightASTChecks).
+func (e *Engine) pfASTChecksUncached(stmt sql.Stmt) *Result {
+	fromOK := countStatementFromTerms(stmt) < 200
+	if !fromOK {
+		return &Result{Error: fmt.Errorf("too many FROM clause terms, max: %d", 200)}
+	}
+	if shouldDeferRaiseCheck(stmt) {
+		return nil // SELECT/CTAS statements validate RAISE inside execSelect
+	}
+	if rerr := e.validateNoRaiseOutsideTrigger(stmt); rerr != nil {
+		return &Result{Error: rerr}
+	}
+	return nil
 }
 
 // pfASTCheckResult renders the memoized AST-check state: a non-nil Result
@@ -188,23 +215,35 @@ func (e *Engine) execPreflightDMLChecks(stmt sql.Stmt) *Result {
 		return nil
 	}
 	fp := e.allSchemasFingerprint()
-	if stmt != e.pfDMLStmt || fp != e.pfDMLFP || e.pfDMLFKOn != e.settings.foreignKeys {
-		err := e.validateDMLSubqueries(stmt)
-		if err == nil {
-			// fk.c sqlite3FkCheck runs at statement compilation: an FK whose
-			// parent table or parent key cannot be located fails an
-			// INSERT/UPDATE/DELETE regardless of the rows involved
-			// (e_fkey-20.x: an UPDATE of an empty child reports "no such
-			// table: main.X"; a parent DELETE reports the child's
-			// "foreign key mismatch"). Subquery errors keep precedence.
-			if res := e.validateDMLFKPrepare(stmt); res != nil {
-				err = res.Error
-			}
+	// The slot only serves template-STABLE statements (pfASTStable's rule):
+	// a COW scratch clone's address recycles across templates, and a recycled
+	// pointer with a matching fingerprint would apply another statement's
+	// FK/subquery verdict. Unstable statements recompute without touching
+	// the slot.
+	if stmt == e.pfDMLStmt && e.pfDMLStable && fp == e.pfDMLFP && e.pfDMLFKOn == e.settings.foreignKeys {
+		if e.pfDMLErr != nil {
+			return &Result{Error: e.pfDMLErr}
 		}
-		e.pfDMLStmt, e.pfDMLFP, e.pfDMLFKOn, e.pfDMLErr = stmt, fp, e.settings.foreignKeys, err
+		return nil
 	}
-	if e.pfDMLErr != nil {
-		return &Result{Error: e.pfDMLErr}
+	err := e.validateDMLSubqueries(stmt)
+	if err == nil {
+		// fk.c sqlite3FkCheck runs at statement compilation: an FK whose
+		// parent table or parent key cannot be located fails an
+		// INSERT/UPDATE/DELETE regardless of the rows involved
+		// (e_fkey-20.x: an UPDATE of an empty child reports "no such
+		// table: main.X"; a parent DELETE reports the child's
+		// "foreign key mismatch"). Subquery errors keep precedence.
+		if res := e.validateDMLFKPrepare(stmt); res != nil {
+			err = res.Error
+		}
+	}
+	if e.stmtShapeStable {
+		e.pfDMLStmt, e.pfDMLFP, e.pfDMLFKOn, e.pfDMLErr = stmt, fp, e.settings.foreignKeys, err
+		e.pfDMLStable = true
+	}
+	if err != nil {
+		return &Result{Error: err}
 	}
 	return nil
 }
