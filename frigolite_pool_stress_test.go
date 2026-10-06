@@ -3,6 +3,7 @@ package frigolite
 
 import (
 	"fmt"
+	"sync"
 	"testing"
 )
 
@@ -207,6 +208,91 @@ func TestPoolStressAttachDetach(t *testing.T) {
 		stressExec(t, c1, "DETACH "+name)
 		if got := stressQueryInt(t, c1, "SELECT count(*) FROM t1"); got != 50 {
 			t.Fatalf("iter %d: main count = %d", i, got)
+		}
+	}
+}
+
+// TestPoolStressConcurrentOpenCloseDDL is the -race stress for the
+// ownership-token wrapper reuse (PERF.BTREEUSE): several connections
+// (separate engines, each with its own TreeFreeList, all sharing the btree
+// package's GLOBAL cursor pool and append-slot registry) churn through
+// open/close cycles, per-connection DDL, page-size VACUUMs (pager layout
+// replacement fires the engine + DML free-list purges), and point
+// statements. A recycled-wrapper reset bug or a stale-lease miss shows up
+// as a DATA RACE, a nil-pager panic, or a wrong/missing row.
+func TestPoolStressConcurrentOpenCloseDDL(t *testing.T) {
+	dir := t.TempDir()
+	const goroutines = 4
+	const rounds = 12
+	var wg sync.WaitGroup
+	errs := make([]error, goroutines)
+	for g := 0; g < goroutines; g++ {
+		wg.Add(1)
+		go func(g int) {
+			defer wg.Done()
+			path := fmt.Sprintf("%s/stress-%d.db", dir, g)
+			for round := 0; round < rounds; round++ {
+				c, err := Open(path)
+				if err != nil {
+					errs[g] = fmt.Errorf("open: %w", err)
+					return
+				}
+				exec := func(sql string) bool {
+					if r := c.Exec(sql); r.Error != nil {
+						errs[g] = fmt.Errorf("round %d exec %q: %v", round, sql, r.Error)
+						return false
+					}
+					return true
+				}
+				table := fmt.Sprintf("t%d_%d", g, round)
+				if !exec("CREATE TABLE " + table + "(a INTEGER PRIMARY KEY, b TEXT)") {
+					c.Close()
+					return
+				}
+				if !exec("CREATE INDEX idx_" + table + " ON " + table + "(b)") {
+					c.Close()
+					return
+				}
+				for i := 0; i < 25; i++ {
+					if !exec(fmt.Sprintf("INSERT INTO %s VALUES(%d, 'v%d')", table, i, i)) {
+						c.Close()
+						return
+					}
+				}
+				for i := 0; i < 25; i++ {
+					r := c.Query(fmt.Sprintf("SELECT b FROM %s WHERE a = %d", table, i))
+					if r.Error != nil || len(r.Rows) != 1 || r.Rows[0][0] != fmt.Sprintf("v%d", i) {
+						c.Close()
+						errs[g] = fmt.Errorf("round %d seek %d: %v (rows %d)", round, i, r.Error, len(r.Rows))
+						return
+					}
+				}
+				if !exec("UPDATE "+table+" SET b = 'u' WHERE a = 3") ||
+					!exec("DELETE FROM "+table+" WHERE a = 4") ||
+					!exec("DROP INDEX idx_"+table) ||
+					!exec("DROP TABLE "+table) {
+					c.Close()
+					return
+				}
+				// Layout replacement (VACUUM at a different page size) fires
+				// the pager layout hook: both free lists must purge.
+				if round%3 == 0 {
+					if !exec("PRAGMA page_size=8192; VACUUM") || !exec("PRAGMA page_size=4096; VACUUM") {
+						c.Close()
+						return
+					}
+				}
+				if err := c.Close(); err != nil {
+					errs[g] = fmt.Errorf("close: %w", err)
+					return
+				}
+			}
+		}(g)
+	}
+	wg.Wait()
+	for g, err := range errs {
+		if err != nil {
+			t.Fatalf("goroutine %d: %v", g, err)
 		}
 	}
 }

@@ -136,33 +136,33 @@ func (t *BTree) Close() {
 		return
 	}
 	t.closed = true
+	// One critical section for the whole teardown: the append-cursor slot
+	// drop and the owned cursors' registry unregistration share the same
+	// lock, and every statement's funnel Close pays this path (btree.c
+	// sqlite3BtreeCloseCursor runs under the same BtShared lock).
+	owned := t.cursors
+	t.cursors = t.cursors[:0]
+	cursorRegMu.Lock()
 	// Drop this tree's append-cursor slot: statement teardown after a DELETE
 	// (or any other mutation through a function-local wrapper) must clear the
 	// insert path's saved rightmost leaf, and a layout-replacement drop of
 	// the cached write tree (execdml's InvalidateWriteTree) must not leave a
 	// slot pointing into replaced pages.
-	cursorRegMu.Lock()
 	t.invalidateAppendCursorLocked()
-	cursorRegMu.Unlock()
-	owned := t.cursors
-	t.cursors = t.cursors[:0]
-	if len(owned) > 0 {
-		cursorRegMu.Lock()
-		for _, c := range owned {
-			// Unregister under the key the cursor was REGISTERED under,
-			// not the wrapper's current (pager, rootPage): schemaCursor
-			// opens a schema-keyed cursor on a user-tree wrapper while its
-			// rootPage is temporarily 1, so the wrapper's rootPage at Close
-			// time can differ from a cursor's registration key.
-			removeRegisteredCursor(c.regKey, c)
-			// Zero the key BEFORE the cursor is recycled: the allocation-time
-			// finalizer (acquireCursor) reads regKey at run time, so a finalizer
-			// queued against this cursor must find no live registration once
-			// Close has run.
-			c.regKey = cursorTreeKey{}
-		}
-		cursorRegMu.Unlock()
+	for _, c := range owned {
+		// Unregister under the key the cursor was REGISTERED under,
+		// not the wrapper's current (pager, rootPage): schemaCursor
+		// opens a schema-keyed cursor on a user-tree wrapper while its
+		// rootPage is temporarily 1, so the wrapper's rootPage at Close
+		// time can differ from a cursor's registration key.
+		removeRegisteredCursor(c.regKey, c)
+		// Zero the key BEFORE the cursor is recycled: the allocation-time
+		// finalizer (acquireCursor) reads regKey at run time, so a finalizer
+		// queued against this cursor must find no live registration once
+		// Close has run.
+		c.regKey = cursorTreeKey{}
 	}
+	cursorRegMu.Unlock()
 	t.releaseCursors(owned)
 	// releaseCursors marked each cursor released BEFORE returning it to the
 	// pool (btree_pool.go): the marker survives until the cursor's NEXT

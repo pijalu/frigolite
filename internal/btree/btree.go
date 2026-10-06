@@ -163,6 +163,11 @@ type BTree struct {
 	// struct slot on the wrapper (same single-goroutine ownership contract
 	// as cellScratch/insScratch) avoids a per-insert heap escape.
 	quickPageScratch storage.BTreePage
+
+	// gen is the wrapper's arm generation, bumped by every Reinit
+	// (btree_pool.go): the ownership token a stale TreeLease release
+	// compares against so its Close no-ops on a live successor.
+	gen uint64
 }
 
 // insertScratchPool recycles the insert walk's parse-slot arrays. Buffers
@@ -170,13 +175,10 @@ type BTree struct {
 // always yields a functionally fresh scratch.
 var insertScratchPool = sync.Pool{New: func() interface{} { return new([4]storage.BTreePage) }}
 
-// NewBTree creates a new BTree instance.
-//
-// Wrappers are deliberately NOT pooled (btree_pool.go): a pooled wrapper is
-// re-armed for whichever statement Gets it next, so a Close that races a
-// statement still holding the wrapper crashes that statement's next read
-// with a nil pager. A fresh wrapper per statement costs one small
-// allocation and keeps every Close terminal.
+// NewBTree creates a new BTree instance. Statement paths that create
+// wrappers per statement draw recycled ones from their owner's
+// TreeFreeList (btree_pool.go): Get + Reinit. NewBTree stays for
+// free-list misses and for owners that keep no free list.
 func NewBTree(pg *pager.Pager, rootPage uint32, isTable bool) *BTree {
 	return new(BTree).initFrom(pg, rootPage, isTable, false)
 }
@@ -199,7 +201,8 @@ func (t *BTree) compareKey(a, b []byte) int {
 // NewSchemaBTree creates a BTree for the sqlite_schema btree. Schema
 // btree allocations bypass the freelist so the schema btree's pages
 // don't take slots from the user-rootpage range (P8.INCRVACUUM.phase9).
-// Wrappers are not pooled (see NewBTree).
+// Schema trees are short-lived per schema operation and draw no free list
+// (schema traffic is rare; the wrapper goes to GC at Close).
 func NewSchemaBTree(pg *pager.Pager) *BTree {
 	return new(BTree).initFrom(pg, 1, true, true)
 }
