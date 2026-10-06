@@ -17,13 +17,18 @@ func (e *DMLExecutor) prepareInsertRowValues(tableEntry *schema.Entry, colDefs [
 	// Determine rowID: if an INTEGER PRIMARY KEY column has an explicit non-nil
 	// value, use that value as the rowid (the column IS the rowid). Otherwise
 	// auto-assign the next available rowid. REPLACE passes a rowid computed
-	// before its conflict deletes (SQLite keeps it through the retry).
-	nextRowID, err := e.pkRowID(tableEntry.Name, colDefs, values, tableEntry.RootPage, tableIsWithoutRowid(tableEntry.SQL))
+	// before its conflict deletes (SQLite keeps it through the retry). The
+	// explicit/auto source is remembered for the BEFORE-trigger realloc: only
+	// an AUTO rowid may be re-allocated when a trigger consumes it — decided
+	// on the PRE-fill values (fillIPKRowID overwrites an auto IPK below, and
+	// reports -1 for an explicit one, erasing the distinction).
+	nextRowID, rowidExplicit, err := e.pkRowIDSource(tableEntry.Name, colDefs, values, tableEntry.RootPage, tableIsWithoutRowid(tableEntry.SQL))
 	if err != nil {
 		return 0, &Result{Error: err}
 	}
 	if fixedRowID != nil {
 		nextRowID = *fixedRowID
+		rowidExplicit = true
 	}
 	e.ctx.SetLastRowID(nextRowID)
 
@@ -32,7 +37,9 @@ func (e *DMLExecutor) prepareInsertRowValues(tableEntry *schema.Entry, colDefs [
 	// the column to contain the auto-generated rowid.
 	withoutRowid := tableIsWithoutRowid(tableEntry.SQL)
 	isStrict := isStrictTable(tableEntry.SQL)
-	ipkWasNil, ipkIndex := e.fillIPKRowID(colDefs, values, nextRowID, withoutRowid, isStrict)
+	// fillIdx: the auto-filled IPK's index, or -1 for an explicit IPK / no
+	// IPK column — exactly what explicitTriggerRowid has always consumed.
+	_, fillIdx := e.fillIPKRowID(colDefs, values, nextRowID, withoutRowid, isStrict)
 
 	if res := e.strictCheckAndAffinity(tableEntry, colDefs, values, isStrict); res != nil {
 		return 0, res
@@ -54,7 +61,6 @@ func (e *DMLExecutor) prepareInsertRowValues(tableEntry *schema.Entry, colDefs [
 	} else if !write {
 		return 0, &Result{Changes: 0}
 	}
-
 	if res := e.strictCheckGenerated(tableEntry, colDefs, values, isStrict); res != nil {
 		return 0, res
 	}
@@ -68,8 +74,8 @@ func (e *DMLExecutor) prepareInsertRowValues(tableEntry *schema.Entry, colDefs [
 	// only build the row map when triggers exist for this table. The
 	// trigger-visible new.rowid is the EXPLICIT rowid (statement rowid
 	// column or explicit IPK value); an auto-assigned rowid reads -1.
-	expRowID := explicitTriggerRowid(fixedRowID, values, ipkIndex, withoutRowid)
-	if res := e.fireInsertBeforeTriggersSafe(tableEntry, colDefs, values, &nextRowID, withoutRowid, ipkWasNil, ipkIndex, expRowID); res != nil {
+	expRowID := explicitTriggerRowid(fixedRowID, values, fillIdx, withoutRowid)
+	if res := e.fireInsertBeforeTriggersSafe(tableEntry, colDefs, values, &nextRowID, withoutRowid, rowidExplicit, expRowID); res != nil {
 		return 0, res
 	}
 	return nextRowID, nil
@@ -239,14 +245,14 @@ func (e *DMLExecutor) strictCheckGenerated(tableEntry *schema.Entry, colDefs []s
 // triggers exist, mapping RAISE(IGNORE) to a zero-change skip.
 
 // fireInsertBeforeTriggersSafe fires BEFORE INSERT triggers for a row when
-// triggers exist, mapping RAISE(IGNORE) to a zero-change skip.
-// fireInsertBeforeTriggersSafe fires BEFORE INSERT triggers for a row when
-// triggers exist, mapping RAISE(IGNORE) to a zero-change skip.
-func (e *DMLExecutor) fireInsertBeforeTriggersSafe(tableEntry *schema.Entry, colDefs []sql.ColumnDef, values []interface{}, nextRowID *int64, withoutRowid, ipkWasNil bool, ipkIndex int, explicitRowID *int64) *Result {
+// triggers exist, mapping RAISE(IGNORE) to a zero-change skip. rowidExplicit
+// is the pkRowIDSource verdict (an explicit PK/rowid value) and gates the
+// post-trigger rowid re-allocation in fireInsertRowBeforeTriggers.
+func (e *DMLExecutor) fireInsertBeforeTriggersSafe(tableEntry *schema.Entry, colDefs []sql.ColumnDef, values []interface{}, nextRowID *int64, withoutRowid, rowidExplicit bool, explicitRowID *int64) *Result {
 	if !e.hasTriggersForTable(tableEntry.Name) {
 		return nil
 	}
-	if res := e.fireInsertRowBeforeTriggers(tableEntry, colDefs, values, nextRowID, withoutRowid, ipkWasNil, ipkIndex, explicitRowID); res != nil {
+	if res := e.fireInsertRowBeforeTriggers(tableEntry, colDefs, values, nextRowID, withoutRowid, rowidExplicit, explicitRowID); res != nil {
 		if res.Error == errRowSkipped {
 			return &Result{Changes: 0}
 		}

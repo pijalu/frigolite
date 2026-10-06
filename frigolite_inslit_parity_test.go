@@ -2,6 +2,8 @@ package frigolite_test
 
 import (
 	"fmt"
+	"math"
+	"strings"
 	"testing"
 
 	frigolite "github.com/pijalu/frigolite"
@@ -20,14 +22,6 @@ import (
 // template). Every stored row is compared cell for cell: rowid plus
 // typeof()/quote() of every column — the exact stored representation.
 func TestInsLitParityCorpus(t *testing.T) {
-	// dump6 reads a 6-column table rowwise: rowid plus typeof/quote of each
-	// column (quote gives the exact stored bytes).
-	dump6 := func(table string) string {
-		return fmt.Sprintf(`SELECT rowid,
-			typeof(a), quote(a), typeof(b), quote(b), typeof(t), quote(t),
-			typeof(n), quote(n), typeof(k), quote(k)
-			FROM %s ORDER BY rowid`, table)
-	}
 	shapes := []struct {
 		name  string
 		setup []string
@@ -237,7 +231,7 @@ func TestInsLitParityCorpus(t *testing.T) {
 			got := queryDump(t, fast, dq)
 			want := queryDump(t, ctrl, dq)
 			if len(got) != len(want) {
-				t.Fatalf("%s dump %d: fast cells = %d, control cells = %d", sh.name, qi, len(got), len(want))
+				t.Fatalf("%s dump %d: fast cells = %d, control cells = %d\nfast=%v\nctrl=%v", sh.name, qi, len(got), len(want), got, want)
 			}
 			for i := range want {
 				if got[i] != want[i] {
@@ -246,6 +240,272 @@ func TestInsLitParityCorpus(t *testing.T) {
 			}
 		}
 		ctrl.Close()
+	}
+}
+
+// dump6 reads a 6-column table rowwise: rowid plus typeof/quote of each
+// column (quote gives the exact stored bytes).
+func dump6(table string) string {
+	return fmt.Sprintf(`SELECT rowid,
+		typeof(a), quote(a), typeof(b), quote(b), typeof(t), quote(t),
+		typeof(n), quote(n), typeof(k), quote(k)
+		FROM %s ORDER BY rowid`, table)
+}
+
+// TestBindLitParityCorpus is the kind-parity pin for the prepared-statement
+// bind path (the bind-mode twin of TestInsLitParityCorpus): one FAST engine
+// runs every shape through db.Prepare + Stmt.Exec with Go-typed arguments
+// (int64/int/negative/float integral+fractional/string/NULL/bool/blob/named
+// ?NNN params, multi-row, upsert assignments, RETURNING, trigger bodies,
+// STRICT tables, affinity conversions, uint64-beyond-int64 and NaN refusal
+// shapes), each statement executed twice per round so the recycled tenant's
+// literal nodes are rewritten in place with the stash refreshed. A CONTROL
+// engine accumulates the identical rows through literal db.Exec text. Every
+// stored row is compared cell for cell (rowid plus typeof()/quote()).
+func TestBindLitParityCorpus(t *testing.T) {
+	type bindShape struct {
+		name  string
+		setup []string
+		dump  []string
+		sql   string // the prepared form (parameter markers)
+		ctrl  string // the control form: the same statement with %s per marker
+		args  func(r, half int) []interface{}
+	}
+	shapes := []bindShape{
+		{
+			name:  "values_params",
+			setup: []string{"CREATE TABLE q1(a INTEGER, b REAL, t TEXT, n, k BLOB, id INTEGER PRIMARY KEY)"},
+			dump:  []string{dump6("q1")},
+			sql:   "INSERT INTO q1 VALUES(?, ?, ?, ?, ?, ?)",
+			ctrl:  "INSERT INTO q1 VALUES(%s, %s, %s, %s, %s, %s)",
+			args: func(r, half int) []interface{} {
+				h := half * 100000
+				return []interface{}{int64(h + 100 + 7*r), 1.5 + 0.25*float64(r), "v" + fmt.Sprint(half) + fmt.Sprint(r), nil, []byte{byte(r % 9), 0x0B}, int64(h + r + 1)}
+			},
+		},
+		{
+			name:  "go_int_kinds",
+			setup: []string{"CREATE TABLE q2(a INTEGER, b INTEGER, t TEXT, n, k BLOB, id INTEGER PRIMARY KEY)"},
+			dump:  []string{dump6("q2")},
+			sql:   "INSERT INTO q2 VALUES(?1, ?2, ?3, ?4, ?5, ?6)",
+			ctrl:  "INSERT INTO q2 VALUES(%s, %s, %s, %s, %s, %s)",
+			args: func(r, half int) []interface{} {
+				h := half * 100000
+				return []interface{}{-(h + 300 + r), 7 + r, "i" + fmt.Sprint(half) + fmt.Sprint(r), nil, int32(1000 + r), uint64(h + r + 1)}
+			},
+		},
+		{
+			name:  "bool_and_named",
+			setup: []string{"CREATE TABLE q3(f INTEGER, t TEXT, id INTEGER PRIMARY KEY)"},
+			dump:  []string{"SELECT rowid, typeof(f), quote(f), quote(t) FROM q3 ORDER BY rowid"},
+			sql:   "INSERT INTO q3(f, t, id) VALUES(:flag, @txt, $id)",
+			ctrl:  "INSERT INTO q3(f, t, id) VALUES(%s, %s, %s)",
+			args: func(r, half int) []interface{} {
+				h := half * 100000
+				return []interface{}{(r+half)%2 == 0, "b" + fmt.Sprint(half) + fmt.Sprint(r), int64(h + r + 1)}
+			},
+		},
+		{
+			name:  "multi_row_params",
+			setup: []string{"CREATE TABLE q4(a INTEGER, t TEXT, id INTEGER PRIMARY KEY)"},
+			dump:  []string{"SELECT rowid, typeof(a), quote(a), quote(t) FROM q4 ORDER BY rowid"},
+			sql:   "INSERT INTO q4 VALUES(?, ?, ?), (?, ?, ?)",
+			ctrl:  "INSERT INTO q4 VALUES(%s, %s, %s), (%s, %s, %s)",
+			args: func(r, half int) []interface{} {
+				h := half * 100000
+				return []interface{}{h + 10 + r, "ma" + fmt.Sprint(half) + fmt.Sprint(r), int64(h + 2*r + 1), h + 11 + r, "mb" + fmt.Sprint(half) + fmt.Sprint(r), int64(h + 2*r + 2)}
+			},
+		},
+		{
+			// The DO UPDATE assignment is not a tuple slot: its parameters
+			// must evaluate through the rewritten nodes (no stash), with the
+			// tuple slots stashed in the same statement.
+			name: "upsert_param_assignment",
+			setup: []string{
+				"CREATE TABLE q5(a INTEGER, t TEXT, id INTEGER PRIMARY KEY)",
+				"INSERT INTO q5 VALUES(1, 'seed', 1)",
+			},
+			dump: []string{"SELECT rowid, quote(a), quote(t) FROM q5 ORDER BY rowid"},
+			sql:  "INSERT INTO q5 VALUES(?, ?, 1) ON CONFLICT(id) DO UPDATE SET t = ?",
+			ctrl: "INSERT INTO q5 VALUES(%s, %s, 1) ON CONFLICT(id) DO UPDATE SET t = %s",
+			args: func(r, half int) []interface{} {
+				h := half * 100000
+				return []interface{}{h + 100 + r, "u" + fmt.Sprint(half) + fmt.Sprint(r), "U" + fmt.Sprint(half) + fmt.Sprint(r)}
+			},
+		},
+		{
+			name:  "returning_params",
+			setup: []string{"CREATE TABLE q6(a INTEGER, id INTEGER PRIMARY KEY)"},
+			dump:  []string{"SELECT rowid, quote(a) FROM q6 ORDER BY rowid"},
+			sql:   "INSERT INTO q6 VALUES(?, ?) RETURNING id, a",
+			ctrl:  "INSERT INTO q6 VALUES(%s, %s) RETURNING id, a",
+			args: func(r, half int) []interface{} {
+				h := half * 100000
+				return []interface{}{h + 200 + r, int64(h + r + 1)}
+			},
+		},
+		{
+			name: "trigger_nested_params",
+			setup: []string{
+				"CREATE TABLE q7(a INTEGER, t TEXT, id INTEGER PRIMARY KEY)",
+				"CREATE TABLE q7log(src TEXT, v INTEGER)",
+				"CREATE TRIGGER q7tg AFTER INSERT ON q7 BEGIN INSERT INTO q7log VALUES(new.t, new.a); END",
+			},
+			dump: []string{
+				"SELECT rowid, quote(a), quote(t) FROM q7 ORDER BY rowid",
+				"SELECT rowid, quote(src), quote(v) FROM q7log ORDER BY rowid",
+			},
+			sql:  "INSERT INTO q7 VALUES(?, ?, ?)",
+			ctrl: "INSERT INTO q7 VALUES(%s, %s, %s)",
+			args: func(r, half int) []interface{} {
+				h := half * 100000
+				return []interface{}{h + 300 + r, "g" + fmt.Sprint(half) + fmt.Sprint(r), int64(h + r + 1)}
+			},
+		},
+		{
+			name:  "strict_table_params",
+			setup: []string{"CREATE TABLE q8(a INTEGER, b REAL, t TEXT) STRICT"},
+			dump:  []string{"SELECT rowid, typeof(a), quote(a), typeof(b), quote(b), typeof(t), quote(t) FROM q8 ORDER BY rowid"},
+			sql:   "INSERT INTO q8 VALUES(?, ?, ?)",
+			ctrl:  "INSERT INTO q8 VALUES(%s, %s, %s)",
+			args: func(r, half int) []interface{} {
+				h := half * 100000
+				return []interface{}{h + 'x' + r, 0.5 + float64(r), "s" + fmt.Sprint(half) + fmt.Sprint(r)}
+			},
+		},
+		{
+			name:  "affinity_conversions_params",
+			setup: []string{"CREATE TABLE q9(a INTEGER, b REAL, t TEXT, n, k BLOB, id INTEGER PRIMARY KEY)"},
+			dump:  []string{dump6("q9")},
+			sql:   "INSERT INTO q9 VALUES(?, ?, ?, ?, ?, ?)",
+			ctrl:  "INSERT INTO q9 VALUES(%s, %s, %s, %s, %s, %s)",
+			args: func(r, half int) []interface{} {
+				// numeric-looking TEXT into INTEGER/REAL columns (converted on
+				// store), non-numeric TEXT kept, bare/BLOB columns as-is.
+				h := half * 100000
+				return []interface{}{fmt.Sprint(h + 400 + r), fmt.Sprintf("%v", 1.5+0.25*float64(r)), "900", "x", int64(1000 + r), int64(h + r + 1)}
+			},
+		},
+		{
+			// uint64 beyond int64 and NaN must keep the generic bind form
+			// (no stash entry): uint64 stores as REAL, NaN as NULL.
+			name:  "refusal_kinds",
+			setup: []string{"CREATE TABLE qa(a, b, id INTEGER PRIMARY KEY)"},
+			dump:  []string{"SELECT rowid, typeof(a), quote(a), typeof(b), quote(b) FROM qa ORDER BY rowid"},
+			sql:   "INSERT INTO qa VALUES(?, ?, ?)",
+			ctrl:  "INSERT INTO qa VALUES(%s, %s, %s)",
+			args: func(r, half int) []interface{} {
+				h := half * 100000
+				if (r+half)%2 == 0 {
+					return []interface{}{uint64(18446744073709551615), math.NaN(), int64(h + r + 1)}
+				}
+				return []interface{}{uint64(9223372036854775806), 2.5, int64(h + r + 1)}
+			},
+		},
+	}
+
+	const rounds = 4
+
+	fast, err := frigolite.Open(":memory:")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer fast.Close()
+	for _, sh := range shapes {
+		for _, s := range sh.setup {
+			if res := fast.Exec(s); res.Error != nil {
+				t.Fatalf("%s: fast setup: %v", sh.name, res.Error)
+			}
+		}
+	}
+	for r := 0; r < rounds; r++ {
+		for _, sh := range shapes {
+			st, err := fast.Prepare(sh.sql)
+			if err != nil {
+				t.Fatalf("%s round %d: prepare: %v", sh.name, r, err)
+			}
+			for half := 0; half < 2; half++ {
+				if res := st.Exec(sh.args(r, half)...); res.Error != nil {
+					t.Fatalf("%s round %d half %d: fast: %v", sh.name, r, half, res.Error)
+				}
+			}
+			st.Close()
+		}
+	}
+
+	for _, sh := range shapes {
+		ctrl, err := frigolite.Open(":memory:")
+		if err != nil {
+			t.Fatal(err)
+		}
+		for _, s := range sh.setup {
+			if res := ctrl.Exec(s); res.Error != nil {
+				t.Fatalf("%s: control setup: %v", sh.name, res.Error)
+			}
+		}
+		for r := 0; r < rounds; r++ {
+			for half := 0; half < 2; half++ {
+				args := sh.args(r, half)
+				lits := make([]interface{}, len(args))
+				for i, a := range args {
+					lits[i] = sqlLiteralText(a)
+				}
+				if res := ctrl.Exec(fmt.Sprintf(sh.ctrl, lits...)); res.Error != nil {
+					t.Fatalf("%s round %d half %d: control: %v", sh.name, r, half, res.Error)
+				}
+			}
+		}
+		for qi, dq := range sh.dump {
+			got := queryDump(t, fast, dq)
+			want := queryDump(t, ctrl, dq)
+			if len(got) != len(want) {
+				t.Fatalf("%s dump %d: fast cells = %d, control cells = %d\nfast=%v\nctrl=%v", sh.name, qi, len(got), len(want), got, want)
+			}
+			for i := range want {
+				if got[i] != want[i] {
+					t.Fatalf("%s dump %d cell %d: fast = %q, control = %q", sh.name, qi, i, got[i], want[i])
+				}
+			}
+		}
+		ctrl.Close()
+	}
+}
+
+// sqlLiteralText renders one bound Go value as the SQL literal a control
+// statement spells it with (the same literal bindLiteral's node carries).
+func sqlLiteralText(v interface{}) string {
+	switch x := v.(type) {
+	case nil:
+		return "NULL"
+	case bool:
+		if x {
+			return "1"
+		}
+		return "0"
+	case string:
+		return "'" + strings.ReplaceAll(x, "'", "''") + "'"
+	case []byte:
+		h := make([]byte, 0, len(x)*2+3)
+		h = append(h, 'x', '\'')
+		const hexdigits = "0123456789ABCDEF"
+		for _, b := range x {
+			h = append(h, hexdigits[b>>4], hexdigits[b&0xF])
+		}
+		return string(append(h, '\''))
+	case float64:
+		// bindFloatLiteral renders NaN as NULL and refuses infinities.
+		if math.IsNaN(x) {
+			return "NULL"
+		}
+		if math.IsInf(x, 0) {
+			if x > 0 {
+				return "9e999"
+			}
+			return "-9e999"
+		}
+		return fmtFloat(x)
+	default:
+		return fmt.Sprintf("%d", v)
 	}
 }
 

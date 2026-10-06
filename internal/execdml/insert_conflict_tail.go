@@ -12,19 +12,31 @@ import (
 )
 
 func (e *DMLExecutor) pkRowID(tableName string, colDefs []sql.ColumnDef, values []interface{}, rootPage uint32, withoutRowid bool) (int64, error) {
+	r, _, err := e.pkRowIDSource(tableName, colDefs, values, rootPage, withoutRowid)
+	return r, err
+}
+
+// pkRowIDSource is pkRowID that also reports whether the rowid came from an
+// EXPLICIT PK/rowid value (true) or was auto-assigned (false). The
+// distinction outlives fillIPKRowID: fillIPK overwrites an auto IPK with the
+// assigned rowid and reports ipkIndex -1 for an explicit one, so callers
+// downstream of the fill can no longer tell the two apart from (values,
+// ipkIndex) alone — and only an AUTO rowid may be re-allocated after a
+// BEFORE trigger consumed the pre-computed one.
+func (e *DMLExecutor) pkRowIDSource(tableName string, colDefs []sql.ColumnDef, values []interface{}, rootPage uint32, withoutRowid bool) (int64, bool, error) {
 	if r, ok, err := e.explicitPKRowID(tableName, colDefs, values, rootPage, withoutRowid); ok || err != nil {
 		if err != nil {
-			return 0, err
+			return 0, false, err
 		}
-		return r, nil
+		return r, true, nil
 	}
 	next := e.findNextRowID(tableName, rootPage)
 	if e.ctx.TableHasAutoIncrement(tableName) && (next == -1<<63 || next == 0) {
 		// AUTOINCREMENT sequence exhausted: SQLite reports "database or
 		// disk is full" rather than wrapping the rowid.
-		return 0, fmt.Errorf("database or disk is full")
+		return 0, false, fmt.Errorf("database or disk is full")
 	}
-	return next, nil
+	return next, false, nil
 }
 
 // explicitPKRowID derives the rowid from an explicitly supplied PRIMARY KEY

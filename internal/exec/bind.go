@@ -138,20 +138,132 @@ func BindStmtValues(stmts []sql.Stmt, plan *BindPlan, values []interface{}) ([]s
 
 // bindParam substitutes one parameter marker: it consumes the next
 // occurrence slot, cross-checks numbered/named tokens against the node's
-// own text, and builds the literal node for the slot's bound value.
-func (c *exprClone) bindParam(node *sql.ParameterExpr) (sql.Expr, bool) {
+// own text, and builds the literal node for the slot's bound value. The
+// second return is the InsLitVals stash value (nil when the value kind is
+// not stashed verbatim — see bindStashValue).
+func (c *exprClone) bindParam(node *sql.ParameterExpr) (sql.Expr, interface{}, bool) {
 	if c.bindOccI >= len(c.bind.occ) {
-		return nil, false
+		return nil, nil, false
 	}
 	slot := c.bind.occ[c.bindOccI]
 	if want, checkable := bindTokenSlot(node.Name, c.bind.names); checkable && want != slot {
-		return nil, false
+		return nil, nil, false
 	}
 	c.bindOccI++
 	if slot < 1 || slot > len(c.bindValues) {
+		return nil, nil, false
+	}
+	return bindLiteralStash(c.bindValues[slot-1])
+}
+
+// bindLiteralStash builds the literal node for one bound value and reports
+// whether the value itself can serve as the tuple stash entry.
+func bindLiteralStash(v interface{}) (sql.Expr, interface{}, bool) {
+	node, ok := bindLiteral(v)
+	if !ok {
+		return nil, nil, false
+	}
+	stash, ok := bindStashValue(v)
+	if !ok {
+		return node, nil, true
+	}
+	return node, stash, true
+}
+
+// bindStashValue reports the SQL value execution would evaluate for the
+// literal node bindLiteral builds from v: identical kind and content to
+// EvalExpr's result for that node (int-family binds parse back to int64, a
+// finite float64 parses back to itself through its 'g'/".0" text, a string
+// serves a StringLit verbatim). Kinds whose parse-back is ambiguous or
+// exotic (unsigned beyond int64, blob, nil/NULL, NaN→NULL) are refused —
+// the stash entry stays nil and the node is evaluated as before, exactly
+// like the template slot-path gates.
+func bindStashValue(v interface{}) (interface{}, bool) {
+	switch x := v.(type) {
+	case int64, string:
+		// Serve the caller's own interface word — re-boxing the concrete
+		// value would pay an allocation per slot per execution.
+		return v, true
+	case float64:
+		return bindStashFloat(x)
+	case bool:
+		if x {
+			return int64(1), true
+		}
+		return int64(0), true
+	case int, int8, int16, int32, uint, uint8, uint16, uint32, uint64:
+		return bindStashInt(v)
+	}
+	return nil, false
+}
+
+// bindStashFloat stashes a finite float64 verbatim; NaN binds as NULL
+// (bindFloatLiteral) and an infinity refuses the node outright — neither
+// may be stashed as the float itself.
+func bindStashFloat(f float64) (interface{}, bool) {
+	if math.IsNaN(f) || math.IsInf(f, 0) {
 		return nil, false
 	}
-	return bindLiteral(c.bindValues[slot-1])
+	return f, true
+}
+
+// bindStashInt converts any Go integer-kind (or bool) bind to the int64 the
+// literal text parses back to. An unsigned value beyond int64 would parse
+// back as a REAL — refused (the node is evaluated as before).
+func bindStashInt(v interface{}) (interface{}, bool) {
+	switch x := v.(type) {
+	case int:
+		return int64(x), true
+	case int8:
+		return int64(x), true
+	case int16:
+		return int64(x), true
+	case int32:
+		return int64(x), true
+	case uint64:
+		if x <= math.MaxInt64 {
+			return int64(x), true
+		}
+		return nil, false
+	case uint:
+		if uint64(x) <= math.MaxInt64 {
+			return int64(x), true
+		}
+		return nil, false
+	case uint8:
+		return int64(x), true
+	case uint16:
+		return int64(x), true
+	case uint32:
+		return int64(x), true
+	}
+	return nil, false
+}
+
+// bindStashFor readies the clone's InsLitVals to the Values shape for the
+// bind-mode tuple stash, reusing a recycled tenant's arrays when the shape
+// matches (the same once-per-tenant allocation rule as the template slot
+// path's stashTarget). Shape mismatches — a tenant last used by a different
+// statement — allocate fresh.
+func bindStashFor(clone *sql.InsertStmt, values [][]sql.Expr) [][]interface{} {
+	if len(clone.InsLitVals) == len(values) {
+		same := true
+		for ti, tuple := range values {
+			if cap(clone.InsLitVals[ti]) < len(tuple) || len(clone.InsLitVals[ti]) != len(tuple) {
+				same = false
+				break
+			}
+		}
+		if same {
+			return clone.InsLitVals
+		}
+	}
+	stash := make([][]interface{}, len(values))
+	for ti, tuple := range values {
+		stash[ti] = make([]interface{}, len(tuple))
+	}
+	clone.InsLitVals = stash
+	return stash
 }
 
 // bindTokenSlot re-derives a parameter token's slot from its own text:
