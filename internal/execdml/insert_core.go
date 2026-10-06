@@ -63,8 +63,8 @@ func (e *DMLExecutor) execInsert(s *sql.InsertStmt) *Result {
 // checkEchoExplicitRowid rejects a non-integer explicit rowid value on an
 // echo write-through INSERT before the source write (see execInsert).
 func (e *DMLExecutor) checkEchoExplicitRowid(s *sql.InsertStmt) *Result {
-	for _, tuple := range s.Values {
-		if res := e.checkEchoTupleRowid(s.Columns, tuple); res != nil {
+	for ti, tuple := range s.Values {
+		if res := e.checkEchoTupleRowid(s.Columns, tuple, insertTupleLits(s, ti)); res != nil {
 			return res
 		}
 	}
@@ -72,15 +72,23 @@ func (e *DMLExecutor) checkEchoExplicitRowid(s *sql.InsertStmt) *Result {
 }
 
 // checkEchoTupleRowid validates one VALUES tuple's explicit rowid value (see
-// checkEchoExplicitRowid).
-func (e *DMLExecutor) checkEchoTupleRowid(columns []string, tuple []sql.Expr) *Result {
+// checkEchoExplicitRowid). lits is the tuple slot's bound-value stash: a
+// non-nil entry IS the slot's evaluated value (bindStashValue contract) —
+// the stash's placeholder node must never be evaluated.
+func (e *DMLExecutor) checkEchoTupleRowid(columns []string, tuple []sql.Expr, lits []interface{}) *Result {
 	for i, expr := range tuple {
 		if i >= len(columns) || !execquery.IsRowIDName(columns[i]) {
 			continue
 		}
-		v, err := e.ctx.EvalExpr(expr, nil)
-		if err != nil {
-			return nil // evaluation errors surface unwrapped later
+		var v interface{}
+		if lit := tupleLit(lits, i); lit != nil {
+			v = lit
+		} else {
+			ve, err := e.ctx.EvalExpr(expr, nil)
+			if err != nil {
+				return nil // evaluation errors surface unwrapped later
+			}
+			v = ve
 		}
 		if v != nil {
 			if _, ok := mustBeIntRowid(v); !ok {
