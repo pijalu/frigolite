@@ -3234,3 +3234,56 @@ clear every statement).
   backed ATTACH races (cleanupTestDBFiles vs t.Parallel), not engine bugs;
   gate the suite at GOMAXPROCS=4. Also: zsh does not word-split `env $E`
   — bench env vars must be passed explicitly.
+
+## PERF.LITCACHE — finisher session: bind-path stash, oracle-parity fixes, adjudications (2026-10-06)
+
+Completes the slot-path stash across the PREPARED-STMT (bind) path and fixes
+two oracle gaps the new pins exposed. Commits 1ebf195ce/23ac19099/a24c338b6
+(+ f1e4b86a1 lessons, edf6e06b0 bind stash, b7e101812 REPLACE triggers).
+
+- **Bind-path stash**: `bindStashFor` readies the recycled INSERT tenant's
+  `InsLitVals` (reuse when the shape matches — allocate-once like the
+  template path's stashTarget), `insertValue` (3-value form) fills EVERY
+  entry per substitution (nil for non-param items) — full overwrite, no
+  stale. Kind gates mirror the slot path: int families/finite
+  floats/strings stash verbatim (serve the caller's interface word —
+  re-boxing costs an alloc/slot/exec); blob/NULL/NaN/uint64>MaxInt64 stay
+  evaluated. TestStmtRepeatExecNoReparse: bound 336→204-209 B/op vs
+  literal 261-266 — the prepared path now BEATS literal.
+- **In-place literal rewrite is UNSAFE on the bind path** (tried, reverted):
+  rewriteSameKindLiteral(prev) corrupted SHARED AST nodes — a recycled
+  tenant's slot can hold a template/Stmt-shared literal kept by a previous
+  non-param substitution, and a later same-kind bind rewrite mutates the
+  shared node (observed: q5's literal `1` read as 100001 after qa reused
+  the tenant). The template slot path is safe because its live clone is
+  per-(entry,depth) and never shared; bind tenants rotate across shapes.
+  Fresh nodes per bind stay mandatory.
+- **fillIPKRowID returns ipkIndex -1 for an EXPLICIT IPK** — its return
+  cannot distinguish explicit from no-IPK downstream. pkRowIDSource now
+  returns (rowid, explicit, err) decided PRE-fill; fireInsertRowBefore-
+  Triggers gates the post-BEFORE-trigger rowid re-allocation on !explicit
+  (oracle 3.51: explicit ids are stored as given; a BEFORE trigger
+  consuming the next rowid still pushes the AUTO row up).
+- **INSERT OR REPLACE fires NO delete triggers with recursive_triggers OFF**
+  (insert.c OE_Replace — the UPDATE OR REPLACE path already gated this;
+  the INSERT path didn't). Oracle: REPLACE of a child-referenced parent
+  SUCCEEDS (FK counter nets out in-statement) with side tables empty, and
+  with recursive_triggers=ON the delete triggers fire exactly once.
+  TestPerfStmtJournalReplaceFKTriggerRollback rewritten to those oracle
+  end-states (it had pinned the accidental pre-fix behavior: explicit id
+  re-alloc made the child FK check fail).
+- **Gate adjudications**: TestSQLiteSuite full-suite fails ~4443-4450
+  subtests at ANY parallelism on base AND branch (pristine git-archive
+  export of 8375084d3 identical) — pre-existing rot amplified by
+  cleanupTestDBFiles racing t.Parallel files; rotating solo-green flakes:
+  TestWindowCGroupConcatBlobUTF16, TestP8IncrVacuum3OracleSequence,
+  TestNativeThreadConcurrentWritersSerialize. FRIGOLITE_TEST is a
+  Contains-match (probing `8_3_names` also runs `f_8_3_names`). The
+  allocs/op pin measures BYTES (TotalAlloc), not objects. Live-main
+  checkout re-confirmed as non-baseline; pristine export in
+  /tmp/perf/basecheck is the reference. Quality-gate hard fails (engine.go
+  1027 lines etc.) are pre-existing at base; branch files pass
+  gocognit/gocyclo/staticcheck.
+- **Bench**: paired interleaved 3 rounds (mission env) — see final report;
+  run scripts /tmp/perf/litcache/paired3.sh. zsh: do not `env $E`
+  (no word-splitting) — pass env inline.
