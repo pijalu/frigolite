@@ -426,6 +426,16 @@ type Engine struct {
 	pfDMLFP     uint64
 	pfDMLFKOn   bool
 	pfDMLErr    error
+
+	// aiMemo* memoizes tableHasAutoIncrement's verdict per (schema
+	// fingerprint, table name): the insert path asks it from both the
+	// statement-end-hook gate and autoIncStatementSetup, and an unmemoized
+	// ask scans the whole column-definition cache. Any DDL moves the
+	// all-schemas fingerprint, so a DROPped/CREATEd same-name table cannot
+	// serve a stale verdict.
+	aiMemoFp    uint64
+	aiMemoTable string
+	aiMemoHas   bool
 }
 
 // engineSettings groups the PRAGMA/config flags and limits that previously

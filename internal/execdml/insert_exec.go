@@ -25,30 +25,19 @@ func (e *DMLExecutor) validateInsertReturning(s *sql.InsertStmt, colDefs []sql.C
 	return nil
 }
 
-// withInsertReplaceSnapshot installs the statement-journal rollback for
-// INSERT OR REPLACE, keyed off the caller's named return value.
-func (e *DMLExecutor) withInsertReplaceSnapshot(dbCtx *DatabaseContext, s *sql.InsertStmt, ret **Result) func() {
-	if !s.IsReplace {
-		return func() {}
+// insertReplaceJournal opens the statement journal for INSERT OR REPLACE
+// (the historical withInsertReplaceSnapshot's BeginStatement half): the
+// rollback-on-error and EndStatement halves live in finishInsertEndHooks,
+// applied at the exact point the historical defer unwound. A nil return
+// means no journal is owed: not an OR REPLACE statement, or an FTS-flush
+// internal shadow REPLACE (the %_stat hint write per automerge — part of
+// the enclosing statement's rollback scope, no constraints to violate;
+// fts4merge4 2.2.x).
+func (e *DMLExecutor) insertReplaceJournal(dbCtx *DatabaseContext, s *sql.InsertStmt) *pager.StmtJournal {
+	if !s.IsReplace || e.ctx.InFTSFlush() {
+		return nil
 	}
-	// Skip the statement journal for the FTS flush's internal shadow-table
-	// REPLACEs (the %_stat hint write per automerge): they are part of the
-	// enclosing statement's rollback scope and have no constraints to violate
-	// (fts4merge4 2.2.x).
-	if e.ctx.InFTSFlush() {
-		return func() {}
-	}
-	stmt := dbCtx.Pager.BeginStatement()
-	return func() {
-		if *ret != nil && (*ret).Error != nil {
-			e.ctx.RollbackPagerStatement(dbCtx.Pager, stmt)
-			// Rows whose rowids were computed for the aborted statement
-			// are gone; the cached rowid counter must not survive.
-			e.ctx.ResetNextRowIDCache()
-			e.ctx.ResetAutoIncSeq()
-		}
-		defer dbCtx.Pager.EndStatement(stmt)
-	}
+	return dbCtx.Pager.BeginStatement()
 }
 
 // prepareInsertStmt performs pre-execution checks and rewrites for an INSERT:
@@ -206,7 +195,9 @@ func (e *DMLExecutor) tupleErrorResult(err error, tableEntry *schema.Entry, colD
 func (e *DMLExecutor) insertOneTuple(dbCtx *DatabaseContext, tableEntry *schema.Entry, colDefs []sql.ColumnDef, s *sql.InsertStmt, tuple []sql.Expr, lits []interface{}) (changes int64, inserted int64, rowValues []interface{}, rowid int64, skip bool, err error) {
 	var values []interface{}
 	var evalErr error
-	if s.HasReturning || e.hasTriggersForTable(tableEntry.Name) || e.ctx.ForeignKeys() {
+	sh := e.insertShapeFor(tableEntry, colDefs)
+	hasTriggers := sh != nil && sh.hasTriggers
+	if s.HasReturning || hasTriggers || e.ctx.ForeignKeys() {
 		// RETURNING rows escape the statement, and a trigger body or an FK
 		// action (CASCADE/SET NULL insert) nests another INSERT on the SAME
 		// executor while this row's values are still in flight — the nested

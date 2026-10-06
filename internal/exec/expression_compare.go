@@ -93,20 +93,34 @@ func (e *Engine) randomFreeRowID(tree *btree.BTree) int64 {
 
 // tableHasAutoIncrement reports whether the table declares an AUTOINCREMENT
 // column (an INTEGER PRIMARY KEY AUTOINCREMENT column in a rowid table).
+// The verdict is a pure function of the table's CREATE text, so the colCache
+// walk is memoized under the all-schemas fingerprint — the same invalidation
+// contract as the engine's other fingerprint-guarded memos. The insert path
+// asks this twice per statement (the statement-end-hook gate and
+// autoIncStatementSetup); without the memo each ask scans the whole
+// column-definition cache, and a name-only memo would serve a DROPped/CREATEd
+// same-name table's stale verdict.
 func (e *Engine) tableHasAutoIncrement(tableName string) bool {
 	// The colCache is keyed by tableName + "\x00" + createSQL (see
 	// parseColumnDefs); scan all entries for this table name. The table may
 	// be cached under multiple SQL keys after ALTER TABLE.
+	fp := e.allSchemasFingerprint()
+	if e.aiMemoFp == fp && e.aiMemoTable == tableName {
+		return e.aiMemoHas
+	}
+	has := false
 	for k, colDefs := range e.caches.colCache {
 		if k == tableName || strings.HasPrefix(k, tableName+"\x00") {
 			for _, cd := range colDefs {
 				if cd.AutoInc {
-					return true
+					has = true
+					break
 				}
 			}
 		}
 	}
-	return false
+	e.aiMemoFp, e.aiMemoTable, e.aiMemoHas = fp, tableName, has
+	return has
 }
 
 // bumpRowIDCache records a row with the given rowid as present in the table.

@@ -98,10 +98,7 @@ func (e *DMLExecutor) checkEchoTupleRowid(columns []string, tuple []sql.Expr, li
 	}
 	return nil
 }
-
-// execInsertInner is execInsert's statement pipeline (the echo write-through
-// wrapper above re-routes its errors).
-func (e *DMLExecutor) execInsertInner(s *sql.InsertStmt) (ret *Result) {
+func (e *DMLExecutor) execInsertInnerBody(s *sql.InsertStmt, h *insertEndHooks) *Result {
 	// Generic updatable virtual tables (sqlite_dbpage etc.): INSERT routes to
 	// the module's InsertRow (xUpdate parity); prepareInsertStmt then
 	// validates the statement shape.
@@ -130,11 +127,14 @@ func (e *DMLExecutor) execInsertInner(s *sql.InsertStmt) (ret *Result) {
 	}
 	// fts5 INSERTs persist the index blob once, at the statement boundary
 	// (sqlite3Fts5StorageSync's statement-end flush): the per-row writes only
-	// mark the table dirty and the pending blob flushes here.
-	if _, isFTS5 := e.ctx.FTS5Tables()[tableEntry.Name]; isFTS5 {
-		defer func() {
-			e.flushInsertFTS5Shadow(tableEntry, &ret)
-		}()
+	// mark the table dirty and the pending blob flushes here. The resolved
+	// entry (post echo-rewrite, post view dispatch — view targets never
+	// reach this point) is authoritative; finishInsertEndHooks applies the
+	// flush on every exit, matching the historical defer.
+	if h != nil {
+		if _, isFTS5 := e.ctx.FTS5Tables()[tableEntry.Name]; isFTS5 {
+			h.fts5Entry = tableEntry
+		}
 	}
 	// build.c sqlite3AddColumnToList: every name in the INSERT column list
 	// must be a real table column ("table t has no column named z").
@@ -186,11 +186,17 @@ func (e *DMLExecutor) execInsertInner(s *sql.InsertStmt) (ret *Result) {
 	// successful INSERT on an AUTOINCREMENT table (directly or via triggers),
 	// write the running max back to the real sqlite_sequence table. The
 	// write is skipped for empty statements that do not touch the table.
-	cleanupAutoInc, res := e.autoIncStatementSetup(dbCtx, tableEntry, &ret)
-	if res != nil {
+	// The pending write is parked on the hooks struct and applied by
+	// finishInsertEndHooks (the historical defer's position in the unwind
+	// order); the hook-free fast path (h == nil) cannot reach this with a
+	// pending write because insertNeedsEndHooks gates AUTOINCREMENT tables
+	// onto the hooked wrapper.
+	if needSeq, seqPg, seqRoot, seqTable, res := e.autoIncStatementSetup(dbCtx, tableEntry); res != nil {
 		return res
+	} else if needSeq && h != nil {
+		h.kind |= hookAutoInc
+		h.seqPg, h.seqRoot, h.seqTable = seqPg, seqRoot, seqTable
 	}
-	defer cleanupAutoInc()
 
 	// RETURNING validation runs first (a bad column list fails the statement
 	// even for the routed paths), then the routed bodies: virtual tables
@@ -204,7 +210,14 @@ func (e *DMLExecutor) execInsertInner(s *sql.InsertStmt) (ret *Result) {
 
 	// REPLACE deletes rows and may fire triggers before inserting; if anything
 	// fails the whole statement must be rolled back (SQLite statement journal).
-	defer e.withInsertReplaceSnapshot(dbCtx, s, &ret)()
+	// The journal opens at this exact point (after the routed bodies, before
+	// the row writes) and finishInsertEndHooks applies its rollback.
+	if h != nil {
+		if stmt := e.insertReplaceJournal(dbCtx, s); stmt != nil {
+			h.kind |= hookReplace
+			h.replaceCtx, h.replaceStmt = dbCtx, stmt
+		}
+	}
 
 	return e.execInsertTuples(dbCtx, tableEntry, colDefs, s)
 }
@@ -238,29 +251,6 @@ func (e *DMLExecutor) execInsertPrecheck(s *sql.InsertStmt) *Result {
 		return res
 	}
 	return e.prepareInsertStmt(s)
-}
-
-// autoIncStatementSetup validates the sqlite_sequence table up front for an
-// AUTOINCREMENT insert and returns the statement-end sequence write (a no-op
-// for non-AUTOINCREMENT targets). The write is skipped when the statement
-// failed.
-func (e *DMLExecutor) autoIncStatementSetup(dbCtx *DatabaseContext, tableEntry *schema.Entry, ret **Result) (func(), *Result) {
-	if !(e.ctx.TableHasAutoIncrement(tableEntry.Name) && dbCtx != nil) {
-		return func() {}, nil
-	}
-	// The sqlite_sequence table must exist and be an ordinary rowid
-	// table before an AUTOINCREMENT insert uses it (autoinc-12.2/12.3:
-	// a renamed-away or impostor sqlite_sequence fails the insert with
-	// SQLITE_CORRUPT, "database disk image is malformed").
-	if res := e.validateSequenceTable(dbCtx); res != nil {
-		return nil, res
-	}
-	seqTable := tableEntry.Name
-	seqPg := dbCtx.Pager
-	seqRoot := tableEntry.RootPage
-	return func() {
-		e.writeAutoIncSeqOnSuccess(seqPg, seqRoot, seqTable, ret)
-	}, nil
 }
 
 // insertReturningValidation validates the RETURNING column list when the
@@ -316,16 +306,6 @@ func (e *DMLExecutor) resolveInsertTarget(s *sql.InsertStmt) (*schema.Entry, *Da
 	return tableEntry, dbCtx, nil
 }
 
-// flushInsertFTS5Shadow persists a dirty fts5 index at statement end,
-// surfacing a flush error only when the statement did not already fail.
-func (e *DMLExecutor) flushInsertFTS5Shadow(tableEntry *schema.Entry, ret **Result) {
-	if t5, ok := e.ctx.FTS5Tables()[tableEntry.Name]; ok && t5 != nil {
-		if ferr := e.flushFTS5Shadow(t5); ferr != nil && (*ret == nil || (*ret).Error == nil) {
-			*ret = &Result{Error: ferr}
-		}
-	}
-}
-
 // validateInsertSourceAndCollations rejects an fts5 write fed by an fts5vocab
 // cursor over the same table (fts5vocab2.test 5.1/5.2: the vocab vtab holds a
 // read on the index; SQLite aborts the conflicting write with SQLITE_ABORT),
@@ -340,26 +320,6 @@ func (e *DMLExecutor) validateInsertSourceAndCollations(tableEntry *schema.Entry
 	}
 	return e.validateIndexCollations(tableEntry, colDefs, nil)
 }
-
-// writeAutoIncSeqOnSuccess writes the AUTOINCREMENT running max back to the
-// real sqlite_sequence table at statement end (insert.c autoIncrementEnd),
-// skipping the write when the statement failed.
-func (e *DMLExecutor) writeAutoIncSeqOnSuccess(seqPg *pager.Pager, seqRoot uint32, seqTable string, ret **Result) {
-	if *ret != nil && (*ret).Error != nil {
-		return
-	}
-	seq, ok := e.ctx.AutoIncSeqFor(seqPg, seqRoot)
-	if !ok {
-		seq = 0
-	}
-	_ = e.ctx.WriteSQLiteSequence(seqPg, seqTable, seq)
-}
-
-// validateInsertReturning validates the RETURNING clause against the table's
-// column definitions.
-
-// validateInsertReturning validates the RETURNING clause against the table's
-// column definitions.
 
 // strictCheckValues enforces STRICT table type checking on non-generated
 // column values.
@@ -519,9 +479,13 @@ func (e *DMLExecutor) columnReplaceVerdict(cd *sql.ColumnDef, tableEntry *schema
 // pre-computed one. Returns a non-nil Result on trigger failure (errRowSkipped
 // for RAISE(IGNORE)).
 func (e *DMLExecutor) insertRow(pg *pager.Pager, tableEntry *schema.Entry, colDefs []sql.ColumnDef, values []interface{}, fixedRowID *int64, orConflict string) *Result {
-	// Route FTS virtual table inserts directly to the FTS table.
-	if res := e.insertFTSRow(tableEntry, values, fixedRowID, orConflict); res != nil {
-		return res
+	// Route FTS virtual table inserts directly to the FTS table. The shape
+	// memo's noFTS flag (a pure function of the schema row) skips the two
+	// engine map lookups for every plain b-tree row.
+	if sh := e.insertShapeFor(tableEntry, colDefs); sh == nil || !sh.noFTS {
+		if res := e.insertFTSRow(tableEntry, values, fixedRowID, orConflict); res != nil {
+			return res
+		}
 	}
 
 	// Open a statement journal so a statement-end FOREIGN KEY failure
@@ -625,7 +589,9 @@ func (e *DMLExecutor) insertRow(pg *pager.Pager, tableEntry *schema.Entry, colDe
 // constraints for a row being inserted.
 func (e *DMLExecutor) checkConstraints(tableEntry *schema.Entry, colDefs []sql.ColumnDef, values []interface{}, rowID int64) error {
 	// Fast path: if there are no constraints at all, skip allocation entirely
-	if !e.hasInsertConstraints(tableEntry, colDefs) {
+	// (the shape memo carries the hasInsertConstraints verdict).
+	sh := e.insertShapeFor(tableEntry, colDefs)
+	if sh == nil || !sh.hasConstraints {
 		return nil
 	}
 
@@ -643,13 +609,19 @@ func (e *DMLExecutor) checkConstraints(tableEntry *schema.Entry, colDefs []sql.C
 	if e.tableHasCheckConstraint(tableEntry, colDefs) {
 		row = buildRowMapFromValues(values, colDefs, rowID)
 	}
-	withoutRowid := tableIsWithoutRowid(tableEntry.SQL)
+	withoutRowid := sh.withoutRowid
 
 	if err := e.checkColumnConstraints(tableEntry, colDefs, values, row, withoutRowid); err != nil {
 		return err
 	}
 
-	// UNIQUE and PRIMARY KEY uniqueness check
+	// UNIQUE and PRIMARY KEY uniqueness check. A table whose ONLY uniqueness
+	// source is the INTEGER PRIMARY KEY rowid alias takes the append-biased
+	// rowid seek alone: no value walk, no unique-col list build, no
+	// composite-group scan, no unique-index scan can fire.
+	if sh.reducedRowidUnique {
+		return e.reducedRowidUniqueConflict(tableEntry, colDefs, values, sh.ipkIdx, 0, false)
+	}
 	if err := e.checkUniqueConstraints(tableEntry, colDefs, values); err != nil {
 		return err
 	}
@@ -680,7 +652,16 @@ func (e *DMLExecutor) checkConstraints(tableEntry *schema.Entry, colDefs []sql.C
 // in an index expression raises SQLite's "non-deterministic use of %s() in an
 // index" error, matching OP_PureFunc semantics.
 func (e *DMLExecutor) maintainIndexesOnInsert(tableEntry *schema.Entry, colDefs []sql.ColumnDef, values []interface{}, rowID int64) error {
-	defs := e.allTableIndexes(tableEntry.Name)
+	// The shape memo carries the table's index list (the allTableIndexes
+	// fingerprint-validated result), so the per-row call skips the schema
+	// stamp fold and cache probe for tables with no indexes at all.
+	sh := e.insertShapeFor(tableEntry, colDefs)
+	var defs []indexDef
+	if sh != nil {
+		defs = sh.indexDefs
+	} else {
+		defs = e.allTableIndexes(tableEntry.Name)
+	}
 	if len(defs) == 0 {
 		return nil
 	}

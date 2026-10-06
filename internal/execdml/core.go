@@ -65,6 +65,18 @@ type DMLExecutor struct {
 	ipkIdxLen         int
 	ipkIdxCache       int
 
+	// shape* memoizes one table's insert-path shape (insertShapeFor — the
+	// WITHOUT ROWID / STRICT / AUTOINCREMENT / trigger / FTS /
+	// uniqueness-source probes and the index list) under the schema
+	// fingerprint, the same guard pattern as ciCache: SQLite derives the
+	// equivalent once at CREATE/prepare time (tabFlags, constraint masks,
+	// VDBE index ops); the shape struct is shared and read-only.
+	shapeFingerprint uint64
+	shapeEntry       *schema.Entry
+	shapeDefs        *sql.ColumnDef
+	shapeLen         int
+	shapeCache       *insertTableShape
+
 	// dbList caches the non-nil, schema-bearing database contexts of
 	// e.ctx.Databases() for per-statement walks over all databases
 	// (databasesSchemaStamp, validateLoadedTriggers), refreshed when the

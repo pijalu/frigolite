@@ -24,7 +24,7 @@ var errLeafFull = fmt.Errorf("btree: page is full")
 // Returns errLeafFull when the page cannot hold the cell (the caller
 // splits). Space comes from allocateSpaceOnPage's btree.c precedence:
 // freeblock slot, then (defragmented) content-area gap.
-func (t *BTree) writeLeafCell(pg *pager.Page, page *storage.BTreePage, newCell *storage.Cell, cellData []byte, coff int) error {
+func (t *BTree) writeLeafCell(pg *pager.Page, page *storage.BTreePage, newCell *storage.Cell, cellData []byte, coff int, dupAlreadyDropped bool) error {
 	if page == nil {
 		var err error
 		page, err = storage.ParsePage(pg.Data, int(t.pageSize), coff)
@@ -49,12 +49,17 @@ func (t *BTree) writeLeafCell(pg *pager.Page, page *storage.BTreePage, newCell *
 	// makes DELETE/UPDATE/seek hit the wrong row and duplicates appear in
 	// scans — fts4merge4 2.2.x: the L0 flush and L2 output re-used rowids
 	// 33/34, creating duplicate %_segdir rows).
-	if t.isTable {
-		if err := t.dropTableLeafDuplicateRowid(pg, page, newCell.RowID); err != nil {
+	if t.isTable && !dupAlreadyDropped {
+		dropped, err := t.dropTableLeafDuplicateRowid(pg, page, newCell.RowID)
+		if err != nil {
 			return err
 		}
-		// Recompute the insertion position after a possible deletion.
-		insertIdx = t.findInsertPositionTable(pg, page, newCell.RowID)
+		// Recompute the insertion position only after an actual deletion
+		// (the search is a leaf-wide binary walk; a plain insert that dropped
+		// nothing reuses the position it just computed).
+		if dropped {
+			insertIdx = t.findInsertPositionTable(pg, page, newCell.RowID)
+		}
 	}
 
 	// Allocate the cell's bytes (freeblock reuse, defragment-on-demand, or
@@ -396,8 +401,19 @@ func (t *BTree) readCellsForSplit(st *splitStaging, pg *pager.Page, page *storag
 }
 
 // sortSplitCells orders cells by key (rowid for tables, full payload for
-// indexes).
+// indexes). A leaf page's cells are ALREADY in key order (the b-tree
+// invariant the insert walk maintains); the split only interleaves the one
+// incoming cell. SQLite's balance_leaf exploits that order and never
+// re-sorts (src/btree.c distributes cells in stored order); the historical
+// unconditional bubble sort here paid O(n²) comparisons per split —
+// ~60k compares for a 350-cell leaf — with ZERO swaps on the common
+// sequential-load/append shape (the new cell is the largest key). One
+// linear sortedness probe (n compares) now bypasses the sort; a probe miss
+// falls back to the stable bubble unchanged.
 func sortSplitCells(cells []splitEntry, isTable bool, cmp func(a, b []byte) int) {
+	if splitCellsSorted(cells, isTable, cmp) {
+		return
+	}
 	if isTable {
 		bubbleSortSplitCells(cells, func(a, b splitEntry) bool {
 			return a.cell.RowID > b.cell.RowID
@@ -407,6 +423,23 @@ func sortSplitCells(cells []splitEntry, isTable bool, cmp func(a, b []byte) int)
 	bubbleSortSplitCells(cells, func(a, b splitEntry) bool {
 		return cmp(a.key, b.key) > 0
 	})
+}
+
+// splitCellsSorted reports whether cells are already in ascending key order
+// (rowids for table b-trees, key bytes for index b-trees).
+func splitCellsSorted(cells []splitEntry, isTable bool, cmp func(a, b []byte) int) bool {
+	for i := 1; i < len(cells); i++ {
+		if isTable {
+			if cells[i-1].cell.RowID > cells[i].cell.RowID {
+				return false
+			}
+			continue
+		}
+		if cmp(cells[i-1].key, cells[i].key) > 0 {
+			return false
+		}
+	}
+	return true
 }
 
 // bubbleSortSplitCells sorts cells in place using a "greater than"
