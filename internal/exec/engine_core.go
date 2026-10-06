@@ -721,6 +721,12 @@ func (e *Engine) findViewInList(name string) (*schema.Entry, *DatabaseContext, b
 // consumes it at entry.
 func (e *Engine) execDepthLeave() {
 	e.tx.execDepth--
+	// Re-tag the SELECT result pool's frame to the enclosing execution: a
+	// nested Exec leaves the tag pointing at its own (deeper) frame, and the
+	// enclosing statement's post-nested acquisitions (its post-scan result)
+	// must return to the frame whose slots no nested statement of a LATER
+	// sub-expression can still be filling while the enclosing result is read.
+	e.selectEngine.SetResultFrame(e.tx.execDepth)
 	if e.tx.execDepth == 0 {
 		e.tx.snapActive = false
 		e.interrupted = false
@@ -935,6 +941,14 @@ func (e *Engine) execEntry(stmt sql.Stmt) *Result {
 	}
 
 	e.tx.execDepth++
+
+	// Tag the SELECT result pool's statement frame with THIS execution's
+	// depth: a nested engine.Exec (a vtab module's shadow SQL, an eval() UDF,
+	// a trigger statement) must land in its own frame — its caller can still
+	// be iterating its own pooled SELECT result across the nested Exec
+	// (execdml's insert-select write loop), and a selectDepth-only slot
+	// array would collide the two (the rtreeE INSERT-into-rtree corruption).
+	e.selectEngine.SetResultFrame(e.tx.execDepth)
 
 	// Start of an outermost statement: allow the schema managers' external-mod
 	// check to re-read the file change counter once (a connection must observe

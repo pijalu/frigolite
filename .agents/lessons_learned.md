@@ -3665,3 +3665,44 @@ agg-walk fast path).
   substitution (exec.nextLiteral) are outside this tranche's scope
   (template/clone + parse owned elsewhere). Pager exposes no cheap dirty
   generation — the validation-based ParsedBTree memo makes one unnecessary.
+
+## FIX-R8POINT — result-pool frame collision (fleet/fix-r8point, 2026-10-06)
+
+The R8.POINT result-struct pool (pooledSelectResult, selectDepth-indexed)
+broke rtree vtab content: INSERT INTO rt2 SELECT * FROM t2 iterates the
+source SELECT's rows while every rtree xUpdate issues shadow SQL through
+engineVtabDB.ExecSQL (d.e.Exec) — a nested engine.Exec that restarts
+selectDepth at 1 and took the SAME pool slot, zeroing the source result
+struct under the write loop. The rtree kept ~2 of 10001 rows; every later
+rt2 read (plain scan AND MATCH breadthfirstsearch) served the truncated
+content as rowid garbage ([448] = a stray rowid from the truncated walk).
+Census: rtreeE 1071/2/290 vs 1073/0 at base. Fixed in 148fee27f by keying
+the pool per statement FRAME (the engine's execDepth, SetResultFrame on
+every Exec entry, re-tagged to the enclosing depth in execDepthLeave) —
+nested executions land in their own frame; the enclosing statement keeps
+its slot across the whole nested Exec.
+
+- **Pooling rule, restated**: a pooled object may only be reacquired when
+  every possible still-live consumer has copied what it keeps. selectDepth
+  alone does NOT bound a result's lifetime — consumers may hold it across
+  NESTED engine.Exec calls (insert-select source rows during vtab shadow
+  writes; the same shape as any UDF-driven write loop). Key caches by
+  (statement frame, nesting depth) when the object can outlive a nested
+  execution.
+- **DML Results are NOT pooled** (fresh &Result{} in execdml) — that is why
+  fts-optimize's levelsRes-held-across-INSERT pattern never collided and
+  why the fix needed no execdml changes.
+- **Bisect discipline**: a single testgen run per SHA produced a WRONG
+  boundary (flagged C1); two runs per SHA pinned it exactly at the pooling
+  commit. Under sibling-fleet load, treat single-run verdicts as noise —
+  the same flake band applies to tests, not just benches. A minimal
+  standalone repro (file-backed db, PRAGMA page_size=512, bulk
+  INSERT-SELECT into the rtree, then MATCH) turned a 11s/iteration testgen
+  bisect into a 5s/iteration probe and made the corruption visible
+  directly (plain scan saw 2 rows — no MATCH machinery involved at all).
+- **Read the failure backwards**: got [448 0 0 0 0] for SELECT * on the
+  MATCH query was the give-away — zeros for every coordinate mean the
+  ROWS THEMSELVES were gone, i.e. a WRITE-path loss, not a query-path
+  misprojection; "which fused path engaged on vtab" was the wrong question.
+- **total(x) returns float64** (SQLite REAL aggregate) — a pin asserting
+  int64 via type assertion reads 0; use sum(x) for integer totals in pins.
