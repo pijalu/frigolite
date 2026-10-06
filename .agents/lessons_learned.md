@@ -1,5 +1,64 @@
 # Lessons Learned — Frigolite
 
+## R8.UPDATE (2026-10-06) — point-UPDATE collect diet + typed SET fast lane (fleet/r8-update)
+
+- **The collect path's hidden no-op**: `RemapWRRecordToDeclared` re-parsed
+  the CREATE TABLE text (ToUpper + PK-list scan) PER ROW to decide a
+  permutation that point-UPDATE's own gates already exclude (WITHOUT ROWID
+  tables never reach applyPointUpdate). Before deleting a per-row call, ask
+  what its gates already guarantee — the same trick as the preupdate gate
+  and CHECK-exists gating rounds. 6.25% of the update profile for free.
+- **ReadCellData > ReadCell for single-row fetches**: ReadCell builds a
+  full storage.Cell (DecodeCell copies the payload); ReadCellData hands the
+  payload bytes + rowid straight off the cached leaf page. The delete path
+  knew this; the update collect didn't. Same fusion applies to any new
+  point-op family.
+- **Typed SET fast lane rules** (update_setlane.go): compile the assignment
+  list per statement into slot-indexed ops; evaluate ALL results before the
+  FIRST store (the row map's all-RHS-see-the-original-row semantics —
+  oracle-verified: `SET a=a+1, a=a*10` stores old*10, not (old+1)*10).
+  Mirror execexpr exactly: addInt64/subInt64 overflow→REAL, the float64
+  round-trip of * / % (bug-compatible above 2^53), x/0 and x%0 NULL, %
+  divisor cast through int64 with minInt64%-1→0, NaN→NULL, target affinity
+  after evaluation. Any other shape OR runtime operand type (text, blob)
+  falls back BEFORE the first store — the fallback re-runs the generic path
+  byte-identically. Encoded operand refs must have an explicit literal
+  marker (laneRefLit = -3): a zero-valued ref collides with slot 0 and
+  silently reads column 0 (burned once; the rollback-exactness pin caught
+  it as "earlier statement's write lost" — a misleading symptom for a
+  value-corruption bug).
+- **Parity pin pattern**: force the generic pipeline with `WHERE id = N+0`
+  (not a constant equality → planDMLSeek declines) and diff whole-table
+  images between the point path and the scan path for every lane shape.
+  Cheaper and more complete than per-shape oracle probes for the fallback
+  surface; oracle probes then only pin the engaged numeric/affinity edges.
+- **Memoize schema-shape predicates under fingerprint + entry identity**
+  (the ciCache guard pattern): tableIsWithoutRowid was scanned 3-4x per
+  point UPDATE statement (shape gate, conflict layout skip, constrained-def
+  walk, CHECK walk). Same pattern now also de-boxed uniqueColValuesMatch's
+  IPK rowid compare (both slots NULL → compare rowids directly, no int64
+  boxing).
+- **Update-phase walls after this round** (paired deltas only; the machine
+  runs sibling fleet agents): the remaining CPU is btree SeekToRowID +
+  OverwriteCellByRowIDAt (~22%, internal/btree — report-scope), exec-side
+  per-statement glue execPreflight + updateCOW AST clone + execResult
+  (~30% combined, internal/exec + frigolite glue — execPreflight and
+  updateCOW are off-scope for execdml missions; an in-place per-Stmt
+  COW clone would need an engine-side ownership audit), and GC from those
+  same allocs. Pooling *Result changes the public API's lifetime contract —
+  do not pool without a documented "valid until next Exec" rule.
+- **-race on the full harness needs an explicit -timeout**: the suite under
+  race exceeds go's default 10m on a loaded machine and the timeout panic
+  mimics a failure. execdml + pager race clean; focused root pins race
+  clean in seconds.
+- **Numbers** (own scratch driver /tmp/perf/r8upd, 3-col table, prepared
+  `UPDATE t SET c=c+1 WHERE id=?` in-txn, paired interleaved vs main
+  @32253d08d): quiet-machine solo runs went 356k→514k ops/s (+44%) across
+  the round; under fleet load the paired band was main 366k vs worktree
+  449k (+22.7%) to 403k vs 492k (+21%) depending on sibling activity —
+  only paired deltas mean anything (third repro of the loaded-machine
+  lesson).
+
 ## PERF.JOURNAL (2026-10-05) — statement-journal capture moved to write intent (fleet/perf-journal)
 
 - **Read-time before-image capture taxed every seek for pages that are
