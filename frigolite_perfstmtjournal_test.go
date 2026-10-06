@@ -92,10 +92,25 @@ func TestPerfStmtJournalNoMatchDeleteTiming(t *testing.T) {
 	}
 }
 
-// TestPerfStmtJournalReplaceFKTriggerRollback: INSERT OR REPLACE on a parent table with
-// BEFORE/AFTER DELETE triggers writing side tables, failing an FK mid-
-// statement: the whole statement — conflict deletes, trigger side effects,
-// the inserted row — must roll back, and the database must stay consistent.
+// TestPerfStmtJournalReplaceFKTriggerRollback pins REPLACE-under-FK against
+// sqlite3 3.51 (oracle CLI, verified 2026-10-06; the pre-fix engine failed
+// the success case with FOREIGN KEY constraint failed because the explicit
+// INTEGER PRIMARY KEY was re-allocated after the conflict delete, and it
+// fired the REPLACE-implied delete triggers that the oracle suppresses):
+//
+//  1. SUCCESS — REPLACE of a parent row referenced by a child applies: the
+//     FK counter nets out inside the statement (conflict delete −1, key
+//     re-insert +1), and with recursive_triggers OFF the REPLACE-implied
+//     deletes fire NO delete triggers (insert.c OE_Replace; conflict3.test
+//     13.x observes the same disposition for UPDATE OR REPLACE), so the
+//     side tables stay empty.
+//
+//  2. FAILURE — REPLACE of a child row whose new parent does not exist
+//     fails the FK mid-statement: the statement journal must roll back the
+//     conflict delete, leaving the original child row in place.
+//
+//  3. With recursive_triggers ON the same parent REPLACE fires the delete
+//     triggers exactly once (oracle: side_before=[1], audit=before,after).
 func TestPerfStmtJournalReplaceFKTriggerRollback(t *testing.T) {
 	db := setupPerfStmtDB(t)
 	mustExecPerfStmt(t, db, "PRAGMA foreign_keys=ON")
@@ -109,52 +124,63 @@ func TestPerfStmtJournalReplaceFKTriggerRollback(t *testing.T) {
 	mustExecPerfStmt(t, db, "INSERT INTO parent VALUES (1, 'a'), (2, 'b')")
 	mustExecPerfStmt(t, db, "INSERT INTO child VALUES (100, 1)")
 
-	// REPLACE id=1: the conflicting parent row 1 is deleted (BEFORE/AFTER
-	// triggers fire, writing side tables), then the new row fails the FK in
-	// the child direction... the child still references parent 1, so deleting
-	// parent 1 violates RESTRICT — the whole statement must abort.
-	res := db.Exec("INSERT OR REPLACE INTO parent VALUES (1, 'c')")
-	if res.Error == nil {
-		t.Fatalf("REPLACE violating FK should have failed")
+	// Scenario 1: REPLACE of the referenced parent succeeds and fires no
+	// delete triggers (recursive_triggers defaults to OFF).
+	if res := db.Exec("INSERT OR REPLACE INTO parent VALUES (1, 'c')"); res.Error != nil {
+		t.Fatalf("oracle: REPLACE of a referenced parent applies: %v", res.Error)
 	}
-
-	// Full pre/post state checks.
 	gotParents := queryRowsPerfStmt(t, db, "SELECT id, v FROM parent ORDER BY id")
-	wantParents := [][]interface{}{{int64(1), "a"}, {int64(2), "b"}}
-	if len(gotParents) != 2 || gotParents[0][0] != int64(1) || gotParents[0][1] != "a" || gotParents[1][0] != int64(2) {
-		t.Errorf("parents after failed REPLACE = %v, want %v", gotParents, wantParents)
+	wantParents := [][]interface{}{{int64(1), "c"}, {int64(2), "b"}}
+	if len(gotParents) != 2 || gotParents[0][0] != int64(1) || gotParents[0][1] != "c" || gotParents[1][0] != int64(2) {
+		t.Errorf("parents after REPLACE = %v, want %v", gotParents, wantParents)
 	}
 	for _, tbl := range []string{"side_before", "side_after", "audit"} {
 		if rows := queryRowsPerfStmt(t, db, "SELECT count(*) FROM "+tbl); rows[0][0] != int64(0) {
-			t.Errorf("%s not rolled back: %v", tbl, rows[0][0])
+			t.Errorf("%s rows after recursive-off REPLACE = %v, want 0 (OE_Replace fires no delete triggers)", tbl, rows[0][0])
 		}
 	}
-	if rows := queryRowsPerfStmt(t, db, "SELECT id, pid FROM child"); len(rows) != 1 || rows[0][0] != int64(100) {
+	if rows := queryRowsPerfStmt(t, db, "SELECT id, pid FROM child"); len(rows) != 1 || rows[0][0] != int64(100) || rows[0][1] != int64(1) {
 		t.Errorf("child changed: %v", rows)
 	}
 	if rows := queryRowsPerfStmt(t, db, "PRAGMA integrity_check"); len(rows) != 1 || rows[0][0] != "ok" {
 		t.Errorf("integrity_check: %v", rows)
 	}
 
-	// A successful REPLACE still works after the failed one (journal state
-	// is not stuck), and the child must be deleted first. (The engine's
-	// REPLACE path re-allocates the rowid instead of reusing the deleted
-	// row's — pre-existing behavior, verified identical on origin/main; this
-	// test pins the rollback-relevant contract: the replace applies, the
-	// triggers fired exactly once, state is consistent.)
-	mustExecPerfStmt(t, db, "DELETE FROM child")
-	mustExecPerfStmt(t, db, "INSERT OR REPLACE INTO parent VALUES (1, 'c')")
-	if rows := queryRowsPerfStmt(t, db, "SELECT count(*) FROM parent WHERE v='c'"); rows[0][0] != int64(1) {
-		t.Errorf("successful REPLACE did not apply: %v", rows)
+	// Scenario 2: a REPLACE whose new row violates the child's own FK fails
+	// mid-statement; the journal rolls back the conflict delete.
+	res := db.Exec("INSERT OR REPLACE INTO child VALUES (100, 999)")
+	if res.Error == nil {
+		t.Fatalf("REPLACE with missing parent should have failed the FK")
 	}
-	if rows := queryRowsPerfStmt(t, db, "SELECT count(*) FROM parent"); rows[0][0] != int64(2) {
-		t.Errorf("parent count after successful REPLACE = %v, want 2", rows[0][0])
+	if rows := queryRowsPerfStmt(t, db, "SELECT id, pid FROM child"); len(rows) != 1 || rows[0][0] != int64(100) || rows[0][1] != int64(1) {
+		t.Errorf("child not rolled back: %v, want [[100 1]]", rows)
 	}
-	if rows := queryRowsPerfStmt(t, db, "SELECT count(*) FROM side_before"); rows[0][0] != int64(1) {
-		t.Errorf("side_before after successful REPLACE = %v, want 1", rows[0][0])
+	if rows := queryRowsPerfStmt(t, db, "SELECT count(*) FROM audit"); rows[0][0] != int64(0) {
+		t.Errorf("audit rows after failed child REPLACE = %v, want 0", rows[0][0])
 	}
 	if rows := queryRowsPerfStmt(t, db, "PRAGMA integrity_check"); len(rows) != 1 || rows[0][0] != "ok" {
-		t.Errorf("integrity_check after success: %v", rows)
+		t.Errorf("integrity_check after failure: %v", rows)
+	}
+
+	// Scenario 3: with recursive_triggers ON the REPLACE-implied deletes
+	// fire their triggers exactly once (oracle: side_before=[1],
+	// audit=[before after]).
+	mustExecPerfStmt(t, db, "PRAGMA recursive_triggers=ON")
+	mustExecPerfStmt(t, db, "INSERT OR REPLACE INTO parent VALUES (1, 'd')")
+	if rows := queryRowsPerfStmt(t, db, "SELECT count(*) FROM parent WHERE v='d'"); rows[0][0] != int64(1) {
+		t.Errorf("recursive-on REPLACE did not apply: %v", rows)
+	}
+	if rows := queryRowsPerfStmt(t, db, "SELECT count(*) FROM parent"); rows[0][0] != int64(2) {
+		t.Errorf("parent count after recursive-on REPLACE = %v, want 2", rows[0][0])
+	}
+	if rows := queryRowsPerfStmt(t, db, "SELECT count(*) FROM side_before"); rows[0][0] != int64(1) {
+		t.Errorf("side_before after recursive-on REPLACE = %v, want 1", rows[0][0])
+	}
+	if rows := queryRowsPerfStmt(t, db, "SELECT count(*) FROM audit"); rows[0][0] != int64(2) {
+		t.Errorf("audit rows after recursive-on REPLACE = %v, want 2", rows[0][0])
+	}
+	if rows := queryRowsPerfStmt(t, db, "PRAGMA integrity_check"); len(rows) != 1 || rows[0][0] != "ok" {
+		t.Errorf("integrity_check after recursive-on REPLACE: %v", rows)
 	}
 }
 

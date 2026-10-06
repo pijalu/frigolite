@@ -773,7 +773,12 @@ func (e *DMLExecutor) replaceDeleteConflicts(pg *pager.Pager, tableEntry *schema
 	// trigger-inserted rows).
 	conflicts, _ := e.collectReplaceConflicts(pg, tableEntry, colDefs, colIndex, values, replaceRowID)
 
-	hasTriggers := e.hasTriggersForTable(tableEntry.Name)
+	// insert.c OE_Replace: the rows deleted by REPLACE conflict resolution
+	// fire their row triggers only when the recursive-triggers flag is set —
+	// the same disposition deleteConflictRows applies for UPDATE OR REPLACE
+	// (conflict3.test 13.x). Oracle 3.51: with the default OFF, the
+	// conflicting row vanishes silently and the replace applies.
+	hasTriggers := e.hasTriggersForTable(tableEntry.Name) && e.ctx.RecursiveTriggers()
 	tree := e.ctx.TableBTreePg(pg, tableEntry.Name, tableEntry.RootPage, true)
 	for _, cr := range conflicts {
 		if res := e.deleteReplaceConflictRow(tree, tableEntry, colDefs, cr.rowID, cr.values, hasTriggers); res != nil {
