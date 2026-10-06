@@ -580,14 +580,11 @@ func (c *Cursor) AtEnd() bool {
 }
 
 func (c *Cursor) seekInLeafTable(pg *pager.Page, page *storage.BTreePage, rowID int64) (bool, error) {
-	// Binary search on row IDs. The probe loop addresses the cell pointer
-	// array directly (fixed stride from the page header): one u16 load +
-	// mask per probe, the payload-length varint skipped with a 1-byte fast
-	// path (a rowid under 128 bytes of payload — the overwhelmingly common
-	// cell — avoids GetVarint's multi-byte loop). Corruption reports are
-	// unchanged; a corrupt pointer-array index reports malformed one layer
-	// lower instead of slicing out of bounds.
-	// Leaf table cells store rowID after payload length
+	// Binary search on row IDs; leaf table cells store rowID after payload
+	// length. The probe loop addresses the cell pointer array directly
+	// (storage.CellPointer re-derived the content offset per probe) and
+	// takes a 1-byte fast path for the payload-length varint. Corruption
+	// reports are unchanged.
 	lo, hi := 0, int(page.CellCount)-1
 	base := contentOffset(pg.PageNum) + 8
 	mask := uint16(c.tx.pageSize - 1)

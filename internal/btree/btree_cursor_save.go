@@ -391,16 +391,10 @@ func (c *Cursor) seekTableLeafWithPath(pageNum uint32, rowID int64) (bool, error
 // routeInteriorTable computes the descent for an interior table page: the
 // (child index, child page) pair for rowID, matching seekInInteriorTable's
 // separator convention. A crafted cell pointer aimed at the page tail
-// reports corruption (Go slices panic where SQLite's masked in-page
-// addressing stays in-bounds).
-//
-// The probe loop addresses the cell pointer array directly: it sits at a
-// fixed stride from the page header, so each probe is one u16 load + mask,
-// one varint, one u32 load. storage.CellPointer re-derived the content
-// offset and re-took the pageSize conversion on every probe — measurable on
-// the point-seek descent. The checks are the same corruption reports (a
-// corrupt pointer-array index reports malformed one layer lower instead of
-// slicing out of bounds).
+// reports corruption. The probe loop addresses the cell pointer array
+// directly (fixed stride from the page header; storage.CellPointer
+// re-derived the content offset per probe); the corruption checks are
+// unchanged.
 func (c *Cursor) routeInteriorTable(pg *pager.Page, page *storage.BTreePage, rowID int64) (int, uint32, error) {
 	lo, hi := 0, int(page.CellCount)-1
 	childPage := page.RightmostPtr

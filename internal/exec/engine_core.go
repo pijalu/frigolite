@@ -278,10 +278,9 @@ func (e *Engine) PrepareExec(sqlStr string) ([]sql.Stmt, error) {
 }
 
 func (e *Engine) prepareCached(sqlStr string, scratchOK bool) ([]sql.Stmt, error) {
-	// Every statement this call returns carries the shape-stability verdict of
-	// the path that produced it (setStmtShapeStable): exact-text cache, slot-
-	// path live clone, and fresh parse are template-stable; the COW scratch
-	// clone is not (its structs recycle across templates).
+	// Every returned statement carries the producing path's shape-stability
+	// verdict (setStmtShapeStable): exact-text cache, slot-path live clone,
+	// and fresh parse are stable; the COW scratch clone is not.
 	e.setStmtShapeStable(false)
 	// Tokenize-time SQL length limit (tokenize.c sqlite3RunParser: mxSqlLen
 	// counts the SQL text against db->aLimit[SQLITE_LIMIT_SQL_LENGTH];
@@ -310,11 +309,9 @@ func (e *Engine) prepareCached(sqlStr string, scratchOK bool) ([]sql.Stmt, error
 	var normKey uint64
 	if hasLits {
 		normKey = e.normHash.Sum64()
-		stmts, hit := e.tryTemplateCache(sqlStr, normKey, values, spans, scratchOK)
-		if hit {
-			// A slot-path live-clone hit is template-stable (one persistent
-			// clone per (template, depth)); a COW scratch hit is not. The
-			// stability verdict was set by whichever path produced the list.
+		if stmts, hit := e.tryTemplateCache(sqlStr, normKey, values, spans, scratchOK); hit {
+			// Stability verdict set by the producing path (live clone =
+			// stable, COW scratch = not).
 			return stmts, nil
 		}
 	}
@@ -337,9 +334,8 @@ func (e *Engine) prepareCached(sqlStr string, scratchOK bool) ([]sql.Stmt, error
 		return stmts, perr
 	}
 	e.caches.stmtCache[sqlStr] = stmts
-	// A fresh parse is retained by the exact-text cache: stable identity (the
-	// memos hold their keyed ASTs alive, so a freed-and-reused address can
-	// never alias a stale entry).
+	// Retained by the exact-text cache: stable identity (the memos hold their
+	// keyed ASTs alive, so a freed address can never alias a stale entry).
 	e.setStmtShapeStable(true)
 	if hasLits {
 		// The normalized text is materialized once, on the store path only
