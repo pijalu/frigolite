@@ -45,10 +45,16 @@ func (e *DMLExecutor) execPointDelete(s *sql.DeleteStmt, tableEntry *schema.Entr
 	if e.ctx.InFTSFlush() {
 		return nil, false
 	}
-	// Statement journal for the FK-failure rollback (pager.c sub-journal),
-	// exactly as execDeleteBulk opens it for every statement.
-	stmt := dbCtx.Pager.BeginStatement()
-	defer dbCtx.Pager.EndStatement(stmt)
+	// NO per-path statement journal here: execDeleteBulk opens one for its
+	// FK-failure rollback (RollbackPagerStatement on the bulk path), but this
+	// fast path excludes FK enforcement and never replays the scope — its
+	// only failure exits (seek anomalies, delete/rebalance errors) return
+	// handled=false or a plain error Result, and the ENGINE's statement
+	// scope (Engine.execSnapshotDML, opened around every DML statement)
+	// carries the before-images that Engine.undoFailedDML replays. Dropping
+	// the redundant scope removes one Begin/End round-trip per statement;
+	// capture semantics are unchanged (the innermost scope — this one or the
+	// engine's — takes exactly one before-image either way).
 	// The point path's cached write wrapper (insertWriteTree pattern): the
 	// statement's leaked internal seek cursors are released on return, and a
 	// root-moving rebalance is re-keyed + persisted before the next hit.
