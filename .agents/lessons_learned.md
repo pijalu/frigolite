@@ -4015,3 +4015,50 @@ paired interleaved ratio decides.
   allocator span refill/madvise from page-mutating statements (runtime).
   SQLite-C per-statement floor for this shape is ~0.6-0.8µs; frigolite is
   at ~1.16-1.36µs.
+
+## R11.RESEARCH — C-vs-frigolite per-op work-diff (fleet/r11-research, 2026-10-07)
+
+Full doc: benchmarks/R11_RESEARCH.md (this branch). Per-op step lists with
+C line refs vs Go file:line, annotated MATCHES-C / FRIGOLITE-EXTRA /
+FRIGOLITE-DIFFERENT. Ranked top-10 lever table there. The durable points:
+
+- **C never re-parses a page; frigolite re-parses it after every mutation.**
+  C's MemPage is parsed ONCE at cache load and nCell/nFree/content-start are
+  maintained incrementally by insertCell/dropCell/allocateSpace; frigolite's
+  ParsedBTree memo is validation-based, so every write invalidates it and the
+  NEXT statement pays ParsePageInto + memo alloc + hdrSnap copy (~120-250ns).
+  The R10 note's fix stands: mutating btree paths PUBLISH their post-write
+  parse (patch memo bytes + fields) instead of invalidating. Top lever
+  (#1), serves insert+update+delete.
+- **C's append insert runs NO search** (`loc=-1` from USESEEKRESULT,
+  `idx = ++pCur->ix`, btree.c:9612). frigolite's writeLeafCell calls
+  findInsertPositionTable (binary walk, 2 GetVarint/probe) UNCONDITIONALLY —
+  even on the proven-append quick path where claimQuickAppend already proved
+  rowID > maxKey. Thread insertIdx through; quick path passes CellCount.
+- **C grows the file implicitly; frigolite truncates per page.**
+  pager_write_pagelist does ONE SIZE_HINT then pwrites a pre-built dirty
+  linked list (no sort, no per-page truncate); db-file truncate happens ONCE
+  iff bDoTruncate. frigolite's flushOrderLocked makes+sorts a slice per
+  flush and flushPage file.Truncates before EVERY page beyond EOF (+quota
+  check each). Insert-only lever, file-backed shapes (R8's 24% item).
+- **Most surprising: frigolite answers C's O(log n) sqlite3BtreeLast
+  (OP_NewRowid) with scanMaxRowID — a FULL TABLE SCAN decoding every cell —
+  whenever the rowid cache misses, and every point UPDATE/DELETE
+  Invalidates that cache first.** Zero cost on the current single-phase
+  bench shapes; an O(n) cliff on any interleaved workload. Fix: rightmost-
+  leaf descent (rightmostTableLeaf already implements the walk).
+- **Point-UPDATE's overwrite re-parses what the seek just parsed:**
+  OverwriteCellByRowIDAt does a fresh storage.ParsePage (bypassing the
+  ParsedBTree memo) + TableLeafCellSizeAt re-walks the cell header that
+  DecodeCellInto just read. C: xParseCell once + bare memcpy. Route through
+  the memo and fuse size+overflow into one header parse.
+- **Point-DELETE parity is close** (O(1) dropCell port + needValues decode
+  gate faithful to OP_Delete); residue is the double header parse in
+  pointDeleteTarget + next-cell probe + cursor/funnel churn.
+- **Point-SELECT has no single lever left**: memo validation + cursor-churn
+  mutex pairs (open+register, release+unregister) + funnel preamble ≈ the
+  130ns gap. 1.14x is near the floor without registry redesign.
+- Autocommit funnel (execEntry/preflight/flush walks) is frigolite-only
+  structure (~40-90ns/stmt) — C rides opcode dispatch with two early-outs
+  (OP_Transaction in-txn no-op, eState<CACHEMOD commit no-op). Collapse
+  walks; don't chase below the C dispatch floor.
