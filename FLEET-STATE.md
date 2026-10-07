@@ -1307,3 +1307,19 @@ file autocommit 10,603 (1.06x FASTER). Campaign start 2026-09-28:
 10.9x/1040x/6.5x/3.9x/2049x/885x — every gap within 2.3x of oracle-
 parity, two phases faster, zero functionality regressions (census
 identical throughout).
+
+## PERF-PARITY7 (2026-10-03, milestone) — R10 two-lane round merged; scan AT PARITY (1.04x)
+
+fleet/r10-insscan (scan span-table — header walk doubles as per-slot
+value-span table, resolveSlotOffs O(1), exact corruption parity; typed-
+lane tight batch loop +12%; Cursor.batchScratch; fixed-arity all-int64
+record encode byte-parity-pinned; insert shape threading) — scan
+37.5M→49.6M rows/s. fleet/r10-dml (can't-abort point UPDATE/DELETE skip
+the statement journal — sqlite parity for statements that cannot fail
+after writes, decision-matrix pins for OR-clauses/triggers/FK/LIMIT
+shapes; per-statement glue cuts) — update +14%, delete +27%. Milestone
+bench (main 31120cb9f vs sqlite3 3.54 same ops): insert 1,043,361 ops/s
+(1.45x), point 936,469 (1.14x), scan 49,611,151 (1.04x AT PARITY),
+group 50 q/s (1.32x FASTER), update 772,039 (1.58x), delete 962,707
+(1.65x), file autocommit 11,018 (1.14x FASTER). Campaign start:
+10.9x/1040x/6.5x/3.9x/2049x/885x.
