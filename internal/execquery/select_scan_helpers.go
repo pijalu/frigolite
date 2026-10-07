@@ -80,6 +80,86 @@ func parseRecordSerialTypesInto(payload []byte, serialTypes []uint64) ([]uint64,
 	return serialTypes, pos, nil
 }
 
+// parseRecordSerialTypesOffsetsInto parses the header exactly like
+// parseRecordSerialTypesInto and additionally records each serial entry's
+// value span relative to the data section: entry i's value bytes are
+// payload[dataStart+offs[i] : dataStart+offs[i+1]] (offs has len(types)+1
+// entries, the last marking the end of the final value). This is the typed
+// aggregate lane's O(1) slot address book: a call reads its slot's span
+// instead of re-walking the preceding serial types' lengths per row.
+//
+// Corruption parity with resolveSlot (the walk this replaces):
+//   - a corrupt serial type (10/11) has no length: its slot and every later
+//     slot record -1, and the consumer's resolve reports not-ok — the same
+//     "leave the slot NULL" outcome the generic walk's SerialTypeLength
+//     error produces;
+//   - a truncated body is NOT a parse error: offsets are prefix sums, so a
+//     short body pushes the end past len(payload) and the consumer's bounds
+//     check reports it per slot (identical to the walk's pos+n check).
+//
+// offs returns nil when the offsets cannot be represented (a payload over
+// 2GB cannot index in int32); the caller falls back to the generic walk.
+func parseRecordSerialTypesOffsetsInto(payload []byte, serialTypes []uint64, offs []int32) ([]uint64, []int32, int, error) {
+	if len(payload) > 1<<31-1 {
+		st, dataStart, err := parseRecordSerialTypesInto(payload, serialTypes)
+		return st, nil, dataStart, err
+	}
+	if len(payload) == 0 {
+		// GetVarint's empty-input contract returns (0, 1); hdrEnd 0 < pos 1
+		// is the generic parse's malformed verdict.
+		return nil, nil, 0, fmt.Errorf("database disk image is malformed")
+	}
+	pos := 0
+	var hdrSize uint64
+	var n int
+	if b := payload[0]; b < 0x80 {
+		hdrSize, n = uint64(b), 1
+	} else {
+		hdrSize, n = util.GetVarint(payload)
+	}
+	pos += n
+	hdrEnd := int(hdrSize)
+	if hdrEnd < pos || hdrEnd > len(payload) {
+		return nil, nil, 0, fmt.Errorf("database disk image is malformed")
+	}
+	rel := int32(0)
+	for pos < hdrEnd {
+		var st uint64
+		if b := payload[pos]; b < 0x80 {
+			st, n = uint64(b), 1
+		} else {
+			st, n = util.GetVarint(payload[pos:])
+		}
+		pos += n
+		serialTypes = append(serialTypes, st)
+		offs = append(offs, rel)
+		if rel < 0 {
+			// Poisoned by a corrupt type upstream: this slot's span stays
+			// unreachable (start -1), like the generic walk's error.
+			continue
+		}
+		switch {
+		case st == storage.SerialNull || st == storage.SerialZero || st == storage.SerialOne:
+			// zero-length value (0, 8, 9)
+		case st <= storage.SerialInt32: // 1..4 → len st
+			rel += int32(st)
+		case st == storage.SerialInt48:
+			rel += 6
+		case st <= storage.SerialFloat: // int64 (6) and float (7) → 8
+			rel += 8
+		case st < storage.SerialMin:
+			// 10/11 are reserved: no length exists, so this slot's END and
+			// every later span become unreachable (the generic walk errors
+			// resolveSlot the same way).
+			rel = -1
+		default:
+			rel += int32((st - 12) >> 1)
+		}
+	}
+	offs = append(offs, rel)
+	return serialTypes, offs, pos, nil
+}
+
 // appendScanStarValues appends the active (non-dropped) column values of a
 // decoded SELECT * row to the flat output slice. When affinity is active, the
 // ColumnValue/CollatedValue wrappers are unwrapped so internal comparison

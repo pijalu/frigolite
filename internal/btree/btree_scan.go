@@ -176,8 +176,12 @@ func (c *Cursor) scanTableLeafPage(fn func(b *LeafBatch) (stop bool, err error))
 	if page.CellCount == 0 {
 		return leafPageNext, nil
 	}
-	b := LeafBatch{c: c, pg: c.currentPg, page: page, coff: contentOffset(c.currentPg.PageNum)}
-	stop, err := fn(&b)
+	// Reuse the cursor's batch view: the consumer decodes cells synchronously
+	// inside fn and never retains the batch, so one per-cursor struct serves
+	// every leaf page of the walk (no per-page escape).
+	b := &c.batchScratch
+	*b = LeafBatch{c: c, pg: c.currentPg, page: page, coff: contentOffset(c.currentPg.PageNum)}
+	stop, err := fn(b)
 	if err != nil {
 		return leafPageDone, err
 	}

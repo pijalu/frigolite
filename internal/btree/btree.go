@@ -67,6 +67,13 @@ type Cursor struct {
 	// registered under (set by registerTreeCursor; read by the static
 	// finalizer).
 	regKey cursorTreeKey
+
+	// batchScratch is ScanTableLeaves' reusable per-page LeafBatch view
+	// (btree_scan.go): one zero-value-assignable struct per cursor lifetime
+	// instead of one heap escape per visited leaf page. The walker hands the
+	// consumer a pointer into it; the consumer must not retain the batch
+	// beyond its fn call (both in-tree consumers decode cells synchronously).
+	batchScratch LeafBatch
 }
 
 // cursorPathEntry records one level of the traversal path.
@@ -945,8 +952,16 @@ func (c *Cursor) readCellFallback() ([]byte, int64, error) {
 func tableLeafCellHeader(pg *pager.Page, cellOff int, usableSize uint32) ([]byte, int64, int, int, int, error) {
 	data := pg.Data[cellOff:]
 
-	// Skip payload length varint
-	plen, n := util.GetVarint(data)
+	// Skip payload length varint. The 1-byte inline check keeps the common
+	// small-payload cell off the general GetVarint path (a table-leaf scan
+	// runs this once per cell).
+	var plen uint64
+	var n int
+	if data[0] < 0x80 {
+		plen, n = uint64(data[0]), 1
+	} else {
+		plen, n = util.GetVarint(data)
+	}
 	pos := cellOff + n
 
 	// Read rowID varint

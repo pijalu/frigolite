@@ -497,6 +497,11 @@ type rangeSeekRow struct {
 	// serialTypes is the iterator's reusable record-header type buffer
 	// (parseRecordSerialTypesInto); consumed within each row's decode.
 	serialTypes []uint64
+	// slotOffs is the typed lane's reusable per-slot span table
+	// (parseRecordSerialTypesOffsetsInto): the value span of every serial
+	// entry, relative to the data section, computed during the same header
+	// walk so each aggregate call resolves its slot in O(1).
+	slotOffs []int32
 
 	rows [][]interface{}
 	maps []RowMap
@@ -832,15 +837,18 @@ func (it *rangeSeekRow) processRow(payload []byte, rowID int64) bool {
 
 // processRowTyped runs the direct-feed lane's row step: the lane owns the
 // covered loop, stepping the accumulators straight off the record bytes (no
-// decode, no WHERE — a covered plan has no per-row predicate). ok=false
+// decode, no WHERE — a covered plan has no per-row predicate). The header
+// parse doubles as the slot address book: each call's value span is computed
+// once per row here instead of re-walked per call (resolveSlotOffs). ok=false
 // falls back to the scan like every processRow anomaly.
 func (it *rangeSeekRow) processRowTyped(payload []byte, rowID int64) bool {
-	st, dataStart, err := parseRecordSerialTypesInto(payload, it.serialTypes[:0])
+	st, offs, dataStart, err := parseRecordSerialTypesOffsetsInto(payload, it.serialTypes[:0], it.slotOffs[:0])
 	if err != nil {
 		return false
 	}
 	it.serialTypes = st
-	if err := it.typed.stepDirect(payload, dataStart, st, rowID); err != nil {
+	it.slotOffs = offs
+	if err := it.typed.stepDirect(payload, dataStart, st, offs, rowID); err != nil {
 		return false
 	}
 	return true

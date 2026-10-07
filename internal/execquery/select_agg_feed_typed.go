@@ -137,10 +137,12 @@ func (e *SelectEngine) defaultEvalFor(cd *sql.ColumnDef) (interface{}, error) {
 // stepDirect feeds one row's record (payload + pre-parsed serial types) into
 // the lane's accumulators without decoding any interface value. err
 // propagates the aggregators' errors ("integer overflow" surfaces at Final;
-// a Step error here is the decoded path's step error too).
-func (l *typedAggLane) stepDirect(payload []byte, dataStart int, serialTypes []uint64, rowID int64) error {
+// a Step error here is the decoded path's step error too). offs is the
+// header parse's per-slot span table (parseRecordSerialTypesOffsetsInto) —
+// nil falls back to the generic header walk per call.
+func (l *typedAggLane) stepDirect(payload []byte, dataStart int, serialTypes []uint64, offs []int32, rowID int64) error {
 	for ci := range l.calls {
-		if err := l.calls[ci].stepCall(payload, dataStart, serialTypes, rowID); err != nil {
+		if err := l.calls[ci].stepCall(payload, dataStart, serialTypes, offs, rowID); err != nil {
 			return err
 		}
 	}
@@ -158,7 +160,7 @@ func (l *typedAggLane) stepDirect(payload []byte, dataStart int, serialTypes []u
 //   - integer/float serial types feed the unboxed accumulators;
 //   - text/blob serial types decode and step through the boxed path (the
 //     SUM family's numeric-text classification lives there).
-func (c *typedAggCall) stepCall(payload []byte, dataStart int, serialTypes []uint64, rowID int64) error {
+func (c *typedAggCall) stepCall(payload []byte, dataStart int, serialTypes []uint64, offs []int32, rowID int64) error {
 	if c.countStar {
 		c.counter.CountRow()
 		return nil
@@ -172,7 +174,14 @@ func (c *typedAggCall) stepCall(payload []byte, dataStart int, serialTypes []uin
 	if c.diskSlot >= len(serialTypes) {
 		return c.feedDefault()
 	}
-	st, data, ok := c.resolveSlot(payload, dataStart, serialTypes)
+	var st uint64
+	var data []byte
+	var ok bool
+	if offs != nil {
+		st, data, ok = c.resolveSlotOffs(payload, dataStart, offs, serialTypes)
+	} else {
+		st, data, ok = c.resolveSlot(payload, dataStart, serialTypes)
+	}
 	if !ok {
 		return nil // corrupt record: the decoded path leaves the slot NULL
 	}
@@ -210,6 +219,26 @@ func (c *typedAggCall) resolveSlot(payload []byte, dataStart int, serialTypes []
 		return 0, nil, false
 	}
 	return serialTypes[c.diskSlot], payload[pos : pos+int(n)], true
+}
+
+// resolveSlotOffs is resolveSlot over the header parse's span table: the
+// slot's value bytes are payload[dataStart+offs[i] : dataStart+offs[i+1]] —
+// O(1), no preceding-types walk. Not-ok parity with the walk: a poisoned
+// span (corrupt serial type, itself or upstream), or an end past the payload
+// (truncated body) reports false — the slot reads NULL in both engines.
+func (c *typedAggCall) resolveSlotOffs(payload []byte, dataStart int, offs []int32, serialTypes []uint64) (st uint64, data []byte, ok bool) {
+	if c.diskSlot+1 >= len(offs) {
+		return 0, nil, false
+	}
+	start, end := offs[c.diskSlot], offs[c.diskSlot+1]
+	if start < 0 || end < 0 {
+		return 0, nil, false // corrupt serial type on this slot or upstream
+	}
+	vs, ve := dataStart+int(start), dataStart+int(end)
+	if vs > ve || ve > len(payload) {
+		return 0, nil, false // truncated body: the slot reads NULL
+	}
+	return serialTypes[c.diskSlot], payload[vs:ve], true
 }
 
 // feedDefault feeds the column's ADD COLUMN DEFAULT (past the record width).
