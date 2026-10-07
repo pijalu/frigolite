@@ -3884,3 +3884,61 @@ paired interleaved ratio decides.
 - btree -race full-package runs flake on TestCursorFinalizerSafetyNet
   (finalizer timing under race + 500s parallel load); it passes solo and
   on full-rerun — adjudicate per-test before hunting.
+
+## R10.DML — point UPDATE/DELETE tranche (fleet/r10-dml, 2026-10-07)
+
+- **The statement journal's per-statement cost is the scope open/close, not
+  the 4KB capture.** Killing BeginStatement/EndStatement + the before-image
+  capture for point UPDATE/DELETE (dmlCanSkipSnapshot extension to
+  can't-abort shapes) paid only ~+3-5%: the capture is a pooled-buffer
+  4KB memcpy (~100ns) and the scope bookkeeping ~150ns, against a ~1.4µs
+  statement budget. Real, but the mission-sized gap (300ns+) does not live
+  in the journal. What the skip DOES also remove: markDirtyLocked's
+  txn-time dirtyMark map write stays (load-bearing for later scopes'
+  memory-vs-fromFile classification) — do not "optimize" it away.
+- **Can't-abort = "WHERE contains a rowid-equality conjunct" + clause gates
+  + target gates.** The rowid equality bounds matching rows to ≤1 under ANY
+  evaluation (rowids unique), which is stronger than the executor's
+  point-seek shape: RHS may be a subquery, extra AND conjuncts are fine,
+  operand order/unary+/parens irrelevant. Must exclude: OR clauses,
+  RETURNING (evaluated after write), ORDER BY/LIMIT/OFFSET, UPDATE...FROM,
+  triggers, FK enforcement, FTS content, virtual tables, WITHOUT ROWID
+  tables, and tables whose rowid/_rowid_/oid name is a DECLARED column
+  (shadowing makes the term value-based, not rowid-pinned — multi-row).
+  Decision matrix pinned in internal/exec/dmlabortskip_pin_test.go; the
+  INSERT skip's semantics (interrupted row leaves writes visible) stay.
+- **GC is NOT the point-op bottleneck — measure before hunting garbage.**
+  GOGC=100 vs 300 moved nothing (±3% noise) despite madvise+mheap.alloc
+  showing ~25% of CPU samples: that cost tracks the LIVE heap (in-mem DB
+  pages + allocator span churn from page-mutating statements), not GC
+  frequency. Halving per-statement garbage (execResult public boundary,
+  120B/stmt) is expected to pay little; verify with GOGC first next time.
+- **Template-cache verdict memos need the shape-stability bit.** The
+  prepare-time WHERE/SET resolution walk (validateDMLExprs) now memoizes
+  per (stmt pointer, schema fingerprint) behind DMLContext.StmtShapeStable
+  (Engine.stmtShapeStable passthrough). Without the stability gate a
+  recycled COW-clone address would serve another template's verdict (the
+  pfASTStable rule, re-derived the hard way in FIX-R8POINT). Error verdicts
+  memoize too (vExprErr); unstable statements recompute WITHOUT touching
+  the slot.
+- **Lazy argument materialization at gates**: any check with an early-out
+  must not receive a freshly built expression slice ([]sql.Expr per
+  statement — updateTargetExprs, the delete []sql.Expr{s.Where} literal).
+  Build inside a closure/memo (validateDMLExprsVerdictMemo's build func) or
+  behind the cheap predicate (validateUpdateAliasQualifier).
+- **Paired A/B discipline held**: per-binary stable blocks (3 runs × 3
+  blocks per binary, block medians) — single alternating runs on this
+  machine swing ±4%. Paired-vs-main: update 643.6k→734.8k (+14.2%), delete
+  800.0k→868.0k (+8.5%). Against the mission's stated baseline (different
+  machine state): update 682.8k→734.8k, delete 805.7k→868.0k.
+- **Where the remaining gap lives (next round's map)**: btree
+  Cursor.SeekToRowID descent ~110-150ns/stmt (internal/btree — sibling
+  scope); Page.ParsedBTree full re-parse + hdrSnap re-copy on the FIRST
+  access after every page mutation (pager+btree cooperation: the mutating
+  path keeps its own parse result and could refresh the memo — btree files
+  out of r10 scope); the public *Result boundary (85-120B/stmt, one alloc,
+  can't pool without caller-retention aliasing); execexpr evalNumericLit
+  boxing the WHERE literal per substituted statement (execexpr scope);
+  allocator span refill/madvise from page-mutating statements (runtime).
+  SQLite-C per-statement floor for this shape is ~0.6-0.8µs; frigolite is
+  at ~1.16-1.36µs.
