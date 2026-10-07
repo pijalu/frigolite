@@ -1339,3 +1339,21 @@ insert 1,043,361 ops/s (1.45x), point 936,469 (1.14x), scan 49,611,151
 rows/s (1.04x AT PARITY), group 50 q/s (1.32x FASTER), update 772,039
 (1.58x), delete 962,707 (1.65x), file autocommit 11,018 (1.14x FASTER).
 Campaign start 2026-09-28: 10.9x/1040x/6.5x/3.9x/2049x/885x.
+
+## PERF-PARITY8 (2026-10-03, milestone) — R11 research round merged; POINT AT PARITY (1.04x)
+
+fleet/r11-btreememo (ParsedBTree refresh-on-mutation — design (b):
+write-path memo refresh with canary validation; HARD FINDING: write
+paths violated their own struct-sync contract — freeSpace/compact/
+finishLeafDelete holes caught by canary, fixed; delete-phase parse
+allocs 24MB→0, heap −19%), fleet/r11-litbox (substitution-time typed
+literal cache — SetCached(nil) forced per-statement re-parse; template
+last-entry memo — prepareCached cum 50→20ms), fleet/r11-research
+(benchmarks/R11_RESEARCH.md — per-op C-vs-frigolite work diff, ranked
+top-10 frigolite-only costs with C evidence; headline: scanMaxRowID is
+a FULL TABLE SCAN on rowid-cache miss and every point upd/del
+invalidates that cache first). Milestone bench (main 60d62f1a8 vs
+sqlite3 same ops): insert 1,023,305 ops/s (1.57x), point 927,055
+(1.04x AT PARITY), scan 49.8M rows/s (1.04x AT PARITY), group 50 q/s
+(1.32x FASTER), update 765,074 (1.58x), delete 995,500 (1.55x), file
+autocommit 10,400 (1.27x FASTER).
