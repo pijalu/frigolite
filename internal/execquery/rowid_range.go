@@ -749,6 +749,31 @@ func (it *rangeSeekRow) runBatch(a *rowidSeekAnalysis) (finished, ok bool) {
 			start = b.StartCell()
 			firstPage = false
 		}
+		if it.typed != nil {
+			// The typed lane's tight per-page loop: processRowTyped is the
+			// whole row step (a covered plan has no decode and no WHERE),
+			// so the boxed batchCell/processRow hops are dead weight here.
+			// The outcome folding is batchCell's verbatim.
+			n := b.CellCount()
+			for i := start; i < n; i++ {
+				payload, rowID, cellErr := b.Cell(i)
+				if cellErr != nil {
+					if errors.Is(cellErr, btree.ErrScanSaved) {
+						return true, nil // resume on the per-row loop
+					}
+					decline = true // the per-row loop's ReadCellData error path
+					return true, nil
+				}
+				if a.hiSet && rowID > a.hi {
+					return true, nil // the bound ends the range cleanly
+				}
+				if !it.processRowTyped(payload, rowID) {
+					decline = true // the scan fallback re-evaluates the row
+					return true, nil
+				}
+			}
+			return false, nil
+		}
 		for i := start; i < b.CellCount(); i++ {
 			payload, rowID, cellErr := b.Cell(i)
 			stop, decline = it.batchCell(a, payload, rowID, cellErr, decline)

@@ -972,8 +972,14 @@ func tableLeafCellHeader(pg *pager.Page, cellOff int, usableSize uint32) ([]byte
 	pos += n
 	rowID := int64(rowid)
 
-	// Slice the local payload from the page data (no copy)
-	payloadLen := storage.LocalPayloadSize(int(plen), int(usableSize), storage.CellTableLeaf)
+	// Slice the local payload from the page data (no copy). The inline
+	// no-overflow check mirrors LocalPayloadSize's first branch (table-leaf
+	// maxLocal is usableSize-35) — the per-cell call and its minLocal
+	// division only run for spilling payloads.
+	payloadLen := int(plen)
+	if payloadLen > int(usableSize)-35 {
+		payloadLen = storage.LocalPayloadSize(int(plen), int(usableSize), storage.CellTableLeaf)
+	}
 	if payloadLen > len(pg.Data)-pos {
 		payloadLen = len(pg.Data) - pos
 	}
