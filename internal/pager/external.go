@@ -324,6 +324,29 @@ func (p *Pager) refreshKnownFileStamp() {
 	}
 }
 
+// refreshKnownFileStampAfterFlush is refreshKnownFileStamp for the tail of
+// flushFilePagesLocked: when page 1 was among the pages this flush just
+// wrote, the on-disk stamp bytes are exactly the ones in the cached page
+// (flushPage mirrors the final header into pg1.Data before the write), and
+// the on-disk size is the tracked p.fileSize — so the baseline is derived
+// without the Stat+ReadAt pair (one syscall round-trip saved per commit).
+// Any other shape falls back to the authoritative readFileStamp.
+func (p *Pager) refreshKnownFileStampAfterFlush(page1Flushed bool) {
+	if p.file == nil {
+		return
+	}
+	if page1Flushed {
+		if pg1, ok := p.pages[1]; ok && pg1 != nil && len(pg1.Data) >= 24+fileVersLen {
+			var vers [fileVersLen]byte
+			copy(vers[:], pg1.Data[24:24+fileVersLen])
+			p.knownFileVers = vers
+			p.knownFileSize = p.fileSize
+			return
+		}
+	}
+	p.refreshKnownFileStamp()
+}
+
 // ReadPtrmap reads the pointer-map entry for pgno (P8.INCRVACUUM
 // phase 2). Returns (parentType, parentPgno, err). The pointer-map
 // page is located via storage.PtrmapPageNo; if it's in the cache
