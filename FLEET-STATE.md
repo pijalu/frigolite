@@ -1323,3 +1323,19 @@ bench (main 31120cb9f vs sqlite3 3.54 same ops): insert 1,043,361 ops/s
 group 50 q/s (1.32x FASTER), update 772,039 (1.58x), delete 962,707
 (1.65x), file autocommit 11,018 (1.14x FASTER). Campaign start:
 10.9x/1040x/6.5x/3.9x/2049x/885x.
+
+## PERF-PARITY7 (CLOSE, 2026-10-03) — ANALYZE stat-row crash fixed; census 1073/0/290
+
+Post-R10 census caught analyze (1071/2; savepoint2 = documented
+contention class, 6.9s solo green): r10-insscan's shape-threading nil
+deref — insertShapeFor declines nil colDefs (ANALYZE's internal
+sqlite_stat1 writes pass none) and insertRowSh dereferenced the nil
+shape. Fix: cold path resolves a minimal non-memoized shape (FTS
+routing still applies; flags mirror the pre-threading per-call
+derivation). Pinned frigolite_analyze_statrow_pin_test.go (ANALYZE +
+post-DDL churn). Final: census 1073 pass / 0 fail / 290 skip, audit
+exit 0; suite green; bench (canonical harness vs sqlite3 same ops):
+insert 1,043,361 ops/s (1.45x), point 936,469 (1.14x), scan 49,611,151
+rows/s (1.04x AT PARITY), group 50 q/s (1.32x FASTER), update 772,039
+(1.58x), delete 962,707 (1.65x), file autocommit 11,018 (1.14x FASTER).
+Campaign start 2026-09-28: 10.9x/1040x/6.5x/3.9x/2049x/885x.
