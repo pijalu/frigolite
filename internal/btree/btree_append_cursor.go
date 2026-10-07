@@ -45,6 +45,7 @@ package btree
 
 import (
 	"fmt"
+	"sync"
 	"sync/atomic"
 
 	"github.com/pijalu/frigolite/internal/pager"
@@ -54,19 +55,28 @@ import (
 // quickAppendSlot is one tree's append-cursor state: the rightmost leaf and
 // the largest key in the tree (btree.c: a cursor parked on the last entry,
 // with BTCF_ValidNKey publishing its cached nKey).
+//
+// The fields are ATOMICS and the slot is advisory state, not a lock: the
+// quick path's real gate is verifyQuickLeaf's page-bytes check (the leaf's
+// last cell rowid must equal maxKey). A reader that tears a store pair (a
+// fresh maxKey under a stale leaf, or vice versa) fails that check and takes
+// the generic path, which re-establishes the slot from the tree — so no
+// synchronization beyond the atomics is required, and the insert hot path
+// runs without cursorRegMu (btree.c reads BTCF_ValidNKey under the BtShared
+// lock it already holds; the engine's funnel holds none here).
 type quickAppendSlot struct {
-	valid  bool   // leaf is trusted (BTCF_ValidNKey)
-	leaf   uint32 // page holding the maximum key
-	maxKey int64  // largest key seen on this tree
+	valid  atomic.Bool   // leaf is trusted (BTCF_ValidNKey)
+	leaf   atomic.Uint32 // page holding the maximum key
+	maxKey atomic.Int64  // largest key seen on this tree
 }
 
-// quickAppendReg holds one slot per (pager, rootPage) tree identity. Guarded
-// by cursorRegMu (shared with the cursor registry: the insert hot path takes
-// this mutex once for the slot check, and saveAllCursors — also required per
-// insert — takes it again; one lock domain keeps the ordering trivial).
-// Entries are never deleted, only flagged: the map holds at most one small
-// struct per (pager, root) pair ever written.
-var quickAppendReg = map[cursorTreeKey]*quickAppendSlot{}
+// quickAppendReg holds one slot per (pager, rootPage) tree identity.
+// Entries are created once and never deleted (the map holds at most one
+// small struct per (pager, root) pair ever written), which is sync.Map's
+// niche: the insert hot path's Load touches no lock, and slot creation from
+// one tree cannot corrupt another tree's Load (a plain map would need
+// cursorRegMu on every claim — the two mutex pairs this replaces).
+var quickAppendReg sync.Map // cursorTreeKey -> *quickAppendSlot
 
 // quickAppendHits counts quick-path engagements (test observability; the
 // pin tests assert it moves, proving the fast path is taken).
@@ -75,25 +85,27 @@ var quickAppendHits atomic.Int64
 // quickAppendHitsForTest returns the engagement counter (white-box tests).
 func quickAppendHitsForTest() int64 { return quickAppendHits.Load() }
 
-// quickSlotLocked returns the tree's slot, creating it when create is set.
-// Caller must hold cursorRegMu.
-func (t *BTree) quickSlotLocked(create bool) *quickAppendSlot {
+// quickAppendSlotFor returns the tree's slot, creating it when create is set.
+func (t *BTree) quickAppendSlotFor(create bool) *quickAppendSlot {
 	key := cursorTreeKey{pg: t.pager, root: t.rootPage}
-	slot := quickAppendReg[key]
-	if slot == nil && create {
-		slot = &quickAppendSlot{}
-		quickAppendReg[key] = slot
+	if !create {
+		if slot, ok := quickAppendReg.Load(key); ok {
+			return slot.(*quickAppendSlot)
+		}
+		return nil
 	}
-	return slot
+	slot, _ := quickAppendReg.LoadOrStore(key, &quickAppendSlot{})
+	return slot.(*quickAppendSlot)
 }
 
-// invalidateAppendCursorLocked clears the slot's leaf trust for this tree.
-// Caller must hold cursorRegMu. The recorded maximum is kept: it only ever
-// gates when the slot re-establishes (a conservative no-op when stale, and
-// the quick path's verification re-derives the truth from the page anyway).
-func (t *BTree) invalidateAppendCursorLocked() {
-	if slot := quickAppendReg[cursorTreeKey{pg: t.pager, root: t.rootPage}]; slot != nil {
-		slot.valid = false
+// invalidateAppendCursor clears the slot's leaf trust for this tree. Lock
+// free: the slot fields are atomics, and an invalidation that races a claim
+// is resolved by verifyQuickLeaf's page-bytes check (the generic path
+// re-establishes the slot). The recorded maximum is kept: it only ever gates
+// when the slot re-establishes (a conservative no-op when stale).
+func (t *BTree) invalidateAppendCursor() {
+	if slot := t.quickAppendSlotFor(false); slot != nil {
+		slot.valid.Store(false)
 	}
 }
 
@@ -104,38 +116,32 @@ func InvalidateAppendCursor(pg *pager.Pager, root uint32) {
 	if pg == nil {
 		return
 	}
-	cursorRegMu.Lock()
-	if slot := quickAppendReg[cursorTreeKey{pg: pg, root: root}]; slot != nil {
-		slot.valid = false
+	if slot, ok := quickAppendReg.Load(cursorTreeKey{pg: pg, root: root}); ok {
+		slot.(*quickAppendSlot).valid.Store(false)
 	}
-	cursorRegMu.Unlock()
 }
 
 // dropQuickAppendSlot clears the slot's leaf trust for this tree (its
 // recorded maximum is kept: it only gates re-establishment, and every
 // engagement re-derives the truth from the page).
 func (t *BTree) dropQuickAppendSlot() {
-	cursorRegMu.Lock()
-	t.invalidateAppendCursorLocked()
-	cursorRegMu.Unlock()
+	t.invalidateAppendCursor()
 }
 
 // claimQuickAppend reads the slot for an ascending insert. ok=false means the
 // generic path must run; a true non-append sighting clears the leaf trust on
 // the way out (btree.c clears BTCF_ValidNKey on every non-append
 // positioning).
-func (t *BTree) claimQuickAppend(rowID int64) (leaf uint32, maxKey int64, ok bool) {
-	cursorRegMu.Lock()
-	defer cursorRegMu.Unlock()
-	slot := quickAppendReg[cursorTreeKey{pg: t.pager, root: t.rootPage}]
-	if slot == nil || !slot.valid {
-		return 0, 0, false
+func (t *BTree) claimQuickAppend(rowID int64) (*quickAppendSlot, bool) {
+	slot := t.quickAppendSlotFor(false)
+	if slot == nil || !slot.valid.Load() {
+		return nil, false
 	}
-	if rowID <= slot.maxKey {
-		slot.valid = false
-		return 0, 0, false
+	if rowID <= slot.maxKey.Load() {
+		slot.valid.Store(false)
+		return nil, false
 	}
-	return slot.leaf, slot.maxKey, true
+	return slot, true
 }
 
 // verifyQuickLeaf re-validates the saved leaf against the slot's claim and
@@ -172,10 +178,11 @@ func (t *BTree) insertQuickAppend(newCell *storage.Cell) (bool, error) {
 	if newCell.Type != storage.CellTableLeaf || newCell.RowID < 0 {
 		return false, nil
 	}
-	leaf, maxKey, ok := t.claimQuickAppend(newCell.RowID)
+	slot, ok := t.claimQuickAppend(newCell.RowID)
 	if !ok {
 		return false, nil
 	}
+	leaf, maxKey := slot.leaf.Load(), slot.maxKey.Load()
 	// Spilling cells need overflow allocation and usually the split
 	// machinery: bail BEFORE preparing the cell (prepareCell is a no-op for
 	// a local cell, but the bail must not leave a half-allocated chain).
@@ -219,13 +226,11 @@ func (t *BTree) insertQuickAppend(newCell *storage.Cell) (bool, error) {
 	}
 	t.recycleCellScratch(cellData)
 
-	cursorRegMu.Lock()
-	if slot := quickAppendReg[cursorTreeKey{pg: t.pager, root: t.rootPage}]; slot != nil {
-		slot.maxKey = newCell.RowID
-		slot.leaf = leaf
-		slot.valid = true
-	}
-	cursorRegMu.Unlock()
+	// Park the cursor on the appended leaf (lock-free: the slot is this
+	// tree's own advisory state — see quickAppendSlot).
+	slot.maxKey.Store(newCell.RowID)
+	slot.leaf.Store(leaf)
+	slot.valid.Store(true)
 	quickAppendHits.Add(1)
 	return true, nil
 }
@@ -240,23 +245,16 @@ func (t *BTree) noteAppendInsert(newCell *storage.Cell) {
 	if newCell.Type != storage.CellTableLeaf || newCell.RowID < 0 {
 		return
 	}
-	cursorRegMu.Lock()
-	slot := t.quickSlotLocked(true)
-	if newCell.RowID <= slot.maxKey {
-		cursorRegMu.Unlock()
+	slot := t.quickAppendSlotFor(true)
+	if newCell.RowID <= slot.maxKey.Load() {
 		return
 	}
-	slot.maxKey = newCell.RowID
-	cursorRegMu.Unlock()
-
 	leaf, err := t.rightmostTableLeaf()
-	cursorRegMu.Lock()
 	if err == nil && leaf != 0 {
-		slot.leaf = leaf
-		slot.maxKey = newCell.RowID
-		slot.valid = true
+		slot.leaf.Store(leaf)
+		slot.maxKey.Store(newCell.RowID)
+		slot.valid.Store(true)
 	}
-	cursorRegMu.Unlock()
 }
 
 // rightmostTableLeaf descends from the root along rightmost-child pointers
