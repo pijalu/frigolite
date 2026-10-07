@@ -286,53 +286,75 @@ type fts5Snap struct {
 // available (otherwise the uncommitted pages stay dirty and the next flush —
 // e.g. at Close — re-attempts and re-reports the error).
 func (e *Engine) dmlCanSkipSnapshot(stmt sql.Stmt) bool {
-	if e.mainDB != nil && e.mainDB.Pager != nil && e.mainDB.Pager.JournalMode() == "wal" {
-		return false
-	}
-	// Quota layer active (test_quota.c shim): a flush can refuse file
-	// growth with SQLITE_FULL after the in-memory write succeeded, so the
-	// "commit cannot fail" assumption below is void — keep the rollback.
-	if quota.Active() {
-		return false
-	}
-	// A registered commit hook makes every commit vetoable after the rows
-	// are written: a nonzero hook return fails the implicit COMMIT with
-	// SQLITE_CONSTRAINT_COMMITHOOK and rolls the transaction back
-	// (vdbeCommit's xCommitCallback check runs BEFORE btree commit phase
-	// one, src/vdbeaux.c:2978-2982).
-	if e.commitHook != nil {
+	if !e.dmlSkipEnvOK() {
 		return false
 	}
 	switch s := stmt.(type) {
 	case *sql.InsertStmt:
-		if !isSimpleSingleValuesInsert(s) {
-			return false
-		}
-		if s.OnConflict != nil {
-			return false // DO NOTHING / DO UPDATE upsert paths may skip or modify rows
-		}
-		if e.settings.foreignKeys {
-			return false // FK enforcement could reject after other writes
-		}
-		if e.hasTriggersForTable(s.Table) {
-			return false // a trigger could fail after the insert
-		}
-		return true
+		return e.insertSkipShapeOK(s)
 	case *sql.UpdateStmt:
-		if s.OnConflict != "" || s.HasReturning || len(s.OrderBy) > 0 || s.Limit != nil {
-			return false // OR-clause dispositions and RETURNING need the rollback
-		}
-		if s.From.Name != "" || s.From.Subquery != nil || len(s.FromJoins) > 0 {
-			return false // UPDATE ... FROM is a multi-row join statement
-		}
+		return updateSkipShapeOK(s) && e.pointDMLCannotAbort(s)
 	case *sql.DeleteStmt:
-		if s.HasReturning || len(s.OrderBy) > 0 || s.Limit != nil {
-			return false
-		}
+		return deleteSkipShapeOK(s) && e.pointDMLCannotAbort(s)
 	default:
 		return false
 	}
-	return e.pointDMLCannotAbort(stmt)
+}
+
+// dmlSkipEnvOK reports the connection-wide gates every snapshot skip hangs
+// on: the pager must not be in WAL mode, the quota layer must be inactive,
+// and no commit hook may be registered.
+//
+// WAL mode disables every skip: a WAL commit writes to the "-wal" file,
+// which is a SEPARATE I/O that can fail (disk error, fault injection) AFTER
+// the in-memory row write succeeds. The "cannot fail after partially
+// writing" assumption is then false, so the rollback must be available
+// (otherwise the uncommitted pages stay dirty and the next flush — e.g. at
+// Close — re-attempts and re-reports the error).
+//
+// The quota layer (test_quota.c shim) can refuse file growth with SQLITE_FULL
+// after the in-memory write succeeded, voiding the same assumption. A
+// registered commit hook makes every commit vetoable after the rows are
+// written: a nonzero hook return fails the implicit COMMIT with
+// SQLITE_CONSTRAINT_COMMITHOOK and rolls the transaction back (vdbeCommit's
+// xCommitCallback check runs BEFORE btree commit phase one,
+// src/vdbeaux.c:2978-2982).
+func (e *Engine) dmlSkipEnvOK() bool {
+	if e.mainDB != nil && e.mainDB.Pager != nil && e.mainDB.Pager.JournalMode() == "wal" {
+		return false
+	}
+	if quota.Active() {
+		return false
+	}
+	return e.commitHook == nil
+}
+
+// insertSkipShapeOK reports the single-row VALUES INSERT skip shape (the
+// historical R9 behavior): no SELECT source, no RETURNING, not REPLACE, one
+// VALUES tuple, no upsert clause, no FK enforcement, no triggers.
+func (e *Engine) insertSkipShapeOK(ins *sql.InsertStmt) bool {
+	if !isSimpleSingleValuesInsert(ins) || ins.OnConflict != nil {
+		return false
+	}
+	// FK enforcement could reject after other writes; a trigger could fail
+	// after the insert.
+	return !e.settings.foreignKeys && !e.hasTriggersForTable(ins.Table)
+}
+
+// updateSkipShapeOK reports the plain-statement clause gates: no OR-clause
+// disposition, no RETURNING, no ORDER BY/LIMIT/OFFSET tail, no UPDATE...FROM
+// join source.
+func updateSkipShapeOK(s *sql.UpdateStmt) bool {
+	if s.OnConflict != "" || s.HasReturning || len(s.OrderBy) > 0 || s.Limit != nil || s.Offset != nil {
+		return false
+	}
+	return s.From.Name == "" && s.From.Subquery == nil && len(s.FromJoins) == 0
+}
+
+// deleteSkipShapeOK reports the plain-statement clause gates: no RETURNING,
+// no ORDER BY/LIMIT/OFFSET tail.
+func deleteSkipShapeOK(s *sql.DeleteStmt) bool {
+	return !s.HasReturning && len(s.OrderBy) == 0 && s.Limit == nil && s.Offset == nil
 }
 
 // pointDMLCannotAbort reports whether an UPDATE/DELETE that passed the clause

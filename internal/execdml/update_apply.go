@@ -903,6 +903,18 @@ func (e *DMLExecutor) validateDMLAliasQualifier(tableName, alias string, exprs [
 	return nil
 }
 
+// validateUpdateAliasQualifier runs the UPDATE target's alias-masking check
+// ("UPDATE t1 AS a SET ... WHERE t1.x=1" must not resolve t1 through the
+// alias). The expression slice it walks is built lazily: the common
+// un-aliased statement returns before the []sql.Expr allocation the
+// historical inline form made unconditionally.
+func (e *DMLExecutor) validateUpdateAliasQualifier(s *sql.UpdateStmt) *Result {
+	if s.Alias == "" || strings.EqualFold(s.Alias, s.Table) {
+		return nil
+	}
+	return e.validateDMLAliasQualifier(s.Table, s.Alias, updateTargetExprs(s))
+}
+
 // aliasMaskedColumnRef returns the first "table.column" reference in the
 // expression tree that uses the masked original table name ("" when none).
 // Subqueries resolve against their own scope.
