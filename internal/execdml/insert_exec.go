@@ -124,8 +124,13 @@ func (e *DMLExecutor) execInsertTuples(dbCtx *DatabaseContext, tableEntry *schem
 	var totalInserted int64
 	var returningRows [][]interface{}
 	var lastRowID int64
+	// The table shape is a pure function of the schema row: resolve it once
+	// per statement and thread it through the per-tuple write chain (the
+	// memo's per-call hit still paid the fingerprint revalidation four times
+	// per row before this).
+	sh := e.insertShapeFor(tableEntry, colDefs)
 	for ti, tuple := range s.Values {
-		changes, inserted, rowValues, rowid, skip, err := e.insertOneTuple(dbCtx, tableEntry, colDefs, s, tuple, insertTupleLits(s, ti))
+		changes, inserted, rowValues, rowid, skip, err := e.insertOneTupleSh(dbCtx, tableEntry, colDefs, s, tuple, insertTupleLits(s, ti), sh)
 		if err != nil {
 			return e.tupleErrorResult(err, tableEntry, colDefs)
 		}
@@ -188,14 +193,15 @@ func (e *DMLExecutor) tupleErrorResult(err error, tableEntry *schema.Entry, colD
 	return res
 }
 
-// insertOneTuple evaluates, writes, and (for RETURNING) projects one VALUES
+// insertOneTupleSh evaluates, writes, and (for RETURNING) projects one VALUES
 // tuple. skip reports an OR IGNORE row that must not count. lits is the
 // template slot-path value stash for the tuple (nil when absent; see
-// sql.InsertStmt.InsLitVals).
-func (e *DMLExecutor) insertOneTuple(dbCtx *DatabaseContext, tableEntry *schema.Entry, colDefs []sql.ColumnDef, s *sql.InsertStmt, tuple []sql.Expr, lits []interface{}) (changes int64, inserted int64, rowValues []interface{}, rowid int64, skip bool, err error) {
+// sql.InsertStmt.InsLitVals). sh is the statement's pre-resolved table shape
+// (execInsertTuples resolves it once per statement; the row loop threads it
+// through the write chain).
+func (e *DMLExecutor) insertOneTupleSh(dbCtx *DatabaseContext, tableEntry *schema.Entry, colDefs []sql.ColumnDef, s *sql.InsertStmt, tuple []sql.Expr, lits []interface{}, sh *insertTableShape) (changes int64, inserted int64, rowValues []interface{}, rowid int64, skip bool, err error) {
 	var values []interface{}
 	var evalErr error
-	sh := e.insertShapeFor(tableEntry, colDefs)
 	hasTriggers := sh != nil && sh.hasTriggers
 	if s.HasReturning || hasTriggers || e.ctx.ForeignKeys() {
 		// RETURNING rows escape the statement, and a trigger body or an FK
@@ -210,7 +216,7 @@ func (e *DMLExecutor) insertOneTuple(dbCtx *DatabaseContext, tableEntry *schema.
 	if evalErr != nil {
 		return 0, 0, nil, 0, false, evalErr
 	}
-	res, writtenRow := e.execInsertRow(dbCtx, tableEntry, colDefs, tuple, values, s, lits)
+	res, writtenRow := e.execInsertRowSh(dbCtx, tableEntry, colDefs, tuple, values, s, lits, sh)
 	if res.Error != nil {
 		// INSERT OR IGNORE: silently skip UNIQUE / NOT NULL / CHECK
 		// constraint violations (SQLite's OR IGNORE applies to any

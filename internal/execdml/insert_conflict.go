@@ -18,11 +18,12 @@ import (
 )
 
 // --- INSERT ---
-// execInsertRow writes one INSERT VALUES tuple: resolves the explicit rowid,
+// execInsertRowSh writes one INSERT VALUES tuple: resolves the explicit rowid,
 // handles REPLACE conflict deletes, dispatches to the ON CONFLICT (UPSERT) or
 // insertRow path, and returns the write result plus the actually-written row
-// (for RETURNING).
-func (e *DMLExecutor) execInsertRow(dbCtx *DatabaseContext, tableEntry *schema.Entry, colDefs []sql.ColumnDef, tuple []sql.Expr, values []interface{}, s *sql.InsertStmt, lits []interface{}) (*Result, []interface{}) {
+// (for RETURNING). sh is the statement's pre-resolved table shape
+// (execInsertTuples); it threads through to the row writer.
+func (e *DMLExecutor) execInsertRowSh(dbCtx *DatabaseContext, tableEntry *schema.Entry, colDefs []sql.ColumnDef, tuple []sql.Expr, values []interface{}, s *sql.InsertStmt, lits []interface{}, sh *insertTableShape) (*Result, []interface{}) {
 	explicitRowID, res := e.explicitRowIDFromColumns(tableEntry, s, tuple, lits)
 	if res != nil {
 		return res, nil
@@ -46,15 +47,18 @@ func (e *DMLExecutor) execInsertRow(dbCtx *DatabaseContext, tableEntry *schema.E
 	// (the docid PRIMARY KEY), so the btree-based pre-delete is skipped.
 	var replaceRowID int64
 	var haveReplaceRowID bool
-	_, isFTS := e.ctx.FTSTables()[tableEntry.Name]
-	if s.IsReplace && !isFTS {
-		var rr *Result
-		replaceRowID, haveReplaceRowID, rr = e.replaceRowIDAndDelete(dbCtx, tableEntry, colDefs, values, explicitRowID, s)
-		if rr != nil {
-			return rr, nil
+	if s.IsReplace {
+		// The FTS check lives under the REPLACE gate: the map probe cost a
+		// lookup per row on the plain-append shape that never replaces.
+		if _, isFTS := e.ctx.FTSTables()[tableEntry.Name]; !isFTS {
+			var rr *Result
+			replaceRowID, haveReplaceRowID, rr = e.replaceRowIDAndDelete(dbCtx, tableEntry, colDefs, values, explicitRowID, s)
+			if rr != nil {
+				return rr, nil
+			}
 		}
 	}
-	res = e.insertRow(dbCtx.Pager, tableEntry, colDefs, values, fixedRowIDFor(haveReplaceRowID, replaceRowID, explicitRowID), s.OrConflict)
+	res = e.insertRowSh(dbCtx.Pager, tableEntry, colDefs, values, fixedRowIDFor(haveReplaceRowID, replaceRowID, explicitRowID), s.OrConflict, sh)
 	if res.Error != nil {
 		return res, nil
 	}

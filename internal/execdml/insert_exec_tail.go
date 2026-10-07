@@ -16,8 +16,15 @@ import (
 func (e *DMLExecutor) prepareInsertRowValues(tableEntry *schema.Entry, colDefs []sql.ColumnDef, values []interface{}, fixedRowID *int64, orConflict string) (int64, *Result) {
 	// The table-shape memo carries the WITHOUT ROWID / STRICT flags (pure
 	// functions of the CREATE text) so a bulk load does not re-scan the same
-	// declaration once per row.
-	sh := e.insertShapeFor(tableEntry, colDefs)
+	// declaration once per row. The hot VALUES chain threads the shape it
+	// resolved once per statement; nil resolves it here (cold paths).
+	return e.prepareInsertRowValuesSh(tableEntry, colDefs, values, fixedRowID, orConflict, nil)
+}
+
+func (e *DMLExecutor) prepareInsertRowValuesSh(tableEntry *schema.Entry, colDefs []sql.ColumnDef, values []interface{}, fixedRowID *int64, orConflict string, sh *insertTableShape) (int64, *Result) {
+	if sh == nil {
+		sh = e.insertShapeFor(tableEntry, colDefs)
+	}
 	withoutRowid := sh != nil && sh.withoutRowid
 	isStrict := sh != nil && sh.strict
 	// Determine rowID: if an INTEGER PRIMARY KEY column has an explicit non-nil
@@ -78,9 +85,13 @@ func (e *DMLExecutor) prepareInsertRowValues(tableEntry *schema.Entry, colDefs [
 	// only build the row map when triggers exist for this table. The
 	// trigger-visible new.rowid is the EXPLICIT rowid (statement rowid
 	// column or explicit IPK value); an auto-assigned rowid reads -1.
-	expRowID := explicitTriggerRowid(fixedRowID, values, fillIdx, withoutRowid)
-	if res := e.fireInsertBeforeTriggersSafe(tableEntry, colDefs, values, &nextRowID, withoutRowid, rowidExplicit, expRowID); res != nil {
-		return 0, res
+	// The shape's trigger flag (resolved once per statement) answers the
+	// existence probe without the per-row engine-map round trip.
+	if sh != nil && sh.hasTriggers {
+		expRowID := explicitTriggerRowid(fixedRowID, values, fillIdx, withoutRowid)
+		if res := e.fireInsertBeforeTriggersSafe(tableEntry, colDefs, values, &nextRowID, withoutRowid, rowidExplicit, expRowID); res != nil {
+			return 0, res
+		}
 	}
 	return nextRowID, nil
 }
@@ -286,9 +297,18 @@ func unwrapCollationWrappers(values []interface{}) {
 }
 
 // writeTableRow encodes and inserts a table row, returning the tree (for
-// index-failure cleanup) and any write result.
+// index-failure cleanup) and any write result (the nil-shape entry point:
+// FTS shadow-table writes resolve the shape inside).
 func (e *DMLExecutor) writeTableRow(pg *pager.Pager, tableEntry *schema.Entry, colDefs []sql.ColumnDef, values []interface{}, nextRowID int64) (*btree.BTree, *Result) {
-	sh := e.insertShapeFor(tableEntry, colDefs)
+	return e.writeTableRowSh(pg, tableEntry, colDefs, values, nextRowID, nil)
+}
+
+// writeTableRowSh is writeTableRow with the statement's pre-resolved table
+// shape (nil resolves it here).
+func (e *DMLExecutor) writeTableRowSh(pg *pager.Pager, tableEntry *schema.Entry, colDefs []sql.ColumnDef, values []interface{}, nextRowID int64, sh *insertTableShape) (*btree.BTree, *Result) {
+	if sh == nil {
+		sh = e.insertShapeFor(tableEntry, colDefs)
+	}
 	withoutRowid := sh != nil && sh.withoutRowid
 	stored := values
 	if withoutRowid {

@@ -402,6 +402,75 @@ func EncodeRecord(values []interface{}) ([]byte, error) {
 // be a caller's reusable buffer) and returns the extended slice. The encoding
 // is byte-identical to EncodeRecord's.
 func AppendEncodeRecord(buf []byte, values []interface{}) ([]byte, error) {
+	// Fixed-arity all-integer fast path (the bulk-load shape: an INTEGER
+	// PRIMARY KEY rowid-alias NULL plus integer columns, or plain integer
+	// tuples): every serial type is at most SerialInt64 (6), so each type
+	// varint is one byte and the header size needs no self-consistent
+	// varint fixpoint — the record is header [n+1][n type bytes][values],
+	// emitted straight from the values with no staging arrays.
+	if n := len(values); n > 0 && n <= 16 {
+		var ints [16]int64
+		allInt := true
+		for i, v := range values {
+			iv, ok := v.(int64)
+			if !ok {
+				allInt = false
+				break
+			}
+			ints[i] = iv
+		}
+		if allInt {
+			return appendEncodeIntRecord(buf, ints[:n])
+		}
+	}
+	return appendEncodeRecordGeneric(buf, values)
+}
+
+// appendEncodeIntRecord encodes an all-int64 record (arity ≤ 16) byte-identical
+// to the generic walk: encodeInt64Size classifies each value, the header is
+// the 1-byte size varint plus the 1-byte serial-type varints, and each value's
+// big-endian two's-complement bytes follow in order.
+func appendEncodeIntRecord(buf []byte, ints []int64) ([]byte, error) {
+	n := len(ints)
+	var serialTypes [16]uint64
+	var dataLens [16]int
+	hdrSize := n + 1
+	totalDataLen := 0
+	for i, v := range ints {
+		st, dl := encodeInt64Size(v)
+		serialTypes[i] = st
+		dataLens[i] = dl
+		totalDataLen += dl
+	}
+
+	// SQLite test instrumentation (UPDATE_MAX_BLOBSIZE on OP_MakeRecord): no
+	// zeroblob can appear on this path, so the record size counts in full.
+	updateMaxBlobsize(hdrSize + totalDataLen)
+
+	start := len(buf)
+	grow := hdrSize + totalDataLen
+	if cap(buf)-start >= grow {
+		buf = buf[:start+grow]
+	} else {
+		buf = append(buf, make([]byte, grow)...)
+	}
+	pos := start
+	buf[pos] = byte(hdrSize)
+	pos++
+	for i := 0; i < n; i++ {
+		buf[pos] = byte(serialTypes[i])
+		pos++
+	}
+	for i, v := range ints {
+		encodeInt64Into(v, buf[pos:pos+dataLens[i]])
+		pos += dataLens[i]
+	}
+	return buf, nil
+}
+
+// appendEncodeRecordGeneric is AppendEncodeRecord's two-pass walk for mixed
+// or wide rows (the pre-fast-path body, unchanged).
+func appendEncodeRecordGeneric(buf []byte, values []interface{}) ([]byte, error) {
 	// Optimized: avoid per-value byte slice allocations by computing sizes
 	// first, then writing directly into a single output buffer.
 

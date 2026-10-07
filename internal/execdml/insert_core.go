@@ -478,11 +478,24 @@ func (e *DMLExecutor) columnReplaceVerdict(cd *sql.ColumnDef, tableEntry *schema
 // be written, re-allocating the rowid when the triggers consumed the
 // pre-computed one. Returns a non-nil Result on trigger failure (errRowSkipped
 // for RAISE(IGNORE)).
+// insertRow inserts one row (the nil-shape entry point: DDL/PRAGMA write
+// paths, upsert and REPLACE resolve the shape inside).
 func (e *DMLExecutor) insertRow(pg *pager.Pager, tableEntry *schema.Entry, colDefs []sql.ColumnDef, values []interface{}, fixedRowID *int64, orConflict string) *Result {
+	return e.insertRowSh(pg, tableEntry, colDefs, values, fixedRowID, orConflict, nil)
+}
+
+// insertRowSh writes one row; sh is the statement's pre-resolved table shape
+// (nil resolves it here — the cold paths). The hot VALUES chain threads the
+// shape resolved once per statement so the row loop pays no memo
+// revalidation per row.
+func (e *DMLExecutor) insertRowSh(pg *pager.Pager, tableEntry *schema.Entry, colDefs []sql.ColumnDef, values []interface{}, fixedRowID *int64, orConflict string, sh *insertTableShape) *Result {
 	// Route FTS virtual table inserts directly to the FTS table. The shape
 	// memo's noFTS flag (a pure function of the schema row) skips the two
 	// engine map lookups for every plain b-tree row.
-	if sh := e.insertShapeFor(tableEntry, colDefs); sh == nil || !sh.noFTS {
+	if sh == nil {
+		sh = e.insertShapeFor(tableEntry, colDefs)
+	}
+	if !sh.noFTS {
 		if res := e.insertFTSRow(tableEntry, values, fixedRowID, orConflict); res != nil {
 			return res
 		}
@@ -510,7 +523,7 @@ func (e *DMLExecutor) insertRow(pg *pager.Pager, tableEntry *schema.Entry, colDe
 		defer pg.EndStatement(stmt)
 	}
 
-	nextRowID, res := e.prepareInsertRowValues(tableEntry, colDefs, values, fixedRowID, orConflict)
+	nextRowID, res := e.prepareInsertRowValuesSh(tableEntry, colDefs, values, fixedRowID, orConflict, sh)
 	if res != nil {
 		return res
 	}
@@ -519,7 +532,7 @@ func (e *DMLExecutor) insertRow(pg *pager.Pager, tableEntry *schema.Entry, colDe
 	// wrapped with its collation) so only raw values are stored.
 	unwrapCollationWrappers(values)
 
-	_, res = e.writeTableRow(pg, tableEntry, colDefs, values, nextRowID)
+	_, res = e.writeTableRowSh(pg, tableEntry, colDefs, values, nextRowID, sh)
 	if res != nil {
 		return res
 	}

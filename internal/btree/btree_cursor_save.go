@@ -4,6 +4,7 @@ import (
 	"encoding/binary"
 	"fmt"
 	"sync"
+	"sync/atomic"
 
 	"github.com/pijalu/frigolite/internal/pager"
 	"github.com/pijalu/frigolite/internal/storage"
@@ -53,6 +54,12 @@ const (
 var (
 	cursorRegMu    sync.Mutex
 	cursorRegistry = map[cursorTreeKey][]*Cursor{}
+	// openCursorCount tracks registered cursors across ALL trees, updated
+	// under cursorRegMu alongside the registry mutations. saveAllCursors —
+	// required before every write — takes a lock-free fast path on zero:
+	// an append workload opens no cursors, and the per-insert lock+map walk
+	// it skipped was measurable per row.
+	openCursorCount atomic.Int64
 )
 
 // registerTreeCursor adds a cursor to its tree's invalidation list. The list
@@ -78,6 +85,7 @@ func registerTreeCursor(key cursorTreeKey, c *Cursor) {
 	cursorRegMu.Lock()
 	defer cursorRegMu.Unlock()
 	cursorRegistry[key] = append(cursorRegistry[key], c)
+	openCursorCount.Add(1)
 }
 
 // cursorRegistryFinalizer is the cursor's allocation-time finalizer (set once
@@ -110,6 +118,7 @@ func removeRegisteredCursor(key cursorTreeKey, c *Cursor) {
 	for i, cc := range list {
 		if cc == c {
 			list = append(list[:i], list[i+1:]...)
+			openCursorCount.Add(-1)
 			break
 		}
 	}
@@ -219,6 +228,12 @@ func (c *Cursor) Close() {
 // the walk is short; the fast path returns before allocating when no cursor
 // needs saving.
 func (t *BTree) saveAllCursors() {
+	// Lock-free fast path: no cursors registered anywhere means no cursor
+	// on this tree either (the count moves under cursorRegMu with the
+	// registry, so a zero read cannot miss a concurrent registration).
+	if openCursorCount.Load() == 0 {
+		return
+	}
 	key := cursorTreeKey{pg: t.pager, root: t.rootPage}
 	cursorRegMu.Lock()
 	list := cursorRegistry[key]
