@@ -4015,3 +4015,55 @@ paired interleaved ratio decides.
   allocator span refill/madvise from page-mutating statements (runtime).
   SQLite-C per-statement floor for this shape is ~0.6-0.8µs; frigolite is
   at ~1.16-1.36µs.
+
+## R11.BTREEMEMO — write-path parse-memo refresh (fleet/r11-btreememo, 2026-10-07, @ 4f0979191)
+
+- **The memo's validation model already made the refresh a 30-line API —
+  the hard part was the write paths' OWN contract.** Page.ParsedBTree is
+  validation-based (fingerprint bytes on every access), so "refresh" only
+  needs: canary the caller's struct against the LIVE bytes field-for-field
+  (parsedMatchesData — the parsedMatchesSnapshot counterpart reading the
+  page instead of the snapshot), run the same validatePageHeader a fresh
+  parse would, then swap snapshot+struct in place (single goroutine per
+  pager; buffers reused, zero steady-state allocs). But the btree write
+  paths only HALF-kept their "parsed header kept in sync" contract:
+  freeSpaceOnPage/freeSpaceExtendContent/freeSpaceLink rewrote
+  FirstFree/CellContent/FragFree BYTES without touching the struct, and
+  pageUseSlot/compactLeafAfterDelete/finishLeafDelete had the same holes.
+  The canary caught every one (decline -> miss -> correct), which turned
+  the bugs into measurable pins instead of corruption. Rule: an
+  in-place-refreshed memo is exactly as honest as the struct-sync
+  discipline of the paths that feed it; keep the canary non-negotiable.
+- **R10.DML's #1-lever estimate was right about DELETE, wrong about
+  UPDATE.** Point UPDATE (SET c=c+1) mostly takes the in-place same-size
+  memcpy path (btree_update_inplace.go) — header bytes unchanged, memo
+  stays valid, NO re-parse exists to kill: the update-phase profile has
+  zero ParsedBTree/ParsePage samples and the update mem profile has no
+  memo allocs. DELETE mutates the header every statement (dropCell), and
+  the sequential sweep re-seeks the just-mutated leaf, so every statement
+  paid miss+parse+hdrSnap-alloc: main alloc profile showed ParsedBTree at
+  20MB/1M deletes. After the refresh: ParsedBTree alloc lines GONE,
+  delete-phase heap 74.0 -> 60.2MB (-19%), paired delete +3.4%, insert
+  +3.9% (freeblock-reuse inserts also stop declining), update/point/scan
+  parity. Mission targets (update >=920k, delete >=1150k absolute) are
+  NOT reachable from this lever alone — the remaining delete/update gap
+  lives in the exec layer (deleteTableContext 13.5%, planDMLSeek 10.8%,
+  findTableUncached 9.5%, madvise 10.8% — sibling scope) per the 1M-op
+  CPU profiles.
+- **INSERT's quick-append path never reads the memo** (verifyQuickLeaf
+  direct-parses into quickPageScratch), so the refresh no-ops there (nil
+  memo -> decline) and the insert bench pays nothing on fresh pages; the
+  +3.9% insert gain comes from workloads where the memo exists (dup-drop
+  insert, defrag inserts, post-scan rewrites).
+- **Micro-bench warmup can lie by 7x**: 10-iteration benchtime reported
+  2000ns/seek; at 200-300k iterations the same bench reads 230-280ns.
+  Never report a descent/op number below ~100k iterations on this tree.
+- **Benchmark adjudication this round**: interleaved per-binary stable
+  blocks (3 rounds x 27 runs/side), medians compared; select_scan swung
+  -3.6% on medians with mins 37M-48M — pure machine noise on a shared
+  fleet box, and the scan path is byte-identical (read-only, no refresh
+  call sites). TestCursorFinalizerSafetyNet -race flake reproduced 1/6 on
+  MAIN solo — pre-existing finalizer timing, per R9.INSERT adjudication.
+- Harness failing-file set: 161 files, IDENTICAL sets on main and branch
+  (zero branch-only). Full-suite v-mode grep of
+  "FAIL: TestSQLiteSuite/<file>/" into sorted-unique lists diffs cleanly.
