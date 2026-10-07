@@ -70,7 +70,12 @@ func (e *DMLExecutor) insertNeedsEndHooks(s *sql.InsertStmt) bool {
 	if _, isEcho := e.ctx.EchoVTabSource(s.Table); isEcho {
 		return true
 	}
-	return e.ctx.TableHasAutoIncrement(s.Table)
+	// Conservative gate form: a false verdict must be PROVEN (parsed column
+	// definitions on this connection) — any DDL wipes that cache, and a cold
+	// ask here would drop this statement's AUTOINCREMENT sequence write
+	// (autoIncStatementSetup runs later, after ParseColumnDefs, so its
+	// authoritative verdict decides the actual work).
+	return e.ctx.TableMayHaveAutoIncrement(s.Table)
 }
 
 // finishInsertEndHooks applies the statement-end work in the same order the

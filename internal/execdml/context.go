@@ -152,6 +152,7 @@ type DMLContext interface {
 	IsVirtualTable(entry *schema.Entry) bool
 	LookupCollation(name string) func(a, b string) int
 	TableHasAutoIncrement(tableName string) bool
+	TableMayHaveAutoIncrement(tableName string) bool
 	RandomFreeRowID(tree *btree.BTree) int64
 	UpdateRootPage(tableName string, newRoot uint32)
 	UpdateRootPagePg(pg *pager.Pager, tableName string, newRoot uint32)
