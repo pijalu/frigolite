@@ -13,14 +13,14 @@ import (
 	"github.com/pijalu/frigolite/internal/util"
 )
 
-func (e *DMLExecutor) prepareInsertRowValues(tableEntry *schema.Entry, colDefs []sql.ColumnDef, values []interface{}, fixedRowID *int64, orConflict string) (int64, *Result) {
-	// The table-shape memo carries the WITHOUT ROWID / STRICT flags (pure
-	// functions of the CREATE text) so a bulk load does not re-scan the same
-	// declaration once per row. The hot VALUES chain threads the shape it
-	// resolved once per statement; nil resolves it here (cold paths).
-	return e.prepareInsertRowValuesSh(tableEntry, colDefs, values, fixedRowID, orConflict, nil)
-}
-
+// prepareInsertRowValuesSh validates and completes one row's values for
+// writing: the rowid source, IPK alias fill, STRICT/affinity checks, the
+// SQLITE_LIMIT_LENGTH record cap, constraint resolution and the BEFORE
+// INSERT trigger pass. The table-shape memo carries the WITHOUT ROWID /
+// STRICT flags (pure functions of the CREATE text) so a bulk load does not
+// re-scan the same declaration once per row; the hot VALUES chain threads
+// the shape it resolved once per statement, nil resolves it here (cold
+// paths).
 func (e *DMLExecutor) prepareInsertRowValuesSh(tableEntry *schema.Entry, colDefs []sql.ColumnDef, values []interface{}, fixedRowID *int64, orConflict string, sh *insertTableShape) (int64, *Result) {
 	if sh == nil {
 		sh = e.insertShapeFor(tableEntry, colDefs)
