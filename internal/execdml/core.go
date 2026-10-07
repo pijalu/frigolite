@@ -210,6 +210,17 @@ type DMLExecutor struct {
 	lookupHasRowid    bool
 	lookupCache       map[string]bool
 
+	// vExpr* memoizes the prepare-time expression-resolution verdict
+	// (validateDMLExprsVerdictMemo) per (template-stable statement pointer,
+	// schema fingerprint) — the engine pfAST slot's guard pattern: a recycled
+	// COW clone address never enters the slot, so a pointer key cannot serve
+	// another statement's verdict. Repeated point UPDATE/DELETE statements
+	// from the template cache skip the whole WHERE/SET resolution walk.
+	vExprStmt   sql.Stmt
+	vExprStable bool
+	vExprFp     uint64
+	vExprErr    error
+
 	// echoWriteDepth counts in-flight echo write-through statements. A
 	// non-zero depth marks every statement error as coming from the source
 	// write the echo module's xUpdate performed, so it reports through the

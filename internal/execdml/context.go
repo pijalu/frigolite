@@ -75,6 +75,13 @@ type DMLContext interface {
 	// and copies rows without running trigger programs, matching SQLite's
 	// page-level vacuum.c copy).
 	TriggersSuppressed() bool
+	// StmtShapeStable reports whether the statement about to execute carries
+	// a template-stable AST pointer (Engine.stmtShapeStable): a pointer key
+	// can only address one statement's AST when the pointer comes from the
+	// template/prepared-statement caches. The DML executor's per-statement
+	// verdict memos (the prepare-time expression-resolution verdict) gate on
+	// it the same way the engine's pfAST slot does.
+	StmtShapeStable() bool
 	Authorize(action auth.Action, arg1, arg2, arg3, arg4 string) error
 
 	// Engine resources.

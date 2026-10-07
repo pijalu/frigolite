@@ -527,12 +527,15 @@ func (e *DMLExecutor) writePointUpdateRow(tableName string, tree *btree.BTree, r
 	if ierr := e.writeUpdateIndexEntriesFor(tableEntry, colDefs, ch.oldValues, ch.rowID, ch.values, ch.rowID); ierr != nil {
 		return &Result{Error: ierr}
 	}
-	e.ctx.BumpRowIDCache(e.dmlPager(tableName), rootPage, ch.rowID)
+	// applyUpdateChanges invalidates the rowid cache after the re-insert loop
+	// (SQLite recomputes the rowid counter after any DELETE/UPDATE) — and the
+	// point path's write below is followed by that same invalidate, so the
+	// bump the bulk path performs is skipped here: a BumpRowIDCache
+	// immediately followed by InvalidateRowIDCache is two map writes where
+	// the invalidate alone has the same effect.
 	if res := e.fireUpdatePreupdateEntry(tableEntry, ch); res != nil {
 		return res
 	}
-	// applyUpdateChanges invalidates the rowid cache after the re-insert loop
-	// (SQLite recomputes the rowid counter after any DELETE/UPDATE).
 	e.ctx.InvalidateRowIDCache(e.dmlPager(tableName), rootPage)
 	return e.emptyResultFor()
 }

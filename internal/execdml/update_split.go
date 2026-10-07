@@ -133,10 +133,22 @@ func (e *DMLExecutor) openUpdateTarget(s *sql.UpdateStmt) (*schema.Entry, *execq
 	if err != nil {
 		return nil, nil, e.updateOnMissingTable(s, err)
 	}
-	if res := e.validateDMLAliasQualifier(s.Table, s.Alias, updateTargetExprs(s)); res != nil {
+	if res := e.validateUpdateAliasQualifier(s); res != nil {
 		return nil, nil, res
 	}
 	return tableEntry, dbCtx, nil
+}
+
+// validateUpdateAliasQualifier runs the UPDATE target's alias-masking check
+// ("UPDATE t1 AS a SET ... WHERE t1.x=1" must not resolve t1 through the
+// alias). The expression slice it walks is built lazily: the common
+// un-aliased statement returns before the []sql.Expr allocation the
+// historical inline form made unconditionally.
+func (e *DMLExecutor) validateUpdateAliasQualifier(s *sql.UpdateStmt) *Result {
+	if s.Alias == "" || strings.EqualFold(s.Alias, s.Table) {
+		return nil
+	}
+	return e.validateDMLAliasQualifier(s.Table, s.Alias, updateTargetExprs(s))
 }
 
 // updateTargetExprs collects the UPDATE's WHERE and SET value expressions
@@ -175,7 +187,9 @@ func (e *DMLExecutor) validateUpdateExprResolution(s *sql.UpdateStmt, tableEntry
 	if s.Alias != "" {
 		qualifiers = append(qualifiers, s.Alias)
 	}
-	return e.validateDMLExprs(qualifiers, colDefs, !tableIsWithoutRowid(tableEntry.SQL), updateTargetExprs(s))
+	return e.validateDMLExprsVerdictMemo(s, qualifiers, colDefs, !tableIsWithoutRowid(tableEntry.SQL), func() []sql.Expr {
+		return updateTargetExprs(s)
+	})
 }
 
 // routeUpdateFTS sends virtual-table updates to the FTS engines: fts5
@@ -202,6 +216,13 @@ func (e *DMLExecutor) routeUpdateFTS(tableEntry *schema.Entry, colDefs []sql.Col
 // ..." fails while "SET c2 = ..." succeeds after a reopen without the
 // collation (collate3-3.2/3.3). Assigning the rowid rebuilds every index.
 func (e *DMLExecutor) validateUpdateIndexCollations(s *sql.UpdateStmt, tableEntry *schema.Entry, colDefs []sql.ColumnDef) *Result {
+	// Index maintenance collations only matter when the table HAS indexes:
+	// resolve the memoized index list before building the changed-column set
+	// (the unindexed point-UPDATE floor paid one map allocation per
+	// statement for an empty walk).
+	if len(e.allTableIndexes(tableEntry.Name)) == 0 {
+		return nil
+	}
 	changed := make(map[string]bool, len(s.Assignments)+len(s.SetParenColumns))
 	rowidAssigned := false
 	for _, a := range s.Assignments {
