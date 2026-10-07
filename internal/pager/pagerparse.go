@@ -21,9 +21,30 @@ package pager
 import (
 	"bytes"
 	"encoding/binary"
+	"sync/atomic"
 
 	"github.com/pijalu/frigolite/internal/storage"
 )
+
+// Parse-memo hit/miss counters. Production code never reads them; the
+// memo-refresh pins use them to prove a post-mutation access is SERVED from
+// the refreshed memo instead of re-parsed.
+var (
+	parseMemoHits   atomic.Int64
+	parseMemoMisses atomic.Int64
+)
+
+// ParseMemoCountersForTest returns the memo hit/miss counters (white-box
+// tests).
+func ParseMemoCountersForTest() (hits, misses int64) {
+	return parseMemoHits.Load(), parseMemoMisses.Load()
+}
+
+// ResetParseMemoCountersForTest zeroes the memo counters (white-box tests).
+func ResetParseMemoCountersForTest() {
+	parseMemoHits.Store(0)
+	parseMemoMisses.Store(0)
+}
 
 // pageParseMemo is one generation of a page's parsed b-tree header. hdrSnap
 // mirrors Data[coff : coff+span+2*CellCount] at parse time — the full byte
@@ -76,6 +97,16 @@ func (m *pageParseMemo) parsedMatchesSnapshot() bool {
 	}
 }
 
+// parseMemoSpan returns the byte span a parse of pageType/cellCount reads:
+// the page header (8 bytes leaf, 12 interior) plus the cell pointer array.
+func parseMemoSpan(pageType byte, cellCount int) int {
+	span := 8 // leaf header: type, first freeblock, cell count, content start, frag
+	if pageType == storage.PageTypeInteriorIndex || pageType == storage.PageTypeInteriorTable {
+		span = 12 // interior pages add the 4-byte right-most pointer
+	}
+	return span + 2*cellCount
+}
+
 // ParsedBTree returns the page's parsed b-tree header for pageSize and
 // contentOffset, memoizing the storage.ParsePage result on the page.
 //
@@ -95,9 +126,11 @@ func (pg *Page) ParsedBTree(pageSize, contentOffset int) (*storage.BTreePage, er
 	if m := pg.parseMemo.Load(); m != nil && m.pageSize == pageSize && m.coff == contentOffset {
 		end := m.coff + len(m.hdrSnap)
 		if end <= len(pg.Data) && bytes.Equal(m.hdrSnap, pg.Data[m.coff:end]) && m.parsedMatchesSnapshot() {
+			parseMemoHits.Add(1)
 			return &m.parsed, nil
 		}
 	}
+	parseMemoMisses.Add(1)
 	// Miss (or first touch): parse fresh — full validation included — then
 	// snapshot the parse's source bytes. The memo struct is allocated before
 	// the parse so the parsed header lands in it directly (no second copy).
@@ -105,11 +138,8 @@ func (pg *Page) ParsedBTree(pageSize, contentOffset int) (*storage.BTreePage, er
 	if _, err := storage.ParsePageInto(pg.Data, pageSize, contentOffset, &mp.parsed); err != nil {
 		return nil, err
 	}
-	span := 8 // leaf header: type, first freeblock, cell count, content start, frag
-	if mp.parsed.PageType == storage.PageTypeInteriorIndex || mp.parsed.PageType == storage.PageTypeInteriorTable {
-		span = 12 // interior pages add the 4-byte right-most pointer
-	}
-	end := contentOffset + span + 2*int(mp.parsed.CellCount)
+	span := parseMemoSpan(mp.parsed.PageType, int(mp.parsed.CellCount))
+	end := contentOffset + span
 	if end > len(pg.Data) {
 		// Synthetic/partial buffers (unit-test headers shorter than a real
 		// page): fingerprint the readable span. The parse used only the
@@ -129,4 +159,80 @@ func (pg *Page) ParsedBTree(pageSize, contentOffset int) (*storage.BTreePage, er
 	}
 	pg.parseMemo.Store(mp)
 	return &mp.parsed, nil
+}
+
+// parsedMatchesData reports whether parsed is exactly the header the bytes at
+// data[contentOffset:] describe — the live-image canary for the refresh path
+// (parsedMatchesSnapshot's counterpart, reading the page instead of the
+// snapshot). storage.ParsePage is a pure function of these bytes, so a match
+// means the caller's struct can serve as this byte generation's parse.
+func parsedMatchesData(parsed *storage.BTreePage, data []byte, pageSize, contentOffset int) bool {
+	if len(data) < contentOffset+8 {
+		return false
+	}
+	b := data[contentOffset:]
+	switch {
+	case parsed.PageType != b[0],
+		parsed.FirstFree != binary.BigEndian.Uint16(b[1:3]),
+		parsed.CellCount != binary.BigEndian.Uint16(b[3:5]),
+		parsed.FragFree != b[7],
+		parsed.CellContent != snapshotContentStart(b, pageSize):
+		return false
+	case parsed.PageType == storage.PageTypeInteriorIndex,
+		parsed.PageType == storage.PageTypeInteriorTable:
+		return len(b) >= 12 && parsed.RightmostPtr == binary.BigEndian.Uint32(b[8:12])
+	default:
+		return true
+	}
+}
+
+// RefreshParsedBTree re-arms the page's parse memo from a mutating b-tree
+// write path's own parsed header (btree.c keeps a live MemPage per cached
+// page and updates it incrementally in insertCell/dropCell/freeSpace —
+// sqlite NEVER re-parses a cached page after mutation; this is the Go
+// equivalent at memo granularity). After a page mutation the memo's
+// fingerprint no longer matches, so the next ParsedBTree access would run a
+// full parse+validate+snapshot; a write path whose parsed struct stayed in
+// step with its byte writes hands that struct here instead, and the next
+// access is a memo HIT.
+//
+// The refresh is defensive by construction: it proceeds only when the
+// caller's struct matches the page's CURRENT bytes field-for-field (the
+// live-image canary) and passes the same validation a fresh parse would run
+// — a stale or unsynchronized struct (or a page this path did not write) is
+// declined, leaving the memo to the next access's normal validating parse.
+// Pages loaded FROM DISK never come through here, so their memos always
+// carry the validating parse. The snapshot buffer and memo struct are reused
+// in place (the engine holds one goroutine per pager; the atomic pointer
+// keeps the memo metadata race-free regardless), so a steady-state
+// mutate-then-seek workload allocates nothing.
+func (pg *Page) RefreshParsedBTree(pageSize, contentOffset int, parsed *storage.BTreePage) {
+	if parsed == nil {
+		return
+	}
+	m := pg.parseMemo.Load()
+	if m == nil || m.pageSize != pageSize || m.coff != contentOffset {
+		// No memo generation for this (pageSize, contentOffset) yet: the
+		// next access would parse and memoize anyway — nothing to refresh.
+		return
+	}
+	if !parsedMatchesData(parsed, pg.Data, pageSize, contentOffset) {
+		return
+	}
+	if err := storage.ValidatePageHeader(parsed, pg.Data, pageSize, contentOffset); err != nil {
+		return
+	}
+	end := contentOffset + parseMemoSpan(parsed.PageType, int(parsed.CellCount))
+	if end > len(pg.Data) {
+		// Synthetic/partial buffers: fingerprint the readable span (same
+		// rule as the miss path).
+		end = len(pg.Data)
+	}
+	if n := end - contentOffset; cap(m.hdrSnap) >= n {
+		m.hdrSnap = m.hdrSnap[:n]
+	} else {
+		m.hdrSnap = make([]byte, n)
+	}
+	copy(m.hdrSnap, pg.Data[contentOffset:end])
+	m.parsed = *parsed
 }

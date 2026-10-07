@@ -84,6 +84,10 @@ func (t *BTree) writeLeafCell(pg *pager.Page, page *storage.BTreePage, newCell *
 	page.CellCount++
 	binary.BigEndian.PutUint16(pg.Data[coff+3:coff+5], page.CellCount)
 
+	// Re-arm the pager's parse memo from this path's synced parsed header:
+	// the next statement's seek of this leaf is then a memo hit instead of a
+	// full re-parse (btree.c's live-MemPage discipline).
+	pg.RefreshParsedBTree(int(t.pageSize), coff, page)
 	return t.pager.WritePage(pg)
 }
 
