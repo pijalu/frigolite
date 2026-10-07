@@ -440,6 +440,17 @@ type Engine struct {
 	aiMemoFp    uint64
 	aiMemoTable string
 	aiMemoHas   bool
+	// ptAbort* memoizes the can't-abort point-DML skip gate's per-table rowid
+	// facts (INTEGER PRIMARY KEY alias name, rowid-table flag) per (schema
+	// entry, all-schemas fingerprint) — the aiMemo guard pattern: any DDL
+	// replaces the entry or moves the fingerprint, so a stale verdict cannot
+	// survive. The dmlCanSkipSnapshot gate asks it once per point
+	// UPDATE/DELETE; behind it sit the column-def parse cache and the
+	// WITHOUT ROWID scan.
+	ptAbortEntry *schema.Entry
+	ptAbortFp    uint64
+	ptAbortAlias string
+	ptAbortRowid bool
 	// pfDMLStable: the pfDML slot's statement was memoized under a
 	// template-stable AST pointer (pfASTStable's rule — the COW scratch
 	// clone recycles addresses across templates).
