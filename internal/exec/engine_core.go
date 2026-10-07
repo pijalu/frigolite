@@ -2,7 +2,6 @@ package exec
 
 import (
 	"fmt"
-	"strconv"
 	"strings"
 
 	"github.com/pijalu/frigolite/internal/function"
@@ -240,13 +239,13 @@ func (c *exprClone) insertValue(expr sql.Expr) (sql.Expr, interface{}, error) {
 	c.idx++
 	switch v := val.(type) {
 	case int64:
-		return &sql.NumericLit{Value: strconv.FormatInt(v, 10)}, nil, nil
+		return sql.NewIntLit(v), nil, nil
 	case float64:
-		s := strconv.FormatFloat(v, 'g', -1, 64)
-		if !strings.ContainsAny(s, ".eE") {
-			s += ".0" // 'g' drops the decimal point: keep the REAL kind
-		}
-		return &sql.NumericLit{Value: s}, nil, nil
+		// NewFloatLit renders the same canonical 'g'+".0" spelling the
+		// historical inline form produced and pre-caches the parsed value
+		// (finite values round-trip exactly; non-finite stay uncached so the
+		// literal-text fallback result is unchanged).
+		return sql.NewFloatLit(v), nil, nil
 	case string:
 		return &sql.StringLit{Value: v}, nil, nil
 	}

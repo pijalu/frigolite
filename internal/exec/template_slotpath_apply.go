@@ -152,11 +152,16 @@ func (ts *templateSlots) stashTarget(stmt sql.Stmt) (*sql.InsertStmt, bool) {
 // yields StringLit — regardless of the slot's current node kind (an INSERT
 // tuple slot first seen with a quoted literal serves a numeric statement and
 // vice versa). The node is rewritten in place when the kind matches (the
-// common OLTP case), dropping the NumericLit parsed-value cache — execution
-// caches the parsed literal on first evaluation, and a stale cache would
-// serve the PREVIOUS statement's value for the rewritten text (the COW form
-// never faces this: its literal nodes are always fresh). A kind switch
-// writes a fresh literal node.
+// common OLTP case), and the NumericLit parsed-value cache is set to the
+// substituted value itself — the canonical rendering of a slot value
+// re-derives exactly that value through the evaluator's parse paths (all
+// int64; finite float64), so caching here is the same state a first
+// evaluation would compute, one statement earlier. A stale cache serving the
+// PREVIOUS statement's value is impossible: the cache is written together
+// with the text, before the statement executes, and a non-finite float's
+// text evaluates to the literal-string fallback (the cache stays nil, the
+// historical behavior). A kind switch writes a fresh literal node carrying
+// its parsed value.
 func (ts *templateSlots) writeSlot(cur any, st slotStep, val interface{}) bool {
 	node, ok := slotStepNode(cur, st, nil, false)
 	if !ok {
@@ -166,17 +171,21 @@ func (ts *templateSlots) writeSlot(cur any, st slotStep, val interface{}) bool {
 	case int64:
 		if n, isNum := node.(*sql.NumericLit); isNum {
 			n.Value = int64Text(v)
-			n.SetCached(nil)
+			n.SetCached(v)
 			return true
 		}
-		return slotSet(cur, st, &sql.NumericLit{Value: int64Text(v)})
+		return slotSet(cur, st, sql.NewIntLit(v))
 	case float64:
 		if n, isNum := node.(*sql.NumericLit); isNum {
 			n.Value = floatSlotText(v)
-			n.SetCached(nil)
+			if math.IsInf(v, 0) || math.IsNaN(v) {
+				n.SetCached(nil) // "NaN.0"/"+Inf.0" evaluate to the text, not the float
+			} else {
+				n.SetCached(v)
+			}
 			return true
 		}
-		return slotSet(cur, st, &sql.NumericLit{Value: floatSlotText(v)})
+		return slotSet(cur, st, sql.NewFloatLit(v))
 	case string:
 		if n, isStr := node.(*sql.StringLit); isStr {
 			n.Value = v

@@ -355,7 +355,7 @@ func bindLiteral(v interface{}) (sql.Expr, bool) {
 	case bool:
 		return bindBoolLiteral(x), true
 	case int64:
-		return &sql.NumericLit{Value: strconv.FormatInt(x, 10)}, true
+		return sql.NewIntLit(x), true
 	case int, int8, int16, int32:
 		return bindSignedLiteral(v)
 	case uint64, uint, uint8, uint16, uint32:
@@ -372,10 +372,15 @@ func bindLiteral(v interface{}) (sql.Expr, bool) {
 
 // bindBoolLiteral renders a Go bool as SQLite's integer truth value.
 func bindBoolLiteral(b bool) sql.Expr {
+	return sql.NewIntLit(boolInt64(b))
+}
+
+// boolInt64 maps a Go bool to SQLite's integer truth value.
+func boolInt64(b bool) int64 {
 	if b {
-		return &sql.NumericLit{Value: "1"}
+		return 1
 	}
-	return &sql.NumericLit{Value: "0"}
+	return 0
 }
 
 // bindSignedLiteral renders any Go signed integer kind as an INTEGER literal.
@@ -393,11 +398,12 @@ func bindSignedLiteral(v interface{}) (sql.Expr, bool) {
 	default:
 		return nil, false
 	}
-	return &sql.NumericLit{Value: strconv.FormatInt(n, 10)}, true
+	return sql.NewIntLit(n), true
 }
 
 // bindUnsignedLiteral renders any Go unsigned integer kind as an INTEGER
-// literal.
+// literal. Values above MaxInt64 have no int64 literal spelling; their node
+// stays text-only (the parse-back runs as before).
 func bindUnsignedLiteral(v interface{}) (sql.Expr, bool) {
 	var n uint64
 	switch x := v.(type) {
@@ -414,13 +420,17 @@ func bindUnsignedLiteral(v interface{}) (sql.Expr, bool) {
 	default:
 		return nil, false
 	}
+	if n <= math.MaxInt64 {
+		return sql.NewIntLit(int64(n)), true
+	}
 	return &sql.NumericLit{Value: strconv.FormatUint(n, 10)}, true
 }
 
 // bindFloatLiteral renders a float64 preserving the REAL kind: an integral
 // float needs the trailing ".0" ('g' drops the decimal point), NaN renders
 // as NULL per SQLite semantics, and an infinity has no numeric literal (the
-// fallback's fmt.Sprint path keeps its historical behavior).
+// fallback's fmt.Sprint path keeps its historical behavior). Finite values
+// pre-cache the parsed float (the rendering round-trips exactly).
 func bindFloatLiteral(f float64) (sql.Expr, bool) {
 	if math.IsNaN(f) {
 		return &sql.NullLit{}, true
@@ -428,11 +438,7 @@ func bindFloatLiteral(f float64) (sql.Expr, bool) {
 	if math.IsInf(f, 0) {
 		return nil, false
 	}
-	s := strconv.FormatFloat(f, 'g', -1, 64)
-	if !strings.ContainsAny(s, ".eE") {
-		s += ".0"
-	}
-	return &sql.NumericLit{Value: s}, true
+	return sql.NewFloatLit(f), true
 }
 
 // bindBlobLiteral renders a BLOB literal, copying the bytes: the cloned AST
