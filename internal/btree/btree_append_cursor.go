@@ -203,11 +203,13 @@ func (t *BTree) insertQuickAppend(newCell *storage.Cell) (bool, error) {
 	// In-place page mutation can move cells (defragment-on-demand): save
 	// open cursors first, exactly like the generic entry does.
 	t.saveAllCursors()
-	// dupAlreadyDropped=true: claimQuickAppend proved newCell.RowID strictly
-	// beyond the leaf's last key, so no same-rowid cell can exist and the
-	// duplicate probe inside writeLeafCell (a leaf-wide binary walk) is
-	// provably dead work.
-	if werr := t.writeLeafCell(pg, page, newCell, cellData, coff, true); werr != nil {
+	// dupAlreadyDropped is folded into the position argument: claimQuickAppend
+	// proved newCell.RowID strictly beyond the leaf's last key (== maxKey,
+	// re-verified by verifyQuickLeaf), so the cell appends at the END — the
+	// position IS CellCount and both the duplicate probe and the leaf-wide
+	// binary search inside writeLeafCell are provably dead work (btree.c's
+	// `idx = ++pCur->ix` on the BTREE_APPEND path, src/btree.c:9612).
+	if werr := t.writeLeafCell(pg, page, newCell, cellData, coff, int(page.CellCount)); werr != nil {
 		t.recycleCellScratch(cellData)
 		t.dropQuickAppendSlot()
 		if werr == errLeafFull {

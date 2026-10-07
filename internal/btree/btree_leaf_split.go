@@ -24,7 +24,14 @@ var errLeafFull = fmt.Errorf("btree: page is full")
 // Returns errLeafFull when the page cannot hold the cell (the caller
 // splits). Space comes from allocateSpaceOnPage's btree.c precedence:
 // freeblock slot, then (defragmented) content-area gap.
-func (t *BTree) writeLeafCell(pg *pager.Page, page *storage.BTreePage, newCell *storage.Cell, cellData []byte, coff int, dupAlreadyDropped bool) error {
+//
+// The caller owns duplicate handling and position discovery: every call site
+// has already removed any same-rowid cell (sqlite3BtreeInsert's dropCell
+// before insertCell, src/btree.c:9458) and passes the insertion index —
+// btree.c's append insert runs NO search at all (`idx = ++pCur->ix`,
+// src/btree.c:9612, the USESEEKRESULT loc==-1 contract); insertIdx < 0 falls
+// back to the leaf-wide binary walk for the non-append callers.
+func (t *BTree) writeLeafCell(pg *pager.Page, page *storage.BTreePage, newCell *storage.Cell, cellData []byte, coff int, insertIdx int) error {
 	if page == nil {
 		var err error
 		page, err = storage.ParsePage(pg.Data, int(t.pageSize), coff)
@@ -33,32 +40,11 @@ func (t *BTree) writeLeafCell(pg *pager.Page, page *storage.BTreePage, newCell *
 		}
 	}
 
-	// Find insertion position
-	var insertIdx int
-	if t.isTable {
-		insertIdx = t.findInsertPositionTable(pg, page, newCell.RowID)
-	} else {
-		insertIdx = t.findInsertPositionIndex(pg, page, newCell.Payload)
-	}
-
-	// SQLite's table b-tree REPLACES a cell with the same rowid rather than
-	// inserting a duplicate (sqlite3BtreeInsert with the same key overwrites).
-	// The engine's position search returns the first cell with rowid >= the
-	// target; if that cell has the SAME rowid, remove it first so the normal
-	// insert below writes a single cell (a second cell with the same rowid
-	// makes DELETE/UPDATE/seek hit the wrong row and duplicates appear in
-	// scans — fts4merge4 2.2.x: the L0 flush and L2 output re-used rowids
-	// 33/34, creating duplicate %_segdir rows).
-	if t.isTable && !dupAlreadyDropped {
-		dropped, err := t.dropTableLeafDuplicateRowid(pg, page, newCell.RowID)
-		if err != nil {
-			return err
-		}
-		// Recompute the insertion position only after an actual deletion
-		// (the search is a leaf-wide binary walk; a plain insert that dropped
-		// nothing reuses the position it just computed).
-		if dropped {
+	if insertIdx < 0 {
+		if t.isTable {
 			insertIdx = t.findInsertPositionTable(pg, page, newCell.RowID)
+		} else {
+			insertIdx = t.findInsertPositionIndex(pg, page, newCell.Payload)
 		}
 	}
 
