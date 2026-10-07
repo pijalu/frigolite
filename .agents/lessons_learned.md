@@ -4067,3 +4067,58 @@ paired interleaved ratio decides.
 - Harness failing-file set: 161 files, IDENTICAL sets on main and branch
   (zero branch-only). Full-suite v-mode grep of
   "FAIL: TestSQLiteSuite/<file>/" into sorted-unique lists diffs cleanly.
+## R11.LITBOX — literal-path tranche (fleet/r11-litbox, 2026-10-07, @ HEAD)
+
+- **The slot-path apply's SetCached(nil) was a self-inflicted re-parse.**
+  writeSlot rewrote the literal text in place and nilled the parsed-value
+  cache, so every substituted statement re-parsed its own canonical
+  rendering at first evaluation (evalNumericLit AND the Cached()-reading
+  lanes: update_setlane, or.go, scan helpers). The substituted value IS the
+  parse result — int64Text/floatSlotText round-trip exactly (all int64;
+  finite float64 via shortest-'g') — so the cache is now written at
+  substitution time. THE ONE EXCEPTION that must never be cached: a
+  non-finite float. Its rendering ("NaN.0"/"+Inf.0") falls through
+  evalNumericLit to the literal-STRING result; caching the float64 would
+  change the typed result. NewFloatLit guards it; bindFloatLiteral's
+  NaN→NULL / Inf-refusal gates were already correct and stay.
+- **Uint64 binds above MaxInt64 have no int64 literal spelling** — keep
+  their nodes text-only (FormatUint); NewIntLit(int64(n)) is only sound for
+  n ≤ MaxInt64 (same text as FormatUint there).
+- **A fully-fused single-pass numeric scan LOST to the two-pass walk+parse.**
+  Fusing fastParseInt64's digit accumulation into advanceNumeric's walk
+  (one pass instead of walk+containsExp+fastParseInt64) measured 2-6%
+  SLOWER on insert 3/3 interleaved pairs: the per-digit overflow branch in
+  the walk costs more than a tight substring re-parse saves. Rule: don't
+  fuse a branch-heavy accumulator into a byte-walk when the second pass is
+  branch-free over a short substring. Only the provably-dead third pass was
+  removed: advanceNumeric sets hasDot on BOTH dot and exponent consumption,
+  so `hasDot || containsExp(numStr)` was always `hasDot`.
+- **Template last-entry memo: the span verification IS the lookup.** The
+  hash+map in the template cache only LOCATE a candidate; correctness comes
+  from templateMatchesSpans against the statement's own bytes. A
+  single-entry memo (last hit or stored) skips the maphash finalization and
+  the map probe on same-shape streams and cannot serve a wrong template —
+  verification runs identically, and entries are never retracted so a
+  superseded memo is still a valid template. Delete-phase profile:
+  prepareCached cum 50ms→20ms of 250ms samples, Sum64/memHashAES gone.
+- **Profile attribution on short phases is quantized (10ms samples on
+  250ms = 4% quanta)** — a "20% function" may be 12-28%. The delete memo
+  win PREDICTED ~8-12% wall from profile deltas but delivered +1.8%
+  (interleaved 9-run block medians); update/insert/point landed inside the
+  ±1% noise floor (select_scan, an untouched path, is the control).
+  Per-binary stable blocks remain mandatory, and profile-derived ns
+  estimates are upper bounds until wall-confirmed.
+- **Pre-existing baseline failures (adjudicated per-FILE solo on clean
+  d14cdb3ef AND the branch, identical sets): tokenize-2.2** (unterminated
+  `/*` block comment at EOF: SQLite treats a comment as running to EOF,
+  frigolite's lexer rejects — parse/lexer gap, untouched here), **tkt_fa7bf5ec**
+  and **snapshot3** (WAL/snapshot shapes). Under parallel/load the SAME
+  trees blow out to 370+ timing-sensitive files (avtrans/vacuum/wal*); run
+  suspects solo before believing a regression.
+- **Where the residue lives now (measured, for the next round):** execdml
+  insert glue is down to btree InsertCell (~75% of writeTableRowSh —
+  sibling scope) + lockreg registerWriteTx/SetWriteTx (~7.4% of insert
+  Exec — off-scope); echoVTabSource→allSchemasFingerprint ~5% of
+  update/delete Exec (off-scope); the public execResult boundary and
+  main.render harness costs unchanged; normalizeScan's single text walk
+  (~40-60ns/stmt) is the floor of the template path.

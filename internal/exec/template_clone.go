@@ -325,7 +325,7 @@ func (c *exprClone) anyLiteral(original string) (sql.Expr, bool) {
 	case string:
 		return &sql.StringLit{Value: n}, true
 	case int64:
-		return &sql.NumericLit{Value: int64Text(n)}, true
+		return sql.NewIntLit(n), true
 	}
 	return nil, false
 }
@@ -366,14 +366,14 @@ func (c *exprClone) numeric(v *sql.NumericLit) (sql.Expr, bool) {
 		if !isDecimalSlot(v.Value) {
 			return nil, false
 		}
-		return &sql.NumericLit{Value: int64Text(n)}, true
+		return sql.NewIntLit(n), true
 	case float64:
 		// Slot must be a decimal REAL spelling; the value must be finite and
 		// not the ambiguous 2^63 double (see above).
 		if !isRealSlot(v.Value) || math.IsInf(n, 0) || math.IsNaN(n) || n == twoPow63 {
 			return nil, false
 		}
-		return &sql.NumericLit{Value: floatSlotText(n)}, true
+		return sql.NewFloatLit(n), true
 	case string:
 		// The slot is spelled with a quoted literal this time; the fresh
 		// parse of that text carries a StringLit.

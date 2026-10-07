@@ -2,7 +2,6 @@ package exec
 
 import (
 	"fmt"
-	"strconv"
 	"strings"
 
 	"github.com/pijalu/frigolite/internal/function"
@@ -240,13 +239,13 @@ func (c *exprClone) insertValue(expr sql.Expr) (sql.Expr, interface{}, error) {
 	c.idx++
 	switch v := val.(type) {
 	case int64:
-		return &sql.NumericLit{Value: strconv.FormatInt(v, 10)}, nil, nil
+		return sql.NewIntLit(v), nil, nil
 	case float64:
-		s := strconv.FormatFloat(v, 'g', -1, 64)
-		if !strings.ContainsAny(s, ".eE") {
-			s += ".0" // 'g' drops the decimal point: keep the REAL kind
-		}
-		return &sql.NumericLit{Value: s}, nil, nil
+		// NewFloatLit renders the same canonical 'g'+".0" spelling the
+		// historical inline form produced and pre-caches the parsed value
+		// (finite values round-trip exactly; non-finite stay uncached so the
+		// literal-text fallback result is unchanged).
+		return sql.NewFloatLit(v), nil, nil
 	case string:
 		return &sql.StringLit{Value: v}, nil, nil
 	}
@@ -303,8 +302,13 @@ func (e *Engine) prepareCached(sqlStr string, scratchOK bool) ([]sql.Stmt, error
 	e.normValues, e.normSpans = values, spans
 	var normKey uint64
 	if hasLits {
-		normKey = e.normHash.Sum64()
-		if stmts, hit := e.tryTemplateCache(sqlStr, normKey, values, spans, scratchOK); hit {
+		// The hash is finalized inside tryTemplateCache only when the
+		// last-entry memo misses (the map probe needs the key); a same-shape
+		// statement stream never pays it.
+		var hit bool
+		var stmts []sql.Stmt
+		stmts, hit, normKey = e.tryTemplateCache(sqlStr, values, spans, scratchOK)
+		if hit {
 			// Stability verdict set by the producing path (live clone =
 			// stable, COW scratch = not).
 			return stmts, nil

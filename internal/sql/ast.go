@@ -1,6 +1,10 @@
 package sql
 
-import "strings"
+import (
+	"math"
+	"strconv"
+	"strings"
+)
 
 // TokenInfo records the byte position of a token in the original SQL text.
 // Used by ALTER TABLE RENAME to find and replace identifier tokens.
@@ -714,6 +718,38 @@ func (e *NumericLit) Cached() interface{} { return e.cached }
 
 // SetCached stores a pre-parsed value for future use.
 func (e *NumericLit) SetCached(v interface{}) { e.cached = v }
+
+// NewIntLit builds a decimal integer NumericLit holding v, with v pre-cached
+// as the parsed value. The canonical rendering (strconv.FormatInt base 10)
+// re-derives exactly v through the evaluator's ParseInt path for every
+// int64 — including MinInt64 — so the cached value can never diverge from
+// what a fresh parse of the text would produce. Substitution sites (template
+// clone, slot-path apply) use this instead of building the node and leaving
+// the parse to the first evaluation: the typed value is known at
+// substitution time, so the per-statement string→int64 parse is skipped.
+func NewIntLit(v int64) *NumericLit {
+	return &NumericLit{Value: strconv.FormatInt(v, 10), cached: v}
+}
+
+// NewFloatLit builds a REAL NumericLit rendering v in the canonical float
+// slot spelling ('g' shortest round-trip, decimal point restored), with v
+// pre-cached as the parsed value when that rendering re-derives it: for
+// finite values ParseFloat of the shortest 'g' form is exactly v (Go's
+// round-trip guarantee). Non-finite values render as "NaN.0"/"+Inf.0" whose
+// evaluation falls through to the literal-text fallback (the historical
+// typed result is the string), so they are left uncached to keep that
+// behavior byte-identical.
+func NewFloatLit(v float64) *NumericLit {
+	s := strconv.FormatFloat(v, 'g', -1, 64)
+	if !strings.ContainsAny(s, ".eE") {
+		s += ".0" // 'g' drops the decimal point: keep the REAL kind
+	}
+	n := &NumericLit{Value: s}
+	if !math.IsInf(v, 0) && !math.IsNaN(v) {
+		n.cached = v
+	}
+	return n
+}
 
 // StringLit represents a string literal.
 type StringLit struct {

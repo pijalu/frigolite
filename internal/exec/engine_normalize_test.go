@@ -2,6 +2,7 @@ package exec
 
 import (
 	"hash/maphash"
+	"strconv"
 	"testing"
 )
 
@@ -72,5 +73,55 @@ func TestNormalizeScanEquivalence(t *testing.T) {
 			t.Fatalf("%q: hash self-check degenerate", stmt)
 		}
 		_ = fusedSum
+	}
+}
+
+// TestScanNumericLiteralParity pins the fused single-pass scan against the
+// strconv oracle for every numeric shape the template cache can meet: the
+// int64 lane must reproduce fastParseInt64's semantics (leading zeros are
+// decimal, the 2^63-magnitude digit run overflows to float64), the float
+// lane must ParseFloat the same span, and the returned index must stop at
+// the first non-literal byte.
+func TestScanNumericLiteralParity(t *testing.T) {
+	cases := []struct {
+		in    string // the literal text (may carry trailing bytes to stop at)
+		float bool   // want a float64 (dot/exponent/overflow lane)
+	}{
+		{"0", false}, {"7", false}, {"007", false},
+		{"25000", false}, {"9223372036854775807", false},
+		{"9223372036854775808", true},  // 2^63: int64 overflow -> float64
+		{"18446744073709551616", true}, // 2^64 -> float64
+		{"99999999999999999999999999", true},
+		{"1.5", true}, {".5x", true}, {"0.0", true},
+		{"1e3", true}, {"1E3x", true}, {"1e+3", true}, {"1e-3", true},
+		{"12.5e2", true}, {"5.0", true},
+		{"123abc", false}, // scan stops at 'a': literal is 123
+	}
+	for _, tc := range cases {
+		next, got := scanNumericLiteral(tc.in, 0)
+		text := tc.in[:next]
+		// The scanned span must be the longest numeric prefix.
+		if tc.float {
+			wantF, _ := strconv.ParseFloat(text, 64)
+			f, ok := got.(float64)
+			if !ok {
+				t.Fatalf("%q: got %#v, want float64", tc.in, got)
+			}
+			if f != wantF {
+				t.Fatalf("%q: float %v, oracle %v", text, f, wantF)
+			}
+		} else {
+			wantI, err := strconv.ParseInt(text, 10, 64)
+			if err != nil {
+				t.Fatalf("%q: oracle rejected its own span %q", tc.in, text)
+			}
+			i, ok := got.(int64)
+			if !ok {
+				t.Fatalf("%q: got %#v, want int64", tc.in, got)
+			}
+			if i != wantI {
+				t.Fatalf("%q: int %d, oracle %d", text, i, wantI)
+			}
+		}
 	}
 }
