@@ -33,6 +33,19 @@ func (e *DMLExecutor) insertRowSh(pg *pager.Pager, tableEntry *schema.Entry, col
 	// engine map lookups for every plain b-tree row.
 	if sh == nil {
 		sh = e.insertShapeFor(tableEntry, colDefs)
+		if sh == nil {
+			// Cold internal writes (ANALYZE's sqlite_stat1 rows) pass no
+			// column defs, so the memo — which requires them — declines.
+			// Resolve a minimal non-memoized shape: FTS routing still applies
+			// (a nil colDefs write to an FTS table must not skip it); the
+			// remaining flags mirror the pre-threading cold path, which
+			// derived them per call from the same inputs.
+			sh = &insertTableShape{
+				autoinc:     tableEntry != nil && e.ctx.TableHasAutoIncrement(tableEntry.Name),
+				hasTriggers: tableEntry != nil && e.hasTriggersForTable(tableEntry.Name),
+			}
+			sh.noFTS = tableEntry == nil || !e.isFTSBackedInsert(tableEntry.Name)
+		}
 	}
 	if !sh.noFTS {
 		if res := e.insertFTSRow(tableEntry, values, fixedRowID, orConflict); res != nil {
