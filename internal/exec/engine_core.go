@@ -302,8 +302,13 @@ func (e *Engine) prepareCached(sqlStr string, scratchOK bool) ([]sql.Stmt, error
 	e.normValues, e.normSpans = values, spans
 	var normKey uint64
 	if hasLits {
-		normKey = e.normHash.Sum64()
-		if stmts, hit := e.tryTemplateCache(sqlStr, normKey, values, spans, scratchOK); hit {
+		// The hash is finalized inside tryTemplateCache only when the
+		// last-entry memo misses (the map probe needs the key); a same-shape
+		// statement stream never pays it.
+		var hit bool
+		var stmts []sql.Stmt
+		stmts, hit, normKey = e.tryTemplateCache(sqlStr, values, spans, scratchOK)
+		if hit {
 			// Stability verdict set by the producing path (live clone =
 			// stable, COW scratch = not).
 			return stmts, nil

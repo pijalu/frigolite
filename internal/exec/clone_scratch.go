@@ -231,23 +231,32 @@ func (e *Engine) trySlotPathLive(cached *sqlTemplateEntry, values []interface{})
 // parse, never to a wrong template.
 
 // tryTemplateCache attempts to reuse a cached AST template for structurally
-// identical SQL (same after replacing literal values). normKey is the fused
-// scan's hash of the normalized text (normalizeScan); spans record the
-// literals' byte ranges in sqlStr, which is what the lookup verifies the
-// candidate entry's stored text against — the original bytes with every
-// span replaced by '?' — so no normalized bytes are materialized per
-// statement. scratchOK clones onto the engine's per-exec-depth scratch —
-// ONLY valid when the caller consumes the statements within the call; the
-// retained form (scratchOK=false) clones onto fresh allocations. It returns
-// (nil, false) when there is no usable template, falling through to a full
-// parse.
-func (e *Engine) tryTemplateCache(sqlStr string, normKey uint64, values []interface{}, spans []normSpan, scratchOK bool) ([]sql.Stmt, bool) {
+// identical SQL (same after replacing literal values). Lookup order: the
+// single-entry lastTemplate memo (verified against sqlStr's spans — no hash,
+// no map), then the hash-keyed map (the normalized hash is finalized here
+// only on memo miss). Either way the candidate entry's stored text is
+// verified against the ORIGINAL statement bytes via the recorded literal
+// spans before use, so a (never observed) collision or a stale memo degrades
+// to a full parse, never to a wrong template. spans record the literals'
+// byte ranges in sqlStr. scratchOK clones onto the engine's per-exec-depth
+// scratch — ONLY valid when the caller consumes the statements within the
+// call; the retained form (scratchOK=false) clones onto fresh allocations.
+// It returns (nil, false, normKey) when there is no usable template (normKey
+// is the finalized normalized hash, for the caller's store path), falling
+// through to a full parse.
+func (e *Engine) tryTemplateCache(sqlStr string, values []interface{}, spans []normSpan, scratchOK bool) ([]sql.Stmt, bool, uint64) {
 	if len(values) == 0 || spans == nil {
-		return nil, false
+		return nil, false, 0
 	}
-	cached, ok := e.caches.templateCache[normKey]
-	if !ok || !templateMatchesSpans(cached.template, sqlStr, spans) {
-		return nil, false
+	cached := e.caches.lastTemplate
+	if cached == nil || !templateMatchesSpans(cached.template, sqlStr, spans) {
+		normKey := e.normHash.Sum64()
+		var ok bool
+		cached, ok = e.caches.templateCache[normKey]
+		if !ok || !templateMatchesSpans(cached.template, sqlStr, spans) {
+			return nil, false, normKey
+		}
+		e.caches.lastTemplate = cached
 	}
 	// Template cache hit — clone AST with new values. If the clone refuses
 	// (unknown shape or value mismatch), fall through to re-parse.
@@ -267,19 +276,19 @@ func (e *Engine) tryTemplateCache(sqlStr string, normKey uint64, values []interf
 	// (FIX.PREPARE-ALIAS).
 	if scratchOK {
 		if stmts, ok := e.trySlotPathLive(cached, values); ok {
-			return stmts, true
+			return stmts, true, 0
 		}
 		cloned, okClone := e.cloneStmtsValuesScratch(cached.ast, values)
 		if okClone {
-			return cloned, true
+			return cloned, true, 0
 		}
-		return nil, false
+		return nil, false, 0
 	}
 	cloned, okClone := cloneTemplateRetained(cached.ast, values)
 	if !okClone {
-		return nil, false
+		return nil, false, 0
 	}
-	return cloned, true
+	return cloned, true, 0
 }
 
 // cloneTemplateRetained is the retained-Prepare clone form (scratchOK=false):
@@ -320,4 +329,7 @@ func (e *Engine) storeTemplateCache(normKey uint64, normSQL []byte, values []int
 		ast:      stmts,
 		slots:    collectTemplateSlots(stmts),
 	}
+	// A freshly stored template is the most likely next hit: make it the
+	// last-entry memo (same verification contract as a hit-set memo).
+	e.caches.lastTemplate = e.caches.templateCache[normKey]
 }

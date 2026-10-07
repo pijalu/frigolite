@@ -552,6 +552,16 @@ type tableCaches struct {
 	nextRowIDCache map[rowidCacheKey]int64      // cached next rowid per (pager, root page)
 	autoIncSeq     map[rowidCacheKey]int64      // AUTOINCREMENT sequence: largest rowid ever used per (pager, root page)
 	templateCache  map[uint64]*sqlTemplateEntry // normalized-SQL hash → cached AST template (text-verified on lookup)
+	// lastTemplate is the template-cache's single-entry memo: the most
+	// recently hit or stored entry. A statement stream of one shape (the
+	// OLTP bulk shape) hits it on every statement, skipping the normalized
+	// hash finalization and the map probe — the span verification against
+	// the entry's immutable template text is the same exactness proof the
+	// map-hit path applies, so a stale memo can only degrade to the map
+	// lookup (or a full parse), never to a wrong template. Entries are only
+	// added or same-key-overwritten (never retracted), so a superseded memo
+	// still serves a structurally verified statement correctly.
+	lastTemplate   *sqlTemplateEntry
 	uniqueIdxCache map[string][]uniqueIndexDef  // cached unique-index definitions per table name
 	viewDefCache   map[string][]sql.ColumnDef   // cached view column definitions (viewName -> colDefs)
 }
