@@ -245,6 +245,11 @@ func scanStringLiteral(sql string, i int) (next int, val string, ok bool) {
 // scanNumericLiteral scans a numeric literal (integer or float) beginning at
 // index i (a digit). It returns the index just past the literal and its parsed
 // value (int64 for plain integers, float64 when it has a dot or exponent).
+//
+// REAL-ness is decided by hasDot alone: advanceNumeric sets it when it
+// consumes a dot AND when it consumes an exponent (the exponent case returns
+// done), so the historical containsExp(numStr) re-scan could only be true
+// when hasDot already was — the extra full-text pass is gone.
 func scanNumericLiteral(sql string, i int) (int, interface{}) {
 	start := i
 	hasDot := false
@@ -257,7 +262,7 @@ func scanNumericLiteral(sql string, i int) (int, interface{}) {
 		}
 	}
 	numStr := sql[start:i]
-	if hasDot || containsExp(numStr) {
+	if hasDot {
 		v, _ := strconv.ParseFloat(numStr, 64)
 		return i, v
 	}
@@ -335,16 +340,6 @@ func fastParseInt64(s string) (int64, bool) {
 func containsDoubleQuote(s string) bool {
 	for i := 0; i < len(s)-1; i++ {
 		if s[i] == '\'' && s[i+1] == '\'' {
-			return true
-		}
-	}
-	return false
-}
-
-// containsExp checks if a string contains 'e' or 'E' (scientific notation marker).
-func containsExp(s string) bool {
-	for i := 0; i < len(s); i++ {
-		if s[i] == 'e' || s[i] == 'E' {
 			return true
 		}
 	}

@@ -884,12 +884,7 @@ const maxTemplateCacheSize = 100
 // This is a fast pre-parse scan — it does NOT use the full parser.
 // Only handles simple quoted strings and decimal integers/floats.
 
-// fastParseInt64 parses a non-negative decimal integer string without sign.
-// Faster than strconv.ParseInt for the common case of simple digits.
-
 // containsDoubleQuote checks if a string contains SQL escaped quotes (”).
-
-// containsExp checks if a string contains 'e' or 'E' (scientific notation marker).
 
 // cloneStmtsWithValues clones the cached statement list and substitutes new
 // literal values. This avoids re-parsing structurally identical SQL.
