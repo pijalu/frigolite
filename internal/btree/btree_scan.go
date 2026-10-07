@@ -6,6 +6,7 @@ import (
 
 	"github.com/pijalu/frigolite/internal/pager"
 	"github.com/pijalu/frigolite/internal/storage"
+	"github.com/pijalu/frigolite/internal/util"
 )
 
 // Page-batch table-leaf scanning: a full scan visits a leaf page's cells in
@@ -176,8 +177,12 @@ func (c *Cursor) scanTableLeafPage(fn func(b *LeafBatch) (stop bool, err error))
 	if page.CellCount == 0 {
 		return leafPageNext, nil
 	}
-	b := LeafBatch{c: c, pg: c.currentPg, page: page, coff: contentOffset(c.currentPg.PageNum)}
-	stop, err := fn(&b)
+	// Reuse the cursor's batch view: the consumer decodes cells synchronously
+	// inside fn and never retains the batch, so one per-cursor struct serves
+	// every leaf page of the walk (no per-page escape).
+	b := &c.batchScratch
+	*b = LeafBatch{c: c, pg: c.currentPg, page: page, coff: contentOffset(c.currentPg.PageNum)}
+	stop, err := fn(b)
 	if err != nil {
 		return leafPageDone, err
 	}
@@ -195,4 +200,77 @@ func (c *Cursor) scanTableLeafPage(fn func(b *LeafBatch) (stop bool, err error))
 		return leafPageSaved, nil // a nested write saved the position mid-page
 	}
 	return leafPageNext, nil
+}
+
+// tableLeafCellHeader decodes a table-leaf cell's header at cellOff: the
+// rowid and the LOCAL payload slice (bounded by the page buffer). Returns
+// the payload, rowid, the offset just past the local payload, the full
+// payload length (for the overflow check) and the CLAMPED local length the
+// spill check must use. Shared by the cursor's ReadCellData fast path and
+// the page-batch scan (btree_scan.go) so both decode identically.
+func tableLeafCellHeader(pg *pager.Page, cellOff int, usableSize uint32) ([]byte, int64, int, int, int, error) {
+	data := pg.Data[cellOff:]
+
+	// Skip payload length varint. The 1-byte inline check keeps the common
+	// small-payload cell off the general GetVarint path (a table-leaf scan
+	// runs this once per cell).
+	var plen uint64
+	var n int
+	if data[0] < 0x80 {
+		plen, n = uint64(data[0]), 1
+	} else {
+		plen, n = util.GetVarint(data)
+	}
+	pos := cellOff + n
+
+	// Read rowID varint
+	if pos >= len(pg.Data) {
+		return nil, 0, 0, 0, 0, fmt.Errorf("database disk image is malformed")
+	}
+	rowid, n := util.GetVarint(pg.Data[pos:])
+	pos += n
+	rowID := int64(rowid)
+
+	// Slice the local payload from the page data (no copy). The inline
+	// no-overflow check mirrors LocalPayloadSize's first branch (table-leaf
+	// maxLocal is usableSize-35) — the per-cell call and its minLocal
+	// division only run for spilling payloads.
+	payloadLen := int(plen)
+	if payloadLen > int(usableSize)-35 {
+		payloadLen = storage.LocalPayloadSize(int(plen), int(usableSize), storage.CellTableLeaf)
+	}
+	if payloadLen > len(pg.Data)-pos {
+		payloadLen = len(pg.Data) - pos
+	}
+	return pg.Data[pos : pos+payloadLen], rowID, pos + payloadLen, int(plen), payloadLen, nil
+}
+
+// readTableLeafCellData decodes the current TABLE-LEAF cell straight from the
+// cached page (ReadCellData's fast path), following the overflow chain when
+// the payload spills.
+func (c *Cursor) readTableLeafCellData() (payload []byte, rowID int64, err error) {
+	pg := c.currentPg
+	cellOff := int(storage.CellPointer(pg.Data, contentOffset(pg.PageNum), c.cellIdx, int(c.tx.pageSize)))
+
+	// A corrupt cell pointer (outside the page buffer) must error, not panic
+	// (SQLite reports "database disk image is malformed").
+	if cellOff < 0 || cellOff >= len(pg.Data) {
+		return nil, 0, fmt.Errorf("database disk image is malformed")
+	}
+
+	payload, rowID, pos, plen, localLen, err := tableLeafCellHeader(pg, cellOff, c.tx.usableSize)
+	if err != nil {
+		return nil, 0, err
+	}
+
+	// If the payload spills to overflow pages, follow the chain.
+	if localLen < plen {
+		full, err := c.readCellDataOverflow(pg, pos, int(plen), rowID, payload)
+		if err != nil {
+			return nil, 0, err
+		}
+		return full, rowID, nil
+	}
+
+	return payload, rowID, nil
 }

@@ -67,6 +67,13 @@ type Cursor struct {
 	// registered under (set by registerTreeCursor; read by the static
 	// finalizer).
 	regKey cursorTreeKey
+
+	// batchScratch is ScanTableLeaves' reusable per-page LeafBatch view
+	// (btree_scan.go): one zero-value-assignable struct per cursor lifetime
+	// instead of one heap escape per visited leaf page. The walker hands the
+	// consumer a pointer into it; the consumer must not retain the batch
+	// beyond its fn call (both in-tree consumers decode cells synchronously).
+	batchScratch LeafBatch
 }
 
 // cursorPathEntry records one level of the traversal path.
@@ -595,7 +602,7 @@ func (c *Cursor) seekInLeafTable(pg *pager.Page, page *storage.BTreePage, rowID 
 		if p > len(data) {
 			return false, fmt.Errorf("database disk image is malformed")
 		}
-		cellOff := int(binary.BigEndian.Uint16(data[p : p+2]) & mask)
+		cellOff := int(binary.BigEndian.Uint16(data[p:p+2]) & mask)
 		if cellOff < 0 || cellOff >= len(data) {
 			return false, fmt.Errorf("database disk image is malformed")
 		}
@@ -876,36 +883,6 @@ func (c *Cursor) ReadCellData() (payload []byte, rowID int64, err error) {
 	return c.readTableLeafCellData()
 }
 
-// readTableLeafCellData decodes the current TABLE-LEAF cell straight from the
-// cached page (ReadCellData's fast path), following the overflow chain when
-// the payload spills.
-func (c *Cursor) readTableLeafCellData() (payload []byte, rowID int64, err error) {
-	pg := c.currentPg
-	cellOff := int(storage.CellPointer(pg.Data, contentOffset(pg.PageNum), c.cellIdx, int(c.tx.pageSize)))
-
-	// A corrupt cell pointer (outside the page buffer) must error, not panic
-	// (SQLite reports "database disk image is malformed").
-	if cellOff < 0 || cellOff >= len(pg.Data) {
-		return nil, 0, fmt.Errorf("database disk image is malformed")
-	}
-
-	payload, rowID, pos, plen, localLen, err := tableLeafCellHeader(pg, cellOff, c.tx.usableSize)
-	if err != nil {
-		return nil, 0, err
-	}
-
-	// If the payload spills to overflow pages, follow the chain.
-	if localLen < plen {
-		full, err := c.readCellDataOverflow(pg, pos, int(plen), rowID, payload)
-		if err != nil {
-			return nil, 0, err
-		}
-		return full, rowID, nil
-	}
-
-	return payload, rowID, nil
-}
-
 // readCellDataOverflow follows a table-leaf cell's overflow chain and
 // returns the reassembled payload.
 func (c *Cursor) readCellDataOverflow(pg *pager.Page, pos, plen int, rowID int64, payload []byte) ([]byte, error) {
@@ -934,35 +911,6 @@ func (c *Cursor) readCellFallback() ([]byte, int64, error) {
 		return nil, 0, err
 	}
 	return cell.Payload, cell.RowID, nil
-}
-
-// tableLeafCellHeader decodes a table-leaf cell's header at cellOff: the
-// rowid and the LOCAL payload slice (bounded by the page buffer). Returns
-// the payload, rowid, the offset just past the local payload, the full
-// payload length (for the overflow check) and the CLAMPED local length the
-// spill check must use. Shared by the cursor's ReadCellData fast path and
-// the page-batch scan (btree_scan.go) so both decode identically.
-func tableLeafCellHeader(pg *pager.Page, cellOff int, usableSize uint32) ([]byte, int64, int, int, int, error) {
-	data := pg.Data[cellOff:]
-
-	// Skip payload length varint
-	plen, n := util.GetVarint(data)
-	pos := cellOff + n
-
-	// Read rowID varint
-	if pos >= len(pg.Data) {
-		return nil, 0, 0, 0, 0, fmt.Errorf("database disk image is malformed")
-	}
-	rowid, n := util.GetVarint(pg.Data[pos:])
-	pos += n
-	rowID := int64(rowid)
-
-	// Slice the local payload from the page data (no copy)
-	payloadLen := storage.LocalPayloadSize(int(plen), int(usableSize), storage.CellTableLeaf)
-	if payloadLen > len(pg.Data)-pos {
-		payloadLen = len(pg.Data) - pos
-	}
-	return pg.Data[pos : pos+payloadLen], rowID, pos + payloadLen, int(plen), payloadLen, nil
 }
 
 // leafHasRoom reports whether a leaf page can plausibly hold the given cell

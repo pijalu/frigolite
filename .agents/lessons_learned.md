@@ -3884,3 +3884,77 @@ paired interleaved ratio decides.
 - btree -race full-package runs flake on TestCursorFinalizerSafetyNet
   (finalizer timing under race + 500s parallel load); it passes solo and
   on full-rerun — adjudicate per-test before hunting.
+
+## R10.INSSCAN — INSERT + SCAN close-out tranches (fleet/r10-insscan, 2026-10-07, @ 0ebff88c9)
+
+- **The typed scan lane's per-row residue was the slot WALK, not the
+  parse.** After the typed aggregate lane engages, the profile showed
+  GetVarint + resolveSlot + SerialTypeLength dominating: every aggregate
+  call re-walked the record header's preceding serial types per row. Fix:
+  parseRecordSerialTypesOffsetsInto — the header walk doubles as a slot
+  span table (per-entry value span relative to dataStart, plus an end
+  sentinel), so resolveSlotOffs is one array index. Corruption parity is
+  the delicate part: a reserved serial type (10/11) has NO length, so its
+  span END and every later span get poisoned (-1); a truncated body is
+  not a parse error — prefix sums push the end past len(payload) and the
+  per-slot bounds check fails exactly where the walk's pos+n check would.
+  Pinned against resolveSlot case-by-case (typed_lane_span_test.go).
+- **Boxed indirection per row is measurable even when each hop is
+  trivial.** Giving the typed lane its own tight per-page loop in
+  runBatch (processRowTyped IS the whole row step under a covered plan)
+  plus inlining LocalPayloadSize's no-overflow branch at the cell header
+  took scan from 41.8 to 46.7M rows/s — more than the span table itself.
+  Rule: a lane that needs zero per-row services should not pay the
+  general loop's fold layer.
+- **Escape analysis loses on closure-call boundaries: a struct handed to
+  a function-valued parameter escapes even when no callee retains it.**
+  LeafBatch escaped once per visited leaf page (~344k allocs per
+  benchmark) through `fn(&b)`; a per-Cursor batchScratch (assigned before
+  each fn call, documented non-retention contract) removed the escape.
+  Same pattern as the executor's insCell/insRecBuf reuse.
+- **Insert shape memo: revalidation cost is per-CALL; derive cost is per
+  MISS.** The insertShapeFor memo hit cheaply, but the VALUES row loop
+  called it four times per row (insertOneTuple, insertRow's FTS gate,
+  prepareInsertRowValues, writeTableRow) and the FTSTables() probe ran
+  per row outside its gate. Threading the shape once per statement
+  through insertOneTupleSh -> execInsertRowSh -> insertRowSh ->
+  prepareInsertRowValuesSh -> writeTableRowSh (nil-shape wrappers keep
+  the cold callers on the memo) was worth ~+5-8% end-to-end.
+- **INSERT's remaining gap is floors outside a tranche's reach:**
+  execResult's 109B/stmt is the public `Exec(sql) *Result` API shape
+  (pooling is unsafe — callers may retain), main.render's 140B/stmt is
+  the harness, scanNumericLiteral's 18B/stmt is internal/exec (sibling
+  scope), and the exec-layer statement-cache validation
+  (findTable/normalizeScan/allSchemasFingerprint ~80-100ns/stmt) is
+  likewise off-scope. A DML-side FindTable memo was PROTOTYPED AND
+  DROPPED: FindTable is the per-statement external-modification
+  detection point (checkExternalMod's Pread), and a memo that skips it
+  changes when an external commit becomes visible — SQLite's own
+  granularity is per-transaction, frigolite's is per-statement; matching
+  that safely needs the detection hoisted to statement entry (exec
+  layer), not a caller-side cache. Also dropped: a wrapper-local
+  quick-append slot mirror (cross-wrapper invalidation via the registry
+  would be unseen — stale maxKey + dupAlreadyDropped could double-write a
+  rowid); the registry lock pair (claim/update) stays.
+- **A global registry gets a lock-free zero-check before its lock.**
+  saveAllCursors locked + map-walked per write; openCursorCount (moved
+  under cursorRegMu with the registry) lets cursor-free workloads (pure
+  appends) skip the lock entirely. Zero means zero anywhere: conservative
+  and correct, and the common case.
+- **quality_gate.sh only gates STAGED files (pre-commit); run the full
+  script before pushing.** The full run fails on main already (pager
+  cookie_cache_test U1000, fts5 decodeStructRec gocognit 66, three exec
+  files >1000 lines) — the tranche contract is delta-clean: no NEW
+  offenders. R10's own crossings (insert_core.go 1007, btree.go 1038)
+  were resolved by splitting the moved/added code into insert_row.go and
+  the btree_scan.go cell-decode block instead of shrinking comments.
+- **Benchmarking discipline that held:** shared fleet machine — always
+  build per-binary (per the R9.INSERT lesson) AND interleave A/B pairs of
+  the two BINARIES in one shell loop, take medians, discard spikes only
+  when cpu-time (not wall) stayed normal. Baseline binary must be built
+  from a SEPARATE scratch dir pointing at main (never rewrite
+  /tmp/perf/frigo/go.mod).
+- Results (interleaved A/B vs main @ acb9015b9, NROWS=300k): scan
+  37.5M -> 47.6M rows/s median (+27%; 1.09x vs sqlite3, gate 45M MET).
+  insert 1.016M -> ~1.05-1.09M ops/s (+5-8%; 1.40-1.45x vs sqlite3,
+  gate 1.25M NOT met — floors above). point parity, no regressions.

@@ -497,6 +497,11 @@ type rangeSeekRow struct {
 	// serialTypes is the iterator's reusable record-header type buffer
 	// (parseRecordSerialTypesInto); consumed within each row's decode.
 	serialTypes []uint64
+	// slotOffs is the typed lane's reusable per-slot span table
+	// (parseRecordSerialTypesOffsetsInto): the value span of every serial
+	// entry, relative to the data section, computed during the same header
+	// walk so each aggregate call resolves its slot in O(1).
+	slotOffs []int32
 
 	rows [][]interface{}
 	maps []RowMap
@@ -744,6 +749,31 @@ func (it *rangeSeekRow) runBatch(a *rowidSeekAnalysis) (finished, ok bool) {
 			start = b.StartCell()
 			firstPage = false
 		}
+		if it.typed != nil {
+			// The typed lane's tight per-page loop: processRowTyped is the
+			// whole row step (a covered plan has no decode and no WHERE),
+			// so the boxed batchCell/processRow hops are dead weight here.
+			// The outcome folding is batchCell's verbatim.
+			n := b.CellCount()
+			for i := start; i < n; i++ {
+				payload, rowID, cellErr := b.Cell(i)
+				if cellErr != nil {
+					if errors.Is(cellErr, btree.ErrScanSaved) {
+						return true, nil // resume on the per-row loop
+					}
+					decline = true // the per-row loop's ReadCellData error path
+					return true, nil
+				}
+				if a.hiSet && rowID > a.hi {
+					return true, nil // the bound ends the range cleanly
+				}
+				if !it.processRowTyped(payload, rowID) {
+					decline = true // the scan fallback re-evaluates the row
+					return true, nil
+				}
+			}
+			return false, nil
+		}
 		for i := start; i < b.CellCount(); i++ {
 			payload, rowID, cellErr := b.Cell(i)
 			stop, decline = it.batchCell(a, payload, rowID, cellErr, decline)
@@ -832,15 +862,18 @@ func (it *rangeSeekRow) processRow(payload []byte, rowID int64) bool {
 
 // processRowTyped runs the direct-feed lane's row step: the lane owns the
 // covered loop, stepping the accumulators straight off the record bytes (no
-// decode, no WHERE — a covered plan has no per-row predicate). ok=false
+// decode, no WHERE — a covered plan has no per-row predicate). The header
+// parse doubles as the slot address book: each call's value span is computed
+// once per row here instead of re-walked per call (resolveSlotOffs). ok=false
 // falls back to the scan like every processRow anomaly.
 func (it *rangeSeekRow) processRowTyped(payload []byte, rowID int64) bool {
-	st, dataStart, err := parseRecordSerialTypesInto(payload, it.serialTypes[:0])
+	st, offs, dataStart, err := parseRecordSerialTypesOffsetsInto(payload, it.serialTypes[:0], it.slotOffs[:0])
 	if err != nil {
 		return false
 	}
 	it.serialTypes = st
-	if err := it.typed.stepDirect(payload, dataStart, st, rowID); err != nil {
+	it.slotOffs = offs
+	if err := it.typed.stepDirect(payload, dataStart, st, offs, rowID); err != nil {
 		return false
 	}
 	return true
