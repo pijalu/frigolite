@@ -91,6 +91,40 @@ func (e *Engine) randomFreeRowID(tree *btree.BTree) int64 {
 	return 1
 }
 
+// tableMayHaveAutoIncrement reports whether the table could declare an
+// AUTOINCREMENT column: true when the verdict is positive OR not yet
+// derivable (this connection has not parsed the table's column definitions
+// — the CREATE TABLE DDL does not populate that cache, and any DDL wipes
+// it wholesale). Statement GATES that must not miss AUTOINCREMENT work ask
+// this conservative form; the authoritative check (tableHasAutoIncrement)
+// runs later in the statement body, after the column definitions are
+// parsed. A known-negative stays cheap: the verdict memo serves it, so a
+// bulk load into a plain table keeps its hook-free fast path.
+func (e *Engine) tableMayHaveAutoIncrement(tableName string) bool {
+	fp := e.allSchemasFingerprint()
+	if e.aiMemoFp == fp && e.aiMemoTable == tableName {
+		return e.aiMemoHas
+	}
+	found := false
+	for k, colDefs := range e.caches.colCache {
+		if k == tableName || strings.HasPrefix(k, tableName+"\x00") {
+			found = true
+			for _, cd := range colDefs {
+				if cd.AutoInc {
+					e.aiMemoFp, e.aiMemoTable, e.aiMemoHas = fp, tableName, true
+					return true
+				}
+			}
+		}
+	}
+	if !found {
+		// Not derivable yet: conservatively true (do NOT memoize).
+		return true
+	}
+	e.aiMemoFp, e.aiMemoTable, e.aiMemoHas = fp, tableName, false
+	return false
+}
+
 // tableHasAutoIncrement reports whether the table declares an AUTOINCREMENT
 // column (an INTEGER PRIMARY KEY AUTOINCREMENT column in a rowid table).
 // The verdict is a pure function of the table's CREATE text, so the colCache
@@ -108,9 +142,21 @@ func (e *Engine) tableHasAutoIncrement(tableName string) bool {
 	if e.aiMemoFp == fp && e.aiMemoTable == tableName {
 		return e.aiMemoHas
 	}
+	// The verdict is only DERIVABLE once this connection has parsed the
+	// table's column definitions (parseColumnDefs populates colCache lazily;
+	// the DDL that created the table does not). A walk that finds no entry
+	// for the table has learned NOTHING — caching that negative under the
+	// current fingerprint poisoned every later ask at the same schema state,
+	// and the AUTOINCREMENT sequence write (asked from both the insert
+	// statement-end-hook gate and autoIncStatementSetup) never fired again:
+	// sqlite_sequence kept zero rows. Only cache a verdict backed by an
+	// actual colCache entry; an absent table re-walks (and re-derives) until
+	// its columns have been parsed.
 	has := false
+	found := false
 	for k, colDefs := range e.caches.colCache {
 		if k == tableName || strings.HasPrefix(k, tableName+"\x00") {
+			found = true
 			for _, cd := range colDefs {
 				if cd.AutoInc {
 					has = true
@@ -118,6 +164,9 @@ func (e *Engine) tableHasAutoIncrement(tableName string) bool {
 				}
 			}
 		}
+	}
+	if !found {
+		return false
 	}
 	e.aiMemoFp, e.aiMemoTable, e.aiMemoHas = fp, tableName, has
 	return has

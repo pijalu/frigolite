@@ -167,6 +167,13 @@ func (e *Engine) TableHasAutoIncrement(tableName string) bool {
 	return e.tableHasAutoIncrement(tableName)
 }
 
+// TableMayHaveAutoIncrement is the conservative gate form of
+// TableHasAutoIncrement: true when the verdict is positive or not yet
+// derivable on this connection (see expression_compare.go).
+func (e *Engine) TableMayHaveAutoIncrement(tableName string) bool {
+	return e.tableMayHaveAutoIncrement(tableName)
+}
+
 // RandomFreeRowID picks a random positive rowid not already in the table.
 func (e *Engine) RandomFreeRowID(tree *btree.BTree) int64 {
 	return e.randomFreeRowID(tree)
