@@ -109,8 +109,10 @@ func freeSpaceCoalesce(data []byte, hdr, usableSize int, pos freeSpacePos, iStar
 // page to the page's free space, coalescing with adjacent freeblocks
 // (btree.c freeSpace, src/btree.c:1918). hdr is the page's content offset
 // (0, or 100 for page 1). An error means the page image is corrupt (the
-// caller declines to mutate it).
-func freeSpaceOnPage(data []byte, hdr, usableSize, iStart, iSize int) error {
+// caller declines to mutate it). page (when non-nil) is kept in sync with
+// the header fields the operation rewrites — the parsed-struct contract the
+// parse-memo refresh relies on.
+func freeSpaceOnPage(data []byte, hdr, usableSize, iStart, iSize int, page *storage.BTreePage) error {
 	iEnd := iStart + iSize
 	pos, err := freeSpaceLocate(data, hdr, usableSize, iStart)
 	if err != nil {
@@ -128,23 +130,26 @@ func freeSpaceOnPage(data []byte, hdr, usableSize, iStart, iSize int) error {
 			return storage.ErrMalformedImage
 		}
 		data[hdr+7] -= byte(nFrag)
-		if iStart <= get2(data, hdr+5) {
-			return freeSpaceExtendContent(data, hdr, pos.iPtr, iStart, iEnd, next)
+		if page != nil {
+			page.FragFree = data[hdr+7]
 		}
-		freeSpaceLink(data, hdr, pos.iPtr, iStart, iSize, next)
+		if iStart <= get2(data, hdr+5) {
+			return freeSpaceExtendContent(data, hdr, pos.iPtr, iStart, iEnd, next, page)
+		}
+		freeSpaceLink(data, hdr, pos.iPtr, iStart, iSize, next, page)
 		return nil
 	}
 	if iStart <= get2(data, hdr+5) {
-		return freeSpaceExtendContent(data, hdr, pos.iPtr, iStart, iEnd, next)
+		return freeSpaceExtendContent(data, hdr, pos.iPtr, iStart, iEnd, next, page)
 	}
-	freeSpaceLink(data, hdr, pos.iPtr, iStart, iSize, next)
+	freeSpaceLink(data, hdr, pos.iPtr, iStart, iSize, next, page)
 	return nil
 }
 
 // freeSpaceExtendContent handles a freed range that begins exactly at the
 // cell content area's start: the area grows upward instead of chaining a
 // freeblock (legal only at the chain head).
-func freeSpaceExtendContent(data []byte, hdr, iPtr, iStart, iEnd, next int) error {
+func freeSpaceExtendContent(data []byte, hdr, iPtr, iStart, iEnd, next int, page *storage.BTreePage) error {
 	if iStart < get2(data, hdr+5) {
 		return storage.ErrMalformedImage
 	}
@@ -153,16 +158,23 @@ func freeSpaceExtendContent(data []byte, hdr, iPtr, iStart, iEnd, next int) erro
 	}
 	put2(data, hdr+1, next)
 	put2(data, hdr+5, iEnd)
+	if page != nil {
+		page.FirstFree = uint16(next)
+		page.CellContent = iEnd
+	}
 	return nil
 }
 
 // freeSpaceLink chains a (possibly coalesced) freeblock at iStart: its
 // predecessor's pointer (at iPtr) aims at it, and it carries the successor
 // and its own size.
-func freeSpaceLink(data []byte, hdr, iPtr, iStart, iSize, next int) {
+func freeSpaceLink(data []byte, hdr, iPtr, iStart, iSize, next int, page *storage.BTreePage) {
 	put2(data, iPtr, iStart)
 	put2(data, iStart, next)
 	put2(data, iStart+2, iSize)
+	if page != nil && iPtr == hdr+1 {
+		page.FirstFree = uint16(iStart)
+	}
 }
 
 // dropCellFromLeafPage removes the leaf cell at pointer-array index idx —
@@ -179,7 +191,7 @@ func dropCellFromLeafPage(p *pager.Pager, pg *pager.Page, page *storage.BTreePag
 	// Write-intent barrier (sqlite3PagerWrite parity): capture the page's
 	// statement-journal before-image before the first byte moves.
 	p.PrepareWrite(pg)
-	if err := freeSpaceOnPage(data, coff, int(usableSize), cellOff, sz); err != nil {
+	if err := freeSpaceOnPage(data, coff, int(usableSize), cellOff, sz, page); err != nil {
 		return err
 	}
 	page.CellCount--
@@ -246,7 +258,7 @@ func allocateSpaceOnPage(p *pager.Pager, pg *pager.Page, page *storage.BTreePage
 	// the gap preserves it for cell pointers).
 	if gap+2 <= top && (data[coff+1] != 0 || data[coff+2] != 0) {
 		var found bool
-		off, found, err = pageFindSlot(data, coff, int(usableSize), nByte, gap)
+		off, found, err = pageFindSlot(data, coff, int(usableSize), nByte, gap, page)
 		if err != nil {
 			return 0, false, err
 		}
@@ -302,16 +314,17 @@ func allocateFromContentGap(pg *pager.Page, page *storage.BTreePage, coff, nByte
 
 // pageFindSlot searches a page's freeblock chain for a slot of at least
 // nByte bytes, removing (or shrinking) the slot it uses (btree.c
-// pageFindSlot, src/btree.c:1743). ok=false reports no usable slot; an
-// error reports a corrupt chain.
-func pageFindSlot(data []byte, hdr, usableSize, nByte, gap int) (off int, ok bool, err error) {
+// pageFindSlot, src/btree.c:1743). ok=false reports no usable slot; an error
+// reports a corrupt chain. page (when non-nil) is kept in sync with the
+// header fields a consumed slot rewrites.
+func pageFindSlot(data []byte, hdr, usableSize, nByte, gap int, page *storage.BTreePage) (off int, ok bool, err error) {
 	iAddr := hdr + 1
 	pc := get2(data, iAddr)
 	maxPC := usableSize - nByte
 	for pc <= maxPC {
 		x := get2(data, pc+2) - nByte
 		if x >= 0 {
-			return pageUseSlot(data, hdr, gap, iAddr, pc, x, maxPC)
+			return pageUseSlot(data, hdr, gap, iAddr, pc, x, maxPC, page)
 		}
 		// Too small: the next pointer lives IN this slot.
 		iAddr = pc
@@ -333,7 +346,7 @@ func pageFindSlot(data []byte, hdr, usableSize, nByte, gap int) (off int, ok boo
 // x bytes to spare (btree.c pageFindSlot's two use shapes): a remainder
 // under 4 bytes joins the fragmented count and the slot leaves the chain;
 // a larger slot shrinks in place and the allocation comes off its end.
-func pageUseSlot(data []byte, hdr, gap, iAddr, pc, x, maxPC int) (off int, ok bool, err error) {
+func pageUseSlot(data []byte, hdr, gap, iAddr, pc, x, maxPC int, page *storage.BTreePage) (off int, ok bool, err error) {
 	if x < 4 {
 		if data[hdr+7] > 57 {
 			return 0, false, nil // fragmentation budget spent
@@ -343,6 +356,12 @@ func pageUseSlot(data []byte, hdr, gap, iAddr, pc, x, maxPC int) (off int, ok bo
 		data[iAddr] = data[pc]
 		data[iAddr+1] = data[pc+1]
 		data[hdr+7] += byte(x)
+		if page != nil {
+			if iAddr == hdr+1 {
+				page.FirstFree = binary.BigEndian.Uint16(data[iAddr : iAddr+2])
+			}
+			page.FragFree = data[hdr+7]
+		}
 		if pc <= gap {
 			return 0, false, storage.ErrMalformedImage
 		}

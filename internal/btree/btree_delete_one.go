@@ -44,6 +44,10 @@ func (t *BTree) deleteSingleTableRowID(leafNum uint32, idx int, rowID int64) (ha
 		// the generic path rebuilds the page wholesale and owns the error.
 		return false, 0, nil
 	}
+	// The write path kept `page` in step with its byte writes: re-arm the
+	// pager's parse memo so the next statement's seek hits instead of
+	// re-parsing the just-mutated leaf (btree.c's live-MemPage discipline).
+	pg.RefreshParsedBTree(int(t.pageSize), coff, page)
 	if werr := t.pager.WritePage(pg); werr != nil {
 		return false, 0, werr
 	}

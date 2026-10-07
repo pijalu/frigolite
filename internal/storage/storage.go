@@ -227,6 +227,15 @@ func parsePageInto(header []byte, pageData []byte, pageSize int, contentOffset i
 	return p, nil
 }
 
+// ValidatePageHeader reports whether an already-parsed b-tree page header is
+// consistent with the page image it claims to describe (the same checks
+// parsePageInto runs on a fresh parse). The pager's parse-memo refresh path
+// calls it before trusting a write path's parsed struct: a memo generation is
+// only as good as the validation a fresh parse would have applied.
+func ValidatePageHeader(p *BTreePage, pageData []byte, pageSize int, contentOffset int) error {
+	return validatePageHeader(p, pageData, pageSize, contentOffset)
+}
+
 // validatePageHeader enforces the page-type and free-space consistency
 // checks behind SQLite's "free space corruption" (reported as "database
 // disk image is malformed"): the cell content area must start after the cell

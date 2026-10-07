@@ -309,6 +309,7 @@ func (t *BTree) finishLeafDelete(pg *pager.Page, page *storage.BTreePage, encode
 	pg.Data[coff+1] = 0
 	pg.Data[coff+2] = 0
 	page.FirstFree = 0
+	page.FragFree = 0
 	ptrBase := coff + storage.CellPointerOffset
 	for i := 0; i < len(newPtrs); i++ {
 		binary.BigEndian.PutUint16(pg.Data[ptrBase+i*2:ptrBase+i*2+2], newPtrs[i])
@@ -332,6 +333,10 @@ func (t *BTree) finishLeafDelete(pg *pager.Page, page *storage.BTreePage, encode
 		binary.BigEndian.PutUint16(pg.Data[coff+5:coff+7], uint16(start))
 		pg.Data[coff+7] = 0
 	}
+	// Re-arm the parse memo from the synced header before persisting
+	// (live-MemPage discipline): the rewrite touched every memo-fingerprinted
+	// byte, so the next statement's access would otherwise re-parse.
+	pg.RefreshParsedBTree(int(t.pageSize), coff, page)
 	if err := t.pager.WritePage(pg); err != nil {
 		return deleted, err
 	}
@@ -384,6 +389,9 @@ func (t *BTree) deleteCellOnPage(pg *pager.Page, page *storage.BTreePage, cellId
 		page.CellContent = int(t.usableSize)
 		binary.BigEndian.PutUint16(pg.Data[coff+5:coff+7], uint16(t.usableSize))
 		pg.Data[coff+7] = 0 // fragmented free bytes
+		// Re-arm the parse memo from the synced header (live-MemPage
+		// discipline) before persisting.
+		pg.RefreshParsedBTree(int(t.pageSize), coff, page)
 		return t.pager.WritePage(pg)
 	}
 	// Compact the remaining cells down so the deleted cell's bytes are
@@ -394,6 +402,7 @@ func (t *BTree) deleteCellOnPage(pg *pager.Page, page *storage.BTreePage, cellId
 	if err := t.compactLeafAfterDelete(pg, page, coff); err != nil {
 		return err
 	}
+	pg.RefreshParsedBTree(int(t.pageSize), coff, page)
 	return t.pager.WritePage(pg)
 }
 
@@ -445,5 +454,6 @@ func (t *BTree) compactLeafAfterDelete(pg *pager.Page, page *storage.BTreePage, 
 	pg.Data[coff+2] = 0
 	pg.Data[coff+7] = 0
 	page.FirstFree = 0
+	page.FragFree = 0
 	return nil
 }
