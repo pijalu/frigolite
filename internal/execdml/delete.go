@@ -417,15 +417,19 @@ func (e *DMLExecutor) deleteTableContext(s *sql.DeleteStmt) (*schema.Entry, *Dat
 // through the alias) and resolve.c parity — the WHERE must resolve every
 // column and function against the target table.
 func (e *DMLExecutor) validateDeleteTargetExprs(s *sql.DeleteStmt, tableEntry *schema.Entry) *Result {
-	if res := e.validateDMLAliasQualifier(s.Table, s.Alias, []sql.Expr{s.Where}); res != nil {
-		return res
+	if s.Alias != "" && !strings.EqualFold(s.Alias, s.Table) {
+		if res := e.validateDMLAliasQualifier(s.Table, s.Alias, []sql.Expr{s.Where}); res != nil {
+			return res
+		}
 	}
 	qualifiers := []string{s.Table}
 	if s.Alias != "" {
 		qualifiers = append(qualifiers, s.Alias)
 	}
 	colDefs := e.ctx.ParseColumnDefs(s.Table, tableEntry.SQL)
-	return e.validateDMLExprs(qualifiers, colDefs, !tableIsWithoutRowid(tableEntry.SQL), []sql.Expr{s.Where})
+	return e.validateDMLExprsVerdictMemo(s, qualifiers, colDefs, !tableIsWithoutRowid(tableEntry.SQL), func() []sql.Expr {
+		return []sql.Expr{s.Where}
+	})
 }
 
 // trueRowidKey is the reserved RowMap key carrying the row's TRUE btree

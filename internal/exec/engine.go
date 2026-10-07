@@ -440,6 +440,13 @@ type Engine struct {
 	aiMemoFp    uint64
 	aiMemoTable string
 	aiMemoHas   bool
+	// ptAbort* memoizes the point-DML skip gate's per-table rowid facts (the
+	// INTEGER PRIMARY KEY alias name and rowid-table flag) per (schema entry,
+	// all-schemas fingerprint) — the aiMemo guard pattern.
+	ptAbortEntry *schema.Entry
+	ptAbortFp    uint64
+	ptAbortAlias string
+	ptAbortRowid bool
 	// pfDMLStable: the pfDML slot's statement was memoized under a
 	// template-stable AST pointer (pfASTStable's rule — the COW scratch
 	// clone recycles addresses across templates).

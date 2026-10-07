@@ -619,6 +619,14 @@ func (e *Engine) TriggersSuppressed() bool {
 	return e.triggersSuppressed
 }
 
+// StmtShapeStable reports whether the statement about to execute carries a
+// template-stable AST pointer (setStmtShapeStable). Exposed to the DML
+// executor so its per-statement verdict memos can gate on pointer identity
+// the way the engine's pfAST slot does.
+func (e *Engine) StmtShapeStable() bool {
+	return e.stmtShapeStable
+}
+
 // execFlushAutocommit applies PRAGMA count_changes and flushes attached
 // database pagers after a successful autocommit statement so a later connection
 // on the attached file sees the writes immediately. Inside an explicit

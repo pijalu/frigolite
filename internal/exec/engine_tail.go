@@ -12,6 +12,8 @@ import (
 	"github.com/pijalu/frigolite/internal/quota"
 	"strings"
 
+	"github.com/pijalu/frigolite/internal/execdml"
+	"github.com/pijalu/frigolite/internal/execquery"
 	"github.com/pijalu/frigolite/internal/fts"
 	"github.com/pijalu/frigolite/internal/fts5"
 	"github.com/pijalu/frigolite/internal/pager"
@@ -264,6 +266,19 @@ type fts5Snap struct {
 // (Its original motivation was the O(pages) snapshot copy — the journal
 // removed that cost for every non-skipped shape.)
 //
+// R10.DML extends the skip to the can't-abort point UPDATE/DELETE: a statement
+// whose WHERE contains a rowid equality conjunct (rowid/_rowid_/oid or the
+// table's INTEGER PRIMARY KEY alias) matches at most ONE row under any
+// evaluation, and its target gates (plain statement — no OR clause, no
+// RETURNING, no ORDER BY/LIMIT, no FROM; ordinary rowid table — no triggers,
+// no FK enforcement, no virtual/FTS target) remove every fail-after-write
+// source: SET/WHERE/RETURNING expression errors and the NOT NULL/CHECK/
+// UNIQUE gates all run BEFORE the single row's write, and the write itself
+// (cell overwrite or delete+reinsert of a just-freed slot) cannot fail on a
+// non-quota, non-WAL pager. SQLite keeps the same guarantee statement-scoped
+// (vdbe.c opens the sub-journal only for statements that may abort after
+// writing; a one-row rewrite of this shape does not).
+//
 // The main database being in WAL mode disables the skip: a WAL commit writes
 // to the "-wal" file, which is a SEPARATE I/O that can fail (disk error,
 // fault injection) AFTER the in-memory row write succeeds. The "cannot fail
@@ -271,40 +286,199 @@ type fts5Snap struct {
 // available (otherwise the uncommitted pages stay dirty and the next flush —
 // e.g. at Close — re-attempts and re-reports the error).
 func (e *Engine) dmlCanSkipSnapshot(stmt sql.Stmt) bool {
+	if !e.dmlSkipEnvOK() {
+		return false
+	}
+	switch s := stmt.(type) {
+	case *sql.InsertStmt:
+		return e.insertSkipShapeOK(s)
+	case *sql.UpdateStmt:
+		return updateSkipShapeOK(s) && e.pointDMLCannotAbort(s)
+	case *sql.DeleteStmt:
+		return deleteSkipShapeOK(s) && e.pointDMLCannotAbort(s)
+	default:
+		return false
+	}
+}
+
+// dmlSkipEnvOK reports the connection-wide gates every snapshot skip hangs
+// on: the pager must not be in WAL mode, the quota layer must be inactive,
+// and no commit hook may be registered.
+//
+// WAL mode disables every skip: a WAL commit writes to the "-wal" file,
+// which is a SEPARATE I/O that can fail (disk error, fault injection) AFTER
+// the in-memory row write succeeds. The "cannot fail after partially
+// writing" assumption is then false, so the rollback must be available
+// (otherwise the uncommitted pages stay dirty and the next flush — e.g. at
+// Close — re-attempts and re-reports the error).
+//
+// The quota layer (test_quota.c shim) can refuse file growth with SQLITE_FULL
+// after the in-memory write succeeded, voiding the same assumption. A
+// registered commit hook makes every commit vetoable after the rows are
+// written: a nonzero hook return fails the implicit COMMIT with
+// SQLITE_CONSTRAINT_COMMITHOOK and rolls the transaction back (vdbeCommit's
+// xCommitCallback check runs BEFORE btree commit phase one,
+// src/vdbeaux.c:2978-2982).
+func (e *Engine) dmlSkipEnvOK() bool {
 	if e.mainDB != nil && e.mainDB.Pager != nil && e.mainDB.Pager.JournalMode() == "wal" {
 		return false
 	}
-	// Quota layer active (test_quota.c shim): a flush can refuse file
-	// growth with SQLITE_FULL after the in-memory write succeeded, so the
-	// "commit cannot fail" assumption below is void — keep the rollback.
 	if quota.Active() {
 		return false
 	}
-	// A registered commit hook makes every commit vetoable after the rows
-	// are written: a nonzero hook return fails the implicit COMMIT with
-	// SQLITE_CONSTRAINT_COMMITHOOK and rolls the transaction back
-	// (vdbeCommit's xCommitCallback check runs BEFORE btree commit phase
-	// one, src/vdbeaux.c:2978-2982).
-	if e.commitHook != nil {
+	return e.commitHook == nil
+}
+
+// insertSkipShapeOK reports the single-row VALUES INSERT skip shape (the
+// historical R9 behavior): no SELECT source, no RETURNING, not REPLACE, one
+// VALUES tuple, no upsert clause, no FK enforcement, no triggers.
+func (e *Engine) insertSkipShapeOK(ins *sql.InsertStmt) bool {
+	if !isSimpleSingleValuesInsert(ins) || ins.OnConflict != nil {
 		return false
 	}
-	ins, ok := stmt.(*sql.InsertStmt)
-	if !ok {
-		return false // UPDATE/DELETE can fail mid-scan after earlier writes
-	}
-	if !isSimpleSingleValuesInsert(ins) {
+	// FK enforcement could reject after other writes; a trigger could fail
+	// after the insert.
+	return !e.settings.foreignKeys && !e.hasTriggersForTable(ins.Table)
+}
+
+// updateSkipShapeOK reports the plain-statement clause gates: no OR-clause
+// disposition, no RETURNING, no ORDER BY/LIMIT/OFFSET tail, no UPDATE...FROM
+// join source.
+func updateSkipShapeOK(s *sql.UpdateStmt) bool {
+	if s.OnConflict != "" || s.HasReturning || len(s.OrderBy) > 0 || s.Limit != nil || s.Offset != nil {
 		return false
 	}
-	if ins.OnConflict != nil {
-		return false // DO NOTHING / DO UPDATE upsert paths may skip or modify rows
+	return s.From.Name == "" && s.From.Subquery == nil && len(s.FromJoins) == 0
+}
+
+// deleteSkipShapeOK reports the plain-statement clause gates: no RETURNING,
+// no ORDER BY/LIMIT/OFFSET tail.
+func deleteSkipShapeOK(s *sql.DeleteStmt) bool {
+	return !s.HasReturning && len(s.OrderBy) == 0 && s.Limit == nil && s.Offset == nil
+}
+
+// pointDMLCannotAbort reports whether an UPDATE/DELETE that passed the clause
+// gates (no OR clause / RETURNING / ORDER BY / LIMIT / FROM) additionally
+// pins at most one row and targets an ordinary table: a rowid equality
+// conjunct in the WHERE (the planner's own rowid-lookup term — any correct
+// evaluation must satisfy it, and rowids are unique), a rowid table without
+// triggers, FK enforcement, virtual-table storage or FTS content storage.
+func (e *Engine) pointDMLCannotAbort(stmt sql.Stmt) bool {
+	var table string
+	var where sql.Expr
+	switch s := stmt.(type) {
+	case *sql.UpdateStmt:
+		table, where = s.Table, s.Where
+	case *sql.DeleteStmt:
+		table, where = s.Table, s.Where
+	default:
+		return false
+	}
+	if table == "" || where == nil {
+		return false
 	}
 	if e.settings.foreignKeys {
-		return false // FK enforcement could reject after other writes
+		return false // FK enforcement could reject or cascade after other writes
 	}
-	if e.hasTriggersForTable(ins.Table) {
-		return false // a trigger could fail after the insert
+	if e.hasTriggersForTable(table) {
+		return false // a trigger could fail after the row write
 	}
-	return true
+	if e.stmtTargetsFTSContent(stmt) {
+		return false // the in-memory FTS index needs its own snapshot
+	}
+	entry, _, err := e.findTable(table)
+	if err != nil || entry == nil {
+		return false
+	}
+	alias, rowidTable := e.rowidAliasCached(entry)
+	if !rowidTable {
+		return false // WITHOUT ROWID: a "rowid" name would be an ordinary column
+	}
+	if util.HasPrefixFoldASCII(entry.SQL, "CREATE VIRTUAL TABLE") {
+		return false // module storage: the write path is the module's own
+	}
+	return exprPinsRowid(where, entry, alias)
+}
+
+// rowidAliasCached resolves one table entry's rowid facts — the INTEGER
+// PRIMARY KEY alias column name ("" when the table has no alias) and whether
+// the table is a rowid table at all — memoized per (entry, schema
+// fingerprint), the withoutRowidCached guard pattern: any DDL replaces the
+// entry or moves the fingerprint, so a stale verdict cannot survive.
+func (e *Engine) rowidAliasCached(entry *schema.Entry) (alias string, rowidTable bool) {
+	fp := e.allSchemasFingerprint()
+	if e.ptAbortEntry == entry && e.ptAbortFp == fp {
+		return e.ptAbortAlias, e.ptAbortRowid
+	}
+	rowidTable = !execdml.TableIsWithoutRowid(entry.SQL)
+	if rowidTable {
+		colDefs := e.ParseColumnDefs(entry.Name, entry.SQL)
+		if execquery.RowHasRowIDColumn(colDefs) {
+			// A declared rowid/_rowid_/oid column shadows the pseudo-column.
+			rowidTable = false
+		} else {
+			for i := range colDefs {
+				if execdml.IsIPKRowidAliasCol(colDefs[i]) {
+					alias = colDefs[i].Name
+					break
+				}
+			}
+		}
+	}
+	e.ptAbortEntry, e.ptAbortFp, e.ptAbortAlias, e.ptAbortRowid = entry, fp, alias, rowidTable
+	return alias, rowidTable
+}
+
+// exprPinsRowid reports whether where contains, among its top-level AND
+// conjuncts, an equality term with the rowid on one side — either the
+// rowid pseudo-column (or a spelling of it no declared column shadows, which
+// rowidAliasCached already normalized) or the table's INTEGER PRIMARY KEY
+// alias. Such a term bounds the statement to one matching row: every
+// candidate row must satisfy it, and rowids are unique.
+func exprPinsRowid(where sql.Expr, entry *schema.Entry, alias string) bool {
+	switch v := unwrapParenExpr(where).(type) {
+	case *sql.BinaryOp:
+		if strings.EqualFold(v.Operator, "AND") {
+			return exprPinsRowid(v.Left, entry, alias) || exprPinsRowid(v.Right, entry, alias)
+		}
+		if v.Operator != "=" {
+			return false
+		}
+		return exprIsRowidRef(v.Left, alias) || exprIsRowidRef(v.Right, alias)
+	}
+	return false
+}
+
+// exprIsRowidRef reports whether expr is a bare column reference (a unary +
+// wrapper allowed, the planner's +col affinity-elision spelling) naming the
+// rowid or the table's IPK alias column.
+func exprIsRowidRef(expr sql.Expr, alias string) bool {
+	expr = unwrapParenExpr(expr)
+	if u, ok := expr.(*sql.UnaryOp); ok && u.Operator == "+" {
+		expr = unwrapParenExpr(u.Operand)
+	}
+	ref, ok := expr.(*sql.ColumnRef)
+	if !ok {
+		return false
+	}
+	if alias != "" && util.EqualFoldASCII(ref.Name, alias) {
+		return true
+	}
+	return util.EqualFoldASCII(ref.Name, "rowid") ||
+		util.EqualFoldASCII(ref.Name, "_rowid_") ||
+		util.EqualFoldASCII(ref.Name, "oid")
+}
+
+// unwrapParenExpr peels ParenExpr wrappers (or.go's unwrapParen shape, kept
+// local so the exec package's skip gate does not depend on execdml internals).
+func unwrapParenExpr(expr sql.Expr) sql.Expr {
+	for {
+		p, ok := expr.(*sql.ParenExpr)
+		if !ok {
+			return expr
+		}
+		expr = p.Expr
+	}
 }
 
 // isSimpleSingleValuesInsert reports whether the INSERT is the rollback-free

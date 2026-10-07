@@ -58,6 +58,37 @@ func (e *DMLExecutor) dmlColumnLookup(colDefs []sql.ColumnDef, hasRowid bool) ma
 	return m
 }
 
+// validateDMLExprsVerdictMemo serves the prepare-time expression-resolution
+// verdict for one prepared statement from the executor's single-entry memo
+// slot: the walk over the statement's WHERE/SET expressions (validateDMLExprs)
+// is a pure function of the statement AST plus the table's column defs, so a
+// template-stable statement pointer (StmtShapeStable — the pfAST slot's rule)
+// under an unchanged schema fingerprint can never change its verdict. build
+// supplies the walked expression slice lazily: a memo hit never materializes
+// it (the historical form allocated one []sql.Expr per statement). An
+// unstable statement recomputes without touching the slot, so a recycled COW
+// clone address can never serve another template's verdict.
+func (e *DMLExecutor) validateDMLExprsVerdictMemo(stmt sql.Stmt, qualifiers []string, colDefs []sql.ColumnDef, hasRowid bool, build func() []sql.Expr) *Result {
+	fp := e.schemaFingerprint()
+	stable := e.ctx.StmtShapeStable()
+	if stable && e.vExprStable && e.vExprStmt == stmt && e.vExprFp == fp {
+		if e.vExprErr != nil {
+			return &Result{Error: e.vExprErr}
+		}
+		return nil
+	}
+	res := e.validateDMLExprs(qualifiers, colDefs, hasRowid, build())
+	if stable {
+		e.vExprStmt, e.vExprStable, e.vExprFp = stmt, true, fp
+		if res != nil {
+			e.vExprErr = res.Error
+		} else {
+			e.vExprErr = nil
+		}
+	}
+	return res
+}
+
 // validateDMLExprs resolves every bare column reference and function name in
 // the given expressions against the target table, mirroring resolve.c:
 //   - an unknown column errors "no such column: NAME";
