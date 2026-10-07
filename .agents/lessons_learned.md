@@ -3849,3 +3849,38 @@ paired interleaved ratio decides.
   TestP8IncrVacuum3OracleSequence is randomblob-nondeterministic and
   fails solo on main too. -race harness subtest expectations differ
   identically on main. Gates: solo per-FILE on both branches.
+
+## FIX-R9INS — AUTOINCREMENT sequence writes lost (fleet/fix-r9ins, 2026-10-06)
+
+- **A memo over a LAZY derived cache must not cache verdicts the cache
+  cannot yet answer.** tableHasAutoIncrement's fingerprint memo stored the
+  FALSE verdict of a colCache walk that found NO entry for the table — but
+  colCache is populated lazily by ParseColumnDefs (CREATE TABLE DDL does
+  not populate it, and invalidateTableCache/invalidateTableCaches wipe it
+  wholesale after ANY DDL). The stored negative then served every later ask
+  at the same schema state, and the insert statement-end-hook gate + 
+  autoIncStatementSetup (both route through it) never fired the
+  sqlite_sequence write: rows stayed empty ("SELECT * FROM sqlite_sequence"
+  → [] instead of [t1 12]). Rule: a walk over a lazily-populated cache must
+  distinguish "walked and answered" from "found nothing to ask" — only the
+  first is cacheable.
+- **A fast-path gate must ask a CONSERVATIVE form of the fact it gates.**
+  Even with the negative-memo fixed, the first AUTOINCREMENT insert after
+  any DDL still dropped its sequence write: the gate ran while the cache
+  was wiped (verdict not derivable → false → hook-free fast path), while
+  the authoritative check inside the body ran AFTER ParseColumnDefs
+  (verdict true) — with no hook parked there was nothing to write through.
+  Fix: TableMayHaveAutoIncrement (positive OR not-yet-derivable → hooked;
+  known-negative stays memoized-cheap so the plain-table bulk load keeps
+  its fast path). Gate asks may-be; the body's authoritative verdict
+  decides the actual work. Generalizes: gate = cheap conservative
+  predicate, body = authoritative check, and the gate's false must PROVE
+  the body's false.
+- Debug pattern that pinned it: R9DBG prints at the gate and at the write,
+  run against the failing testgen suite — the failing statements showed
+  "gate ai=false" while the map-bump path was healthy; the cache-wipe
+  trigger was the intervening CREATE TEMP TABLE/DROP TABLE in the TCL
+  sequence.
+- btree -race full-package runs flake on TestCursorFinalizerSafetyNet
+  (finalizer timing under race + 500s parallel load); it passes solo and
+  on full-rerun — adjudicate per-test before hunting.

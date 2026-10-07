@@ -1285,3 +1285,25 @@ sqlite3 3.54 same ops): insert 1,031,927 ops/s (1.61x), point 939,964
 (1.10x), scan 38.0M rows/s (1.36x), group 48 q/s (1.26x FASTER), update
 684,758 (1.78x), delete 869,258 (1.85x), file autocommit 11,105 (1.11x
 FASTER). Campaign start: 10.9x/1040x/6.5x/3.9x/2049x/885x.
+
+## PERF-PARITY6 (CLOSE, 2026-10-03) — AUTOINCREMENT memo regression fixed; census 1073/0/290
+
+Post-R9 census caught autoinc/default_pkg/tkt_d82e3f3721 (1070/3):
+r9-insert's aiMemo cached an UNANSWERABLE negative — tableHasAutoIncrement
+memoized FALSE from a lazily-populated colCache that had no entry (CREATE
+TABLE DDL never populates it; DDL wipes it), while insertNeedsEndHooks
+asked at a cold moment → the hook-free fast path silently dropped the
+sqlite_sequence write on first-insert-per-connection and first-insert-
+post-DDL. Fix (fleet/fix-r9ins 3af9b04d0): gate asks the conservative
+TableMayHaveAutoIncrement (positive-or-unknown → hooked path; known-
+negative stays fast); memo never caches when the cache had no entry.
+Pinned frigolite_autoincseq_pin_test.go (4 shapes; fails on pre-fix
+main). Insert perf kept (+0.16% paired).
+Final: census 1073 pass / 0 fail / 290 skip, audit exit 0; suite green;
+bench (canonical harness vs sqlite3 same ops): insert 1,016,131 ops/s
+(1.54x), point 928,879 (1.11x), scan 37.5M rows/s (1.38x), group 49
+q/s (1.29x FASTER), update 682,782 (1.80x), delete 805,692 (1.74x),
+file autocommit 10,603 (1.06x FASTER). Campaign start 2026-09-28:
+10.9x/1040x/6.5x/3.9x/2049x/885x — every gap within 2.3x of oracle-
+parity, two phases faster, zero functionality regressions (census
+identical throughout).
