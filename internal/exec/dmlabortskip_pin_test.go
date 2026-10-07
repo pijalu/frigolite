@@ -86,6 +86,12 @@ func TestPinDMLAbortSkipMatrix(t *testing.T) {
 		"UPDATE OR ABORT t SET c=1 WHERE id=5",
 		"UPDATE OR ROLLBACK t SET c=1 WHERE id=5",
 		"DELETE FROM t WHERE rowid IN (5) LIMIT 1",
+		// ORDER BY/LIMIT/OFFSET tails are gated on both statement kinds
+		"UPDATE t SET c=1 WHERE id=5 LIMIT 1",
+		"UPDATE t SET c=1 WHERE id=5 LIMIT 1 OFFSET 1",
+		"UPDATE t SET c=1 WHERE id=5 ORDER BY rowid LIMIT 1",
+		"DELETE FROM t WHERE id=5 LIMIT 1 OFFSET 1",
+		"DELETE FROM t WHERE id=5 ORDER BY rowid LIMIT 1",
 		// RETURNING evaluates after the write
 		"UPDATE t SET c=c+1 WHERE id=5 RETURNING c",
 		"DELETE FROM t WHERE id=5 RETURNING c",
