@@ -255,6 +255,65 @@
   (a plan that says SEARCH USING INDEX can still execute a scan — profile
   `ScanTableLeaves` before believing EQP).
 
+## R13-L5 (2026-10-09) — batch-script Exec cost (template cache on scripts)
+
+- **A multi-statement script must be prepared and RUN one statement at a time**
+  (sqlite3_exec's loop over sqlite3_prepare). The whole-script parse keyed the
+  template cache on the WHOLE normalized text — unique for every distinct
+  literal sequence — so no statement of a script ever hit it: 30 of 70 ms for
+  20 000 point SELECTs, 2.4x the per-statement loop.
+- **The engine cannot split the script inside `PrepareExec`.** A template hit
+  serves a single-statement template through the entry's LIVE per-(template,
+  exec-depth) clone (slot path: validate + rewrite the leaves in place, ~0
+  alloc). A batch prepared up front hands the same clone to every same-template
+  statement, so all of them would execute the LAST literal. The per-statement
+  clone form (`cloneTemplateRetained`) is correct but costs ~0.47 us/statement
+  (full COW walk + SelectStmt/BinaryOp/NumericLit/[]sql.Stmt allocations): the
+  batch landed at 1.31x, not 1.2x. Interleaving prepare→run→prepare in the
+  CONNECTION layer (frigolite_script.go) is what makes the live clone safe and
+  puts the batch at or below the loop (0.85-1.05x).
+- **Split first, validate before running anything.** `;` inside a statement
+  only happens in a CREATE TRIGGER body, so a script without a TRIGGER token
+  splits straight into statements; a script with one prepares every fragment up
+  front and falls back to the whole-script parser if any fragment is not a
+  statement on its own. Falling back AFTER running a prefix would execute it
+  twice.
+- **`Query` used to swallow a trailing parse error of a multi-statement
+  script** (`Exec` reported it): the per-statement path reports it, matching the
+  sqlite3 CLI (prefix rows, then the error). It is a real fix, but do NOT read
+  it off full-suite totals: the same tree produced 2731 and 4333 failing leaves
+  in two consecutive full harness runs (parallel files share the working
+  directory's test.db* files). Isolated pattern runs are the instrument, and
+  they are equal-or-better for every family checked (count/delete/index/
+  prepare/speed1/trigger1/temptrigger/aggerror/aggnested/pragma2/altertab/
+  e_delete/e_resolve/e_update/e_walhook), as is a full root-suite A/B
+  (378 vs 383 failing entities, zero new).
+- **Statement texts are only needed when a trace/profile hook is registered**
+  (`execPrepared` ignores them otherwise): the tokenizer walk over a batch is
+  now gated on `StmtHooksActive()`, and the script path reuses the split it
+  already has.
+- **Measurement**: `perfbench -reps 1` has a cold-start bias — `point-select`
+  runs before `batch-point-select` in the same first repetition, so the ratio
+  flatters the batch. Medians of `-reps 5` are the honest steady state
+  (before: 277-308k vs 653-954k, ratio 2.4-3.1x; after: 964-985k vs 918-934k,
+  ratio 0.94-0.96x, `-reps 1` after: 928-1016k vs 872-1008k).
+- **The tokenizer split cost 166 ns/statement** (the split is on the per-
+  statement hot path of every script Exec): a script whose bytes are all ones
+  the tokenizer always classifies as itself (no quote, bracket, `-`/`/`
+  comment opener or unrecognized byte) is cut on its `;` bytes directly — one
+  byte pass, 40 ns/statement, with the TRIGGER word detected in the same pass.
+  That is what moved the batch from ~1.05x to ~0.95x.
+- **Harness A/B must run from the SAME directory state.** `cleanupTestDBFiles`
+  globs `*.db`/`*.db-journal`/`*.db-wal`/`*.db-shm`, so ATTACH-URI leftovers
+  (`file:test.db2?mode=rw`, `file:test2.db?8_3_names=1`) survive and change the
+  e_vacuum family's state cascade: the pristine main tree reproduces the
+  modified tree's e_vacuum leaves exactly, while a fresh `git worktree` differs
+  by one leaf. Decisive instrument for "new" full-suite leaves: re-run the
+  pattern ISOLATED in both trees, and for a suspicious family revert the tree
+  and re-run in place. All 14 apparent regressions of this round were flaky
+  (crashM/trigger1/e_delete/e_resolve/e_update) or directory-state artifacts
+  (e_vacuum); temptrigger came out one leaf BETTER.
+
 ## R9.DELETE (2026-10-06) — point-DELETE statement diet (fleet/r9-delete)
 
 - **Dead-on-arrival decode**: the point-DELETE fast path decoded every

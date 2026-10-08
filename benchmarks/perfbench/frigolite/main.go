@@ -15,6 +15,7 @@ import (
 	"os"
 	"path/filepath"
 	"sort"
+	"strings"
 	"time"
 
 	frigolite "github.com/pijalu/frigolite"
@@ -84,6 +85,7 @@ func runOnce(o options, out map[string][]float64) error {
 func (b *bench) phases() {
 	b.insert()
 	b.pointSelect()
+	b.batchPointSelect()
 	b.indexedSelect()
 	b.scan()
 	b.countStar()
@@ -120,6 +122,27 @@ func (b *bench) pointSelect() {
 			if r := b.db.Query(q); r.Error != nil {
 				return 0, r.Error
 			}
+		}
+		return ops(b.o.pointOps, t0), nil
+	})
+}
+
+// batchPointSelect measures the same point SELECT statements submitted as ONE
+// multi-statement SQL text (the speed1/BenchmarkPerfInsert1 shape) against the
+// per-statement loop of pointSelect: a batch that costs more per statement than
+// the loop is paying a whole-script parse instead of the per-statement template
+// cache (R13_RESEARCH.md §0b).
+func (b *bench) batchPointSelect() {
+	record(b.out, "batch-point-select", func() (float64, error) {
+		var sb strings.Builder
+		sb.Grow(b.o.pointOps * 30)
+		for i := 0; i < b.o.pointOps; i++ {
+			fmt.Fprintf(&sb, "SELECT c FROM t WHERE a=%d;", key(b.o.rows, i, 7919))
+		}
+		script := sb.String()
+		t0 := time.Now()
+		if r := b.db.Query(script); r.Error != nil {
+			return 0, r.Error
 		}
 		return ops(b.o.pointOps, t0), nil
 	})

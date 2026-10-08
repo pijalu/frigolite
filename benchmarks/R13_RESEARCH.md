@@ -66,6 +66,24 @@ not on that path (R11's "template-caches" win does not apply to a batch text).
 sqlite pays nothing comparable. Any workload that submits scripts (migrations,
 `speed1`-shaped loops, the JSON harness itself) sees this 2x.
 
+**FIXED (R13-L5, 2026-10-09).** The connection now runs a script the way
+sqlite3_exec does: split at top-level semicolons, then prepare → run → prepare
+the next, so every statement hits the per-statement template cache (see
+`frigolite_script.go` and the R13-L5 lessons entry). perfbench
+`batch-point-select` vs the per-statement `point-select` loop, same table
+(50 000 rows, 5 000 point SELECTs):
+
+| form | before | after |
+|---|---|---|
+| batch (one script) | 277-308k ops/s | 928-985k ops/s |
+| loop (one call per statement) | 653-954k ops/s | 918-1008k ops/s |
+| ratio | 2.4-3.1x slower | **0.89-1.04x** (batch at or above the loop) |
+
+`-reps 5` medians land at 964-985k (batch) vs 918-934k (loop): the script
+form is now FASTER than the call-per-statement loop, as it should be — it skips
+one string build and one public `Result` per statement. `-reps 1` carries a
+cold-start bias (the loop phase runs first in the repetition).
+
 ---
 
 ## 1. Headline: every secondary-index access path is O(table)

@@ -59,38 +59,6 @@ func (db *DB) RecoverSQL(ignoreFreelist bool) (string, error) {
 	return recover.RecoverSQL(db.pager, recover.Options{IgnoreFreelist: ignoreFreelist})
 }
 
-// statementTexts returns the per-statement raw texts for the trace hooks
-// (splitSQLStatements), short-circuiting the common single-statement form:
-// when the batch contains no semicolon byte at all there is nothing to split
-// (a string/blob literal containing one goes through the full tokenizer), and
-// splitSQLStatements would return exactly [sqlStr] — its EOF branch appends
-// the untrimmed tail verbatim. A nil return tells stmtTextAt to use the batch
-// text itself, skipping the tokenizer walk on every plain single-statement
-// Exec/Query call.
-func statementTexts(sqlStr string) []string {
-	if strings.IndexByte(sqlStr, ';') < 0 {
-		return nil
-	}
-	return splitSQLStatements(sqlStr)
-}
-
-// stmtTextAt returns the raw source text for statement si, or "" when the
-// prepared statement list is longer than the split texts. texts == nil means
-// the batch had no semicolon anywhere, so the whole batch text is statement
-// 0's text (and a multi-statement batch always split, so no later si exists).
-func stmtTextAt(sqlStr string, texts []string, si int) string {
-	if texts == nil {
-		if si == 0 {
-			return sqlStr
-		}
-		return ""
-	}
-	if si < len(texts) {
-		return texts[si]
-	}
-	return ""
-}
-
 // execPrepared runs one prepared statement under the statement trace hooks:
 // VACUUM is routed through the connection's internal vacuum executor with
 // internal tracing enabled, any other statement goes through engine.Exec
@@ -135,13 +103,24 @@ func (db *DB) Exec(sqlStr string) *Result {
 	if db == nil || db.engine == nil {
 		return &Result{Error: fmt.Errorf("frigolite: database not initialized")}
 	}
+	if steps, ok := db.scriptSteps(sqlStr); ok {
+		return db.execScript(steps)
+	}
+	return db.execWholeScript(sqlStr)
+}
+
+// execWholeScript is Exec's whole-script path: one PrepareExec for the whole
+// text, then the statements in order. It serves every text the per-statement
+// path declines (a single statement, an unsplittable script, a lexer error, an
+// over-long text), so its behavior is the pre-split contract unchanged.
+func (db *DB) execWholeScript(sqlStr string) *Result {
 	stmts, err := db.engine.PrepareExec(sqlStr)
 	if err != nil && len(stmts) == 0 {
 		db.engine.SetLastErr(err.Error(), "SQLITE_ERROR")
 		return &Result{Error: err}
 	}
 
-	texts := statementTexts(sqlStr)
+	texts := db.traceStatementTexts(sqlStr)
 	// The whole-batch BEGIN EXCLUSIVE check is a property of the batch TEXT,
 	// not of any single statement: compute it once (a per-statement
 	// EqualFold over the whole batch made multi-statement batches O(n^2) in
@@ -235,6 +214,9 @@ func (db *DB) runSingleStmt(stmt sql.Stmt, stmtText string) *exec.Result {
 // for a single statement (zero rows → nil Rows), and the last-error state
 // maintained on the connection.
 func (db *DB) runSQLText(sqlStr string) *exec.Result {
+	if steps, ok := db.scriptSteps(sqlStr); ok {
+		return db.runScript(steps)
+	}
 	stmts, err := db.engine.PrepareExec(sqlStr)
 	if err != nil && len(stmts) == 0 {
 		db.engine.SetLastErr(err.Error(), "SQLITE_ERROR")
@@ -247,7 +229,7 @@ func (db *DB) runSQLText(sqlStr string) *exec.Result {
 
 	var allRows [][]interface{}
 	var allColumns []string
-	texts := statementTexts(sqlStr)
+	texts := db.traceStatementTexts(sqlStr)
 	multi := len(stmts) > 1
 	var last *exec.Result
 	for si, stmt := range stmts {
@@ -342,32 +324,6 @@ func (db *DB) DumpAll() {
 			for _, row := range res.Rows {
 				fmt.Printf("  %v\n", row)
 			}
-		}
-	}
-}
-
-// splitSQLStatements cuts a SQL script into per-statement raw texts at
-// top-level semicolons. The cut is token-aware (sqlite3_prepare's walk):
-// semicolons inside string literals, blob literals, bracket identifiers, or
-// comments never split, so each chunk is exactly the text of one statement
-// including its trailing semicolon (sqlite3_stmt_sql semantics for the
-// trace/profile hooks).
-func splitSQLStatements(sqlStr string) []string {
-	tok := sql.NewTokenizer(sqlStr)
-	var texts []string
-	start := 0
-	for {
-		t := tok.Next()
-		switch t.Type {
-		case sql.TokenEOF, sql.TokenError:
-			if tail := sqlStr[start:]; strings.TrimSpace(tail) != "" {
-				texts = append(texts, tail)
-			}
-			return texts
-		case sql.TokenSemicolon:
-			text := sqlStr[start : t.Pos+len(t.Value)]
-			texts = append(texts, strings.TrimLeft(text, " \t\n\r\v\f"))
-			start = t.Pos + len(t.Value)
 		}
 	}
 }

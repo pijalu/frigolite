@@ -284,9 +284,9 @@ func (e *Engine) prepareCached(sqlStr string, scratchOK bool) ([]sql.Stmt, error
 	// Tokenize-time SQL length limit (tokenize.c sqlite3RunParser: mxSqlLen
 	// counts the SQL text against db->aLimit[SQLITE_LIMIT_SQL_LENGTH];
 	// exhaustion sets pParse->rc = SQLITE_TOOBIG with the default message,
-	// before any statement runs — sqllimits1-6.1).
-	if e.settings.sqlLengthLimit != 0 && len(sqlStr) > e.settings.sqlLengthLimit {
-		return nil, fmt.Errorf("string or blob too big")
+	// before any statement runs — sqllimits1-6.1). See CheckScriptLength.
+	if err := e.CheckScriptLength(sqlStr); err != nil {
+		return nil, err
 	}
 	// Template cache first for literal-bearing statements: a unique-text
 	// stream (rendered literals — the bulk-load shape) misses the exact-text
