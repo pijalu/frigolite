@@ -4168,3 +4168,74 @@ FRIGOLITE-DIFFERENT. Ranked top-10 lever table there. The durable points:
   structure (~40-90ns/stmt) — C rides opcode dispatch with two early-outs
   (OP_Transaction in-txn no-op, eState<CACHEMOD commit no-op). Collapse
   walks; don't chase below the C dispatch floor.
+
+## R12.BTREE — btree-side levers #3/#5/#6/#8 (fleet/r12-btree, 2026-10-07, @ 3fa1bb904)
+
+Branch: fleet/r12-btree @ main 5f9cdd051. Four levers from R11_RESEARCH.md,
+all measured with per-binary stable blocks in /tmp/perf/r12bt (NROWS=300000
+NPOINT=200000 NSCAN=3 NUPDATE=100000 NDELETE=30000 NAUTO=5000, quiet).
+
+- **L1 (R11#3) — writeLeafCell takes the insert index; append runs no search.**
+  2fd755567. Quick-append passes CellCount (claim proved rightmost);
+  insertLeafPage reuses dropTableLeafDuplicateRowid's position when nothing
+  was dropped and re-searches (-1) only after an actual drop; writeLeafCell's
+  internal duplicate re-probe deleted — both callers already own dup handling.
+  insert_xact 1115k → 1140k ops/s (+2%); point/update/delete flat.
+- **L2 (R11#5) — scanMaxRowID = rightmost-leaf descent, not a full scan.**
+  ee909610c. BTree.MaxRowID() (id, found) added on the LastRowID walk; the
+  found flag (not "id > 0") is the emptiness signal — the old interior walk's
+  non-positive heuristic misanswered all-negative-rowid trees. GOTCHA: the
+  retired scan's accumulator started at 0, so empty AND all-negative trees
+  answered 0; execdml scanMaxRowID keeps that exact floor (`id > 0`) so the
+  replacement is byte-equal to the scan for EVERY input (pin:
+  btree_maxrowid_test.go compares descent vs the retired scan oracle across
+  empty/single/asc/desc/random/delete-max/delete-middle/drained/negative/
+  index-tree shapes). execdml/rowid.go's scanMaxRowID body is the ONE line of
+  this lever outside internal/btree (call sites unchanged). Bench: flat on
+  single-phase shapes (the scan ran once per run) — the lever removes the
+  O(n) cliff from insert-after-update/delete interleavings.
+- **L3 (R11#6) — point-delete decodes cell+size in ONE header parse.**
+  540da1d03. storage.DecodeTableLeafCellAndSize = C's xParseCell (CellInfo
+  once, btree.c:9908): decodeTableLeafCellInto returns its end offset,
+  TableLeafCellSizeAt delegates to the fused helper (all other callers
+  unchanged), pointDeleteTarget hands the size to dropCell. The next-cell
+  duplicate probe KEPT: it is the fast path's corrupt-image guard (generic
+  predicate deletes ALL same-rowid cells on the leaf; the probe declines to
+  it). delete_xact 962k → 998k ops/s (+3.7%); point flat.
+- **L4 (R11#8) — append-cursor slot is atomic advisory state; hot path has
+  ZERO cursorRegMu acquisitions.** 3fa1bb904. quickAppendSlot fields →
+  atomics, registry → sync.Map (create-once/read-heavy), claim returns the
+  slot pointer, park stores through it, the six simple invalidation sites
+  drop their Lock/Unlock (Close keeps its critical section for the cursor
+  registry). Correctness rests on verifyQuickLeaf's page-bytes gate: any
+  torn/stale slot pair declines to the generic path, which re-establishes —
+  no lock needed for advisory state. **Memo-consumption half DECLINED with
+  measurement reasoning: verifyQuickLeaf's ParsePageInto (8 header fields +
+  validate) beats a memo hit (bytes.Equal over 8+2*nCell span + canary) at
+  leaf sizes, and the shared memo struct would need a defensive copy before
+  writeLeafCell mutates it.** Bench: flat within noise (mutexes were
+  uncontended; the theoretical ~70ns is inside the run-to-run band).
+- **Method held**: per-binary stable A/B blocks (never interleaved
+  single-runs); baselines re-run in the same session as B; flat results are
+  reported flat, not claimed as wins. Ambient drift across a session can
+  move untouched phases ~1% — adjudicate per-phase, protect select_point.
+- **Finisher gates (same session)**: build/testgen(7)/btree01-solo/named
+  pins(21 pkgs)/-race(btree 596s+pager+root stress incl. concurrent
+  open/close/DDL + append-cursor pins)/SOLID/quality all GREEN;
+  MaxRowID descent-vs-scan pin + memo pins GREEN. Full-suite band
+  adjudicated base-identical: `go test ./...` fails the documented
+  ~4443-4458-case shared-cwd band on BOTH 5f9cdd051 and the branch with
+  IDENTICAL 379-file sets (0 files diff; subtests rotate) — per-FILE
+  serial (FRIGOLITE_TEST=<name> -parallel=1) also base-identical
+  (rowid family 68=68 fail events, byte-equal modulo timing). NOTE:
+  these families fail solo on pristine main TODAY (env drifted from the
+  earlier solo-green sessions; testdata unchanged since Sep 18) — the
+  base itself is the control, not the lessons' historical green.
+- **Paired bench (3 interleaved rounds, per-binary stable blocks,
+  /tmp/perf/r12bt2, mission env)**: medians branch vs main —
+  insert 1,155,311 vs 1,142,539 (+1.1%); point 965,965 vs 955,331
+  (+1.1%, protected); scan 50.1M vs 50.2M rows/s (-0.3%, noise);
+  group 53=53; update 805,443 vs 794,610 (+1.4%); delete 996,556 vs
+  988,385 (+0.8%); file 11,450 vs 11,266 (+1.6%). No phase regressed;
+  delete/insert carry the lever wins from their dev sessions; scan
+  untouched (L2 pays only in insert-after-mutation interleavings).
