@@ -159,6 +159,29 @@ type Pager struct {
 	// appended record.
 	journalRecC1 uint32
 	journalRecC2 uint32
+	// journalAppendOff is the tracked append cursor for rollback-journal
+	// records: record appends go through WriteAt at this offset instead of
+	// relying on the fd position (the previous Write-based appends needed a
+	// Seek syscall after every header write/truncate to reposition it).
+	// Advanced by appendRollbackRecordLocked, reset to one sector (past the
+	// header) whenever a fresh epoch starts or the file is truncated.
+	journalAppendOff int64
+	// dbFilePerm caches the database file's permission bits at Open time
+	// (journal3 parity: the rollback journal mirrors the main file's mode).
+	// initJournalEpochLocked chmods the freshly created journal only when
+	// the cached perm differs from what OpenFile already produced, so a
+	// default-perm database skips the per-transaction Stat+Chmod pair. 0
+	// means unknown (the legacy per-epoch Stat path runs).
+	dbFilePerm os.FileMode
+	// dbFileInfo caches the database file's os.FileInfo from Open time;
+	// databaseFileMoved compares the path's stat against THIS identity
+	// (pager.c databaseIsUnmoved caches st_dev/st_ino at open and stats
+	// only the path per journal open — it never re-fstats the fd).
+	dbFileInfo os.FileInfo
+	// flushOrderScratch reuses the dirty-page commit-order slice across
+	// flushes (the previous make+sort.Slice per flush allocated twice per
+	// commit). Only used under p.mu inside flushFilePagesLocked.
+	flushOrderScratch []uint32
 	// Statement journal (pager.c sub-journal — see pagerstmt.go).
 	// stmtTop is the innermost open statement scope; scopes chain via their
 	// parent field. Guarded by mu (read under RLock in the ReadPage fast
@@ -406,11 +429,18 @@ func (p *Pager) databaseFileMoved() bool {
 	if err != nil {
 		return true
 	}
-	fi, err := p.file.Stat()
-	if err != nil {
-		return false
+	if p.dbFileInfo == nil {
+		// Defensive: openPager always seeds the cache, so this only runs if
+		// a Pager was constructed outside openPager. Refresh from the fd
+		// (one fstat) and remember it — the identity of an open fd never
+		// changes.
+		fi, ferr := p.file.Stat()
+		if ferr != nil {
+			return false
+		}
+		p.dbFileInfo = fi
 	}
-	return !os.SameFile(pi, fi)
+	return !os.SameFile(pi, p.dbFileInfo)
 }
 
 // SetNumPagesForTesting clamps the in-memory page count to n when n is

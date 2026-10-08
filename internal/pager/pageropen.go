@@ -61,6 +61,12 @@ func openPager(path string, pageSize uint32, forceReadOnly bool) (*Pager, error)
 		// closing it never materializes the file.
 		openedEmpty: info.Size() == 0,
 		path:        cleanPath,
+		// Open-time identity/permission cache (see the field docs):
+		// databaseFileMoved compares the path stat against dbFileInfo and
+		// initJournalEpochLocked chmods the journal only when the mode
+		// differs — both otherwise cost 1-2 syscalls per transaction.
+		dbFileInfo: info,
+		dbFilePerm: info.Mode().Perm(),
 		// SQLite's default PRAGMA journal_size_limit is -1 (no truncation;
 		// pager.h SQLITE_DEFAULT_JOURNAL_SIZE_LIMIT). A PERSIST journal is
 		// truncated to the limit after a commit when one is set; negative

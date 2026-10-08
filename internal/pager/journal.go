@@ -335,18 +335,20 @@ func (p *Pager) openJournalFileLocked(jpath, mode string) error {
 		if err != nil {
 			return fmt.Errorf("pager: open journal: %w", err)
 		}
-		// Seek to the end of any existing records so appends continue
-		// the stream. The header write at offset 0 will overwrite the
-		// old header; new records go right after the new header.
-		if _, err := f.Stat(); err == nil {
-			// Start at the sector size (the new header position).
-			_, _ = f.Seek(int64(p.journalSectorSize), 0)
-		}
+		// Record appends are offset-tracked (journalAppendOff), so no Seek
+		// is needed here — initJournalEpochLocked positions the append
+		// cursor past the fresh header it writes at offset 0.
 		p.journalFile = f
 		return nil
 	}
-	// DELETE/TRUNCATE: unlink any leftover journal.
-	_ = os.Remove(jpath)
+	// DELETE/TRUNCATE: the O_TRUNC open produces the fresh sidecar; any
+	// leftover journal from a crashed writer was already handled by the
+	// hot-journal recovery at Open time (recoverJournalAtOpen), and a
+	// journal that materialized between Open and this first write cannot
+	// exist under the single-writer-per-pager engine contract. The previous
+	// pre-open os.Remove was one syscall per transaction for a path that is
+	// never populated (pager.c's DELETE mode uses DELETEONCLOSE and does
+	// not pre-unlink either).
 	f, err := os.OpenFile(jpath, os.O_RDWR|os.O_CREATE|os.O_TRUNC, 0o644)
 	if err != nil {
 		return fmt.Errorf("pager: open journal: %w", err)
@@ -362,11 +364,21 @@ func (p *Pager) openJournalFileLocked(jpath, mode string) error {
 func (p *Pager) initJournalEpochLocked() error {
 	jpath := p.journalFile.Name()
 	// Mirror the main database file's mode bits (journal3.test 1.2.x.4
-	// asserts the journal has the same -perm as the main db). Falls
-	// back to 0o644 if the Stat fails (e.g. a brand-new file with no
-	// mode yet).
-	if st, err := os.Stat(p.path); err == nil {
-		_ = os.Chmod(jpath, st.Mode().Perm())
+	// asserts the journal has the same -perm as the main db). The perm is
+	// cached at Open (dbFilePerm), so a default-perm database skips the
+	// per-epoch Stat+Chmod pair: OpenFile created the journal at 0o644 and
+	// the umask that shaped the database file at ITS creation also shapes
+	// the journal, so an identical cache value implies identical on-disk
+	// bits. A non-0644 cache chmods; an unknown (0) value falls back to the
+	// legacy Stat-then-Chmod and seeds the cache.
+	switch {
+	case p.dbFilePerm != 0o644 && p.dbFilePerm != 0:
+		_ = os.Chmod(jpath, p.dbFilePerm)
+	case p.dbFilePerm == 0:
+		if st, err := os.Stat(p.path); err == nil {
+			p.dbFilePerm = st.Mode().Perm()
+			_ = os.Chmod(jpath, p.dbFilePerm)
+		}
 	}
 	// Sector size: default to 512 (matches pager.c setSectorSize when
 	// no FCNTL sector-size hint is provided).
@@ -392,13 +404,10 @@ func (p *Pager) initJournalEpochLocked() error {
 		p.journalFile = nil
 		return err
 	}
-	// After WriteAt the file position is unchanged; seek to the end of
-	// the new header so subsequent records (which use Write, not WriteAt)
-	// append after it. Without this the first record overwrites the
-	// header bytes.
-	if _, err := p.journalFile.Seek(int64(p.journalSectorSize), 0); err != nil {
-		return fmt.Errorf("pager: seek journal: %w", err)
-	}
+	// After the WriteAt, records append at the tracked offset past the
+	// header (journalAppendOff; the previous Write-based appends needed a
+	// Seek syscall here to move the fd position past the header bytes).
+	p.journalAppendOff = int64(p.journalSectorSize)
 	// Initialize the running-checksum state from the header seed.
 	p.journalRecC1 = p.journalCksum1
 	p.journalRecC2 = p.journalCksum2
@@ -468,9 +477,12 @@ func (p *Pager) appendRollbackRecordLocked(pageNum uint32, data []byte) error {
 	binary.BigEndian.PutUint32(buf[0:4], pageNum)
 	copy(buf[4:4+len(data)], data)
 	binary.BigEndian.PutUint32(buf[4+len(data):], JournalChecksum(p.journalCksum1, data))
-	if _, err := p.journalFile.Write(buf); err != nil {
+	// Offset-tracked append (see journalAppendOff): WriteAt instead of a
+	// position-dependent Write, so nothing ever needs to Seek the fd.
+	if _, err := p.journalFile.WriteAt(buf, p.journalAppendOff); err != nil {
 		return fmt.Errorf("pager: journal write pg %d: %v", pageNum, err)
 	}
+	p.journalAppendOff += int64(len(buf))
 	// Update the running checksum over (pageNum, data). The same mixer
 	// as the WAL writer.
 	c1, c2 := journalChecksumUpdate(p.journalRecC1, p.journalRecC2, buf)
@@ -551,11 +563,9 @@ func (p *Pager) finalizeJournalTruncateLocked(jpath string) error {
 	if err := os.Truncate(jpath, 0); err != nil {
 		return err
 	}
-	// Seek back to the end of the header so the next transaction
-	// that appends records starts at the right offset.
-	if _, err := p.journalFile.Seek(int64(p.journalSectorSize), 0); err != nil {
-		return fmt.Errorf("pager: seek journal after truncate: %w", err)
-	}
+	// The next epoch's records start past the header; the tracked append
+	// cursor makes that explicit (no Seek syscall).
+	p.journalAppendOff = int64(p.journalSectorSize)
 	return nil
 }
 
@@ -578,11 +588,9 @@ func (p *Pager) finalizeJournalPersistLocked(jpath string, multiDB bool) error {
 	if err := persistTruncateLimit(p.journalSizeLimit, jpath, multiDB); err != nil {
 		return err
 	}
-	// Seek back to the end of the header so the next transaction
-	// that appends records starts at the right offset.
-	if _, err := p.journalFile.Seek(int64(p.journalSectorSize), 0); err != nil {
-		return fmt.Errorf("pager: seek journal after persist: %w", err)
-	}
+	// The next epoch's records start past the header (offset-tracked appends;
+	// the old code Seek-ed the fd to the same position).
+	p.journalAppendOff = int64(p.journalSectorSize)
 	return nil
 }
 

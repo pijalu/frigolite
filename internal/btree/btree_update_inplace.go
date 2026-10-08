@@ -46,7 +46,15 @@ func (t *BTree) OverwriteCellByRowIDAt(rowID int64, cellData []byte, leaf uint32
 	if err != nil {
 		return false, err
 	}
-	page, err := storage.ParsePage(pg.Data, int(t.pageSize), contentOffset(pg.PageNum))
+	// The caller's seek (Cursor.SeekToRowID -> seekTableLeafWithPath) just
+	// filled the pager's validated parse memo for this leaf; a fresh
+	// storage.ParsePage here would re-derive the header the memo already
+	// holds (btree.c: the cursor's MemPage is parsed once at cache load and
+	// the loc==0 fast path reuses it). The memo's validating access re-runs
+	// the same checks a fresh parse would on a miss, and the returned struct
+	// is read-only-shared — the in-place overwrite never mutates it (same
+	// byte size => header and pointer array are untouched).
+	page, err := pg.ParsedBTree(int(t.pageSize), contentOffset(pg.PageNum))
 	if err != nil {
 		return false, err
 	}
@@ -84,7 +92,7 @@ func (t *BTree) seekLeafRow(rowID int64) (pg *pager.Page, page *storage.BTreePag
 	if err != nil {
 		return nil, nil, 0, false, err
 	}
-	page, err = storage.ParsePage(pg.Data, int(t.pageSize), contentOffset(pg.PageNum))
+	page, err = pg.ParsedBTree(int(t.pageSize), contentOffset(pg.PageNum))
 	if err != nil {
 		return nil, nil, 0, false, err
 	}
@@ -112,10 +120,11 @@ func (t *BTree) overwriteLeafCellAt(pg *pager.Page, page *storage.BTreePage, idx
 // already decoded at oldOff (one decode per overwrite instead of two).
 func (t *BTree) overwriteLeafCellAtDecoded(pg *pager.Page, page *storage.BTreePage, idx int, old *storage.Cell, oldOff int, cellData []byte) (bool, error) {
 	coff := contentOffset(pg.PageNum)
-	oldSize, err := storage.TableLeafCellSizeAt(pg.Data, oldOff, int(t.usableSize))
-	if err != nil {
-		return false, err
-	}
+	// The decode already walked this cell's header (btree.c xParseCell fills
+	// CellInfo ONCE); the on-page size is the two header varints plus the
+	// local payload the decode measured (+4 overflow pointer, floored at 4 —
+	// cellSizePtrTableLeaf), so no second header walk is needed.
+	oldSize := tableLeafCellSizeDecoded(pg.Data, oldOff, old)
 	if declineInPlaceOverwrite(old, oldSize, len(cellData), newPayloadLen(cellData), int(t.usableSize), t.ptrmapEnabled()) {
 		return false, nil
 	}
@@ -177,4 +186,26 @@ func newPayloadLen(cellData []byte) int {
 		return 0
 	}
 	return int(plen)
+}
+
+// tableLeafCellSizeDecoded computes the on-page size of the already-decoded
+// table-leaf cell old at data[oldOff:] without re-decoding it — the size is
+// the payload-length varint + rowid varint + old.LocalLen (+4 when the cell
+// spills, for the overflow pointer), floored at 4 (storage's
+// cellSizePtrTableLeaf pads undersized cells so a pointer slot is never
+// smaller than the pointer). The offsets decoded successfully once, so the
+// two varint reads stay in bounds; this mirrors storage.TableLeafCellSizeAt's
+// arithmetic exactly (btree.c xCellSize reads the size straight from the
+// bytes xParseCell just walked).
+func tableLeafCellSizeDecoded(data []byte, oldOff int, old *storage.Cell) int {
+	_, n1 := util.GetVarint(data[oldOff:])
+	_, n2 := util.GetVarint(data[oldOff+n1:])
+	sz := n1 + n2 + old.LocalLen
+	if old.LocalLen < old.PayloadLen {
+		sz += 4
+	}
+	if sz < 4 {
+		sz = 4
+	}
+	return sz
 }

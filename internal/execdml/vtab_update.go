@@ -71,16 +71,10 @@ func (e *DMLExecutor) rejectUnsafeVTabUse(name string) *Result {
 // execVTabUpdate runs an UPDATE whose target is an updatable virtual table:
 // it materializes the instance rows, applies the WHERE filter, evaluates the
 // SET assignments per matching row and hands the full new row to xUpdate
-// (src/dbpage.c dbpageUpdate parity). handled is false when the target is
-// not a virtual table.
-func (e *DMLExecutor) execVTabUpdate(s *sql.UpdateStmt) (*Result, bool) {
-	vt, colDefs, res, handled := e.resolveVTabUpdater(s.Table)
-	if !handled {
-		return nil, false
-	}
-	if res != nil {
-		return res, true
-	}
+// (src/dbpage.c dbpageUpdate parity). The caller resolved the updater
+// instance (routeUpdateVTab: resolveVTabUpdater ran before the DIRECTONLY
+// gate), so vt/colDefs arrive ready.
+func (e *DMLExecutor) execVTabUpdate(s *sql.UpdateStmt, vt vtab.VirtualTable, colDefs []sql.ColumnDef) (*Result, bool) {
 	cur, err := vt.Open()
 	if err != nil {
 		return &Result{Error: err}, true

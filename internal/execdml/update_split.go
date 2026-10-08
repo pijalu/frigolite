@@ -116,12 +116,23 @@ func (e *DMLExecutor) pushUpdateCTEs(s *sql.UpdateStmt) func() {
 
 // routeUpdateVTab routes generic updatable virtual tables (sqlite_dbpage
 // etc.) before the b-tree paths: their rows come from xFilter, not a root
-// page. handled=false keeps the b-tree UPDATE pipeline.
+// page. handled=false keeps the b-tree UPDATE pipeline. The target is
+// resolved FIRST (one memoized probe): a name that resolves to no updater
+// vtab — every plain-table statement — returns without the DIRECTONLY
+// probe (rejectUnsafeVTabUse's module-registry lookup + ToLower allocation
+// can only fire for a target that IS a virtual table).
 func (e *DMLExecutor) routeUpdateVTab(s *sql.UpdateStmt) (*Result, bool) {
+	vt, colDefs, res, handled := e.resolveVTabUpdater(s.Table)
+	if !handled {
+		return nil, false
+	}
+	if res != nil {
+		return res, true
+	}
 	if res := e.rejectUnsafeVTabUse(s.Table); res != nil {
 		return res, true
 	}
-	return e.execVTabUpdate(s)
+	return e.execVTabUpdate(s, vt, colDefs)
 }
 
 // openUpdateTarget resolves the UPDATE's target table and enforces alias

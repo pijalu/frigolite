@@ -4168,3 +4168,58 @@ FRIGOLITE-DIFFERENT. Ranked top-10 lever table there. The durable points:
   structure (~40-90ns/stmt) — C rides opcode dispatch with two early-outs
   (OP_Transaction in-txn no-op, eState<CACHEMOD commit no-op). Collapse
   walks; don't chase below the C dispatch floor.
+
+## R12.UPD — point-UPDATE overwrite + commit write path (fleet/r12-upd, 2026-10-07, @ 8f466790c)
+
+- **The file-phase lever was the journal LIFECYCLE, not the flush loop.**
+  The R8-era "24% in flushPage truncate" finding was stale: the 5000-op
+  autocommit-file profile showed 100% of CPU in syscalls, with
+  openRollbackJournalLocked alone at 67% — OpenFile (os.Remove+open) +
+  initJournalEpoch (Stat+Chmod+pwrite+Seek) + databaseFileMoved (2 stats)
+  PER TRANSACTION, then flushPage's per-growth truncate + per-page quota
+  (filepath.Abs alloc each) + refreshKnownFileStamp (fstat+pread). Seven
+  cuts: cached db perm (skip Stat+Chmod when 0644 — the umask that shaped
+  the database also shapes the journal, so an identical cached 0644
+  implies identical bits; unknown perm falls back to Stat-then-Chmod and
+  seeds), offset-tracked journal appends (WriteAt + journalAppendOff —
+  no Seek after header/truncate; readers were always ReadAt), drop the
+  pre-open Remove (O_TRUNC suffices; hot-journal recovery ran at Open;
+  C's DELETE mode doesn't pre-unlink), databaseFileMoved against the
+  Open-time os.FileInfo (os.SameFile — no per-open fstat), implicit file
+  growth in the ascending WriteAt chain (C pager_write_pagelist parity;
+  ONE batched quota gate to maxEnd BEFORE any write moves — refusal
+  before partial writes is BETTER than mid-loop), scratch slice +
+  insertion sort for the 2-3-page dirty order, stamp derived from the
+  just-written cached page 1. File phase 11,419 -> 13,577 ops/s (+18.9%).
+  Profile first: every cut except the sort was a SYSCALL, invisible to
+  alloc profiles.
+- **RejectUnsafeVTabUse is only reachable for vtab targets — resolve
+  first.** routeUpdateVTab ran the DIRECTONLY probe (registry Find +
+  ToLower ALLOCATION per statement) before resolveVTabUpdater, so every
+  plain-table UPDATE paid it to learn nothing. Resolve first (the
+  notUpdaterVtab negative memo answers in one map lookup); only a
+  resolved vtab reaches the DIRECTONLY check. Error-priority flip
+  (DIRECTONLY + broken instance now reports the resolution error) is
+  unobservable except with both faults present.
+- **Point-UPDATE's overwrite pays for what the seek already did — unless
+  you consume it.** OverwriteCellByRowIDAt re-parsed the leaf the
+  caller's seek had just memoized AND TableLeafCellSizeAt re-walked the
+  cell header DecodeCellInto had just decoded. Fix = 30 lines: route
+  through Page.ParsedBTree (the memo's validating access equals a fresh
+  parse on miss) + compute the on-page size from the decoded Cell plus
+  two varint widths (identical arithmetic incl. the <4 pad). +1.6%
+  update; the memo stays valid after a same-size memcpy (header bytes
+  untouched) — the NEXT seek hits it too.
+- **Session baselines drift; block medians within one session hold.**
+  Same main tree read 796k update one block, 758k the next (thermal/
+  fleet load). Only paired interleaved A/B medians in ONE block decide;
+  a lever's effect smaller than the block-to-block drift (±3%) needs
+  6-8+ pairs and consistent direction to admit.
+- **Journal perm/identity caches vs tests**: journal3-style perm parity
+  survives because a custom-perm database never caches 0644 — the chmod
+  fires. The umask corner (db chmod'ed to 0644 externally AFTER open
+  under a restrictive umask) would skip the chmod; documented, untested
+  by the corpus. growth pins (frigolite_perfcommitgrowth_pin_test.go)
+  hold the file-shape contract the removed per-page truncate used to
+  guarantee: per-commit size == page_count*page_size, rollback restores
+  length, max_page_count/vacuum/quota-refusal shapes.

@@ -10,7 +10,6 @@ import (
 	"encoding/binary"
 	"fmt"
 	"os"
-	"sort"
 
 	"github.com/pijalu/frigolite/internal/quota"
 )
@@ -268,29 +267,6 @@ func (p *Pager) flushAll() error {
 	return p.flushAllCtx(false)
 }
 
-// flushOrderLocked returns the dirty pages in commit-write order: all pages
-// ascending, then page 1 LAST. sqlite3PagerCommitPhaseOne stamps page 1's
-// change counter / in-header page count after the page-list write: a page
-// allocated during this cycle extends the file mid-loop and
-// growHeaderSizeLocked raises the in-header size and re-dirties page 1.
-// Flushing page 1 first would write the pre-growth header (on-disk nPage 47
-// with page 48 present — integrity_check then reports "invalid page number"
-// on page_size=512 FTS4 builds) and the end-of-cycle dirty wipe would drop
-// the re-dirty mark. The caller holds p.mu.
-func (p *Pager) flushOrderLocked() []uint32 {
-	order := make([]uint32, 0, len(p.dirty))
-	for pageNum := range p.dirty {
-		if pageNum != 1 {
-			order = append(order, pageNum)
-		}
-	}
-	sort.Slice(order, func(i, j int) bool { return order[i] < order[j] })
-	if p.dirty[1] {
-		order = append(order, 1)
-	}
-	return order
-}
-
 // flushAllCtx is called under p.mu. The multiDB flag is true when this
 // flush is part of a COMMIT that includes one or more ATTACH'd databases
 // (the "super-journal" path in pager.c, which forces PERSIST-mode
@@ -361,8 +337,32 @@ func (p *Pager) flushFilePagesLocked(multiDB bool) error {
 		return err
 	}
 	// Flush page 1 LAST (see flushOrderLocked for the sqlite3PagerCommit
-	// PhaseOne ordering rationale).
-	for _, pageNum := range p.flushOrderLocked() {
+	// PhaseOne ordering rationale). The page writes below extend the file
+	// implicitly (pager_write_pagelist parity: C grows the database with
+	// the pwrites themselves — no per-page ftruncate), so the quota layer
+	// is consulted ONCE for the WHOLE flush up front (sqlite3PagerCommit
+	// PhaseOne's single SIZE_HINT before the page-list write; the quota
+	// callback must see the total growth, and a refusal must land before
+	// any page moved — same rollback-on-failure shape as a mid-loop
+	// refusal, minus the partial writes).
+	order := p.flushOrderLocked()
+	var maxEnd int64
+	for _, pageNum := range order {
+		if e := int64(pageNum) * int64(p.pageSize); e > maxEnd {
+			maxEnd = e
+		}
+	}
+	if maxEnd > p.fileSize {
+		if err := quota.CheckDBFileGrowth(p.path, maxEnd); err != nil {
+			_ = p.rollbackFromJournalLocked()
+			return err
+		}
+	}
+	flushedPage1 := false
+	for _, pageNum := range order {
+		if pageNum == 1 {
+			flushedPage1 = true
+		}
 		if err := p.flushPage(pageNum); err != nil {
 			// pager.c: a failed commit phase-one rolls the
 			// transaction back — journal playback restores the
@@ -384,7 +384,10 @@ func (p *Pager) flushFilePagesLocked(multiDB bool) error {
 	// Own writes just hit the file: refresh the external-change baseline
 	// (pager.c readDbPage restores Pager.dbFileVers from page 1) so the
 	// next per-statement check does not mistake them for external changes.
-	p.refreshKnownFileStamp()
+	// When page 1 was among the flushed pages the stamp is derived from
+	// the bytes just written (the header mirror in flushPage guarantees
+	// pg1.Data carries the final header) — no Stat+ReadAt pair.
+	p.refreshKnownFileStampAfterFlush(flushedPage1)
 	return nil
 }
 
@@ -450,16 +453,14 @@ func (p *Pager) flushPage(pageNum uint32) error {
 		fmt.Fprintf(os.Stderr, "QDBG3 flushPage page=%d fileSize=%d fileEnd=%d numPages=%d\n", pageNum, p.fileSize, fileEnd, p.numPages)
 	}
 	if p.fileSize < fileEnd {
-		// Quota enforcement (test_quota.c quotaWrite): growing the file
-		// past its tracked size goes through the quota layer, which
-		// invokes the group callback (the callback may raise or zero the
-		// limit) and refuses the growth with SQLITE_FULL otherwise.
-		if err := quota.CheckDBFileGrowth(p.path, fileEnd); err != nil {
-			return err
-		}
-		if err := p.file.Truncate(fileEnd); err != nil {
-			return fmt.Errorf("pager: truncate: %w", err)
-		}
+		// Growth is implicit in the WriteAt below (pager_write_pagelist
+		// parity: C extends the database file with the page write itself —
+		// pages are written in ascending order, so no gap can precede a
+		// page). The quota gate for the WHOLE flush ran once in
+		// flushFilePagesLocked (SIZE_HINT parity); here only the size
+		// cache and the in-header database size track the growth — the
+		// previous per-page file.Truncate was a syscall per newly
+		// allocated page at every commit.
 		p.fileSize = fileEnd
 		// Mirror the new file size in the in-header database size (offset
 		// 28). Without this, the on-disk header keeps the pre-extension
