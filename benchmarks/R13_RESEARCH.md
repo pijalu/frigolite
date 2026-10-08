@@ -405,6 +405,7 @@ engine's true rate and a flat per-op cost — the same binary with `-point-ops`
 DELETE and no size dependence. The threshold sits inside the noise band, not
 inside the engine's behavior.
 
-End-to-end gate runs in this session: run 1 exit 0 (perf sample clear); run 2
-exit 1 on a 35 934 perf sample — the harness clauses are the deterministic
-clause and read 46/162/87 (delete/index/where) on every run.
+End-to-end gate runs in this session: run 1 exit 0, run 2 exit 1 on a 35 934 perf
+sample, run 3 exit 0 (`indexed-delete` 100 356, `point-delete` 166 962) — the
+harness clauses are the deterministic part and read 46/162/87 (delete/index/where)
+on every run.
