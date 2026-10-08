@@ -1,5 +1,50 @@
 # Lessons Learned — Frigolite
 
+## R13-L3 (2026-10-08) — index maintenance by seek (OP_IdxDelete parity)
+
+- **Index b-trees are value-ordered; the byte-order premise is dead.** All
+  index writers funnel through `writeIndexCell` / `execddl/ddl_index.go`
+  (`installIndexOrder` → `SetIndexKeyInfo` → `RecordPayloadCompare`), so a
+  root-to-leaf descent under that comparator is sound. The walk in
+  `IndexKeyRowIDs` was kept "correct on ANY stored order" and cost O(index)
+  per probe; both the candidate lookup and the maintenance delete are now
+  O(log n) descents (2.2 ms → 5.8 µs per indexed DELETE at 50k rows).
+- **Descend LEFT on an equal divider for prefix probes, RIGHT for full keys.**
+  `sqlite3BtreeMovetoUnpacked`'s index branch is "first divider that does not
+  sort before the probe → its LEFT child, else the rightmost"; with a *prefix*
+  probe that is the only correct rule (entries equal on the probed fields may
+  still sort before the rest of the key). Result: the landing leaf may hold no
+  qualifying cell — advance with `Next()` (path-stack navigation), which is
+  what sqlite's callers do with btreeNext when lwr == nCell. `SetIndexKeyInfo`
+  installs the comparator at the *call* site (delete/seek), mirroring insert.
+- **Value equality ≠ byte equality on the delete path.** A target must
+  byte-match the entry the insert side wrote (INTEGER 1 vs REAL 1.0 compare
+  equal under KeyInfo but encode differently), so the seek path verifies
+  `bytes.Equal(full, target)` and declines to the byte-exact walk on mismatch
+  or when the entry's bytes are not at the lower bound.
+- **Empty index leaves stay in place** (`maybeRebalanceAfterDelete`'s
+  leaf-index branch), and a leaf-only delete never removes interior dividers,
+  so the seek path needs neither rebalance nor `clearEmptyRootRightmost` — the
+  walk's tail is only for the walk.
+- **Dividers are COPIES and their copies age**: the divider keeps the old
+  right-sibling first key value while later inserts legally land in that
+  subtree, so sqlite's `integrity_check` can report `non-unique entry in index
+  iN` in addition to the R13-L7 `wrong # of entries` (both present at HEAD,
+  unrelated to this change).
+- **Gate counters must count leaves, not FAIL lines**: Go prints a parent
+  `--- FAIL: TestSQLiteSuite/<file>` line for every file with a failing case,
+  so grepping all FAIL lines yields leaves + failing files (delete 58, index
+  205, where 124) while the leaf counts are 50/179/108. Compare leaf-only
+  counts (names containing '/'), and always re-measure the *unpatched* tree as
+  the control.
+- **`DB.Save(path)` ignores `path`** (`frigolite.go:385` just flushes the
+  pager): to hand a database to sqlite3, open a real file path instead.
+- Pre-existing flaky root tests seen (both fail on pristine HEAD, ~1 in 4
+  runs): `TestP8IncrVacuum3OracleSequence` (freelist_count 21-167 vs 0) and
+  `TestWindowCGroupConcatBlobUTF16` (full-run order only). Also pre-existing:
+  `staticcheck` U1000 in `internal/pager/cookie_cache_test.go:19`, so the
+  strict gate is red repo-wide before this change.
+
 ## R13-L4 (2026-10-08) — count(*) from page headers; harness ATTACH state
 
 - **`count(*)` is now OP_Count-shaped**: bare `SELECT count(*) FROM t` counts

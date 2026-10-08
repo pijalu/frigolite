@@ -391,7 +391,7 @@ func (e *DMLExecutor) planUpdateSeek(tableName string, rootPage uint32, colDefs 
 	if plan == nil {
 		return nil, nil, false
 	}
-	rowIDs, ok := e.seekCandidateRowIDs(tableName, rootPage, plan)
+	rowIDs, ok := e.seekCandidateRowIDs(tableName, rootPage, plan, colDefs)
 	if !ok {
 		return nil, nil, false
 	}

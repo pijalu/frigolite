@@ -275,28 +275,32 @@ func seekKeyCollation(indexSQL string, idx int) string {
 // rowids. ok=false means the candidate lookup itself failed (unreadable index
 // pages, unexpected payload shapes) and the caller must fall back to the
 // full scan.
-func (e *DMLExecutor) seekCandidateRowIDs(tableName string, rootPage uint32, plan *dmlSeekPlan) (rowIDs []int64, ok bool) {
+func (e *DMLExecutor) seekCandidateRowIDs(tableName string, rootPage uint32, plan *dmlSeekPlan, colDefs []sql.ColumnDef) (rowIDs []int64, ok bool) {
 	if plan.empty {
 		return nil, true
 	}
 	if plan.index == nil {
 		return []int64{plan.rowid}, true
 	}
-	return e.scanIndexCandidates(plan)
+	return e.scanIndexCandidates(plan, colDefs)
 }
 
 // scanIndexCandidates resolves the plan's probe keys through the driving
 // index's b-tree (P9.PERF.T3): each probe value becomes a
 // btree.UnpackedIndexKey under the index's KeyInfo and btree.IndexKeyRowIDs
-// collects candidate rowids with record-format comparisons — value-order
-// semantics, so an INTEGER probe also matches a stored REAL with the same
-// value (the old byte-encoding prefilter required equal encodings and could
-// miss that pair). The walk is order-agnostic (stored byte order scatters
-// value-equal entries), and any comparator/page error falls back to the
-// full scan via ok=false.
-func (e *DMLExecutor) scanIndexCandidates(plan *dmlSeekPlan) (rowIDs []int64, ok bool) {
+// resolves it — one lower-bound descent plus the equal-prefix run on the
+// value-ordered tree the insert side wrote (the index is ordered by the keys'
+// collations since T31-idxcoll, so the descent positions the matches), with
+// record-format comparisons giving value-order semantics: an INTEGER probe
+// also matches a stored REAL with the same value. Any comparator/page error
+// falls back to the full scan via ok=false.
+func (e *DMLExecutor) scanIndexCandidates(plan *dmlSeekPlan, colDefs []sql.ColumnDef) (rowIDs []int64, ok bool) {
 	idxTree := btree.NewBTree(plan.index.Ctx.Pager, plan.index.RootPage, false)
 	defer idxTree.Close() // tree and its probe cursor are function-local
+	// The candidate lookup descends the tree by VALUE order (SQLite's
+	// sqlite3BtreeIndexMoveto); install the same comparator the insert side
+	// ordered the tree with, which is what licenses the descent.
+	installIndexOrder(idxTree, plan.index.SQL, colDefs, e.collationLookup())
 	seen := make(map[int64]bool)
 	for _, probe := range dmlIndexSeekProbes(plan) {
 		ids, err := idxTree.IndexKeyRowIDs(probe)

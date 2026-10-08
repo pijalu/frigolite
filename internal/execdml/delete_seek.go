@@ -15,7 +15,7 @@ func (e *DMLExecutor) seekDeleteRows(tree *btree.BTree, s *sql.DeleteStmt, table
 	if plan == nil {
 		return nil, false
 	}
-	rowIDs, ok := e.seekCandidateRowIDs(tableEntry.Name, tableEntry.RootPage, plan)
+	rowIDs, ok := e.seekCandidateRowIDs(tableEntry.Name, tableEntry.RootPage, plan, colDefs)
 	if !ok {
 		return nil, false
 	}

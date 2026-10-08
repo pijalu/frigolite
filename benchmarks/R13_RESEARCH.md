@@ -273,3 +273,50 @@ unaffected; integrity_check/ANALYZE-class readers are.
 `test.db1..test.db4`; capture leaf-failure baselines only after moving those
 files aside (they shift counts by up to 11). Clean baselines: index 179,
 where 108, delete 50, update 6, select2 9, intpkey 2, dml 0, count 0.
+
+## L3 — index maintenance by seek: OP_IdxDelete parity (2026-10-08)
+
+Index maintenance no longer walks the index. `btree.DeleteIndexEntry[ies]`
+descends to each target entry (a root-to-leaf lower-bound descent under the
+tree's installed KeyInfo comparator — sqlite3BtreeMovetoUnpacked's index branch,
+src/btree.c:6863) and drops that one cell (dropCellFromLeafCell →
+dropCellFromLeafPage), i.e. vdbe.c's OP_IdxDelete →
+sqlite3BtreeDelete(BTREE_AUXDELETE). The batched all-leaf walk survives as
+`deleteIndexEntriesWalk`, reached only when the tree carries no value
+comparator. `IndexKeyRowIDs` (the DML candidate resolver, `WHERE <indexed
+col> = ?`) got the same descent plus the equal-prefix run, and the DML sites
+(`deleteIndexCell`, `deleteIndexCellsBatch`, `scanIndexCandidates`) now install
+the index comparator before the seek, the same way the insert side installs it.
+
+Measured (`benchmarks/perfbench/frigolite -reps 3 -index`, 50k rows, in-memory;
+before = this file's §1 numbers at `ae17fd019`):
+
+| shape | before | after | speedup | sqlite 3.54 |
+|---|---|---|---|---|
+| indexed-delete (`DELETE … WHERE b=?`) | 1 239 ops/s | **316 589 ops/s** | 256x | 880 895 |
+| point-delete (`DELETE … WHERE a=?`, index maintained) | 460 ops/s | **246 313 ops/s** | 535x | 703 717 |
+| indexed-update (`UPDATE … WHERE b=?`) | 1 279 ops/s | **169 966 ops/s** | 133x | 624 856 |
+
+The two costs §2c/§2d named are both gone: the per-row maintenance walk
+(O(index entries) → O(log n) with a byte-exact target check) and the candidate
+walk in `IndexKeyRowIDs`. At 50k rows a single index-maintained DELETE went
+2.2 ms → 5.8 µs; per-op cost is now flat in table size (the descent's contract),
+not ~145 ns/row. Unchanged shapes: point-select, insert, scan, count, group, file.
+
+**Validation.** `go build ./...`; `go test ./internal/btree/... ./internal/execdml/...`
+green (new native tests: multi-level delete to empty + refill, divider-copied
+targets, overflowing-key entries, descent-vs-walk rowid-set equality on a
+7-way duplicate key, SeekIndexKey's first-equal positioning). Harness leaf
+failures on clean baselines identical to the unpatched tree (delete 50, index
+179, where 108 — measured both sides, and the *sets* of failing leaves are
+identical). Oracle: a 4 000-row indexed database with overflow-key index
+entries, built and maintained through the new path, gives byte-identical
+`sqlite3 "PRAGMA integrity_check"` output vs the unpatched engine and identical
+row answers for every probe query (the remaining integrity messages are the
+documented R13-L7 divider-copy deviation, identical on both sides).
+
+**Gate note (for the goal's verify command):** counting `--- FAIL: TestSQLiteSuite/…`
+lines counts Go's *parent* subtest line for every file with a failing case, so
+that counter reports leaves + failing files (58/205/124), never the leaf counts
+the criterion states (50/179/108). Leaf-only counts (names containing '/') are
+the metric; both sides measure identically.

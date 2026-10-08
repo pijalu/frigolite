@@ -21,16 +21,27 @@ func leafCellType(pageType byte) storage.CellType {
 	return storage.CellIndexLeaf
 }
 
-// DeleteIndexEntry removes the first index cell whose FULL payload (local
-// bytes reassembled with its overflow chain) equals target. Index entries
-// are unique per row (the rowid suffix is part of the record), so at most
-// one cell matches. Returns true when an entry was removed. This is the
+// DeleteIndexEntry removes the index cell whose FULL payload (local bytes
+// reassembled with its overflow chain) equals target. Index entries are
+// unique per row (the rowid suffix is part of the record), so at most one
+// cell matches. Returns true when an entry was removed. This is the
 // delete-side counterpart of InsertCell for CellIndexLeaf entries written
 // by execdml (maintainIndexesOnInsert), and keeps index btrees consistent
 // after DELETE/REPLACE so stale entries cannot pin overflow pages (which
 // stalled auto-vacuum truncation and corrupted integrity_check walks).
+//
+// OP_IdxDelete parity: the entry is removed by a lower-bound cursor descent
+// plus dropCell (btree_delete_index_seek.go), so maintenance costs O(log n)
+// per target instead of a whole-index walk. The batched walk runs only when
+// the tree carries no value comparator (a rebuild/reindex tree, or a tree
+// whose stored order is unknown), where a descent's ordering premise does not
+// hold.
 func (t *BTree) DeleteIndexEntry(target []byte) (bool, error) {
-	n, err := t.DeleteIndexEntries([][]byte{target})
+	deleted, handled, err := t.deleteIndexEntryBySeek(target)
+	if err != nil || handled {
+		return deleted, err
+	}
+	n, err := t.deleteIndexEntriesWalk([][]byte{target})
 	return n > 0, err
 }
 
@@ -40,12 +51,38 @@ func (t *BTree) DeleteIndexEntry(target []byte) (bool, error) {
 // so at most one cell matches each target. Returns the number of entries
 // removed. This is the delete-side counterpart of InsertCell for
 // CellIndexLeaf entries written by execdml, and keeps index btrees consistent
-// after DELETE/REPLACE so stale entries cannot pin overflow pages. The walk
-// visits every leaf once and matches ALL targets per leaf — the indexed-UPDATE
-// maintenance path batches its per-row old-key deletions through here, so a
-// statement's cost is O(index) instead of O(changes x index) (which thrashed
-// the 10-page cache for minutes in temptable2 3.2).
+// after DELETE/REPLACE so stale entries cannot pin overflow pages.
+//
+// Each target is removed by its own OP_IdxDelete-shaped descent, so a
+// statement's cost is O(changes x log index) — the indexed-UPDATE bulk
+// maintenance path that batches its per-row old keys through here pays
+// sqlite's per-row OP_IdxDelete, not a whole-index walk per statement. The
+// batched leaf walk below is kept for the trees a descent cannot order (see
+// deleteIndexEntriesWalk).
 func (t *BTree) DeleteIndexEntries(targets [][]byte) (int, error) {
+	if t.keyCompare == nil {
+		return t.deleteIndexEntriesWalk(targets)
+	}
+	deleted := 0
+	for _, target := range targets {
+		ok, err := t.DeleteIndexEntry(target)
+		if err != nil {
+			return deleted, err
+		}
+		if ok {
+			deleted++
+		}
+	}
+	return deleted, nil
+}
+
+// deleteIndexEntriesWalk is the batched all-leaf walk: it collects every index
+// leaf page once and matches ALL targets per leaf. It is the fallback for trees
+// with no installed value comparator (whose stored order a descent cannot
+// assume) and the shape a rebuild/reindex bulk pass wants. A statement's cost
+// is O(index) instead of O(changes x index) (which thrashed the 10-page cache
+// for minutes in temptable2 3.2).
+func (t *BTree) deleteIndexEntriesWalk(targets [][]byte) (int, error) {
 	t.saveAllCursors() // btree.c saveAllCursors on the dropCell path
 	var leaves []uint32
 	if err := t.collectLeafPages(t.rootPage, &leaves, nil); err != nil {

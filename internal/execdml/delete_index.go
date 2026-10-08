@@ -70,7 +70,7 @@ func (e *DMLExecutor) deleteRowFromIndexes(defs []indexDef, colDefs []sql.Column
 		if kerr != nil {
 			return kerr
 		}
-		if err := e.deleteIndexCell(def, append(indexValues, rowID)); err != nil {
+		if err := e.deleteIndexCell(def, colDefs, append(indexValues, rowID)); err != nil {
 			return err
 		}
 	}
@@ -78,11 +78,13 @@ func (e *DMLExecutor) deleteRowFromIndexes(defs []indexDef, colDefs []sql.Column
 }
 
 // deleteIndexCellsBatch removes the index entries keyed by rowid in targets
-// (each value is the full [key..., rowid] record) with ONE b-tree walk —
-// the batch form of deleteIndexCell for statements touching many rows. A
-// missing entry is tolerated (no error): the index may predate this engine's
+// (each value is the full [key..., rowid] record) with ONE index descent per
+// target — the batch form of deleteIndexCell for statements touching many
+// rows (the per-statement batched leaf walk survives in
+// DeleteIndexEntries as the fallback for trees with no installed comparator).
+// A missing entry is tolerated (no error): the index may predate this engine's
 // index maintenance.
-func (e *DMLExecutor) deleteIndexCellsBatch(def indexDef, targets map[int64][]interface{}) error {
+func (e *DMLExecutor) deleteIndexCellsBatch(def indexDef, colDefs []sql.ColumnDef, targets map[int64][]interface{}) error {
 	if len(targets) == 0 {
 		return nil
 	}
@@ -99,6 +101,10 @@ func (e *DMLExecutor) deleteIndexCellsBatch(def indexDef, targets map[int64][]in
 	}
 	idxTree := btree.NewBTree(def.Ctx.Pager, def.RootPage, false)
 	defer idxTree.Close() // tree and its cursor are function-local
+	// Every target is removed by a VALUE-ordered descent (OP_IdxDelete's
+	// sqlite3BtreeMovetoUnpacked), so the tree carries the same
+	// collation-aware comparator the insert side ordered it with.
+	installIndexOrder(idxTree, def.SQL, colDefs, e.collationLookup())
 	if _, err := idxTree.DeleteIndexEntries(encoded); err != nil {
 		return err
 	}
@@ -110,7 +116,7 @@ func (e *DMLExecutor) deleteIndexCellsBatch(def indexDef, targets map[int64][]in
 // delete (clearEmptyRootRightmost rewrites the root in place), so no root
 // tracking is needed. A missing entry is tolerated (no error): the index
 // may predate this engine's index maintenance.
-func (e *DMLExecutor) deleteIndexCell(def indexDef, indexValues []interface{}) error {
+func (e *DMLExecutor) deleteIndexCell(def indexDef, colDefs []sql.ColumnDef, indexValues []interface{}) error {
 	// Mirror writeIndexCell's storage normalization: the delete payload must
 	// byte-match the entry the insert side wrote.
 	indexStorageValues(indexValues)
@@ -120,6 +126,10 @@ func (e *DMLExecutor) deleteIndexCell(def indexDef, indexValues []interface{}) e
 	}
 	idxTree := btree.NewBTree(def.Ctx.Pager, def.RootPage, false)
 	defer idxTree.Close() // tree and its cursor are function-local
+	// The delete descends the index by VALUE order (OP_IdxDelete's
+	// sqlite3BtreeMovetoUnpacked): install the same collation-aware
+	// comparator the insert side ordered the tree with.
+	installIndexOrder(idxTree, def.SQL, colDefs, e.collationLookup())
 	if _, err := idxTree.DeleteIndexEntry(payload); err != nil {
 		return err
 	}

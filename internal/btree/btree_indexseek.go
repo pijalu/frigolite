@@ -1,16 +1,12 @@
 // Index-key seek: value-ordered lookups over index b-trees (P9.PERF.T3).
 //
-// The engine's index trees are stored in raw payload byte order (see
-// btree_keyinfo.go), so a binary value seek is unsound: value-equal entries
-// are NOT byte-contiguous. The seek here therefore walks the tree's leaves
-// in stored order and identifies matches with the KeyInfo record comparator
-// — correct on ANY stored order, and per-entry cheap: no DecodeCell
-// allocation, no overflow-chain read (only when a comparison is undecided
-// beyond the local payload fragment), no full record decode on
-// non-matching entries. The walk shape is also the seam a future
-// value-ordered storage tranche replaces with a binary descent: SeekIndexKey
-// keeps the sqlite3BtreeIndexMoveto contract (cursor positioned at the first
-// equal entry), so its body — not its callers — is what changes.
+// The engine's index trees are ordered by VALUE under the index's KeyInfo
+// comparator (btree_keyinfo.go: SetIndexKeyInfo installs RecordPayloadCompare,
+// and the insert position, interior routing, splits and the DDL rebuild all
+// order through it), so a lookup descends the tree: btree_index_lower_bound.go
+// carries the shared lower-bound descent, and the walk below remains only for
+// trees that carry no installed comparator — the one case where the stored
+// order cannot be assumed.
 
 package btree
 
@@ -29,12 +25,87 @@ const indexSeekMaxDepth = 64
 
 // IndexKeyRowIDs returns the trailing rowids of every index entry whose
 // probed key fields compare equal to probe (IndexRecordCompare == 0 over
-// len(probe.Values) fields). It walks every leaf in stored order — on
-// today's byte-ordered trees matches are not contiguous, so the walk is
-// exhaustive by design; errors (unreadable pages, corrupt records) are
-// returned so callers can fall back to a full scan rather than silently
-// miss candidates.
+// len(probe.Values) fields). On a value-ordered tree the matching entries are
+// contiguous, so one lower-bound descent positions the scan and it walks only
+// the equal-prefix run; a tree with no installed comparator keeps the
+// exhaustive stored-order walk (whose matches the descent could miss).
 func (t *BTree) IndexKeyRowIDs(probe *UnpackedIndexKey) ([]int64, error) {
+	if err := validIndexProbe(probe); err != nil {
+		return nil, err
+	}
+	if t.keyCompare == nil {
+		return t.indexKeyRowIDsByWalk(probe)
+	}
+	return t.indexKeyRowIDsBySeek(probe)
+}
+
+// indexKeyRowIDsBySeek resolves probe with one lower-bound descent followed by
+// a forward run over the entries that share the probed prefix (the
+// sqlite3BtreeIndexMoveto contract: positioned at the first equal entry, the
+// caller continues while the comparison still says equal). The run crosses
+// leaf boundaries through the cursor's path stack — equal entries are
+// contiguous but not necessarily on one page.
+func (t *BTree) indexKeyRowIDsBySeek(probe *UnpackedIndexKey) ([]int64, error) {
+	c, err := t.OpenCursorAtRoot()
+	if err != nil {
+		return nil, err
+	}
+	found, err := c.indexLowerBoundScan(t.indexProbeCompare(probe))
+	if err != nil || !found {
+		return nil, err
+	}
+	return t.collectIndexEqualRun(c, probe)
+}
+
+// collectIndexEqualRun reads rowids from the cursor position while the probe
+// comparison still reports equality, stepping through the run with Next().
+func (t *BTree) collectIndexEqualRun(c *Cursor, probe *UnpackedIndexKey) ([]int64, error) {
+	var out []int64
+	for {
+		rid, equal, err := t.indexRunRowID(c, probe)
+		if err != nil || !equal {
+			return out, err
+		}
+		out = append(out, rid)
+		ok, err := c.Next()
+		if err != nil {
+			return out, err
+		}
+		if !ok {
+			return out, nil
+		}
+	}
+}
+
+// indexRunRowID returns the rowid of the entry at the cursor's position plus
+// whether it still matches the probe (the equal run's end condition).
+func (t *BTree) indexRunRowID(c *Cursor, probe *UnpackedIndexKey) (int64, bool, error) {
+	full, err := t.indexCursorCellPayload(c)
+	if err != nil {
+		return 0, false, err
+	}
+	cmp, err := IndexRecordCompare(full, probe)
+	if err != nil {
+		return 0, false, err
+	}
+	if cmp != 0 {
+		return 0, false, nil // past the equal-prefix run
+	}
+	rid, err := indexRecordRowID(full)
+	if err != nil {
+		return 0, false, err
+	}
+	return rid, true, nil
+}
+
+// indexKeyRowIDsByWalk is the exhaustive stored-order leaf walk: it visits
+// every leaf once and identifies matches with the KeyInfo record comparator —
+// correct on ANY stored order, and per-entry cheap: no DecodeCell allocation,
+// no overflow-chain read (only when a comparison is undecided beyond the local
+// payload fragment), no full record decode on non-matching entries. Errors
+// (unreadable pages, corrupt records) are returned so callers can fall back to
+// a full scan rather than silently miss candidates.
+func (t *BTree) indexKeyRowIDsByWalk(probe *UnpackedIndexKey) ([]int64, error) {
 	if err := validIndexProbe(probe); err != nil {
 		return nil, err
 	}
@@ -61,11 +132,10 @@ func (t *BTree) IndexKeyRowIDs(probe *UnpackedIndexKey) ([]int64, error) {
 // SeekIndexKey positions the cursor at the FIRST index entry whose probed
 // key fields compare equal to probe (the sqlite3BtreeIndexMoveto contract),
 // returning true; with no match it returns false and leaves the cursor at
-// end-of-tree. On today's byte-ordered trees the position is reached by a
-// stored-order walk; once index trees become value-ordered the same
-// signature binary-descends. Callers continue from the position with
-// Next(), re-comparing entries (matches may be interleaved with non-matches
-// until the storage order is value order).
+// end-of-tree. On a value-ordered tree (the one every index writer installs,
+// SetIndexKeyInfo) the position is reached with the shared lower-bound
+// descent; a tree with no installed comparator keeps the stored-order walk.
+// Callers continue from the position with Next(), re-comparing entries.
 func (c *Cursor) SeekIndexKey(probe *UnpackedIndexKey) (bool, error) {
 	if err := c.checkOpen(); err != nil {
 		return false, err
@@ -74,6 +144,62 @@ func (c *Cursor) SeekIndexKey(probe *UnpackedIndexKey) (bool, error) {
 	if err := validIndexProbe(probe); err != nil {
 		return false, err
 	}
+	if c.tx.keyCompare == nil {
+		return c.seekIndexKeyByWalk(probe)
+	}
+	found, err := c.indexLowerBoundScan(c.tx.indexProbeCompare(probe))
+	if err != nil {
+		return false, err
+	}
+	if !found {
+		c.endOfBTree = true
+		return false, nil
+	}
+	// The lower bound may be an entry that sorts AFTER the probe (no equal
+	// entry exists): the seek's verdict is the comparison, not the position.
+	full, err := c.tx.indexCursorCellPayload(c)
+	if err != nil {
+		return false, err
+	}
+	cmp, err := IndexRecordCompare(full, probe)
+	if err != nil {
+		return false, err
+	}
+	if cmp != 0 {
+		c.endOfBTree = true
+		return false, nil
+	}
+	return true, nil
+}
+
+// indexProbeCompare compares an index cell against an unpacked probe with
+// IndexRecordCompare's prefix semantics, reassembling a spilling cell's
+// overflow chain first: the descent's routing and the leaf binary search must
+// both decide on the same (full) bytes, and a local fragment cannot order a
+// record whose comparison runs past it.
+func (t *BTree) indexProbeCompare(probe *UnpackedIndexKey) indexCellCompare {
+	return func(data []byte, cellOff int, cellType storage.CellType) (int, error) {
+		var cell storage.Cell
+		if err := storage.DecodeCellInto(data, cellOff, cellType, int(t.usableSize), &cell); err != nil {
+			return 0, err
+		}
+		full, err := t.readOverflow(&cell)
+		if err != nil {
+			return 0, err
+		}
+		cmp, err := IndexRecordCompare(full.Payload, probe)
+		if errors.Is(err, ErrIndexRecordTruncated) {
+			// An already-complete payload that still declares a larger header is
+			// corrupt (indexCellCompare's rule).
+			return 0, ErrIndexRecordCorrupt
+		}
+		return cmp, err
+	}
+}
+
+// seekIndexKeyByWalk is SeekIndexKey's stored-order form, for trees whose
+// order the descent cannot assume (no installed comparator).
+func (c *Cursor) seekIndexKeyByWalk(probe *UnpackedIndexKey) (bool, error) {
 	found := false
 	_, err := c.tx.walkIndexLeaves(c.tx.rootPage, 0, nil, func(data []byte, pageNum uint32, coff, cellIdx int, path []cursorPathEntry) (bool, error) {
 		cellOff := int(storage.CellPointer(data, coff, cellIdx, int(c.tx.pageSize)))

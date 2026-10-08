@@ -349,7 +349,7 @@ func (e *DMLExecutor) deleteUpdateIndexEntriesFor(tableEntry *schema.Entry, colD
 	}
 	for name, targets := range changeTargets {
 		def := defsByName[name]
-		if err := e.deleteIndexCellsBatch(def, targets); err != nil {
+		if err := e.deleteIndexCellsBatch(def, colDefs, targets); err != nil {
 			return err
 		}
 	}
