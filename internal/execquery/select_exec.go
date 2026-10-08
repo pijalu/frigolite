@@ -301,27 +301,16 @@ func (e *SelectEngine) execRealTableSelect(s *sql.SelectStmt) *Result {
 	} else {
 		colDefs = cd
 	}
-	// Simple-aggregate feed (OP_AggStep parity): a bare COUNT/SUM/AVG/TOTAL
-	// select over one real rowid table accumulates straight from the row
-	// loop's decoded values. The grouped-aggregate feed extends the same
-	// machinery to GROUP BY statements whose output is bare aggregates and
-	// GROUP BY term projections (select_agg_groupfeed.go). The feed stays a
-	// statement-LOCAL value handed to the seek/scan loops and consumed by
-	// finishSimpleAggFeed below — never engine state, so a nested statement
-	// (a WHERE subquery) can neither step nor consume an enclosing
-	// statement's feed.
-	//
-	// Both feeds produce a non-nil result only from aggregate columns (or,
-	// grouped, bare GROUP BY projections), so a statement with neither an
-	// aggregate nor a GROUP BY term skips the eligibility walk entirely —
-	// the point-SELECT shape pays nothing for the feed machinery.
-	var feed *simpleAggFeed
-	if e.hasAggregatesCachedStmt(s) || len(s.GroupBy) > 0 {
-		feed = e.compileSimpleAggFeed(s, tableEntry, colDefs)
-		if feed == nil && len(s.GroupBy) > 0 {
-			feed = e.compileGroupedAggFeed(s, tableEntry, colDefs)
-		}
+	// OP_Count shortcut (select.c:8854 isSimpleCount): a bare
+	// `SELECT count(*) FROM t` counts the table b-tree's entries from its page
+	// headers instead of decoding every row (sqlite3BtreeCount). Every other
+	// shape — and any page error — falls through to the scan below.
+	if result, handled := e.countStarShortCircuit(s, tableEntry, dbCtx, colDefs); handled {
+		return result
 	}
+	// Aggregate feed (OP_AggStep parity): compiled only for statements that can
+	// use one (see compileStatementAggFeed).
+	feed := e.compileStatementAggFeed(s, tableEntry, colDefs)
 	tree := e.ctx.TableBTreePg(dbCtx.Pager, tableEntry.Name, tableEntry.RootPage, true)
 	prevScanTable := e.currentScanTable
 	e.currentScanTable = tableEntry.Name
@@ -494,69 +483,6 @@ func (e *SelectEngine) execSelectPrevalidate(s *sql.SelectStmt, tableEntry *sche
 
 // prevalidateMemoEntry, prevalidateMemoCap, cachedPrevalidateChecks and the
 // memo helpers live in select_prevalidate_memo.go.
-
-// finalizeSelectResult applies DISTINCT, ORDER BY, LIMIT, and UNION.
-func (e *SelectEngine) finalizeSelectResult(result *Result, s *sql.SelectStmt, rowMaps []RowMap) *Result {
-	// A pending aggregate Step failure (e.g. zipfile's "out of memory"
-	// raised inside a wrapping scalar expression whose plumbing drops the
-	// per-expression error) outranks any computed rows: surface it now.
-	if e.aggPendingErr != nil {
-		err := e.aggPendingErr
-		e.aggPendingErr = nil
-		return &Result{Error: err}
-	}
-	// select.c sqlite3SelectCallback: a result set wider than
-	// SQLITE_LIMIT_COLUMN errors "too many columns in result set"
-	// (sqllimits1-17.0: nested SELECT *,*,* expansion). The flag is set by
-	// buildColumnNames for any SELECT level (subqueries included).
-	if e.resultTooWide {
-		e.resultTooWide = false
-		return &Result{Error: fmt.Errorf("too many columns in result set")}
-	}
-	// The collation of each result column of a compound query comes from the
-	// leftmost SELECT member (SQLite's compound column collation rule).
-	// DISTINCT, the compound merge, and ORDER BY resolution are the collation
-	// list's only consumers; a statement with none of them (the dominant
-	// point-lookup shape) skips the per-column walk entirely.
-	colls := func() []string {
-		if !s.Distinct && s.Union == nil && len(s.OrderBy) == 0 {
-			return nil
-		}
-		return e.selectOutputCollations(s)
-	}()
-	if s.Distinct {
-		result.Rows, rowMaps = e.distinctRows(result.Rows, rowMaps, colls, s)
-	}
-	// Handle UNION before ORDER BY (ORDER BY on compound SELECT applies to the merged result).
-	orderBy := s.OrderBy
-	limit := s.Limit
-	offset := s.Offset
-	if s.Union != nil {
-		var mergeErr error
-		result.Rows, orderBy, limit, offset, mergeErr = e.mergeCompoundChain(result.Rows, s, colls, len(result.Columns))
-		if mergeErr != nil {
-			return &Result{Error: mergeErr}
-		}
-		// The head's rowMaps only cover its own rows; rebuild them from the
-		// merged result so ORDER BY can resolve columns across all members.
-		rowMaps = rebuildRowMapsFromRows(result.Rows, result.Columns)
-	}
-	if len(orderBy) > 0 {
-		resolved, rerr := e.resolveFinalOrderBy(s, orderBy, result.Columns, colls)
-		if rerr != nil {
-			return &Result{Error: rerr}
-		}
-		if serr := e.sortRowsWithMaps(result, resolved, rowMaps, s); serr != nil {
-			return &Result{Error: serr}
-		}
-	}
-	lExpr, oExpr, lerr := e.evalLimitOffsetExprs(limit, offset)
-	if lerr != nil {
-		return &Result{Error: lerr}
-	}
-	result.Rows = applyLimitOffset(result.Rows, lExpr, oExpr)
-	return result
-}
 
 // resolveFinalOrderBy validates and resolves a result's ORDER BY terms.
 // A compound ORDER BY inherits the result column's collation (SQLite: the

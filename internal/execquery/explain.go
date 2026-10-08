@@ -176,20 +176,12 @@ func (e *SelectEngine) tableRowCount(tableName string) int64 {
 	// whose rows may not live at the schema's nominal root page, and a raw
 	// root-page cell count under-reports multi-page tables.
 	tree := e.ctx.TableBTreePg(dbCtx.Pager, entry.Name, entry.RootPage, true)
-	cursor, err := tree.OpenCursor()
+	// Page-header count (sqlite3BtreeCount) instead of a cursor walk: the
+	// caller only needs the row total, and decoding every cell made this
+	// O(rows) on the plan path of every indexed-predicate SELECT.
+	n, err := tree.CountEntries()
 	if err != nil {
 		return 0
-	}
-	var n int64
-	for {
-		if _, _, err := cursor.ReadCellData(); err != nil {
-			break
-		}
-		n++
-		ok, err := cursor.Next()
-		if err != nil || !ok {
-			break
-		}
 	}
 	return n
 }
