@@ -68,6 +68,7 @@ func heavyPackages() map[string]bool {
 	return map[string]bool{
 		"fts4merge4": true,
 		"fts5bigpl":  true,
+		"selectG":    true, // 6-min, 650MB+ working set — concurrent workers killed it (signal: killed)
 	}
 }
 
