@@ -85,18 +85,22 @@
   exposes pre-existing engine gaps that the stale JSON was silently skipping.
   `bestindex1`'s root cause is separate again: untranslated TCL `declare_vtab`
   commands leak into the SQL text.
-- **The gate's perf clause is FLAKY at `-reps 1 -point-ops 200`, on both sides of
-  the refresh**: `indexed-delete` times only `pointOps/10` = 20 statements
-  (0.16–0.45 ms), so one GC cycle decides whether the sample clears 5e4. Measured
-  refreshed tree 13/20 pass (failures 41.5k–49.9k), base tree with the fixture
-  refresh stashed 6/10 pass (failures 32.0k–49.4k) — perfbench is a separate
-  module on an in-memory db and never reads `testdata/`, so the fixtures cannot
-  influence it. Re-run a failing perf sample; the harness clauses are the
-  deterministic evidence. `point-delete` is far from its limit (170k–220k).
-  Widening the window proves the engine is fine: `-point-ops` 2000/20000 (200/2000
-  index deletes) give a stable 270k–331k ops/s ≈ 3.1–3.4 µs per index-maintained
-  DELETE, flat in table size. End-to-end: gate run 1 exit 0, run 2 exit 1 on a
-  35 934 sample — same tree, same harness numbers (46/162/87).
+- **The gate's perf clause was FLAKY, and the fix belongs in the benchmark, not
+  the engine**: `indexed-delete` timed `pointOps/10` = 20 statements at the gate's
+  `-reps 1 -point-ops 200`, a 0.2–0.5 ms window in which one GC cycle decides
+  whether the sample clears 5e4 — measured 13/20 pass on the refreshed tree and
+  6/10 on the base tree with the fixtures stashed (two consecutive end-to-end gate
+  runs: exit 0, then exit 1 on a 35 934 sample with identical harness numbers
+  46/162/87). Both perfbench drivers now floor that phase at
+  `minIndexedDeleteOps` = 2000 statements (same workload, same thresholds): 8/8
+  samples 131 796–143 867, a 2.7–2.9x margin.
+- **Do not widen the window with `-point-ops` to "get the true rate"**: raising it
+  also raises `point-delete` to the same op count, and that phase deletes
+  `a=key(i)` — the exact rows `indexed-delete` then targets via `b=key(i)*2` — so
+  most indexed deletes become no-ops and the phase reports 305k–333k ops/s. The
+  honest figure at the gate's settings is ~7 µs per index-maintained DELETE
+  (per-statement SQL parse included) vs 5.8 µs for the DELETE execution in §5 of
+  R13_RESEARCH.md.
 - **A refreshed file may need no harness-map edit**: none of the 12 refreshed
   files appear in `harnessSkipSubtests`/`harnessCollationFixtures` (those keys
   are reindex/collate*/e_reindex/bestindexC/bestindex8 only).
