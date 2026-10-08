@@ -1,5 +1,40 @@
 # Lessons Learned — Frigolite
 
+## R13 RESEARCH (2026-10-08) — indexed access paths are O(n); harness now committed
+
+- **The parity ledger was unverifiable**: the "canonical harness" behind
+  insert 1.45x / point 1.14x / update 1.58x / delete 1.65x lived in `/tmp/perf`
+  (FLEET-STATE:637) and is gone. Reconstruction + **commit** as
+  `benchmarks/perfbench/{frigolite,sqlite}` (same flags both sides, `-index`
+  adds index shapes, per-statement literal Exec loops). Reproduced at HEAD:
+  insert 1.12x, point 0.87x, update 1.69x, delete 1.01x, file 0.46x; scan-sum
+  2.96x, group 2.87x, count(*) 129x (the ledger's "scan/group at parity" is
+  one aggregate-lane shape, not a general result).
+- **Statement-shape matters more than the op**: the same statements cost ~2.4x
+  more per statement when submitted as ONE multi-statement string (speed1
+  shape, `BenchmarkPerfInsert1`) than as one Exec per statement — profile puts
+  30/70 ms in `Engine.PrepareExec` (whole-script parse, template cache not on
+  that path). sqlite pays nothing for the batch form. Measure both shapes.
+- **Secondary-index access is O(table) and dwarfs every remaining R11 lever**:
+  indexed SELECT `WHERE b=?` 7.4 ms @50k rows (sqlite 2.4 µs, 3000x, linear
+  ~145 ns/row, misses cost the same); UPDATE/DELETE with a non-rowid WHERE run
+  the BULK pipeline (`runPlainUpdate -> DeleteCellsWhere -> deletePass ->
+  deleteAllMatchingFromLeaf`, whole-table sweep + rewrite); index maintenance
+  `DeleteIndexEntries` walks ALL index leaves per target (DELETE does it per
+  row: 2.6 ms for k=1 → 665 ms for k=100, sqlite 133 µs). Merely HAVING an
+  index drops a rowid DELETE loop from 897k to 485 ops/s (sqlite 2x).
+- **`btree_indexseek.go`'s walk is a stale premise**: it documents byte-ordered
+  trees, but index trees have been value-ordered since T31-idxcoll
+  (`SetIndexKeyInfo`/`RecordPayloadCompare`, insert position + interior routing
+  + splits all use it; `Cursor.SeekToKey` already descends). A lower-bound
+  descent prototype in `IndexKeyRowIDs` (reverted, unvalidated) measured only
+  +10-15%: candidate resolution is NOT the dominant cost — maintenance and the
+  bulk DML sweep are. Fix those before touching the seek API.
+- **Method**: reconstruct the harness on the seller's shape before trusting any
+  ratio; per-op ms at 2-3 table sizes separates O(n) from O(log n) in one run
+  (a plan that says SEARCH USING INDEX can still execute a scan — profile
+  `ScanTableLeaves` before believing EQP).
+
 ## R9.DELETE (2026-10-06) — point-DELETE statement diet (fleet/r9-delete)
 
 - **Dead-on-arrival decode**: the point-DELETE fast path decoded every
