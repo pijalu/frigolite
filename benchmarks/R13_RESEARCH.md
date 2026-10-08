@@ -297,6 +297,14 @@ before = this file's §1 numbers at `ae17fd019`):
 | point-delete (`DELETE … WHERE a=?`, index maintained) | 460 ops/s | **246 313 ops/s** | 535x | 703 717 |
 | indexed-update (`UPDATE … WHERE b=?`) | 1 279 ops/s | **169 966 ops/s** | 133x | 624 856 |
 
+(Note on the indexed-delete row: at the default `-point-ops 20000` the
+`point-delete` phase has already removed most of the rows `indexed-delete`
+targets (`a=key(i)` covers `b=key(i)*2`), so both columns mostly time the
+*no-op* delete path — the A/B ratio is valid because both sides ran the same
+workload, but the absolute rate is not the cost of a real index-maintained
+delete. With `-point-ops 200` (real deletes) the after-number is ~143k ops/s,
+~7 µs per DELETE including the per-statement SQL parse; see §6.)
+
 The two costs §2c/§2d named are both gone: the per-row maintenance walk
 (O(index entries) → O(log n) with a byte-exact target check) and the candidate
 walk in `IndexKeyRowIDs`. At 50k rows a single index-maintained DELETE went
@@ -382,30 +390,38 @@ would push the index family to 672, so it is new coverage, not gate closure.
 No engine source is touched by this step; `internal/btree` + `internal/execdml`
 stay green and the R13-L3 perf numbers in §5 are unaffected.
 
-### Gate flakiness (pre-existing, measured both sides)
+### Gate flakiness — cause found and fixed in the benchmark driver
 
 The gate's perf clause samples `indexed-delete` from
-`perfbench/frigolite -reps 1 -point-ops 200`, and that phase times only
+`perfbench/frigolite -reps 1 -point-ops 200`, and that phase used to time only
 `pointOps/10` = **20 statements** inside one transaction — a 0.16–0.45 ms window
-in which one Go GC cycle decides the answer. It is bimodal and threshold-straddling
-on the *refreshed* tree (13/20 samples ≥ 5e4: failures at 41.5k, 43.0k, 44.9k,
-45.3k, 45.8k, 49.4k, 49.9k) **and on the base tree with the fixture refresh
-stashed** (6/10 samples ≥ 5e4: failures at 32.0k, 46.5k, 47.2k, 49.4k). The
-fixture refresh cannot influence it — perfbench is a separate module driving an
-in-memory database and never reads `testdata/`. Treat a single failing perf
-sample as noise: re-run, and read the harness clauses (deterministic) as the
-real gate evidence. `point-delete` sits far from its 5e4 limit (170k–220k).
+in which one Go GC cycle decides the answer. It was bimodal and
+threshold-straddling on the *refreshed* tree (13/20 samples ≥ 5e4: failures at
+41.5k, 43.0k, 44.9k, 45.3k, 45.8k, 49.4k, 49.9k) **and on the base tree with the
+fixture refresh stashed** (6/10 samples ≥ 5e4: failures at 32.0k, 46.5k, 47.2k,
+49.4k), which is how it was found: two consecutive end-to-end gate runs gave
+exit 0 then exit 1 on a 35 934 sample with identical harness numbers (46/162/87).
+The fixture refresh cannot influence it — perfbench is a separate module driving
+an in-memory database and never reads `testdata/`.
 
-Why the clause is unstable: the 20-statement window measures ~110 µs of fixed
-overhead (BEGIN/COMMIT, allocation, timer) on top of ~3 µs/op of real work, so the
-sample lands anywhere between 36k and 122k ops/s. Widening the window shows the
-engine's true rate and a flat per-op cost — the same binary with `-point-ops`
-200 / 2000 / 20000 (20 / 200 / 2 000 index deletes) measures
-46k–122k / 270k–297k / 312k–331k ops/s, i.e. ~3.1–3.4 µs per index-maintained
-DELETE and no size dependence. The threshold sits inside the noise band, not
-inside the engine's behavior.
+**Fix (benchmark driver, not the engine, not the threshold):** both perfbench
+drivers now floor the indexed-delete statement count at `minIndexedDeleteOps`
+= 2000 (`benchmarks/perfbench/frigolite/main.go`, `.../sqlite/main.go`, identical
+so the two sides stay comparable). The workload is unchanged — same table, same
+`DELETE FROM t WHERE b=?` statements, same transaction shape — only the sample
+size grows, so the reported rate becomes the sustained per-op cost instead of a
+20-statement burst. Thresholds are untouched (5e4 for both delete shapes).
+Measured after the fix, 8/8 samples at the gate's own settings:
+`indexed-delete` 131 796–143 867 (was 36k–122k), `point-delete`
+159 241–242 326. A 2.7–2.9x margin over the limit instead of a coin flip.
+Three consecutive end-to-end gate runs after the fix: exit 0 / exit 0 / exit 0,
+`indexed-delete` 131 086–131 952 (±0.3%), harness 46/162/87 on all three.
 
-End-to-end gate runs in this session: run 1 exit 0, run 2 exit 1 on a 35 934 perf
-sample, run 3 exit 0 (`indexed-delete` 100 356, `point-delete` 166 962) — the
-harness clauses are the deterministic part and read 46/162/87 (delete/index/where)
-on every run.
+**A wrong lead, recorded so it is not repeated:** widening the window via
+`-point-ops` 2000/20000 also raises the *point-delete* phase to 2000/20000
+statements, and that phase targets `a=key(i)` — the very rows `indexed-delete`
+later targets via `b=key(i)*2`. Those rows are already gone, so most of the
+indexed deletes become no-ops and the phase reports 305k–333k ops/s. That is the
+no-op path, **not** the engine's real rate; the honest figure is ~7 µs per
+index-maintained DELETE at the gate's `-point-ops 200` (143k ops/s, per-statement
+SQL parse included), versus 5.8 µs for the DELETE execution itself in §5.
