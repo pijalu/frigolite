@@ -395,3 +395,16 @@ fixture refresh cannot influence it — perfbench is a separate module driving a
 in-memory database and never reads `testdata/`. Treat a single failing perf
 sample as noise: re-run, and read the harness clauses (deterministic) as the
 real gate evidence. `point-delete` sits far from its 5e4 limit (170k–220k).
+
+Why the clause is unstable: the 20-statement window measures ~110 µs of fixed
+overhead (BEGIN/COMMIT, allocation, timer) on top of ~3 µs/op of real work, so the
+sample lands anywhere between 36k and 122k ops/s. Widening the window shows the
+engine's true rate and a flat per-op cost — the same binary with `-point-ops`
+200 / 2000 / 20000 (20 / 200 / 2 000 index deletes) measures
+46k–122k / 270k–297k / 312k–331k ops/s, i.e. ~3.1–3.4 µs per index-maintained
+DELETE and no size dependence. The threshold sits inside the noise band, not
+inside the engine's behavior.
+
+End-to-end gate runs in this session: run 1 exit 0 (perf sample clear); run 2
+exit 1 on a 35 934 perf sample — the harness clauses are the deterministic
+clause and read 46/162/87 (delete/index/where) on every run.

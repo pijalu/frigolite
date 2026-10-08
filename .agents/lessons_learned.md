@@ -93,6 +93,10 @@
   module on an in-memory db and never reads `testdata/`, so the fixtures cannot
   influence it. Re-run a failing perf sample; the harness clauses are the
   deterministic evidence. `point-delete` is far from its limit (170k–220k).
+  Widening the window proves the engine is fine: `-point-ops` 2000/20000 (200/2000
+  index deletes) give a stable 270k–331k ops/s ≈ 3.1–3.4 µs per index-maintained
+  DELETE, flat in table size. End-to-end: gate run 1 exit 0, run 2 exit 1 on a
+  35 934 sample — same tree, same harness numbers (46/162/87).
 - **A refreshed file may need no harness-map edit**: none of the 12 refreshed
   files appear in `harnessSkipSubtests`/`harnessCollationFixtures` (those keys
   are reindex/collate*/e_reindex/bestindexC/bestindex8 only).
