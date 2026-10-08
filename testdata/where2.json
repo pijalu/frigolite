@@ -1,13 +1,520 @@
 {
   "file": "where2.test",
   "name": "where2",
+  "ordered": true,
   "tests": [
+    {
+      "name": "where2-1.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n    CREATE TABLE t1(w int, x int, y int, z int);"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(:w,:x,:y,:z)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(:w,:x,:y,:z)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(:w,:x,:y,:z)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(:w,:x,:y,:z)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(:w,:x,:y,:z)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(:w,:x,:y,:z)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(:w,:x,:y,:z)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(:w,:x,:y,:z)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(:w,:x,:y,:z)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(:w,:x,:y,:z)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(:w,:x,:y,:z)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(:w,:x,:y,:z)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(:w,:x,:y,:z)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(:w,:x,:y,:z)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(:w,:x,:y,:z)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(:w,:x,:y,:z)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(:w,:x,:y,:z)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(:w,:x,:y,:z)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(:w,:x,:y,:z)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(:w,:x,:y,:z)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(:w,:x,:y,:z)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(:w,:x,:y,:z)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(:w,:x,:y,:z)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(:w,:x,:y,:z)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(:w,:x,:y,:z)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(:w,:x,:y,:z)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(:w,:x,:y,:z)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(:w,:x,:y,:z)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(:w,:x,:y,:z)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(:w,:x,:y,:z)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(:w,:x,:y,:z)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(:w,:x,:y,:z)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(:w,:x,:y,:z)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(:w,:x,:y,:z)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(:w,:x,:y,:z)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(:w,:x,:y,:z)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(:w,:x,:y,:z)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(:w,:x,:y,:z)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(:w,:x,:y,:z)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(:w,:x,:y,:z)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(:w,:x,:y,:z)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(:w,:x,:y,:z)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(:w,:x,:y,:z)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(:w,:x,:y,:z)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(:w,:x,:y,:z)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(:w,:x,:y,:z)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(:w,:x,:y,:z)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(:w,:x,:y,:z)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(:w,:x,:y,:z)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(:w,:x,:y,:z)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(:w,:x,:y,:z)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(:w,:x,:y,:z)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(:w,:x,:y,:z)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(:w,:x,:y,:z)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(:w,:x,:y,:z)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(:w,:x,:y,:z)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(:w,:x,:y,:z)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(:w,:x,:y,:z)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(:w,:x,:y,:z)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(:w,:x,:y,:z)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(:w,:x,:y,:z)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(:w,:x,:y,:z)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(:w,:x,:y,:z)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(:w,:x,:y,:z)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(:w,:x,:y,:z)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(:w,:x,:y,:z)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(:w,:x,:y,:z)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(:w,:x,:y,:z)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(:w,:x,:y,:z)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(:w,:x,:y,:z)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(:w,:x,:y,:z)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(:w,:x,:y,:z)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(:w,:x,:y,:z)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(:w,:x,:y,:z)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(:w,:x,:y,:z)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(:w,:x,:y,:z)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(:w,:x,:y,:z)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(:w,:x,:y,:z)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(:w,:x,:y,:z)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(:w,:x,:y,:z)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(:w,:x,:y,:z)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(:w,:x,:y,:z)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(:w,:x,:y,:z)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(:w,:x,:y,:z)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(:w,:x,:y,:z)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(:w,:x,:y,:z)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(:w,:x,:y,:z)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(:w,:x,:y,:z)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(:w,:x,:y,:z)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(:w,:x,:y,:z)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(:w,:x,:y,:z)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(:w,:x,:y,:z)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(:w,:x,:y,:z)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(:w,:x,:y,:z)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(:w,:x,:y,:z)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(:w,:x,:y,:z)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(:w,:x,:y,:z)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(:w,:x,:y,:z)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(:w,:x,:y,:z)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t1 VALUES(:w,:x,:y,:z)"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE UNIQUE INDEX i1w ON t1(w);\n    CREATE INDEX i1xy ON t1(x,y);\n    CREATE INDEX i1zyx ON t1(z,y,x);\n    COMMIT;"
+        }
+      ]
+    },
+    {
+      "name": "where2-1.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1 WHERE w=85 AND x=6 AND y=7396"
+        },
+        {
+          "type": "exec",
+          "sql": "EXPLAIN QUERY PLAN \n    SELECT * FROM t1 WHERE w=85 AND x=6 AND y=7396",
+          "expect": "85 6 7396 7402 nosort t1 i1w"
+        }
+      ]
+    },
+    {
+      "name": "where2-1.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1 WHERE w=85 AND x=6 AND y=7396 AND rowid=85"
+        },
+        {
+          "type": "exec",
+          "sql": "EXPLAIN QUERY PLAN \n    SELECT * FROM t1 WHERE w=85 AND x=6 AND y=7396 AND rowid=85",
+          "expect": "85 6 7396 7402 nosort t1 *"
+        }
+      ]
+    },
+    {
+      "name": "where2-2.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1 WHERE w=85 ORDER BY random();"
+        },
+        {
+          "type": "exec",
+          "sql": "EXPLAIN QUERY PLAN \n    SELECT * FROM t1 WHERE w=85 ORDER BY random();",
+          "expect": "85 6 7396 7402 nosort t1 i1w"
+        }
+      ]
+    },
+    {
+      "name": "where2-2.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1 WHERE x=6 AND y=7396 ORDER BY random();"
+        },
+        {
+          "type": "exec",
+          "sql": "EXPLAIN QUERY PLAN \n    SELECT * FROM t1 WHERE x=6 AND y=7396 ORDER BY random();",
+          "expect": "85 6 7396 7402 sort t1 i1xy"
+        }
+      ]
+    },
+    {
+      "name": "where2-2.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1 WHERE rowid=85 AND x=6 AND y=7396 ORDER BY random();"
+        },
+        {
+          "type": "exec",
+          "sql": "EXPLAIN QUERY PLAN \n    SELECT * FROM t1 WHERE rowid=85 AND x=6 AND y=7396 ORDER BY random();",
+          "expect": "85 6 7396 7402 nosort t1 *"
+        }
+      ]
+    },
+    {
+      "name": "where2-2.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE x1(a INTEGER PRIMARY KEY, b DEFAULT 1);\n    WITH RECURSIVE\n       cnt(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM cnt WHERE x\u003c50)\n    INSERT INTO x1 SELECT x, 1 FROM cnt;\n    CREATE TABLE x2(x INTEGER PRIMARY KEY);\n    INSERT INTO x2 VALUES(1);"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT * FROM x1, x2 WHERE x=1 ORDER BY random()"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT * FROM x1, x2 WHERE x=1 ORDER BY random()"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT * FROM x1, x2 WHERE x=1 ORDER BY random()",
+          "expect": "1"
+        }
+      ]
+    },
     {
       "name": "where2-2.5",
       "steps": [
         {
-          "type": "exec",
-          "sql": "-- random() is not optimized out\n  EXPLAIN SELECT * FROM x1, x2 WHERE x=1 ORDER BY random();"
+          "type": "query",
+          "sql": "-- random() is not optimized out\n  EXPLAIN SELECT * FROM x1, x2 WHERE x=1 ORDER BY random();",
+          "expect": "/ random/"
         }
       ]
     },
@@ -15,8 +522,9 @@
       "name": "where2-2.5b",
       "steps": [
         {
-          "type": "exec",
-          "sql": "-- random() is not optimized out\n  EXPLAIN SELECT * FROM x1, x2 WHERE x=1 ORDER BY random();"
+          "type": "query",
+          "sql": "-- random() is not optimized out\n  EXPLAIN SELECT * FROM x1, x2 WHERE x=1 ORDER BY random();",
+          "expect": "/ SorterOpen /"
         }
       ]
     },
@@ -24,8 +532,9 @@
       "name": "where2-2.6",
       "steps": [
         {
-          "type": "exec",
-          "sql": "-- other constant functions are optimized out\n  EXPLAIN SELECT * FROM x1, x2 WHERE x=1 ORDER BY abs(5);"
+          "type": "query",
+          "sql": "-- other constant functions are optimized out\n  EXPLAIN SELECT * FROM x1, x2 WHERE x=1 ORDER BY abs(5);",
+          "expect": "~/ abs/"
         }
       ]
     },
@@ -33,8 +542,514 @@
       "name": "where2-2.6b",
       "steps": [
         {
+          "type": "query",
+          "sql": "-- other constant functions are optimized out\n  EXPLAIN SELECT * FROM x1, x2 WHERE x=1 ORDER BY abs(5);",
+          "expect": "~/ SorterOpen /"
+        }
+      ]
+    },
+    {
+      "name": "where2-3.1",
+      "steps": [
+        {
           "type": "exec",
-          "sql": "-- other constant functions are optimized out\n  EXPLAIN SELECT * FROM x1, x2 WHERE x=1 ORDER BY abs(5);"
+          "sql": "SELECT * FROM t1 ORDER BY rowid LIMIT 2"
+        },
+        {
+          "type": "exec",
+          "sql": "EXPLAIN QUERY PLAN \n    SELECT * FROM t1 ORDER BY rowid LIMIT 2",
+          "expect": "1 0 4 4 2 1 9 10 nosort t1 *"
+        }
+      ]
+    },
+    {
+      "name": "where2-3.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1 ORDER BY rowid DESC LIMIT 2"
+        },
+        {
+          "type": "exec",
+          "sql": "EXPLAIN QUERY PLAN \n    SELECT * FROM t1 ORDER BY rowid DESC LIMIT 2",
+          "expect": "100 6 10201 10207 99 6 10000 10006 nosort t1 *"
+        }
+      ]
+    },
+    {
+      "name": "where2-4.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1 WHERE z IN (10207,10006) AND y IN (10000,10201)\n                       AND x\u003e0 AND x\u003c10\n      ORDER BY w"
+        },
+        {
+          "type": "exec",
+          "sql": "EXPLAIN QUERY PLAN \n      SELECT * FROM t1 WHERE z IN (10207,10006) AND y IN (10000,10201)\n                       AND x\u003e0 AND x\u003c10\n      ORDER BY w",
+          "expect": "99 6 10000 10006 100 6 10201 10207 sort t1 i1zyx"
+        }
+      ]
+    },
+    {
+      "name": "where2-4.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1 WHERE z IN (10207,10006) AND y=10000\n                       AND x\u003e0 AND x\u003c10\n      ORDER BY w"
+        },
+        {
+          "type": "exec",
+          "sql": "EXPLAIN QUERY PLAN \n      SELECT * FROM t1 WHERE z IN (10207,10006) AND y=10000\n                       AND x\u003e0 AND x\u003c10\n      ORDER BY w",
+          "expect": "99 6 10000 10006 sort t1 i1zyx"
+        }
+      ]
+    },
+    {
+      "name": "where2-4.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1 WHERE z=10006 AND y IN (10000,10201)\n                       AND x\u003e0 AND x\u003c10\n      ORDER BY w"
+        },
+        {
+          "type": "exec",
+          "sql": "EXPLAIN QUERY PLAN \n      SELECT * FROM t1 WHERE z=10006 AND y IN (10000,10201)\n                       AND x\u003e0 AND x\u003c10\n      ORDER BY w",
+          "expect": "99 6 10000 10006 sort t1 i1zyx"
+        }
+      ]
+    },
+    {
+      "name": "where2-4.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1 WHERE z IN (SELECT 10207 UNION SELECT 10006)\n                         AND y IN (10000,10201)\n                         AND x\u003e0 AND x\u003c10\n        ORDER BY w"
+        },
+        {
+          "type": "exec",
+          "sql": "EXPLAIN QUERY PLAN \n        SELECT * FROM t1 WHERE z IN (SELECT 10207 UNION SELECT 10006)\n                         AND y IN (10000,10201)\n                         AND x\u003e0 AND x\u003c10\n        ORDER BY w",
+          "expect": "99 6 10000 10006 100 6 10201 10207 sort t1 i1zyx"
+        }
+      ]
+    },
+    {
+      "name": "where2-4.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1 WHERE z IN (SELECT 10207 UNION SELECT 10006)\n                         AND y IN (SELECT 10000 UNION SELECT 10201)\n                         AND x\u003e0 AND x\u003c10\n        ORDER BY w"
+        },
+        {
+          "type": "exec",
+          "sql": "EXPLAIN QUERY PLAN \n        SELECT * FROM t1 WHERE z IN (SELECT 10207 UNION SELECT 10006)\n                         AND y IN (SELECT 10000 UNION SELECT 10201)\n                         AND x\u003e0 AND x\u003c10\n        ORDER BY w",
+          "expect": "99 6 10000 10006 100 6 10201 10207 sort t1 i1zyx"
+        }
+      ]
+    },
+    {
+      "name": "where2-4.6a",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1\n       WHERE x IN (1,2,3,4,5,6,7,8)\n         AND y IN (10000,10001,10002,10003,10004,10005)\n       ORDER BY x"
+        },
+        {
+          "type": "exec",
+          "sql": "EXPLAIN QUERY PLAN \n      SELECT * FROM t1\n       WHERE x IN (1,2,3,4,5,6,7,8)\n         AND y IN (10000,10001,10002,10003,10004,10005)\n       ORDER BY x",
+          "expect": "99 6 10000 10006 nosort t1 i1xy"
+        }
+      ]
+    },
+    {
+      "name": "where2-4.6b",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1\n       WHERE x IN (1,2,3,4,5,6,7,8)\n         AND y IN (10000,10001,10002,10003,10004,10005)\n       ORDER BY x DESC"
+        },
+        {
+          "type": "exec",
+          "sql": "EXPLAIN QUERY PLAN \n      SELECT * FROM t1\n       WHERE x IN (1,2,3,4,5,6,7,8)\n         AND y IN (10000,10001,10002,10003,10004,10005)\n       ORDER BY x DESC",
+          "expect": "99 6 10000 10006 nosort t1 i1xy"
+        }
+      ]
+    },
+    {
+      "name": "where2-4.6c",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1\n       WHERE x IN (1,2,3,4,5,6,7,8)\n         AND y IN (10000,10001,10002,10003,10004,10005)\n       ORDER BY x, y"
+        },
+        {
+          "type": "exec",
+          "sql": "EXPLAIN QUERY PLAN \n      SELECT * FROM t1\n       WHERE x IN (1,2,3,4,5,6,7,8)\n         AND y IN (10000,10001,10002,10003,10004,10005)\n       ORDER BY x, y",
+          "expect": "99 6 10000 10006 nosort t1 i1xy"
+        }
+      ]
+    },
+    {
+      "name": "where2-4.6d",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1\n       WHERE x IN (1,2,3,4,5,6,7,8)\n         AND y IN (10000,10001,10002,10003,10004,10005)\n       ORDER BY x, y DESC"
+        },
+        {
+          "type": "exec",
+          "sql": "EXPLAIN QUERY PLAN \n      SELECT * FROM t1\n       WHERE x IN (1,2,3,4,5,6,7,8)\n         AND y IN (10000,10001,10002,10003,10004,10005)\n       ORDER BY x, y DESC",
+          "expect": "99 6 10000 10006 sort t1 i1xy"
+        }
+      ]
+    },
+    {
+      "name": "where2-4.6x",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1 WHERE z IN (10207,10006,10006,10207)\n      ORDER BY w"
+        },
+        {
+          "type": "exec",
+          "sql": "EXPLAIN QUERY PLAN \n      SELECT * FROM t1 WHERE z IN (10207,10006,10006,10207)\n      ORDER BY w",
+          "expect": "99 6 10000 10006 100 6 10201 10207 sort t1 i1zyx"
+        }
+      ]
+    },
+    {
+      "name": "where2-4.6y",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1 WHERE z IN (10207,10006,10006,10207)\n      ORDER BY w DESC"
+        },
+        {
+          "type": "exec",
+          "sql": "EXPLAIN QUERY PLAN \n      SELECT * FROM t1 WHERE z IN (10207,10006,10006,10207)\n      ORDER BY w DESC",
+          "expect": "100 6 10201 10207 99 6 10000 10006 sort t1 i1zyx"
+        }
+      ]
+    },
+    {
+      "name": "where2-4.7",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1 WHERE z IN (\n           SELECT 10207 UNION ALL SELECT 10006\n           UNION ALL SELECT 10006 UNION ALL SELECT 10207)\n        ORDER BY w"
+        },
+        {
+          "type": "exec",
+          "sql": "EXPLAIN QUERY PLAN \n        SELECT * FROM t1 WHERE z IN (\n           SELECT 10207 UNION ALL SELECT 10006\n           UNION ALL SELECT 10006 UNION ALL SELECT 10207)\n        ORDER BY w",
+          "expect": "99 6 10000 10006 100 6 10201 10207 sort t1 i1zyx"
+        }
+      ]
+    },
+    {
+      "name": "where2-5.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1 WHERE w=99 ORDER BY w"
+        },
+        {
+          "type": "exec",
+          "sql": "EXPLAIN QUERY PLAN \n    SELECT * FROM t1 WHERE w=99 ORDER BY w",
+          "expect": "99 6 10000 10006 nosort t1 i1w"
+        }
+      ]
+    },
+    {
+      "name": "where2-5.2a",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1 WHERE w IN (99) ORDER BY w"
+        },
+        {
+          "type": "exec",
+          "sql": "EXPLAIN QUERY PLAN \n      SELECT * FROM t1 WHERE w IN (99) ORDER BY w",
+          "expect": "99 6 10000 10006 nosort t1 i1w"
+        }
+      ]
+    },
+    {
+      "name": "where2-5.2b",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1 WHERE w IN (99) ORDER BY w DESC"
+        },
+        {
+          "type": "exec",
+          "sql": "EXPLAIN QUERY PLAN \n      SELECT * FROM t1 WHERE w IN (99) ORDER BY w DESC",
+          "expect": "99 6 10000 10006 nosort t1 i1w"
+        }
+      ]
+    },
+    {
+      "name": "where2-6.1.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1 WHERE w=99 OR w=100 ORDER BY +w"
+        },
+        {
+          "type": "exec",
+          "sql": "EXPLAIN QUERY PLAN \n    SELECT * FROM t1 WHERE w=99 OR w=100 ORDER BY +w",
+          "expect": "99 6 10000 10006 100 6 10201 10207 sort t1 i1w"
+        }
+      ]
+    },
+    {
+      "name": "where2-6.1.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1 WHERE 99=w OR 100=w ORDER BY +w"
+        },
+        {
+          "type": "exec",
+          "sql": "EXPLAIN QUERY PLAN \n    SELECT * FROM t1 WHERE 99=w OR 100=w ORDER BY +w",
+          "expect": "99 6 10000 10006 100 6 10201 10207 sort t1 i1w"
+        }
+      ]
+    },
+    {
+      "name": "where2-6.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1 WHERE w=99 OR w=100 OR 6=w ORDER BY +w"
+        },
+        {
+          "type": "exec",
+          "sql": "EXPLAIN QUERY PLAN \n    SELECT * FROM t1 WHERE w=99 OR w=100 OR 6=w ORDER BY +w",
+          "expect": "6 2 49 51 99 6 10000 10006 100 6 10201 10207 sort t1 i1w"
+        }
+      ]
+    },
+    {
+      "name": "where2-6.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1 WHERE w=99 OR w=100 OR 6=+w ORDER BY +w"
+        },
+        {
+          "type": "exec",
+          "sql": "EXPLAIN QUERY PLAN \n    SELECT * FROM t1 WHERE w=99 OR w=100 OR 6=+w ORDER BY +w",
+          "expect": "6 2 49 51 99 6 10000 10006 100 6 10201 10207 sort t1 *"
+        }
+      ]
+    },
+    {
+      "name": "where2-6.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT *, '|' FROM t1 WHERE w=99 OR +w=100 OR 6=w ORDER BY +w"
+        },
+        {
+          "type": "exec",
+          "sql": "EXPLAIN QUERY PLAN \n    SELECT *, '|' FROM t1 WHERE w=99 OR +w=100 OR 6=w ORDER BY +w",
+          "expect": "6 2 49 51 | 99 6 10000 10006 | 100 6 10201 10207 | sort t1 *"
+        }
+      ]
+    },
+    {
+      "name": "where2-6.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT *, '|' FROM t1 WHERE w=99 OR y=10201 OR 6=w ORDER BY +w"
+        },
+        {
+          "type": "exec",
+          "sql": "EXPLAIN QUERY PLAN \n    SELECT *, '|' FROM t1 WHERE w=99 OR y=10201 OR 6=w ORDER BY +w",
+          "expect": "6 2 49 51 | 99 6 10000 10006 | 100 6 10201 10207 | sort t1 *"
+        },
+        {
+          "type": "exec",
+          "sql": "SELECT b.* FROM t1 a, t1 b\n     WHERE a.w=1 AND (a.y=b.z OR b.z=10)\n     ORDER BY +b.w"
+        },
+        {
+          "type": "exec",
+          "sql": "EXPLAIN QUERY PLAN \n    SELECT b.* FROM t1 a, t1 b\n     WHERE a.w=1 AND (a.y=b.z OR b.z=10)\n     ORDER BY +b.w",
+          "expect": "1 0 4 4 2 1 9 10 sort a i1w b i1zyx"
+        }
+      ]
+    },
+    {
+      "name": "where2-6.6",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT b.* FROM t1 a, t1 b\n     WHERE a.w=1 AND (b.z=10 OR a.y=b.z OR b.z=10)\n     ORDER BY +b.w"
+        },
+        {
+          "type": "exec",
+          "sql": "EXPLAIN QUERY PLAN \n    SELECT b.* FROM t1 a, t1 b\n     WHERE a.w=1 AND (b.z=10 OR a.y=b.z OR b.z=10)\n     ORDER BY +b.w",
+          "expect": "1 0 4 4 2 1 9 10 sort a i1w b i1zyx"
+        }
+      ]
+    },
+    {
+      "name": "where2-6.7",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t2249a(a TEXT UNIQUE, x CHAR(100));\n    CREATE TABLE t2249b(b INTEGER);\n    INSERT INTO t2249a(a) VALUES('0123');\n    INSERT INTO t2249b VALUES(123);"
+        },
+        {
+          "type": "exec",
+          "sql": "EXPLAIN QUERY PLAN \n    -- Because a is type TEXT and b is type INTEGER, both a and b\n    -- will attempt to convert to NUMERIC before the comparison.\n    -- They will thus compare equal.\n    --\n    SELECT b,a FROM t2249b CROSS JOIN t2249a WHERE a=b;",
+          "expect": "123 0123 nosort t2249b * t2249a sqlite_autoindex_t2249a_1"
+        }
+      ]
+    },
+    {
+      "name": "where2-6.9",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "EXPLAIN QUERY PLAN \n    -- The + operator removes affinity from the rhs.  No conversions\n    -- occur and the comparison is false.  The result is an empty set.\n    --\n    SELECT b,a FROM t2249b CROSS JOIN t2249a WHERE a=+b;",
+          "expect": "nosort t2249b * t2249a sqlite_autoindex_t2249a_1"
+        }
+      ]
+    },
+    {
+      "name": "where2-6.9.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT b,a FROM t2249b CROSS JOIN t2249a WHERE +b=a"
+        },
+        {
+          "type": "exec",
+          "sql": "EXPLAIN QUERY PLAN \n    SELECT b,a FROM t2249b CROSS JOIN t2249a WHERE +b=a",
+          "expect": "nosort t2249b * t2249a sqlite_autoindex_t2249a_1"
+        }
+      ]
+    },
+    {
+      "name": "where2-6.10",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "EXPLAIN QUERY PLAN \n    -- Use + on both sides of the comparison to disable indices\n    -- completely.  Make sure we get the same result.\n    --\n    SELECT b,a FROM t2249b CROSS JOIN t2249a WHERE +a=+b;",
+          "expect": "nosort t2249b * t2249a sqlite_autoindex_t2249a_1"
+        }
+      ]
+    },
+    {
+      "name": "where2-6.11",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT b,a FROM t2249b CROSS JOIN t2249a WHERE a=b OR a='hello';"
+        },
+        {
+          "type": "exec",
+          "sql": "EXPLAIN QUERY PLAN \n    SELECT b,a FROM t2249b CROSS JOIN t2249a WHERE a=b OR a='hello';",
+          "expect": "123 0123 nosort t2249b * t2249a sqlite_autoindex_t2249a_1"
+        }
+      ]
+    },
+    {
+      "name": "where2-6.11.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT b,a FROM t2249b CROSS JOIN t2249a WHERE b=a OR a='hello';"
+        },
+        {
+          "type": "exec",
+          "sql": "EXPLAIN QUERY PLAN \n    SELECT b,a FROM t2249b CROSS JOIN t2249a WHERE b=a OR a='hello';",
+          "expect": "123 0123 nosort t2249b * t2249a sqlite_autoindex_t2249a_1"
+        }
+      ]
+    },
+    {
+      "name": "where2-6.11.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT b,a FROM t2249b CROSS JOIN t2249a WHERE 'hello'=a OR b=a;"
+        },
+        {
+          "type": "exec",
+          "sql": "EXPLAIN QUERY PLAN \n    SELECT b,a FROM t2249b CROSS JOIN t2249a WHERE 'hello'=a OR b=a;",
+          "expect": "123 0123 nosort t2249b * t2249a sqlite_autoindex_t2249a_1"
+        }
+      ]
+    },
+    {
+      "name": "where2-6.11.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT b,a FROM t2249b CROSS JOIN t2249a WHERE a='hello' OR b=a;"
+        },
+        {
+          "type": "exec",
+          "sql": "EXPLAIN QUERY PLAN \n    SELECT b,a FROM t2249b CROSS JOIN t2249a WHERE a='hello' OR b=a;",
+          "expect": "123 0123 nosort t2249b * t2249a sqlite_autoindex_t2249a_1"
+        }
+      ]
+    },
+    {
+      "name": "where2-6.12",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT b,a FROM t2249b CROSS JOIN t2249a WHERE a=+b OR a='hello';"
+        },
+        {
+          "type": "exec",
+          "sql": "EXPLAIN QUERY PLAN \n      SELECT b,a FROM t2249b CROSS JOIN t2249a WHERE a=+b OR a='hello';",
+          "expect": "nosort t2249b * t2249a sqlite_autoindex_t2249a_1"
+        }
+      ]
+    },
+    {
+      "name": "where2-6.12.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT b,a FROM t2249b CROSS JOIN t2249a WHERE a='hello' OR +b=a;"
+        },
+        {
+          "type": "exec",
+          "sql": "EXPLAIN QUERY PLAN \n      SELECT b,a FROM t2249b CROSS JOIN t2249a WHERE a='hello' OR +b=a;",
+          "expect": "nosort t2249b * t2249a sqlite_autoindex_t2249a_1"
+        }
+      ]
+    },
+    {
+      "name": "where2-6.12.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT b,a FROM t2249b CROSS JOIN t2249a WHERE +b=a OR a='hello';"
+        },
+        {
+          "type": "exec",
+          "sql": "EXPLAIN QUERY PLAN \n      SELECT b,a FROM t2249b CROSS JOIN t2249a WHERE +b=a OR a='hello';",
+          "expect": "nosort t2249b * t2249a sqlite_autoindex_t2249a_1"
+        }
+      ]
+    },
+    {
+      "name": "where2-6.13",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT b,a FROM t2249b CROSS JOIN t2249a WHERE a=+b OR +a='hello';"
+        },
+        {
+          "type": "exec",
+          "sql": "EXPLAIN QUERY PLAN \n      SELECT b,a FROM t2249b CROSS JOIN t2249a WHERE a=+b OR +a='hello';",
+          "expect": "nosort t2249b * t2249a sqlite_autoindex_t2249a_1"
         }
       ]
     },
@@ -184,6 +1199,4357 @@
       ]
     },
     {
+      "name": "where2-6.20",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT x.a, y.a FROM t2249a x CROSS JOIN t2249a y WHERE x.a=y.a"
+        },
+        {
+          "type": "exec",
+          "sql": "EXPLAIN QUERY PLAN \n    SELECT x.a, y.a FROM t2249a x CROSS JOIN t2249a y WHERE x.a=y.a",
+          "expect": "0123 0123 nosort x sqlite_autoindex_t2249a_1 y sqlite_autoindex_t2249a_1"
+        }
+      ]
+    },
+    {
+      "name": "where2-6.21",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT x.a,y.a FROM t2249a x CROSS JOIN t2249a y\n       WHERE x.a=y.a OR y.a='hello'"
+        },
+        {
+          "type": "exec",
+          "sql": "EXPLAIN QUERY PLAN \n      SELECT x.a,y.a FROM t2249a x CROSS JOIN t2249a y\n       WHERE x.a=y.a OR y.a='hello'",
+          "expect": "0123 0123 nosort x sqlite_autoindex_t2249a_1 y sqlite_autoindex_t2249a_1"
+        }
+      ]
+    },
+    {
+      "name": "where2-6.22",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT x.a,y.a FROM t2249a x CROSS JOIN t2249a y\n       WHERE y.a=x.a OR y.a='hello'"
+        },
+        {
+          "type": "exec",
+          "sql": "EXPLAIN QUERY PLAN \n      SELECT x.a,y.a FROM t2249a x CROSS JOIN t2249a y\n       WHERE y.a=x.a OR y.a='hello'",
+          "expect": "0123 0123 nosort x sqlite_autoindex_t2249a_1 y sqlite_autoindex_t2249a_1"
+        }
+      ]
+    },
+    {
+      "name": "where2-6.23",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT x.a,y.a FROM t2249a x CROSS JOIN t2249a y\n       WHERE y.a='hello' OR x.a=y.a"
+        },
+        {
+          "type": "exec",
+          "sql": "EXPLAIN QUERY PLAN \n      SELECT x.a,y.a FROM t2249a x CROSS JOIN t2249a y\n       WHERE y.a='hello' OR x.a=y.a",
+          "expect": "0123 0123 nosort x sqlite_autoindex_t2249a_1 y sqlite_autoindex_t2249a_1"
+        }
+      ]
+    },
+    {
+      "name": "where2-7.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "create table t8(a unique, b, c);\n    insert into t8 values(1,2,3);\n    insert into t8 values(2,3,4);\n    create table t9(x,y);\n    insert into t9 values(2,4);\n    insert into t9 values(2,3);\n    select y from t8, t9 where a=1 order by a, y;",
+          "expect": "3 4 sort"
+        }
+      ]
+    },
+    {
+      "name": "where2-7.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "select * from t8 where a=1 order by b, c",
+          "expect": "1 2 3 nosort"
+        }
+      ]
+    },
+    {
+      "name": "where2-7.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "select * from t8, t9 where a=1 and y=3 order by b, x",
+          "expect": "1 2 3 2 3 sort"
+        }
+      ]
+    },
+    {
+      "name": "where2-7.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "create unique index i9y on t9(y);\n    select * from t8, t9 where a=1 and y=3 order by b, x",
+          "expect": "1 2 3 2 3 nosort"
+        }
+      ]
+    },
+    {
+      "name": "where2-8.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1 WHERE x IN (20,21) AND y IN (1,2)"
+        }
+      ]
+    },
+    {
+      "name": "where2-8.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t1 WHERE x IN (1,2) AND y IN (-5,-6)"
+        }
+      ]
+    },
+    {
+      "name": "setup_0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE tx AS SELECT * FROM t1"
+        }
+      ]
+    },
+    {
+      "name": "where2-8.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT w FROM t1\n       WHERE x IN (SELECT x FROM tx WHERE rowid\u003c0)\n         AND +y IN (SELECT y FROM tx WHERE rowid=1)"
+        }
+      ]
+    },
+    {
+      "name": "where2-8.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT w FROM t1\n       WHERE x IN (SELECT x FROM tx WHERE rowid=1)\n         AND y IN (SELECT y FROM tx WHERE rowid\u003c0)"
+        }
+      ]
+    },
+    {
+      "name": "where2-8.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE INDEX tx_xyz ON tx(x, y, z, w);\n      SELECT w FROM tx\n       WHERE x IN (SELECT x FROM t1 WHERE w BETWEEN 10 AND 20)\n         AND y IN (SELECT y FROM t1 WHERE w BETWEEN 10 AND 20)\n         AND z IN (SELECT z FROM t1 WHERE w BETWEEN 12 AND 14)",
+          "expect": "12 13 14"
+        }
+      ]
+    },
+    {
+      "name": "where2-8.6",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT w FROM tx\n       WHERE x IN (SELECT x FROM t1 WHERE w BETWEEN 10 AND 20)\n         AND y IN (SELECT y FROM t1 WHERE w BETWEEN 12 AND 14)\n         AND z IN (SELECT z FROM t1 WHERE w BETWEEN 10 AND 20)",
+          "expect": "12 13 14"
+        }
+      ]
+    },
+    {
+      "name": "where2-8.7",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT w FROM tx\n       WHERE x IN (SELECT x FROM t1 WHERE w BETWEEN 12 AND 14)\n         AND y IN (SELECT y FROM t1 WHERE w BETWEEN 10 AND 20)\n         AND z IN (SELECT z FROM t1 WHERE w BETWEEN 10 AND 20)",
+          "expect": "10 11 12 13 14 15"
+        }
+      ]
+    },
+    {
+      "name": "where2-8.8",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT w FROM tx\n       WHERE x IN (SELECT x FROM t1 WHERE w BETWEEN 10 AND 20)\n         AND y IN (SELECT y FROM t1 WHERE w BETWEEN 10 AND 20)\n         AND z IN (SELECT z FROM t1 WHERE w BETWEEN 10 AND 20)",
+          "expect": "10 11 12 13 14 15 16 17 18 19 20"
+        }
+      ]
+    },
+    {
+      "name": "where2-8.9",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT w FROM tx\n       WHERE x IN (SELECT x FROM t1 WHERE w BETWEEN 10 AND 20)\n         AND y IN (SELECT y FROM t1 WHERE w BETWEEN 10 AND 20)\n         AND z IN (SELECT z FROM t1 WHERE w BETWEEN 2 AND 4)"
+        }
+      ]
+    },
+    {
+      "name": "where2-8.10",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT w FROM tx\n       WHERE x IN (SELECT x FROM t1 WHERE w BETWEEN 10 AND 20)\n         AND y IN (SELECT y FROM t1 WHERE w BETWEEN 2 AND 4)\n         AND z IN (SELECT z FROM t1 WHERE w BETWEEN 10 AND 20)"
+        }
+      ]
+    },
+    {
+      "name": "where2-8.11",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT w FROM tx\n       WHERE x IN (SELECT x FROM t1 WHERE w BETWEEN 2 AND 4)\n         AND y IN (SELECT y FROM t1 WHERE w BETWEEN 10 AND 20)\n         AND z IN (SELECT z FROM t1 WHERE w BETWEEN 10 AND 20)"
+        }
+      ]
+    },
+    {
+      "name": "where2-8.12",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT w FROM tx\n       WHERE x IN (SELECT x FROM t1 WHERE w BETWEEN 10 AND 20)\n         AND y IN (SELECT y FROM t1 WHERE w BETWEEN 10 AND 20)\n         AND z IN (SELECT z FROM t1 WHERE w BETWEEN -4 AND -2)"
+        }
+      ]
+    },
+    {
+      "name": "where2-8.13",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT w FROM tx\n       WHERE x IN (SELECT x FROM t1 WHERE w BETWEEN 10 AND 20)\n         AND y IN (SELECT y FROM t1 WHERE w BETWEEN -4 AND -2)\n         AND z IN (SELECT z FROM t1 WHERE w BETWEEN 10 AND 20)"
+        }
+      ]
+    },
+    {
+      "name": "where2-8.14",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT w FROM tx\n       WHERE x IN (SELECT x FROM t1 WHERE w BETWEEN -4 AND -2)\n         AND y IN (SELECT y FROM t1 WHERE w BETWEEN 10 AND 20)\n         AND z IN (SELECT z FROM t1 WHERE w BETWEEN 10 AND 20)"
+        }
+      ]
+    },
+    {
+      "name": "where2-8.15",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT w FROM tx\n       WHERE x IN (SELECT x FROM t1 WHERE w BETWEEN 10 AND 20)\n         AND y IN (SELECT y FROM t1 WHERE w BETWEEN 10 AND 20)\n         AND z IN (SELECT z FROM t1 WHERE w BETWEEN 200 AND 300)"
+        }
+      ]
+    },
+    {
+      "name": "where2-8.16",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT w FROM tx\n       WHERE x IN (SELECT x FROM t1 WHERE w BETWEEN 10 AND 20)\n         AND y IN (SELECT y FROM t1 WHERE w BETWEEN 200 AND 300)\n         AND z IN (SELECT z FROM t1 WHERE w BETWEEN 10 AND 20)"
+        }
+      ]
+    },
+    {
+      "name": "where2-8.17",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT w FROM tx\n       WHERE x IN (SELECT x FROM t1 WHERE w BETWEEN 200 AND 300)\n         AND y IN (SELECT y FROM t1 WHERE w BETWEEN 10 AND 20)\n         AND z IN (SELECT z FROM t1 WHERE w BETWEEN 10 AND 20)"
+        }
+      ]
+    },
+    {
+      "name": "where2-8.18",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT w FROM tx\n       WHERE x IN (SELECT x FROM t1 WHERE +w BETWEEN 10 AND 20)\n         AND y IN (SELECT y FROM t1 WHERE +w BETWEEN 10 AND 20)\n         AND z IN (SELECT z FROM t1 WHERE +w BETWEEN 200 AND 300)"
+        }
+      ]
+    },
+    {
+      "name": "where2-8.19",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT w FROM tx\n       WHERE x IN (SELECT x FROM t1 WHERE +w BETWEEN 10 AND 20)\n         AND y IN (SELECT y FROM t1 WHERE +w BETWEEN 200 AND 300)\n         AND z IN (SELECT z FROM t1 WHERE +w BETWEEN 10 AND 20)"
+        }
+      ]
+    },
+    {
+      "name": "where2-8.20",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT w FROM tx\n       WHERE x IN (SELECT x FROM t1 WHERE +w BETWEEN 200 AND 300)\n         AND y IN (SELECT y FROM t1 WHERE +w BETWEEN 10 AND 20)\n         AND z IN (SELECT z FROM t1 WHERE +w BETWEEN 10 AND 20)"
+        }
+      ]
+    },
+    {
+      "name": "where2-9.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n      CREATE TABLE t10(a,b,c);\n      INSERT INTO t10 VALUES(1,1,1);\n      INSERT INTO t10 VALUES(1,2,2);\n      INSERT INTO t10 VALUES(1,3,3);"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,4,4)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,5,5)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,6,6)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,7,7)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,8,8)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,9,9)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,10,10)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,11,11)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,12,12)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,13,13)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,14,14)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,15,15)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,16,16)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,17,17)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,18,18)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,19,19)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,20,20)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,21,21)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,22,22)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,23,23)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,24,24)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,25,25)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,26,26)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,27,27)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,28,28)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,29,29)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,30,30)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,31,31)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,32,32)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,33,33)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,34,34)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,35,35)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,36,36)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,37,37)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,38,38)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,39,39)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,40,40)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,41,41)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,42,42)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,43,43)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,44,44)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,45,45)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,46,46)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,47,47)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,48,48)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,49,49)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,50,50)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,51,51)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,52,52)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,53,53)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,54,54)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,55,55)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,56,56)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,57,57)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,58,58)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,59,59)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,60,60)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,61,61)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,62,62)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,63,63)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,64,64)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,65,65)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,66,66)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,67,67)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,68,68)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,69,69)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,70,70)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,71,71)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,72,72)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,73,73)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,74,74)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,75,75)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,76,76)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,77,77)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,78,78)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,79,79)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,80,80)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,81,81)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,82,82)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,83,83)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,84,84)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,85,85)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,86,86)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,87,87)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,88,88)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,89,89)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,90,90)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,91,91)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,92,92)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,93,93)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,94,94)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,95,95)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,96,96)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,97,97)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,98,98)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,99,99)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,100,100)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,101,101)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,102,102)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,103,103)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,104,104)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,105,105)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,106,106)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,107,107)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,108,108)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,109,109)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,110,110)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,111,111)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,112,112)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,113,113)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,114,114)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,115,115)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,116,116)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,117,117)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,118,118)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,119,119)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,120,120)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,121,121)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,122,122)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,123,123)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,124,124)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,125,125)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,126,126)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,127,127)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,128,128)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,129,129)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,130,130)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,131,131)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,132,132)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,133,133)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,134,134)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,135,135)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,136,136)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,137,137)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,138,138)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,139,139)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,140,140)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,141,141)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,142,142)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,143,143)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,144,144)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,145,145)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,146,146)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,147,147)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,148,148)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,149,149)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,150,150)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,151,151)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,152,152)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,153,153)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,154,154)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,155,155)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,156,156)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,157,157)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,158,158)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,159,159)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,160,160)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,161,161)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,162,162)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,163,163)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,164,164)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,165,165)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,166,166)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,167,167)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,168,168)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,169,169)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,170,170)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,171,171)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,172,172)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,173,173)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,174,174)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,175,175)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,176,176)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,177,177)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,178,178)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,179,179)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,180,180)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,181,181)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,182,182)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,183,183)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,184,184)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,185,185)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,186,186)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,187,187)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,188,188)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,189,189)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,190,190)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,191,191)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,192,192)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,193,193)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,194,194)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,195,195)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,196,196)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,197,197)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,198,198)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,199,199)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,200,200)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,201,201)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,202,202)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,203,203)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,204,204)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,205,205)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,206,206)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,207,207)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,208,208)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,209,209)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,210,210)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,211,211)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,212,212)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,213,213)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,214,214)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,215,215)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,216,216)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,217,217)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,218,218)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,219,219)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,220,220)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,221,221)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,222,222)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,223,223)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,224,224)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,225,225)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,226,226)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,227,227)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,228,228)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,229,229)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,230,230)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,231,231)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,232,232)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,233,233)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,234,234)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,235,235)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,236,236)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,237,237)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,238,238)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,239,239)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,240,240)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,241,241)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,242,242)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,243,243)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,244,244)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,245,245)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,246,246)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,247,247)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,248,248)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,249,249)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,250,250)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,251,251)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,252,252)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,253,253)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,254,254)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,255,255)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,256,256)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,257,257)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,258,258)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,259,259)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,260,260)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,261,261)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,262,262)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,263,263)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,264,264)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,265,265)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,266,266)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,267,267)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,268,268)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,269,269)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,270,270)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,271,271)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,272,272)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,273,273)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,274,274)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,275,275)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,276,276)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,277,277)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,278,278)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,279,279)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,280,280)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,281,281)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,282,282)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,283,283)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,284,284)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,285,285)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,286,286)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,287,287)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,288,288)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,289,289)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,290,290)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,291,291)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,292,292)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,293,293)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,294,294)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,295,295)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,296,296)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,297,297)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,298,298)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,299,299)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,300,300)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,301,301)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,302,302)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,303,303)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,304,304)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,305,305)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,306,306)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,307,307)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,308,308)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,309,309)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,310,310)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,311,311)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,312,312)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,313,313)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,314,314)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,315,315)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,316,316)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,317,317)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,318,318)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,319,319)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,320,320)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,321,321)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,322,322)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,323,323)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,324,324)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,325,325)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,326,326)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,327,327)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,328,328)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,329,329)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,330,330)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,331,331)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,332,332)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,333,333)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,334,334)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,335,335)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,336,336)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,337,337)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,338,338)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,339,339)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,340,340)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,341,341)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,342,342)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,343,343)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,344,344)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,345,345)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,346,346)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,347,347)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,348,348)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,349,349)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,350,350)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,351,351)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,352,352)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,353,353)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,354,354)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,355,355)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,356,356)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,357,357)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,358,358)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,359,359)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,360,360)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,361,361)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,362,362)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,363,363)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,364,364)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,365,365)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,366,366)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,367,367)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,368,368)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,369,369)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,370,370)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,371,371)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,372,372)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,373,373)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,374,374)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,375,375)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,376,376)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,377,377)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,378,378)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,379,379)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,380,380)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,381,381)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,382,382)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,383,383)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,384,384)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,385,385)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,386,386)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,387,387)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,388,388)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,389,389)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,390,390)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,391,391)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,392,392)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,393,393)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,394,394)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,395,395)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,396,396)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,397,397)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,398,398)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,399,399)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,400,400)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,401,401)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,402,402)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,403,403)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,404,404)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,405,405)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,406,406)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,407,407)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,408,408)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,409,409)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,410,410)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,411,411)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,412,412)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,413,413)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,414,414)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,415,415)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,416,416)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,417,417)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,418,418)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,419,419)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,420,420)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,421,421)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,422,422)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,423,423)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,424,424)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,425,425)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,426,426)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,427,427)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,428,428)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,429,429)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,430,430)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,431,431)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,432,432)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,433,433)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,434,434)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,435,435)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,436,436)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,437,437)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,438,438)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,439,439)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,440,440)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,441,441)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,442,442)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,443,443)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,444,444)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,445,445)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,446,446)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,447,447)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,448,448)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,449,449)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,450,450)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,451,451)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,452,452)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,453,453)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,454,454)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,455,455)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,456,456)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,457,457)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,458,458)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,459,459)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,460,460)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,461,461)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,462,462)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,463,463)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,464,464)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,465,465)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,466,466)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,467,467)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,468,468)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,469,469)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,470,470)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,471,471)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,472,472)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,473,473)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,474,474)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,475,475)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,476,476)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,477,477)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,478,478)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,479,479)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,480,480)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,481,481)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,482,482)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,483,483)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,484,484)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,485,485)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,486,486)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,487,487)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,488,488)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,489,489)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,490,490)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,491,491)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,492,492)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,493,493)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,494,494)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,495,495)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,496,496)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,497,497)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,498,498)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,499,499)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,500,500)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,501,501)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,502,502)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,503,503)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,504,504)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,505,505)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,506,506)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,507,507)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,508,508)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,509,509)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,510,510)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,511,511)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,512,512)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,513,513)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,514,514)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,515,515)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,516,516)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,517,517)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,518,518)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,519,519)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,520,520)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,521,521)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,522,522)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,523,523)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,524,524)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,525,525)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,526,526)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,527,527)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,528,528)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,529,529)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,530,530)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,531,531)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,532,532)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,533,533)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,534,534)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,535,535)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,536,536)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,537,537)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,538,538)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,539,539)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,540,540)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,541,541)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,542,542)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,543,543)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,544,544)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,545,545)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,546,546)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,547,547)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,548,548)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,549,549)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,550,550)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,551,551)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,552,552)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,553,553)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,554,554)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,555,555)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,556,556)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,557,557)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,558,558)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,559,559)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,560,560)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,561,561)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,562,562)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,563,563)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,564,564)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,565,565)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,566,566)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,567,567)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,568,568)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,569,569)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,570,570)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,571,571)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,572,572)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,573,573)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,574,574)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,575,575)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,576,576)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,577,577)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,578,578)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,579,579)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,580,580)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,581,581)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,582,582)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,583,583)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,584,584)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,585,585)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,586,586)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,587,587)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,588,588)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,589,589)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,590,590)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,591,591)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,592,592)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,593,593)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,594,594)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,595,595)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,596,596)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,597,597)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,598,598)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,599,599)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,600,600)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,601,601)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,602,602)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,603,603)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,604,604)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,605,605)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,606,606)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,607,607)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,608,608)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,609,609)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,610,610)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,611,611)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,612,612)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,613,613)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,614,614)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,615,615)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,616,616)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,617,617)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,618,618)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,619,619)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,620,620)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,621,621)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,622,622)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,623,623)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,624,624)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,625,625)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,626,626)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,627,627)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,628,628)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,629,629)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,630,630)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,631,631)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,632,632)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,633,633)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,634,634)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,635,635)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,636,636)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,637,637)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,638,638)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,639,639)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,640,640)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,641,641)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,642,642)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,643,643)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,644,644)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,645,645)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,646,646)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,647,647)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,648,648)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,649,649)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,650,650)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,651,651)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,652,652)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,653,653)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,654,654)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,655,655)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,656,656)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,657,657)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,658,658)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,659,659)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,660,660)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,661,661)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,662,662)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,663,663)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,664,664)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,665,665)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,666,666)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,667,667)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,668,668)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,669,669)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,670,670)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,671,671)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,672,672)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,673,673)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,674,674)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,675,675)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,676,676)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,677,677)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,678,678)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,679,679)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,680,680)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,681,681)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,682,682)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,683,683)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,684,684)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,685,685)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,686,686)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,687,687)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,688,688)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,689,689)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,690,690)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,691,691)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,692,692)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,693,693)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,694,694)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,695,695)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,696,696)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,697,697)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,698,698)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,699,699)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,700,700)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,701,701)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,702,702)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,703,703)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,704,704)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,705,705)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,706,706)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,707,707)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,708,708)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,709,709)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,710,710)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,711,711)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,712,712)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,713,713)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,714,714)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,715,715)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,716,716)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,717,717)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,718,718)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,719,719)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,720,720)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,721,721)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,722,722)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,723,723)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,724,724)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,725,725)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,726,726)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,727,727)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,728,728)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,729,729)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,730,730)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,731,731)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,732,732)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,733,733)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,734,734)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,735,735)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,736,736)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,737,737)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,738,738)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,739,739)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,740,740)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,741,741)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,742,742)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,743,743)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,744,744)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,745,745)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,746,746)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,747,747)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,748,748)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,749,749)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,750,750)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,751,751)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,752,752)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,753,753)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,754,754)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,755,755)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,756,756)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,757,757)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,758,758)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,759,759)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,760,760)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,761,761)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,762,762)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,763,763)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,764,764)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,765,765)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,766,766)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,767,767)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,768,768)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,769,769)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,770,770)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,771,771)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,772,772)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,773,773)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,774,774)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,775,775)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,776,776)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,777,777)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,778,778)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,779,779)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,780,780)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,781,781)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,782,782)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,783,783)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,784,784)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,785,785)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,786,786)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,787,787)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,788,788)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,789,789)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,790,790)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,791,791)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,792,792)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,793,793)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,794,794)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,795,795)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,796,796)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,797,797)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,798,798)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,799,799)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,800,800)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,801,801)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,802,802)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,803,803)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,804,804)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,805,805)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,806,806)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,807,807)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,808,808)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,809,809)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,810,810)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,811,811)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,812,812)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,813,813)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,814,814)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,815,815)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,816,816)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,817,817)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,818,818)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,819,819)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,820,820)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,821,821)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,822,822)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,823,823)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,824,824)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,825,825)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,826,826)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,827,827)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,828,828)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,829,829)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,830,830)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,831,831)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,832,832)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,833,833)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,834,834)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,835,835)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,836,836)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,837,837)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,838,838)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,839,839)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,840,840)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,841,841)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,842,842)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,843,843)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,844,844)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,845,845)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,846,846)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,847,847)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,848,848)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,849,849)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,850,850)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,851,851)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,852,852)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,853,853)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,854,854)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,855,855)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,856,856)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,857,857)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,858,858)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,859,859)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,860,860)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,861,861)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,862,862)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,863,863)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,864,864)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,865,865)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,866,866)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,867,867)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,868,868)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,869,869)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,870,870)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,871,871)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,872,872)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,873,873)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,874,874)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,875,875)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,876,876)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,877,877)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,878,878)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,879,879)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,880,880)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,881,881)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,882,882)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,883,883)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,884,884)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,885,885)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,886,886)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,887,887)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,888,888)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,889,889)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,890,890)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,891,891)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,892,892)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,893,893)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,894,894)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,895,895)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,896,896)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,897,897)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,898,898)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,899,899)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,900,900)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,901,901)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,902,902)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,903,903)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,904,904)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,905,905)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,906,906)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,907,907)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,908,908)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,909,909)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,910,910)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,911,911)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,912,912)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,913,913)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,914,914)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,915,915)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,916,916)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,917,917)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,918,918)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,919,919)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,920,920)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,921,921)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,922,922)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,923,923)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,924,924)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,925,925)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,926,926)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,927,927)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,928,928)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,929,929)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,930,930)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,931,931)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,932,932)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,933,933)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,934,934)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,935,935)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,936,936)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,937,937)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,938,938)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,939,939)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,940,940)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,941,941)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,942,942)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,943,943)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,944,944)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,945,945)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,946,946)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,947,947)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,948,948)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,949,949)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,950,950)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,951,951)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,952,952)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,953,953)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,954,954)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,955,955)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,956,956)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,957,957)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,958,958)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,959,959)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,960,960)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,961,961)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,962,962)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,963,963)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,964,964)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,965,965)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,966,966)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,967,967)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,968,968)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,969,969)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,970,970)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,971,971)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,972,972)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,973,973)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,974,974)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,975,975)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,976,976)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,977,977)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,978,978)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,979,979)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,980,980)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,981,981)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,982,982)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,983,983)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,984,984)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,985,985)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,986,986)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,987,987)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,988,988)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,989,989)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,990,990)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,991,991)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,992,992)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,993,993)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,994,994)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,995,995)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,996,996)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,997,997)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,998,998)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,999,999)"
+        },
+        {
+          "type": "exec",
+          "sql": "INSERT INTO t10 VALUES(1,1000,1000)"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE INDEX i10 ON t10(a,b);\n      COMMIT;\n      SELECT count(*) FROM t10;",
+          "expect": "1000"
+        }
+      ]
+    },
+    {
+      "name": "where2-9.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT * FROM t10 WHERE a=1 AND (b=2 OR b=3)",
+          "expect": "1 2 2 1 3 3 7"
+        }
+      ]
+    },
+    {
+      "name": "where2-11.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t11(a,b,c,d);\n    CREATE INDEX i11aba ON t11(a,b,a,c); -- column A occurs twice.\n    INSERT INTO t11 VALUES(1,2,3,4);\n    INSERT INTO t11 VALUES(5,6,7,8);\n    INSERT INTO t11 VALUES(1,2,9,10);\n    INSERT INTO t11 VALUES(5,11,12,13);\n    SELECT c FROM t11 WHERE a=1 AND b=2 ORDER BY c;",
+          "expect": "3 9"
+        }
+      ]
+    },
+    {
+      "name": "where2-11.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE INDEX i11cccccccc ON t11(c,c,c,c,c,c,c,c); -- repeated column\n    SELECT d FROM t11 WHERE c=9;",
+          "expect": "10"
+        }
+      ]
+    },
+    {
+      "name": "where2-11.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT d FROM t11 WHERE c IN (1,2,3,4,5);",
+          "expect": "4"
+        }
+      ]
+    },
+    {
+      "name": "where2-11.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "SELECT d FROM t11 WHERE c=7 OR (a=1 AND b=2) ORDER BY d;",
+          "expect": "4 8 10"
+        }
+      ]
+    },
+    {
+      "name": "where2-12.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "CREATE TABLE t12(x INTEGER PRIMARY KEY, y INT, z CHAR(100));\n  CREATE INDEX t12y ON t12(y);\n  EXPLAIN QUERY PLAN\n    SELECT a.x, b.x\n      FROM t12 AS a JOIN t12 AS b ON a.y=b.x\n     WHERE (b.x=$abc OR b.y=$abc);",
+          "expect": "/SEARCH b .*SEARCH b /"
+        }
+      ]
+    },
+    {
       "name": "where2-13.1",
       "steps": [
         {
@@ -213,6 +5579,10 @@
       ]
     },
     {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
       "name": "where2-16.1",
       "steps": [
         {
@@ -228,12 +5598,7 @@
           "type": "query",
           "sql": "EXPLAIN QUERY PLAN\n  SELECT *\n    FROM t1, t2 CROSS JOIN t3, t4\n   WHERE t4.g=1\n     AND t1.a=t4.h\n     AND t2.c=t1.b\n     AND t3.e=t2.d;",
           "expect": "~/.* t4 .* t[12] .*/"
-        }
-      ]
-    },
-    {
-      "name": "where2-16.2",
-      "steps": [
+        },
         {
           "type": "query",
           "sql": "EXPLAIN QUERY PLAN\n  SELECT *\n    FROM t1, t2 CROSS JOIN t3, t4\n   WHERE t2.c=1\n     AND t3.e=t2.d\n     AND t4.g=t3.f\n     AND t1.a=t4.h;",
@@ -258,396 +5623,6 @@
           "type": "query",
           "sql": "CREATE INDEX t1_a ON t1(a);\n  SELECT * FROM t1 WHERE (a='a' COLLATE nocase) OR a='b' ORDER BY +a;",
           "expect": "A b"
-        }
-      ]
-    },
-    {
-      "name": "where2-1.0",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "BEGIN;\n    CREATE TABLE t1(w int, x int, y int, z int);"
-        }
-      ]
-    },
-    {
-      "name": "where2-6.7",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "CREATE TABLE t2249a(a TEXT UNIQUE, x CHAR(100));\n    CREATE TABLE t2249b(b INTEGER);\n    INSERT INTO t2249a(a) VALUES('0123');\n    INSERT INTO t2249b VALUES(123);"
-        }
-      ]
-    },
-    {
-      "name": "where2-8.1",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT * FROM t1 WHERE x IN (20,21) AND y IN (1,2)"
-        }
-      ]
-    },
-    {
-      "name": "where2-8.2",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT * FROM t1 WHERE x IN (1,2) AND y IN (-5,-6)"
-        }
-      ]
-    },
-    {
-      "name": "where2-8.3",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT w FROM t1\n       WHERE x IN (SELECT x FROM tx WHERE rowid<0)\n         AND +y IN (SELECT y FROM tx WHERE rowid=1)"
-        }
-      ]
-    },
-    {
-      "name": "where2-8.4",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT w FROM t1\n       WHERE x IN (SELECT x FROM tx WHERE rowid=1)\n         AND y IN (SELECT y FROM tx WHERE rowid<0)"
-        }
-      ]
-    },
-    {
-      "name": "where2-8.5",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "CREATE INDEX tx_xyz ON tx(x, y, z, w);\n      SELECT w FROM tx\n       WHERE x IN (SELECT x FROM t1 WHERE w BETWEEN 10 AND 20)\n         AND y IN (SELECT y FROM t1 WHERE w BETWEEN 10 AND 20)\n         AND z IN (SELECT z FROM t1 WHERE w BETWEEN 12 AND 14)",
-          "expect": "12 13 14"
-        }
-      ]
-    },
-    {
-      "name": "where2-8.6",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT w FROM tx\n       WHERE x IN (SELECT x FROM t1 WHERE w BETWEEN 10 AND 20)\n         AND y IN (SELECT y FROM t1 WHERE w BETWEEN 12 AND 14)\n         AND z IN (SELECT z FROM t1 WHERE w BETWEEN 10 AND 20)",
-          "expect": "12 13 14"
-        }
-      ]
-    },
-    {
-      "name": "where2-8.7",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT w FROM tx\n       WHERE x IN (SELECT x FROM t1 WHERE w BETWEEN 12 AND 14)\n         AND y IN (SELECT y FROM t1 WHERE w BETWEEN 10 AND 20)\n         AND z IN (SELECT z FROM t1 WHERE w BETWEEN 10 AND 20)",
-          "expect": "10 11 12 13 14 15"
-        }
-      ]
-    },
-    {
-      "name": "where2-8.8",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT w FROM tx\n       WHERE x IN (SELECT x FROM t1 WHERE w BETWEEN 10 AND 20)\n         AND y IN (SELECT y FROM t1 WHERE w BETWEEN 10 AND 20)\n         AND z IN (SELECT z FROM t1 WHERE w BETWEEN 10 AND 20)",
-          "expect": "10 11 12 13 14 15 16 17 18 19 20"
-        }
-      ]
-    },
-    {
-      "name": "where2-8.9",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT w FROM tx\n       WHERE x IN (SELECT x FROM t1 WHERE w BETWEEN 10 AND 20)\n         AND y IN (SELECT y FROM t1 WHERE w BETWEEN 10 AND 20)\n         AND z IN (SELECT z FROM t1 WHERE w BETWEEN 2 AND 4)"
-        }
-      ]
-    },
-    {
-      "name": "where2-8.10",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT w FROM tx\n       WHERE x IN (SELECT x FROM t1 WHERE w BETWEEN 10 AND 20)\n         AND y IN (SELECT y FROM t1 WHERE w BETWEEN 2 AND 4)\n         AND z IN (SELECT z FROM t1 WHERE w BETWEEN 10 AND 20)"
-        }
-      ]
-    },
-    {
-      "name": "where2-8.11",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT w FROM tx\n       WHERE x IN (SELECT x FROM t1 WHERE w BETWEEN 2 AND 4)\n         AND y IN (SELECT y FROM t1 WHERE w BETWEEN 10 AND 20)\n         AND z IN (SELECT z FROM t1 WHERE w BETWEEN 10 AND 20)"
-        }
-      ]
-    },
-    {
-      "name": "where2-8.12",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT w FROM tx\n       WHERE x IN (SELECT x FROM t1 WHERE w BETWEEN 10 AND 20)\n         AND y IN (SELECT y FROM t1 WHERE w BETWEEN 10 AND 20)\n         AND z IN (SELECT z FROM t1 WHERE w BETWEEN -4 AND -2)"
-        }
-      ]
-    },
-    {
-      "name": "where2-8.13",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT w FROM tx\n       WHERE x IN (SELECT x FROM t1 WHERE w BETWEEN 10 AND 20)\n         AND y IN (SELECT y FROM t1 WHERE w BETWEEN -4 AND -2)\n         AND z IN (SELECT z FROM t1 WHERE w BETWEEN 10 AND 20)"
-        }
-      ]
-    },
-    {
-      "name": "where2-8.14",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT w FROM tx\n       WHERE x IN (SELECT x FROM t1 WHERE w BETWEEN -4 AND -2)\n         AND y IN (SELECT y FROM t1 WHERE w BETWEEN 10 AND 20)\n         AND z IN (SELECT z FROM t1 WHERE w BETWEEN 10 AND 20)"
-        }
-      ]
-    },
-    {
-      "name": "where2-8.15",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT w FROM tx\n       WHERE x IN (SELECT x FROM t1 WHERE w BETWEEN 10 AND 20)\n         AND y IN (SELECT y FROM t1 WHERE w BETWEEN 10 AND 20)\n         AND z IN (SELECT z FROM t1 WHERE w BETWEEN 200 AND 300)"
-        }
-      ]
-    },
-    {
-      "name": "where2-8.16",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT w FROM tx\n       WHERE x IN (SELECT x FROM t1 WHERE w BETWEEN 10 AND 20)\n         AND y IN (SELECT y FROM t1 WHERE w BETWEEN 200 AND 300)\n         AND z IN (SELECT z FROM t1 WHERE w BETWEEN 10 AND 20)"
-        }
-      ]
-    },
-    {
-      "name": "where2-8.17",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT w FROM tx\n       WHERE x IN (SELECT x FROM t1 WHERE w BETWEEN 200 AND 300)\n         AND y IN (SELECT y FROM t1 WHERE w BETWEEN 10 AND 20)\n         AND z IN (SELECT z FROM t1 WHERE w BETWEEN 10 AND 20)"
-        }
-      ]
-    },
-    {
-      "name": "where2-8.18",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT w FROM tx\n       WHERE x IN (SELECT x FROM t1 WHERE +w BETWEEN 10 AND 20)\n         AND y IN (SELECT y FROM t1 WHERE +w BETWEEN 10 AND 20)\n         AND z IN (SELECT z FROM t1 WHERE +w BETWEEN 200 AND 300)"
-        }
-      ]
-    },
-    {
-      "name": "where2-8.19",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT w FROM tx\n       WHERE x IN (SELECT x FROM t1 WHERE +w BETWEEN 10 AND 20)\n         AND y IN (SELECT y FROM t1 WHERE +w BETWEEN 200 AND 300)\n         AND z IN (SELECT z FROM t1 WHERE +w BETWEEN 10 AND 20)"
-        }
-      ]
-    },
-    {
-      "name": "where2-8.20",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT w FROM tx\n       WHERE x IN (SELECT x FROM t1 WHERE +w BETWEEN 200 AND 300)\n         AND y IN (SELECT y FROM t1 WHERE +w BETWEEN 10 AND 20)\n         AND z IN (SELECT z FROM t1 WHERE +w BETWEEN 10 AND 20)"
-        }
-      ]
-    },
-    {
-      "name": "where2-9.1",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "BEGIN;\n      CREATE TABLE t10(a,b,c);\n      INSERT INTO t10 VALUES(1,1,1);\n      INSERT INTO t10 VALUES(1,2,2);\n      INSERT INTO t10 VALUES(1,3,3);"
-        }
-      ]
-    },
-    {
-      "name": "where2-11.1",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "CREATE TABLE t11(a,b,c,d);\n    CREATE INDEX i11aba ON t11(a,b,a,c); -- column A occurs twice.\n    INSERT INTO t11 VALUES(1,2,3,4);\n    INSERT INTO t11 VALUES(5,6,7,8);\n    INSERT INTO t11 VALUES(1,2,9,10);\n    INSERT INTO t11 VALUES(5,11,12,13);\n    SELECT c FROM t11 WHERE a=1 AND b=2 ORDER BY c;",
-          "expect": "3 9"
-        }
-      ]
-    },
-    {
-      "name": "where2-11.2",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "CREATE INDEX i11cccccccc ON t11(c,c,c,c,c,c,c,c); -- repeated column\n    SELECT d FROM t11 WHERE c=9;"
-        }
-      ]
-    },
-    {
-      "name": "where2-11.3",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT d FROM t11 WHERE c IN (1,2,3,4,5);",
-          "expect": "4"
-        }
-      ]
-    },
-    {
-      "name": "where2-11.4",
-      "steps": [
-        {
-          "type": "query",
-          "sql": "SELECT d FROM t11 WHERE c=7 OR (a=1 AND b=2) ORDER BY d;",
-          "expect": "4 8 10"
-        },
-        {
-          "type": "exec",
-          "sql": "BEGIN;\n    CREATE TABLE t1(w int, x int, y int, z int);"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t1 VALUES($::w,$::x,$::y,$::z)"
-        },
-        {
-          "type": "exec",
-          "sql": "INSERT INTO t1 VALUES(:w,:x,:y,:z)"
-        },
-        {
-          "type": "exec",
-          "sql": "CREATE UNIQUE INDEX i1w ON t1(w);\n    CREATE INDEX i1xy ON t1(x,y);\n    CREATE INDEX i1zyx ON t1(z,y,x);\n    COMMIT;"
-        },
-        {
-          "type": "exec",
-          "sql": "CREATE TABLE t2249a(a TEXT UNIQUE, x CHAR(100));\n    CREATE TABLE t2249b(b INTEGER);\n    INSERT INTO t2249a(a) VALUES('0123');\n    INSERT INTO t2249b VALUES(123);"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT * FROM t1 WHERE x IN (20,21) AND y IN (1,2)"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT * FROM t1 WHERE x IN (1,2) AND y IN (-5,-6)"
-        },
-        {
-          "type": "exec",
-          "sql": "CREATE TABLE tx AS SELECT * FROM t1"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT w FROM t1\n       WHERE x IN (SELECT x FROM tx WHERE rowid<0)\n         AND +y IN (SELECT y FROM tx WHERE rowid=1)"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT w FROM t1\n       WHERE x IN (SELECT x FROM tx WHERE rowid=1)\n         AND y IN (SELECT y FROM tx WHERE rowid<0)"
-        },
-        {
-          "type": "exec",
-          "sql": "CREATE INDEX tx_xyz ON tx(x, y, z, w);\n      SELECT w FROM tx\n       WHERE x IN (SELECT x FROM t1 WHERE w BETWEEN 10 AND 20)\n         AND y IN (SELECT y FROM t1 WHERE w BETWEEN 10 AND 20)\n         AND z IN (SELECT z FROM t1 WHERE w BETWEEN 12 AND 14)"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT w FROM tx\n       WHERE x IN (SELECT x FROM t1 WHERE w BETWEEN 10 AND 20)\n         AND y IN (SELECT y FROM t1 WHERE w BETWEEN 12 AND 14)\n         AND z IN (SELECT z FROM t1 WHERE w BETWEEN 10 AND 20)"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT w FROM tx\n       WHERE x IN (SELECT x FROM t1 WHERE w BETWEEN 12 AND 14)\n         AND y IN (SELECT y FROM t1 WHERE w BETWEEN 10 AND 20)\n         AND z IN (SELECT z FROM t1 WHERE w BETWEEN 10 AND 20)"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT w FROM tx\n       WHERE x IN (SELECT x FROM t1 WHERE w BETWEEN 10 AND 20)\n         AND y IN (SELECT y FROM t1 WHERE w BETWEEN 10 AND 20)\n         AND z IN (SELECT z FROM t1 WHERE w BETWEEN 10 AND 20)"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT w FROM tx\n       WHERE x IN (SELECT x FROM t1 WHERE w BETWEEN 10 AND 20)\n         AND y IN (SELECT y FROM t1 WHERE w BETWEEN 10 AND 20)\n         AND z IN (SELECT z FROM t1 WHERE w BETWEEN 2 AND 4)"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT w FROM tx\n       WHERE x IN (SELECT x FROM t1 WHERE w BETWEEN 10 AND 20)\n         AND y IN (SELECT y FROM t1 WHERE w BETWEEN 2 AND 4)\n         AND z IN (SELECT z FROM t1 WHERE w BETWEEN 10 AND 20)"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT w FROM tx\n       WHERE x IN (SELECT x FROM t1 WHERE w BETWEEN 2 AND 4)\n         AND y IN (SELECT y FROM t1 WHERE w BETWEEN 10 AND 20)\n         AND z IN (SELECT z FROM t1 WHERE w BETWEEN 10 AND 20)"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT w FROM tx\n       WHERE x IN (SELECT x FROM t1 WHERE w BETWEEN 10 AND 20)\n         AND y IN (SELECT y FROM t1 WHERE w BETWEEN 10 AND 20)\n         AND z IN (SELECT z FROM t1 WHERE w BETWEEN -4 AND -2)"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT w FROM tx\n       WHERE x IN (SELECT x FROM t1 WHERE w BETWEEN 10 AND 20)\n         AND y IN (SELECT y FROM t1 WHERE w BETWEEN -4 AND -2)\n         AND z IN (SELECT z FROM t1 WHERE w BETWEEN 10 AND 20)"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT w FROM tx\n       WHERE x IN (SELECT x FROM t1 WHERE w BETWEEN -4 AND -2)\n         AND y IN (SELECT y FROM t1 WHERE w BETWEEN 10 AND 20)\n         AND z IN (SELECT z FROM t1 WHERE w BETWEEN 10 AND 20)"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT w FROM tx\n       WHERE x IN (SELECT x FROM t1 WHERE w BETWEEN 10 AND 20)\n         AND y IN (SELECT y FROM t1 WHERE w BETWEEN 10 AND 20)\n         AND z IN (SELECT z FROM t1 WHERE w BETWEEN 200 AND 300)"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT w FROM tx\n       WHERE x IN (SELECT x FROM t1 WHERE w BETWEEN 10 AND 20)\n         AND y IN (SELECT y FROM t1 WHERE w BETWEEN 200 AND 300)\n         AND z IN (SELECT z FROM t1 WHERE w BETWEEN 10 AND 20)"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT w FROM tx\n       WHERE x IN (SELECT x FROM t1 WHERE w BETWEEN 200 AND 300)\n         AND y IN (SELECT y FROM t1 WHERE w BETWEEN 10 AND 20)\n         AND z IN (SELECT z FROM t1 WHERE w BETWEEN 10 AND 20)"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT w FROM tx\n       WHERE x IN (SELECT x FROM t1 WHERE +w BETWEEN 10 AND 20)\n         AND y IN (SELECT y FROM t1 WHERE +w BETWEEN 10 AND 20)\n         AND z IN (SELECT z FROM t1 WHERE +w BETWEEN 200 AND 300)"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT w FROM tx\n       WHERE x IN (SELECT x FROM t1 WHERE +w BETWEEN 10 AND 20)\n         AND y IN (SELECT y FROM t1 WHERE +w BETWEEN 200 AND 300)\n         AND z IN (SELECT z FROM t1 WHERE +w BETWEEN 10 AND 20)"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT w FROM tx\n       WHERE x IN (SELECT x FROM t1 WHERE +w BETWEEN 200 AND 300)\n         AND y IN (SELECT y FROM t1 WHERE +w BETWEEN 10 AND 20)\n         AND z IN (SELECT z FROM t1 WHERE +w BETWEEN 10 AND 20)"
-        },
-        {
-          "type": "exec",
-          "sql": "BEGIN;\n      CREATE TABLE t10(a,b,c);\n      INSERT INTO t10 VALUES(1,1,1);\n      INSERT INTO t10 VALUES(1,2,2);\n      INSERT INTO t10 VALUES(1,3,3);"
-        },
-        {
-          "type": "exec",
-          "sql": "CREATE INDEX i10 ON t10(a,b);\n      COMMIT;\n      SELECT count(*) FROM t10;"
-        },
-        {
-          "type": "exec",
-          "sql": "CREATE TABLE t11(a,b,c,d);\n    CREATE INDEX i11aba ON t11(a,b,a,c); -- column A occurs twice.\n    INSERT INTO t11 VALUES(1,2,3,4);\n    INSERT INTO t11 VALUES(5,6,7,8);\n    INSERT INTO t11 VALUES(1,2,9,10);\n    INSERT INTO t11 VALUES(5,11,12,13);\n    SELECT c FROM t11 WHERE a=1 AND b=2 ORDER BY c;"
-        },
-        {
-          "type": "exec",
-          "sql": "CREATE INDEX i11cccccccc ON t11(c,c,c,c,c,c,c,c); -- repeated column\n    SELECT d FROM t11 WHERE c=9;"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT d FROM t11 WHERE c IN (1,2,3,4,5);"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT d FROM t11 WHERE c=7 OR (a=1 AND b=2) ORDER BY d;"
-        },
-        {
-          "type": "exec",
-          "sql": "CREATE TABLE x1(a INTEGER PRIMARY KEY, b DEFAULT 1);\n    WITH RECURSIVE\n       cnt(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM cnt WHERE x<50)\n    INSERT INTO x1 SELECT x, 1 FROM cnt;\n    CREATE TABLE x2(x INTEGER PRIMARY KEY);\n    INSERT INTO x2 VALUES(1);"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
         }
       ]
     }

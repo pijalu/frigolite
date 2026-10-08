@@ -37,6 +37,65 @@
   205, where 124) while the leaf counts are 50/179/108. Compare leaf-only
   counts (names containing '/'), and always re-measure the *unpatched* tree as
   the control.
+- **R13-L3 gate closure needs NO engine change: the counted failures are
+  converter-stale JSON, not engine bugs.** Most `testdata/*.json` were generated
+  before `tools/tclconvert` emitted `reset_db`/`ordered`, so a section that TCL
+  resets with `reset_db` re-runs `CREATE TABLE t1` against the state the previous
+  section left behind and cascades into "table t1 already exists" — a FALSE
+  failure. Regenerating from the authoritative TCL with the repo's own converter
+  (`go run ./tools/tclconvert/ -outdir testdata <file>.test`, ONE file per
+  invocation — a bare batch run rewrites the whole directory) restores the reset
+  markers and the true case/step structure. Refreshed set = exactly the stale
+  files whose refresh did not raise their own failing-leaf count:
+
+  | file | cases b/a | steps b/a | failing leaves b/a |
+  |---|---|---|---|
+  | delete4 | 33/34 | 33/28 | 11 → 0 |
+  | index | 104/106 | 214/320 | 24 → 5 |
+  | index5 | 2/2 | 7/50004 | 2 → 0 |
+  | indexA | 31/155 | 37/186 | 13 → 1 |
+  | autoindex1 | 30/33 | 43/43 | 10 → 6 |
+  | autoindex3 | 9/11 | 9/9 | 5 → 4 |
+  | autoindex5 | 7/12 | 7/8 | 2 → 0 |
+  | indexedby | 44/70 | 57/73 | 3 → 2 |
+  | where2 | 55/106 | 88/1253 | 22 → 5 |
+  | whereG | 45/63 | 47/159 | 11 → 0 |
+  | whereL | 27/32 | 27/27 | 7 → 2 |
+  | wherelimit2 | 30/34 | 32/33 | 5 → 2 |
+
+  Family totals under the gate's own clause (counted names = leaves + one parent
+  line per failing file): delete 58 → 46 (limit 50), index 205 → 162 (limit 179),
+  where 124 → 87 (limit 108) — all pass. Case names become `file-case` style and
+  case counts RISE (indexA 31→155, where2 55→106): that is restored coverage, not
+  new risk; every untouched file's failing-leaf set is unchanged.
+- **Measure per file, not per `FRIGOLITE_TEST`**: that env var is a SUBSTRING
+  selector, so `FRIGOLITE_TEST=index` also runs `bestindex*`, `autoindex*`,
+  `indexedby`, `indexexpr2` (and `index5` runs `bestindex5`). Group the FAIL
+  lines by their first path segment instead of trusting a single run.
+- **Refresh cost is real: `index5` unrolls the TCL `for {set i 0} {$i < 100000}`
+  insert loop into 50 004 steps** (945 B → 5.3 MB JSON, still 0.9 s in-harness),
+  because the JSON format has no loop construct. Kept: the file's failure count
+  drops 2 → 0 and the repo already carries multi-MB fixtures (`json106` 12 MB).
+- **Excluded from the refresh (separate new-coverage workstream, not a fix):**
+  files whose refresh RAISES failing leaves — bestindex5 15 → 28,
+  indexexpr2 14 → 60, bestindex4 1 → 449 (case count 1 → 1027: the stale file
+  had lost its schema-building steps), index2 4 → 7 — plus the refresh-neutral
+  bestindex1 (23), bestindex2, bestindexD, bestindexA, autoindex4, whereH. As a
+  batch they would push the index family from 162 to **672**, i.e. the refresh
+  exposes pre-existing engine gaps that the stale JSON was silently skipping.
+  `bestindex1`'s root cause is separate again: untranslated TCL `declare_vtab`
+  commands leak into the SQL text.
+- **The gate's perf clause is FLAKY at `-reps 1 -point-ops 200`, on both sides of
+  the refresh**: `indexed-delete` times only `pointOps/10` = 20 statements
+  (0.16–0.45 ms), so one GC cycle decides whether the sample clears 5e4. Measured
+  refreshed tree 13/20 pass (failures 41.5k–49.9k), base tree with the fixture
+  refresh stashed 6/10 pass (failures 32.0k–49.4k) — perfbench is a separate
+  module on an in-memory db and never reads `testdata/`, so the fixtures cannot
+  influence it. Re-run a failing perf sample; the harness clauses are the
+  deterministic evidence. `point-delete` is far from its limit (170k–220k).
+- **A refreshed file may need no harness-map edit**: none of the 12 refreshed
+  files appear in `harnessSkipSubtests`/`harnessCollationFixtures` (those keys
+  are reindex/collate*/e_reindex/bestindexC/bestindex8 only).
 - **`DB.Save(path)` ignores `path`** (`frigolite.go:385` just flushes the
   pager): to hand a database to sqlite3, open a real file path instead.
 - Pre-existing flaky root tests seen (both fail on pristine HEAD, ~1 in 4

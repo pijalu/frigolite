@@ -1,9 +1,10 @@
 {
   "file": "delete4.test",
   "name": "delete4",
+  "ordered": true,
   "tests": [
     {
-      "name": "1.1",
+      "name": "delete4-1.1",
       "steps": [
         {
           "type": "exec",
@@ -12,7 +13,7 @@
       ]
     },
     {
-      "name": "1.2",
+      "name": "delete4-1.2",
       "steps": [
         {
           "type": "exec",
@@ -21,7 +22,7 @@
       ]
     },
     {
-      "name": "1.3",
+      "name": "delete4-1.3",
       "steps": [
         {
           "type": "query",
@@ -31,7 +32,11 @@
       ]
     },
     {
-      "name": "2.1",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "delete4-2.1",
       "steps": [
         {
           "type": "exec",
@@ -40,7 +45,7 @@
       ]
     },
     {
-      "name": "2.2",
+      "name": "delete4-2.2",
       "steps": [
         {
           "type": "exec",
@@ -49,7 +54,7 @@
       ]
     },
     {
-      "name": "2.3",
+      "name": "delete4-2.3",
       "steps": [
         {
           "type": "query",
@@ -59,7 +64,11 @@
       ]
     },
     {
-      "name": "3.0.1",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "delete4-3.0.1",
       "steps": [
         {
           "type": "query",
@@ -69,17 +78,21 @@
       ]
     },
     {
-      "name": "3.0.2",
+      "name": "delete4-3.0.2",
       "steps": [
         {
           "type": "query",
-          "sql": "WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x<100)\n     INSERT INTO t1(a,b) SELECT x, x+1 FROM c;\n  SELECT printf('(%d)',changes());\n  DELETE FROM t1;\n  SELECT printf('(%d)',changes());",
+          "sql": "WITH RECURSIVE c(x) AS (VALUES(1) UNION ALL SELECT x+1 FROM c WHERE x\u003c100)\n     INSERT INTO t1(a,b) SELECT x, x+1 FROM c;\n  SELECT printf('(%d)',changes());\n  DELETE FROM t1;\n  SELECT printf('(%d)',changes());",
           "expect": "(100) (101)"
         }
       ]
     },
     {
-      "name": "3.1",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "delete4-3.1",
       "steps": [
         {
           "type": "exec",
@@ -88,7 +101,7 @@
       ]
     },
     {
-      "name": "3.2",
+      "name": "delete4-3.2",
       "steps": [
         {
           "type": "exec",
@@ -97,7 +110,7 @@
       ]
     },
     {
-      "name": "3.3",
+      "name": "delete4-3.3",
       "steps": [
         {
           "type": "query",
@@ -107,7 +120,7 @@
       ]
     },
     {
-      "name": "3.4",
+      "name": "delete4-3.4",
       "steps": [
         {
           "type": "query",
@@ -117,47 +130,51 @@
       ]
     },
     {
-      "name": "4.1",
+      "name": "delete4-4.1",
       "steps": [
         {
           "type": "query",
-          "sql": "DROP TABLE IF EXISTS t4;\n  CREATE TABLE t4(col0, col1);\n  INSERT INTO \"t4\" VALUES(14, 'abcde');\n  CREATE INDEX idx_t4_0 ON t4 (col1, col0);\n  CREATE INDEX idx_t4_3 ON t4 (col0);\n  DELETE FROM t4 WHERE col0=69 OR col0>7;\n  PRAGMA integrity_check;",
+          "sql": "DROP TABLE IF EXISTS t4;\n  CREATE TABLE t4(col0, col1);\n  INSERT INTO \"t4\" VALUES(14, 'abcde');\n  CREATE INDEX idx_t4_0 ON t4 (col1, col0);\n  CREATE INDEX idx_t4_3 ON t4 (col0);\n  DELETE FROM t4 WHERE col0=69 OR col0\u003e7;\n  PRAGMA integrity_check;",
           "expect": "ok"
         }
       ]
     },
     {
-      "name": "4.2",
+      "name": "delete4-4.2",
       "steps": [
         {
           "type": "query",
-          "sql": "DROP TABLE IF EXISTS t4;\n  CREATE TABLE t4(col0, col1);\n  INSERT INTO \"t4\" VALUES(14, 'abcde');\n  CREATE INDEX idx_t4_3 ON t4 (col0);\n  CREATE INDEX idx_t4_0 ON t4 (col1, col0);\n  DELETE FROM t4 WHERE col0=69 OR col0>7;\n  PRAGMA integrity_check;",
+          "sql": "DROP TABLE IF EXISTS t4;\n  CREATE TABLE t4(col0, col1);\n  INSERT INTO \"t4\" VALUES(14, 'abcde');\n  CREATE INDEX idx_t4_3 ON t4 (col0);\n  CREATE INDEX idx_t4_0 ON t4 (col1, col0);\n  DELETE FROM t4 WHERE col0=69 OR col0\u003e7;\n  PRAGMA integrity_check;",
           "expect": "ok"
         }
       ]
     },
     {
-      "name": "4.11",
+      "name": "delete4-4.11",
       "steps": [
         {
           "type": "query",
-          "sql": "DROP TABLE IF EXISTS t4;\n  CREATE TABLE t4(col0, col1, pk PRIMARY KEY) WITHOUT ROWID;\n  INSERT INTO t4 VALUES(14, 'abcde','xyzzy');\n  CREATE INDEX idx_t4_0 ON t4 (col1, col0);\n  CREATE INDEX idx_t4_3 ON t4 (col0);\n  DELETE FROM t4 WHERE col0=69 OR col0>7;\n  PRAGMA integrity_check;",
+          "sql": "DROP TABLE IF EXISTS t4;\n  CREATE TABLE t4(col0, col1, pk PRIMARY KEY) WITHOUT ROWID;\n  INSERT INTO t4 VALUES(14, 'abcde','xyzzy');\n  CREATE INDEX idx_t4_0 ON t4 (col1, col0);\n  CREATE INDEX idx_t4_3 ON t4 (col0);\n  DELETE FROM t4 WHERE col0=69 OR col0\u003e7;\n  PRAGMA integrity_check;",
           "expect": "ok"
         }
       ]
     },
     {
-      "name": "4.12",
+      "name": "delete4-4.12",
       "steps": [
         {
           "type": "query",
-          "sql": "DROP TABLE IF EXISTS t4;\n  CREATE TABLE t4(col0, col1, pk PRIMARY KEY) WITHOUT ROWID;\n  INSERT INTO t4 VALUES(14, 'abcde','xyzzy');\n  CREATE INDEX idx_t4_3 ON t4 (col0);\n  CREATE INDEX idx_t4_0 ON t4 (col1, col0);\n  DELETE FROM t4 WHERE col0=69 OR col0>7;\n  PRAGMA integrity_check;",
+          "sql": "DROP TABLE IF EXISTS t4;\n  CREATE TABLE t4(col0, col1, pk PRIMARY KEY) WITHOUT ROWID;\n  INSERT INTO t4 VALUES(14, 'abcde','xyzzy');\n  CREATE INDEX idx_t4_3 ON t4 (col0);\n  CREATE INDEX idx_t4_0 ON t4 (col1, col0);\n  DELETE FROM t4 WHERE col0=69 OR col0\u003e7;\n  PRAGMA integrity_check;",
           "expect": "ok"
         }
       ]
     },
     {
-      "name": "5.0",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "delete4-5.0",
       "steps": [
         {
           "type": "query",
@@ -166,7 +183,11 @@
       ]
     },
     {
-      "name": "6.0",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "delete4-6.0",
       "steps": [
         {
           "type": "query",
@@ -176,7 +197,7 @@
       ]
     },
     {
-      "name": "6.1",
+      "name": "delete4-6.1",
       "steps": [
         {
           "type": "query",
@@ -186,7 +207,7 @@
       ]
     },
     {
-      "name": "7.1.0",
+      "name": "delete4-7.1.0",
       "steps": [
         {
           "type": "exec",
@@ -195,7 +216,7 @@
       ]
     },
     {
-      "name": "7.1.1",
+      "name": "delete4-7.1.1",
       "steps": [
         {
           "type": "exec",
@@ -204,17 +225,17 @@
       ]
     },
     {
-      "name": "7.1.2",
+      "name": "delete4-7.1.2",
       "steps": [
         {
           "type": "query",
           "sql": "SELECT * FROM t3;",
-          "expect": "2 2 2   3 3 3"
+          "expect": " 2 2 2   3 3 3 "
         }
       ]
     },
     {
-      "name": "7.2.0",
+      "name": "delete4-7.2.0",
       "steps": [
         {
           "type": "exec",
@@ -223,7 +244,7 @@
       ]
     },
     {
-      "name": "7.2.1",
+      "name": "delete4-7.2.1",
       "steps": [
         {
           "type": "exec",
@@ -232,7 +253,11 @@
       ]
     },
     {
-      "name": "7.3.0",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "delete4-7.3.0",
       "steps": [
         {
           "type": "exec",
@@ -241,7 +266,7 @@
       ]
     },
     {
-      "name": "7.3.1",
+      "name": "delete4-7.3.1",
       "steps": [
         {
           "type": "query",
@@ -250,7 +275,7 @@
       ]
     },
     {
-      "name": "7.3.2",
+      "name": "delete4-7.3.2",
       "steps": [
         {
           "type": "exec",
@@ -259,51 +284,11 @@
       ]
     },
     {
-      "name": "7.3.3",
+      "name": "delete4-7.3.3",
       "steps": [
         {
           "type": "query",
           "sql": "DELETE FROM t3 WHERE a IN(2, 5, 8);\n  SELECT * FROM t3;"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
         }
       ]
     }

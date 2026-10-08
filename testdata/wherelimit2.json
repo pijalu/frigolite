@@ -1,9 +1,10 @@
 {
   "file": "wherelimit2.test",
   "name": "wherelimit2",
+  "ordered": true,
   "tests": [
     {
-      "name": "1.0",
+      "name": "wherelimit2-1.0",
       "steps": [
         {
           "type": "exec",
@@ -12,43 +13,47 @@
       ]
     },
     {
-      "name": "1.1",
+      "name": "wherelimit2-1.1",
       "steps": [
         {
           "type": "exec",
-          "sql": "DELETE FROM v1 ORDER BY a LIMIT 3;\n  SELECT * FROM log; DELETE FROM log;"
+          "sql": "DELETE FROM v1 ORDER BY a LIMIT 3;\n  SELECT * FROM log; DELETE FROM log;",
+          "expect": "\n  delete 1 delete 2 delete 3\n"
         }
       ]
     },
     {
-      "name": "1.2",
+      "name": "wherelimit2-1.2",
       "steps": [
         {
           "type": "exec",
-          "sql": "DELETE FROM v1 ORDER BY b LIMIT 3;\n  SELECT * FROM log; DELETE FROM log;"
+          "sql": "DELETE FROM v1 ORDER BY b LIMIT 3;\n  SELECT * FROM log; DELETE FROM log;",
+          "expect": "\n  delete 6 delete 5 delete 4\n"
         }
       ]
     },
     {
-      "name": "1.3",
+      "name": "wherelimit2-1.3",
       "steps": [
         {
           "type": "exec",
-          "sql": "UPDATE v1 SET b = 555 ORDER BY a LIMIT 3;\n  SELECT * FROM log; DELETE FROM log;"
+          "sql": "UPDATE v1 SET b = 555 ORDER BY a LIMIT 3;\n  SELECT * FROM log; DELETE FROM log;",
+          "expect": "\n  update 1 update 2 update 3\n"
         }
       ]
     },
     {
-      "name": "1.4",
+      "name": "wherelimit2-1.4",
       "steps": [
         {
           "type": "exec",
-          "sql": "UPDATE v1 SET b = 555 ORDER BY b LIMIT 3;\n  SELECT * FROM log; DELETE FROM log;"
+          "sql": "UPDATE v1 SET b = 555 ORDER BY b LIMIT 3;\n  SELECT * FROM log; DELETE FROM log;",
+          "expect": "\n  update 6 update 5 update 4\n"
         }
       ]
     },
     {
-      "name": "2.1.0",
+      "name": "wherelimit2-2.1.0",
       "steps": [
         {
           "type": "exec",
@@ -57,25 +62,27 @@
       ]
     },
     {
-      "name": "2.1.1",
+      "name": "wherelimit2-2.1.1",
       "steps": [
         {
           "type": "exec",
-          "sql": "BEGIN;\n    DELETE FROM t2 WHERE b=1 ORDER BY c LIMIT 2;\n    SELECT c FROM t2 ORDER BY 1;\n  ROLLBACK;"
+          "sql": "BEGIN;\n    DELETE FROM t2 WHERE b=1 ORDER BY c LIMIT 2;\n    SELECT c FROM t2 ORDER BY 1;\n  ROLLBACK;",
+          "expect": "a c e f g h"
         }
       ]
     },
     {
-      "name": "2.1.2",
+      "name": "wherelimit2-2.1.2",
       "steps": [
         {
           "type": "exec",
-          "sql": "BEGIN;\n    UPDATE t2 SET c=NULL ORDER BY a, b DESC LIMIT 3 OFFSET 1;\n    SELECT a, b, c FROM t2;\n  ROLLBACK;"
+          "sql": "BEGIN;\n    UPDATE t2 SET c=NULL ORDER BY a, b DESC LIMIT 3 OFFSET 1;\n    SELECT a, b, c FROM t2;\n  ROLLBACK;",
+          "expect": "\n  1 1 {} \n  1 2 g \n  2 1 {} \n  2 2 {} \n  3 1 d \n  3 2 c \n  4 1 b \n  4 2 a\n"
         }
       ]
     },
     {
-      "name": "2.2.0",
+      "name": "wherelimit2-2.2.0",
       "steps": [
         {
           "type": "exec",
@@ -84,25 +91,86 @@
       ]
     },
     {
-      "name": "2.2.1",
+      "name": "wherelimit2-2.2.1",
       "steps": [
         {
           "type": "exec",
-          "sql": "BEGIN;\n    DELETE FROM t2 WHERE b=1 ORDER BY c LIMIT 2;\n    SELECT c FROM t2 ORDER BY 1;\n  ROLLBACK;"
+          "sql": "BEGIN;\n    DELETE FROM t2 WHERE b=1 ORDER BY c LIMIT 2;\n    SELECT c FROM t2 ORDER BY 1;\n  ROLLBACK;",
+          "expect": "a c e f g h"
         }
       ]
     },
     {
-      "name": "2.2.2",
+      "name": "wherelimit2-2.2.2",
       "steps": [
         {
           "type": "exec",
-          "sql": "BEGIN;\n    UPDATE t2 SET c=NULL ORDER BY a DESC LIMIT 3 OFFSET 1;\n    SELECT a, b, c FROM t2;\n  ROLLBACK;"
+          "sql": "BEGIN;\n    UPDATE t2 SET c=NULL ORDER BY a DESC LIMIT 3 OFFSET 1;\n    SELECT a, b, c FROM t2;\n  ROLLBACK;",
+          "expect": "\n  1 1 h\n  2 2 g \n  3 1 f\n  4 2 e\n  5 1 {}\n  6 2 {} \n  7 1 {} \n  8 2 a\n"
         }
       ]
     },
     {
-      "name": "4.0",
+      "name": "wherelimit2-3.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE VIRTUAL TABLE ft USING fts5(x);\n    INSERT INTO ft(rowid, x) VALUES(-45,   'a a');\n    INSERT INTO ft(rowid, x) VALUES(12,    'a b');\n    INSERT INTO ft(rowid, x) VALUES(444,   'a c');\n    INSERT INTO ft(rowid, x) VALUES(12300, 'a d');\n    INSERT INTO ft(rowid, x) VALUES(25400, 'a c');\n    INSERT INTO ft(rowid, x) VALUES(25401, 'a b');\n    INSERT INTO ft(rowid, x) VALUES(50000, 'a a');"
+        }
+      ]
+    },
+    {
+      "name": "wherelimit2-3.1.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n      DELETE FROM ft ORDER BY rowid LIMIT 3;\n      SELECT x FROM ft;\n    ROLLBACK;",
+          "expect": "{a d} {a c} {a b} {a a}"
+        }
+      ]
+    },
+    {
+      "name": "wherelimit2-3.1.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n      DELETE FROM ft WHERE ft MATCH 'a' ORDER BY rowid LIMIT 3;\n      SELECT x FROM ft;\n    ROLLBACK;",
+          "expect": "{a d} {a c} {a b} {a a}"
+        }
+      ]
+    },
+    {
+      "name": "wherelimit2-3.1.3",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n      DELETE FROM ft WHERE ft MATCH 'b' ORDER BY rowid ASC LIMIT 1 OFFSET 1;\n      SELECT rowid FROM ft;\n    ROLLBACK;",
+          "expect": "-45 12 444 12300 25400 50000"
+        }
+      ]
+    },
+    {
+      "name": "wherelimit2-3.2.1",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n      UPDATE ft SET x='hello' ORDER BY rowid LIMIT 2 OFFSET 2;\n      SELECT x FROM ft;\n    ROLLBACK;",
+          "expect": "{a a} {a b} hello hello {a c} {a b} {a a}"
+        }
+      ]
+    },
+    {
+      "name": "wherelimit2-3.2.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "BEGIN;\n      UPDATE ft SET x='hello' WHERE ft MATCH 'a' \n          ORDER BY rowid DESC LIMIT 2 OFFSET 2;\n      SELECT x FROM ft;\n    ROLLBACK;",
+          "expect": "{a a} {a b} {a c} hello hello {a b} {a a}"
+        }
+      ]
+    },
+    {
+      "name": "wherelimit2-4.0",
       "steps": [
         {
           "type": "exec",
@@ -111,26 +179,17 @@
       ]
     },
     {
-      "name": "4.1",
+      "name": "wherelimit2-4.1",
       "steps": [
         {
           "type": "exec",
-          "sql": "BEGIN;\n    DELETE FROM x1 ORDER BY a LIMIT 2;\n    SELECT a FROM x1;\n  ROLLBACK;"
+          "sql": "BEGIN;\n    DELETE FROM x1 ORDER BY a LIMIT 2;\n    SELECT a FROM x1;\n  ROLLBACK;",
+          "expect": "3 4 5 6"
         }
       ]
     },
     {
-      "name": "4.2",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "#  DELETE FROM x1 INDEXED BY x1bc WHERE d=3 LIMIT 1;\n#",
-          "expect": "1 {no query solution}"
-        }
-      ]
-    },
-    {
-      "name": "4.3",
+      "name": "wherelimit2-4.3",
       "steps": [
         {
           "type": "query",
@@ -140,17 +199,7 @@
       ]
     },
     {
-      "name": "4.4",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "#  UPDATE x1 INDEXED BY x1bc SET d=5 WHERE d=3 LIMIT 1;\n#",
-          "expect": "1 {no query solution}"
-        }
-      ]
-    },
-    {
-      "name": "4.5",
+      "name": "wherelimit2-4.5",
       "steps": [
         {
           "type": "query",
@@ -160,7 +209,7 @@
       ]
     },
     {
-      "name": "5.0",
+      "name": "wherelimit2-5.0",
       "steps": [
         {
           "type": "exec",
@@ -169,25 +218,27 @@
       ]
     },
     {
-      "name": "5.1",
+      "name": "wherelimit2-5.1",
       "steps": [
         {
           "type": "exec",
-          "sql": "BEGIN;\n    DELETE FROM \"x y\" WHERE \"c d\"!='e' ORDER BY \"c d\" LIMIT 2 OFFSET 2;\n    SELECT * FROM \"x y\" ORDER BY 1;\n  ROLLBACK;"
+          "sql": "BEGIN;\n    DELETE FROM \"x y\" WHERE \"c d\"!='e' ORDER BY \"c d\" LIMIT 2 OFFSET 2;\n    SELECT * FROM \"x y\" ORDER BY 1;\n  ROLLBACK;",
+          "expect": "\n  a a c c d d e a g c h d\n"
         }
       ]
     },
     {
-      "name": "5.2",
+      "name": "wherelimit2-5.2",
       "steps": [
         {
           "type": "exec",
-          "sql": "BEGIN;\n    UPDATE \"x y\" SET \"c d\"='e' WHERE \"c d\"!='e' ORDER BY \"c d\" LIMIT 2 OFFSET 2;\n    SELECT * FROM \"x y\" ORDER BY 1;\n  ROLLBACK;"
+          "sql": "BEGIN;\n    UPDATE \"x y\" SET \"c d\"='e' WHERE \"c d\"!='e' ORDER BY \"c d\" LIMIT 2 OFFSET 2;\n    SELECT * FROM \"x y\" ORDER BY 1;\n  ROLLBACK;",
+          "expect": "\n  a a b e c c d d e a f e g c h d\n"
         }
       ]
     },
     {
-      "name": "5.3",
+      "name": "wherelimit2-5.3",
       "steps": [
         {
           "type": "exec",
@@ -196,7 +247,31 @@
       ]
     },
     {
-      "name": "6.0",
+      "name": "wherelimit2-5.4",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DELETE FROM \"v w\" ORDER BY \"a b\" LIMIT 3",
+          "expect": "a a b b c c"
+        }
+      ]
+    },
+    {
+      "name": "wherelimit2-5.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "UPDATE \"v w\" SET \"a b\" = \"a b\" || 'x' ORDER BY \"a b\" LIMIT 5;",
+          "expect": "ax a bx b cx c dx d ex a"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "wherelimit2-6.0",
       "steps": [
         {
           "type": "exec",
@@ -205,16 +280,16 @@
       ]
     },
     {
-      "name": "6.1",
+      "name": "wherelimit2-6.1",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "WITH t2 AS MATERIALIZED (VALUES(5))\n  DELETE FROM t2 ORDER BY rank()OVER() LIMIT 2;"
         }
       ]
     },
     {
-      "name": "6.2",
+      "name": "wherelimit2-6.2",
       "steps": [
         {
           "type": "query",
@@ -224,7 +299,7 @@
       ]
     },
     {
-      "name": "7.0",
+      "name": "wherelimit2-7.0",
       "steps": [
         {
           "type": "exec",
@@ -233,55 +308,21 @@
       ]
     },
     {
-      "name": "7.1",
+      "name": "wherelimit2-7.1",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "WITH t1(b) AS (SELECT * FROM (SELECT * FROM (VALUES(2))))\n  UPDATE t1 SET a=3 LIMIT 1;"
         }
       ]
     },
     {
-      "name": "7.2",
+      "name": "wherelimit2-7.2",
       "steps": [
         {
           "type": "query",
           "sql": "SELECT * FROM t1;",
           "expect": "3"
-        }
-      ]
-    },
-    {
-      "name": "5.4",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "DELETE FROM \"v w\" ORDER BY \"a b\" LIMIT 3"
-        }
-      ]
-    },
-    {
-      "name": "5.5",
-      "steps": [
-        {
-          "type": "exec",
-          "sql": "UPDATE \"v w\" SET \"a b\" = \"a b\" || 'x' ORDER BY \"a b\" LIMIT 5;"
-        },
-        {
-          "type": "exec",
-          "sql": "DELETE FROM \"v w\" ORDER BY \"a b\" LIMIT 3"
-        },
-        {
-          "type": "exec",
-          "sql": "UPDATE \"v w\" SET \"a b\" = \"a b\" || 'x' ORDER BY \"a b\" LIMIT 5;"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
         }
       ]
     }

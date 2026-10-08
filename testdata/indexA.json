@@ -1,9 +1,10 @@
 {
   "file": "indexA.test",
   "name": "indexA",
+  "ordered": true,
   "tests": [
     {
-      "name": "1.0",
+      "name": "indexA-1.0",
       "steps": [
         {
           "type": "exec",
@@ -12,7 +13,7 @@
       ]
     },
     {
-      "name": "1.1",
+      "name": "indexA-1.1",
       "steps": [
         {
           "type": "query",
@@ -22,7 +23,16 @@
       ]
     },
     {
-      "name": "1.3",
+      "name": "indexA-1.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN \n  SELECT * FROM t1 WHERE a='abc'"
+        }
+      ]
+    },
+    {
+      "name": "indexA-1.3",
       "steps": [
         {
           "type": "query",
@@ -32,7 +42,7 @@
       ]
     },
     {
-      "name": "1.4",
+      "name": "indexA-1.4",
       "steps": [
         {
           "type": "exec",
@@ -41,7 +51,7 @@
       ]
     },
     {
-      "name": "1.5",
+      "name": "indexA-1.5",
       "steps": [
         {
           "type": "query",
@@ -51,7 +61,7 @@
       ]
     },
     {
-      "name": "1.6",
+      "name": "indexA-1.6",
       "steps": [
         {
           "type": "query",
@@ -61,25 +71,1398 @@
       ]
     },
     {
-      "name": "2.0",
+      "name": "indexA-1.7",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN \n  SELECT x, a, b, c FROM t2 RIGHT JOIN t1 ON (t1.a=5 AND t1.b=t2.x)"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "indexA-2.0",
       "steps": [
         {
           "type": "exec",
           "sql": "CREATE TABLE x1(a TEXT, b, c);\n  INSERT INTO x1 VALUES('2', 'two', 'ii');\n  INSERT INTO x1 VALUES('2.0', 'twopointoh', 'ii.0');\n\n  CREATE TABLE x2(a NUMERIC, b, c);\n  INSERT INTO x2 VALUES('2', 'two', 'ii');\n  INSERT INTO x2 VALUES('2.0', 'twopointoh', 'ii.0');\n\n  CREATE TABLE x3(a REAL, b, c);\n  INSERT INTO x3 VALUES('2', 'two', 'ii');\n  INSERT INTO x3 VALUES('2.0', 'twopointoh', 'ii.0');"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP INDEX IF EXISTS i1"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP INDEX IF EXISTS i2"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP INDEX IF EXISTS i3"
         }
       ]
     },
     {
-      "name": "3.0",
+      "name": "indexA-2.1.0.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT *, typeof(a) FROM x1 WHERE a=2",
+          "expect": "2 two ii text"
+        }
+      ]
+    },
+    {
+      "name": "indexA-2.1.0.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT *, typeof(a) FROM x1 WHERE a=2.0",
+          "expect": "2.0 twopointoh ii.0 text"
+        }
+      ]
+    },
+    {
+      "name": "indexA-2.1.0.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT *, typeof(a) FROM x1 WHERE a='2'",
+          "expect": "2 two ii text"
+        }
+      ]
+    },
+    {
+      "name": "indexA-2.1.0.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT *, typeof(a) FROM x1 WHERE a='2.0'",
+          "expect": "2.0 twopointoh ii.0 text"
+        }
+      ]
+    },
+    {
+      "name": "indexA-2.1.0.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT *, typeof(a) FROM x2 WHERE a=2",
+          "expect": "2 two ii integer 2 twopointoh ii.0 integer"
+        }
+      ]
+    },
+    {
+      "name": "indexA-2.1.0.6",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT *, typeof(a) FROM x2 WHERE a=2.0",
+          "expect": "2 two ii integer 2 twopointoh ii.0 integer"
+        }
+      ]
+    },
+    {
+      "name": "indexA-2.1.0.7",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT *, typeof(a) FROM x2 WHERE a='2'",
+          "expect": "2 two ii integer 2 twopointoh ii.0 integer"
+        }
+      ]
+    },
+    {
+      "name": "indexA-2.1.0.8",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT *, typeof(a) FROM x2 WHERE a='2.0'",
+          "expect": "2 two ii integer 2 twopointoh ii.0 integer"
+        }
+      ]
+    },
+    {
+      "name": "indexA-2.1.0.9",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT *, typeof(a) FROM x3 WHERE a=2",
+          "expect": "2.0 two ii real 2.0 twopointoh ii.0 real"
+        }
+      ]
+    },
+    {
+      "name": "indexA-2.1.0.10",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT *, typeof(a) FROM x3 WHERE a=2.0",
+          "expect": "2.0 two ii real 2.0 twopointoh ii.0 real"
+        }
+      ]
+    },
+    {
+      "name": "indexA-2.1.0.11",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT *, typeof(a) FROM x3 WHERE a='2'",
+          "expect": "2.0 two ii real 2.0 twopointoh ii.0 real"
+        }
+      ]
+    },
+    {
+      "name": "indexA-2.1.0.12",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT *, typeof(a) FROM x3 WHERE a='2.0'",
+          "expect": "2.0 two ii real 2.0 twopointoh ii.0 real"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP INDEX IF EXISTS i1"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP INDEX IF EXISTS i2"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP INDEX IF EXISTS i3"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE INDEX i1 ON x1(b, c) WHERE a=2;\n    CREATE INDEX i2 ON x2(b, c) WHERE a=2;\n    CREATE INDEX i3 ON x3(b, c) WHERE a=2;"
+        }
+      ]
+    },
+    {
+      "name": "indexA-2.1.1.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT *, typeof(a) FROM x1 WHERE a=2",
+          "expect": "2 two ii text"
+        }
+      ]
+    },
+    {
+      "name": "indexA-2.1.1.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT *, typeof(a) FROM x1 WHERE a=2.0",
+          "expect": "2.0 twopointoh ii.0 text"
+        }
+      ]
+    },
+    {
+      "name": "indexA-2.1.1.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT *, typeof(a) FROM x1 WHERE a='2'",
+          "expect": "2 two ii text"
+        }
+      ]
+    },
+    {
+      "name": "indexA-2.1.1.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT *, typeof(a) FROM x1 WHERE a='2.0'",
+          "expect": "2.0 twopointoh ii.0 text"
+        }
+      ]
+    },
+    {
+      "name": "indexA-2.1.1.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT *, typeof(a) FROM x2 WHERE a=2",
+          "expect": "2 two ii integer 2 twopointoh ii.0 integer"
+        }
+      ]
+    },
+    {
+      "name": "indexA-2.1.1.6",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT *, typeof(a) FROM x2 WHERE a=2.0",
+          "expect": "2 two ii integer 2 twopointoh ii.0 integer"
+        }
+      ]
+    },
+    {
+      "name": "indexA-2.1.1.7",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT *, typeof(a) FROM x2 WHERE a='2'",
+          "expect": "2 two ii integer 2 twopointoh ii.0 integer"
+        }
+      ]
+    },
+    {
+      "name": "indexA-2.1.1.8",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT *, typeof(a) FROM x2 WHERE a='2.0'",
+          "expect": "2 two ii integer 2 twopointoh ii.0 integer"
+        }
+      ]
+    },
+    {
+      "name": "indexA-2.1.1.9",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT *, typeof(a) FROM x3 WHERE a=2",
+          "expect": "2.0 two ii real 2.0 twopointoh ii.0 real"
+        }
+      ]
+    },
+    {
+      "name": "indexA-2.1.1.10",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT *, typeof(a) FROM x3 WHERE a=2.0",
+          "expect": "2.0 two ii real 2.0 twopointoh ii.0 real"
+        }
+      ]
+    },
+    {
+      "name": "indexA-2.1.1.11",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT *, typeof(a) FROM x3 WHERE a='2'",
+          "expect": "2.0 two ii real 2.0 twopointoh ii.0 real"
+        }
+      ]
+    },
+    {
+      "name": "indexA-2.1.1.12",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT *, typeof(a) FROM x3 WHERE a='2.0'",
+          "expect": "2.0 two ii real 2.0 twopointoh ii.0 real"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP INDEX IF EXISTS i1"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP INDEX IF EXISTS i2"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP INDEX IF EXISTS i3"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE INDEX i1 ON x1(b, c) WHERE a=2.0;\n    CREATE INDEX i2 ON x2(b, c) WHERE a=2.0;\n    CREATE INDEX i3 ON x3(b, c) WHERE a=2.0;"
+        }
+      ]
+    },
+    {
+      "name": "indexA-2.1.2.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT *, typeof(a) FROM x1 WHERE a=2",
+          "expect": "2 two ii text"
+        }
+      ]
+    },
+    {
+      "name": "indexA-2.1.2.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT *, typeof(a) FROM x1 WHERE a=2.0",
+          "expect": "2.0 twopointoh ii.0 text"
+        }
+      ]
+    },
+    {
+      "name": "indexA-2.1.2.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT *, typeof(a) FROM x1 WHERE a='2'",
+          "expect": "2 two ii text"
+        }
+      ]
+    },
+    {
+      "name": "indexA-2.1.2.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT *, typeof(a) FROM x1 WHERE a='2.0'",
+          "expect": "2.0 twopointoh ii.0 text"
+        }
+      ]
+    },
+    {
+      "name": "indexA-2.1.2.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT *, typeof(a) FROM x2 WHERE a=2",
+          "expect": "2 two ii integer 2 twopointoh ii.0 integer"
+        }
+      ]
+    },
+    {
+      "name": "indexA-2.1.2.6",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT *, typeof(a) FROM x2 WHERE a=2.0",
+          "expect": "2 two ii integer 2 twopointoh ii.0 integer"
+        }
+      ]
+    },
+    {
+      "name": "indexA-2.1.2.7",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT *, typeof(a) FROM x2 WHERE a='2'",
+          "expect": "2 two ii integer 2 twopointoh ii.0 integer"
+        }
+      ]
+    },
+    {
+      "name": "indexA-2.1.2.8",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT *, typeof(a) FROM x2 WHERE a='2.0'",
+          "expect": "2 two ii integer 2 twopointoh ii.0 integer"
+        }
+      ]
+    },
+    {
+      "name": "indexA-2.1.2.9",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT *, typeof(a) FROM x3 WHERE a=2",
+          "expect": "2.0 two ii real 2.0 twopointoh ii.0 real"
+        }
+      ]
+    },
+    {
+      "name": "indexA-2.1.2.10",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT *, typeof(a) FROM x3 WHERE a=2.0",
+          "expect": "2.0 two ii real 2.0 twopointoh ii.0 real"
+        }
+      ]
+    },
+    {
+      "name": "indexA-2.1.2.11",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT *, typeof(a) FROM x3 WHERE a='2'",
+          "expect": "2.0 two ii real 2.0 twopointoh ii.0 real"
+        }
+      ]
+    },
+    {
+      "name": "indexA-2.1.2.12",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT *, typeof(a) FROM x3 WHERE a='2.0'",
+          "expect": "2.0 two ii real 2.0 twopointoh ii.0 real"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP INDEX IF EXISTS i1"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP INDEX IF EXISTS i2"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP INDEX IF EXISTS i3"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE INDEX i1 ON x1(b, c) WHERE a='2.0';\n    CREATE INDEX i2 ON x2(b, c) WHERE a='2.0';\n    CREATE INDEX i3 ON x3(b, c) WHERE a='2.0';"
+        }
+      ]
+    },
+    {
+      "name": "indexA-2.1.3.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT *, typeof(a) FROM x1 WHERE a=2",
+          "expect": "2 two ii text"
+        }
+      ]
+    },
+    {
+      "name": "indexA-2.1.3.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT *, typeof(a) FROM x1 WHERE a=2.0",
+          "expect": "2.0 twopointoh ii.0 text"
+        }
+      ]
+    },
+    {
+      "name": "indexA-2.1.3.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT *, typeof(a) FROM x1 WHERE a='2'",
+          "expect": "2 two ii text"
+        }
+      ]
+    },
+    {
+      "name": "indexA-2.1.3.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT *, typeof(a) FROM x1 WHERE a='2.0'",
+          "expect": "2.0 twopointoh ii.0 text"
+        }
+      ]
+    },
+    {
+      "name": "indexA-2.1.3.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT *, typeof(a) FROM x2 WHERE a=2",
+          "expect": "2 two ii integer 2 twopointoh ii.0 integer"
+        }
+      ]
+    },
+    {
+      "name": "indexA-2.1.3.6",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT *, typeof(a) FROM x2 WHERE a=2.0",
+          "expect": "2 two ii integer 2 twopointoh ii.0 integer"
+        }
+      ]
+    },
+    {
+      "name": "indexA-2.1.3.7",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT *, typeof(a) FROM x2 WHERE a='2'",
+          "expect": "2 two ii integer 2 twopointoh ii.0 integer"
+        }
+      ]
+    },
+    {
+      "name": "indexA-2.1.3.8",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT *, typeof(a) FROM x2 WHERE a='2.0'",
+          "expect": "2 two ii integer 2 twopointoh ii.0 integer"
+        }
+      ]
+    },
+    {
+      "name": "indexA-2.1.3.9",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT *, typeof(a) FROM x3 WHERE a=2",
+          "expect": "2.0 two ii real 2.0 twopointoh ii.0 real"
+        }
+      ]
+    },
+    {
+      "name": "indexA-2.1.3.10",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT *, typeof(a) FROM x3 WHERE a=2.0",
+          "expect": "2.0 two ii real 2.0 twopointoh ii.0 real"
+        }
+      ]
+    },
+    {
+      "name": "indexA-2.1.3.11",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT *, typeof(a) FROM x3 WHERE a='2'",
+          "expect": "2.0 two ii real 2.0 twopointoh ii.0 real"
+        }
+      ]
+    },
+    {
+      "name": "indexA-2.1.3.12",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT *, typeof(a) FROM x3 WHERE a='2.0'",
+          "expect": "2.0 two ii real 2.0 twopointoh ii.0 real"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP INDEX IF EXISTS i1"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP INDEX IF EXISTS i2"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP INDEX IF EXISTS i3"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE INDEX i1 ON x1(b, c) WHERE a='2';\n    CREATE INDEX i2 ON x2(b, c) WHERE a='2';\n    CREATE INDEX i3 ON x3(b, c) WHERE a='2';"
+        }
+      ]
+    },
+    {
+      "name": "indexA-2.1.4.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT *, typeof(a) FROM x1 WHERE a=2",
+          "expect": "2 two ii text"
+        }
+      ]
+    },
+    {
+      "name": "indexA-2.1.4.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT *, typeof(a) FROM x1 WHERE a=2.0",
+          "expect": "2.0 twopointoh ii.0 text"
+        }
+      ]
+    },
+    {
+      "name": "indexA-2.1.4.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT *, typeof(a) FROM x1 WHERE a='2'",
+          "expect": "2 two ii text"
+        }
+      ]
+    },
+    {
+      "name": "indexA-2.1.4.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT *, typeof(a) FROM x1 WHERE a='2.0'",
+          "expect": "2.0 twopointoh ii.0 text"
+        }
+      ]
+    },
+    {
+      "name": "indexA-2.1.4.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT *, typeof(a) FROM x2 WHERE a=2",
+          "expect": "2 two ii integer 2 twopointoh ii.0 integer"
+        }
+      ]
+    },
+    {
+      "name": "indexA-2.1.4.6",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT *, typeof(a) FROM x2 WHERE a=2.0",
+          "expect": "2 two ii integer 2 twopointoh ii.0 integer"
+        }
+      ]
+    },
+    {
+      "name": "indexA-2.1.4.7",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT *, typeof(a) FROM x2 WHERE a='2'",
+          "expect": "2 two ii integer 2 twopointoh ii.0 integer"
+        }
+      ]
+    },
+    {
+      "name": "indexA-2.1.4.8",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT *, typeof(a) FROM x2 WHERE a='2.0'",
+          "expect": "2 two ii integer 2 twopointoh ii.0 integer"
+        }
+      ]
+    },
+    {
+      "name": "indexA-2.1.4.9",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT *, typeof(a) FROM x3 WHERE a=2",
+          "expect": "2.0 two ii real 2.0 twopointoh ii.0 real"
+        }
+      ]
+    },
+    {
+      "name": "indexA-2.1.4.10",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT *, typeof(a) FROM x3 WHERE a=2.0",
+          "expect": "2.0 two ii real 2.0 twopointoh ii.0 real"
+        }
+      ]
+    },
+    {
+      "name": "indexA-2.1.4.11",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT *, typeof(a) FROM x3 WHERE a='2'",
+          "expect": "2.0 two ii real 2.0 twopointoh ii.0 real"
+        }
+      ]
+    },
+    {
+      "name": "indexA-2.1.4.12",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT *, typeof(a) FROM x3 WHERE a='2.0'",
+          "expect": "2.0 two ii real 2.0 twopointoh ii.0 real"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "indexA-3.0",
       "steps": [
         {
           "type": "exec",
           "sql": "CREATE TABLE x1(a TEXT, d PRIMARY KEY, b, c) WITHOUT ROWID;\n  INSERT INTO x1 VALUES('2', 1, 'two', 'ii');\n  INSERT INTO x1 VALUES('2.0', 2, 'twopointoh', 'ii.0');\n\n  CREATE TABLE x2(a NUMERIC, b, c, d PRIMARY KEY) WITHOUT ROWID;\n  INSERT INTO x2 VALUES('2', 'two', 'ii', 1);\n  INSERT INTO x2 VALUES('2.0', 'twopointoh', 'ii.0', 2);\n\n  CREATE TABLE x3(d PRIMARY KEY, a REAL, b, c) WITHOUT ROWID;\n  INSERT INTO x3 VALUES(34, '2', 'two', 'ii');\n  INSERT INTO x3 VALUES(35, '2.0', 'twopointoh', 'ii.0');"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP INDEX IF EXISTS i1"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP INDEX IF EXISTS i2"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP INDEX IF EXISTS i3"
         }
       ]
     },
     {
-      "name": "4.0",
+      "name": "indexA-3.1.0.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, b, c, typeof(a) FROM x1 WHERE a=2",
+          "expect": "2 two ii text"
+        }
+      ]
+    },
+    {
+      "name": "indexA-3.1.0.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, b, c, typeof(a) FROM x1 WHERE a=2.0",
+          "expect": "2.0 twopointoh ii.0 text"
+        }
+      ]
+    },
+    {
+      "name": "indexA-3.1.0.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, b, c, typeof(a) FROM x1 WHERE a='2'",
+          "expect": "2 two ii text"
+        }
+      ]
+    },
+    {
+      "name": "indexA-3.1.0.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, b, c, typeof(a) FROM x1 WHERE a='2.0'",
+          "expect": "2.0 twopointoh ii.0 text"
+        }
+      ]
+    },
+    {
+      "name": "indexA-3.1.0.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, b, c, typeof(a) FROM x2 WHERE a=2",
+          "expect": "2 two ii integer 2 twopointoh ii.0 integer"
+        }
+      ]
+    },
+    {
+      "name": "indexA-3.1.0.6",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, b, c, typeof(a) FROM x2 WHERE a=2.0",
+          "expect": "2 two ii integer 2 twopointoh ii.0 integer"
+        }
+      ]
+    },
+    {
+      "name": "indexA-3.1.0.7",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, b, c, typeof(a) FROM x2 WHERE a='2'",
+          "expect": "2 two ii integer 2 twopointoh ii.0 integer"
+        }
+      ]
+    },
+    {
+      "name": "indexA-3.1.0.8",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, b, c, typeof(a) FROM x2 WHERE a='2.0'",
+          "expect": "2 two ii integer 2 twopointoh ii.0 integer"
+        }
+      ]
+    },
+    {
+      "name": "indexA-3.1.0.9",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, b, c, typeof(a) FROM x3 WHERE a=2",
+          "expect": "2.0 two ii real 2.0 twopointoh ii.0 real"
+        }
+      ]
+    },
+    {
+      "name": "indexA-3.1.0.10",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, b, c, typeof(a) FROM x3 WHERE a=2.0",
+          "expect": "2.0 two ii real 2.0 twopointoh ii.0 real"
+        }
+      ]
+    },
+    {
+      "name": "indexA-3.1.0.11",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, b, c, typeof(a) FROM x3 WHERE a='2'",
+          "expect": "2.0 two ii real 2.0 twopointoh ii.0 real"
+        }
+      ]
+    },
+    {
+      "name": "indexA-3.1.0.12",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, b, c, typeof(a) FROM x3 WHERE a='2.0'",
+          "expect": "2.0 two ii real 2.0 twopointoh ii.0 real"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP INDEX IF EXISTS i1"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP INDEX IF EXISTS i2"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP INDEX IF EXISTS i3"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE INDEX i1 ON x1(b, c) WHERE a=2;\n    CREATE INDEX i2 ON x2(b, c) WHERE a=2;\n    CREATE INDEX i3 ON x3(b, c) WHERE a=2;"
+        }
+      ]
+    },
+    {
+      "name": "indexA-3.1.1.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, b, c, typeof(a) FROM x1 WHERE a=2",
+          "expect": "2 two ii text"
+        }
+      ]
+    },
+    {
+      "name": "indexA-3.1.1.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, b, c, typeof(a) FROM x1 WHERE a=2.0",
+          "expect": "2.0 twopointoh ii.0 text"
+        }
+      ]
+    },
+    {
+      "name": "indexA-3.1.1.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, b, c, typeof(a) FROM x1 WHERE a='2'",
+          "expect": "2 two ii text"
+        }
+      ]
+    },
+    {
+      "name": "indexA-3.1.1.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, b, c, typeof(a) FROM x1 WHERE a='2.0'",
+          "expect": "2.0 twopointoh ii.0 text"
+        }
+      ]
+    },
+    {
+      "name": "indexA-3.1.1.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, b, c, typeof(a) FROM x2 WHERE a=2",
+          "expect": "2 two ii integer 2 twopointoh ii.0 integer"
+        }
+      ]
+    },
+    {
+      "name": "indexA-3.1.1.6",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, b, c, typeof(a) FROM x2 WHERE a=2.0",
+          "expect": "2 two ii integer 2 twopointoh ii.0 integer"
+        }
+      ]
+    },
+    {
+      "name": "indexA-3.1.1.7",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, b, c, typeof(a) FROM x2 WHERE a='2'",
+          "expect": "2 two ii integer 2 twopointoh ii.0 integer"
+        }
+      ]
+    },
+    {
+      "name": "indexA-3.1.1.8",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, b, c, typeof(a) FROM x2 WHERE a='2.0'",
+          "expect": "2 two ii integer 2 twopointoh ii.0 integer"
+        }
+      ]
+    },
+    {
+      "name": "indexA-3.1.1.9",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, b, c, typeof(a) FROM x3 WHERE a=2",
+          "expect": "2.0 two ii real 2.0 twopointoh ii.0 real"
+        }
+      ]
+    },
+    {
+      "name": "indexA-3.1.1.10",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, b, c, typeof(a) FROM x3 WHERE a=2.0",
+          "expect": "2.0 two ii real 2.0 twopointoh ii.0 real"
+        }
+      ]
+    },
+    {
+      "name": "indexA-3.1.1.11",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, b, c, typeof(a) FROM x3 WHERE a='2'",
+          "expect": "2.0 two ii real 2.0 twopointoh ii.0 real"
+        }
+      ]
+    },
+    {
+      "name": "indexA-3.1.1.12",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, b, c, typeof(a) FROM x3 WHERE a='2.0'",
+          "expect": "2.0 two ii real 2.0 twopointoh ii.0 real"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP INDEX IF EXISTS i1"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP INDEX IF EXISTS i2"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP INDEX IF EXISTS i3"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE INDEX i1 ON x1(b, c) WHERE a=2.0;\n    CREATE INDEX i2 ON x2(b, c) WHERE a=2.0;\n    CREATE INDEX i3 ON x3(b, c) WHERE a=2.0;"
+        }
+      ]
+    },
+    {
+      "name": "indexA-3.1.2.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, b, c, typeof(a) FROM x1 WHERE a=2",
+          "expect": "2 two ii text"
+        }
+      ]
+    },
+    {
+      "name": "indexA-3.1.2.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, b, c, typeof(a) FROM x1 WHERE a=2.0",
+          "expect": "2.0 twopointoh ii.0 text"
+        }
+      ]
+    },
+    {
+      "name": "indexA-3.1.2.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, b, c, typeof(a) FROM x1 WHERE a='2'",
+          "expect": "2 two ii text"
+        }
+      ]
+    },
+    {
+      "name": "indexA-3.1.2.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, b, c, typeof(a) FROM x1 WHERE a='2.0'",
+          "expect": "2.0 twopointoh ii.0 text"
+        }
+      ]
+    },
+    {
+      "name": "indexA-3.1.2.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, b, c, typeof(a) FROM x2 WHERE a=2",
+          "expect": "2 two ii integer 2 twopointoh ii.0 integer"
+        }
+      ]
+    },
+    {
+      "name": "indexA-3.1.2.6",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, b, c, typeof(a) FROM x2 WHERE a=2.0",
+          "expect": "2 two ii integer 2 twopointoh ii.0 integer"
+        }
+      ]
+    },
+    {
+      "name": "indexA-3.1.2.7",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, b, c, typeof(a) FROM x2 WHERE a='2'",
+          "expect": "2 two ii integer 2 twopointoh ii.0 integer"
+        }
+      ]
+    },
+    {
+      "name": "indexA-3.1.2.8",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, b, c, typeof(a) FROM x2 WHERE a='2.0'",
+          "expect": "2 two ii integer 2 twopointoh ii.0 integer"
+        }
+      ]
+    },
+    {
+      "name": "indexA-3.1.2.9",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, b, c, typeof(a) FROM x3 WHERE a=2",
+          "expect": "2.0 two ii real 2.0 twopointoh ii.0 real"
+        }
+      ]
+    },
+    {
+      "name": "indexA-3.1.2.10",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, b, c, typeof(a) FROM x3 WHERE a=2.0",
+          "expect": "2.0 two ii real 2.0 twopointoh ii.0 real"
+        }
+      ]
+    },
+    {
+      "name": "indexA-3.1.2.11",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, b, c, typeof(a) FROM x3 WHERE a='2'",
+          "expect": "2.0 two ii real 2.0 twopointoh ii.0 real"
+        }
+      ]
+    },
+    {
+      "name": "indexA-3.1.2.12",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, b, c, typeof(a) FROM x3 WHERE a='2.0'",
+          "expect": "2.0 two ii real 2.0 twopointoh ii.0 real"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP INDEX IF EXISTS i1"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP INDEX IF EXISTS i2"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP INDEX IF EXISTS i3"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE INDEX i1 ON x1(b, c) WHERE a='2.0';\n    CREATE INDEX i2 ON x2(b, c) WHERE a='2.0';\n    CREATE INDEX i3 ON x3(b, c) WHERE a='2.0';"
+        }
+      ]
+    },
+    {
+      "name": "indexA-3.1.3.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, b, c, typeof(a) FROM x1 WHERE a=2",
+          "expect": "2 two ii text"
+        }
+      ]
+    },
+    {
+      "name": "indexA-3.1.3.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, b, c, typeof(a) FROM x1 WHERE a=2.0",
+          "expect": "2.0 twopointoh ii.0 text"
+        }
+      ]
+    },
+    {
+      "name": "indexA-3.1.3.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, b, c, typeof(a) FROM x1 WHERE a='2'",
+          "expect": "2 two ii text"
+        }
+      ]
+    },
+    {
+      "name": "indexA-3.1.3.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, b, c, typeof(a) FROM x1 WHERE a='2.0'",
+          "expect": "2.0 twopointoh ii.0 text"
+        }
+      ]
+    },
+    {
+      "name": "indexA-3.1.3.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, b, c, typeof(a) FROM x2 WHERE a=2",
+          "expect": "2 two ii integer 2 twopointoh ii.0 integer"
+        }
+      ]
+    },
+    {
+      "name": "indexA-3.1.3.6",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, b, c, typeof(a) FROM x2 WHERE a=2.0",
+          "expect": "2 two ii integer 2 twopointoh ii.0 integer"
+        }
+      ]
+    },
+    {
+      "name": "indexA-3.1.3.7",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, b, c, typeof(a) FROM x2 WHERE a='2'",
+          "expect": "2 two ii integer 2 twopointoh ii.0 integer"
+        }
+      ]
+    },
+    {
+      "name": "indexA-3.1.3.8",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, b, c, typeof(a) FROM x2 WHERE a='2.0'",
+          "expect": "2 two ii integer 2 twopointoh ii.0 integer"
+        }
+      ]
+    },
+    {
+      "name": "indexA-3.1.3.9",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, b, c, typeof(a) FROM x3 WHERE a=2",
+          "expect": "2.0 two ii real 2.0 twopointoh ii.0 real"
+        }
+      ]
+    },
+    {
+      "name": "indexA-3.1.3.10",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, b, c, typeof(a) FROM x3 WHERE a=2.0",
+          "expect": "2.0 two ii real 2.0 twopointoh ii.0 real"
+        }
+      ]
+    },
+    {
+      "name": "indexA-3.1.3.11",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, b, c, typeof(a) FROM x3 WHERE a='2'",
+          "expect": "2.0 two ii real 2.0 twopointoh ii.0 real"
+        }
+      ]
+    },
+    {
+      "name": "indexA-3.1.3.12",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, b, c, typeof(a) FROM x3 WHERE a='2.0'",
+          "expect": "2.0 two ii real 2.0 twopointoh ii.0 real"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP INDEX IF EXISTS i1"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP INDEX IF EXISTS i2"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP INDEX IF EXISTS i3"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE INDEX i1 ON x1(b, c) WHERE a='2';\n    CREATE INDEX i2 ON x2(b, c) WHERE a='2';\n    CREATE INDEX i3 ON x3(b, c) WHERE a='2';"
+        }
+      ]
+    },
+    {
+      "name": "indexA-3.1.4.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, b, c, typeof(a) FROM x1 WHERE a=2",
+          "expect": "2 two ii text"
+        }
+      ]
+    },
+    {
+      "name": "indexA-3.1.4.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, b, c, typeof(a) FROM x1 WHERE a=2.0",
+          "expect": "2.0 twopointoh ii.0 text"
+        }
+      ]
+    },
+    {
+      "name": "indexA-3.1.4.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, b, c, typeof(a) FROM x1 WHERE a='2'",
+          "expect": "2 two ii text"
+        }
+      ]
+    },
+    {
+      "name": "indexA-3.1.4.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, b, c, typeof(a) FROM x1 WHERE a='2.0'",
+          "expect": "2.0 twopointoh ii.0 text"
+        }
+      ]
+    },
+    {
+      "name": "indexA-3.1.4.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, b, c, typeof(a) FROM x2 WHERE a=2",
+          "expect": "2 two ii integer 2 twopointoh ii.0 integer"
+        }
+      ]
+    },
+    {
+      "name": "indexA-3.1.4.6",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, b, c, typeof(a) FROM x2 WHERE a=2.0",
+          "expect": "2 two ii integer 2 twopointoh ii.0 integer"
+        }
+      ]
+    },
+    {
+      "name": "indexA-3.1.4.7",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, b, c, typeof(a) FROM x2 WHERE a='2'",
+          "expect": "2 two ii integer 2 twopointoh ii.0 integer"
+        }
+      ]
+    },
+    {
+      "name": "indexA-3.1.4.8",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, b, c, typeof(a) FROM x2 WHERE a='2.0'",
+          "expect": "2 two ii integer 2 twopointoh ii.0 integer"
+        }
+      ]
+    },
+    {
+      "name": "indexA-3.1.4.9",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, b, c, typeof(a) FROM x3 WHERE a=2",
+          "expect": "2.0 two ii real 2.0 twopointoh ii.0 real"
+        }
+      ]
+    },
+    {
+      "name": "indexA-3.1.4.10",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, b, c, typeof(a) FROM x3 WHERE a=2.0",
+          "expect": "2.0 two ii real 2.0 twopointoh ii.0 real"
+        }
+      ]
+    },
+    {
+      "name": "indexA-3.1.4.11",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, b, c, typeof(a) FROM x3 WHERE a='2'",
+          "expect": "2.0 two ii real 2.0 twopointoh ii.0 real"
+        }
+      ]
+    },
+    {
+      "name": "indexA-3.1.4.12",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "SELECT a, b, c, typeof(a) FROM x3 WHERE a='2.0'",
+          "expect": "2.0 two ii real 2.0 twopointoh ii.0 real"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "indexA-4.0",
       "steps": [
         {
           "type": "exec",
@@ -88,7 +1471,7 @@
       ]
     },
     {
-      "name": "4.1.1",
+      "name": "indexA-4.1.1",
       "steps": [
         {
           "type": "query",
@@ -98,7 +1481,20 @@
       ]
     },
     {
-      "name": "5.0",
+      "name": "indexA-4.1.2",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN \n  SELECT sum(a), b FROM t2 WHERE b='two'"
+        }
+      ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "indexA-5.0",
       "steps": [
         {
           "type": "exec",
@@ -107,17 +1503,17 @@
       ]
     },
     {
-      "name": "5.1",
+      "name": "indexA-5.1",
       "steps": [
         {
-          "type": "exec",
+          "type": "catch",
           "sql": "CREATE INDEX ex1 ON t1(c) WHERE b IS 'abc' COLLATE g;",
           "expect": "1 {no such collation sequence: g}"
         }
       ]
     },
     {
-      "name": "5.2",
+      "name": "indexA-5.2",
       "steps": [
         {
           "type": "exec",
@@ -126,7 +1522,7 @@
       ]
     },
     {
-      "name": "5.3",
+      "name": "indexA-5.3",
       "steps": [
         {
           "type": "query",
@@ -135,7 +1531,11 @@
       ]
     },
     {
-      "name": "6.0",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "indexA-6.0",
       "steps": [
         {
           "type": "exec",
@@ -144,7 +1544,7 @@
       ]
     },
     {
-      "name": "6.1",
+      "name": "indexA-6.1",
       "steps": [
         {
           "type": "exec",
@@ -153,27 +1553,45 @@
       ]
     },
     {
-      "name": "6.2",
+      "name": "indexA-6.2",
       "steps": [
         {
           "type": "query",
           "sql": "SELECT * FROM t1, t2 WHERE b=1 AND z=c AND y=5;",
-          "expect": "1 1 1  1 5 1\n  2 1 2  2 5 2"
+          "expect": "\n  1 1 1  1 5 1\n  2 1 2  2 5 2\n"
         }
       ]
     },
     {
-      "name": "6.4",
+      "name": "indexA-6.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN \n  SELECT * FROM t1, t2 WHERE b=1 AND z=c AND y=5;"
+        }
+      ]
+    },
+    {
+      "name": "indexA-6.4",
       "steps": [
         {
           "type": "query",
           "sql": "SELECT * FROM t1 LEFT JOIN t2 ON (y=5) WHERE b=1 AND z IS c;",
-          "expect": "1 1 1  1 5 1\n  2 1 2  2 5 2"
+          "expect": "\n  1 1 1  1 5 1\n  2 1 2  2 5 2\n"
         }
       ]
     },
     {
-      "name": "6.6",
+      "name": "indexA-6.5",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "EXPLAIN QUERY PLAN \n  SELECT * FROM t1 LEFT JOIN t2 ON (y=5) WHERE b=1 AND z IS c;"
+        }
+      ]
+    },
+    {
+      "name": "indexA-6.6",
       "steps": [
         {
           "type": "exec",
@@ -182,17 +1600,21 @@
       ]
     },
     {
-      "name": "6.7",
+      "name": "indexA-6.7",
       "steps": [
         {
           "type": "query",
           "sql": "SELECT * FROM t1 LEFT JOIN t2 ON (y=5) WHERE b=1 AND z IS c;",
-          "expect": "1 1 1  1 5 1\n  2 1 2  2 5 2"
+          "expect": "\n  1 1 1  1 5 1\n  2 1 2  2 5 2\n"
         }
       ]
     },
     {
-      "name": "7.0",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "indexA-7.0",
       "steps": [
         {
           "type": "query",
@@ -202,7 +1624,11 @@
       ]
     },
     {
-      "name": "8.0",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "indexA-8.0",
       "steps": [
         {
           "type": "exec",
@@ -211,100 +1637,12 @@
       ]
     },
     {
-      "name": "8.1",
+      "name": "indexA-8.1",
       "steps": [
         {
           "type": "query",
           "sql": "SELECT * FROM t1 WHERE b=4;",
-          "expect": "1 4 1  2 4 2"
-        },
-        {
-          "type": "exec",
-          "sql": "DROP INDEX IF EXISTS i1"
-        },
-        {
-          "type": "exec",
-          "sql": "DROP INDEX IF EXISTS i2"
-        },
-        {
-          "type": "exec",
-          "sql": "DROP INDEX IF EXISTS i3"
-        },
-        {
-          "type": "exec",
-          "sql": "DROP INDEX IF EXISTS i1"
-        },
-        {
-          "type": "exec",
-          "sql": "DROP INDEX IF EXISTS i2"
-        },
-        {
-          "type": "exec",
-          "sql": "DROP INDEX IF EXISTS i3"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
-        }
-      ]
-    },
-    {
-      "name": "__RESET_DB__",
-      "steps": [
-        {
-          "type": "reset_db"
+          "expect": "\n  1 4 1  2 4 2\n"
         }
       ]
     }

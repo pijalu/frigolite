@@ -1,6 +1,8 @@
 {
   "file": "autoindex1.test",
   "name": "autoindex1",
+  "nullToken": "NULL",
+  "ordered": true,
   "tests": [
     {
       "name": "autoindex1-100",
@@ -60,7 +62,7 @@
       "name": "autoindex1-300",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "SELECT b, d FROM t1 CROSS JOIN t2 ON (c=a)",
           "expect": "11 911 22 922 33 933 44 944 55 955 66 966 77 977 88 988"
         }
@@ -70,7 +72,7 @@
       "name": "autoindex1-310",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "SELECT d FROM t2 ORDER BY d",
           "expect": "919 930 941 952 963 974 985 996"
         }
@@ -85,50 +87,50 @@
         },
         {
           "type": "exec",
-          "sql": "INSERT INTO t4 SELECT a+2, b+2 FROM t4"
+          "sql": "INSERT INTO t4 SELECT a+'2', b+'2' FROM t4"
         },
         {
           "type": "exec",
-          "sql": "INSERT INTO t4 SELECT a+4, b+4 FROM t4"
+          "sql": "INSERT INTO t4 SELECT a+'4', b+'4' FROM t4"
         },
         {
           "type": "exec",
-          "sql": "INSERT INTO t4 SELECT a+8, b+8 FROM t4"
+          "sql": "INSERT INTO t4 SELECT a+'8', b+'8' FROM t4"
         },
         {
           "type": "exec",
-          "sql": "INSERT INTO t4 SELECT a+16, b+16 FROM t4"
+          "sql": "INSERT INTO t4 SELECT a+'16', b+'16' FROM t4"
         },
         {
           "type": "exec",
-          "sql": "INSERT INTO t4 SELECT a+32, b+32 FROM t4"
+          "sql": "INSERT INTO t4 SELECT a+'32', b+'32' FROM t4"
         },
         {
           "type": "exec",
-          "sql": "INSERT INTO t4 SELECT a+64, b+64 FROM t4"
+          "sql": "INSERT INTO t4 SELECT a+'64', b+'64' FROM t4"
         },
         {
           "type": "exec",
-          "sql": "INSERT INTO t4 SELECT a+128, b+128 FROM t4"
+          "sql": "INSERT INTO t4 SELECT a+'128', b+'128' FROM t4"
         },
         {
           "type": "exec",
-          "sql": "INSERT INTO t4 SELECT a+256, b+256 FROM t4"
+          "sql": "INSERT INTO t4 SELECT a+'256', b+'256' FROM t4"
         },
         {
           "type": "exec",
-          "sql": "INSERT INTO t4 SELECT a+512, b+512 FROM t4"
+          "sql": "INSERT INTO t4 SELECT a+'512', b+'512' FROM t4"
         },
         {
           "type": "exec",
-          "sql": "INSERT INTO t4 SELECT a+1024, b+1024 FROM t4"
+          "sql": "INSERT INTO t4 SELECT a+'1024', b+'1024' FROM t4"
         },
         {
           "type": "exec",
-          "sql": "INSERT INTO t4 SELECT a+2048, b+2048 FROM t4"
+          "sql": "INSERT INTO t4 SELECT a+'2048', b+'2048' FROM t4"
         },
         {
-          "type": "exec",
+          "type": "query",
           "sql": "SELECT count(*) FROM t4;",
           "expect": "4096"
         }
@@ -138,7 +140,7 @@
       "name": "autoindex1-401",
       "steps": [
         {
-          "type": "exec",
+          "type": "query",
           "sql": "SELECT count(*)\n      FROM t4 AS x1\n      JOIN t4 AS x2 ON x2.a=x1.b\n      JOIN t4 AS x3 ON x3.a=x2.b\n      JOIN t4 AS x4 ON x4.a=x3.b\n      JOIN t4 AS x5 ON x5.a=x4.b\n      JOIN t4 AS x6 ON x6.a=x5.b\n      JOIN t4 AS x7 ON x7.a=x6.b\n      JOIN t4 AS x8 ON x8.a=x7.b\n      JOIN t4 AS x9 ON x9.a=x8.b\n      JOIN t4 AS x10 ON x10.a=x9.b;",
           "expect": "4087"
         }
@@ -237,6 +239,10 @@
       ]
     },
     {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
       "name": "autoindex1-900",
       "steps": [
         {
@@ -286,6 +292,10 @@
       ]
     },
     {
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
       "name": "autoindex-1100",
       "steps": [
         {
@@ -313,6 +323,10 @@
           "expect": "1 1 1 2 {} {}"
         }
       ]
+    },
+    {
+      "name": "__RESET_DB__",
+      "steps": null
     },
     {
       "name": "autoindex-1200",

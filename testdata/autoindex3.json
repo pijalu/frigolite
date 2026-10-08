@@ -1,6 +1,7 @@
 {
   "file": "autoindex3.test",
   "name": "autoindex3",
+  "ordered": true,
   "tests": [
     {
       "name": "autoindex3-100",
@@ -53,7 +54,11 @@
       ]
     },
     {
-      "name": "210",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "autoindex3-210",
       "steps": [
         {
           "type": "exec",
@@ -62,7 +67,7 @@
       ]
     },
     {
-      "name": "220",
+      "name": "autoindex3-220",
       "steps": [
         {
           "type": "query",
@@ -71,7 +76,11 @@
       ]
     },
     {
-      "name": "300",
+      "name": "__RESET_DB__",
+      "steps": null
+    },
+    {
+      "name": "autoindex3-300",
       "steps": [
         {
           "type": "exec",
@@ -80,7 +89,7 @@
       ]
     },
     {
-      "name": "310",
+      "name": "autoindex3-310",
       "steps": [
         {
           "type": "query",
