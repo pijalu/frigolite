@@ -1357,3 +1357,24 @@ sqlite3 same ops): insert 1,023,305 ops/s (1.57x), point 927,055
 (1.04x AT PARITY), scan 49.8M rows/s (1.04x AT PARITY), group 50 q/s
 (1.32x FASTER), update 765,074 (1.58x), delete 995,500 (1.55x), file
 autocommit 10,400 (1.27x FASTER).
+
+## PERF-PARITY8 (CLOSE, 2026-10-03) — R12 merged; census 1073/0/290
+
+R12 both lanes merged (fleet/r12-upd 89c93e959: overwrite via R11 parse
+memo + single header parse, pager commit-path syscall diet — 7 sources
+cut: per-page Truncate, journal open-per-write, Stat/Chmod, fstat,
+Seek — file +19%, update +6.6%; fleet/r12-btree d8f6e02eb: append
+insert runs no position search, scanMaxRowID answers via rightmost-leaf
+descent replacing the FULL TABLE SCAN O(n) cliff, fused point-delete
+decode, lock-free quick-append claim — insert/update/delete/point all
++0.8-1.4% on top). selectG joined the census heavy-package serialization
+set (6-min/650MB+ working set; concurrent-worker kill observed). Final:
+census 1073 pass / 0 fail / 290 skip, audit exit 0; suite green; SOLID
+20/20; bench (canonical harness vs sqlite3 same ops): insert 1,043,361
+ops/s (1.45x), point 936,469 (1.14x), scan 49,611,151 rows/s (1.04x AT
+PARITY), group 50 q/s (1.32x FASTER), update 772,039 (1.58x), delete
+962,707 (1.65x), file autocommit 11,018 (1.14x FASTER). Campaign start
+2026-09-28: 10.9x/1040x/6.5x/3.9x/2049x/885x. R11_RESEARCH.md holds the
+per-op C-vs-frigolite work diff + ranked remaining levers (#10 decode
+boxing, high risk; #2 journal re-read residue; allocator span churn —
+runtime) for any future round.
