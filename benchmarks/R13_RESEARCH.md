@@ -247,3 +247,29 @@ L6 is the tail of the current ledger; L7 makes the whole thing measurable.
   measured indication that the descent alone does not fix the gap.
 * All measurements are in-memory, single connection, no WAL. File-backed
   numbers amplify the commit-path levers (R11 #2) and are not re-measured here.
+
+---
+
+# Execution log
+
+## L4 — `count(*)` at OP_Count cost (2026-10-08, commit `dce19ea2a`)
+
+`btree.CountEntries` (port of sqlite3BtreeCount, leaves-only because frigolite's
+index interior cells are divider copies) + `execquery.countStarShortCircuit`
+(isSimpleCount guards of select.c:5557). Measured: `count(*)` 35.2M → **2.04e9
+rows/s** at 50k rows (1.42 ms → 24 µs per pass; sqlite 4.6e9), and the cheap row
+count also cut the plan-path cost of every indexed-predicate SELECT
+(`indexed-select` 133 → 261 ops/s — the emulation's `tableRowCount` walk is
+gone). Rows, column names and all other shapes unchanged; `count(x)`'s NULL
+semantics pinned. Harness leaf-failure counts unchanged on clean baselines.
+
+**New defect found while measuring (now goal R13-L7):** frigolite's index
+interior cells are divider *copies*, so sqlite's entry-count rule over-counts
+them — a 5000-row table with `i1` reports `wrong # of entries in index i1`
+(5049 vs 5000) under `sqlite3 "PRAGMA integrity_check"`. Row results are
+unaffected; integrity_check/ANALYZE-class readers are.
+
+**Harness hygiene:** the `e_delete` ATTACH tests leave/reuse repo-root
+`test.db1..test.db4`; capture leaf-failure baselines only after moving those
+files aside (they shift counts by up to 11). Clean baselines: index 179,
+where 108, delete 50, update 6, select2 9, intpkey 2, dml 0, count 0.

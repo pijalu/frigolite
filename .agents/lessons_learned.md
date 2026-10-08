@@ -1,5 +1,29 @@
 # Lessons Learned — Frigolite
 
+## R13-L4 (2026-10-08) — count(*) from page headers; harness ATTACH state
+
+- **`count(*)` is now OP_Count-shaped**: bare `SELECT count(*) FROM t` counts
+  the table b-tree's LEAF cells (`btree.CountEntries`) instead of decoding rows
+  — 35.2M -> 2.04e9 rows/s @50k (1.42ms -> 24us/pass; sqlite 4.6e9). Eligibility
+  mirrors select.c:5557 isSimpleCount; sqlite gives SQLITE_FUNC_COUNT to the
+  0-arg count only, so `count(x)` must NEVER take this path (NULL semantics).
+- **Divider copies are load-bearing for any tree-wide walk**: frigolite's index
+  interior cells are COPIES of the right sibling's first key (splitMedianKey),
+  so sqlite3BtreeCount's `leaf || !intKey` rule OVER-counts here (1200-row
+  WITHOUT ROWID table reported 1215 = +15 dividers). Count leaves only; the
+  deviation is documented on CountEntries.
+- **Follow-on defect (goal R13-L7)**: because sqlite counts interior index cells
+  as entries, a multi-page index written by frigolite makes sqlite3 report
+  `wrong # of entries in index i1` (5049 expected 5000; dbstat confirms 49
+  divider cells on 1 interior page, 5000 leaf cells). Row results are still
+  correct; only integrity_check/ANALYZE-style counts are affected.
+- **Harness counts are state-dependent — clean before every capture**: the
+  e_delete/e_delete-2.x ATTACH tests use repo-root `test.db1..test.db4`; leftover
+  state shifts a pattern's leaf-failure count by up to 11 (delete 61 vs 50,
+  index 205 vs 179, where 124 vs 108, update 12 vs 6, select2 10 vs 9,
+  intpkey 3 vs 2, count 0 vs 0). ALWAYS move `test.db*` aside first, and compare
+  leaf subtests only (strip timings; file-level entries differ by timing alone).
+
 ## R13 RESEARCH (2026-10-08) — indexed access paths are O(n); harness now committed
 
 - **The parity ledger was unverifiable**: the "canonical harness" behind
