@@ -111,6 +111,25 @@
   `TestWindowCGroupConcatBlobUTF16` (full-run order only). Also pre-existing:
   `staticcheck` U1000 in `internal/pager/cookie_cache_test.go:19`, so the
   strict gate is red repo-wide before this change.
+- **The `update` gate clause needed a fixture refresh AND a converter fix.**
+  The criterion's 50/6/179/108 are LEAF counts, but the gate's counter counts
+  leaves **plus one parent line per failing file**, so `update` read 8 (6
+  leaves + 2 files) against a limit of 6. `update2` is a stale fixture of the
+  same §6 class (`UPDATE t1 …` with no `CREATE TABLE t1`); refreshing it
+  surfaced a converter bug: `tclSQLLiteral` quoted every bound `$var`, so
+  `set nrow [expr 10]` + `WHERE i<$nrow` became `i<'10'` — always true for
+  INTEGER, so the recursive CTE spun until the 2-minute harness timeout.
+  tclsqlite binds params by TCL type (tclsqlite.c:1519/:1526/:1537), so
+  numeric values must render bare; fixed in `tools/tclconvert/tcl/interp_sql.go`
+  (numeric-aware `tclSQLLiteral` + `decimalLiteral`, pinned by
+  `TestTclSQLLiteral`). Refreshed update2 leaves 6 → 2; `e_update` refresh
+  raises 1 → 14 → excluded (the §6 rule). Gate: update 8 → 5 (limit 6).
+- **`[db eval {SELECT …}]` in an EXPECTED slot is unrepresentable in the JSON
+  fixture format.** There is no engine at conversion time, so the
+  mini-interpreter returns a stale `i.vars[""]` (observed `want: [10]`);
+  refreshed `update2-1.1.2`/`-1.2.2` therefore fail the comparison although
+  the engine rows are correct. The format has no "expect = run this SQL"
+  construct — document such leaves, don't skip them.
 
 ## R13-L4 (2026-10-08) — count(*) from page headers; harness ATTACH state
 

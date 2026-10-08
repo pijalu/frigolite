@@ -1,45 +1,82 @@
 {
   "file": "update2.test",
   "name": "update2",
+  "ordered": true,
   "tests": [
     {
-      "name": "1.1.1",
+      "name": "update2-1.1.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE t1(a INTEGER PRIMARY KEY, b);\n  CREATE TABLE t2(a INTEGER PRIMARY KEY, b);\n  WITH s(i) AS ( SELECT 0 UNION ALL SELECT i+1 FROM s WHERE i\u003c10 )\n  INSERT INTO t1(b) SELECT char((i % 26) + 65) FROM s;\n  INSERT INTO t2 SELECT * FROM t1;"
+        }
+      ]
+    },
+    {
+      "name": "update2-1.1.1",
       "steps": [
         {
           "type": "exec",
           "sql": "UPDATE t1 SET b = repeat(b, 100)"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT a, repeat(b, 100) FROM t2"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT a, repeat(b, 100) FROM t2"
         }
       ]
     },
     {
-      "name": "1.1.2",
+      "name": "update2-1.1.2",
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT * FROM t1;"
+          "sql": "SELECT * FROM t1;",
+          "expect": "10"
         }
       ]
     },
     {
-      "name": "1.2.1",
+      "name": "update2-1.2.0",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "DROP TABLE t1;\n  CREATE TABLE t1(a INT PRIMARY KEY, b) WITHOUT ROWID;\n  WITH s(i) AS ( SELECT 0 UNION ALL SELECT i+1 FROM s WHERE i\u003c10 )\n  INSERT INTO t1(a, b) SELECT i+1, char((i % 26) + 65) FROM s;"
+        }
+      ]
+    },
+    {
+      "name": "update2-1.2.1",
       "steps": [
         {
           "type": "exec",
           "sql": "UPDATE t1 SET b = repeat(b, 100)"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT a, repeat(b, 100) FROM t2"
+        },
+        {
+          "type": "query",
+          "sql": "SELECT a, repeat(b, 100) FROM t2"
         }
       ]
     },
     {
-      "name": "1.2.2",
+      "name": "update2-1.2.2",
       "steps": [
         {
           "type": "query",
-          "sql": "SELECT * FROM t1;"
+          "sql": "SELECT * FROM t1;",
+          "expect": "10"
         }
       ]
     },
     {
-      "name": "2.1",
+      "name": "update2-2.1",
       "steps": [
         {
           "type": "exec",
@@ -48,7 +85,7 @@
       ]
     },
     {
-      "name": "2.2",
+      "name": "update2-2.2",
       "steps": [
         {
           "type": "exec",
@@ -57,7 +94,7 @@
       ]
     },
     {
-      "name": "2.3",
+      "name": "update2-2.3",
       "steps": [
         {
           "type": "exec",
@@ -66,7 +103,7 @@
       ]
     },
     {
-      "name": "3.0",
+      "name": "update2-3.0",
       "steps": [
         {
           "type": "exec",
@@ -75,17 +112,167 @@
       ]
     },
     {
-      "name": "3.1",
+      "name": "update2-3.1",
       "steps": [
         {
           "type": "query",
-          "sql": "UPDATE t4 SET c=c+2 WHERE c>2;\n  SELECT a, c FROM t4 ORDER BY a;",
+          "sql": "UPDATE t4 SET c=c+2 WHERE c\u003e2;\n  SELECT a, c FROM t4 ORDER BY a;",
           "expect": "1 5 2 6"
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TABLE IF EXISTS b1; DROP TABLE IF EXISTS c1;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE b1(a INTEGER PRIMARY KEY, b, c);\n    CREATE TABLE c1(a INTEGER PRIMARY KEY, b, c, d)"
         }
       ]
     },
     {
-      "name": "5.0",
+      "name": "update2-4.1.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE UNIQUE INDEX b1c ON b1(c);\n    INSERT INTO b1 VALUES(1, 'a', 1);\n    INSERT INTO b1 VALUES(2, 'b', 15);\n    INSERT INTO b1 VALUES(3, 'c', 3);\n    INSERT INTO b1 VALUES(4, 'd', 4);\n    INSERT INTO b1 VALUES(5, 'e', 5);\n    INSERT INTO b1 VALUES(6, 'f', 6);\n    INSERT INTO b1 VALUES(7, 'g', 7);"
+        }
+      ]
+    },
+    {
+      "name": "update2-4.1.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "UPDATE OR REPLACE b1 SET c=c+10 WHERE a BETWEEN 4 AND 7;\n    SELECT * FROM b1 ORDER BY a;",
+          "expect": "\n    1 a 1\n    3 c 3\n    4 d 14\n    5 e 15\n    6 f 16\n    7 g 17\n  "
+        }
+      ]
+    },
+    {
+      "name": "update2-4.1.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE INDEX c1d ON c1(d, b);\n    CREATE UNIQUE INDEX c1c ON c1(c, b);\n\n    INSERT INTO c1 VALUES(1, 'a', 1,  1);\n    INSERT INTO c1 VALUES(2, 'a', 15, 2);\n    INSERT INTO c1 VALUES(3, 'a', 3,  3);\n    INSERT INTO c1 VALUES(4, 'a', 4,  4);\n    INSERT INTO c1 VALUES(5, 'a', 5,  5);\n    INSERT INTO c1 VALUES(6, 'a', 6,  6);\n    INSERT INTO c1 VALUES(7, 'a', 7,  7);"
+        }
+      ]
+    },
+    {
+      "name": "update2-4.1.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "UPDATE OR REPLACE c1 SET c=c+10 WHERE d BETWEEN 4 AND 7;\n    SELECT * FROM c1 ORDER BY a;",
+          "expect": "\n    1 a 1 1\n    3 a 3 3\n    4 a 14 4\n    5 a 15 5\n    6 a 16 6\n    7 a 17 7\n  "
+        }
+      ]
+    },
+    {
+      "name": "update2-4.1.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA integrity_check",
+          "expect": "ok"
+        }
+      ]
+    },
+    {
+      "name": "update2-4.1.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP INDEX c1d;\n    DROP INDEX c1c;\n    DELETE FROM c1;\n\n    INSERT INTO c1 VALUES(1, 'a', 1,  1);\n    INSERT INTO c1 VALUES(2, 'a', 15, 2);\n    INSERT INTO c1 VALUES(3, 'a', 3,  3);\n    INSERT INTO c1 VALUES(4, 'a', 4,  4);\n    INSERT INTO c1 VALUES(5, 'a', 5,  5);\n    INSERT INTO c1 VALUES(6, 'a', 6,  6);\n    INSERT INTO c1 VALUES(7, 'a', 7,  7);\n\n    CREATE INDEX c1d ON c1(d);\n    CREATE UNIQUE INDEX c1c ON c1(c);"
+        }
+      ]
+    },
+    {
+      "name": "update2-4.1.6",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "UPDATE OR REPLACE c1 SET c=c+10 WHERE d BETWEEN 4 AND 7;\n    SELECT * FROM c1 ORDER BY a;",
+          "expect": "\n    1 a 1 1\n    3 a 3 3\n    4 a 14 4\n    5 a 15 5\n    6 a 16 6\n    7 a 17 7\n  "
+        },
+        {
+          "type": "exec",
+          "sql": "DROP TABLE IF EXISTS b1; DROP TABLE IF EXISTS c1;"
+        },
+        {
+          "type": "exec",
+          "sql": "CREATE TABLE b1(a INT PRIMARY KEY, b, c) WITHOUT ROWID;\n    CREATE TABLE c1(a INT PRIMARY KEY, b, c, d) WITHOUT ROWID;"
+        }
+      ]
+    },
+    {
+      "name": "update2-4.2.0",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE UNIQUE INDEX b1c ON b1(c);\n    INSERT INTO b1 VALUES(1, 'a', 1);\n    INSERT INTO b1 VALUES(2, 'b', 15);\n    INSERT INTO b1 VALUES(3, 'c', 3);\n    INSERT INTO b1 VALUES(4, 'd', 4);\n    INSERT INTO b1 VALUES(5, 'e', 5);\n    INSERT INTO b1 VALUES(6, 'f', 6);\n    INSERT INTO b1 VALUES(7, 'g', 7);"
+        }
+      ]
+    },
+    {
+      "name": "update2-4.2.1",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "UPDATE OR REPLACE b1 SET c=c+10 WHERE a BETWEEN 4 AND 7;\n    SELECT * FROM b1 ORDER BY a;",
+          "expect": "\n    1 a 1\n    3 c 3\n    4 d 14\n    5 e 15\n    6 f 16\n    7 g 17\n  "
+        }
+      ]
+    },
+    {
+      "name": "update2-4.2.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "CREATE INDEX c1d ON c1(d, b);\n    CREATE UNIQUE INDEX c1c ON c1(c, b);\n\n    INSERT INTO c1 VALUES(1, 'a', 1,  1);\n    INSERT INTO c1 VALUES(2, 'a', 15, 2);\n    INSERT INTO c1 VALUES(3, 'a', 3,  3);\n    INSERT INTO c1 VALUES(4, 'a', 4,  4);\n    INSERT INTO c1 VALUES(5, 'a', 5,  5);\n    INSERT INTO c1 VALUES(6, 'a', 6,  6);\n    INSERT INTO c1 VALUES(7, 'a', 7,  7);"
+        }
+      ]
+    },
+    {
+      "name": "update2-4.2.3",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "UPDATE OR REPLACE c1 SET c=c+10 WHERE d BETWEEN 4 AND 7;\n    SELECT * FROM c1 ORDER BY a;",
+          "expect": "\n    1 a 1 1\n    3 a 3 3\n    4 a 14 4\n    5 a 15 5\n    6 a 16 6\n    7 a 17 7\n  "
+        }
+      ]
+    },
+    {
+      "name": "update2-4.2.4",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "PRAGMA integrity_check",
+          "expect": "ok"
+        }
+      ]
+    },
+    {
+      "name": "update2-4.2.5",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "DROP INDEX c1d;\n    DROP INDEX c1c;\n    DELETE FROM c1;\n\n    INSERT INTO c1 VALUES(1, 'a', 1,  1);\n    INSERT INTO c1 VALUES(2, 'a', 15, 2);\n    INSERT INTO c1 VALUES(3, 'a', 3,  3);\n    INSERT INTO c1 VALUES(4, 'a', 4,  4);\n    INSERT INTO c1 VALUES(5, 'a', 5,  5);\n    INSERT INTO c1 VALUES(6, 'a', 6,  6);\n    INSERT INTO c1 VALUES(7, 'a', 7,  7);\n\n    CREATE INDEX c1d ON c1(d);\n    CREATE UNIQUE INDEX c1c ON c1(c);"
+        }
+      ]
+    },
+    {
+      "name": "update2-4.2.6",
+      "steps": [
+        {
+          "type": "query",
+          "sql": "UPDATE OR REPLACE c1 SET c=c+10 WHERE d BETWEEN 4 AND 7;\n    SELECT * FROM c1 ORDER BY a;",
+          "expect": "\n    1 a 1 1\n    3 a 3 3\n    4 a 14 4\n    5 a 15 5\n    6 a 16 6\n    7 a 17 7\n  "
+        }
+      ]
+    },
+    {
+      "name": "update2-5.0",
       "steps": [
         {
           "type": "exec",
@@ -94,7 +281,7 @@
       ]
     },
     {
-      "name": "5.1.1",
+      "name": "update2-5.1.1",
       "steps": [
         {
           "type": "exec",
@@ -103,7 +290,7 @@
       ]
     },
     {
-      "name": "5.1.2",
+      "name": "update2-5.1.2",
       "steps": [
         {
           "type": "query",
@@ -113,7 +300,17 @@
       ]
     },
     {
-      "name": "6.0",
+      "name": "update2-5.2",
+      "steps": [
+        {
+          "type": "exec",
+          "sql": "EXPLAIN UPDATE x1 SET c=c+1 WHERE b='a'",
+          "expect": "1"
+        }
+      ]
+    },
+    {
+      "name": "update2-6.0",
       "steps": [
         {
           "type": "exec",
@@ -122,16 +319,16 @@
       ]
     },
     {
-      "name": "6.1",
+      "name": "update2-6.1",
       "steps": [
         {
           "type": "exec",
-          "sql": "UPDATE d1 SET a = a+2 WHERE a>0 OR b>0;"
+          "sql": "UPDATE d1 SET a = a+2 WHERE a\u003e0 OR b\u003e0;"
         }
       ]
     },
     {
-      "name": "6.2",
+      "name": "update2-6.2",
       "steps": [
         {
           "type": "query",
@@ -141,7 +338,7 @@
       ]
     },
     {
-      "name": "7.100",
+      "name": "update2-7.100",
       "steps": [
         {
           "type": "query",
@@ -151,28 +348,12 @@
       ]
     },
     {
-      "name": "7.110",
+      "name": "update2-7.110",
       "steps": [
         {
           "type": "query",
           "sql": "UPDATE OR REPLACE t1 SET x=1;\n  SELECT quote(x), quote(y), '|' FROM t1;",
           "expect": "1 NULL |"
-        },
-        {
-          "type": "exec",
-          "sql": "DROP TABLE IF EXISTS b1; DROP TABLE IF EXISTS c1;"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT a, repeat(b, 100) FROM t2"
-        },
-        {
-          "type": "exec",
-          "sql": "SELECT a, repeat(b, 100) FROM t2"
-        },
-        {
-          "type": "exec",
-          "sql": "EXPLAIN UPDATE x1 SET c=c+1 WHERE b='a'"
         }
       ]
     }

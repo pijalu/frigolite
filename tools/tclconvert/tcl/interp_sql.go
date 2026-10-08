@@ -3,6 +3,7 @@
 package tcl
 
 import (
+	"regexp"
 	"strconv"
 	"strings"
 	"unicode"
@@ -199,10 +200,27 @@ func (i *Interp) appendNamedParam(b *strings.Builder, sql string, pos, j int, lo
 	return j
 }
 
-// tclSQLLiteral renders v as a SQL string literal.
+// tclSQLLiteral renders a bound TCL variable value as the SQL literal the real
+// tcl interface would produce. tclsqlite binds each $name/:name/@name parameter
+// with the variable's TCL type (tclsqlite.c:1519 sqlite3_bind_int64, :1526
+// sqlite3_bind_double, :1537 sqlite3_bind_text64), so a numeric value becomes a
+// *bare* numeric literal while other values become quoted text. The
+// mini-interpreter keeps only string values, so "is a plain decimal number"
+// stands in for TCL's numeric type tag; this matches the common `set x [expr N]`
+// idiom (e.g. `WHERE i<$nrow` with nrow=10 must render as `WHERE i<10`, not
+// `i<'10'`, or the recursive CTE never terminates).
 func tclSQLLiteral(v string) string {
+	if s := strings.TrimSpace(v); decimalNumber.MatchString(s) {
+		return s
+	}
 	return "'" + strings.ReplaceAll(v, "'", "''") + "'"
 }
+
+// decimalNumber matches a bare SQLite decimal integer or real literal: an
+// optional sign, digits, an optional fraction and an optional exponent. Hex,
+// Inf and NaN spellings do not match, so a hit is always inside the SQL numeric
+// grammar.
+var decimalNumber = regexp.MustCompile(`^[+-]?([0-9]+(\.[0-9]*)?|\.[0-9]+)([eE][+-]?[0-9]+)?$`)
 
 // fixTestName mirrors tester.tcl's fix_testname: when the file sets a
 // testprefix and the test name starts with a digit, the prefix is prepended
