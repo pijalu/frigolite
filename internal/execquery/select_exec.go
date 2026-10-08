@@ -42,14 +42,9 @@ func (e *SelectEngine) execSelectScanPhase(s *sql.SelectStmt, cursor *btree.Curs
 }
 
 // prepareScanOutputs computes whether the scan must build row maps and the
-// WITHOUT ROWID PRIMARY KEY column list that dictates scan output order. The
-// index-order reorder sorts by the index key through the scan's row maps, so
-// they must be built even for star outputs when it applies.
+// WITHOUT ROWID PRIMARY KEY column list that dictates scan output order.
 func (e *SelectEngine) prepareScanOutputs(s *sql.SelectStmt, tableEntry *schema.Entry, colDefs []sql.ColumnDef) (needMaps bool, withoutRowidPKCols []string) {
 	needMaps = e.selectNeedsRowMapsCached(s, tableEntry.Name)
-	if e.indexScanOrderIndex(s) != "" {
-		needMaps = true
-	}
 	if len(s.Joins) > 0 || len(s.OrderBy) > 0 {
 		return needMaps, nil
 	}
@@ -324,6 +319,17 @@ func (e *SelectEngine) execRealTableSelect(s *sql.SelectStmt) *Result {
 	// descends to the leftmost leaf, work a seek-resolved statement never
 	// needs (the seek opens and positions its own cursor).
 	if rows, rowMaps, handled := e.selectRowidSeekRows(s, tableEntry, colDefs, tree, feed); handled {
+		if feed != nil {
+			return e.finishSimpleAggFeed(s, feed, colDefs)
+		}
+		return e.execSelectPostScan(s, rows, rowMaps, nil, colDefs)
+	}
+	// Index-seek short circuit (src/where.c SEARCH ... USING INDEX): a WHERE
+	// whose leading index columns are pinned by equality/range constants reads
+	// the candidates through the index b-tree (seek + forward iteration +
+	// rowid join) instead of scanning the table; the rows arrive in the
+	// index's key order, which is the order SQLite's index loop produces.
+	if rows, rowMaps, handled := e.selectIndexSeekRows(s, tableEntry, dbCtx, colDefs, tree, feed); handled {
 		if feed != nil {
 			return e.finishSimpleAggFeed(s, feed, colDefs)
 		}

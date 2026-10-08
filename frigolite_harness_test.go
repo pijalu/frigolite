@@ -93,6 +93,58 @@ var harnessSkipSubtests = map[string]string{
 	// TestT32DeepEmptyIndexName.
 	"tkt_78e04e52ea/tkt-78e04-1.2": "TCL {} ↔ NULL lossiness: table_info must return the zero-length NAME/TYPE as empty strings (SQLite ground truth), the JSON expectation cannot express them; empty-name table/contract pinned by TestT32DeepEmptyIndexName",
 
+	// intpkey-18.6 / 18.7: `rowid = +9223372036854775807.0` / `+...808.0` —
+	// both float literals round to 2^63. The TCL file's expectation (a match on
+	// the max-int64 row) encodes an older SQLite that clamped 2^63 to max-int64;
+	// the pinned oracle 3.54.0 returns NO row for either (verified:
+	// `sqlite3 :memory: "... SELECT x FROM t1 WHERE rowid = +9223372036854775807.0"`
+	// is empty, while 18.5's integer form returns max-int). The engine's empty
+	// result IS the oracle result, so the stale expectation is the artifact.
+	// Same classification as the tcl2go-side skips (tools/tcl2go/
+	// skiptests2_part2.go, "3.51: no match"); the integer boundary itself stays
+	// pinned by intpkey-18.1..18.5 (in-file, passing).
+	"intpkey/intpkey-18.6": "oracle 3.54 returns no row for the 2^63 float rowid boundary; the TCL expectation encodes older clamp-to-max-int64 behavior (tcl2go skip: N-A no-side-effects)",
+	"intpkey/intpkey-18.7": "oracle 3.54 returns no row for the 2^63 float rowid boundary; the TCL expectation encodes older clamp-to-max-int64 behavior (tcl2go skip: N-A no-side-effects)",
+
+	// select2.test section 2/3/4.7: the TCL file's setup is control flow the
+	// converter cannot unroll — two 30000-row `for {set i 1} ... {db eval
+	// {INSERT INTO tbl2 VALUES($i,$i*2,$i*3)}}` loops, the bare
+	// `catch {execsql {DROP TABLE tbl2}}` between them, and the BEGIN/COMMIT
+	// execsql blocks — so the JSON fixture's tbl2 is empty (and the leftover
+	// open BEGIN makes 4.7's `BEGIN` fail). The engine-visible contract is
+	// covered by the TCL-transpiled package testgen/select2 (which passes:
+	// `go test -tags testgen ./testgen/select2/...`) and pinned natively, with
+	// every value oracle-verified against sqlite3 3.54.0, by
+	// TestSelect2LargeTableIndexScan / TestSelect2CaseJoinPredicate in
+	// frigolite_select2_pin_test.go.
+	"select2/select2-2.0.2": "fixture artifact: the TCL setup loops/DROP/COMMITs are not expressible in the JSON steps, so tbl2 already exists; pinned by TestSelect2LargeTableIndexScan",
+	"select2/select2-2.1":   "fixture artifact: the 30000-row TCL insert loop is absent from the JSON, so count(*) reads an empty tbl2; pinned by TestSelect2LargeTableIndexScan",
+	"select2/select2-2.2":   "fixture artifact: same missing data load (WHERE f2>1000); pinned by TestSelect2LargeTableIndexScan",
+	"select2/select2-3.1":   "fixture artifact: same missing data load (1000=f2); pinned by TestSelect2LargeTableIndexScan",
+	"select2/select2-3.2b":  "fixture artifact: same missing data load (1000=f2 over idx1); pinned by TestSelect2LargeTableIndexScan",
+	"select2/select2-3.2c":  "fixture artifact: same missing data load (f2=1000 over idx1); pinned by TestSelect2LargeTableIndexScan",
+	"select2/select2-3.2d":  "fixture artifact: same missing data load (star form over idx1); pinned by TestSelect2LargeTableIndexScan",
+	"select2/select2-3.2e":  "fixture artifact: same missing data load (star form over idx1); pinned by TestSelect2LargeTableIndexScan",
+	"select2/select2-4.7":   "fixture artifact: the file's open BEGIN (2.0.x, no COMMIT in the JSON) makes 4.7's BEGIN fail before the CASE-join predicate runs; pinned by TestSelect2CaseJoinPredicate",
+
+	// descidx2.test section 2: the file's own comment states its premise —
+	// "Put some information in the table and verify that the DESC on the index
+	// is ignored" — a 2005-era expectation (the DESC flag was not honored by
+	// the then-current file format). The pinned oracle 3.54.0 honors it:
+	// `SELECT b FROM t1 WHERE a>3 AND a<7` over `CREATE INDEX i2 ON t1(a
+	// DESC)` returns 6,5,4 (2.1), 6,5,4,3 (2.3), 7,6,5,4 (2.4), 7,6,5,4,3
+	// (2.5) — exactly the engine's index-loop output, and exactly what the
+	// sibling fixture descidx1.test expects for the same shapes (2.1 {6 5 4},
+	// 2.3 {6 5 4 3}, 2.4 {7 6 5 4}, 2.5 {7 6 5 4 3}). The two fixtures
+	// contradict each other; the oracle sides with descidx1. Pinned by
+	// TestDescIndexRangeOrder / TestDescIndexMixedRangeOrder in
+	// frigolite_descidx_pin_test.go.
+	"descidx2/descidx2-2.1": "stale TCL premise (DESC ignored, 2005 file format): oracle 3.54 honors the DESC index and returns 6,5,4 — pinned by TestDescIndexRangeOrder",
+	"descidx2/descidx2-2.2": "same section: its fixture data is loaded by the skipped 2.1 step, so t1 is empty here; the ASC-index contract it asserts (4 5 6) passes as descidx1-2.2 and is pinned by TestDescIndexRangeOrder",
+	"descidx2/descidx2-2.3": "same stale DESC-ignored premise; oracle returns 6,5,4,3 — pinned by TestDescIndexRangeOrder",
+	"descidx2/descidx2-2.4": "same stale DESC-ignored premise; oracle returns 7,6,5,4 — pinned by TestDescIndexRangeOrder",
+	"descidx2/descidx2-2.5": "same stale DESC-ignored premise; oracle returns 7,6,5,4,3 — pinned by TestDescIndexRangeOrder",
+
 	// reindex.test redefines the TCL proc c1 (db collate c1 c1 late-binding)
 	// from reindex-2.5 onward and re-opens the db as a second connection
 	// without c1/c2 in section 3. Static fixture keeps c1 reverse, so:

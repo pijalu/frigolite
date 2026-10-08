@@ -271,6 +271,25 @@ func reverseRowids(rowids []int64) {
 	}
 }
 
+// permuteScanResults applies a row permutation to the scan's output rows and
+// row maps in lockstep. When the scan produced no output rows (aggregate-
+// consumed statements skip the per-row build) only the maps are permuted.
+func (e *SelectEngine) permuteScanResults(rows [][]interface{}, maps []RowMap, perm []int) {
+	sortedMaps := make([]RowMap, len(maps))
+	for i, from := range perm {
+		sortedMaps[i] = maps[from]
+	}
+	copy(maps, sortedMaps)
+	if len(rows) != len(perm) {
+		return
+	}
+	sortedRows := make([][]interface{}, len(rows))
+	for i, from := range perm {
+		sortedRows[i] = rows[from]
+	}
+	copy(rows, sortedRows)
+}
+
 // scanRowidPositions maps each scan row's rowid to its position in the
 // result (rows without a rowid — none for a rowid-table scan — are never
 // keyed).

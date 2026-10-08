@@ -450,16 +450,6 @@ func (e *SelectEngine) scanTableRowsWithSQL(cursor *btree.Cursor, s *sql.SelectS
 		reverseRowMaps(st.allRowMaps)
 		reverseRows(st.aggRows)
 	}
-	// A WHERE-driven index scan emits rows in index-key order: SQLite drives
-	// the scan loop from the index (where.c), so the WHERE survivors arrive
-	// sorted by the index key (NULLs first, rowid ties) even though the
-	// engine filters a table scan (intpkey-2.3.2 "WHERE b<'second'" over
-	// index i1(b) emits (hello world, one two), not insertion order).
-	// Positional-aggregate scans decline this reorder up front
-	// (allowPositionalAggRows), so the map consumer below never sees one.
-	if idx := e.indexScanOrderIndex(s); idx != "" {
-		e.sortScanRowsIndexOrder(allRows, st.allRowMaps, s.From.Name, idx)
-	}
 	return allRows, st.allRowMaps, st.aggRows, nil
 }
 
@@ -635,17 +625,14 @@ type scanState struct {
 // allowPositionalAggRows reports whether the caller (execSelectScanPhase)
 // permits positional-aggregate retention for this scan: no WITHOUT ROWID PK
 // reorder (it sorts the scan's row maps), no schema-table post-filter (it
-// consumes the maps), no WHERE-driven index-order reorder (same), no join
-// (the join pass rebuilds maps), and no outer/correlated aggregate context
-// (execSelectOuterAgg / execSelectCorrelatedAgg consume the maps first).
+// consumes the maps), no join (the join pass rebuilds maps), and no
+// outer/correlated aggregate context (execSelectOuterAgg /
+// execSelectCorrelatedAgg consume the maps first).
 func (e *SelectEngine) allowPositionalAggRows(s *sql.SelectStmt, tableEntry *schema.Entry, withoutRowidPKCols []string) bool {
 	if len(withoutRowidPKCols) > 0 || IsSchemaTable(tableEntry.Name) {
 		return false
 	}
 	if len(s.Joins) > 0 || s.From.Subquery != nil {
-		return false
-	}
-	if e.indexScanOrderIndex(s) != "" {
 		return false
 	}
 	return e.outerRow == nil && len(e.OuterRows()) == 0

@@ -119,6 +119,14 @@ func (e *SelectEngine) trySkipScanPlan(tableName string, where sql.Expr, bestEst
 	// not the in-memory cell count). Skip-scan estimates are stat-derived so
 	// comparing them against actual row count would always favor skip-scan in
 	// small tables.
+	//
+	// Without any sqlite_stat1 evidence no candidate can pass its stat1 gate
+	// (skipScanForColumnsWithStatName requires stat tokens for the index), and
+	// the fallback below would pay a full b-tree page walk per statement for an
+	// answer the caller discards.
+	if e.stat1TableEmpty() {
+		return nil
+	}
 	var nRow int64
 	statRows := e.stat1RowCount(tableName)
 	if statRows > 0 {
@@ -126,7 +134,7 @@ func (e *SelectEngine) trySkipScanPlan(tableName string, where sql.Expr, bestEst
 	} else {
 		nRow = e.estimatedRowCount(tableName)
 		if nRow <= 0 {
-			nRow = 1000000
+			nRow = defaultPlanRowCount
 		}
 	}
 
@@ -412,6 +420,20 @@ func constrainedOperandCol(expr sql.Expr, tableName, op string, mark func(col, o
 			mark(strings.ToLower(col.Name), op)
 		}
 	}
+}
+
+// stat1TableEmpty reports whether sqlite_stat1 holds no row at all: every
+// skip-scan candidate is gated on that table's stat tokens, so an empty
+// table proves none can fire — cheaply, without the estimate fallback's
+// b-tree page walk.
+func (e *SelectEngine) stat1TableEmpty() bool {
+	entry, err := e.ctx.Schema().FindTable("sqlite_stat1")
+	if err != nil || entry == nil || entry.RootPage == 0 {
+		return true
+	}
+	tree := e.ctx.TableBTree("sqlite_stat1", entry.RootPage, true)
+	n, err := tree.CountEntries()
+	return err != nil || n == 0
 }
 
 // stat1Tokens returns the integer tokens of the sqlite_stat1 entry for the

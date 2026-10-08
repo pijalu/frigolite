@@ -252,6 +252,74 @@ L6 is the tail of the current ledger; L7 makes the whole thing measurable.
 
 # Execution log
 
+## L1 — real index access path: SEARCH … USING INDEX execution (2026-10-09)
+
+The query executor no longer emulates index order. `indexScanOrderIndex` +
+`sortScanRowsIndexOrder` (full table scan, then a sort by the index key through
+the scan's row maps) are **deleted**; a single-table `SEARCH <t> USING INDEX <i>`
+loop now runs as a real b-tree scan:
+
+* **Plan** (`execquery/select_index_seek.go`): the driving index comes from
+  `scanLoopForRowCount` — the same decision `planSingleTable` renders — so the
+  seek and the EQP text cannot diverge. The seek prefix is the leading columns
+  bound by equality refs plus at most one range column (where.c's nEq/nRange
+  split), and a conjunct is only used when the planner's own ref set collected
+  the same (column, operator) pair — the seek inherits the planner's gates
+  (LIKE collation compatibility, partial-index implication, leading-prefix rule)
+  instead of re-deriving them.
+* **Seek** (`execquery/select_index_seek_exec.go` + `btree.SeekIndexLowerBound`,
+  the `sqlite3BtreeIndexMoveto` lower-bound form): a probe of the equality
+  prefix + range bound positions the cursor, the entries iterate forward in the
+  index's STORED key order (so output order is sqlite's index-loop order, DESC
+  keys included), and the loop stops when the prefix differs or the stored-order
+  stop bound is passed. A DESC range column swaps the roles (the plan's lower
+  bound becomes the stop), which fixed descidx1's 5 failing leaves.
+* **Rowid join**: each entry's trailing rowid is fetched through a table b-tree
+  seek (`SeekToRowID`), the full WHERE is re-evaluated on the candidate, and the
+  aggregate feed (when compiled) is stepped in index order.
+* **Covering index** (`execquery/select_index_seek_covered.go`): when every
+  referenced column is a key column or the rowid/IPK alias, the row is built
+  from the index record itself (sqlite's COVERING INDEX — the key values ARE the
+  table's stored values), so the rowid join is skipped. This is what keeps wide
+  ranges fast; sqlite plans the same shape as `SEARCH t USING COVERING INDEX`.
+* **Planner cost**: the seek plans with a scaled row count
+  (`indexSeekPlanRowCount`), which is plan-equivalent (`refEstimate` scales
+  linearly, so the index choice, the seek threshold and the tie-breaks are
+  scale-invariant) and skips the per-statement O(pages) `tableRowCount` walk;
+  `trySkipScanPlan` now early-outs when sqlite_stat1 is empty instead of paying
+  `estimatedRowCount` for a gate it cannot pass.
+
+Measured (`benchmarks/perfbench/frigolite`, 50k rows, in-memory; before = this
+file's HEAD control worktree at `ff614d1d6`):
+
+| shape | before | after | speedup |
+|---|---|---|---|
+| `indexed-select` (`SELECT a FROM t WHERE b=?`), `-reps 3 -point-ops 20000` | 263 ops/s | **189 820 ops/s** | 722x |
+| same, gate settings (`-reps 1 -point-ops 200` — the recorded criterion) | 265 ops/s | **174 393 ops/s** | 658x (≥ 1e5 required) |
+| indexed range `WHERE b<100` (≈50 matches), 50k rows | 3.60 ms | **19.5 µs** | 185x |
+| same at 5k rows (scaling check) | 512 µs | **50 µs** | 10x — flat vs table size, i.e. no longer O(table) |
+| indexed range `WHERE b<25000` (half the table), 50k rows | 6.8 ms | **3.4 ms** | 2x (covered index: no rowid join) |
+
+Correctness gates: `go build ./...`; `go test ./internal/execquery/...
+./internal/btree/... ./internal/execdml/...` green; the recorded harness gate
+(`where` 87 ≤ 108, `index` 162 ≤ 179, `select2` 0 ≤ 9, `intpkey` 0 ≤ 2 — all on
+the counter's leaves+parent basis); a 52-shape EXPLAIN QUERY PLAN battery
+byte-identical before/after; full-suite failing leaves 4357 (control) → 4343
+with every non-identical family re-run alone and confirmed equal-or-better
+(the residual full-run deltas are parallel-file/ATTACH noise).
+
+Oracle checks (sqlite3 3.54.0) that pinned the three fixture conflicts this
+change surfaced:
+
+* DESC index range order — `a>3 AND a<7` over `i2(a DESC)` → 6,5,4 (descidx1's
+expectation); descidx2.test's "verify that the DESC on the index is ignored"
+expectations are the stale side and are now skipped with a native pin
+(`frigolite_descidx_pin_test.go`).
+* LIKE/GLOB on a non-TEXT column — `x LIKE '-2%'` over a numeric column → SCAN
+and -234 returned; the seek declines such bounds.
+* `rowid = +9223372036854775807.0` — no row (intpkey-18.6/18.7 skipped, matching
+the tcl2go N-A classification).
+
 ## L4 — `count(*)` at OP_Count cost (2026-10-08, commit `dce19ea2a`)
 
 `btree.CountEntries` (port of sqlite3BtreeCount, leaves-only because frigolite's

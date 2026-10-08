@@ -51,12 +51,25 @@ type scanLoop struct {
 func (e *SelectEngine) scanLoopForQuery(t queryTable, s *sql.SelectStmt) scanLoop {
 	nRow := e.tableRowCount(t.display)
 	if nRow == 0 {
-		nRow = 1000000 // default estimate
+		nRow = defaultPlanRowCount // default estimate
 	}
+	return e.scanLoopForRowCount(t, s, nRow)
+}
+
+// defaultPlanRowCount is the planner's default row-count estimate for a table
+// whose b-tree holds no entry (where.c's default 1e6).
+const defaultPlanRowCount = 1000000
+
+// scanLoopForRowCount is scanLoopForQuery with a caller-supplied row count.
+// Every candidate ref's estimate scales linearly with it (refEstimate), so a
+// SCALED row count yields the same index choice, seek threshold and
+// tie-breaks while skipping the planner's per-statement b-tree page walk —
+// the seek path re-derives the loop for every statement it serves.
+func (e *SelectEngine) scanLoopForRowCount(t queryTable, s *sql.SelectStmt, nRow int64) scanLoop {
 	loop := scanLoop{bestEst: float64(nRow), nRow: float64(nRow)}
 	bestIndex := ""
 	if s.Where != nil {
-		bestIndex, _, loop = e.whereScanLoop(t, s, loop)
+		bestIndex, _, loop = e.whereScanLoop(t, s, loop, nRow)
 		if loop.kind != loopNone {
 			return loop
 		}
@@ -72,10 +85,11 @@ func (e *SelectEngine) scanLoopForQuery(t queryTable, s *sql.SelectStmt) scanLoo
 // without a sqlite_stat1 row SQLite's default cost model prices an index
 // range seek at one tenth of a full scan, so the seek always wins — intpkey-2.5).
 // Returns the best-index rendering inputs alongside; a loopNone result falls
-// through to the ORDER BY / GROUP BY index walks.
-func (e *SelectEngine) whereScanLoop(t queryTable, s *sql.SelectStmt, loop scanLoop) (string, string, scanLoop) {
+// through to the ORDER BY / GROUP BY index walks. rowCount is the loop's
+// planning row count (the caller's scale).
+func (e *SelectEngine) whereScanLoop(t queryTable, s *sql.SelectStmt, loop scanLoop, rowCount int64) (string, string, scanLoop) {
 	ret := loop
-	bestIndex, conditions := e.bestIndexForQuery(t.display, s.Where, &ret.bestEst)
+	bestIndex, conditions := e.bestIndexForRowCount(t.display, s.Where, &ret.bestEst, rowCount)
 	if ss := e.trySkipScanPlan(t.display, s.Where, ret.bestEst); ss != nil {
 		ret.kind, ret.token, ret.seek, ret.conditions = loopSkipScan, ss.indexName, true, ss.conditions
 		return bestIndex, conditions, ret

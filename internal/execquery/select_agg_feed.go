@@ -109,11 +109,6 @@ func (e *SelectEngine) aggFeedEvaluationEligible(s *sql.SelectStmt) bool {
 	if e.ctx.ReverseUnordered() && len(s.OrderBy) == 0 && e.selectDepth == 1 {
 		return false
 	}
-	// A WHERE-driven index scan reorders surviving rows into index key order
-	// after the scan; the feed has no rows to reorder.
-	if e.indexScanOrderIndex(s) != "" {
-		return false
-	}
 	// Correlated outer contexts route aggregates to the outer rows
 	// (execSelectOuterAgg / execSelectCorrelatedAgg run first).
 	if e.outerRow != nil || len(e.OuterRows()) > 0 {

@@ -1,5 +1,70 @@
 # Lessons Learned — Frigolite
 
+## R13-L1 (2026-10-09) — query-executor index access path (real SEARCH … USING INDEX)
+
+- **The index-order emulation is gone; the seek emits index order natively.**
+  `indexScanOrderIndex`/`sortScanRowsIndexOrder` (full table scan + a sort by the
+  index key) were replaced by a real loop: lower-bound seek over the WHERE's
+  equality prefix + range bound, forward iteration in the index's STORED key
+  order, and a rowid join (`SeekToRowID`) per entry. The loop decision comes from
+  `scanLoopForRowCount` — the same function the EQP renderer consumes — so the
+  seek and the plan text cannot diverge (52-shape EQP battery: byte-identical
+  before/after).
+- **A scaled row count is plan-equivalent.** Every candidate ref's estimate is
+  `selectivity × rowCount` (`refEstimate`), so scaling the count scales all of
+  them: the chosen index, the seek threshold (`est < nRow*0.10`) and the
+  tie-breaks are scale-invariant. The seek path plans with
+  `indexSeekPlanRowCount` (1e6) instead of `tableRowCount`, which removed the
+  per-statement O(pages) `CountEntries` walk that dominated the hot lookup
+  (indexed-select 12k → 174k ops/s). Same trick for `trySkipScanPlan`: it paid
+  `estimatedRowCount` (another page walk) *before* discovering there is no
+  sqlite_stat1 row to gate on — early-out when the stat1 table is empty.
+- **A DESC key reverses the bounds in stored order.** For a DESC range column
+  the plan's value-space lower bound becomes the stored-order STOP and its upper
+  bound the START (strictness: start `>`/`<`, stop `<=`/`>=`). The old emulation
+  sorted without the DESC flag, i.e. it emitted ASC order for a DESC index —
+  descidx1's 5 failing leaves were that bug; descidx2's 4 "DESC is ignored"
+  expectations are the stale 2005 side (oracle 3.54 honors DESC: `a>3 AND a<7`
+  over `i2(a DESC)` is 6,5,4).
+- **LIKE/GLOB prefix ranges need TEXT affinity.** A numeric key sorts BEFORE
+  every text key in the index order while its text rendering can still match the
+  pattern (`x LIKE '-2%'` over -234), so a lower-bound seek from the prefix
+  silently skips it. Gate the bound on `util.Affinity(type) == 'T'`; a non-TEXT
+  column keeps the regular scan, which is exactly what sqlite plans
+  (`EXPLAIN QUERY PLAN` → SCAN).
+- **COVERING INDEX = build the row from the index entry.** When every referenced
+  column is a key column or the rowid/IPK alias, the key values ARE the table's
+  stored values (both written with the column's affinity), so the rowid join is
+  skipped entirely. This is what makes WIDE ranges viable: the rowid join costs
+  ~0.5 µs/row, so `b<25000` over 50k rows was 1.8x SLOWER than the old
+  scan+sort; the covered path makes it 2x faster (and matches sqlite's own
+  `SEARCH t USING COVERING INDEX i1 (b<?)`). Eligibility must include the
+  unreferenced-column case: the decode skips non-key slots, it must not bail on
+  them (that bug silently fell back to the scan for every covered shape).
+- **Cursor walk discipline: `Next()`'s result is "advanced", not "process this
+  row".** Reading an entry and advancing in the same helper drops the LAST entry
+  (where3-3.3 lost a row). Read → process → advance; and an index cell's
+  `Cell.RowID` is NOT set — the rowid is the decoded record's trailing element.
+- **The recorded harness counter counts leaves + one parent line per failing
+  file**, while the criterion states leaf counts (where 108, index 179, select2
+  9, intpkey 2). Any family with ≥1 failing leaf therefore fails its limit. Fix
+  by making the family's leaves pass or by superseding stale fixtures with
+  oracle evidence + a native pin (intpkey-18.6/18.7: oracle returns NO row for
+  the 2^63 float rowid; select2 section 2/3/4.7: the converter cannot express
+  the TCL insert loops, and the transpiled testgen/select2 passes; descidx2 2.x:
+  the file's own comment says it verifies that DESC is ignored).
+- **Full-suite harness runs are cross-file noisy.** `FRIGOLITE_TEST=<substr>`
+  files run in parallel and share repo-root `test.db*` ATTACH files, so a
+  full-run diff shows phantom failures (alterlegacy/altertab/e_update/pragma/…)
+  that vanish when the family runs alone. Compare per-family against a clean
+  worktree (`git worktree add /tmp/… HEAD`) and treat a full-run delta as a
+  pointer to re-check, never as evidence.
+- **Measured (50k rows, in-memory, `-reps 3 -point-ops 20000 -index`):**
+  indexed-select 263 → 189 820 ops/s (722x; at the gate's `-reps 1 -point-ops
+  200`: 265 → 174 393). Narrow indexed range (`WHERE b<100`, ~50 matches):
+  3.60 ms → 19.5 µs (185x) and flat vs table size (5k: 512 µs → 50 µs) = no
+  longer O(table). Wide range (`b<25000`): 6.8 ms → 3.4 ms.
+
 ## R13-L3 (2026-10-08) — index maintenance by seek (OP_IdxDelete parity)
 
 - **Index b-trees are value-ordered; the byte-order premise is dead.** All

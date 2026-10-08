@@ -15,6 +15,15 @@ import (
 // bestIndexForQuery examines the WHERE clause and returns the best index name,
 // estimated row count, and formatted column conditions for the plan output.
 func (e *SelectEngine) bestIndexForQuery(tableName string, where sql.Expr, estimate *float64) (string, string) {
+	return e.bestIndexForRowCount(tableName, where, estimate, e.tableRowCount(tableName))
+}
+
+// bestIndexForRowCount is bestIndexForQuery with a caller-supplied row count:
+// every ref's estimate is its selectivity times that count, so a scaled count
+// selects the same index, tie-breaks the same way and applies the same
+// selectivity threshold while skipping the planner's per-statement b-tree
+// page walk (the seek path re-derives the index choice per statement).
+func (e *SelectEngine) bestIndexForRowCount(tableName string, where sql.Expr, estimate *float64, rowCount int64) (string, string) {
 	// Collect all column references with their operators
 	refs := collectIndexedRefs(where, tableName, e)
 	if len(refs) == 0 {
@@ -36,7 +45,7 @@ func (e *SelectEngine) bestIndexForQuery(tableName string, where sql.Expr, estim
 	bestEst := *estimate
 	var bestRefs []indexedRef // all refs matching the best index
 	for _, ref := range refs {
-		est := refEstimate(ref, e.tableRowCount(tableName))
+		est := refEstimate(ref, rowCount)
 		if est < bestEst {
 			bestEst = est
 			bestName = ref.indexName

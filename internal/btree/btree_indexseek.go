@@ -172,6 +172,67 @@ func (c *Cursor) SeekIndexKey(probe *UnpackedIndexKey) (bool, error) {
 	return true, nil
 }
 
+// ErrIndexSeekUnordered reports a value-order seek against an index b-tree
+// that carries no installed KeyInfo comparator (SetIndexKeyInfo): its stored
+// order cannot be assumed, so no lower-bound position is defined. Callers
+// fall back to their own scan (or to the exhaustive stored-order walk).
+var ErrIndexSeekUnordered = errors.New("btree: index seek requires an installed key comparator")
+
+// SeekIndexLowerBound positions the cursor at the first index entry whose
+// probed key fields compare >= probe (strict=false) or > probe (strict=true)
+// under the tree's installed KeyInfo comparator, reporting ok=false when no
+// such entry exists (the cursor is then past the last entry). This is
+// sqlite3BtreeIndexMoveto's lower-bound form as a range loop uses it: the
+// probe carries the loop's equality prefix plus (for a bounded range) the
+// first range column's bound, and the caller continues with Next() while its
+// own end condition holds (a strict bound skips the whole equal run, which
+// can span leaves).
+func (c *Cursor) SeekIndexLowerBound(probe *UnpackedIndexKey, strict bool) (bool, error) {
+	if err := c.checkOpen(); err != nil {
+		return false, err
+	}
+	if err := validIndexProbe(probe); err != nil {
+		return false, err
+	}
+	if c.tx.keyCompare == nil {
+		return false, ErrIndexSeekUnordered
+	}
+	found, err := c.indexLowerBoundScan(c.tx.indexProbeCompare(probe))
+	if err != nil || !found {
+		return false, err
+	}
+	if !strict {
+		return true, nil
+	}
+	return c.skipIndexEqualRun(probe)
+}
+
+// skipIndexEqualRun advances past the entries that still compare equal to the
+// probe's fields, leaving the cursor on the first entry that sorts after the
+// run (or reporting ok=false at the tree's end).
+func (c *Cursor) skipIndexEqualRun(probe *UnpackedIndexKey) (bool, error) {
+	for {
+		full, err := c.tx.indexCursorCellPayload(c)
+		if err != nil {
+			return false, err
+		}
+		cmp, err := IndexRecordCompare(full, probe)
+		if err != nil {
+			return false, err
+		}
+		if cmp != 0 {
+			return true, nil
+		}
+		ok, err := c.Next()
+		if err != nil {
+			return false, err
+		}
+		if !ok {
+			return false, nil
+		}
+	}
+}
+
 // indexProbeCompare compares an index cell against an unpacked probe with
 // IndexRecordCompare's prefix semantics, reassembling a spilling cell's
 // overflow chain first: the descent's routing and the leaf binary search must
