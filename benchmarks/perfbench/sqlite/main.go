@@ -26,6 +26,11 @@ import (
 // DB wraps one sqlite3 connection for the benchmark.
 type DB struct{ h *C.sqlite3 }
 
+// minIndexedDeleteOps floors the indexed-delete sample exactly as the frigolite
+// side does, so the two runs stay comparable at small -point-ops values (see
+// indexedDeleteOps in ../frigolite/main.go).
+const minIndexedDeleteOps = 2000
+
 func main() {
 	rows := flag.Int("rows", 50000, "table rows loaded by the insert phase")
 	pointOps := flag.Int("point-ops", 20000, "point SELECT/UPDATE/DELETE operations")
@@ -198,10 +203,21 @@ func (b *bench) indexedDelete() {
 		return
 	}
 	record(b.out, "indexed-delete", func() (float64, error) {
-		return b.timedLoop(b.o.pointOps/10, func(i int) error {
+		return b.timedLoop(indexedDeleteOps(b.o), func(i int) error {
 			return b.db.execf("DELETE FROM t WHERE b=%d", key(b.o.rows, i, 7919)*2)
 		})
 	})
+}
+
+// indexedDeleteOps is the statement count for the indexed-delete phase: a tenth
+// of the point-op count, floored at minIndexedDeleteOps (identical to the
+// frigolite side).
+func indexedDeleteOps(o options) int {
+	n := o.pointOps / 10
+	if n < minIndexedDeleteOps {
+		n = minIndexedDeleteOps
+	}
+	return n
 }
 
 // timedLoop runs n statements inside one transaction and returns ops/s.

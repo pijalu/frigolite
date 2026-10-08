@@ -20,6 +20,11 @@ import (
 	frigolite "github.com/pijalu/frigolite"
 )
 
+// minIndexedDeleteOps floors the indexed-delete sample so a small -point-ops
+// run still measures a window long enough to be reproducible (see
+// indexedDeleteOps).
+const minIndexedDeleteOps = 2000
+
 func main() {
 	rows := flag.Int("rows", 50000, "table rows loaded by the insert phase")
 	pointOps := flag.Int("point-ops", 20000, "point SELECT/UPDATE/DELETE operations")
@@ -197,10 +202,26 @@ func (b *bench) indexedDelete() {
 		return
 	}
 	record(b.out, "indexed-delete", func() (float64, error) {
-		return b.timedLoop(b.o.pointOps/10, func(i int) error {
+		return b.timedLoop(indexedDeleteOps(b.o), func(i int) error {
 			return execf(b.db, "DELETE FROM t WHERE b=%d", key(b.o.rows, i, 7919)*2)
 		})
 	})
+}
+
+// indexedDeleteOps is the statement count for the indexed-delete phase: a tenth
+// of the point-op count, floored at minIndexedDeleteOps.
+//
+// The floor exists because the phase is otherwise unmeasurable at the small
+// point-op counts used for quick runs (`-point-ops 200` timed 20 statements,
+// 0.2-0.5 ms, i.e. the sample was dominated by GC/scheduler noise and straddled
+// a 5e4 ops/s threshold at random: 36k-122k ops/s, ~65% of samples above).
+// 2000 statements measure the sustained per-op cost (~3 us) instead.
+func indexedDeleteOps(o options) int {
+	n := o.pointOps / 10
+	if n < minIndexedDeleteOps {
+		n = minIndexedDeleteOps
+	}
+	return n
 }
 
 // timedLoop runs n statements inside one transaction and returns ops/s.

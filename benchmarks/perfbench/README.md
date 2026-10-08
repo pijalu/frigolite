@@ -19,6 +19,18 @@ reported), `-index` (add `CREATE INDEX i1 ON t(b)` and the index-driven
 SELECT/UPDATE/DELETE phases). Phase names are identical in both outputs, so
 `grep ops/s` on the two runs pairs up directly.
 
+One phase count is floored: `indexed-delete` runs `-point-ops`/10 statements,
+but never fewer than 2000 (`minIndexedDeleteOps`, same constant in both
+drivers). At the quick `-point-ops 200` setting a tenth of the point ops is
+only 20 statements — a sub-millisecond window whose reported rate was
+dominated by GC/scheduler noise and straddled the 5e4 ops/s gate threshold at
+random (36k–122k ops/s). The floor keeps the same workload and only lengthens
+the sample; at the gate's settings the phase now reports a stable
+131k–144k ops/s (~7 µs per index-maintained DELETE). Note that raising
+`-point-ops` is *not* a substitute: the `point-delete` phase deletes the same
+rows `indexed-delete` later targets, so at `-point-ops` >= 2000 most indexed
+deletes become no-ops and the rate jumps to 305k–333k for the wrong reason.
+
 The `sqlite` side links the **system** `libsqlite3` via CGo (`-lsqlite3`; on
 macOS the SDK's 3.54 build, on Linux install `libsqlite3-dev`). Like
 `tools/compare-benchmark`, it is a separate module so the engine itself stays
