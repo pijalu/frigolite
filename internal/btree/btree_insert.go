@@ -165,12 +165,21 @@ func (t *BTree) insertLeafPage(pg *pager.Page, page *storage.BTreePage, parentPg
 	// for writeLeafCell only meant a full page redistributed the old cell
 	// AND the new cell via splitLeafMulti, duplicating the rowid
 	// (fts4merge4 2.2.x: duplicate %_segdir rows).
-	dropped := false
+	//
+	// The duplicate probe's position is reused as the insert position when
+	// nothing was dropped (first cell with rowid >= target, different rowid
+	// — exactly the insert index); after an actual drop the pointer shift
+	// invalidates it and writeLeafCell re-searches (-1).
+	insertIdx := -1
 	if t.isTable {
 		var err error
-		dropped, err = t.dropTableLeafDuplicateRowid(pg, page, newCell.RowID)
+		var dropped bool
+		insertIdx, dropped, err = t.dropTableLeafDuplicateRowid(pg, page, newCell.RowID)
 		if err != nil {
 			return nil, err
+		}
+		if dropped {
+			insertIdx = -1
 		}
 	}
 
@@ -178,7 +187,7 @@ func (t *BTree) insertLeafPage(pg *pager.Page, page *storage.BTreePage, parentPg
 		// Try the in-place write: freeblock reuse, defragment-on-demand, or
 		// the content-area gap (allocateSpace parity). errLeafFull means the
 		// page truly cannot hold the cell — fall through to the split.
-		werr := t.writeLeafCell(pg, page, newCell, cellData, coff, dropped)
+		werr := t.writeLeafCell(pg, page, newCell, cellData, coff, insertIdx)
 		if werr == nil {
 			t.recycleCellScratch(cellData)
 			return nil, nil
@@ -224,18 +233,20 @@ func (t *BTree) recycleCellScratch(cellData []byte) {
 
 // dropTableLeafDuplicateRowid deletes an existing table-leaf cell with the
 // same rowid as the incoming cell (a no-op when the cell at the insert
-// position has a different rowid). dropped reports whether a cell was
-// removed — the caller re-runs its insert-position search only then.
-func (t *BTree) dropTableLeafDuplicateRowid(pg *pager.Page, page *storage.BTreePage, rowID int64) (bool, error) {
+// position has a different rowid). It returns the insert position — the
+// first cell index with rowid >= rowID — so the caller reuses the walk's
+// answer when nothing was dropped; dropped reports whether a cell was
+// removed (the caller re-searches then: the pointer shift staled the index).
+func (t *BTree) dropTableLeafDuplicateRowid(pg *pager.Page, page *storage.BTreePage, rowID int64) (int, bool, error) {
 	coff := contentOffset(pg.PageNum)
 	idx := t.findInsertPositionTable(pg, page, rowID)
 	if idx >= int(page.CellCount) {
-		return false, nil
+		return idx, false, nil
 	}
 	if t.tableLeafRowidAt(pg, coff, idx) != rowID {
-		return false, nil
+		return idx, false, nil
 	}
-	return true, t.deleteCellOnPage(pg, page, idx)
+	return idx, true, t.deleteCellOnPage(pg, page, idx)
 }
 
 // splitFullLeaf handles a full leaf: a ROOT leaf reconciles through

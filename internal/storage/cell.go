@@ -132,7 +132,8 @@ func DecodeCellInto(pageData []byte, offset int, cellType CellType, pageSize int
 	*c = Cell{Type: cellType}
 	switch cellType {
 	case CellTableLeaf:
-		return decodeTableLeafCellInto(pageData, offset, pageSize, c)
+		_, err := decodeTableLeafCellInto(pageData, offset, pageSize, c)
+		return err
 	case CellTableInterior:
 		return decodeTableInteriorCellInto(pageData, offset, c)
 	case CellIndexLeaf:
@@ -144,6 +145,32 @@ func DecodeCellInto(pageData []byte, offset int, cellType CellType, pageSize int
 	}
 }
 
+// DecodeTableLeafCellAndSize decodes the table-leaf cell at offset into c and
+// returns its on-page byte size in the SAME pass (C's BTREE_CLEAR_CELL
+// xParseCell fills CellInfo — content and size — once, btree.c:9908). The
+// size is header varints + local payload + optional 4-byte overflow pointer;
+// a fully-local cell smaller than 4 bytes is padded on the page
+// (cellSizePtrTableLeaf: "if( nSize<4 ) nSize = 4"), so the extent is never
+// below 4. Callers that need the cell AND its size (the point-delete fast
+// path: decode for the rowid/overflow check, size for dropCell) pay one
+// header parse instead of two. The error and size contracts are exactly
+// DecodeCellInto + TableLeafCellSizeAt's.
+func DecodeTableLeafCellAndSize(pageData []byte, offset int, pageSize int, c *Cell) (int, error) {
+	if offset < 0 || offset >= len(pageData) {
+		return 0, fmt.Errorf("storage: cell offset %d outside page of %d bytes", offset, len(pageData))
+	}
+	*c = Cell{Type: CellTableLeaf}
+	end, err := decodeTableLeafCellInto(pageData, offset, pageSize, c)
+	if err != nil {
+		return 0, err
+	}
+	sz := end - offset
+	if sz < 4 {
+		sz = 4
+	}
+	return sz, nil
+}
+
 // TableLeafCellSizeAt returns the on-page size in bytes of a table-leaf cell
 // at the given offset, without copying the payload. The size is computed
 // from the cell's header (varint payload length + varint rowid + local
@@ -153,30 +180,13 @@ func DecodeCellInto(pageData []byte, offset int, cellType CellType, pageSize int
 // bytes a cell occupies on a page; using the next cell pointer's address
 // is wrong because the cell pointer array is sorted by key, not by address.
 func TableLeafCellSizeAt(pageData []byte, offset int, pageSize int) (int, error) {
-	if offset < 0 || offset >= len(pageData) {
-		return 0, fmt.Errorf("storage: cell offset %d outside page of %d bytes", offset, len(pageData))
-	}
 	var c Cell
-	if err := decodeTableLeafCellInto(pageData, offset, pageSize, &c); err != nil {
-		return 0, err
-	}
-	// Cell bytes: payload-length varint + rowid varint + local payload +
-	// optional 4-byte overflow pointer. A fully-local cell smaller than 4
-	// bytes is padded on the page (cellSizePtrTableLeaf: "if( nSize<4 )
-	// nSize = 4"), so the on-page extent is never below 4.
-	_, n1 := util.GetVarint(pageData[offset:])
-	_, n2 := util.GetVarint(pageData[offset+n1:])
-	sz := n1 + n2 + c.LocalLen
-	if c.LocalLen < c.PayloadLen {
-		sz += 4
-	}
-	if sz < 4 {
-		sz = 4
-	}
-	return sz, nil
+	return DecodeTableLeafCellAndSize(pageData, offset, pageSize, &c)
 }
 
-func decodeTableLeafCellInto(data []byte, off int, pageSize int, c *Cell) error {
+// decodeTableLeafCellInto decodes one table-leaf cell and returns the offset
+// just past it (the on-page extent, before the small-cell 4-byte padding).
+func decodeTableLeafCellInto(data []byte, off int, pageSize int, c *Cell) (int, error) {
 	c.Type = CellTableLeaf
 	pos := off
 
@@ -200,18 +210,19 @@ func decodeTableLeafCellInto(data []byte, off int, pageSize int, c *Cell) error 
 		// (SQLite rejects "cell offset out of range" when pc+sz exceeds the
 		// usable size; fts3corrupt4 21.1: t1_content cell 23 has an
 		// out-of-range offset).
-		return fmt.Errorf("database disk image is malformed")
+		return 0, fmt.Errorf("database disk image is malformed")
 	}
 	c.Payload = data[pos : pos+local]
 	pos += local
 	if c.LocalLen < c.PayloadLen {
 		if pos+4 > len(data) {
-			return fmt.Errorf("storage: truncated table leaf cell (overflow pointer missing)")
+			return 0, fmt.Errorf("storage: truncated table leaf cell (overflow pointer missing)")
 		}
 		c.Overflow = binary.BigEndian.Uint32(data[pos : pos+4])
+		pos += 4
 	}
 
-	return nil
+	return pos, nil
 }
 
 func decodeTableInteriorCellInto(data []byte, off int, c *Cell) error {

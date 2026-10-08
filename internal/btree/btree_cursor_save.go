@@ -157,7 +157,7 @@ func (t *BTree) Close() {
 	// insert path's saved rightmost leaf, and a layout-replacement drop of
 	// the cached write tree (execdml's InvalidateWriteTree) must not leave a
 	// slot pointing into replaced pages.
-	t.invalidateAppendCursorLocked()
+	t.invalidateAppendCursor()
 	for _, c := range owned {
 		// Unregister under the key the cursor was REGISTERED under,
 		// not the wrapper's current (pager, rootPage): schemaCursor

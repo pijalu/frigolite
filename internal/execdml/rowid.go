@@ -121,27 +121,19 @@ func (e *DMLExecutor) overflowRowID(pg *pager.Pager, tableName string, rootPage 
 }
 
 // scanMaxRowID returns the largest rowid stored in a btree table (0 when
-// empty).
+// empty). The answer is the O(depth) rightmost-leaf descent of
+// sqlite3BtreeLast + sqlite3BtreeIntegerKey (OP_NewRowid's mechanism,
+// vdbe.c:5587) — never the O(n) cell-decode scan the name recalls: every
+// point UPDATE/DELETE invalidates the largest-rowid cache, so a scan here
+// would put an O(n) cliff into insert-after-update/delete interleavings.
+// The `id > 0` floor reproduces the retired scan's arithmetic exactly
+// (its accumulator started at 0, so an all-negative-rowid table answered 0
+// — next rowid 1 — and MaxRowID's found flag keeps the empty-tree answer 0).
 func (e *DMLExecutor) scanMaxRowID(tree *btree.BTree) int64 {
-	cursor, err := tree.OpenCursor()
-	if err != nil {
-		return 0
+	if id, ok := tree.MaxRowID(); ok && id > 0 {
+		return id
 	}
-	var maxID int64
-	for {
-		cell, err := cursor.ReadCell()
-		if err != nil {
-			break
-		}
-		if cell.RowID > maxID {
-			maxID = cell.RowID
-		}
-		ok, err := cursor.Next()
-		if err != nil || !ok {
-			break
-		}
-	}
-	return maxID
+	return 0
 }
 
 // stripHiddenToken removes a standalone "hidden" word from a column type
