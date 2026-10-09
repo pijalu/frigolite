@@ -14,6 +14,8 @@ package btree
 // btreeInitPage on the copied child — still detects it.
 
 import (
+	"sync/atomic"
+
 	"github.com/pijalu/frigolite/internal/pager"
 	"github.com/pijalu/frigolite/internal/storage"
 	"github.com/pijalu/frigolite/internal/util"
@@ -34,45 +36,146 @@ func (t *BTree) OverwriteCellByRowID(rowID int64, cellData []byte) (done bool, e
 	return t.overwriteLeafCellAt(pg, page, idx, rowID, cellData)
 }
 
-// OverwriteCellByRowIDAt is OverwriteCellByRowID for a row whose leaf
-// position a caller-seeked cursor already established (leaf, idx from
-// Cursor.PageNum/CellIdx): the same guards and the same in-place memcpy,
-// without the second root-to-leaf descent. A stale position (the cell at
-// idx no longer holds rowID) falls back to the full seek, so the result is
-// identical to OverwriteCellByRowID in every case.
-func (t *BTree) OverwriteCellByRowIDAt(rowID int64, cellData []byte, leaf uint32, idx int) (done bool, err error) {
+// ReplaceCellByRowIDAt is OverwriteCellByRowIDAt extended to the whole
+// loc==0 branch of sqlite3BtreeInsert (src/btree.c:9576-9677): when the new
+// cell is the same size as the old one the bare memcpy runs, and otherwise
+// the SAME page takes dropCell(idx) + insertCellFast(idx) — no second
+// root-to-leaf descent, no position search, no balance() (the cursor is
+// already on the row, so btree.c knows the slot). Only a page that cannot
+// hold the new cell after the drop (or a shape this fast path cannot prove
+// safe, see replaceInLeafFast) reports done=false, and the caller then runs
+// the seek-delete + InsertCell form of the same two operations. The leaf
+// repeat-UPDATE workload is the reason this exists: half of its statements
+// change the record's byte size (a growing/decreasing text or integer column
+// re-encodes to a different length), so the memcpy-only fast path declined
+// on them and paid two descents, a binary search and a rebalance check per
+// statement.
+func (t *BTree) ReplaceCellByRowIDAt(rowID int64, cellData []byte, leaf uint32, idx int) (done bool, err error) {
 	t.saveAllCursors() // btree.c saveAllCursors at the sqlite3BtreeInsert entry
-	pg, err := t.pager.ReadPage(leaf)
-	if err != nil {
-		return false, err
+	var old storage.Cell
+	pg, page, oldOff, ok, err := t.locateLeafCell(leaf, idx, rowID, &old)
+	if err != nil || !ok {
+		if err != nil {
+			return false, err
+		}
+		// Stale hinted position: the authoritative seek owns the write.
+		return t.OverwriteCellByRowID(rowID, cellData)
 	}
-	// The caller's seek (Cursor.SeekToRowID -> seekTableLeafWithPath) just
-	// filled the pager's validated parse memo for this leaf; a fresh
-	// storage.ParsePage here would re-derive the header the memo already
-	// holds (btree.c: the cursor's MemPage is parsed once at cache load and
-	// the loc==0 fast path reuses it). The memo's validating access re-runs
-	// the same checks a fresh parse would on a miss, and the returned struct
-	// is read-only-shared — the in-place overwrite never mutates it (same
-	// byte size => header and pointer array are untouched).
-	page, err := pg.ParsedBTree(int(t.pageSize), contentOffset(pg.PageNum))
+	oldSize := tableLeafCellSizeDecoded(pg.Data, oldOff, &old)
+	if !declineInPlaceOverwrite(&old, oldSize, len(cellData), newPayloadLen(cellData), int(t.usableSize), t.ptrmapEnabled()) {
+		replaceLaneMemcpy.Add(1)
+		return t.overwriteLeafCellAtDecoded(pg, page, idx, &old, oldOff, cellData)
+	}
+	if !t.replaceInLeafFast(pg, page, idx, oldOff, oldSize, &old, cellData) {
+		replaceLaneDeclined.Add(1)
+		// The fast path declined before mutating the page (a shape it cannot
+		// prove, or a page that cannot hold the cell after the drop): the
+		// caller runs the seek-delete + insert form of the same loc==0
+		// branch.
+		return false, nil
+	}
+	replaceLaneDropInsert.Add(1)
+	return true, nil
+}
+
+var (
+	replaceLaneMemcpy     atomic.Int64
+	replaceLaneDropInsert atomic.Int64
+	replaceLaneDeclined   atomic.Int64
+)
+
+// replaceLaneHitsForTest reports the ReplaceCellByRowIDAt outcome counters
+// (white-box observability: the replace lane's three branches, mirroring
+// quickAppendHitsForTest).
+func replaceLaneHitsForTest() (memcpy, dropInsert, declined int64) {
+	return replaceLaneMemcpy.Load(), replaceLaneDropInsert.Load(), replaceLaneDeclined.Load()
+}
+
+// locateLeafCell re-reads the caller-hinted leaf position through the pager's
+// parse memo and decodes the cell stored there into old. ok=false reports
+// either a position that no longer holds rowID (the caller re-seeks) or an
+// image whose page/pointer cannot be trusted for a write (err non-nil).
+func (t *BTree) locateLeafCell(leaf uint32, idx int, rowID int64, old *storage.Cell) (pg *pager.Page, page *storage.BTreePage, oldOff int, ok bool, err error) {
+	pg, err = t.pager.ReadPage(leaf)
 	if err != nil {
-		return false, err
+		return nil, nil, 0, false, err
+	}
+	coff := contentOffset(pg.PageNum)
+	page, err = pg.ParsedBTree(int(t.pageSize), coff)
+	if err != nil {
+		return nil, nil, 0, false, err
 	}
 	if page.PageType != storage.PageTypeLeafTable || idx < 0 || idx >= int(page.CellCount) {
-		// Position no longer valid: re-seek.
-		return t.OverwriteCellByRowID(rowID, cellData)
+		return nil, nil, 0, false, nil
 	}
-	oldOff := int(storage.CellPointer(pg.Data, contentOffset(pg.PageNum), idx, int(t.pageSize)))
-	var old storage.Cell
-	if derr := storage.DecodeCellInto(pg.Data, oldOff, storage.CellTableLeaf, int(t.usableSize), &old); derr != nil {
-		return false, derr
+	oldOff = int(storage.CellPointer(pg.Data, coff, idx, int(t.pageSize)))
+	if derr := storage.DecodeCellInto(pg.Data, oldOff, storage.CellTableLeaf, int(t.usableSize), old); derr != nil {
+		return nil, nil, 0, false, derr
 	}
 	if old.RowID != rowID {
-		// Stale hinted position: the row moved (or never lived here) —
-		// fall back to the authoritative seek.
-		return t.OverwriteCellByRowID(rowID, cellData)
+		return nil, nil, 0, false, nil
 	}
-	return t.overwriteLeafCellAtDecoded(pg, page, idx, &old, oldOff, cellData)
+	return pg, page, oldOff, true, nil
+}
+
+// replaceInLeafFast runs btree.c's non-memcpy loc==0 branch: free the old
+// cell's overflow chain (clearCell), dropCell(idx), then insertCellFast at
+// the SAME index on the same page. It reports false — with the page untouched
+// — when the fast path cannot prove the write safe:
+//
+//   - the new cell image needs an overflow chain. The caller's image is built
+//     by the record encoder and carries no chain (fillInCell/prepareCell run
+//     only on the seeking path), so it cannot be written truthfully here.
+//   - the page cannot hold the new cell once the old one's bytes are back in
+//     the free space. btree.c needs no such proof because insertCell can
+//     always fall back to balance(); this engine's split machinery lives
+//     above btree, so the fast path proves the fit up front and lets the
+//     caller's split-capable path handle the rare miss.
+func (t *BTree) replaceInLeafFast(pg *pager.Page, memo *storage.BTreePage, idx, oldOff, oldSize int, old *storage.Cell, cellData []byte) bool {
+	coff := contentOffset(pg.PageNum)
+	newPayload := newPayloadLen(cellData)
+	if storage.LocalPayloadSize(newPayload, int(t.usableSize), storage.CellTableLeaf) != newPayload {
+		return false
+	}
+	if !leafHoldsAfterDrop(memo, coff, int(t.usableSize), oldSize, len(cellData)) {
+		return false
+	}
+	// clearCell frees the replaced cell's overflow chain before dropCell
+	// (src/btree.c:9586); a failure declines before any page mutation.
+	if old.Overflow != 0 {
+		if ferr := t.freeOverflowChain(old.Overflow); ferr != nil {
+			return false
+		}
+	}
+	// The memo struct is shared read-only: dropCell and insertCell mutate the
+	// parsed header, so hand them a by-value copy (the same discipline the
+	// point-delete target follows).
+	page := *memo
+	if derr := dropCellFromLeafPage(t.pager, pg, &page, coff, idx, oldOff, oldSize, t.usableSize); derr != nil {
+		// Corrupt free space: the caller's fallback re-seeks and rebuilds
+		// the page wholesale, exactly as it does for the delete path.
+		return false
+	}
+	if werr := t.writeLeafCell(pg, &page, nil, cellData, coff, idx); werr != nil {
+		return false
+	}
+	return true
+}
+
+// leafHoldsAfterDrop reports whether a leaf page holds nByte cell bytes once
+// the cell occupying oldSize bytes has been dropped. Only the header fields
+// are read: the freed bytes plus the gap between the cell-pointer array and
+// the content area are a lower bound of the page's free space, and
+// allocateSpaceOnPage defragments the rest of the free space (freeblocks,
+// fragments) into that gap when the direct fit fails — so this condition
+// guarantees the following writeLeafCell cannot report errLeafFull.
+func leafHoldsAfterDrop(page *storage.BTreePage, coff, usableSize, oldSize, nByte int) bool {
+	top := page.CellContent
+	if top == 0 {
+		top = usableSize
+	}
+	gap := top - (coff + storage.CellPointerOffset + 2*int(page.CellCount))
+	return gap+oldSize >= nByte
 }
 
 // seekLeafRow positions a fresh cursor on the row with the given rowid and

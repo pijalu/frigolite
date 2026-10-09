@@ -1,5 +1,63 @@
 # Lessons Learned — Frigolite
 
+## R13-L6 (2026-10-09) — rowid-op residue: size-changed write, literal SET lane, memory commit counter
+
+- **A "fast lane" that only compiles *numeric* literals is a lane the canonical
+  harness shape never enters.** The point-UPDATE SET lane handled column refs and
+  numeric literals; `UPDATE t SET c='v<i>' WHERE a=<i>` (perfbench point-update,
+  speed1-update shapes, most real UPDATEs) therefore ran the generic row map +
+  boxed `EvalExpr` for every statement. Adding `StringLit`/`BlobLit`/`NullLit`
+  arms — with the `SQLITE_LIMIT_LENGTH` check the generic `evalBoundedLiteral`
+  applies, bailing so the generic path still raises "string or blob too big" —
+  was 1829 vs 2048 ns/op (-10.7%) and 15 vs 24 allocs/op on the lane bench.
+  Lesson: when a "typed fast lane" exists, check WHICH literal kinds it compiles
+  against the benchmark's actual statements before hunting deeper costs.
+- **sqlite3BtreeInsert's loc==0 branch is TWO optimizations, not one.** The
+  same-size memcpy is the famous half; the other half is `dropCell(idx) +
+  insertCellFast(idx)` on the SAME page with the cursor already positioned
+  (btree.c:9576-9677). Implementing only the memcpy means every size-changing
+  UPDATE pays two root-to-leaf descents + a position search + a rebalance check.
+  Measured: 51.8% of the perfbench update statements change cell size. The
+  same-page branch needs a *fit proof* C does not (`insertCell` can always fall
+  back to `balance()`; this engine's split machinery sits above btree):
+  `gap + oldSize >= szNew` is sufficient because `allocateSpaceOnPage`
+  defragments the remaining free space into that gap — conservative, cheap, and
+  it keeps the page untouched on decline (the caller's split-capable fallback
+  then runs the same two operations with a re-seek). Outcome mix: memcpy 48%,
+  dropInsert 50.5%, declined 1.3% (was: 52% on the slow path).
+- **Half a fast path can hide a cost centre: the profile blamed `InsertCell`.**
+  With only the memcpy arm, `InsertCell` showed 60 ms in the update profile; the
+  split/defrag allocators behind it (`defragmentInterior`, `partitionSplitCells`,
+  `balanceCellArray`) looked like "btree is slow", not "the update path takes the
+  wrong branch". Counters (`replaceLaneHitsForTest`, mirroring
+  `quickAppendHitsForTest`) settled it in one run — add the counter before
+  optimizing the function the profile points at.
+- **A `:memory:` pager must not pay the file change counter.**
+  `execFlushAutocommit` bumped header offset 24 per statement: `AmendHeader`
+  (mutex + cookie invalidation), a 100-byte copy into page 1 and a `WritePage`
+  (a second dirty page per flush). SQLite skips it for temp pagers —
+  `changeCountDone = pPager->tempFile` (pager.c:1145, ticket fb3b3024ea238d5c) —
+  so `pager_incr_changecounter` never runs, which is why the oracle reports a
+  CONSTANT `PRAGMA data_version` on `:memory:` (2, across its own commits).
+  Gating on `Pager.IsMemory()`: 1770 → 1580 ns/op (-10.7%), no new harness
+  leaves (dataversion1/dbpage/dbdata/incrcorrupt unchanged, pragma3 2 and chan 15
+  pre-existing). Lesson: when a per-commit cost exists only to be observed by
+  another connection, check what sqlite does for the backend that has no other
+  connection.
+- **Harness leaf counts drift with leftover `test.db*` files, not with code.**
+  The same tree measured delete 46 / update 5 with `test.db*` moved aside and
+  delete 49 / update 6 with the harness's own `test.db2`/`test.db3` left behind
+  by an earlier run. Always stash `test.db*` before counting (the gate command
+  does), and A/B the *leaf sets* (`comm`), not just the counts: base and
+  modified trees produced byte-identical sets at 49/6 as well as at 46/5.
+- **The paired protocol is what makes the numbers usable.** Same-session
+  interleaved `-reps 3` pairs: baseline 468 387/465 038 vs final 637 067/624 307
+  for point-update, while unpaired samples of the same trees drifted ±3%.
+  sqlite on the same driver in the same block is the honest denominator: the
+  update gap moves 1.90x → 1.36x, and point-select/file-insert are *ahead* of
+  sqlite (1.15x / 2.4x), so the remaining work is the funnel + decode boxing,
+  not the write path.
+
 ## R13-L1 (2026-10-09) — query-executor index access path (real SEARCH … USING INDEX)
 
 - **The index-order emulation is gone; the seek emits index order natively.**

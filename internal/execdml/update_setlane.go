@@ -125,7 +125,7 @@ func (e *DMLExecutor) compileTypedPointUpdateSet(s *sql.UpdateStmt, colIndex map
 			return nil, false
 		}
 		op.target = ti
-		if !compileLaneOperandInto(a.Value, op, colIndex, colDefs, i) {
+		if !compileLaneOperandInto(a.Value, op, colIndex, colDefs, i, e.ctx.LengthLimit()) {
 			return nil, false
 		}
 	}
@@ -134,8 +134,9 @@ func (e *DMLExecutor) compileTypedPointUpdateSet(s *sql.UpdateStmt, colIndex map
 
 // compileLaneOperandInto compiles one SET value expression into op (kind
 // laneLit when the whole expression is one operand, laneArith for a binary
-// arithmetic node over two operand-shaped children).
-func compileLaneOperandInto(expr sql.Expr, op *setLaneOp, colIndex map[string]int, colDefs []sql.ColumnDef, slot int) bool {
+// arithmetic node over two operand-shaped children). limit is the
+// connection's SQLITE_LIMIT_LENGTH, threaded down to the literal operands.
+func compileLaneOperandInto(expr sql.Expr, op *setLaneOp, colIndex map[string]int, colDefs []sql.ColumnDef, slot, limit int) bool {
 	switch v := unwrapLaneParens(expr).(type) {
 	case *sql.BinaryOp:
 		var ob byte
@@ -153,21 +154,21 @@ func compileLaneOperandInto(expr sql.Expr, op *setLaneOp, colIndex map[string]in
 		default:
 			return false
 		}
-		if !compileLaneOperandRef(unwrapLaneParens(v.Left), op, colIndex, colDefs, slot) {
+		if !compileLaneOperandRef(unwrapLaneParens(v.Left), op, colIndex, colDefs, slot, limit) {
 			return false
 		}
 		refA, litA := op.refA, op.litA
 		// The second operand compiles into a scratch op so a right-hand
 		// literal lands in litB (compileLaneOperandRef writes litA).
 		var scratch setLaneOp
-		if !compileLaneOperandRef(unwrapLaneParens(v.Right), &scratch, colIndex, colDefs, slot) {
+		if !compileLaneOperandRef(unwrapLaneParens(v.Right), &scratch, colIndex, colDefs, slot, limit) {
 			return false
 		}
 		op.kind, op.op, op.refA, op.litA, op.refB, op.litB = laneArith, ob, refA, litA, scratch.refA, scratch.litA
 		return true
 	default:
 		// A lone operand-shaped expression: compile as a direct store.
-		if !compileLaneOperandRef(unwrapLaneParens(expr), op, colIndex, colDefs, slot) {
+		if !compileLaneOperandRef(unwrapLaneParens(expr), op, colIndex, colDefs, slot, limit) {
 			return false
 		}
 		return true
@@ -175,9 +176,20 @@ func compileLaneOperandInto(expr sql.Expr, op *setLaneOp, colIndex map[string]in
 }
 
 // compileLaneOperandRef compiles one arithmetic operand (a column reference,
-// a rowid pseudo-reference, or a numeric literal) into op: refA the slot
-// index (laneRefRowID for the pseudo-column), litA the parsed literal.
-func compileLaneOperandRef(expr sql.Expr, op *setLaneOp, colIndex map[string]int, colDefs []sql.ColumnDef, slot int) bool {
+// a rowid pseudo-reference, or a literal) into op: refA the slot index
+// (laneRefRowID for the pseudo-column), litA the literal's value.
+//
+// The literal arm covers the three literal kinds vdbe.c materializes
+// directly into a register: OP_Integer/OP_Real (NumericLit), OP_String8
+// (StringLit) and OP_Blob (BlobLit) — plus OP_Null (NullLit), which stores
+// NULL in the target column like any other literal store. Text and blob
+// literals are gated by the same SQLITE_LIMIT_LENGTH check
+// evalBoundedLiteral (expression.go:62) runs — an over-limit literal bails
+// so the generic path raises "string or blob too big" (sqllimits1-5.17.1).
+// Every literal's typed Go value is exactly what EvalExpr returns, so the
+// lane's affinity application on store (applyUpdateColumnSet parity) sees
+// the identical input.
+func compileLaneOperandRef(expr sql.Expr, op *setLaneOp, colIndex map[string]int, colDefs []sql.ColumnDef, slot, limit int) bool {
 	op.kind, op.refA, op.litA = laneLit, laneRefLit, nil
 	switch v := expr.(type) {
 	case *sql.ColumnRef:
@@ -188,6 +200,22 @@ func compileLaneOperandRef(expr sql.Expr, op *setLaneOp, colIndex map[string]int
 			return false
 		}
 		op.litA = lit
+		return true
+	case *sql.StringLit:
+		if len(v.Value) > limit {
+			return false // generic path reports "string or blob too big"
+		}
+		op.litA = v.Value
+		return true
+	case *sql.BlobLit:
+		if len(v.Value) > limit {
+			return false // generic path reports "string or blob too big"
+		}
+		op.litA = v.Value
+		return true
+	case *sql.NullLit:
+		// refA == laneRefLit with a nil literal: laneOperandValue returns
+		// nil, and the store writes NULL (ApplyColumnAffinity(nil) == nil).
 		return true
 	case *sql.UnaryOp:
 		return compileLaneNegatedLit(v, op, colIndex, colDefs, slot)
@@ -238,6 +266,8 @@ func laneNumericLit(v *sql.NumericLit) (interface{}, bool) {
 // compileLaneNegatedLit folds a negated numeric literal ("-1", the parser's
 // separate-sign form) into one literal operand.
 func compileLaneNegatedLit(v *sql.UnaryOp, op *setLaneOp, colIndex map[string]int, colDefs []sql.ColumnDef, slot int) bool {
+	// Only numeric negation is folded (-1); every other unary shape (NOT,
+	// ~, a negated string/blob literal) goes to the generic evaluator.
 	if v.Operator != "-" {
 		return false
 	}

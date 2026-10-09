@@ -109,6 +109,19 @@ func TestUpdateSetLaneOracle(t *testing.T) {
 		{"UPDATE t SET c=12 WHERE id=1", 1, "int:12|null:|text:8|null:"},
 		// column copy moves the raw value (oracle: integer class)
 		{"UPDATE t SET c=n WHERE id=4", 4, "int:4|real:0|null:|int:4"},
+		// R13-L6: text literal store — a lone string literal is the lane's
+		// most common shape (oracle: text/'hello', invalidation untouched)
+		{"UPDATE t SET x='hello' WHERE id=1", 1, "int:12|null:|text:hello|null:"},
+		// numeric-looking text under INTEGER affinity converts (oracle: int/7)
+		{"UPDATE t SET c='7' WHERE id=1", 1, "int:7|null:|text:hello|null:"},
+		// non-numeric text under INTEGER affinity stays TEXT (oracle: text/abc)
+		{"UPDATE t SET c='abc' WHERE id=1", 1, "text:abc|null:|text:hello|null:"},
+		// NULL literal store (oracle: null)
+		{"UPDATE t SET c=NULL WHERE id=1", 1, "null:|null:|text:hello|null:"},
+		// blob literal store (oracle: blob class, x'00ff')
+		{"UPDATE t SET n=x'00ff' WHERE id=1", 1, "null:|null:|text:hello|blob:00ff"},
+		// numeric-looking text under REAL affinity converts (oracle: real/3.5)
+		{"UPDATE t SET r='3.5' WHERE id=2", 2, "real:9.223372036854776e+18|real:3.5|text:abc|int:3"},
 	}
 	for i, st := range steps {
 		if res := db.Exec(st.sql); res.Error != nil {
@@ -162,6 +175,12 @@ func TestUpdateSetLaneParity(t *testing.T) {
 		"UPDATE %s SET c=id+c WHERE id=2",     // IPK alias operand
 		"UPDATE %s SET c=12 WHERE id=2",       // literal store
 		"UPDATE %s SET c=n WHERE id=2",        // column copy
+		"UPDATE %s SET x='txt' WHERE id=1",    // text literal store (R13-L6)
+		"UPDATE %s SET c='7' WHERE id=2",      // numeric-looking text literal
+		"UPDATE %s SET c='abc' WHERE id=2",    // non-numeric text literal
+		"UPDATE %s SET n=NULL WHERE id=1",     // NULL literal store (R13-L6)
+		"UPDATE %s SET n=x'01ff' WHERE id=2",  // blob literal store (R13-L6)
+		"UPDATE %s SET r='4.5' WHERE id=2",    // text literal into a REAL column
 		"UPDATE %s SET c=c+1, n=c WHERE id=2", // second RHS sees the original row
 		"UPDATE %s SET c=c+1, c=c*10 WHERE id=2",
 	} {

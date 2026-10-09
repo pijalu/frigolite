@@ -677,6 +677,11 @@ func (e *Engine) execFlushAutocommit(stmt sql.Stmt, res *Result, isDML bool) *Re
 		// precedes the drain exactly as before: the drain's freed pages must not
 		// inherit the bump (the bump stamps the PRE-drain dirty set).
 		dirty := e.dirtyDatabases(e.flushDirtyScratch[:0])
+		// Keep the grown backing array: the scratch is reused by the next
+		// autocommit statement, so its cache line stays warm and no statement
+		// pays a fresh allocation for the attach walk (dirtyDatabases appends
+		// at most one entry per database).
+		e.flushDirtyScratch = dirty
 		if len(dirty) > 0 {
 			// Autocommit statement: bump the change counter of every database
 			// that was written so other connections observe the change.

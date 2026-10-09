@@ -91,9 +91,22 @@ func (e *Engine) execPragmaDataVersion(ctx *DatabaseContext) *Result {
 // caches the pre-commit value. We therefore keep the pre-commit value: the
 // file counter moves forward for other connections while this connection's
 // reported data_version stays put.
+//
+// An in-memory database never bumps the counter, matching SQLite: a :memory:
+// database is a temp pager, and pager.c sets changeCountDone for temp files
+// ("pPager->changeCountDone = pPager->tempFile", src/pager.c:1145, ticket
+// fb3b3024ea238d5c), so pager_incr_changecounter is skipped and the counter
+// of a :memory: database stays where it started — PRAGMA data_version is a
+// constant there, and the file counter SQLITE_FCNTL_DATA_VERSION reports does
+// not move either. Nothing can observe the difference: a memory pager has no
+// file for another connection to write, and the external-modification check
+// reads the file's header (pager.FileChangeCounter is this pager's own copy).
 func (e *Engine) updateFileChangeCounter(ctx *DatabaseContext) {
 	if ctx == nil {
 		ctx = e.mainDB
+	}
+	if ctx == nil || ctx.Pager == nil || ctx.Pager.IsMemory() {
+		return
 	}
 	if count, ok, err := e.bumpFileChangeCounterFast(ctx); ok {
 		if err == nil && ctx.Schema != nil {
@@ -119,7 +132,7 @@ func (e *Engine) updateFileChangeCounter(ctx *DatabaseContext) {
 // in the general path — the in-memory header keeps the bump and the schema
 // own-write note is skipped.
 func (e *Engine) bumpFileChangeCounterFast(ctx *DatabaseContext) (uint32, bool, error) {
-	if ctx == nil || ctx.Pager == nil {
+	if ctx == nil || ctx.Pager == nil || ctx.Pager.IsMemory() {
 		return 0, false, nil
 	}
 	hdr := ctx.Pager.Header()

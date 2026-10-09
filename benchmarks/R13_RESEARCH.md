@@ -552,3 +552,113 @@ indexed deletes become no-ops and the phase reports 305k–333k ops/s. That is t
 no-op path, **not** the engine's real rate; the honest figure is ~7 µs per
 index-maintained DELETE at the gate's `-point-ops 200` (143k ops/s, per-statement
 SQL parse included), versus 5.8 µs for the DELETE execution itself in §5.
+
+## L6 — rowid-op residue: the UPDATE lane's size-changed write, literal SET lane, memory commit counter (2026-10-09)
+
+R11 §5 ranked ten frigolite-only costs behind the point lanes' gap; the R13
+line closed most of them (memo publish, overwrite memo reuse, append search,
+rowid allocation, journal lifecycle). L6 works the three still-open ones with
+the paired protocol (`benchmarks/perfbench/{frigolite,sqlite}`, same flags,
+`-reps 3/5`, stashed `test.db*`).
+
+**Baseline (this session, HEAD 2088c161e, `-reps 3`):** point-update 468 387 /
+465 038 ops/s, point-select 954 882 / 943 595, point-delete 941 542 / 939 495,
+file-insert 12 091 / 11 848. System sqlite 3.54 on the same driver: point-update
+899 400, point-select 847 883, point-delete 1 021 359, insert 1 172 651 — the
+R11 §5 "update 1.69x" gap, reproduced.
+
+### Lever A — the SET lane had no literal arm for TEXT (execdml/update_setlane.go)
+
+`compileLaneOperandRef` compiled column references and numeric literals only.
+`UPDATE t SET c='v<i>' WHERE a=<i>` — the canonical harness shape, and the most
+common UPDATE in the wild — therefore failed the lane, fell through to
+`pointUpdateRowMapFromSlots` (a name-keyed row map + boxed `EvalExpr` per
+assignment) and allocated a map fill, a `ColumnValue` per column and the
+evaluator's boxes per statement. The lane now compiles `*sql.StringLit`,
+`*sql.BlobLit` and `*sql.NullLit` too, gated by the same SQLITE_LIMIT_LENGTH
+check `evalBoundedLiteral` applies (expression.go:62) so an over-limit literal
+bails and the generic path still reports "string or blob too big"
+(sqllimits1-5.17.1; pinned by `TestUpdateSetLaneLiteralLengthLimit`).
+
+- local lane bench (`-benchtime 400000x`, in-memory 50k rows): **2048 → 1829
+  ns/op (-10.7%), 24 → 15 allocs/op, 1303 → 734 B/op**.
+- harness: point-update **472 585 → 513 190 ops/s**.
+- oracle-validated shapes added to `TestUpdateSetLaneOracle`/`Parity`
+  (`x='hello'`, `c='7'` (INTEGER affinity → int), `c='abc'` (stays TEXT),
+  `c=NULL`, `n=x'00ff'`, `r='3.5'` (REAL affinity → real 3.5; sqlite3 CLI
+  confirmed) — all byte-identical to the generic row-map path.
+
+### Lever B — the size-changed write re-descended twice (btree)
+
+`OverwriteCellByRowIDAt` implemented only the same-size memcpy half of
+sqlite3BtreeInsert's loc==0 branch (btree.c:9576-9677). Half the UPDATE
+statements in this workload change the record's byte size (measured: 9 636
+memcpy / 10 364 size-changed over 20 000 statements), and those fell to
+`DeleteCellByRowID` + `InsertCell` — two root-to-leaf descents, a binary
+position search and a rebalance check per statement, where C does
+`dropCell(idx)` + `insertCellFast(idx)` on the page its cursor already holds.
+`ReplaceCellByRowIDAt` (+ `replaceInLeafFast`/`leafHoldsAfterDrop`) now runs the
+whole branch: the memcpy when the size matches, otherwise the same-page
+dropCell + insertCell at the same index. The fast path proves the fit up front
+(`gap + oldSize >= szNew`; `allocateSpaceOnPage` defragments the rest of the
+free space into that gap, so the condition guarantees the write cannot report
+`errLeafFull`), frees the old cell's overflow chain first (clearCell parity) and
+declines before mutating the page otherwise — the caller's split-capable
+fallback owns the rare miss. Outcome mix on the lane (20 000 statements):
+**memcpy 9 636 / dropInsert 10 103 / declined 261**, i.e. the fallback now runs
+on 1.3% of statements instead of 52%.
+
+- local lane bench: **1829 → 1770 ns/op (-3.2%)**; the split/rebalance work the
+  fallback used to do per statement (defragmentInterior, partitionSplitCells,
+  balanceCellArray allocs) drops with it.
+- harness: point-update **513 190 → 645 960 ops/s**.
+- pins: `TestReplaceCellByRowIDAt{SameSizeMemcpy,SizeChangeSamePage,DeclinesWhenCellCannotFit}`
+  (page-byte equality outside the replaced cell, same-page/no-growth proof,
+  row-for-row equality against the delete+insert fallback, untouched page on
+  decline).
+
+### Lever C — the memory pager paid a change-counter commit it cannot observe
+
+`execFlushAutocommit` bumped the file change counter (header offset 24) on every
+autocommit write: `AmendHeader` (mutex + cookie-cache invalidation) + a 100-byte
+copy into page 1 + `WritePage` — 75 ns/statement plus a second dirty page in
+every flush. SQLite does none of this for a `:memory:` database: it is a temp
+pager, and pager.c sets `changeCountDone = pPager->tempFile`
+(src/pager.c:1145, ticket fb3b3024ea238d5c), so `pager_incr_changecounter` never
+runs. Confirmed on the oracle: `PRAGMA data_version` on `:memory:` is a constant
+2 across its own commits. `updateFileChangeCounter` now returns immediately for
+`ctx.Pager.IsMemory()`. Nothing can observe the difference — a memory pager has
+no file for another connection to write, the external-modification check reads
+the file, and `PRAGMA data_version` is the engine's separate per-connection
+field (the file counter `FileDataVersion` reports is constant for memory in
+SQLite too). Harness: `dataversion1` 0 leaves, `dbpage`/`dbdata`/`incrcorrupt`
+0 leaves, `pragma3` 2 and `chan` 15 — all byte-identical to the baseline tree.
+
+- local lane bench: **1770 → 1580 ns/op (-10.7%)**.
+- harness: point-update **~640 000 → 653 647 / 660 230 / 662 440 ops/s**.
+
+### Result
+
+| lane | base (paired, this session) | final | ratio |
+|---|---|---|---|
+| point-update | 468 387 / 465 038 | 637 067 / 624 307 | **1.35x** |
+| point-select | 954 882 / 943 595 | 941 391 / 955 819 | 1.00x |
+| point-delete | 941 542 / 939 495 | 918 908 / 906 987 | 0.97x |
+| file-insert | 12 091 / 11 848 | 12 016 / 11 894 | 0.99x |
+
+vs system sqlite 3.54 the update lane moves from 1.90x (measured) to **1.36x**
+(647 564 / 899 400), while point-select stays *faster* than sqlite (972 499 vs
+847 883) and file-insert 2.4x faster (12 050 vs 5 010). Gate pipeline
+(`go run . -reps 3 | awk '/point-update/{if ($3+0 < 6e5) exit 1}'`) passes 4/4
+consecutive runs, 616 929–641 337 before lever C and 653 647–662 440 after.
+Harness leaf counts with `test.db*` stashed: index 162, delete 46, where 87,
+update 5 — identical to the stashed baseline (and the same leaf sets).
+
+**Still open (ranked, measured, not attempted here):** the per-statement SQL-text
+preparation (~3.4 allocs: `nextLiteral`/`scanNumericLiteral` boxes, `writeSlot`'s
+`FormatInt` text), the record decode's `[]interface{}` boxing (storage
+`decodeValue`, 1.2 allocs/statement — the structural typed-slot change R11 §5
+#10), the exec funnel's fixed preamble (~350 ns: `execEntry` gates, the
+`validateLoaded*` fingerprint pair, `dmlCanSkipSnapshot`'s table lookups) and
+the point-lane seek's cursor churn (R11 §5 #7). The update lane's remaining gap
+to sqlite is now dominated by those, not by the rowid-op write path.

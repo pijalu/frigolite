@@ -183,6 +183,15 @@ Estimated coverage: update ~580ns gap ≈ #1(150) + #4(120) + #2(part) + #6 + #7
 delete ~420ns ≈ #1(150) + #2(80) + #6(60) + #7(50) + #9(60) + staging; insert ~300ns ≈
 #3(100) + #8(80) + #1(120, non-append rows) + #2(file-mode only); point ~130ns ≈ #7 + #9 + #10(part).
 
+**Status (R13-L6, 2026-10-09):** #1/#3/#4/#5/#8 are closed (R11.BTREEMEMO, R12.UPD,
+R12.BTREE, R13-L6); the point-UPDATE write path itself is now C-shaped —
+`ReplaceCellByRowIDAt` runs the whole loc==0 branch (memcpy, else same-page
+`dropCell` + `insertCellFast`), 98.7% of statements on the fast path. The
+remaining update gap is the funnel/decode list below (#2 for file shapes, #7,
+#9, #10) plus the per-statement SQL-text preparation; see
+`benchmarks/R13_RESEARCH.md` §L6 for the paired numbers (update 1.90x → 1.36x
+vs system sqlite 3.54; point-select and file-insert are ahead of it).
+
 Not ranked (no bench cost, correctness-of-scope): #5 is the single most
 surprising C-vs-frigolite difference — an O(log n) C primitive answered with
 an O(n) scan. Fix it before any interleaved benchmark exists to hide it.

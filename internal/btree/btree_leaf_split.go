@@ -30,7 +30,9 @@ var errLeafFull = fmt.Errorf("btree: page is full")
 // before insertCell, src/btree.c:9458) and passes the insertion index —
 // btree.c's append insert runs NO search at all (`idx = ++pCur->ix`,
 // src/btree.c:9612, the USESEEKRESULT loc==-1 contract); insertIdx < 0 falls
-// back to the leaf-wide binary walk for the non-append callers.
+// back to the leaf-wide binary walk for the non-append callers. With
+// insertIdx >= 0 newCell is not consulted (its key already located the
+// slot), so callers that only hold the encoded image may pass nil.
 func (t *BTree) writeLeafCell(pg *pager.Page, page *storage.BTreePage, newCell *storage.Cell, cellData []byte, coff int, insertIdx int) error {
 	if page == nil {
 		var err error

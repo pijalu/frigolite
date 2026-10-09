@@ -489,11 +489,12 @@ func (e *DMLExecutor) decodePointUpdateRecord(payload []byte, colDefs []sql.Colu
 }
 
 // writePointUpdateRow writes one same-rowid change: the in-place overwrite
-// when the new cell is the same size (btree.OverwriteCellByRowIDAt through
-// the collect seek's position — verified there and re-seeked on staleness),
-// a seek delete + re-insert otherwise. Index maintenance, the rowid-cache
-// bump/invalidate and the preupdate hook fire exactly as applyUpdateChanges'
-// single-change bulk run does.
+// when the new cell is the same size, the same-page dropCell + insertCell
+// when it is not (btree.ReplaceCellByRowIDAt — sqlite3BtreeInsert's whole
+// loc==0 branch, run through the collect seek's position and re-seeked only
+// on staleness), and the seek-delete + re-insert when the fast path declines.
+// Index maintenance, the rowid-cache bump/invalidate and the preupdate hook
+// fire exactly as applyUpdateChanges' single-change bulk run does.
 func (e *DMLExecutor) writePointUpdateRow(tableName string, tree *btree.BTree, rootPage uint32, ch updateChange, tableEntry *schema.Entry, colDefs []sql.ColumnDef, pos cellPos) *Result {
 	record, err := e.appendEncodedRecord(ch.values)
 	if err != nil {
@@ -503,14 +504,15 @@ func (e *DMLExecutor) writePointUpdateRow(tableName string, tree *btree.BTree, r
 	if cerr != nil {
 		return &Result{Error: cerr}
 	}
-	done, oerr := tree.OverwriteCellByRowIDAt(ch.rowID, cellData, pos.leaf, pos.idx)
+	done, oerr := tree.ReplaceCellByRowIDAt(ch.rowID, cellData, pos.leaf, pos.idx)
 	if oerr != nil {
 		return &Result{Error: oerr}
 	}
 	if !done {
-		// Size changed or a guard declined: dropCell + insertCell (sqlite3
-		// sqlite3BtreeInsert's non-fast loc==0 branch), with the seek delete
-		// instead of the bulk sweep.
+		// The fast path declined (the page cannot hold the cell after the
+		// drop, or the row moved out from under the hinted position): the
+		// seek-delete + insert form of the same loc==0 branch, with the seek
+		// delete instead of the bulk sweep.
 		if _, derr := tree.DeleteCellByRowID(ch.rowID); derr != nil {
 			return &Result{Error: derr}
 		}
