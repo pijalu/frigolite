@@ -181,6 +181,9 @@ func (t *BTree) splitLeafMulti(pg *pager.Page, page *storage.BTreePage, parentPg
 	if err != nil {
 		return nil, err
 	}
+	if !t.isTable {
+		partitions = balanceIndexDividerPartitions(partitions)
+	}
 
 	// Clear original leaf content (except page type)
 	// Write-intent barrier: capture the original leaf's statement-journal
@@ -237,10 +240,44 @@ func partitionSplitCells(st *splitStaging, cells []splitEntry, coff, usableSize 
 	return partitions, nil
 }
 
+// balanceIndexDividerPartitions keeps every INDEX split page non-empty.
+// partitionSplitCells packs each page's longest prefix, which routinely leaves
+// the LAST page holding a single cell; writeSplitPartitions then moves that cell
+// up into the parent as the boundary divider (balance_nonroot's rule, source of
+// the 1-cell page) and a one-cell partition would be written EMPTY. sqlite's
+// distribution reserves the divider while packing, so a non-first page always
+// keeps at least one cell; do the same here by handing the last cell of the
+// previous partition to a one-cell last partition (its new first cell is the
+// boundary divider). A page whose only cell already fills it cannot be fixed
+// that way — the same degenerate case sqlite's own accounting cannot split.
+func balanceIndexDividerPartitions(parts [][]splitEntry) [][]splitEntry {
+	n := len(parts)
+	if n < 2 || len(parts[n-1]) >= 2 || len(parts[n-2]) < 2 {
+		return parts
+	}
+	left := parts[n-2]
+	moved := left[len(left)-1]
+	fixed := make([][]splitEntry, n)
+	copy(fixed, parts)
+	fixed[n-2] = left[:len(left)-1]
+	last := make([]splitEntry, 0, len(parts[n-1])+1)
+	last = append(last, moved)
+	last = append(last, parts[n-1]...)
+	fixed[n-1] = last
+	return fixed
+}
+
 // writeSplitPartitions pre-allocates len(partitions)-1 new leaf pages of the
 // same type as the original, persists the rewritten original page (pg), then
 // writes each remaining partition to its new page. Returns the new pages in
 // order with the median key separating each from its left neighbor.
+//
+// For an INDEX b-tree each new page's FIRST cell is the boundary divider and is
+// moved up into the parent instead of being written to the page (see the loop
+// below); the page therefore keeps partitions[pi][1:]. A page left with no cell
+// that way (a partition holding only its divider — two cells of near-page-size)
+// stays as a legal EMPTY leaf page: the divider is still an entry in the parent
+// and the cursor skips empty leaves.
 func (t *BTree) writeSplitPartitions(pg *pager.Page, coff int, partitions [][]splitEntry, ptrParent uint32) ([]leafSplitResult, error) {
 	nNew := len(partitions) - 1
 	newPages := make([]*pager.Page, 0, nNew)
@@ -256,24 +293,58 @@ func (t *BTree) writeSplitPartitions(pg *pager.Page, coff int, partitions [][]sp
 	}
 	results := make([]leafSplitResult, 0, nNew)
 	for pi := 1; pi < len(partitions); pi++ {
-		newPg := newPages[pi-1]
-		newCoff := contentOffset(newPg.PageNum)
-		newPg.Data[newCoff] = pg.Data[coff] // same page type
-		if err := writeLeafHalf(newPg, newCoff, partitions[pi], int(t.usableSize)); err != nil {
-			return nil, err
+		res, werr := t.writeSplitPartition(pg, coff, partitions, pi, newPages[pi-1])
+		if werr != nil {
+			return nil, werr
 		}
-		if err := t.reparentSplitOverflowChains(partitions[pi], newPg); err != nil {
-			return nil, err
-		}
-		// No page-end chain pointer (btree.c pages carry no trailer): the
-		// cell content area runs to usableSize.
-		if err := t.pager.WritePage(newPg); err != nil {
-			return nil, err
-		}
-		key, payload := t.splitMedianKey(partitions, pi)
-		results = append(results, leafSplitResult{pageNum: newPg.PageNum, medianKey: key, medianPayload: payload})
+		results = append(results, res)
 	}
 	return results, nil
+}
+
+// writeSplitPartition writes partition pi to its freshly allocated page and
+// returns the resulting split result: the page number plus the boundary divider
+// that separates it from its left neighbour.
+func (t *BTree) writeSplitPartition(pg *pager.Page, coff int, partitions [][]splitEntry, pi int, newPg *pager.Page) (leafSplitResult, error) {
+	newCoff := contentOffset(newPg.PageNum)
+	newPg.Data[newCoff] = pg.Data[coff] // same page type
+	part := partitions[pi]
+	if !t.isTable {
+		// balance_nonroot MOVES this cell up into the parent: it is written
+		// to no sibling page (src/btree.c:8764-8767 skips i==cntNew[iNew]
+		// for non-leafData trees; the cell itself is insertCell'd into the
+		// parent at src/btree.c:8791-8849). It stays the page's divider —
+		// splitMedianKey reads partitions[pi][0] — but the page holds only
+		// the cells that follow it, so the key exists exactly once in the
+		// whole tree (sqlite counts interior index cells as entries,
+		// src/btree.c:10892; a divider COPY over-counted every split).
+		part = part[1:]
+	}
+	if err := writeLeafHalf(newPg, newCoff, part, int(t.usableSize)); err != nil {
+		return leafSplitResult{}, err
+	}
+	if err := t.reparentSplitOverflowChains(part, newPg); err != nil {
+		return leafSplitResult{}, err
+	}
+	if !t.isTable {
+		// The moved cell's overflow chain no longer has an owner: the
+		// divider cell the parent receives is re-encoded from the payload
+		// clone with a FRESH chain (encodeDividerCell, owner = parent page),
+		// exactly as clearCell + fillInCell would re-create it. Leaving the
+		// old chain behind reports "Page N: never used".
+		if moved := partitions[pi][0].cell; moved.Overflow != 0 {
+			if ferr := t.freeOverflowChain(moved.Overflow); ferr != nil {
+				return leafSplitResult{}, ferr
+			}
+		}
+	}
+	// No page-end chain pointer (btree.c pages carry no trailer): the cell
+	// content area runs to usableSize.
+	if err := t.pager.WritePage(newPg); err != nil {
+		return leafSplitResult{}, err
+	}
+	key, payload := t.splitMedianKey(partitions, pi)
+	return leafSplitResult{pageNum: newPg.PageNum, medianKey: key, medianPayload: payload}, nil
 }
 
 // reparentSplitOverflowChains re-parents the overflow chains of the cells
@@ -311,16 +382,14 @@ func (t *BTree) splitMedianKey(partitions [][]splitEntry, pi int) (uint64, []byt
 		left := partitions[pi-1]
 		return uint64(left[len(left)-1].cell.RowID), nil
 	}
-	// Index btrees (non-leafData): the divider is the FIRST cell of
-	// the RIGHT sibling (btree.c:8820, pCell -= 4 branch) — the left
-	// subtree holds keys < medianKey and the right subtree holds
-	// keys >= medianKey (sqlite3BtreeIndexMoveto: equal keys go
-	// right). The divider cell carries that cell's full record
-	// payload (balance_nonroot copies the cell into the interior
-	// page), so interior descent and sqlite3 integrity_check see
-	// value-ordered separators. (The payload is the split entry's
-	// key — already a full-payload clone that survives this page's
-	// cell-area rewrite, see readCellsForSplit.)
+	// Index btrees (non-leafData): the divider is the FIRST cell of the RIGHT
+	// sibling (btree.c:8820), and balance_nonroot installs that very cell in the
+	// parent — the page does NOT keep it (writeSplitPartitions strips it), so
+	// the key exists exactly once in the tree, on the interior page, where
+	// sqlite's entry rule counts it (src/btree.c:10892) and where an equal-key
+	// probe finds it (seekInInteriorIndex). The payload is the split entry's
+	// key — already a full-payload clone that survives this page's cell-area
+	// rewrite (see readCellsForSplit).
 	return 0, partitions[pi][0].key
 }
 

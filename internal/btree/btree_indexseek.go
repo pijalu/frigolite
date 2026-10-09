@@ -59,10 +59,14 @@ func (t *BTree) indexKeyRowIDsBySeek(probe *UnpackedIndexKey) ([]int64, error) {
 
 // collectIndexEqualRun reads rowids from the cursor position while the probe
 // comparison still reports equality, stepping through the run with Next().
+// Landing past the tree's last entry (an emptied leaf chain) ends the run.
 func (t *BTree) collectIndexEqualRun(c *Cursor, probe *UnpackedIndexKey) ([]int64, error) {
 	var out []int64
 	for {
 		rid, equal, err := t.indexRunRowID(c, probe)
+		if errors.Is(err, errIndexPosPastEnd) {
+			return out, nil
+		}
 		if err != nil || !equal {
 			return out, err
 		}
@@ -110,9 +114,8 @@ func (t *BTree) indexKeyRowIDsByWalk(probe *UnpackedIndexKey) ([]int64, error) {
 		return nil, err
 	}
 	var out []int64
-	_, err := t.walkIndexLeaves(t.rootPage, 0, nil, func(data []byte, pageNum uint32, coff, cellIdx int, _ []cursorPathEntry) (bool, error) {
-		cellOff := int(storage.CellPointer(data, coff, cellIdx, int(t.pageSize)))
-		cmp, payload, err := t.indexCellCompare(data, cellOff, probe)
+	_, err := t.walkIndexLeaves(t.rootPage, 0, nil, func(data []byte, _ uint32, cellOff, _ int, cellType storage.CellType, _ []cursorPathEntry) (bool, error) {
+		cmp, payload, err := t.indexCellCompare(data, cellOff, cellType, probe)
 		if err != nil || cmp != 0 {
 			return false, err
 		}
@@ -213,6 +216,9 @@ func (c *Cursor) SeekIndexLowerBound(probe *UnpackedIndexKey, strict bool) (bool
 func (c *Cursor) skipIndexEqualRun(probe *UnpackedIndexKey) (bool, error) {
 	for {
 		full, err := c.tx.indexCursorCellPayload(c)
+		if errors.Is(err, errIndexPosPastEnd) {
+			return false, nil
+		}
 		if err != nil {
 			return false, err
 		}
@@ -262,14 +268,14 @@ func (t *BTree) indexProbeCompare(probe *UnpackedIndexKey) indexCellCompare {
 // order the descent cannot assume (no installed comparator).
 func (c *Cursor) seekIndexKeyByWalk(probe *UnpackedIndexKey) (bool, error) {
 	found := false
-	_, err := c.tx.walkIndexLeaves(c.tx.rootPage, 0, nil, func(data []byte, pageNum uint32, coff, cellIdx int, path []cursorPathEntry) (bool, error) {
-		cellOff := int(storage.CellPointer(data, coff, cellIdx, int(c.tx.pageSize)))
-		cmp, _, err := c.tx.indexCellCompare(data, cellOff, probe)
+	_, err := c.tx.walkIndexLeaves(c.tx.rootPage, 0, nil, func(data []byte, pageNum uint32, cellOff, cellIdx int, cellType storage.CellType, path []cursorPathEntry) (bool, error) {
+		cmp, _, err := c.tx.indexCellCompare(data, cellOff, cellType, probe)
 		if err != nil || cmp != 0 {
 			return false, err
 		}
 		c.pageNum = pageNum
 		c.cellIdx = cellIdx
+		c.onInteriorCell = cellType == storage.CellIndexInterior
 		c.endOfBTree = false
 		c.clearPageCache()
 		c.path = append(c.path[:0], path...)
@@ -293,15 +299,18 @@ func validIndexProbe(probe *UnpackedIndexKey) error {
 	return nil
 }
 
-// walkIndexLeaves visits every cell of every index leaf reachable from
-// pageNum, depth-first in stored order. path carries the cursorPathEntry
-// chain from the root to the current page (root first, immediate parent
-// last; childIdx 0..CellCount-1 = a cell's left child, CellCount = the
-// rightmost pointer — navigateToNextChild's convention, so a cursor can
-// resume from a recorded position). fn returns stop=true to end the walk.
-// Unreadable or unexpected pages are errors (a seek must not silently skip
-// subtrees and miss candidates).
-func (t *BTree) walkIndexLeaves(pageNum uint32, depth int, path []cursorPathEntry, fn func(data []byte, leafNum uint32, coff, cellIdx int, path []cursorPathEntry) (bool, error)) (bool, error) {
+// walkIndexLeaves visits every entry of the index tree reachable from pageNum,
+// depth-first in key order: the cells of every leaf AND the interior pages'
+// own cells, which are real entries (sqlite's balance_nonroot moves one cell
+// per split boundary up into the parent). `path` carries the cursorPathEntry
+// chain from the root to the current page (root first, immediate parent last;
+// childIdx 0..CellCount-1 = a cell's left child, CellCount = the rightmost
+// pointer — navigateToNextChild's convention, so a cursor can resume from a
+// recorded position). fn receives each cell's BODY offset (an interior cell's
+// body follows its 4-byte left-child pointer) and its on-page kind. fn returns
+// stop=true to end the walk. Unreadable or unexpected pages are errors (a seek
+// must not silently skip subtrees and miss candidates).
+func (t *BTree) walkIndexLeaves(pageNum uint32, depth int, path []cursorPathEntry, fn func(data []byte, pageNum uint32, cellOff, cellIdx int, cellType storage.CellType, path []cursorPathEntry) (bool, error)) (bool, error) {
 	if depth > indexSeekMaxDepth {
 		return false, fmt.Errorf("btree: interior page chain too deep")
 	}
@@ -316,7 +325,8 @@ func (t *BTree) walkIndexLeaves(pageNum uint32, depth int, path []cursorPathEntr
 	}
 	switch page.PageType {
 	case storage.PageTypeLeafIndex:
-		return walkLeafIndexCells(pg, page, coff, pageNum, path, fn)
+		leafNum := pageNum
+		return walkLeafIndexCells(pg, page, coff, leafNum, int(t.pageSize), path, fn)
 	case storage.PageTypeInteriorIndex:
 		return t.walkIndexInterior(pg, page, coff, depth, path, fn)
 	default:
@@ -325,9 +335,10 @@ func (t *BTree) walkIndexLeaves(pageNum uint32, depth int, path []cursorPathEntr
 }
 
 // walkLeafIndexCells invokes fn for each cell of one index leaf page.
-func walkLeafIndexCells(pg *pager.Page, page *storage.BTreePage, coff int, leafNum uint32, path []cursorPathEntry, fn func(data []byte, leafNum uint32, coff, cellIdx int, path []cursorPathEntry) (bool, error)) (bool, error) {
+func walkLeafIndexCells(pg *pager.Page, page *storage.BTreePage, coff int, leafNum uint32, pageSize int, path []cursorPathEntry, fn func(data []byte, pageNum uint32, cellOff, cellIdx int, cellType storage.CellType, path []cursorPathEntry) (bool, error)) (bool, error) {
 	for i := 0; i < int(page.CellCount); i++ {
-		stop, err := fn(pg.Data, leafNum, coff, i, path)
+		cellOff := int(storage.CellPointer(pg.Data, coff, i, pageSize))
+		stop, err := fn(pg.Data, leafNum, cellOff, i, storage.CellIndexLeaf, path)
 		if err != nil || stop {
 			return stop, err
 		}
@@ -335,10 +346,15 @@ func walkLeafIndexCells(pg *pager.Page, page *storage.BTreePage, coff int, leafN
 	return false, nil
 }
 
-// walkIndexInterior descends an index interior page's children in order
-// (cell left children 0..CellCount-1, then the rightmost pointer), pushing
-// this page onto the cursor path for each descent.
-func (t *BTree) walkIndexInterior(pg *pager.Page, page *storage.BTreePage, coff, depth int, path []cursorPathEntry, fn func(data []byte, leafNum uint32, coff, cellIdx int, path []cursorPathEntry) (bool, error)) (bool, error) {
+// walkIndexInterior descends an index interior page's children in order while
+// yielding the page's OWN cells as entries between them: in-order traversal is
+// subtree(cell i's left child), cell i, subtree(cell i+1's left child), …,
+// subtree(rightmost) — sqlite's interior index cells are real entries
+// (balance_nonroot moves one cell per split boundary up into the parent), so a
+// walk that skipped them would miss every key that lives above the leaf level.
+// `path` is the chain from the root to this page (this page excluded), which is
+// exactly the cursor state of a position ON one of these cells.
+func (t *BTree) walkIndexInterior(pg *pager.Page, page *storage.BTreePage, coff, depth int, path []cursorPathEntry, fn func(data []byte, pageNum uint32, cellOff, cellIdx int, cellType storage.CellType, path []cursorPathEntry) (bool, error)) (bool, error) {
 	for i := 0; i < int(page.CellCount); i++ {
 		cellOff := int(storage.CellPointer(pg.Data, coff+cellPtrOffset(page.PageType)-8, i, int(t.pageSize)))
 		if cellOff < 0 || cellOff+4 > len(pg.Data) {
@@ -346,6 +362,11 @@ func (t *BTree) walkIndexInterior(pg *pager.Page, page *storage.BTreePage, coff,
 		}
 		child := binary.BigEndian.Uint32(pg.Data[cellOff : cellOff+4])
 		stop, err := t.walkIndexLeaves(child, depth+1, append(path, cursorPathEntry{pageNum: pg.PageNum, childIdx: i}), fn)
+		if err != nil || stop {
+			return stop, err
+		}
+		// The cell itself: its body starts after the 4-byte left-child pointer.
+		stop, err = fn(pg.Data, pg.PageNum, cellOff+4, i, storage.CellIndexInterior, path)
 		if err != nil || stop {
 			return stop, err
 		}
@@ -357,13 +378,14 @@ func (t *BTree) walkIndexInterior(pg *pager.Page, page *storage.BTreePage, coff,
 	return t.walkIndexLeaves(page.RightmostPtr, depth+1, rightmost, fn)
 }
 
-// indexCellCompare compares the index cell at cellOff against the probe and
-// returns (result, the payload the decision was made on). The comparison
+// indexCellCompare compares the index cell whose BODY starts at cellOff (an
+// interior cell's body follows its 4-byte left-child pointer) against the probe
+// and returns (result, the payload the decision was made on). The comparison
 // runs against the cell's LOCAL payload fragment; ErrIndexRecordTruncated
 // (comparison undecided beyond the fragment) re-runs against the reassembled
 // full payload — the only case that reads overflow pages.
-func (t *BTree) indexCellCompare(data []byte, cellOff int, probe *UnpackedIndexKey) (int, []byte, error) {
-	local, fullLen, ovfl, err := t.indexCellLocalPayload(data, cellOff)
+func (t *BTree) indexCellCompare(data []byte, cellOff int, cellType storage.CellType, probe *UnpackedIndexKey) (int, []byte, error) {
+	local, fullLen, ovfl, err := t.indexCellLocalPayload(data, cellOff, cellType)
 	if err != nil {
 		return 0, nil, err
 	}
@@ -374,7 +396,7 @@ func (t *BTree) indexCellCompare(data []byte, cellOff int, probe *UnpackedIndexK
 	if !errors.Is(err, ErrIndexRecordTruncated) {
 		return 0, nil, err
 	}
-	full, err := t.fullIndexCellPayload(local, fullLen, ovfl)
+	full, err := t.fullIndexCellPayload(local, fullLen, ovfl, cellType)
 	if err != nil {
 		return 0, nil, err
 	}
@@ -389,11 +411,11 @@ func (t *BTree) indexCellCompare(data []byte, cellOff int, probe *UnpackedIndexK
 	return cmp, full, nil
 }
 
-// indexCellLocalPayload parses an index-leaf cell header at cellOff without
-// allocating: the payload-length varint, the LOCAL payload slice (a view
-// into the page buffer, storage.LocalPayloadSize-clamped like
-// decodeIndexLeafCell) and, when the body spills, the first overflow page.
-func (t *BTree) indexCellLocalPayload(data []byte, cellOff int) (local []byte, fullLen int, ovfl uint32, err error) {
+// indexCellLocalPayload parses an index cell header at the cell's BODY offset
+// without allocating: the payload-length varint, the LOCAL payload slice (a view
+// into the page buffer, storage.LocalPayloadSize-clamped for the cell's kind
+// like decodeIndexLeafCell) and, when the body spills, the first overflow page.
+func (t *BTree) indexCellLocalPayload(data []byte, cellOff int, cellType storage.CellType) (local []byte, fullLen int, ovfl uint32, err error) {
 	if cellOff < 0 || cellOff >= len(data) {
 		return nil, 0, 0, fmt.Errorf("database disk image is malformed")
 	}
@@ -403,7 +425,7 @@ func (t *BTree) indexCellLocalPayload(data []byte, cellOff int) (local []byte, f
 	}
 	pos := cellOff + n
 	fullLen = int(plen)
-	localLen := storage.LocalPayloadSize(fullLen, int(t.usableSize), storage.CellIndexLeaf)
+	localLen := storage.LocalPayloadSize(fullLen, int(t.usableSize), cellType)
 	if pos+localLen > len(data) {
 		localLen = len(data) - pos
 	}
@@ -423,7 +445,7 @@ func (t *BTree) indexCellLocalPayload(data []byte, cellOff int) (local []byte, f
 // fullIndexCellPayload reassembles a spilling cell's payload through its
 // overflow chain (btree_overflow readOverflow). A cell that declares more
 // payload than it holds locally with no overflow pointer is malformed.
-func (t *BTree) fullIndexCellPayload(local []byte, fullLen int, ovfl uint32) ([]byte, error) {
+func (t *BTree) fullIndexCellPayload(local []byte, fullLen int, ovfl uint32, cellType storage.CellType) ([]byte, error) {
 	if ovfl == 0 {
 		if fullLen > len(local) {
 			return nil, fmt.Errorf("database disk image is malformed")
@@ -431,7 +453,7 @@ func (t *BTree) fullIndexCellPayload(local []byte, fullLen int, ovfl uint32) ([]
 		return local, nil
 	}
 	cell := &storage.Cell{
-		Type:       storage.CellIndexLeaf,
+		Type:       cellType,
 		Payload:    local,
 		PayloadLen: fullLen,
 		LocalLen:   len(local),

@@ -16,19 +16,19 @@ import (
 	"github.com/pijalu/frigolite/internal/storage"
 )
 
-// entryPayloads walks every index leaf in stored order and returns the FULL
-// payload of each entry (spilling cells reassembled). It is the walk-shaped
-// oracle the descent must agree with.
+// entryPayloads walks every index entry in key order — leaf cells AND the
+// interior pages' own cells, which are real entries — and returns the FULL
+// payload of each (spilling cells reassembled). It is the walk-shaped oracle the
+// descent must agree with.
 func entryPayloads(t *testing.T, bt *BTree) [][]byte {
 	t.Helper()
 	var out [][]byte
-	_, err := bt.walkIndexLeaves(bt.rootPage, 0, nil, func(data []byte, _ uint32, coff, cellIdx int, _ []cursorPathEntry) (bool, error) {
-		cellOff := int(storage.CellPointer(data, coff, cellIdx, int(bt.pageSize)))
-		local, fullLen, ovfl, err := bt.indexCellLocalPayload(data, cellOff)
+	_, err := bt.walkIndexLeaves(bt.rootPage, 0, nil, func(data []byte, _ uint32, cellOff, _ int, cellType storage.CellType, _ []cursorPathEntry) (bool, error) {
+		local, fullLen, ovfl, err := bt.indexCellLocalPayload(data, cellOff, cellType)
 		if err != nil {
 			return false, err
 		}
-		full, err := bt.fullIndexCellPayload(local, fullLen, ovfl)
+		full, err := bt.fullIndexCellPayload(local, fullLen, ovfl, cellType)
 		if err != nil {
 			return false, err
 		}

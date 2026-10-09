@@ -222,6 +222,7 @@ func (c *Cursor) resetFor(t *BTree) {
 	c.tx = t
 	c.pageNum = t.rootPage
 	c.cellIdx = 0
+	c.onInteriorCell = false
 	c.endOfBTree = false
 	if c.path != nil {
 		c.path = c.path[:0]

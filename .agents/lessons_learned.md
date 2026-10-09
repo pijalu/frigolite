@@ -4665,3 +4665,63 @@ NPOINT=200000 NSCAN=3 NUPDATE=100000 NDELETE=30000 NAUTO=5000, quiet).
   988,385 (+0.8%); file 11,450 vs 11,266 (+1.6%). No phase regressed;
   delete/insert carry the lever wins from their dev sessions; scan
   untouched (L2 pays only in insert-after-mutation interleavings).
+
+## R13-L7 (2026-10) — index interior cells are REAL entries now (DONE, sqlite-compatible)
+
+- **The defect, and why it was worse than a PRAGMA message**: frigolite stored every
+  index key on a LEAF and repeated one key per split as an interior "divider copy".
+  sqlite stores each index key exactly once (balance_nonroot moves a real cell per
+  boundary into the parent, `src/btree.c:8791-8849`; the cell is written to no
+  sibling page, `:8764-8767`) and counts interior index cells as entries
+  (`checkTreePage`: `if( pPage->leaf || pPage->intKey==0 ) nRow += nCell`,
+  `src/btree.c:10892`). Because sqlite answers `SELECT count(*) FROM t` **from the
+  index tree**, a frigolite-written 5000-row table reported **5049 rows** to sqlite,
+  and `PRAGMA integrity_check` said `wrong # of entries in index i1`.
+- **Implemented**: splits MOVE the boundary cell up (freeing its old overflow chain);
+  cursors surface interior cells in in-order position; seek treats an equal divider
+  as a hit; interior-entry deletion uses sqlite's predecessor move; `CountEntries`
+  is back to sqlite3BtreeCount's exact rule. Evidence: integrity_check `ok`, sqlite
+  `count(*)` = 5000, dbstat leaf cells 10002 → 9953 (the 49 dividers moved off the
+  leaves). Design record + every trap: `plan/R13_L7_INDEX_INTERIOR.md`.
+- **In-order of an interior index page is `subtree(L_0), c_0, subtree(L_1), …,
+  c_{n-1}, subtree(R)`** — NOT `c_{n-1}` last-then-subtree. Taking "the max of the
+  left subtree" as a page's last entry silently made interior keys too small, broke
+  the key order and dropped live keys (caught by the walk-order oracle in the
+  multi-level delete test at step 3000). The LAST entry of a page whose rightmost
+  subtree is empty is the page's OWN last cell.
+- **This engine keeps emptied index leaves in place** (`maybeRebalanceAfterDelete`:
+  reclaiming them needs an O(pages) parent walk), so index code paths must tolerate
+  subtrees with NO entries — sqlite never sees that case. Two consequences:
+  (a) the predecessor search needs an "empty subtree" branch (drop the slot, release
+  the empty pages) and a recursive "last entry" that handles a last entry living on
+  a descendant interior page; (b) EVERY scan-shaped reader must skip empty leaves —
+  `collectIndexEqualRun`/`skipIndexEqualRun`/`indexCursorCellPayload` reading an
+  empty leaf's stale pointer slot ended runs early, so `DELETE FROM t WHERE b=?`
+  silently missed rows (measured: 19 of 3000 rows survived). `ReadCell` already
+  skipped; the index-seek fast paths did not.
+- **Two silent-corruption traps worth remembering**: (1) `Cursor` position setters
+  that land on a leaf must clear `onInteriorCell`; a stale flag decodes a leaf cell
+  with the interior layout → `btree: corrupt index record`. (2) In-place edits to an
+  interior page must run on a by-value copy of the parsed header plus
+  `RefreshParsedBTree` — `pg.ParsedBTree` returns the pager's SHARED memo struct.
+- **Interior cell pointer arrays are at `coff+4`** (`storage.CellPointer` adds 8, and
+  an interior page prefixes the array with its 4-byte rightmost-child pointer);
+  `ReadCell` used `coff` and decoded garbage for interior positions.
+- **Splitting the boundary cell can empty a page**: greedy packing (`partitionSplitCells`)
+  routinely leaves the LAST partition with a single cell, and stripping its divider
+  wrote an EMPTY leaf where sqlite's accounting reserves the divider
+  (`balanceIndexDividerPartitions` hands the previous partition's last cell over
+  instead). Symptom: a cursor position on a 0-cell page decoded the previous
+  incarnation's bytes.
+- **Quality gate interplay**: the new machinery pushed `btree.go` past the 1000-line
+  hard max and `takeLastEntryOfSubtree` to gocognit 39 — the campaign's gate
+  (`tools/quality_gate.sh`) is enforced at completion, so the fix was split into
+  `btree_cursor_interior.go` + `takeLastLeafEntry`/`takeLastInteriorEntry`/
+  `refillOrDropInteriorSlot`/`writeSplitPartition`/`indexStepForward`/`btreeCellType`.
+- **Root-package failures are not regressions**: the full `go test .` harness band
+  and the LIKE-range pins + `TestP8IncrVacuum3OracleSequence` fail identically on the
+  stashed base (verified by stash/run/pop); compare before claiming a regression.
+- **`/tmp/r13l7` scratch module** (`replace => the repo`; `Exec` returns `*Result`
+  whose error field is `Error`) plus `sqlite3 <file> "PRAGMA integrity_check; select
+  count(*) from t; select pagetype,count(*),sum(ncell) from dbstat group by pagetype;"`
+  is the fastest oracle loop for any index-layout work.

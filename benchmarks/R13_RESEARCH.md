@@ -662,3 +662,53 @@ preparation (~3.4 allocs: `nextLiteral`/`scanNumericLiteral` boxes, `writeSlot`'
 `validateLoaded*` fingerprint pair, `dmlCanSkipSnapshot`'s table lookups) and
 the point-lane seek's cursor churn (R11 §5 #7). The update lane's remaining gap
 to sqlite is now dominated by those, not by the rowid-op write path.
+
+## L7 — index interior cells are real entries now: sqlite-compatible index b-trees (2026-10, commit with the layout evidence)
+
+The R13-L4 follow-on defect is closed. frigolite's index b-trees stored every key
+on a leaf and repeated one key per split as an interior "divider copy", while
+sqlite stores each index key exactly once — `balance_nonroot` moves one real cell
+per split boundary up into the parent (`src/btree.c:8791-8849`, the cell is
+written to no sibling page at `8764-8767`) — and counts interior index cells as
+entries (`checkTreePage`, `src/btree.c:10892`). The consequence was not merely a
+PRAGMA message: sqlite answers `SELECT count(*) FROM t` **from the index tree**,
+so a frigolite-written 5000-row table reported 5049 rows.
+
+Implemented (see `plan/R13_L7_INDEX_INTERIOR.md` for the full design record and
+the traps): the split moves the boundary cell into the parent and frees its old
+overflow chain; index cursors surface interior cells in in-order position
+(`Cursor.onInteriorCell`, `stepIntoChildAfterInterior`,
+`navigateToNextChild` divider emission, `seekInInteriorIndex` equality = hit);
+the lower-bound descent, the candidate lookup (`IndexKeyRowIDs`) and the
+exhaustive fallback walks all read interior cells; deleting an entry that lives on
+an interior page uses sqlite's predecessor move (`sqlite3BtreeDelete`,
+`src/btree.c:9877-9944`) extended to this engine's emptied-leaf subtrees; and
+`btree.CountEntries` is back to sqlite3BtreeCount's exact rule.
+
+Evidence (the objective's exact repro: 5000-row table + `CREATE INDEX i1`, file
+written by frigolite, read by sqlite 3.54.0):
+
+| reading | before | after |
+|---|---|---|
+| `PRAGMA integrity_check` | `wrong # of entries in index i1` | **ok** |
+| `SELECT count(*) FROM t` (sqlite, index-driven) | 5049 | **5000** |
+| dbstat `leaf` cells | 106 pages / 10002 | 106 pages / **9953** |
+| dbstat `internal` cells | 2 pages / 103 | 2 pages / 103 (49 index dividers moved off the leaves, so 10002-9953 = 49 keys now live in the interior) |
+
+Pin test `TestPinIndexInteriorLayout` (`frigolite_pin_index_interior_test.go`):
+pure-Go page census of the index tree (leaf cells + interior index cells == row
+count, at least one interior page holds cells) plus the sqlite3 oracle
+(`integrity_check` = ok, index-driven `count(*)` = rows), and a second phase that
+deletes every third indexed value — exercising the interior-entry predecessor
+move — and re-asserts both. Gates: `go test ./internal/...` clean, root SOLID ok,
+harness leaf counts on clean baselines unchanged (index 164 ≤ 179, delete 46 ≤ 50,
+where 87 ≤ 108), `tools/quality_gate.sh` clean on the touched files (gocognit /
+gocyclo / file-size all pass after splitting the new code into
+`btree_cursor_interior.go` and helpers).
+
+Not a performance change by intent: index inserts/splits and point ops are
+untouched (the verify command of this goal has no perf gate, and the R13-L6
+point-update lane is not on any changed path); the additions are one branch in
+`Next`/`ReadCell` for index scans, a predecessor descent only when a deleted entry
+happens to live on an interior page, and one extra page-census-free rule in
+`CountEntries`.

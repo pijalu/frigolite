@@ -29,10 +29,11 @@ func contentOffset(pageNum uint32) int {
 
 // Cursor provides sequential access to b-tree entries.
 type Cursor struct {
-	tx         *BTree // the BTree wrapper that opened this cursor (its owner)
-	pageNum    uint32 // current leaf page
-	cellIdx    int
-	endOfBTree bool
+	tx             *BTree // the BTree wrapper that opened this cursor (its owner)
+	pageNum        uint32 // current page (a leaf, or an interior page when onInteriorCell)
+	cellIdx        int
+	onInteriorCell bool // current position is an interior INDEX page's cell (a real entry)
+	endOfBTree     bool
 
 	// Path stack for multi-level tree traversal. Each entry records an
 	// interior page and the child index within it that we descended through.
@@ -318,6 +319,7 @@ func (c *Cursor) descendToFirstLeaf() error {
 			// Leaf page — done; keep the parsed header so the caller's
 			// first read skips the re-read+re-parse.
 			c.cellIdx = 0
+			c.onInteriorCell = false
 			c.endOfBTree = false
 			c.cacheLandingLeaf(pg, page)
 			return nil
@@ -381,57 +383,6 @@ func (c *Cursor) stepDownLeftmost(pg *pager.Page, page *storage.BTreePage) (uint
 	return 0, false
 }
 
-// navigateToNextChild advances the cursor to the next leaf in sequence.
-// This handles multi-level trees by walking up the path stack to find the
-// next sibling, then descending to its leftmost leaf.
-func (c *Cursor) navigateToNextChild() {
-	// Walk up the path stack to find the next child to visit
-	for len(c.path) > 0 {
-		top := &c.path[len(c.path)-1]
-
-		pg, err := c.tx.pager.ReadPage(top.pageNum)
-		if err != nil {
-			c.endOfBTree = true
-			return
-		}
-		coff := contentOffset(pg.PageNum)
-		page, err := pg.ParsedBTree(int(c.tx.pageSize), coff)
-		if err != nil {
-			c.endOfBTree = true
-			return
-		}
-
-		top.childIdx++
-		if top.childIdx < int(page.CellCount) {
-			// Navigate to cell[top.childIdx].leftChild
-			cellOff := int(storage.CellPointer(pg.Data, coff+cellPtrOffset(page.PageType)-8, top.childIdx, int(c.tx.pageSize)))
-			if cellOff < 0 || cellOff+4 > len(pg.Data) {
-				// Crafted cell pointer aimed at the page tail: stop the walk
-				// instead of slicing past the buffer; the caller's next read
-				// reports the malformed image.
-				c.endOfBTree = true
-				return
-			}
-			c.pageNum = binary.BigEndian.Uint32(pg.Data[cellOff : cellOff+4])
-			c.cellIdx = 0
-			c.endOfBTree = false
-			// Descend to leftmost leaf from here
-			c.descendToFirstLeafFromCurrent()
-			return
-		} else if top.childIdx == int(page.CellCount) {
-			// Navigate to the rightmost pointer
-			c.pageNum = page.RightmostPtr
-			c.cellIdx = 0
-			c.endOfBTree = false
-			c.descendToFirstLeafFromCurrent()
-			return
-		}
-		// This interior page is exhausted — pop and try parent
-		c.path = c.path[:len(c.path)-1]
-	}
-	c.endOfBTree = true
-}
-
 // descendToFirstLeafFromCurrent descends from the current page to the leftmost
 // leaf, pushing interior pages onto the path stack. The current page may be
 // a leaf or interior. Like descendToFirstLeaf, interior headers parse into a
@@ -452,6 +403,7 @@ func (c *Cursor) descendToFirstLeafFromCurrent() {
 		}
 		if !pageIsInterior(page.PageType) {
 			// Leaf — cache the parsed header for the next read.
+			c.onInteriorCell = false
 			c.cacheLandingLeaf(pg, page)
 			return
 		}
@@ -472,39 +424,12 @@ func (t *BTree) RootPage() uint32 {
 	return t.rootPage
 }
 
-// RootPageType returns the b-tree page type byte of the root page
-// (storage.PageTypeLeafTable / PageTypeLeafIndex / interior variants).
-// Callers use it to distinguish legacy table-leaf WITHOUT ROWID roots
-// (0x0D, declared-order records) from index-leaf roots (0x0A, PK-first).
-func (c *Cursor) RootPageType() byte {
-	return c.tx.RootPageType()
-}
-
-func (t *BTree) RootPageType() byte {
-	pg, err := t.pager.ReadPage(t.rootPage)
-	if err != nil || len(pg.Data) == 0 {
-		return 0
-	}
-	off := 0
-	if t.rootPage == 1 {
-		off = 100
-	}
-	if off >= len(pg.Data) {
-		return 0
-	}
-	return pg.Data[off]
-}
-
-// Clear empties the b-tree, resetting the root page to a single empty leaf
-// (SQLite's sqlite3BtreeClearTable / the btree root becoming an empty leaf).
-// The old interior nodes and leaf pages are left allocated (their content is
-// overwritten by future inserts); only the root page is rewritten, so the
 // schema's rootpage stays valid and the tree is structurally clean — a
 // per-row DELETE leaves stale interior boundary keys that make SeekToRowID
 // miss rows after the table is repopulated (fts4merge4's between-scenario
 // DELETE FROM %_segments: 72 of 187 blocks became unfindable).
 func (t *BTree) Clear() error {
-	t.saveAllCursors() // btree.c saveAllCursors on the clearTable path
+	t.saveAllCursors()         // btree.c saveAllCursors on the clearTable path
 	t.invalidateAppendCursor() // a cleared tree has no rightmost leaf
 	pg, err := t.pager.ReadPage(t.rootPage)
 	if err != nil {
@@ -535,6 +460,38 @@ func (t *BTree) Clear() error {
 	}
 	return t.pager.WritePage(pg)
 }
+
+// navigateToNextChild advances the cursor to the next leaf in sequence.
+// This handles multi-level trees by walking up the path stack to find the
+// next sibling, then descending to its leftmost leaf.
+
+// RootPageType returns the b-tree page type byte of the root page
+// (storage.PageTypeLeafTable / PageTypeLeafIndex / interior variants).
+// Callers use it to distinguish legacy table-leaf WITHOUT ROWID roots
+// (0x0D, declared-order records) from index-leaf roots (0x0A, PK-first).
+func (c *Cursor) RootPageType() byte {
+	return c.tx.RootPageType()
+}
+
+func (t *BTree) RootPageType() byte {
+	pg, err := t.pager.ReadPage(t.rootPage)
+	if err != nil || len(pg.Data) == 0 {
+		return 0
+	}
+	off := 0
+	if t.rootPage == 1 {
+		off = 100
+	}
+	if off >= len(pg.Data) {
+		return 0
+	}
+	return pg.Data[off]
+}
+
+// Clear empties the b-tree, resetting the root page to a single empty leaf
+// (SQLite's sqlite3BtreeClearTable / the btree root becoming an empty leaf).
+// The old interior nodes and leaf pages are left allocated (their content is
+// overwritten by future inserts); only the root page is rewritten, so the
 
 // checkOpen reports an error when the cursor's owning wrapper has been
 // closed (statement teardown released it). A released cursor's pages may
@@ -626,6 +583,7 @@ func (c *Cursor) seekInLeafTable(pg *pager.Page, page *storage.BTreePage, rowID 
 		default:
 			c.pageNum = pg.PageNum
 			c.cellIdx = mid
+			c.onInteriorCell = false
 			c.endOfBTree = false
 			return true, nil
 		}
@@ -634,6 +592,7 @@ func (c *Cursor) seekInLeafTable(pg *pager.Page, page *storage.BTreePage, rowID 
 	// Not found, position at insertion point
 	c.pageNum = pg.PageNum
 	c.cellIdx = lo
+	c.onInteriorCell = false
 	c.endOfBTree = lo > int(page.CellCount)-1
 	return false, nil
 }
@@ -685,22 +644,24 @@ func (c *Cursor) seekInLeafIndex(pg *pager.Page, page *storage.BTreePage, key []
 		default:
 			c.pageNum = pg.PageNum
 			c.cellIdx = mid
+			c.onInteriorCell = false
 			c.endOfBTree = false
 			return true, nil
 		}
 	}
 	c.pageNum = pg.PageNum
 	c.cellIdx = lo
+	c.onInteriorCell = false
 	c.endOfBTree = lo > int(page.CellCount)-1
 	return false, nil
 }
 
 // seekInInteriorIndex routes a key probe through an interior index page.
-// Divider convention (splitMedianKey): the left subtree of divider D holds
-// keys < D and D's right subtree holds keys >= D — the divider is a COPY of
-// the right sibling's first key, so a key EQUAL to a divider lives in the
-// right subtree and the probe must go right on equality too (first divider
-// with key < D takes its left child; past every divider, the rightmost).
+// Divider convention (sqlite's balance_nonroot, plan/R13_L7_INDEX_INTERIOR.md
+// §0.1): the left subtree of divider D holds keys < D, D's right subtree holds
+// keys > D, and D ITSELF is an entry — the split MOVED the right sibling's
+// first cell up into the parent instead of copying it, so a key equal to a
+// divider is found here, on the interior page, not in a leaf.
 func (c *Cursor) seekInInteriorIndex(pg *pager.Page, page *storage.BTreePage, key []byte) (bool, error) {
 	lo, hi := 0, int(page.CellCount)-1
 	childPage := page.RightmostPtr
@@ -717,11 +678,22 @@ func (c *Cursor) seekInInteriorIndex(pg *pager.Page, page *storage.BTreePage, ke
 		if oerr != nil {
 			return false, oerr
 		}
-		if c.tx.compareKey(full.Payload, key) <= 0 {
+		switch cmp := c.tx.compareKey(full.Payload, key); {
+		case cmp < 0:
 			lo = mid + 1
-		} else {
+		case cmp > 0:
 			childPage = sc.LeftPtr
 			hi = mid - 1
+		default:
+			// The divider IS the entry: park the cursor on the interior
+			// cell (ReadCell decodes CellIndexInterior and reassembles the
+			// payload chain, and Next() continues in-order from here).
+			c.pageNum = pg.PageNum
+			c.cellIdx = mid
+			c.onInteriorCell = true
+			c.endOfBTree = false
+			c.clearPageCache()
+			return true, nil
 		}
 	}
 	return c.seekKeyInPage(childPage, key)
@@ -742,6 +714,13 @@ func (c *Cursor) Next() (bool, error) {
 		// entry and THAT entry is the Next result — do not step past it.
 		c.skipNext = 0
 		return true, nil
+	}
+
+	// An interior index cell is a real entry: in-order, the entries that
+	// follow it live in the next child's subtree (sqlite's btreeNext leaves
+	// the cell and moves into apPage[iPage]->apCell[ix+1]'s left child).
+	if c.onInteriorCell {
+		return c.stepIntoChildAfterInterior()
 	}
 
 	if err := c.cachePage(); err != nil {
@@ -801,50 +780,25 @@ func (c *Cursor) ReadCell() (*storage.Cell, error) {
 		return nil, fmt.Errorf("btree: cell index %d out of range (count %d)", c.cellIdx, page.CellCount)
 	}
 
-	var cellType storage.CellType
-	switch page.PageType {
-	case storage.PageTypeLeafTable:
-		cellType = storage.CellTableLeaf
-	case storage.PageTypeLeafIndex:
-		cellType = storage.CellIndexLeaf
-	case storage.PageTypeInteriorTable:
-		cellType = storage.CellTableInterior
-	case storage.PageTypeInteriorIndex:
-		cellType = storage.CellIndexInterior
-	default:
-		return nil, fmt.Errorf("btree: unknown page type 0x%02x", page.PageType)
+	cellType, terr := btreeCellType(page.PageType)
+	if terr != nil {
+		return nil, terr
 	}
 
-	cellOff := int(storage.CellPointer(pg.Data, contentOffset(pg.PageNum), c.cellIdx, int(c.tx.pageSize)))
+	// The cell-pointer array sits after the 8-byte leaf header; an interior
+	// page prefixes it with its 4-byte rightmost-child pointer (CellPointer
+	// adds 8 to its base argument, so interior pages pass coff+4).
+	ptrBase := contentOffset(pg.PageNum)
+	if pageIsInterior(page.PageType) {
+		ptrBase += 4
+	}
+	cellOff := int(storage.CellPointer(pg.Data, ptrBase, c.cellIdx, int(c.tx.pageSize)))
 
 	cell, err := storage.DecodeCell(pg.Data, cellOff, cellType, int(c.tx.usableSize))
 	if err != nil {
 		return nil, err
 	}
 	return c.tx.readOverflow(cell)
-}
-
-// skipEmptyLeaves advances the cursor past any empty leaf pages at the
-// current position. The engine keeps empty leaves in the tree after deletes
-// (it does not rebalance), so scans must skip them rather than stop early.
-func (c *Cursor) skipEmptyLeaves() error {
-	for {
-		if err := c.cachePage(); err != nil {
-			return err
-		}
-		page := c.currentPage
-		if page.CellCount != 0 ||
-			(page.PageType != storage.PageTypeLeafTable && page.PageType != storage.PageTypeLeafIndex) {
-			return nil
-		}
-		// Empty leaf: move to the next child in the tree.
-		c.cellIdx = 0
-		c.clearPageCache()
-		c.navigateToNextChild()
-		if c.endOfBTree {
-			return fmt.Errorf("btree: cursor at end")
-		}
-	}
 }
 
 // ReadCellData reads the current cell's payload data and rowID for table leaf
@@ -911,6 +865,22 @@ func (c *Cursor) readCellFallback() ([]byte, int64, error) {
 	return cell.Payload, cell.RowID, nil
 }
 
+// btreeCellType maps a b-tree page type byte to the cell kind its cells use.
+func btreeCellType(pageType byte) (storage.CellType, error) {
+	switch pageType {
+	case storage.PageTypeLeafTable:
+		return storage.CellTableLeaf, nil
+	case storage.PageTypeLeafIndex:
+		return storage.CellIndexLeaf, nil
+	case storage.PageTypeInteriorTable:
+		return storage.CellTableInterior, nil
+	case storage.PageTypeInteriorIndex:
+		return storage.CellIndexInterior, nil
+	default:
+		return 0, fmt.Errorf("btree: unknown page type 0x%02x", pageType)
+	}
+}
+
 // leafHasRoom reports whether a leaf page can plausibly hold the given cell
 // data: either the gap between the cell-pointer array and the content area
 // fits cell+pointer directly, or the page carries freeblocks/fragments whose
@@ -938,7 +908,7 @@ func leafHasRoom(pg *pager.Page, page *storage.BTreePage, cellData []byte, coff 
 // surviving cells are compacted with exact free-space accounting
 // (defragmentPage parity).
 func (t *BTree) DeleteCell(cellIdx int) error {
-	t.saveAllCursors() // btree.c saveAllCursors on the dropCell path
+	t.saveAllCursors()         // btree.c saveAllCursors on the dropCell path
 	t.invalidateAppendCursor() // a delete may remove the maximum key
 	pg, err := t.pager.ReadPage(t.rootPage)
 	if err != nil {

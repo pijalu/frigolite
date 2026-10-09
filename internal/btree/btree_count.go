@@ -19,17 +19,12 @@ import (
 // countMaxDepth caps the interior descent (corrupt child cycles).
 const countMaxDepth = 64
 
-// CountEntries returns the number of entries in the b-tree: the sum of the
-// LEAF pages' cell counts.
-//
-// This deviates from sqlite3BtreeCount's `if( pPage->leaf || !pPage->intKey )`
-// rule (btree.c:10487) on purpose: sqlite stores index interior cells as real
-// entries, while frigolite's index interior cells are divider COPIES of the
-// right sibling's first key (splitMedianKey, btree_interior_page.go) — an
-// interior index page's nCell is therefore not an entry. Counting it would
-// over-count by the divider total (measured: 1200-row WITHOUT ROWID table with
-// 15 dividers reported 1215). Table interior cells hold rowid separators in
-// both layouts, so they are likewise not entries.
+// CountEntries returns the number of entries in the b-tree: the exact port of
+// sqlite3BtreeCount's rule (btree.c:10487) — every LEAF page contributes its
+// cell count, and so does every INTERIOR INDEX page, because an index b-tree's
+// interior cells are real entries (balance_nonroot moves one cell per split
+// boundary up into the parent; see plan/R13_L7_INDEX_INTERIOR.md). Interior
+// TABLE cells are rowid separators in both layouts and are not entries.
 //
 // Malformed pages are reported rather than counted: callers fall back to the
 // scan, which surfaces the same corruption.
@@ -54,13 +49,16 @@ func (t *BTree) countPageEntries(pageNum uint32, depth int, n *int64) error {
 	if err != nil {
 		return err
 	}
-	leaf := page.PageType == storage.PageTypeLeafTable || page.PageType == storage.PageTypeLeafIndex
-	if leaf {
+	switch page.PageType {
+	case storage.PageTypeLeafTable, storage.PageTypeLeafIndex, storage.PageTypeInteriorIndex:
 		*n += int64(page.CellCount)
-		return nil
-	}
-	if page.PageType != storage.PageTypeInteriorTable && page.PageType != storage.PageTypeInteriorIndex {
+	case storage.PageTypeInteriorTable:
+		// Rowid separators: not entries.
+	default:
 		return fmt.Errorf("btree: unexpected page type 0x%02x for count", page.PageType)
+	}
+	if page.PageType == storage.PageTypeLeafTable || page.PageType == storage.PageTypeLeafIndex {
+		return nil
 	}
 	for i := 0; i < int(page.CellCount); i++ {
 		child, cerr := interiorChildPtr(pg, page, coff, i, int(t.pageSize))

@@ -54,24 +54,21 @@ func (c *Cursor) indexLowerBoundScan(cmp indexCellCompare) (bool, error) {
 
 // advanceIndexLowerBound walks forward from the descent's landing position to
 // the first entry whose comparison is >= 0: within a leaf one cell at a time,
-// across leaves through the path stack (_indexLowerBoundScan's contract allows
-// the landing leaf to hold no such cell).
+// across leaves (and across the interior pages' own entries) through the cursor
+// (_indexLowerBoundScan's contract allows the landing leaf to hold no such
+// cell, and the run may continue on an ancestor's divider).
 func (c *Cursor) advanceIndexLowerBound(cmp indexCellCompare) (bool, error) {
 	for !c.endOfBTree {
 		rc, has, err := c.currentIndexCellCompare(cmp)
 		if err != nil {
 			return false, err
 		}
-		if has {
-			if rc >= 0 {
-				return true, nil
-			}
-			c.cellIdx++
-			continue
+		if has && rc >= 0 {
+			return true, nil
 		}
-		ok, err := c.Next()
-		if err != nil {
-			return false, err
+		ok, serr := c.indexStepForward(has)
+		if serr != nil {
+			return false, serr
 		}
 		if !ok {
 			return false, nil
@@ -80,31 +77,69 @@ func (c *Cursor) advanceIndexLowerBound(cmp indexCellCompare) (bool, error) {
 	return false, nil
 }
 
-// currentIndexCellCompare compares the index-leaf cell at the cursor's
-// position; has=false reports the position is past the leaf's last cell.
+// indexStepForward moves the cursor one entry forward from its current position.
+// hasCell reports whether the position addresses a cell that sorts BEFORE the
+// probe: that cell is skipped with a plain cellIdx++ on a leaf, while an
+// INTERIOR entry's in-order successor is the next child's subtree, never the next
+// cell of the same page (a cellIdx++ there would read the following divider out
+// of order and skip the whole subtree between the two).
+func (c *Cursor) indexStepForward(hasCell bool) (bool, error) {
+	if hasCell && !c.onInteriorCell {
+		c.cellIdx++
+		return true, nil
+	}
+	return c.Next()
+}
+
+// currentIndexCellCompare compares the index cell at the cursor's position;
+// has=false reports the position is past the page's last cell. The position may
+// be an interior page's cell (a real entry — balance_nonroot moves one cell per
+// split boundary up into the parent), in which case the compare is driven with
+// storage.CellIndexInterior and the cell body sits after the 4-byte child
+// pointer.
 func (c *Cursor) currentIndexCellCompare(cmp indexCellCompare) (rc int, has bool, err error) {
-	pg, page, err := c.indexLeaf()
+	pg, page, cellType, err := c.indexPageAt()
 	if err != nil {
 		return 0, false, err
 	}
 	if c.cellIdx >= int(page.CellCount) {
 		return 0, false, nil
 	}
-	cellOff := int(storage.CellPointer(pg.Data, contentOffset(pg.PageNum), c.cellIdx, int(c.tx.pageSize)))
-	rc, err = cmp(pg.Data, cellOff, storage.CellIndexLeaf)
+	cellOff := indexCellOffset(pg, page, cellType, c.cellIdx, int(c.tx.pageSize))
+	rc, err = cmp(pg.Data, cellOff, cellType)
 	return rc, err == nil, err
 }
 
-// indexLeaf caches and validates the cursor's current page as an index leaf.
-func (c *Cursor) indexLeaf() (*pager.Page, *storage.BTreePage, error) {
+// indexPageAt caches the cursor's current page and reports the kind of cell the
+// position addresses: an interior index page's cell when the cursor sits on an
+// interior entry (onInteriorCell), a leaf cell otherwise.
+func (c *Cursor) indexPageAt() (*pager.Page, *storage.BTreePage, storage.CellType, error) {
 	if err := c.cachePage(); err != nil {
-		return nil, nil, err
+		return nil, nil, 0, err
 	}
 	page := c.currentPage
-	if page.PageType != storage.PageTypeLeafIndex {
-		return nil, nil, fmt.Errorf("btree: unexpected page type 0x%02x for index seek", page.PageType)
+	switch page.PageType {
+	case storage.PageTypeLeafIndex:
+		return c.currentPg, page, storage.CellIndexLeaf, nil
+	case storage.PageTypeInteriorIndex:
+		return c.currentPg, page, storage.CellIndexInterior, nil
+	default:
+		return nil, nil, 0, fmt.Errorf("btree: unexpected page type 0x%02x for index seek", page.PageType)
 	}
-	return c.currentPg, page, nil
+}
+
+// indexCellOffset returns the offset of the cell addressed by idx for a page of
+// the given cell kind. A leaf's cell pointers address the cell body directly; an
+// interior cell's pointer addresses its 4-byte left-child pointer, whose offset
+// is what DecodeCell(CellIndexInterior) and the comparison helpers expect.
+// (storage.CellPointer adds 8 to its base argument, so an interior page's
+// pointer array is addressed at coff+4.)
+func indexCellOffset(pg *pager.Page, page *storage.BTreePage, cellType storage.CellType, idx, pageSize int) int {
+	coff := contentOffset(pg.PageNum)
+	if cellType == storage.CellIndexInterior {
+		return int(storage.CellPointer(pg.Data, coff+4, idx, pageSize))
+	}
+	return int(storage.CellPointer(pg.Data, coff, idx, pageSize))
 }
 
 // descendIndexLowerBound walks from the root to the leaf that holds the lower
@@ -162,6 +197,7 @@ func (c *Cursor) landIndexLowerBoundLeaf(pg *pager.Page, page *storage.BTreePage
 	}
 	c.pageNum = pg.PageNum
 	c.cellIdx = idx
+	c.onInteriorCell = false
 	return nil
 }
 
