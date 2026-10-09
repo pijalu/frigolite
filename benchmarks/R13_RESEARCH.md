@@ -712,3 +712,38 @@ point-update lane is not on any changed path); the additions are one branch in
 `Next`/`ReadCell` for index scans, a predecessor descent only when a deleted entry
 happens to live on an interior page, and one extra page-census-free rule in
 `CountEntries`.
+
+### L7 performance check (same-session paired, `-index -reps 5`, 3 blocks per side)
+
+`benchmarks/perfbench/frigolite -index -reps 5`, medians of 3 alternating blocks,
+L7 (`ad651f09d`) vs the pre-L7 base (`f163f1550`) — box loaded (load avg ~4.8), so
+the plain-run phases drift up to 30% between blocks; the `-index` phases were
+stable and are the ones L7 touches.
+
+| phase (ops/s) | base f163f1550 | L7 ad651f09d | delta |
+|---|---|---|---|
+| point-select | 972 788 | 983 885 | +1.1% |
+| point-update | 574 988 | 573 137 | -0.3% |
+| point-delete | 259 327 | 261 291 | +0.8% |
+| insert (incl. index maintenance) | 306 880 | 305 335 | -0.5% |
+| indexed-select | 192 922 | 191 603 | -0.7% |
+| indexed-update | 179 471 | 178 639 | -0.5% |
+| indexed-delete | 333 797 | 329 453 | -1.3% |
+| scan | 24 992 398 | 25 036 616 | +0.2% |
+| group-by | 92 | 92 | 0% |
+| count-star | 1 436 352 354 | 1 416 179 855 | -1.4% |
+| file-insert | 11 840 | 11 915 | +0.6% |
+
+Delta signs are mixed and every phase sits inside its own block-to-block spread
+(L7 count-star samples alone span 1.397–1.437e9), so the verdict is FLAT: the
+sqlite-faithful index layout costs nothing measurable on the lanes the ledger
+tracks. Same-session sqlite 3.54.0 reference on this box (`-reps 5 -index`):
+point-select 860 150, point-update 883 267, point-delete 744 930, indexed-select
+727 766, indexed-update 680 673, indexed-delete 942 692, insert 987 790, scan
+74 532 538, group-by 272, file-insert 5 123 — i.e. the L7 change does not move
+any of the R13 ratios.
+
+NOTE (L6 gate): on this loaded session neither tree reaches the recorded
+`point-update >= 6e5` gate value (base 574 988 / L7 573 137, -0.3%); the L6
+handover's 637 000–662 000 numbers were taken on a quiet box. Parity is intact in
+either environment.
