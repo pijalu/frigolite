@@ -321,7 +321,7 @@ func (e *DMLExecutor) writeIndexCell(def indexDef, colDefs []sql.ColumnDef, inde
 	// SQLite orders index b-trees by the keys' collations at insert time
 	// (OP_IdxInsert → sqlite3BtreeIndexMoveto under the index's KeyInfo):
 	// install the collation-aware comparator before the insert.
-	installIndexOrder(idxTree, def.SQL, colDefs, e.collationLookup())
+	e.ikiOrder(idxTree, def, colDefs, e.collationLookup())
 	if err := idxTree.InsertCell(idxCell); err != nil {
 		return err
 	}

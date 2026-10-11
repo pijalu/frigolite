@@ -45,7 +45,38 @@ func installIndexOrder(tree *btree.BTree, indexSQL string, colDefs []sql.ColumnD
 	if ki == nil {
 		return
 	}
-	tree.SetIndexKeyInfo(ki, func(name string) (util.CollationFunc, bool) {
+	tree.SetIndexKeyInfo(ki, indexOrderLookup(lookup))
+}
+
+// ikiOrder is installIndexOrder's memoizing form: same installed comparator,
+// but the KeyInfo of the last index write is reused. It is the per-index-cell
+// write path's hot call — the R14 profile put the CREATE INDEX re-parse at
+// ~20% of an INSERT's cumulated allocation work.
+//
+// The memo key is (schema stamp, DatabaseContext, indexName): RootPage alone
+// cannot key it because an index name can be reused across ATTACHed schemas
+// (backup-2.x copies a second database whose indexes share MAIN's names), so
+// the owning context and the name are both part of the identity. The stamp
+// bounds the lifetime: a DROP/CREATE of any index in any database retires the
+// entry.
+func (e *DMLExecutor) ikiOrder(tree *btree.BTree, def indexDef, colDefs []sql.ColumnDef, lookup func(string) func(a, b string) int) {
+	stamp := e.databasesSchemaStamp()
+	if e.ikiStamp == stamp && e.ikiCtx == def.Ctx && e.ikiName == def.Name {
+		tree.SetIndexKeyInfo(e.ikiVal, indexOrderLookup(lookup))
+		return
+	}
+	ki := IndexKeyInfo(def.SQL, colDefs, lookup)
+	if ki == nil {
+		return
+	}
+	tree.SetIndexKeyInfo(ki, indexOrderLookup(lookup))
+	e.ikiStamp, e.ikiCtx, e.ikiName, e.ikiVal = stamp, def.Ctx, def.Name, ki
+}
+
+// indexOrderLookup adapts the collation registry to btree's CollationLookup
+// (the adapter SetIndexKeyInfo installs alongside the comparator).
+func indexOrderLookup(lookup func(string) func(a, b string) int) btree.CollationLookup {
+	return func(name string) (util.CollationFunc, bool) {
 		if lookup == nil {
 			return nil, false
 		}
@@ -53,7 +84,7 @@ func installIndexOrder(tree *btree.BTree, indexSQL string, colDefs []sql.ColumnD
 			return util.CollationFunc(fn), true
 		}
 		return nil, false
-	})
+	}
 }
 
 // collationLookup exposes the context's collation registry in the native

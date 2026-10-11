@@ -316,6 +316,17 @@ type DMLExecutor struct {
 	atiStamp uint64
 	atiDefs  []indexDef
 
+	// The iki* slot memoizes the KeyInfo ikiOrder installs. IndexKeyInfo
+	// re-parses the stored CREATE INDEX text (column list, per-column
+	// COLLATE, sort flags) to build it, and that is a pure function of the
+	// schema — so the cross-database schema stamp plus the owning context
+	// and index name make one parse per index serve every statement instead
+	// of parsing on every index-cell write.
+	ikiStamp uint64
+	ikiCtx   *DatabaseContext
+	ikiName  string
+	ikiVal   *btree.KeyInfo
+
 	// dmlStmtSeq/fpSeq/fpCache memoize the schema fingerprint per DML
 	// statement (schemaFingerprint): the memo guards read it several times
 	// per statement and the schema is frozen mid-statement.
