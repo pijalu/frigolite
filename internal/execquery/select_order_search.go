@@ -48,12 +48,12 @@ type scanLoop struct {
 // planSingleTable renders (mirroring its decision order exactly — where.c
 // computes the loop once and both the plan and the ORDER BY analysis consume
 // it).
-func (e *SelectEngine) scanLoopForQuery(t queryTable, s *sql.SelectStmt) scanLoop {
+func (e *SelectEngine) scanLoopForQuery(t queryTable, s *sql.SelectStmt, wantConditions bool) scanLoop {
 	nRow := e.tableRowCount(t.display)
 	if nRow == 0 {
 		nRow = defaultPlanRowCount // default estimate
 	}
-	return e.scanLoopForRowCount(t, s, nRow)
+	return e.scanLoopForRowCount(t, s, nRow, wantConditions)
 }
 
 // defaultPlanRowCount is the planner's default row-count estimate for a table
@@ -65,11 +65,11 @@ const defaultPlanRowCount = 1000000
 // SCALED row count yields the same index choice, seek threshold and
 // tie-breaks while skipping the planner's per-statement b-tree page walk —
 // the seek path re-derives the loop for every statement it serves.
-func (e *SelectEngine) scanLoopForRowCount(t queryTable, s *sql.SelectStmt, nRow int64) scanLoop {
+func (e *SelectEngine) scanLoopForRowCount(t queryTable, s *sql.SelectStmt, nRow int64, wantConditions bool) scanLoop {
 	loop := scanLoop{bestEst: float64(nRow), nRow: float64(nRow)}
 	bestIndex := ""
 	if s.Where != nil {
-		bestIndex, _, loop = e.whereScanLoop(t, s, loop, nRow)
+		bestIndex, _, loop = e.whereScanLoop(t, s, loop, nRow, wantConditions)
 		if loop.kind != loopNone {
 			return loop
 		}
@@ -87,9 +87,9 @@ func (e *SelectEngine) scanLoopForRowCount(t queryTable, s *sql.SelectStmt, nRow
 // Returns the best-index rendering inputs alongside; a loopNone result falls
 // through to the ORDER BY / GROUP BY index walks. rowCount is the loop's
 // planning row count (the caller's scale).
-func (e *SelectEngine) whereScanLoop(t queryTable, s *sql.SelectStmt, loop scanLoop, rowCount int64) (string, string, scanLoop) {
+func (e *SelectEngine) whereScanLoop(t queryTable, s *sql.SelectStmt, loop scanLoop, rowCount int64, wantConditions bool) (string, string, scanLoop) {
 	ret := loop
-	bestIndex, conditions := e.bestIndexForRowCount(t.display, s.Where, &ret.bestEst, rowCount)
+	bestIndex, conditions := e.bestIndexForRowCount(t.display, s.Where, &ret.bestEst, rowCount, wantConditions)
 	if ss := e.trySkipScanPlan(t.display, s.Where, ret.bestEst); ss != nil {
 		ret.kind, ret.token, ret.seek, ret.conditions = loopSkipScan, ss.indexName, true, ss.conditions
 		return bestIndex, conditions, ret
@@ -588,7 +588,7 @@ func (e *SelectEngine) loopOrderedEmission(s *sql.SelectStmt) (idxName string, b
 	if len(e.withoutRowidPKCols(s.From.Name)) > 0 {
 		return "", false, false
 	}
-	loop := e.scanLoopForQuery(queryTableFromRef(s.From), s)
+	loop := e.scanLoopForQuery(queryTableFromRef(s.From), s, false)
 	if loop.kind != loopIndex {
 		return "", false, false
 	}

@@ -67,7 +67,7 @@ func (e *SelectEngine) selectIndexSeekPlanFor(s *sql.SelectStmt, tableEntry *sch
 	if !indexSeekShapeApplies(s, tableEntry) || e.ctx.TableIsWithoutRowidEntry(tableEntry) {
 		return nil
 	}
-	loop := e.scanLoopForRowCount(queryTableFromRef(s.From), s, indexSeekPlanRowCount)
+	loop := e.scanLoopForRowCount(queryTableFromRef(s.From), s, indexSeekPlanRowCount, false)
 	if loop.kind != loopIndex || !loop.seek || loop.token == "PRIMARY KEY" {
 		return nil
 	}

@@ -14,8 +14,9 @@ import (
 
 // bestIndexForQuery examines the WHERE clause and returns the best index name,
 // estimated row count, and formatted column conditions for the plan output.
+// It always renders the conditions: the caller is EXPLAIN QUERY PLAN.
 func (e *SelectEngine) bestIndexForQuery(tableName string, where sql.Expr, estimate *float64) (string, string) {
-	return e.bestIndexForRowCount(tableName, where, estimate, e.tableRowCount(tableName))
+	return e.bestIndexForRowCount(tableName, where, estimate, e.tableRowCount(tableName), true)
 }
 
 // bestIndexForRowCount is bestIndexForQuery with a caller-supplied row count:
@@ -23,7 +24,15 @@ func (e *SelectEngine) bestIndexForQuery(tableName string, where sql.Expr, estim
 // selects the same index, tie-breaks the same way and applies the same
 // selectivity threshold while skipping the planner's per-statement b-tree
 // page walk (the seek path re-derives the index choice per statement).
-func (e *SelectEngine) bestIndexForRowCount(tableName string, where sql.Expr, estimate *float64, rowCount int64) (string, string) {
+//
+// wantConditions=false skips building the EQP constraint list: the seek
+// executor decides on the index name and reads its bound values from the WHERE
+// AST itself, so the rendered "(b=?)" text is EXPLAIN-only. Collecting the
+// best index's refs and formatting them cost ~10% of an indexed SELECT's
+// allocations (alloc profile: refsForBestIndex's where walk plus
+// formatConditions' strings.Builder/Sprintf/error chain), so on that path the
+// second return value is the empty string.
+func (e *SelectEngine) bestIndexForRowCount(tableName string, where sql.Expr, estimate *float64, rowCount int64, wantConditions bool) (string, string) {
 	// Collect all column references with their operators
 	refs := collectIndexedRefs(where, tableName, e)
 	if len(refs) == 0 {
@@ -59,7 +68,7 @@ func (e *SelectEngine) bestIndexForRowCount(tableName string, where sql.Expr, es
 	// column satisfied by the query, so a constraint on a column outside the
 	// index never appears (analyze7-2.3 "SEARCH t1 USING INDEX t1a (a=?)" for
 	// "WHERE a=123 AND b=123" — b is not in t1a and is not listed).
-	if bestName != "" {
+	if bestName != "" && wantConditions {
 		bestRefs = e.refsForBestIndex(refs, where, tableName, bestName)
 	}
 	*estimate = bestEst

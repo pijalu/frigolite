@@ -26,7 +26,7 @@ func (e *SelectEngine) planSingleTable(t queryTable, s *sql.SelectStmt) (string,
 	if plan := e.vtabExplainPlan(t, s); plan != "" {
 		return plan, scanLoop{kind: loopVtab}
 	}
-	loop := e.scanLoopForQuery(t, s)
+	loop := e.scanLoopForQuery(t, s, true)
 	switch loop.kind {
 	case loopSkipScan, loopIndex:
 		if loop.seek {
