@@ -419,3 +419,50 @@ FRIGOLITE_TEST=where  go test -run TestSQLiteSuite
 
 All quantities in this document come from those commands run against the frozen base
 `57513ad6`; see `.agents/R13_RESEARCH.md` for the R13 baselines this document continues.
+
+---
+
+## 9. Implementation status (branch `feature/perf`)
+
+Four of the §7 levers are landed, each measured against the pre-change base
+with paired runs on the same 50k-row table and validated for behavior identity.
+
+| Commit | Lever | Lane | Measured result |
+|---|---|---|---|
+| `72ea84e07` PERF.R14-1 | indexed UPDATE positioned deletes (§3) | UPDATE | **239 → 86k ops/s (~360×)**; allocations 24,222 → 147/op, bytes 14.4 MB → 9.2 KB |
+| `72ea84e07` PERF.R14-1 | UNIQUE conflict by index seek (§4.1) | INSERT | unique-index bulk load **903 → 6.1 µs/row (148×)** |
+| `11be1c859` PERF.R14-3 | EQP-only condition text not built on the seek path (§5.3) | SELECT | **178–184k → 190–197k ops/s (+5–10 %)**; allocs 149.1 → 135.1/op |
+| `cf0026413` PERF.R14-4 | installed index `KeyInfo` cached per (schema, ctx, index) (§7 #6) | INSERT | **178–180k → 190–192k ops/s (+6.5–7.5 %)**; allocs 229.2 → 214.2/op |
+| `621793779` PERF.R14-5 | UNIQUE-conflict probe shares the `KeyInfo` memo (§7 #4/#6) | INSERT | **181k → 219k ops/s (+21 %)**; allocs 214.2 → 184.2/op |
+
+Net on the three focus lanes, base → current:
+
+| lane | base | current | gain |
+|---|---|---|---|
+| `UPDATE … WHERE b=?` | 239 ops/s | ~88k ops/s | **~360×** |
+| `SELECT a FROM t WHERE b=?` | 165k ops/s | 196k ops/s | +19 % |
+| `INSERT` with unique index | 178k ops/s | 219k ops/s | +23 % |
+
+sqlite references for the same shapes: UPDATE 681k, SELECT 742k, INSERT 949k ops/s.
+
+Validation used for every landed change (recorded per commit):
+
+- `go test` for `internal/execdml`, `internal/exec`, `internal/btree`,
+  `internal/execquery`, plus the module-root Go tests.
+- JSON harness families `index`, `insert`, `update`, `delete`, `collate`,
+  `reindex`, `conflict`, `upsert`, `explain`, `where`, `analyze`, `select`:
+  **identical failing-leaf sets** against the pre-change base (the failures are
+  the pre-existing excluded `bestindex*`/`index7` families, present in both).
+- `EXPLAIN QUERY PLAN` output diffed byte-for-byte over 10 plan shapes.
+- Byte-identical on-disk databases (`cmp -s` + sha256) across inserts,
+  size-changing/shrinking/rowid-move updates, deletes, UNIQUE conflicts and
+  multiple-NULL inserts.
+
+### Remaining levers (not implemented)
+
+§7 items #5 (cache WHERE-ref analysis, ~30 % of indexed-SELECT allocations),
+#7 (`buildRowMapFromValues` → slice lookup, 16 % of INSERT objects),
+#8 (decode-free comparison on the read side, ~20 % of indexed-SELECT
+allocations). The next-biggest measured cost is `findChildIndexForInsert`
+at 10.2 % of INSERT CPU, whose `DecodeRecord` work is the same
+decode-boxing §4.2 removed on the write side.
