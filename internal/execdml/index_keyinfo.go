@@ -48,6 +48,23 @@ func installIndexOrder(tree *btree.BTree, indexSQL string, colDefs []sql.ColumnD
 	tree.SetIndexKeyInfo(ki, indexOrderLookup(lookup))
 }
 
+// ikiKeyInfo is ikiOrder's read-only form: the memoized KeyInfo for
+// (schema stamp, context, index name) without installing it anywhere. It lets
+// a reader that needs the KeyInfo (the UNIQUE-conflict probe) share the parse
+// with the write path's installed comparator.
+func (e *DMLExecutor) ikiKeyInfo(def indexDef, colDefs []sql.ColumnDef, lookup func(string) func(a, b string) int) *btree.KeyInfo {
+	stamp := e.databasesSchemaStamp()
+	if e.ikiStamp == stamp && e.ikiCtx == def.Ctx && e.ikiName == def.Name {
+		return e.ikiVal
+	}
+	ki := IndexKeyInfo(def.SQL, colDefs, lookup)
+	if ki == nil {
+		return nil
+	}
+	e.ikiStamp, e.ikiCtx, e.ikiName, e.ikiVal = stamp, def.Ctx, def.Name, ki
+	return ki
+}
+
 // ikiOrder is installIndexOrder's memoizing form: same installed comparator,
 // but the KeyInfo of the last index write is reused. It is the per-index-cell
 // write path's hot call — the R14 profile put the CREATE INDEX re-parse at
@@ -60,17 +77,11 @@ func installIndexOrder(tree *btree.BTree, indexSQL string, colDefs []sql.ColumnD
 // bounds the lifetime: a DROP/CREATE of any index in any database retires the
 // entry.
 func (e *DMLExecutor) ikiOrder(tree *btree.BTree, def indexDef, colDefs []sql.ColumnDef, lookup func(string) func(a, b string) int) {
-	stamp := e.databasesSchemaStamp()
-	if e.ikiStamp == stamp && e.ikiCtx == def.Ctx && e.ikiName == def.Name {
-		tree.SetIndexKeyInfo(e.ikiVal, indexOrderLookup(lookup))
-		return
-	}
-	ki := IndexKeyInfo(def.SQL, colDefs, lookup)
+	ki := e.ikiKeyInfo(def, colDefs, lookup)
 	if ki == nil {
 		return
 	}
 	tree.SetIndexKeyInfo(ki, indexOrderLookup(lookup))
-	e.ikiStamp, e.ikiCtx, e.ikiName, e.ikiVal = stamp, def.Ctx, def.Name, ki
 }
 
 // indexOrderLookup adapts the collation registry to btree's CollationLookup

@@ -672,13 +672,13 @@ func (e *DMLExecutor) indexHasConflictingKey(tableName, indexName string, colDef
 	if def == nil || def.RootPage == 0 {
 		return false, true
 	}
-	ki := IndexKeyInfo(def.SQL, colDefs, e.collationLookup())
+	ki := e.ikiKeyInfo(*def, colDefs, e.collationLookup())
 	if ki == nil {
 		return false, true
 	}
 	tree := btree.NewBTree(def.Ctx.Pager, def.RootPage, false)
 	defer tree.Close()
-	installIndexOrder(tree, def.SQL, colDefs, e.collationLookup())
+	e.ikiOrder(tree, *def, colDefs, e.collationLookup())
 	cursor, err := tree.OpenCursorAtRoot()
 	if err != nil {
 		return false, true
