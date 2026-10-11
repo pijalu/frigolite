@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/pijalu/frigolite/internal/btree"
 	"github.com/pijalu/frigolite/internal/execquery"
 	"github.com/pijalu/frigolite/internal/pager"
 	"github.com/pijalu/frigolite/internal/schema"
@@ -620,6 +621,15 @@ func (e *DMLExecutor) checkUniqueIndexExcluding(tableEntry *schema.Entry, colDef
 		}
 		key[i] = kv
 	}
+	// Fast verdict: the index b-tree itself answers "is an equal entry
+	// already present" with one seek. A negative answer makes the O(table)
+	// scan below unreachable — that scan is what made bulk INSERTs into a
+	// UNIQUE-indexed table quadratic. On a positive (or unavailable) answer the
+	// scan runs unchanged, so conflict semantics — partial-index predicate,
+	// excludeCell, NULL-never-conflicts, error text — stay exactly as before.
+	if conflict, fallback := e.indexHasConflictingKey(tableEntry.Name, def.Name, colDefs, key); !conflict && !fallback {
+		return nil
+	}
 	cell, _, _ := e.scanTableForMatch(tableEntry, func(rc *storage.Record, cl *storage.Cell) bool {
 		if excludeCell(rc, cl) {
 			return false
@@ -630,6 +640,54 @@ func (e *DMLExecutor) checkUniqueIndexExcluding(tableEntry *schema.Entry, colDef
 		return nil
 	}
 	return uniqueIndexConflictError(tableEntry, colIndex, def, idxCols)
+}
+
+// indexHasConflictingKey reports whether the UNIQUE index named def.Name
+// already holds an entry whose key fields equal key, using an index seek
+// (sqlite3BtreeIndexMoveto: the position of an equal entry answers the
+// question in O(log n) comparisons, there is no table walk to perform).
+//
+// A false verdict is definitive: the index holds no equal entry, so no row can
+// conflict on it. A true verdict is only a CANDIDATE — the caller then runs
+// its authoritative table scan, which still applies the partial-index
+// predicate, the excludeCell rule (UPSERT DO UPDATE must not conflict with
+// itself) and the exact conflict error. That keeps every observable
+// difference (error text, NULL-never-conflicts, expression keys) exactly where
+// it was, and turns the common case — no conflict — into one seek.
+//
+// errFallback is true when the verdict is unavailable (no index b-tree, no
+// parsed KeyInfo, seek error) and the caller must scan without the shortcut.
+func (e *DMLExecutor) indexHasConflictingKey(tableName, indexName string, colDefs []sql.ColumnDef, key []interface{}) (conflict bool, errFallback bool) {
+	if len(key) == 0 {
+		return false, true
+	}
+	var def *indexDef
+	for _, cand := range e.allTableIndexes(tableName) {
+		if cand.Name == indexName {
+			c := cand
+			def = &c
+			break
+		}
+	}
+	if def == nil || def.RootPage == 0 {
+		return false, true
+	}
+	ki := IndexKeyInfo(def.SQL, colDefs, e.collationLookup())
+	if ki == nil {
+		return false, true
+	}
+	tree := btree.NewBTree(def.Ctx.Pager, def.RootPage, false)
+	defer tree.Close()
+	installIndexOrder(tree, def.SQL, colDefs, e.collationLookup())
+	cursor, err := tree.OpenCursorAtRoot()
+	if err != nil {
+		return false, true
+	}
+	found, err := cursor.SeekIndexKey(btree.NewUnpackedIndexKey(ki, key))
+	if err != nil {
+		return false, true
+	}
+	return found, false
 }
 
 // uniqueIndexConflictError builds the SQLite-style UNIQUE conflict message for

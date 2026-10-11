@@ -551,14 +551,8 @@ func (e *DMLExecutor) applyUpdateChanges(tableName string, rootPage uint32, chan
 	// was written by the Step-0 in-place pass, the predicate excludes all
 	// their rowids and can match nothing — skip the O(table) sweep entirely.
 	if len(inPlace) != len(toUpdate) {
-		_, delErr := tree.DeleteCellsWhere(func(cell *storage.Cell) bool {
-			if wrEntry != nil {
-				return wrCellMatchesOldKey(cell, wrOldKeys, wrEntry, e.ctx)
-			}
-			return toUpdate[cell.RowID] && !inPlace[cell.RowID]
-		})
-		if delErr != nil {
-			return &Result{Error: delErr}
+		if res := e.deleteUpdatedTableRows(tree, toUpdate, inPlace, changes, wrEntry, wrOldKeys); res != nil {
+			return res
 		}
 		e.ctx.InvalidateRowIDCache(e.dmlPager(tableName), rootPage)
 	}
@@ -584,14 +578,7 @@ func (e *DMLExecutor) applyUpdateChanges(tableName string, rootPage uint32, chan
 }
 
 // rowidsToUpdate builds the set of rowids the changes rewrite.
-func rowidsToUpdate(changes []updateChange) map[int64]bool {
-	toUpdate := make(map[int64]bool, len(changes))
-	for _, c := range changes {
-		toUpdate[c.rowID] = true
-	}
-	return toUpdate
-}
-
+// reinsertUpdatedRows writes every non-in-place change back to the tree and
 // reinsertUpdatedRows writes every non-in-place change back to the tree and
 // fires its preupdate hook (applyUpdateChanges Step 2). Changes already
 // written by the Step-0 in-place pass (preupdate hook included there) are
